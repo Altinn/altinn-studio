@@ -71,7 +71,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
               <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
               <title>{{org}} - {{app}}</title>
               <link rel="icon" href="https://altinncdn.no/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.css">
+              <link rel="stylesheet" type="text/css" href="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.css" crossorigin="anonymous">
             {{externalStylesheets}}{{customCssLinks}}</head>
             <body>
               <div id="root"></div>
