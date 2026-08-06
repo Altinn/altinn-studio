@@ -153,7 +153,7 @@ internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
             return instance;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 
     private async Task<string> GetOrganizationToken()

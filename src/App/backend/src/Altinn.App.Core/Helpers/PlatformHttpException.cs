@@ -1,45 +1,92 @@
+using System.Net;
 using Altinn.App.Core.Exceptions;
 
 namespace Altinn.App.Core.Helpers;
 
 /// <summary>
-/// Exception class to hold exceptions when talking to the platform REST services
+/// Exception thrown when a call to one of the Altinn Platform REST services fails.
 /// </summary>
 public class PlatformHttpException : AltinnException
 {
     /// <summary>
-    /// Responsible for holding an http request exception towards platform (storage).
+    /// An immutable snapshot of the failed response.
     /// </summary>
-    public HttpResponseMessage Response { get; }
+    /// <remarks>
+    /// This is a snapshot, not a live <see cref="HttpResponseMessage"/>: the body has already been read
+    /// and bounded, and sensitive headers are redacted. It stays valid for the lifetime of the exception.
+    /// </remarks>
+    public PlatformHttpResponse Response { get; }
 
     /// <summary>
-    /// Create a new <see cref="PlatformHttpException"/> by reading the <see cref="HttpResponseMessage"/>
-    /// content asynchronously.
+    /// The HTTP status code of the failed response. Shorthand for <c>Response.StatusCode</c>.
     /// </summary>
-    /// <param name="response">The <see cref="HttpResponseMessage"/> to read.</param>
-    /// <returns>A new <see cref="PlatformHttpException"/>.</returns>
-    public static async Task<PlatformHttpException> CreateAsync(HttpResponseMessage response)
-    {
-        string content = await response.Content.ReadAsStringAsync();
-        string message = $"{(int)response.StatusCode} - {response.ReasonPhrase} - {content}";
-
-        return new PlatformHttpException(response, message);
-    }
+    public HttpStatusCode StatusCode => Response.StatusCode;
 
     /// <summary>
-    /// Copy the response for further investigations
+    /// Creates a new <see cref="PlatformHttpException"/> from an existing response snapshot.
     /// </summary>
-    /// <param name="response">the response</param>
+    /// <param name="response">A snapshot of the failed response.</param>
     /// <param name="message">A description of the cause of the exception.</param>
-    public PlatformHttpException(HttpResponseMessage response, string message)
-        : base(message)
-    {
-        Response = response;
-    }
-
-    internal PlatformHttpException(HttpResponseMessage response, string message, Exception? innerException)
+    /// <param name="innerException">The exception that caused this one, if any.</param>
+    public PlatformHttpException(PlatformHttpResponse response, string message, Exception? innerException = null)
         : base(message, innerException)
     {
+        ArgumentNullException.ThrowIfNull(response);
         Response = response;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="PlatformHttpException"/> by snapshotting <paramref name="response"/>,
+    /// deriving the message from its status, reason phrase and body.
+    /// </summary>
+    /// <remarks>
+    /// <b>Takes ownership of <paramref name="response"/> and disposes it.</b> The body is read first, with
+    /// a bounded streaming read, so the resulting exception carries the diagnostic content without holding
+    /// the connection open. Do not use <paramref name="response"/> afterwards.
+    /// </remarks>
+    /// <param name="response">The failed response. Disposed before this method returns.</param>
+    /// <param name="cancellationToken">Cancels reading the response body.</param>
+    public static Task<PlatformHttpException> Create(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken = default
+    ) => CreateCore(response, message: null, innerException: null, cancellationToken);
+
+    /// <summary>
+    /// Creates a new <see cref="PlatformHttpException"/> by snapshotting <paramref name="response"/>, using
+    /// the supplied message.
+    /// </summary>
+    /// <remarks>
+    /// <b>Takes ownership of <paramref name="response"/> and disposes it.</b> See
+    /// <see cref="Create(HttpResponseMessage, CancellationToken)"/>.
+    /// </remarks>
+    /// <param name="response">The failed response. Disposed before this method returns.</param>
+    /// <param name="message">A description of the cause of the exception.</param>
+    /// <param name="innerException">The exception that caused this one, if any.</param>
+    /// <param name="cancellationToken">Cancels reading the response body.</param>
+    public static Task<PlatformHttpException> Create(
+        HttpResponseMessage response,
+        string message,
+        Exception? innerException = null,
+        CancellationToken cancellationToken = default
+    ) => CreateCore(response, message, innerException, cancellationToken);
+
+    private static async Task<PlatformHttpException> CreateCore(
+        HttpResponseMessage response,
+        string? message,
+        Exception? innerException,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentNullException.ThrowIfNull(response);
+
+        try
+        {
+            PlatformHttpResponse snapshot = await PlatformHttpResponse.Snapshot(response, cancellationToken);
+            return new PlatformHttpException(snapshot, message ?? snapshot.BuildMessage(), innerException);
+        }
+        finally
+        {
+            response.Dispose();
+        }
     }
 }

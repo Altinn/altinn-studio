@@ -55,7 +55,7 @@ internal sealed class InstanceLockClient(
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await PlatformHttpResponseSnapshotException.CreateAndDisposeHttpResponse(response, cancellationToken);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
 
         string? lockToken = null;
@@ -73,9 +73,10 @@ internal sealed class InstanceLockClient(
 
         if (string.IsNullOrEmpty(lockToken))
         {
-            throw PlatformHttpResponseSnapshotException.Create(
-                "The response from the lock acquisition endpoint was not expected.",
-                response
+            // The body has already been consumed above, so snapshot the metadata only.
+            throw new PlatformHttpException(
+                PlatformHttpResponse.FromHttpResponse(response),
+                "The response from the lock acquisition endpoint was not expected."
             );
         }
 
@@ -110,7 +111,7 @@ internal sealed class InstanceLockClient(
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await PlatformHttpResponseSnapshotException.CreateAndDisposeHttpResponse(response, cancellationToken);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
     }
 
