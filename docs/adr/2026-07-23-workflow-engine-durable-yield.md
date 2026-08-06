@@ -104,7 +104,15 @@ alert for a non-error condition.
   literals (the wire identity — renaming the work method never moves it); stages share state
   through the instance data mutator, saved on stage completion — no new handoff channel.
   eFormidling in v9 migrates onto this as a send stage plus a polling `Finally`, idempotent per
-  #18888.
+  #18888. **Shipped as designed:** `EFormidlingServiceTask` composes
+  `Stage("SendShipment", …).Finally(AwaitDelivery)` with a 24-hour `WaitBudget`, and the poll ends the
+  wait itself on its final check so the failure names what never arrived rather than reporting a
+  generic expiry. Two details the design did not anticipate, both consequences of the split rather
+  than departures from it: the delivery judgement became a method on `IEFormidlingService`
+  (`GetEFormidlingShipmentStatus`), so an app that replaces the send also owns what counts as
+  delivered; and the wait budget is deliberately unrelated to the shipment's own
+  `ExpectedResponseDateTime` (2 hours), which tells the recipient when a *business response* is
+  expected and never bounded our wait for delivery to be confirmed at all.
 - **Durable business evidence lives in instance data, app-side.** What a stage learns is ordinary
   instance data, saved on its completion through the lock-holding save path. Storing it
   engine-side is rejected: that would make the engine's database a second source of business
@@ -118,7 +126,7 @@ alert for a non-error condition.
 - The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer`, the
   `ProcessStepOptions.WaitBudget` that bounds it, and the pipeline surface. Shipping the budget
   alone would release a public, binary-compatible-forever knob configuring a wait no app could
-  request. Migrating eFormidling is the next phase.
+  request. Migrating eFormidling followed as its own phase.
 - **Deferral is stateless.** A deferring attempt saves nothing: the app echoes the incoming state
   blob back unchanged and rejects (non-retryable) a deferring handler that modified instance data,
   so every re-check starts from exactly the state the step first received. A stage that
