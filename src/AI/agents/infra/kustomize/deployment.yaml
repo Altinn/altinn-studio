@@ -54,10 +54,22 @@ spec:
                   name: altinn-altinity-agents-secret
                   key: LANGFUSE_PUBLIC_KEY
             - name: LANGFUSE_BASE_URL
-              value: "https://langfuse.digdir.cloud"
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: LANGFUSE_BASE_URL
             - name: LANGFUSE_ENABLED
-              value: "true"
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: LANGFUSE_ENABLED
             - name: LANGFUSE_ENVIRONMENT
-              value: "development"
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: LANGFUSE_ENVIRONMENT
             - name: LANGFUSE_RELEASE
-              value: "altinity-agents-v1"
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: LANGFUSE_RELEASE
