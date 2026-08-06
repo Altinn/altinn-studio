@@ -125,6 +125,9 @@ func TestParseRunFlagsUsesProcessMode(t *testing.T) {
 	if !flags.randomHostPort {
 		t.Fatal("randomHostPort = false, want true")
 	}
+	if flags.startupTimeout != 30*time.Second {
+		t.Fatalf("startupTimeout = %s, want 30s", flags.startupTimeout)
+	}
 }
 
 func TestParseRunFlagsCanDisableRandomHostPort(t *testing.T) {
