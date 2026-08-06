@@ -121,14 +121,8 @@ namespace Altinn.App.Core.EFormidling
 {
     public static class EformidlingConstants
     {
-        public const string CheckInstanceStatusEventType = "app.eformidling.reminder.checkinstancestatus";
         public const string ShipmentOwnerWorkflowIdDataValueKey = "eFormidlingShipmentWorkflowId";
-    }
-    public class EformidlingStartup : Microsoft.Extensions.Hosting.IHostedService
-    {
-        public EformidlingStartup(Altinn.App.Core.Models.AppIdentifier appId, Altinn.App.Core.Internal.Events.IEventsSubscription eventsSubscriptionClient, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.EformidlingStartup> logger) { }
-        public System.Threading.Tasks.Task StartAsync(System.Threading.CancellationToken cancellationToken) { }
-        public System.Threading.Tasks.Task StopAsync(System.Threading.CancellationToken cancellationToken) { }
+        public const string ShipmentStatusDataValueKey = "eFormidlingShipmentStatus";
     }
 }
 namespace Altinn.App.Core.EFormidling.Extensions
@@ -151,7 +145,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
     }
     public class DefaultEFormidlingService : Altinn.App.Core.EFormidling.Interface.IEFormidlingService
     {
-        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
+        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
         public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
     }

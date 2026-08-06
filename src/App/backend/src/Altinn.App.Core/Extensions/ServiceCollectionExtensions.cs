@@ -398,7 +398,7 @@ public static class ServiceCollectionExtensions
 
         // Service tasks
         services.AddTransient<IServiceTask, PdfServiceTask>();
-        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
     }
 

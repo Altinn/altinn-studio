@@ -8,7 +8,6 @@ using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
@@ -35,7 +34,6 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly PlatformSettings? _platformSettings;
     private readonly IEFormidlingClient? _eFormidlingClient;
     private readonly IAppMetadata _appMetadata;
-    private readonly IEventsClient _eventClient;
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
@@ -45,7 +43,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         ILogger<DefaultEFormidlingService> logger,
         IUserTokenProvider userTokenProvider,
         IAppMetadata appMetadata,
-        IEventsClient eventClient,
         IServiceProvider sp,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
@@ -60,7 +57,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         _userTokenProvider = userTokenProvider;
         _eFormidlingClient = eFormidlingClient;
         _appMetadata = appMetadata;
-        _eventClient = eventClient;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
     }
 
@@ -164,7 +160,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         try
         {
             await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
-            _ = await _eventClient.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance);
         }
         catch
         {

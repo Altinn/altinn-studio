@@ -272,11 +272,11 @@ public class DefaultEFormidlingServiceTests
         );
 
         eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
-        fixture
-            .Mock<IEventsClient>()
-            .Verify(e => e.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance, null));
 
         eFormidlingClient.VerifyNoOtherCalls();
+
+        // The send publishes nothing. It used to post a reminder CloudEvent to the app itself, whose
+        // webhook then checked the delivery status; the service task's delivery wait replaced it.
         fixture.Mock<IEventsClient>().VerifyNoOtherCalls();
         fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
         fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
