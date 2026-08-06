@@ -55,7 +55,7 @@ internal sealed class ExecuteServiceTask(AppImplementationFactory appImplementat
                 CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
                 StepId = context.Payload.StepId,
-                ExecutionReferenceTime = context.ExecutionReferenceTime,
+                ExecutionReferenceTime = context.Payload.ExecutionReferenceTime,
                 Attempt = new ServiceTaskAttempt
                 {
                     RetryCount = context.Payload.RetryCount,

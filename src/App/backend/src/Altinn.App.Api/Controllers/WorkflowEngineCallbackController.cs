@@ -140,7 +140,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
-                ExecutionReferenceTime = payload.ExecutionReferenceTime,
             }
         );
 

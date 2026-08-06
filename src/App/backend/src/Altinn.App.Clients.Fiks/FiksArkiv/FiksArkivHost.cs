@@ -112,6 +112,12 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         CancellationToken cancellationToken = default
     )
     {
+        using Activity? mainActivity = _telemetry?.StartGenerateAndSendFiksActivity(
+            taskId,
+            dataMutator.Instance,
+            messageType
+        );
+
         (FiksIOMessageRequest request, ReadOnlyMemory<byte> archiveRecordData) = await CreateMessageRequest(
             taskId,
             messageType,
@@ -122,7 +128,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         );
 
         SaveArchiveRecord(dataMutator, request, archiveRecordData, taskId);
-        return await SendMessage(request, taskId, dataMutator.Instance, cancellationToken);
+        return await SendMessage(request, dataMutator.Instance, cancellationToken);
     }
 
     private async Task<(FiksIOMessageRequest Request, ReadOnlyMemory<byte> ArchiveRecordData)> CreateMessageRequest(
@@ -173,17 +179,11 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 
     private async Task<FiksIOMessageResponse> SendMessage(
         FiksIOMessageRequest request,
-        string taskId,
         Instance instance,
         CancellationToken cancellationToken
     )
     {
         _logger.LogInformation("Sending Fiks Arkiv message for instance {InstanceId}", instance.Id);
-        using Activity? mainActivity = _telemetry?.StartGenerateAndSendFiksActivity(
-            taskId,
-            instance,
-            request.MessageType
-        );
 
         FiksIOMessageResponse response = await _fiksIOClient.SendMessage(request, cancellationToken);
         _logger.LogInformation("Fiks Arkiv responded with message ID {MessageId}", response.MessageId);

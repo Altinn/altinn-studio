@@ -12,5 +12,4 @@ internal struct ProcessEngineCommandContext
     public IInstanceDataMutator InstanceDataMutator { get; init; }
     public CancellationToken CancellationToken { get; init; }
     public AppCallbackPayload Payload { get; init; }
-    public DateTimeOffset ExecutionReferenceTime { get; init; }
 }
