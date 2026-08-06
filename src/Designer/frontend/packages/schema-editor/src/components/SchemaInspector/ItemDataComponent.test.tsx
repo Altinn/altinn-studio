@@ -7,6 +7,8 @@ import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
   combinationNodeMock,
+  objectNodeMock,
+  stringDefinitionNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
@@ -115,6 +117,29 @@ describe('ItemDataComponent', () => {
   it('Renders custom properties section if there are custom properties', async () => {
     renderItemDataComponent(nodeWithCustomPropsMock);
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
+  });
+
+  it('Renders the prefill section for a value-type field', async () => {
+    renderItemDataComponent(fieldNode1Mock);
+    expect(
+      await screen.findByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).toBeInTheDocument();
+  });
+
+  it('Does not render the prefill section for an object-type field', async () => {
+    renderItemDataComponent(objectNodeMock);
+    await screen.findByText(textMock('schema_editor.title'));
+    expect(
+      screen.queryByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('Does not render the prefill section for a type definition field', async () => {
+    renderItemDataComponent(stringDefinitionNodeMock);
+    await screen.findByText(textMock('schema_editor.title'));
+    expect(
+      screen.queryByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).not.toBeInTheDocument();
   });
 
   test('Does not render an error message when there is no change in text', async () => {

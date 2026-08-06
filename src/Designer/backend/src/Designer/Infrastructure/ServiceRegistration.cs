@@ -50,6 +50,7 @@ public static class ServiceRegistration
     {
         services.AddTransient<IRepository, RepositoryService>();
         services.AddTransient<ISchemaModelService, SchemaModelService>();
+        services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
 

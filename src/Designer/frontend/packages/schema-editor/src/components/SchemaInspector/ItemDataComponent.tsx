@@ -28,6 +28,7 @@ import {
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
+import { PrefillSection } from '@altinn/schema-editor/components/SchemaInspector/PrefillSection/PrefillSection';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { StudioTextarea, StudioSelect, StudioTextfield } from '@studio/components';
@@ -113,6 +114,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
 
+  const isPrefillableField =
+    isField(schemaNode) &&
+    !schemaNode.isArray &&
+    !pointerIsDefinition(schemaPointer) &&
+    schemaNode.fieldType !== FieldType.Object &&
+    schemaNode.fieldType !== FieldType.Null;
+
   const titleId = makeDomFriendlyID(schemaPointer, { suffix: 'title' });
   const descriptionId = makeDomFriendlyID(schemaPointer, { suffix: 'description' });
 
@@ -171,6 +179,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </Switch>
           )}
           <ItemRestrictions schemaNode={schemaNode} />
+          {isPrefillableField && <PrefillSection schemaPointer={schemaPointer} />}
         </>
       )}
       {hasCustomProps && <CustomProperties path={schemaPointer} />}
