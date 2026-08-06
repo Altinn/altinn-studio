@@ -166,8 +166,8 @@ describe('complexToSimpleExpression', () => {
   );
 
   it('Throws an error if the expression does not satisfy the conditions for a simple expression', () => {
-    const unConvertableExpression: Expression = ['startsWith', 'test', 'test'];
-    expect(() => complexToSimpleExpression(unConvertableExpression)).toThrow(
+    const unConvertibleExpression: Expression = ['startsWith', 'test', 'test'];
+    expect(() => complexToSimpleExpression(unConvertibleExpression)).toThrow(
       'Expression is not simple.',
     );
   });

@@ -21,7 +21,7 @@ const INITIAL_TEXT_KEY: string = `${PAGE_1}.${COMPONENT_ID}.title`;
 const UPDATED_TEXT_KEY: string = `${INITIAL_TEXT_KEY}-new`;
 const TEXT_VALUE_IN_TEXTAREA: string = 'textValue';
 
-// This line must be there to ensure that the tests do not run in parallell, and
+// This line must be there to ensure that the tests do not run in parallel, and
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
 

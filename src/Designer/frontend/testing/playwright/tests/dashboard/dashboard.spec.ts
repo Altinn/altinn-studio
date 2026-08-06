@@ -44,17 +44,17 @@ const setupAndVerifyDashboardPage = async (
   return dashboardPage;
 };
 
-test('It is possible to view apps, and add and remove from favourites', async ({
+test('It is possible to view apps, and add and remove from favorites', async ({
   page,
   testAppName,
 }) => {
   const dashboardPage = await setupAndVerifyDashboardPage(page, testAppName);
 
-  await dashboardPage.checkThatThereIsNoFavouriteAppInList(testAppName);
-  await dashboardPage.clickOnFavouriteApplication(testAppName);
-  await dashboardPage.checkThatThereIsFavouriteAppInList(testAppName);
-  await dashboardPage.clickOnUnFavouriteApplicatin(testAppName);
-  await dashboardPage.checkThatThereIsNoFavouriteAppInList(testAppName);
+  await dashboardPage.checkThatThereIsNoFavoriteAppInList(testAppName);
+  await dashboardPage.clickOnFavoriteApplication(testAppName);
+  await dashboardPage.checkThatThereIsFavoriteAppInList(testAppName);
+  await dashboardPage.clickOnUnFavoriteApplication(testAppName);
+  await dashboardPage.checkThatThereIsNoFavoriteAppInList(testAppName);
 });
 
 test('It is possible to change context and view all apps', async ({ page, testAppName }) => {

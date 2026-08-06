@@ -63,7 +63,7 @@ describe('StudioDecimalInput', () => {
     expect(screen.queryByText('validation_errors.numbers_only')).not.toBeInTheDocument();
   });
 
-  it('should show error message when input is charachter and user clicks outside the field', async () => {
+  it('should show error message when input is character and user clicks outside the field', async () => {
     const user = userEvent.setup();
     renderDecimalInput();
     const inputElement = screen.getByRole('textbox');
@@ -143,7 +143,7 @@ describe('StudioDecimalInput', () => {
     expect(inputElement).toHaveValue('123');
   });
 
-  it('should show error message when typing special charachter after number', async () => {
+  it('should show error message when typing special character after number', async () => {
     const user = userEvent.setup();
     renderDecimalInput();
     const inputElement = screen.getByRole('textbox');

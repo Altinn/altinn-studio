@@ -56,7 +56,7 @@ export const getUpdatedGroupsExcludingPage = ({
     : groups.filter((_, index) => index !== groupIndex);
 };
 
-type GetUpdatedGroupExludingPageProps = {
+type GetUpdatedGroupExcludingPageProps = {
   group: GroupModel;
   pageId: string;
 };
@@ -64,7 +64,7 @@ type GetUpdatedGroupExludingPageProps = {
 const excludePageFromGroup = ({
   group,
   pageId,
-}: GetUpdatedGroupExludingPageProps): GroupModel | undefined => {
+}: GetUpdatedGroupExcludingPageProps): GroupModel | undefined => {
   const filteredOrder = group.order.filter((page) => page.id !== pageId);
 
   if (filteredOrder.length === 0) return undefined;

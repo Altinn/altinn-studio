@@ -12,7 +12,7 @@ import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import { SettingsPage } from '../../pages/SettingsPage';
 
-// This line must be there to ensure that the tests do not run in parallell, and
+// This line must be there to ensure that the tests do not run in parallel, and
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
 

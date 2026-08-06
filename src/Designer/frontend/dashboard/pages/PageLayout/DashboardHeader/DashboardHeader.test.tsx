@@ -273,19 +273,19 @@ describe('DashboardHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('Renders the Git header when in the organisation library and no element type is given', () => {
+  it('Renders the Git header when in the organization library and no element type is given', () => {
     renderDashboardHeaderForLibrary();
     const giteaMenuButtonName = textMock('sync_header.gitea_menu');
     expect(screen.getByRole('button', { name: giteaMenuButtonName })).toBeInTheDocument();
   });
 
-  it('Renders the Git header when in the organisation library and an element type is given', () => {
+  it('Renders the Git header when in the organization library and an element type is given', () => {
     renderDashboardHeaderForLibrary(PageName.CodeLists);
     const giteaMenuButtonName = textMock('sync_header.gitea_menu');
     expect(screen.getByRole('button', { name: giteaMenuButtonName })).toBeInTheDocument();
   });
 
-  it('Does not render the Git header when not in the organisation library', () => {
+  it('Does not render the Git header when not in the organization library', () => {
     renderDashboardHeader({ subroute: Subroute.AppDashboard });
     const giteaMenuButtonName = textMock('sync_header.gitea_menu');
     expect(screen.queryByRole('button', { name: giteaMenuButtonName })).not.toBeInTheDocument();

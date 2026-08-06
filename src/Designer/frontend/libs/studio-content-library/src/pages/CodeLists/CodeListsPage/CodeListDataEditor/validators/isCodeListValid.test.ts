@@ -12,7 +12,7 @@ describe('isCodeListValid', () => {
       {
         value: 'cat',
         label: { nb: 'Katt', en: 'Cat' },
-        description: { nb: 'Egyptisk gud', en: 'Egyptian godess' },
+        description: { nb: 'Egyptisk gud', en: 'Egyptian goddess' },
         helpText: {
           nb: 'Dette er dyret Felis catus fra kattefamilien Felidae',
           en: 'Felis catus from the family Felidae',

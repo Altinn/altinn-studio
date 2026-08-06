@@ -9,7 +9,7 @@ import { useCreateSubform } from '@altinn/ux-editor-v4/hooks/useCreateSubform';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
-import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
+import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModeling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { StudioCard, StudioRecommendedNextAction, StudioTextfield } from '@studio/components';
 import classes from './CreateNewSubformSection.module.css';

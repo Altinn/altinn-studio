@@ -15,7 +15,7 @@
 
 .button[aria-selected='true'] {
   background-color: var(--ds-color-surface-active);
-  border-color: var(--studio-treeitem-vertical-line-colour-root);
+  border-color: var(--studio-treeitem-vertical-line-color-root);
 }
 
 .listItem .listItem .button:not([aria-selected='true']) {

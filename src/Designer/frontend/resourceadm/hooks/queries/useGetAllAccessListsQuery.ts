@@ -7,7 +7,7 @@ import type { AccessList } from 'app-shared/types/ResourceAdm';
 /**
  * Query to get the list of access lists in all environments (without members)
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  *
  * @returns UseQueryResult with a list of all access lists
  */

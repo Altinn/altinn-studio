@@ -17,7 +17,7 @@ import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetN
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries/useAppMetadataQuery';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
-import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
+import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModeling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
 import {
   isSaveButtonDisabled,
   RenderDataModelOptions,

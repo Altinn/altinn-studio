@@ -1,4 +1,4 @@
-export type AvailableAttachementLists = {
+export type AvailableAttachmentLists = {
   attachmentsCurrentTasks: string[];
   attachmentsAllTasks: string[];
 };

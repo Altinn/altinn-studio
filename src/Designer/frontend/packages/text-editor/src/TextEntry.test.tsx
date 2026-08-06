@@ -44,7 +44,7 @@ describe('TextEntry', () => {
     expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
   });
 
-  it('shouls not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
+  it('should not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
     const user = userEvent.setup();
     renderTextEntry();
     const inputText4 = getTextArea();

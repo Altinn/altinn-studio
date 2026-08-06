@@ -73,7 +73,7 @@ describe('App', () => {
   it('should display the apps overview by default', async () => {
     const queryClient = createQueryClientWithUserAndOrg();
     renderApp({ queryClient, queries });
-    expect(getFavouriteAppListHeading()).toBeInTheDocument();
+    expect(getFavoriteAppListHeading()).toBeInTheDocument();
   });
 
   it('should display the library when the user clicks on the library link', async () => {
@@ -96,7 +96,7 @@ describe('App', () => {
     await user.click(
       screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
     );
-    expect(getFavouriteAppListHeading()).toBeInTheDocument();
+    expect(getFavoriteAppListHeading()).toBeInTheDocument();
   });
 });
 
@@ -107,7 +107,7 @@ function renderApp(providerData: ProviderData = {}): RenderResult {
 const querySpinner = (): HTMLElement | null =>
   screen.queryByLabelText(textMock('dashboard.loading'));
 
-const getFavouriteAppListHeading = (): HTMLElement =>
+const getFavoriteAppListHeading = (): HTMLElement =>
   screen.getByRole('heading', { name: textMock('dashboard.favourites') });
 
 const getLibraryHeading = (): HTMLElement =>

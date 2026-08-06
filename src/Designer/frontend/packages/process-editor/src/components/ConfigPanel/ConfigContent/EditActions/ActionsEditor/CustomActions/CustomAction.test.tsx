@@ -26,9 +26,9 @@ describe('CustomActions', () => {
   it('should be possible to add new custom action', async () => {
     const user = userEvent.setup();
 
-    const handeOnActionChangeMock = jest.fn();
+    const handleOnActionChangeMock = jest.fn();
     (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: handeOnActionChangeMock,
+      handleOnActionChange: handleOnActionChangeMock,
     }));
 
     renderCustomAction();
@@ -39,8 +39,8 @@ describe('CustomActions', () => {
 
     const myCustomActionName = 'My custom action';
     await user.type(inputField, myCustomActionName);
-    await waitFor(() => expect(handeOnActionChangeMock).toHaveBeenCalledTimes(1));
-    expect(handeOnActionChangeMock).toHaveBeenCalledWith(
+    await waitFor(() => expect(handleOnActionChangeMock).toHaveBeenCalledTimes(1));
+    expect(handleOnActionChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         target: expect.objectContaining({
           value: myCustomActionName,

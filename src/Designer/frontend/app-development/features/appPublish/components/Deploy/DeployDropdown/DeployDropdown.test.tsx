@@ -146,7 +146,7 @@ describe('DeployDropdown', () => {
     });
   });
 
-  it('shows a loding spinner when mutation is pending', async () => {
+  it('shows a loading spinner when mutation is pending', async () => {
     renderDeployDropdown({ isPending: true });
     await waitForSpinnerToBeRemoved();
 

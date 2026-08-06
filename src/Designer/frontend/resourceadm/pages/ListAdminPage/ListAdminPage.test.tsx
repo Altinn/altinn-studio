@@ -37,7 +37,7 @@ jest.mock('react-router-dom', () => ({
 describe('ListAdminPage', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should navigate to first available enviromnent if no environment is selected', async () => {
+  it('should navigate to first available environment if no environment is selected', async () => {
     (useParams as jest.Mock).mockReturnValue({
       org: 'ttd',
     });

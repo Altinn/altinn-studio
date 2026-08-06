@@ -1,4 +1,4 @@
-import { DataModelling } from './DataModelling';
+import { DataModeling } from './DataModeling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -45,13 +45,13 @@ const render = (
   return rtlRender(
     <TestAppRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <DataModelling />
+        <DataModeling />
       </ServicesContextProvider>
     </TestAppRouter>,
   );
 };
 
-describe('DataModelling', () => {
+describe('DataModeling', () => {
   afterEach(jest.clearAllMocks);
 
   it('fetches models on mount', () => {
@@ -152,7 +152,7 @@ describe('DataModelling', () => {
   });
 
   it.each(['getDataModelsJson', 'getDataModelsXsd'])(
-    'shows an error message if an error occured on the %s query',
+    'shows an error message if an error occurred on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
       render({

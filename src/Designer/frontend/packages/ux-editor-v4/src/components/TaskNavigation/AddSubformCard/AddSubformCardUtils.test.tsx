@@ -70,7 +70,7 @@ describe('isSaveButtonDisabled', () => {
 });
 
 describe('RenderDataModelOptions', () => {
-  it('should render disabeled message "velg datamodelknytning" when dataModelIds is empty', () => {
+  it('should render disabled message "velg datamodelknytning" when dataModelIds is empty', () => {
     render(RenderDataModelOptions([]));
     expect(
       screen.getByRole('option', { name: textMock('ux_editor.task_card.select_data_model') }),

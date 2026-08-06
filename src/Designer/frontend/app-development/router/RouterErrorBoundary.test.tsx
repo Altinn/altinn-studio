@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { ErrorBoundary } from './PageRouterErrorBoundry';
+import { ErrorBoundary } from './PageRouterErrorBoundary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('PageRouterErrorBoundary', () => {

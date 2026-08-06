@@ -56,7 +56,7 @@ describe('filterTableData', () => {
     expect(result).toEqual([dataToFilter[0]]);
   });
 
-  it('Retuns all resources when search string is empty', () => {
+  it('Returns all resources when search string is empty', () => {
     const result = filterTableData('', dataToFilter);
     expect(result).toEqual(dataToFilter);
   });

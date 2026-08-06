@@ -33,9 +33,9 @@ describe('StudioProperty composition', () => {
     renderComposition();
     await openFirstProperty(user);
     const input = screen.getByRole('textbox');
-    const additonalText = 'additional text';
-    await act(() => user.type(input, additonalText));
-    expect(input).toHaveValue(buttons[0].value + additonalText);
+    const additionalText = 'additional text';
+    await act(() => user.type(input, additionalText));
+    expect(input).toHaveValue(buttons[0].value + additionalText);
   });
 });
 

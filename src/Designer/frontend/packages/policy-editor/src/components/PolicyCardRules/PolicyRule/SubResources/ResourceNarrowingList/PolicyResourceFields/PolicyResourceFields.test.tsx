@@ -15,7 +15,7 @@ import {
 } from '../../../../../../../test/mocks/policyRuleContextMock';
 import { mockResource11 } from '../../../../../../../test/mocks/policySubResourceMocks';
 
-const mockValudNewText = '45';
+const mockValueNewText = '45';
 
 const defaultProps: PolicyResourceFieldsProps = {
   resource: mockResource11,
@@ -53,10 +53,10 @@ describe('PolicyResourceFields', () => {
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
-    await user.type(idInput, mockValudNewText);
+    await user.type(idInput, mockValueNewText);
 
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(
-      mockValudNewText.length,
+      mockValueNewText.length,
     );
   });
 
@@ -66,10 +66,10 @@ describe('PolicyResourceFields', () => {
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
-    await user.type(typeInput, mockValudNewText);
+    await user.type(typeInput, mockValueNewText);
 
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(
-      mockValudNewText.length,
+      mockValueNewText.length,
     );
   });
 
@@ -79,7 +79,7 @@ describe('PolicyResourceFields', () => {
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
-    await user.type(typeInput, mockValudNewText);
+    await user.type(typeInput, mockValueNewText);
     await user.tab();
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });

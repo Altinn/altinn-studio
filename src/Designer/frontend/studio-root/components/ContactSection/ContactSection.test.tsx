@@ -17,7 +17,7 @@ describe('ContactSection', () => {
     const props: ContactSectionProps = {
       ...defaultContactSectionProps,
       title: 'Get in touch',
-      description: 'We are helpfull',
+      description: 'We are helpful',
       Icon: SlackIcon,
       link: {
         name: 'Get in touch',

@@ -1,9 +1,9 @@
 :root {
-  --studio-legacy-treeitem-selected-background-colour: var(
+  --studio-legacy-treeitem-selected-background-color: var(
     --fds-semantic-surface-action-first-no_fill-active
   );
-  --studio-legacy-treeitem-vertical-line-colour-root: #000;
-  --studio-legacy-treeitem-vertical-line-colour: var(--fds-semantic-border-divider-default);
+  --studio-legacy-treeitem-vertical-line-color-root: #000;
+  --studio-legacy-treeitem-vertical-line-color: var(--fds-semantic-border-divider-default);
   --studio-legacy-treeitem-vertical-line-width: 2px;
   --studio-legacy-expression-spacing: var(--fds-spacing-3);
   --studio-legacy-property-vertical-gap: var(--fds-spacing-3);

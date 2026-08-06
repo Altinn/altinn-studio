@@ -96,7 +96,7 @@ describe('CreateCustomReceiptFormLegacy', () => {
     expect(mockAddCustomReceipt).not.toHaveBeenCalled();
   });
 
-  it('Displays error when there is just one character present for layouSetId', async () => {
+  it('Displays error when there is just one character present for layoutSetId', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm();
 

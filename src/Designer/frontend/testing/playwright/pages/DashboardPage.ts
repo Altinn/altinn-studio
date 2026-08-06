@@ -29,28 +29,28 @@ export class DashboardPage extends BasePage {
     await this.page.getByRole('link', { name: this.textMock('dashboard.new_service') }).click();
   }
 
-  public async checkThatThereIsNoFavouriteAppInList(appName: string): Promise<void> {
-    // The .first() is added becuase the key is used two places; one in favourite list, and one in all applications list
+  public async checkThatThereIsNoFavoriteAppInList(appName: string): Promise<void> {
+    // The .first() is added because the key is used two places; one in favorite list, and one in all applications list
     await this.page
       .getByRole('button', { name: this.textMock('dashboard.unstar', { appName }), exact: true })
       .first()
       .isHidden();
   }
 
-  public async clickOnFavouriteApplication(appName: string): Promise<void> {
+  public async clickOnFavoriteApplication(appName: string): Promise<void> {
     await this.page
       .getByRole('button', { name: this.textMock('dashboard.star', { appName }), exact: true })
       .click();
   }
 
-  public async checkThatThereIsFavouriteAppInList(appName: string): Promise<void> {
+  public async checkThatThereIsFavoriteAppInList(appName: string): Promise<void> {
     await this.page
       .getByRole('button', { name: this.textMock('dashboard.star', { appName }), exact: true })
       .isVisible();
   }
 
-  public async clickOnUnFavouriteApplicatin(appName: string): Promise<void> {
-    // The .first() is added becuase the key is used two places; one in favourite list, and one in all applications list
+  public async clickOnUnFavoriteApplication(appName: string): Promise<void> {
+    // The .first() is added because the key is used two places; one in favorite list, and one in all applications list
     await this.page
       .getByRole('button', { name: this.textMock('dashboard.unstar', { appName }), exact: true })
       .first()

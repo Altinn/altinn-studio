@@ -131,7 +131,7 @@ describe('TextResourceUtils', () => {
 
       it('Keeps the custom data intact', () => {
         expect(result.get(text2Id)?.customData).toEqual(textResource2.customData);
-        expect(result.get(text3Id)?.otherCutomData).toEqual(textResource3.otherCutomData);
+        expect(result.get(text3Id)?.otherCustomData).toEqual(textResource3.otherCustomData);
       });
 
       it('Is pure', verifyInitialMapIsUnchanged);
