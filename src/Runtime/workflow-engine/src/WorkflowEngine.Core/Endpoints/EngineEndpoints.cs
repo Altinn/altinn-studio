@@ -114,6 +114,27 @@ internal static class EngineEndpoints
                 """
             );
 
+        workflowGroup
+            .MapPost("/{workflowId:guid}/nudge", EngineRequestHandlers.NudgeWorkflow)
+            .WithName("NudgeWorkflow")
+            .WithSummary("Nudge workflow")
+            .WithDescription(
+                """
+                Clears the pending backoff of a parked workflow (Requeued or Waiting) so the processor
+                picks it up on its next cycle instead of when the timer elapses.
+
+                This is the engine's push channel: a step that deferred while awaiting an external
+                outcome can be told the outcome has arrived, turning a scheduled poll into an immediate
+                re-check. It is an accelerator only — the step's own poll cadence remains the source of
+                truth, so a lost nudge costs latency, never correctness. The workflow is re-executed,
+                not skipped: the step runs again and decides for itself whether the outcome is ready.
+
+                202 Accepted when this call cleared a pending backoff, 200 OK when the workflow was
+                already runnable (idempotent replay), 409 Conflict when it is not parked, and
+                404 Not Found when it does not exist.
+                """
+            );
+
         var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
 
         collectionGroup
@@ -402,6 +423,43 @@ internal static class EngineRequestHandlers
                 {
                     Title = "Workflow cannot be abandoned",
                     Detail = $"Workflow {workflowId} is in {r.CurrentStatus} state and cannot be abandoned.",
+                    Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<
+        Results<Accepted<NudgeWorkflowResponse>, Ok<NudgeWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
+    > NudgeWorkflow(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "nudge"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await engine.NudgeWorkflow(workflowId, ns, cancellationToken);
+
+        return result switch
+        {
+            NudgeWorkflowResult.Nudged r => TypedResults.Accepted(
+                (string?)null,
+                new NudgeWorkflowResponse(r.WorkflowId, r.NudgedAt)
+            ),
+            NudgeWorkflowResult.AlreadyRunnable r => TypedResults.Ok(
+                new NudgeWorkflowResponse(r.WorkflowId, NudgedAt: null)
+            ),
+            NudgeWorkflowResult.NotFound => TypedResults.NotFound(),
+            NudgeWorkflowResult.NotParked r => TypedResults.Conflict(
+                new ProblemDetails
+                {
+                    Title = "Workflow cannot be nudged",
+                    Detail =
+                        $"Workflow {workflowId} is in {r.CurrentStatus} state and holds no pending backoff to skip.",
                     Status = StatusCodes.Status409Conflict,
                 }
             ),

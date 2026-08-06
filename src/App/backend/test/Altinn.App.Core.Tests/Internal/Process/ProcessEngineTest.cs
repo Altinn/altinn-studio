@@ -1062,14 +1062,23 @@ public sealed class ProcessEngineTest
             );
     }
 
+    private sealed class FakeServiceTask : IServiceTask
+    {
+        public string Type => "service";
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
     [Fact]
     public async Task Next_DoesNotIssueSecondProcessNext_WhenWorkflowLeavesInstanceAtServiceTask()
     {
-        var serviceTask = new Mock<IServiceTask>();
-        serviceTask.Setup(x => x.Type).Returns("service");
+        // A real class, not a mock: the enqueue path resolves the task's pipeline through the
+        // forwarding Define default, which mocks bypass.
+        IServiceTask serviceTask = new FakeServiceTask();
 
         var services = new ServiceCollection();
-        services.AddSingleton(serviceTask.Object);
+        services.AddSingleton(serviceTask);
 
         await using var fixture = Fixture.Create(services);
         fixture

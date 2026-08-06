@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
@@ -105,6 +106,235 @@ public class WorkflowEngineServiceTests
             c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()),
             Times.Once,
             "the resume path must cascade so dependency-failed auto-advance children are reset alongside the parent"
+        );
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_ParkedWaitingChain_ReleasesEarlyAsCommittedSuccess()
+    {
+        // A chain whose only active workflow is Waiting is parked on a deferring service task and may
+        // stay parked for its whole wait budget. The wait must release with the ordinary success shape
+        // (deferral is post-commit, so the instance already carries the committed target task) instead
+        // of holding the request into the timeout and misreporting a designed wait as a failure.
+        Guid workflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = new Instance();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Waiting,
+                    databaseId: workflowId,
+                    steps:
+                    [
+                        CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed),
+                        CreateStep("ExecuteServiceTask", PersistentItemStatus.Waiting),
+                    ]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 0,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            workflowId,
+            collectionKey,
+            CancellationToken.None
+        );
+
+        Assert.Null(result.WorkflowFailure);
+        Assert.True(result.ProcessStateChanged);
+        client.Verify(
+            c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_ParkedUncommittedChain_FallsThroughToTimeout()
+    {
+        // Defensive guard on the parked release: deferral is post-commit by construction today, but if
+        // a pre-commit step ever learns to defer, the wait must NOT release with a success carrying a
+        // process state that was never persisted — it falls through to the ordinary timeout instead.
+        Guid workflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = new Instance();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Waiting,
+                    databaseId: workflowId,
+                    steps: [CreateStep("SomePreCommitStep", PersistentItemStatus.Waiting)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 0,
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            workflowId,
+            collectionKey,
+            CancellationToken.None
+        );
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
+        Assert.False(result.ProcessStateChanged);
+    }
+
+    [Fact]
+    public async Task ResumeAndWaitForWorkflow_ParkedWithinGrace_SettlesNormallyWithoutEarlyRelease()
+    {
+        // The grace window exists so a task deferring for a couple of seconds still completes
+        // synchronously: while it is open, a parked observation must not trigger the chain fetch or
+        // the early release — the wait keeps polling and takes the ordinary settled path.
+        Guid workflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        var instance = new Instance();
+        int collectionCalls = 0;
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+                CreateCollection(
+                    collectionKey,
+                    workflowId,
+                    ++collectionCalls == 1 ? PersistentItemStatus.Waiting : PersistentItemStatus.Completed
+                )
+            );
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Completed,
+                    databaseId: workflowId,
+                    steps: [CreateStep(SaveProcessStateToStorage.Key, PersistentItemStatus.Completed)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 60_000,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            workflowId,
+            collectionKey,
+            CancellationToken.None
+        );
+
+        Assert.Null(result.WorkflowFailure);
+        Assert.True(result.ProcessStateChanged);
+        // The chain was fetched only by the settled path — never while parked inside the grace window.
+        client.Verify(
+            c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
         );
     }
 
@@ -447,6 +677,66 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResolveWorkflowTaskStatus_WhenHeadIsWaiting_ReturnsProcessingWithWaitingReason()
+    {
+        // A Waiting head is a step that deferred while polling for an external outcome. The work is
+        // still in flight, so it must read as Processing (never idle) — but nothing failed, so it is
+        // deliberately not flagged Retrying. Its hint is waitingReason: the deferring task's own
+        // words, passed through from the collection head to the annotation.
+        Guid headId = Guid.NewGuid();
+        Guid instanceGuid = Guid.NewGuid();
+        string collectionKey = instanceGuid.ToString();
+        var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = collectionKey,
+                    Namespace = Namespace,
+                    Heads =
+                    [
+                        new CollectionHeadStatus
+                        {
+                            DatabaseId = headId,
+                            Status = PersistentItemStatus.Waiting,
+                            Labels = new Dictionary<string, string>(StringComparer.Ordinal)
+                            {
+                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
+                                [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
+                            },
+                            StepsCompleted = 4,
+                            StepsTotal = 9,
+                            WaitingReason = "shipment sent, awaiting delivery receipt",
+                        },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            Mock.Of<IInstanceClient>(),
+            new AppIdentifier(Org, App)
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+
+        Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
+        Assert.Equal("Task_2", result.TargetTask);
+        Assert.False(result.Retrying);
+        Assert.Null(result.Failure);
+        Assert.Equal(new WorkflowStepProgress(Completed: 4, Total: 9), result.Progress);
+        Assert.Equal("shipment sent, awaiting delivery receipt", result.WaitingReason);
+        Assert.Equal("shipment sent, awaiting delivery receipt", result.ToAppProcessWorkflowStatus().WaitingReason);
+        client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
+        client.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task ResolveWorkflowTaskStatus_WhenHeadIsFailed_ReturnsFailedWithFailureDetail()
     {
         // A resume-required head (Failed/Canceled/DependencyFailed) surfaces as Failed with the
@@ -582,6 +872,29 @@ public class WorkflowEngineServiceTests
             {
                 CurrentTask = new ProcessElementInfo { ElementId = elementId, Flow = 0 },
             },
+        };
+
+    private static WorkflowCollectionDetailResponse CreateCollection(
+        string collectionKey,
+        Guid headId,
+        PersistentItemStatus headStatus
+    ) =>
+        new()
+        {
+            Key = collectionKey,
+            Namespace = Namespace,
+            Heads = [new CollectionHeadStatus { DatabaseId = headId, Status = headStatus }],
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+
+    private static StepStatusResponse CreateStep(string operationId, PersistentItemStatus status) =>
+        new()
+        {
+            OperationId = operationId,
+            ProcessingOrder = 0,
+            Command = new StepStatusResponse.CommandDetails { Type = "app" },
+            Status = status,
+            RetryCount = 0,
         };
 
     private static WorkflowStatusResponse CreateWorkflowStatus(

@@ -17,6 +17,23 @@ internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineComman
     public string? AutoAdvanceAction { get; init; }
 }
 
+/// <summary>
+/// The command ran without error, but the outcome it awaits is not available yet. The controller saves
+/// data and re-signs state as it would for a success, but must not auto-advance the process.
+/// </summary>
+internal sealed class DeferredProcessEngineCommandResult : ProcessEngineCommandResult
+{
+    /// <summary>
+    /// How long the engine should wait before executing the command again.
+    /// </summary>
+    public required TimeSpan Delay { get; init; }
+
+    /// <summary>
+    /// Optional description of what is being waited for, forwarded to the engine log.
+    /// </summary>
+    public string? Reason { get; init; }
+}
+
 internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandResult
 {
     public readonly string ErrorMessage;

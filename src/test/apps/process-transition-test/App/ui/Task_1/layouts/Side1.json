@@ -66,8 +66,24 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "preCommit"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "postCommit"
+          ]
         ],
         "options": [
           {
@@ -108,8 +124,24 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "preCommit"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "postCommit"
+          ]
         ],
         "options": [
           {
@@ -146,8 +178,24 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "preCommit"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "postCommit"
+          ]
         ],
         "options": [
           {
@@ -161,6 +209,10 @@
           {
             "value": "failureThenSuccess",
             "label": "endState.failureThenSuccess"
+          },
+          {
+            "value": "waitExpired",
+            "label": "endState.waitExpired"
           }
         ],
         "textResourceBindings": {
@@ -178,7 +230,15 @@
         "id": "advance",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
-        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
         "options": [
           {
             "value": "auto",
@@ -208,7 +268,15 @@
         "id": "serviceView",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
-        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
         "options": [
           {
             "value": "default",
@@ -222,6 +290,78 @@
         "textResourceBindings": {
           "title": "serviceView.title",
           "help": "serviceView.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "deferrals",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "deferrals",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
+        "options": [
+          {
+            "value": "0",
+            "label": "deferrals.none"
+          },
+          {
+            "value": "1",
+            "label": "deferrals.one"
+          },
+          {
+            "value": "3",
+            "label": "deferrals.three"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "deferrals.title",
+          "help": "deferrals.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "deferDelayMs",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "deferDelayMs",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
+        "options": [
+          {
+            "value": "2000",
+            "label": "deferDelayMs.fast"
+          },
+          {
+            "value": "5000",
+            "label": "deferDelayMs.slow"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "deferDelayMs.title",
+          "help": "deferDelayMs.help"
         }
       },
       {

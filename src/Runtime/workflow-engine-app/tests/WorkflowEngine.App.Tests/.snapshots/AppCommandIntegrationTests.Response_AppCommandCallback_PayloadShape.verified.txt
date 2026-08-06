@@ -7,5 +7,11 @@
   lockToken: e2e-lock-token-abc123,
   payload: test-payload,
   workflowId: {Scrubbed},
-  state: null
+  stepId: Guid_1,
+  state: null,
+  retryCount: 0,
+  executionDeadline: DateTimeOffset_1,
+  deferCount: 0,
+  firstDeferredAt: null,
+  waitDeadline: null
 }

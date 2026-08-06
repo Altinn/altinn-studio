@@ -37,6 +37,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["CancelWorkflow"] = "immediate-vs-distributed-cancellation",
         ["ResumeWorkflow"] = "resume",
         ["AbandonWorkflow"] = "abandon",
+        ["NudgeWorkflow"] = "nudge",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
     };

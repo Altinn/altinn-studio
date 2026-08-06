@@ -90,6 +90,14 @@ internal sealed partial class EngineRepository
                             StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
                             StepsTotal = w.Steps.Count,
                             CreatedAt = w.CreatedAt,
+                            WaitingReason =
+                                w.Status == PersistentItemStatus.Waiting
+                                    ? w
+                                        .Steps.Where(s => s.Status == PersistentItemStatus.Waiting)
+                                        .OrderBy(s => s.ProcessingOrder)
+                                        .Select(s => s.LastDeferReason)
+                                        .FirstOrDefault()
+                                    : null,
                         })
                         .ToListAsync(cancellationToken)
                     : [];
@@ -406,6 +414,35 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context.GetActiveWorkflows().CountAsync(cancellationToken);
+
+            logger.SuccessfullyFetchedWorkflows(result);
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> CountRunnableWorkflows(CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.CountRunnableWorkflows");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.CountingWorkflows("runnable");
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var result = await context.GetRunnableWorkflows().CountAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result);
 
