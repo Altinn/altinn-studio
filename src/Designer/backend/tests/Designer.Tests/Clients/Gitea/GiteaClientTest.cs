@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.Gitea;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Http;
@@ -1061,6 +1062,37 @@ public class GiteaClientTest
         CodeListSource source = new(Name: "test-data-files");
         CodeList codeList = new(Source: source, Codes: listOfCodes, TagNames: ["test-data-category"]);
         return codeList;
+    }
+
+    [Fact]
+    public async Task GetBranch_NotFound_ThrowsBranchNotFoundException()
+    {
+        // Arrange
+        const string BranchName = "feature-branch";
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound })
+            .Verifiable();
+
+        var httpClient = new HttpClient(handlerMock.Object)
+        {
+            BaseAddress = new Uri("http://studio.localhost/repos/api/v1"),
+        };
+
+        GiteaClient sut = GetServiceForTest(httpClient);
+
+        // Act & Assert
+        BranchNotFoundException exception = await Assert.ThrowsAsync<BranchNotFoundException>(() =>
+            sut.GetBranch("ttd", "apps-test-2021", BranchName)
+        );
+        Assert.Equal(BranchName, exception.BranchName);
+        handlerMock.VerifyAll();
     }
 
     private static GiteaClient GetServiceForTest(

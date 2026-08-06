@@ -20,6 +20,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Link } from '@digdir/designsystemet-react';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 
 export function ReleaseContainer() {
   const { org, app } = useStudioEnvironmentParams();
@@ -33,11 +34,14 @@ export function ReleaseContainer() {
   const isServiceOwnerApp = isServiceOwnerOrg(orgs, org);
   const { data: selectedMaskinportenScopes, isPending: selectedMaskinportenScopesIsPending } =
     useGetSelectedScopesQuery(isServiceOwnerApp);
-  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
-    org,
-    app,
-    'master',
-  );
+  const {
+    data: masterBranchStatus,
+    isPending: masterBranchStatusIsPending,
+    isError: masterBranchStatusIsError,
+    error: masterBranchStatusError,
+  } = useBranchStatusQuery(org, app, 'master', {
+    hideDefaultError: (error) => error?.response?.data?.errorCode == ApiErrorCodes.BranchNotFound,
+  });
 
   const latestRelease: AppReleaseType | null = releases && releases[0] ? releases[0] : null;
   const hasMaskinportenScopeChanges = hasMaskinportenScopesChanged(
@@ -87,9 +91,6 @@ export function ReleaseContainer() {
       );
     }
     if (!masterBranchStatus || !repoStatus) {
-      return null;
-    }
-    if (!masterBranchStatus) {
       return (
         <StudioError>
           <StudioParagraph>
@@ -208,23 +209,41 @@ export function ReleaseContainer() {
         <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
       </div>
       <div className={classes.versionSubHeader}>
-        <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-        <StudioPopover.TriggerContext>
-          <StudioPopover.Trigger
-            title={t('app_create_release.status_popover')}
-            className={classes.appCreateReleaseStatusButton}
-            onClick={handlePopoverOpenClicked}
-            onMouseOver={handlePopoverOpenHover}
-            onMouseLeave={handlePopoverClose}
-            tabIndex={0}
-            onKeyUp={handlePopoverKeyPress}
-            variant='tertiary'
-            icon={renderStatusIcon()}
-          />
-          <StudioPopover open={popoverOpenClick || popoverOpenHover} onClose={handlePopoverClose}>
-            {renderStatusMessage()}
-          </StudioPopover>
-        </StudioPopover.TriggerContext>
+        {masterBranchStatusIsError &&
+        masterBranchStatusError?.response?.data?.errorCode == ApiErrorCodes.BranchNotFound ? (
+          <StudioError>
+            <StudioParagraph>
+              <Trans
+                i18nKey={'api_errors.' + masterBranchStatusError?.response?.data?.errorCode}
+                values={masterBranchStatusError?.response?.data?.values}
+                components={{ b: <strong /> }}
+              ></Trans>
+            </StudioParagraph>
+          </StudioError>
+        ) : (
+          <>
+            <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+            <StudioPopover.TriggerContext>
+              <StudioPopover.Trigger
+                title={t('app_create_release.status_popover')}
+                className={classes.appCreateReleaseStatusButton}
+                onClick={handlePopoverOpenClicked}
+                onMouseOver={handlePopoverOpenHover}
+                onMouseLeave={handlePopoverClose}
+                tabIndex={0}
+                onKeyUp={handlePopoverKeyPress}
+                variant='tertiary'
+                icon={renderStatusIcon()}
+              />
+              <StudioPopover
+                open={popoverOpenClick || popoverOpenHover}
+                onClose={handlePopoverClose}
+              >
+                {renderStatusMessage()}
+              </StudioPopover>
+            </StudioPopover.TriggerContext>
+          </>
+        )}
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
