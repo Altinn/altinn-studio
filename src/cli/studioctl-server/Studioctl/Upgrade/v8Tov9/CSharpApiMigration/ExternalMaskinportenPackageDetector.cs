@@ -76,6 +76,13 @@ internal sealed class ExternalMaskinportenPackageDetector
         + "make sure your own settings do not live in a configuration section named MaskinportenSettings - that "
         + "name is now owned by the provisioned client. Usages found:";
 
+    private const string ConditionalReferenceSummary =
+        "This app declares the external Altinn.ApiClients.Maskinporten package behind an MSBuild condition, so "
+        + "only some builds get it - while the code using it below is compiled unconditionally. v9 no longer "
+        + "supplies the package transitively, so every build that does not match the condition now fails. Either "
+        + "declare the reference unconditionally, or migrate to the built-in IMaskinportenClient, which every v9 "
+        + "app already has and which Studio configures automatically when the app is deployed. Usages found:";
+
     private const string OwnReferenceSummary =
         "This app declares its own Altinn.ApiClients.Maskinporten package reference, so the code below keeps "
         + "working in v9 - no action is required. Worth knowing: every v9 app now has a built-in "
@@ -102,9 +109,25 @@ internal sealed class ExternalMaskinportenPackageDetector
             return new MigrationResult(ManualActionRequired: false, Array.Empty<string>());
         }
 
-        return DeclaresPackageReference()
-            ? WarnOnlyDetector.Advise(OwnReferenceSummary, matches)
-            : WarnOnlyDetector.Report(MissingReferenceSummary, matches);
+        return PackageDeclaration() switch
+        {
+            Declaration.Unconditional => WarnOnlyDetector.Advise(OwnReferenceSummary, matches),
+            Declaration.Conditional => WarnOnlyDetector.Report(ConditionalReferenceSummary, matches),
+            _ => WarnOnlyDetector.Report(MissingReferenceSummary, matches),
+        };
+    }
+
+    /// <summary>How the project declares the external package, if at all.</summary>
+    private enum Declaration
+    {
+        /// <summary>No reference at all - the app relied on the transitive one and no longer compiles.</summary>
+        None,
+
+        /// <summary>Declared behind an MSBuild condition, so only some builds get it.</summary>
+        Conditional,
+
+        /// <summary>Declared for every build.</summary>
+        Unconditional,
     }
 
     /// <summary>
@@ -133,11 +156,11 @@ internal sealed class ExternalMaskinportenPackageDetector
     }
 
     /// <summary>
-    /// Whether the project declares the package itself. A malformed or unreadable csproj is treated as
-    /// "not declared", which produces the louder of the two messages - the safer way to be wrong, since
+    /// How the project declares the package. A malformed or unreadable csproj is treated as
+    /// <see cref="Declaration.None"/>, which produces the louder message - the safer way to be wrong, since
     /// the alternative is telling an app it is fine when its build is about to break.
     /// </summary>
-    private bool DeclaresPackageReference()
+    private Declaration PackageDeclaration()
     {
         XDocument document;
         try
@@ -146,19 +169,48 @@ internal sealed class ExternalMaskinportenPackageDetector
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or XmlException)
         {
-            return false;
+            return Declaration.None;
         }
 
         // Descendants rather than direct ItemGroup children: a reference declared inside <Choose>/<When> or
         // a <Target> is still a declaration, and treating it as absent would tell an app that builds fine
         // that its build is about to break. Matched on local name so a legacy-format csproj carrying the
         // MSBuild default namespace is handled too.
-        return document
+        var references =
+            document
                 .Root?.Descendants()
                 .Where(static element => element.Name.LocalName == "PackageReference")
-                .Any(reference =>
+                .Where(reference =>
                     string.Equals(reference.Attribute("Include")?.Value, PackageId, StringComparison.OrdinalIgnoreCase)
                 )
-            ?? false;
+                .ToList()
+            ?? [];
+
+        if (references.Count == 0)
+        {
+            return Declaration.None;
+        }
+
+        return references.Any(static reference => !IsConditional(reference))
+            ? Declaration.Unconditional
+            : Declaration.Conditional;
+    }
+
+    /// <summary>
+    /// Whether an MSBuild condition anywhere between the element and the project root gates this reference.
+    /// A reference that only applies to some configurations does not make the app safe: the C# using it is
+    /// typically unconditional, so the other configurations still fail to compile.
+    /// </summary>
+    private static bool IsConditional(XElement reference)
+    {
+        for (var element = reference; element is not null; element = element.Parent)
+        {
+            if (!string.IsNullOrWhiteSpace(element.Attribute("Condition")?.Value))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -370,7 +370,8 @@ internal static class V8Tov9Upgrade
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
                 new LegacyCorrespondenceCodeDetector(scanner).Detect(),
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
-                new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect()
+                new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
+                new MaskinportenClientOverrideDetector(scanner).Detect()
             );
 
             foreach (var warning in result.Warnings)

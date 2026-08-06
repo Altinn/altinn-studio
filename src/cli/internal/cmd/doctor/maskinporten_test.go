@@ -112,6 +112,9 @@ func TestBuildMaskinporten_SectionWithOnlyClientID_IsAnError(t *testing.T) {
 	if report == nil || !report.HasIssues {
 		t.Fatalf("a checked-in ClientId collides with the provisioned one, got %+v", report)
 	}
+	if findCheck(report.Checks, maskinportenConfigCheckID, CheckLevelError) == nil {
+		t.Fatalf("expected an error-level config check, got %+v", report.Checks)
+	}
 }
 
 // A deployed environment never loads appsettings.Development.json.

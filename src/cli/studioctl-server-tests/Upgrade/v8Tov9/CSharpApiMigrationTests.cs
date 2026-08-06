@@ -1709,11 +1709,12 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     /// <summary>
-    /// A reference nested in <c>&lt;Choose&gt;/&lt;When&gt;</c> is still a declaration. Treating it as absent
-    /// would tell an app that builds fine that its build is about to break.
+    /// A reference nested below the top-level ItemGroup is still a declaration, so it must be found - but
+    /// being gated by a condition does not make the app safe, because the code using it compiles in every
+    /// configuration. Both halves matter, so they are asserted together.
     /// </summary>
     [Fact]
-    public void ExternalPackageDetector_FindsAReferenceNestedBelowTheTopLevelItemGroup()
+    public void ExternalPackageDetector_TreatsAConditionalReferenceAsInsufficient()
     {
         var project = _app.Write(
             "App.csproj",
@@ -1733,8 +1734,60 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
 
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("behind an MSBuild condition"));
+    }
+
+    /// <summary>
+    /// The same nesting, unconditional this time: found, and genuinely sufficient.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FindsAnUnconditionalReferenceNestedBelowTheTopLevelItemGroup()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When>
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
         Assert.False(result.ManualActionRequired);
         Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// A conditional ItemGroup at the top level is the same hazard as a nested one.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalItemGroupAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("behind an MSBuild condition"));
     }
 
     [Fact]
@@ -1747,6 +1800,83 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.True(result.ManualActionRequired);
         Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+    }
+
+    // --- MaskinportenClientOverrideDetector ------------------------------------------------------
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsACustomSectionPath()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+            {
+                services.ConfigureMaskinportenClient("MyOwnMaskinporten");
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient"));
+        Assert.Contains(Summaries(result), s => s.Contains("process transitions fail once deployed"));
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsAConfigurationLambda()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.ConfigureMaskinportenClient(config =>
+            {
+                config.ClientId = "my-client";
+                config.Authority = "https://maskinporten.no/";
+            });
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
+    }
+
+    /// <summary>
+    /// Binding the provisioned section by name is what the default registration does anyway, so it changes
+    /// nothing and must not be reported.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_IgnoresRebindingTheProvisionedSection()
+    {
+        _app.Write("Program.cs", """services.ConfigureMaskinportenClient("MaskinportenSettings");""");
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
     }
 
     // --- Scanner ---------------------------------------------------------------------------------
