@@ -35,35 +35,35 @@ spec:
             - name: AZURE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: AZURE_API_KEY
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_SECRET_KEY
             - name: LANGFUSE_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_PUBLIC_KEY
             - name: LANGFUSE_BASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_BASE_URL
             - name: LANGFUSE_ENABLED
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_ENABLED
             - name: LANGFUSE_ENVIRONMENT
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_ENVIRONMENT
             - name: LANGFUSE_RELEASE
               valueFrom:
                 secretKeyRef:
-                  name: altinn-altinity-agents-secret
+                  name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_RELEASE
