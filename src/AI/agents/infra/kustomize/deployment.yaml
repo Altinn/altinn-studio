@@ -32,12 +32,6 @@ spec:
             limits:
               memory: 1Gi
           env:
-            - name: AZURE_OPENAI_ENDPOINT
-              value: "https://rndlabaidemoss0618689180.openai.azure.com/"
-            - name: AZURE_ANTHROPIC_ENDPOINT
-              value: "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/"
-            - name: GITEA_BASE_URL
-              value: "http://altinn-repositories-public"
             - name: AZURE_API_KEY
               valueFrom:
                 secretKeyRef:
