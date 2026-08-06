@@ -63,7 +63,4 @@ spec:
                   name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_ENVIRONMENT
             - name: LANGFUSE_RELEASE
-              valueFrom:
-                secretKeyRef:
-                  name: altinn-altinity-agents-eso-secret
-                  key: LANGFUSE_RELEASE
+              value: "altinity-agents-v1"
