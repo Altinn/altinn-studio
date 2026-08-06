@@ -105,6 +105,9 @@ spec:
           - issuer: https://github.com
             profile: jondyr
             subject: "1525466"
+          - issuer: https://github.com
+            profile: nkylstad
+            subject: "1636323"
       profiles:
         - agentRuntimeConfig:
             command: codex
@@ -208,6 +211,59 @@ spec:
             kind: pod
             driver: kubernetes
           name: jondyr
+          runtime:
+            autonomy: trusted-local
+            docker:
+              kernelLogDevice: true
+              requiredNetworks:
+                - name: kind
+                  subnet: 172.31.250.0/24
+            type: claude
+            user: non-root
+        - agentRuntimeConfig:
+            command: claude
+            proxy:
+              provider: claude-nkylstad
+          broker:
+            grants:
+              - egressHosts:
+                  - api.anthropic.com:443
+                  - mcp-proxy.anthropic.com:443
+                materialization: placeholder-file
+                provider: claude-nkylstad
+                repositories:
+                  - Altinn/altinn-studio
+              - egressHosts:
+                  - github.com:443
+                  - api.github.com:443
+                git: true
+                materialization: header-inject
+                permissions:
+                  contents: write
+                  workflows: write
+                provider: github-fork
+                repositories:
+                  - mirkoSekulic/altinn-studio
+              - egressHosts:
+                  - github.com:443
+                  - api.github.com:443
+                git: true
+                materialization: header-inject
+                permissions:
+                  checks: read
+                  contents: read
+                  issues: read
+                  pull_requests: write
+                provider: github-altinn
+                repositories:
+                  - Altinn/altinn-studio
+          egress: mediated
+          egressEnforcement: true
+          egressTransport: transparent
+          execution:
+            kind: pod
+            driver: kubernetes
+          name: nkylstad
           runtime:
             autonomy: trusted-local
             docker:
@@ -384,6 +440,20 @@ spec:
                 path: .claude/.credentials.json
             name: claude-jondyr
             plugin: claude-oauth
+          - config:
+              credentials-file: /state/auth/claude-nkylstad.json
+              injection-extra-headers:
+                anthropic-beta: oauth-2025-04-20
+              injection-hosts:
+                - api.anthropic.com
+                - mcp-proxy.anthropic.com
+              placeholder-file:
+                hosts:
+                  - api.anthropic.com
+                  - mcp-proxy.anthropic.com
+                path: .claude/.credentials.json
+            name: claude-nkylstad
+            plugin: claude-oauth
           - allow:
               methods:
                 - GET
@@ -459,6 +529,11 @@ spec:
               id: jondyr
               values:
                 - "1525466"
+            - claimPath: oauth2_subject
+              effect: allow
+              id: nkylstad
+              values:
+                - "1636323"
         authorization:
           default: deny
           rules:
@@ -502,6 +577,7 @@ spec:
       allowedAuthors:
         - mirkoSekulic
         - Jondyr
+        - nkylstad
       enabled: true
       githubApp:
         appID: ${NVT_ALTINN_GITHUB_APP_ID}
