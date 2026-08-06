@@ -172,7 +172,7 @@ export default defineConfig([
     },
     languageOptions: {
       globals: {
-        ...globals.jest,
+        ...globals.vitest,
       },
     },
     rules: {

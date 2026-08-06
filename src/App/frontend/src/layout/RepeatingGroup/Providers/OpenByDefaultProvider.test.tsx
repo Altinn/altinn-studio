@@ -21,7 +21,7 @@ import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/confi
 
 // Mocking so that we can predict the UUIDs for new rows
 const nextUuids: string[] = [];
-jest.mock('uuid', () => ({
+vi.mock('uuid', () => ({
   v4: () => {
     if (nextUuids.length === 0) {
       throw new Error('No more UUIDs');
@@ -159,7 +159,7 @@ describe('openByDefault', () => {
           instance: getInstanceDataMock(),
         } satisfies IDataModelMultiPatchResponse,
       });
-      (mutations.doPatchMultipleFormData.mock as jest.Mock).mockClear();
+      (mutations.doPatchMultipleFormData.mock as Mock).mockClear();
     }
 
     // Ensure state is as expected
@@ -180,19 +180,18 @@ describe('openByDefault', () => {
   }
 
   beforeAll(() => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest
-      .spyOn(window, 'logWarn')
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(window, 'logWarn')
       .mockImplementation(() => {})
       .mockName('window.logWarn');
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should not add a new row by default when off', async () => {
@@ -549,3 +548,4 @@ describe('openByDefault', () => {
     },
   );
 });
+import type { Mock } from 'vitest';

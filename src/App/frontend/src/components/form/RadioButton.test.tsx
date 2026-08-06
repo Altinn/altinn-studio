@@ -10,7 +10,7 @@ import type { IRadioButtonProps } from 'src/components/form/RadioButton';
 const defaultProps = {
   name: 'radio-name',
   value: 'radio-value',
-  onChange: jest.fn(),
+  onChange: vi.fn(),
 };
 
 const ControlledRadioButton = (props: Partial<IRadioButtonProps> = {}) => {

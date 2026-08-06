@@ -6,13 +6,13 @@ import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
-  const actual = jest.requireActual<TextResourcesProviderImport>(
+vi.mock('src/features/language/textResources/TextResourcesProvider', async () => {
+  const actual = await vi.importActual<TextResourcesProviderImport>(
     'src/features/language/textResources/TextResourcesProvider',
   );
   return {
     ...actual,
-    useTextResources: jest.fn(() => ({
+    useTextResources: vi.fn(() => ({
       mockGroupTitle: { value: 'Mock group' },
       mockField1: { value: 'Mock field 1' },
       mockField2: { value: 'Mock field 2' },
@@ -24,7 +24,7 @@ describe('SummaryGroupComponent', () => {
   let mockHandleDataChange: () => void;
 
   beforeEach(() => {
-    mockHandleDataChange = jest.fn();
+    mockHandleDataChange = vi.fn();
   });
 
   test('SummaryGroupComponent -- should match snapshot', async () => {
