@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { FormStoreState } from 'src/features/form/FormContext';
 import { selectAllPaths } from 'src/features/formData/FormDataWrite';

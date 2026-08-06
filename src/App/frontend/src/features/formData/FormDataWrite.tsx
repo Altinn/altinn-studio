@@ -338,6 +338,7 @@ function FormDataEffects() {
     window.onbeforeunload = hasUnsavedChanges ? () => true : null;
 
     return () => {
+      clearTimeout(setUnsavedAttrTimeout.current);
       document.body.removeAttribute('data-unsaved-changes');
       window.onbeforeunload = null;
     };

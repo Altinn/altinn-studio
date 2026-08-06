@@ -1,5 +1,6 @@
 using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.TestApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,10 @@ var connectionString =
     );
 
 builder.AddWorkflowEngine(connectionString);
+
+// Test-only commands live in the shared host so integration tests exercising them can use the shared
+// fixture instead of booting a second PostgreSQL container. They are inert unless a step names them.
+builder.Services.AddCommand<DeferringCommand>();
 
 var app = builder.Build();
 await app.UseWorkflowEngine();

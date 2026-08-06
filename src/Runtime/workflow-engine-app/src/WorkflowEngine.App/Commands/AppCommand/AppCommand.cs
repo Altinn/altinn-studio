@@ -119,7 +119,13 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             LockToken = workflowContext.LockToken,
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
+            StepId = context.Step.DatabaseId,
             State = context.StateIn,
+            RetryCount = context.Step.RequeueCount,
+            ExecutionDeadline = context.ExecutionDeadline,
+            DeferCount = context.Step.DeferCount,
+            FirstDeferredAt = context.Step.FirstDeferredAt,
+            WaitDeadline = context.WaitDeadline,
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
@@ -142,22 +148,33 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (body.Length > 0)
+            if (body.Length == 0)
+                return ExecutionResult.Success();
+
+            AppCallbackResponse? callbackResponse;
+            try
             {
-                try
-                {
-                    var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(
-                        body,
-                        CommandDefinition.SerializerOptions
-                    );
-                    if (callbackResponse?.State is not null)
-                        context.Step.StateOut = callbackResponse.State;
-                }
-                catch (JsonException ex)
-                {
-                    return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
-                }
+                callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(
+                    body,
+                    CommandDefinition.SerializerOptions
+                );
             }
+            catch (JsonException ex)
+            {
+                return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
+            }
+
+            // Captured before classifying the outcome, so a deferral carries state forward exactly as a
+            // completion does — the app's next re-check resumes from what this one produced.
+            if (callbackResponse?.State is not null)
+                context.Step.StateOut = callbackResponse.State;
+
+            if (callbackResponse?.Defer is { } deferral)
+            {
+                _logger.AppCommandDeferred(commandData.CommandKey, context.Workflow.DatabaseId, deferral.Delay);
+                return ExecutionResult.Defer(deferral.Delay, deferral.Reason);
+            }
+
             return ExecutionResult.Success();
         }
 
@@ -222,5 +239,17 @@ internal static partial class AppCommandDescriptorLogs
         Guid workflowId,
         int instanceOwnerPartyId,
         Guid instanceGuid
+    );
+
+    // The app's reason is not logged here — it is free text, and it reaches the engine log via the deferral.
+    [LoggerMessage(
+        LogLevel.Information,
+        "AppCommand '{CommandKey}' deferred (workflowId: {WorkflowId}); re-checking in {Delay}"
+    )]
+    internal static partial void AppCommandDeferred(
+        this ILogger<AppCommand> logger,
+        string commandKey,
+        Guid workflowId,
+        TimeSpan delay
     );
 }

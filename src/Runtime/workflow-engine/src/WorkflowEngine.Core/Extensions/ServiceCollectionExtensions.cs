@@ -172,6 +172,15 @@ public static class OptionsBuilderExtensions
                 if (config.MaxStepCommandTimeout <= TimeSpan.Zero)
                     config.MaxStepCommandTimeout = Defaults.EngineSettings.MaxStepCommandTimeout;
 
+                if (config.DefaultStepWaitBudget <= TimeSpan.Zero)
+                    config.DefaultStepWaitBudget = Defaults.EngineSettings.DefaultStepWaitBudget;
+
+                if (config.MaxStepWaitBudget <= TimeSpan.Zero)
+                    config.MaxStepWaitBudget = Defaults.EngineSettings.MaxStepWaitBudget;
+
+                if (config.MinStepDeferDelay <= TimeSpan.Zero)
+                    config.MinStepDeferDelay = Defaults.EngineSettings.MinStepDeferDelay;
+
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
@@ -257,6 +266,26 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.MaxStepCommandTimeout >= config.DefaultStepCommandTimeout,
                 $"{ns}.{nameof(EngineSettings.MaxStepCommandTimeout)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepCommandTimeout)}."
+            );
+
+            builder.Validate(
+                config => config.DefaultStepWaitBudget > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.DefaultStepWaitBudget)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxStepWaitBudget >= config.DefaultStepWaitBudget,
+                $"{ns}.{nameof(EngineSettings.MaxStepWaitBudget)} must be greater than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitBudget)}."
+            );
+
+            builder.Validate(
+                config => config.MinStepDeferDelay > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.MinStepDeferDelay)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MinStepDeferDelay <= config.DefaultStepWaitBudget,
+                $"{ns}.{nameof(EngineSettings.MinStepDeferDelay)} must be less than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitBudget)}."
             );
 
             builder.Validate(

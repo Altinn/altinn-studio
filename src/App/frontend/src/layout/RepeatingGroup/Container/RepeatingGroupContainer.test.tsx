@@ -23,9 +23,9 @@ import type { ILayout } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
-  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
-  useTextResources: jest.fn(() => ({
+vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
+  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
+  useTextResources: vi.fn(() => ({
     'option.label': { value: 'Value to be shown' },
     'button.open': { value: 'New open text' },
     'button.close': { value: 'New close text' },

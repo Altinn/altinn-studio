@@ -11,9 +11,9 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-jest.mock('src/queries/queries', () => ({
-  ...jest.requireActual<typeof import('src/queries/queries')>('src/queries/queries'),
-  doProcessNext: jest.fn(),
+vi.mock('src/queries/queries', async () => ({
+  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
+  doProcessNext: vi.fn(),
 }));
 
 function getInstanceWithWorkflow(workflow?: IProcessWorkflow): IInstanceWithProcess {
@@ -49,7 +49,7 @@ function createAxiosLikeError(status: number, data: Record<string, unknown>) {
  */
 async function renderFailingProcessNext(errorBody: Record<string, unknown>, status: number, after?: IProcessWorkflow) {
   let transitionAttempted = false;
-  jest.mocked(doProcessNext).mockImplementation(async () => {
+  vi.mocked(doProcessNext).mockImplementation(async () => {
     transitionAttempted = true;
     throw createAxiosLikeError(status, errorBody);
   });
@@ -70,7 +70,7 @@ async function renderFailingProcessNext(errorBody: Record<string, unknown>, stat
 
 describe('useProcessNext workflow error convergence', () => {
   beforeEach(() => {
-    jest.mocked(doProcessNext).mockReset();
+    vi.mocked(doProcessNext).mockReset();
   });
 
   it('a 500 with workflowFailure is swallowed and converges on the failed screen', async () => {

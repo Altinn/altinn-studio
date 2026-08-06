@@ -1,36 +1,58 @@
 import { useEffect } from 'react';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
+import { useAppMetadataQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Heading } from '@digdir/designsystemet-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
+import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import type { ITextResources } from 'app-shared/types/global';
+
+const APP_NAME_TEXT_RESOURCE_ID = 'appName';
 
 export const Header = () => {
   const { org, app } = useStudioEnvironmentParams();
-
-  const {
-    data: appConfigData,
-    isPending,
-    isError,
-  } = useAppConfigQuery(org, app, {
-    hideDefaultError: true,
-  });
   const { t } = useTranslation();
 
+  // These use isLoading rather than isPending because a disabled query stays pending
+  // indefinitely, which would leave the spinner in place forever.
+  const {
+    data: appMetadata,
+    isLoading: isAppMetadataLoading,
+    isError: isAppMetadataError,
+  } = useAppMetadataQuery(org, app, {
+    hideDefaultError: true,
+  });
+
+  const { data: textResources, isLoading: isTextResourcesLoading } = useTextResourcesQuery(
+    org,
+    app,
+  );
+
   useEffect(() => {
-    if (isError) {
+    if (isAppMetadataError) {
       toast.error(t('overview.fetch_title_error_message'));
     }
-  }, [isError, t]);
+  }, [isAppMetadataError, t]);
 
-  if (isPending) {
+  const title = appMetadata?.title?.[DEFAULT_LANGUAGE];
+  const isWaitingForFallbackName = !title && isTextResourcesLoading;
+
+  if (isAppMetadataLoading || isWaitingForFallbackName) {
     return <StudioSpinner aria-hidden spinnerTitle={t('overview.header_loading')} />;
   }
 
   return (
     <Heading level={1} size='xlarge'>
-      {appConfigData?.serviceName || app}
+      {title || getAppName(textResources) || app}
     </Heading>
   );
 };
+
+function getAppName(textResources: ITextResources): string | undefined {
+  return textResourceByLanguageAndIdSelector(
+    DEFAULT_LANGUAGE,
+    APP_NAME_TEXT_RESOURCE_ID,
+  )(textResources)?.value;
+}

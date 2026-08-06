@@ -17,12 +17,12 @@ import { statelessIndexLoader } from 'src/routes/index/stateless-index.loader';
 import { instanceLoader } from 'src/routes/instance/instance.loader';
 import { Component as InstanceRoute, ErrorBoundary as InstanceErrorBoundary } from 'src/routes/instance/instance.route';
 import { instanceIndexLoader } from 'src/routes/instance/instance-index.loader';
-import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
-import { Component as InstanceSelectionRoute } from 'src/routes/instance-selection/instance-selection.route';
+import * as instanceSelectionRoute from 'src/routes/instance-selection/instance-selection.route';
 import { Component as PageRoute } from 'src/routes/page/page.route';
 import { partySelectionLoader } from 'src/routes/party-selection/party-selection.loader';
 import { Component as PartySelectionRoute } from 'src/routes/party-selection/party-selection.route';
 import { Component as ProcessEndRoute } from 'src/routes/process-end/process-end.route';
+import { convertRouteModule } from 'src/routes/routeModule';
 import { taskLoader } from 'src/routes/task/task.loader';
 import { Component as TaskRoute } from 'src/routes/task/task.route';
 import { taskIndexLoader } from 'src/routes/task/task-index.loader';
@@ -39,8 +39,7 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
         children: [
           {
             path: routes.instanceSelection,
-            Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader,
+            ...convertRouteModule(instanceSelectionRoute),
           },
           {
             path: routes.partySelection,

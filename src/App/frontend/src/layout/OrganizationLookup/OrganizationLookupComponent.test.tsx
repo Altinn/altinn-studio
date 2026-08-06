@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -13,11 +13,11 @@ import { httpGet } from 'src/utils/network/networking';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-jest.mock('src/utils/network/networking', () => ({
-  httpGet: jest.fn(),
+vi.mock('src/utils/network/networking', () => ({
+  httpGet: vi.fn(),
 }));
 
-const mockedHttpGet = jest.mocked(httpGet);
+const mockedHttpGet = vi.mocked(httpGet);
 
 const validOrgNr = '043871668';
 const orgName = 'Skog og Fjell Consulting';

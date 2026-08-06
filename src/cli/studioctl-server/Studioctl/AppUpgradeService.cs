@@ -48,6 +48,15 @@ internal sealed class AppUpgradeService : IDisposable
             var error = new StringWriter(CultureInfo.InvariantCulture);
             try
             {
+                // We want to enforce a clean directory, so git diff will only show what the update did. An
+                // unreadable repository is refused too - we cannot tell its changes apart from the upgrade's.
+                if (!GitOperations.IsWorkingTreeClean(projectFolder, out var gitError))
+                    return AppUpgradeResult.Invalid(
+                        gitError is null
+                            ? "The git repository has local changes. Commit or stash them before upgrading."
+                            : $"Could not determine whether the git repository has local changes: {gitError}. Fix the repository before upgrading."
+                    );
+
                 var exitCode = await RunUpgradeAsync(
                     request with
                     {

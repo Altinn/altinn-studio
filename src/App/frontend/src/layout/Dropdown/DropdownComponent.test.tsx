@@ -265,12 +265,12 @@ describe('DropdownComponent', () => {
       },
     });
 
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     await user.click(await screen.findByRole('combobox'));
     await user.click(screen.getByText(label));
 
     expect((await screen.findAllByText(label)).at(0)).toBeInTheDocument();
-    act(() => jest.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(1000));
 
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
     expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
@@ -280,7 +280,7 @@ describe('DropdownComponent', () => {
       }),
     );
 
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('required validation should only show for simpleBinding', async () => {

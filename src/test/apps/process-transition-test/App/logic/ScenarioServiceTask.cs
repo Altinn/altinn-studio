@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features.Process;
@@ -10,33 +11,29 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Logic;
 
 /// <summary>
-/// Post-commit lever for the forward transition (<c>path == "postCommit"</c>).
+/// Post-commit lever for the forward transition (<c>path == "postCommit"</c>), implemented as a
+/// pipeline service task with one stage: <c>PrepareScenario</c> completes first, then the
+/// <c>Finally</c> (<c>RunScenario</c>) reads the TransitionControl levers and runs the scenario.
+/// The stage's completion is recorded durably, so every retry, deferral re-check and resume
+/// re-runs only <c>RunScenario</c> — every postCommit e2e scenario thereby drives the multi-stage
+/// contract (expansion, dispatch by stage name, per-stage durability) through the public API.
 ///
-/// The <c>Gateway_PostCommit</c> gateway after Task_1 routes through the <c>Task_Service</c>
-/// service task only when the path lever is "postCommit". That transition COMMITS first
-/// (committed = Task_Service); the engine then runs <c>ExecuteServiceTask</c> as a critical
-/// post-commit step in the same Main workflow, which invokes this hook. A delay or transient
-/// failure here is therefore surfaced by the live workflow-status as <c>processing</c> on the
-/// committed Task_Service, and a permanent failure as the terminal <c>failed</c> state — the two
-/// post-commit states the workflow-status e2e drives. On success the service task auto-advances
-/// to Task_2, so the user experience stays "Task 1 → (behandling) → Task 2".
+/// The <c>Gateway_PostCommit</c> gateway routes through <c>Task_Service</c> only on this path.
+/// That transition COMMITS first; the engine then runs the task as critical post-commit steps, so
+/// a delay or transient failure surfaces as workflow-status <c>processing</c> on the committed
+/// task and a permanent failure as terminal <c>failed</c> — the two states the workflow-status
+/// e2e drives. On success the task auto-advances to Task_2.
 ///
 /// Scenario shape: run <c>attempts</c> times with <c>delayMs</c> injected on each; every attempt
-/// but the last fails retryably (the engine auto-retries), and the last settles on
-/// <c>endState</c> — <c>success</c> (auto-advance to Task_2), <c>failure</c> (permanent
-/// failure → error page, and every replay fails the same way), or <c>failureThenSuccess</c>
-/// (permanent failure once, then success when the failed step is re-run — the lever that makes
-/// the failed task view's "Prøv igjen" → process/resume recovery demonstrable). Unlike the
-/// retired IEventsClient hack, a permanent service-task failure is a REAL terminal failure — no
-/// workflow-cancellation cheat needed.
-///
-/// A successful settle additionally honours the <c>advance</c> lever: "park" succeeds WITHOUT
-/// auto-advancing, leaving the process on the service task (the frontend's implicit waiting
-/// step, #18935) until an out-of-band process/next releases it. Both service tasks
-/// (Task_Service and its layouted twin Task_ServiceLayout, chosen via <c>serviceView</c>) run
-/// this same scenario.
+/// but the last fails retryably, and the last settles on <c>endState</c> — <c>success</c>,
+/// <c>failure</c> (every replay fails the same way), or <c>failureThenSuccess</c> (permanent
+/// failure once, then success on the resume-driven replay — the "Prøv igjen" recovery lever).
+/// A successful settle honours <c>advance: "park"</c>: succeed WITHOUT auto-advancing, leaving
+/// the process on the service task (the frontend's implicit waiting step, #18935) until an
+/// out-of-band process/next releases it. Both service tasks (Task_Service and its layouted twin
+/// Task_ServiceLayout, via <c>serviceView</c>) run this same scenario.
 /// </summary>
-public sealed class ScenarioServiceTask : IServiceTask
+public sealed class ScenarioServiceTask : IPipelineServiceTask
 {
     private readonly ParkedTaskReleaser _parkedTaskReleaser;
 
@@ -47,7 +44,27 @@ public sealed class ScenarioServiceTask : IServiceTask
 
     public string Type => "scenario";
 
-    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    /// <summary>
+    /// A deliberately tiny wait budget so the <c>waitExpired</c> scenario can expire inside a test
+    /// run (production budgets are hours or days). Only deferrals spend it, so other scenarios
+    /// are unaffected.
+    /// </summary>
+    internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
+
+    public ProcessStepOptions? StepOptions => new() { WaitBudget = ScenarioWaitBudget };
+
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        pipeline.Stage("PrepareScenario", PrepareScenario).Finally(RunScenario);
+
+    /// <summary>
+    /// No scenario work of its own — it exists so every postCommit e2e scenario runs a real
+    /// multi-stage pipeline: this stage completes exactly once per pass, and retries/resumes
+    /// re-enter at <c>RunScenario</c> without re-running it.
+    /// </summary>
+    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private async Task<ServiceTaskResult> RunScenario(ServiceTaskContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
@@ -68,17 +85,55 @@ public sealed class ScenarioServiceTask : IServiceTask
 
         int delayMs = levers.delayMs ?? 0;
         int attempts = levers.attempts ?? 1;
+        int deferrals = levers.deferrals ?? 0;
+        var deferDelay = TimeSpan.FromMilliseconds(levers.deferDelayMs ?? 2000);
+
+        // Don't start work this attempt cannot finish: the engine abandons it at ExecutionDeadline and
+        // records a retryable failure, whereas deferring hands the next attempt a full budget. Inert
+        // under the default 10-minute timeout — it demonstrates the pattern a real slow-system call wants.
+        if (delayMs > 0 && context.Attempt.Deadline is { } executionDeadline)
+        {
+            var remaining = executionDeadline - DateTimeOffset.UtcNow;
+            if (remaining < TimeSpan.FromMilliseconds(delayMs))
+            {
+                return ServiceTaskResult.Defer(
+                    deferDelay,
+                    $"only {remaining.TotalSeconds:F1}s left of this attempt, need {delayMs}ms — retrying with a fresh budget"
+                );
+            }
+        }
 
         if (delayMs > 0)
         {
             await Task.Delay(delayMs, context.CancellationToken);
         }
 
+        // Reads context.Wait.DeferCount rather than the AttemptTracker: the engine counts deferrals durably,
+        // and mixing them into the attempt counter would conflate "not ready" with "failed, retrying".
+        if (levers.endState == "waitExpired")
+        {
+            // Never settles. The engine keeps re-running this step until ScenarioWaitBudget is spent,
+            // then fails the step with wait_expired — a failure nobody's code caused.
+            return ServiceTaskResult.Defer(
+                deferDelay,
+                $"waitExpired scenario: outcome will never arrive (check {context.Wait.DeferCount + 1})"
+            );
+        }
+
+        if (context.Wait.DeferCount < deferrals)
+        {
+            return ServiceTaskResult.Defer(
+                deferDelay,
+                $"TransitionControl forced a deferral ({context.Wait.DeferCount + 1} of {deferrals})"
+            );
+        }
+
         Guid instanceGuid = Guid.Parse(instance.Id.Split('/').Last());
         int attempt = AttemptTracker.Next(instanceGuid, "postCommit");
         if (attempt < attempts)
         {
-            // Not the last attempt yet: fail retryably so the engine re-invokes this hook.
+            // Not the last attempt yet: fail retryably so the engine re-invokes this step (and
+            // only this step — PrepareScenario is complete and stays complete).
             return ServiceTaskResult.FailedRetryable(
                 $"TransitionControl forced a transient postCommit failure (attempt {attempt} of {attempts})."
             );

@@ -17,9 +17,9 @@ import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-jest.mock('src/features/applicationMetadata');
-jest.mock('src/features/form/ui');
-jest.mock('src/queries/queries');
+vi.mock('src/features/applicationMetadata');
+vi.mock('src/features/form/ui');
+vi.mock('src/queries/queries');
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
@@ -95,14 +95,14 @@ describe('All known UI folders should render successfully', () => {
     window.forceLayoutPropertiesValidation = 'on';
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
-      jest
+      vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(global, func as any)
         .mockImplementation(() => {})
         .mockName(`global.${func}`);
     }
     for (const func of consoleLoggers) {
-      jest
+      vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(console, func as any)
         .mockImplementation(() => {})
@@ -111,13 +111,13 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
     window.forceLayoutPropertiesValidation = 'off';
     window.location.pathname = pathnameWas;
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const dir = ensureAppsDirIsSet();
@@ -190,11 +190,11 @@ describe('All known UI folders should render successfully', () => {
     }
 
     // Inject errors from console/window.logError into the full error list for this layout-set
-    const devToolsLoggers = windowLoggers.map((func) => window[func] as jest.Mock);
+    const devToolsLoggers = windowLoggers.map((func) => window[func] as Mock);
     // eslint-disable-next-line no-console
-    const browserLoggers = consoleLoggers.map((func) => console[func] as jest.Mock);
+    const browserLoggers = consoleLoggers.map((func) => console[func] as Mock);
     for (const _mock of [...devToolsLoggers, ...browserLoggers]) {
-      const mock = _mock as jest.Mock;
+      const mock = _mock as Mock;
       const calls = filterAndCleanMockCalls(mock);
       if (calls.length) {
         errors[mock.getMockName()] = calls;
@@ -208,7 +208,7 @@ describe('All known UI folders should render successfully', () => {
   it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
 });
 
-function filterAndCleanMockCalls(mock: jest.Mock): string[] {
+function filterAndCleanMockCalls(mock: Mock): string[] {
   return mock.mock.calls
     .map((_call) => {
       let shouldIgnore = false;
@@ -250,3 +250,4 @@ function filterAndCleanMockCalls(mock: jest.Mock): string[] {
     .filter((x) => x)
     .map((x) => (x ?? []).join('\n'));
 }
+import type { Mock } from 'vitest';
