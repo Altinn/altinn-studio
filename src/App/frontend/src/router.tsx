@@ -20,7 +20,7 @@ import * as processEndRoute from 'src/routes/process-end/process-end.route';
 import { convertRouteModule } from 'src/routes/routeModule';
 import * as taskRoute from 'src/routes/task/task.route';
 import * as taskIndexRoute from 'src/routes/task/task-index.route';
-import { routes, TaskKeys } from 'src/routesBuilder';
+import { buildPartySelectionUrl, routes, TaskKeys } from 'src/routesBuilder';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
 
 export function createRouter({ queryClient, apiClients }: { queryClient: QueryClient; apiClients: ApiClients }) {
@@ -69,27 +69,13 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
         ],
       },
       {
-        path: routes.partySelectionLegacy,
-        children: [
-          {
-            index: true,
-            element: (
-              <Navigate
-                to='/party-selection'
-                replace
-              />
-            ),
-          },
-          {
-            path: '*',
-            element: (
-              <Navigate
-                to='/party-selection'
-                replace
-              />
-            ),
-          },
-        ],
+        path: routes.partySelectionLegacyCatchAll,
+        element: (
+          <Navigate
+            to={buildPartySelectionUrl()}
+            replace
+          />
+        ),
       },
     ],
     {
