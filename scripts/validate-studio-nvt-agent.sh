@@ -84,7 +84,8 @@ yq -e '
   .spec.values.agentSchedule.template.tolerations[0].operator == "Equal" and
   .spec.values.agentSchedule.template.tolerations[0].value == "nvt-agent" and
   .spec.values.agentSchedule.profileSelection.onNoMatch == "deny" and
-  (.spec.values.agentSchedule.profiles | length) == 2 and
+  (.spec.values.agentSchedule.profiles | length) == 4 and
+  .spec.values.agentSchedule.profiles[0].name == "mirkoSekulic" and
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
   .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
@@ -95,6 +96,7 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[1].name == "jondyr" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
@@ -103,12 +105,39 @@ yq -e '
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
   .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[2].name == "nkylstad" and
+  .spec.values.agentSchedule.profiles[2].agentRuntimeConfig.proxy.provider == "claude-nkylstad" and
+  .spec.values.agentSchedule.profiles[2].egress == "mediated" and
+  .spec.values.agentSchedule.profiles[2].egressEnforcement == true and
+  .spec.values.agentSchedule.profiles[2].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[2].execution.kind == "pod" and
+  .spec.values.agentSchedule.profiles[2].execution.driver == "kubernetes" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[0].provider == "claude-nkylstad" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[2].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[2].permissions.issues == "read" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[2].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[3].name == "ErlingHauan" and
+  .spec.values.agentSchedule.profiles[3].agentRuntimeConfig.proxy.provider == "claude-erlinghauan" and
+  .spec.values.agentSchedule.profiles[3].egress == "mediated" and
+  .spec.values.agentSchedule.profiles[3].egressEnforcement == true and
+  .spec.values.agentSchedule.profiles[3].egressTransport == "transparent" and
+  .spec.values.agentSchedule.profiles[3].execution.kind == "pod" and
+  .spec.values.agentSchedule.profiles[3].execution.driver == "kubernetes" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[0].provider == "claude-erlinghauan" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[2].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[2].permissions.issues == "read" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[2].permissions.pull_requests == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].credential-kind == "mediated" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[1].credential-kind == "mediated" and
-  .spec.values.broker.config.providers[3].allow.permissions.checks == "read" and
-  .spec.values.broker.config.providers[3].allow.permissions.issues == "read" and
-  .spec.values.broker.config.providers[3].allow.permissions.pull_requests == "write" and
+  .spec.values.broker.config.providers[2].name == "claude-nkylstad" and
+  .spec.values.broker.config.providers[2].config.credentials-file == "/state/auth/claude-nkylstad.json" and
+  .spec.values.broker.config.providers[3].name == "claude-erlinghauan" and
+  .spec.values.broker.config.providers[3].config.credentials-file == "/state/auth/claude-erlinghauan.json" and
+  .spec.values.broker.config.providers[5].name == "github-altinn" and
+  .spec.values.broker.config.providers[5].allow.permissions.checks == "read" and
+  .spec.values.broker.config.providers[5].allow.permissions.issues == "read" and
+  .spec.values.broker.config.providers[5].allow.permissions.pull_requests == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
