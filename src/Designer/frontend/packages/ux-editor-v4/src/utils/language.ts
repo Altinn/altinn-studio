@@ -36,20 +36,20 @@ export function getTitleByComponentType(
 export function getCollapsibleMenuTitleByType(menu: CollapsibleMenus, t: typeof i18next.t): string {
   switch (menu) {
     case CollapsibleMenus.Components: {
-      return t('ux_editor.collapsable_standard_components');
+      return t('ux_editor.collapsible_standard_components');
     }
     case CollapsibleMenus.Texts: {
-      return t('ux_editor.collapsable_text_components');
+      return t('ux_editor.collapsible_text_components');
     }
     case CollapsibleMenus.AdvancedComponents: {
-      return t('ux_editor.collapsable_text_advanced_components');
+      return t('ux_editor.collapsible_text_advanced_components');
     }
     // TODO : Uncomment when we have widgets components
     // case CollapsibleMenus.Widgets: {
-    //   return t('ux_editor.collapsable_text_widgets');
+    //   return t('ux_editor.collapsible_text_widgets');
     // }
     // case CollapsibleMenus.ThirdParty: {
-    //   return language['ux_editor.collapsable_text_thirdparty_components'];
+    //   return language['ux_editor.collapsible_text_thirdparty_components'];
     // }
     default: {
       return '';

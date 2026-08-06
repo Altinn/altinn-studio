@@ -20,7 +20,7 @@ export function DataModeling({ createPathOption = false }: DataModelingProps): R
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
-      return <StudioPageSpinner spinnerTitle={t('data_modelling.loading')} />;
+      return <StudioPageSpinner spinnerTitle={t('data_modeling.loading')} />;
     case 'error':
       return (
         <StudioCenter>

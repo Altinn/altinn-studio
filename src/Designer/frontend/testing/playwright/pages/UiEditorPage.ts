@@ -133,7 +133,7 @@ export class UiEditorPage extends BasePage {
     await this.page
       .getByRole('heading', { level: 3 })
       .getByRole('button', {
-        name: this.textMock('ux_editor.collapsable_text_components'),
+        name: this.textMock('ux_editor.collapsible_text_components'),
       })
       .click();
   }
