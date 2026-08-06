@@ -4,6 +4,7 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -121,7 +122,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         catch (WebException e) when (IsMessageAlreadyExistsError(e))
         {
             Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
-            if (HasMessageLeftOutbox(statuses))
+            if (EFormidlingStatusReader.HasLeftOutbox(statuses))
             {
                 _logger.LogInformation(
                     "eFormidling message {MessageId} already exists and has been sent; treating as an idempotent retry.",
@@ -170,6 +171,43 @@ public class DefaultEFormidlingService : IEFormidlingService
             _logger.LogError("Shipment of instance {InstanceId} to Eformidling failed", instance.Id);
             throw;
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(
+        IInstanceDataAccessor dataAccessor,
+        ValidAltinnEFormidlingConfiguration configuration
+    )
+    {
+        if (_eFormidlingClient == null || _platformSettings == null)
+        {
+            throw new EntryPointNotFoundException(
+                "eFormidling support has not been correctly configured in App.cs. "
+                    + "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor."
+            );
+        }
+
+        string instanceGuid = dataAccessor.Instance.Id.Split("/")[1];
+
+        // Only the subscription key, matching what the status query has always sent: this is a read
+        // through the platform gateway, not an operation on the instance's behalf.
+        var requestHeaders = new Dictionary<string, string>
+        {
+            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
+        };
+
+        Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
+        EFormidlingShipmentStatus status = EFormidlingStatusReader.Classify(statuses);
+
+        _logger.LogInformation(
+            "eFormidling message {MessageId} is {State} (status '{Status}'). Reported statuses: {ReportedStatuses}.",
+            instanceGuid,
+            status.State,
+            status.Status,
+            string.Join(",", statuses?.Content?.Select(s => s.Status) ?? [])
+        );
+
+        return status;
     }
 
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
@@ -276,30 +314,13 @@ public class DefaultEFormidlingService : IEFormidlingService
         return message.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// True when the message has been sent from the integrasjonspunkt's outbox (any status beyond
-    /// creation - the exact terminal state is the status-check event handler's concern).
-    /// </summary>
-    private static bool HasMessageLeftOutbox(Statuses statuses) =>
-        statuses.Content?.Exists(s =>
-            string.Equals(s.Status, "sendt", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "mottatt", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "levert", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "lest", StringComparison.OrdinalIgnoreCase)
-        )
-            is true;
-
     private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
     {
-        var failedStatus = statuses.Content?.Find(s =>
-            string.Equals(s.Status, "feil", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "levetid_utlopt", StringComparison.OrdinalIgnoreCase)
-        );
-        if (failedStatus is not null)
+        if (EFormidlingStatusReader.Classify(statuses) is { State: EFormidlingDeliveryState.Failed } failed)
         {
             throw new EformidlingDeliveryException(
-                $"The existing eFormidling message {messageId} has failed with status '{failedStatus.Status}' "
-                    + $"({failedStatus.Description}) and its message id cannot be reused. Manual follow-up is required."
+                $"The existing eFormidling message {messageId} has failed with status '{failed.Status}' "
+                    + $"({failed.Description}) and its message id cannot be reused. Manual follow-up is required."
             );
         }
     }

@@ -4,6 +4,7 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -505,6 +506,73 @@ public class DefaultEFormidlingServiceTests
     public void IsMessageAlreadyExistsError_matches_only_duplicate_errors(string message, bool expected)
     {
         Assert.Equal(expected, DefaultEFormidlingService.IsMessageAlreadyExistsError(new WebException(message)));
+    }
+
+    [Fact]
+    public async Task GetEFormidlingShipmentStatus_classifies_the_reported_statuses()
+    {
+        // Arrange
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: static c =>
+                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                    .ReturnsAsync(
+                        new Statuses
+                        {
+                            Content =
+                            [
+                                new Content { Status = "sendt" },
+                                new Content { Status = "levert", Description = "Levert til mottaker" },
+                            ],
+                        }
+                    )
+        );
+        var (sp, _, instanceGuid, dataAccessor) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act
+        var status = await defaultEformidlingService.GetEFormidlingShipmentStatus(
+            dataAccessor.Object,
+            TestConfiguration
+        );
+
+        // Assert - queried by the instance guid, which is the shipment id
+        Assert.Equal(EFormidlingDeliveryState.Delivered, status.State);
+        Assert.Equal("levert", status.Status);
+        Assert.Equal("Levert til mottaker", status.Description);
+        fixture
+            .Mock<IEFormidlingClient>()
+            .Verify(ec => ec.GetMessageStatusById(instanceGuid.ToString(), It.IsAny<Dictionary<string, string>>()));
+    }
+
+    [Fact]
+    public async Task GetEFormidlingShipmentStatus_sends_only_the_subscription_key()
+    {
+        // Arrange - the status read is a gateway read, not an operation on the instance's behalf, so
+        // it mints none of the tokens the send path needs. That matters: the poll runs from a
+        // workflow-engine callback, where there is no end user to borrow a token from.
+        Dictionary<string, string>? capturedHeaders = null;
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: c =>
+                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                    .ReturnsAsync(new Statuses())
+                    .Callback<string, Dictionary<string, string>>((_, headers) => capturedHeaders = headers)
+        );
+        var (sp, _, _, dataAccessor) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act
+        await defaultEformidlingService.GetEFormidlingShipmentStatus(dataAccessor.Object, TestConfiguration);
+
+        // Assert
+        Assert.NotNull(capturedHeaders);
+        Assert.Equal(
+            new Dictionary<string, string> { [General.SubscriptionKeyHeaderName] = "subscription-key" },
+            capturedHeaders
+        );
+        fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
+        fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
     }
 
     [Theory]
