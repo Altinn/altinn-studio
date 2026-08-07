@@ -11,6 +11,9 @@ WORKDIR /build
 COPY common/ common/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 
+# Prune host build artifacts, including literal backslash dirs such as `bin\Debug`.
+RUN find common Runtime -type d \( -name 'bin*' -o -name 'obj*' \) -prune -exec rm -rf '{}' +
+
 WORKDIR /build/Runtime/workflow-engine/tests/WorkflowEngine.TestApp
 RUN dotnet restore "WorkflowEngine.TestApp.csproj"
 RUN dotnet publish "WorkflowEngine.TestApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:CSharpier_Bypass=true

@@ -7,7 +7,7 @@ public record AltinnOrgEditingContext : AltinnOrgContext
 {
     public string Developer { get; }
 
-    public bool IsPersonalProfile => string.Equals(Developer, Org, StringComparison.Ordinal);
+    public bool IsPersonalProfile => string.Equals(Developer, Org, StringComparison.OrdinalIgnoreCase);
 
     private AltinnOrgEditingContext(string org, string developer)
         : base(org)

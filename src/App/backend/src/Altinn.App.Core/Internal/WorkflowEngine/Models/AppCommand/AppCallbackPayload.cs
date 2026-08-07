@@ -47,6 +47,13 @@ public sealed record AppCallbackPayload
     public Guid StepId { get; init; }
 
     /// <summary>
+    /// Stable reference time for this execution: the explicit workflow schedule when present,
+    /// otherwise the persisted time when the step was enqueued.
+    /// </summary>
+    [JsonPropertyName("executionReferenceTime")]
+    public required DateTimeOffset ExecutionReferenceTime { get; init; }
+
+    /// <summary>
     /// Opaque state blob passed through from the previous command — or, for a step being re-executed
     /// after a deferral, the state that step itself produced on its previous attempt.
     /// </summary>
