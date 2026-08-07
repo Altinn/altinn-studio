@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	triggerBeforeSHA = "abcdef0123456789"
-	triggerHeadSHA   = "0123456789abcdef"
+	triggerBeforeSHA = "abcdef0123456789abcdef0123456789abcdef01"
+	triggerHeadSHA   = "0123456789abcdef0123456789abcdef01234567"
 	triggerVersion   = "v1.0.0"
 
 	triggerBaseChangelog = `# Changelog
@@ -288,6 +288,26 @@ func TestResolveReleaseTriggerManualRequiresExactVersion(t *testing.T) {
 	}, fakeReleaseTriggerGit{})
 	if !errors.Is(err, errReleaseTriggerVersionRequired) {
 		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerVersionRequired)
+	}
+}
+
+func TestResolveReleaseTriggerManualRequiresFullCommitSHA(t *testing.T) {
+	t.Parallel()
+
+	const abbreviatedCommit = "01234567"
+	git := fakeReleaseTriggerGit{outputs: map[string]string{
+		"rev-parse " + abbreviatedCommit + "^{commit}": triggerHeadSHA,
+	}}
+	_, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            abbreviatedCommit,
+		SelectedComponent: "studioctl",
+		SelectedVersion:   "v0.1.0-preview.1",
+	}, git)
+	if !errors.Is(err, errReleaseTriggerCommitExact) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerCommitExact)
 	}
 }
 
