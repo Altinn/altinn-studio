@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Altinn.Studio.Runtime.Common;
+namespace Altinn.Studio.Common;
 
 public static class Assert
 {

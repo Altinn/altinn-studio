@@ -16,8 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../../Shared/HostBridge/**/*.cs" LinkBase="HostBridge" />
-    <Compile Include="../../Shared/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
+    <ProjectReference Include="../../Runtime/common/dotnet/Altinn.Studio.Runtime.Common/Altinn.Studio.Runtime.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

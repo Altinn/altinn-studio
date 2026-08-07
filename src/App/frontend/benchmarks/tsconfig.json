@@ -9,8 +9,8 @@
     "noEmit": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@app/form-component/*": ["../../../../app-libs/form-component/src/*"],
-      "@app/language/*": ["../../../../app-libs/language/src/*"],
+      "@app/form-component/*": ["../../../common/typescript/form-component/src/*"],
+      "@app/language/*": ["../../../common/typescript/language/src/*"],
       "src/*": ["../src/*"]
     }
   }
