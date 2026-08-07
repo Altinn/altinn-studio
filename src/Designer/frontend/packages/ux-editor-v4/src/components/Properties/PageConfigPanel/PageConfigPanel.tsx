@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { Accordion } from '@digdir/designsystemet-react';
+import { StudioDetails } from '@studio/components';
 import { FileIcon } from '@studio/icons';
 import { useText, useFormLayouts } from '../../../hooks';
 import { useTextResourcesSelector } from 'app-shared/hooks';
@@ -60,26 +60,24 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
           <EditPageId layoutName={selectedItem.id} />
           <NameConfig selectedItem={selectedItem} />
         </div>
-        <Accordion>
-          <Accordion.Item>
-            <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
-            <Accordion.Content className={classes.text}>
-              <NameConfig selectedItem={selectedItem} />
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item>
-            <Accordion.Header>{t('right_menu.dynamics')}</Accordion.Header>
-            <Accordion.Content>
-              <HiddenExpressionOnLayout />
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item>
-            <Accordion.Header>{t('right_menu.pdf')}</Accordion.Header>
-            <Accordion.Content className={classes.pdf}>
-              <PdfConfig />
-            </Accordion.Content>
-          </Accordion.Item>
-        </Accordion>
+        <StudioDetails>
+          <StudioDetails.Summary>{t('right_menu.text')}</StudioDetails.Summary>
+          <StudioDetails.Content className={classes.text}>
+            <NameConfig selectedItem={selectedItem} />
+          </StudioDetails.Content>
+        </StudioDetails>
+        <StudioDetails>
+          <StudioDetails.Summary>{t('right_menu.dynamics')}</StudioDetails.Summary>
+          <StudioDetails.Content className={classes.dynamics}>
+            <HiddenExpressionOnLayout />
+          </StudioDetails.Content>
+        </StudioDetails>
+        <StudioDetails>
+          <StudioDetails.Summary>{t('right_menu.pdf')}</StudioDetails.Summary>
+          <StudioDetails.Content className={classes.pdf}>
+            <PdfConfig />
+          </StudioDetails.Content>
+        </StudioDetails>
       </Fragment>
       <PageConfigWarningModal open={hasDuplicatedIdsInAllLayouts} />
     </>
