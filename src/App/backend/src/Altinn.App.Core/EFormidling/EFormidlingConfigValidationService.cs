@@ -1,5 +1,6 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -120,13 +121,27 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
             }
         }
 
-        if (anyEnabled && services.GetService<IEFormidlingService>() is null)
+        if (anyEnabled)
         {
-            errors.Add(
-                $"eFormidling is enabled for this environment ({environment}), but no "
-                    + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidlingServices2<TM,TR> when "
-                    + "configuring services, or disable the task with <altinn:disabled>."
-            );
+            // The metadata generator is checked separately from the service: reaching AddEFormidling()
+            // but never completing the builder registers everything except this one, and saying so is
+            // more use than reporting the feature as absent.
+            if (services.GetService<IEFormidlingService>() is null)
+            {
+                errors.Add(
+                    $"eFormidling is enabled for this environment ({environment}), but no "
+                        + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidling() when configuring "
+                        + "services, or disable the task with <altinn:disabled>."
+                );
+            }
+            else if (services.GetRequiredService<AppImplementationFactory>().Get<IEFormidlingMetadata>() is null)
+            {
+                errors.Add(
+                    $"eFormidling is enabled for this environment ({environment}), but no "
+                        + $"{nameof(IEFormidlingMetadata)} is registered. Complete the registration with "
+                        + "AddEFormidling().WithMetadata<T>(), or disable the task with <altinn:disabled>."
+                );
+            }
         }
 
         if (errors.Count > 0)

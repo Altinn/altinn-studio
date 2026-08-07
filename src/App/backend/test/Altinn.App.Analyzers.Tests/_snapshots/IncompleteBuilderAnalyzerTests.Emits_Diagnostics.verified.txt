@@ -1,0 +1,14 @@
+﻿[
+  {
+    Id: ALTINNAPP0701,
+    Title: Incomplete registration discarded,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: {ProjectDirectory}testapp/App/additional/DiscardedEFormidlingBuilder.cs(23,9),
+    Code: services.AddEFormidling(),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0701,
+    MessageFormat: '{0}' returns '{1}', which does not describe a usable registration on its own, and the result is discarded. {2}.,
+    Message: 'AddEFormidling' returns 'IEFormidlingMetadataStage', which does not describe a usable registration on its own, and the result is discarded. Complete the registration by calling WithMetadata<T>() with your IEFormidlingMetadata implementation.,
+    Category: Contracts
+  }
+]

@@ -402,7 +402,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
 
-        // Registered here rather than in AddEFormidlingServices2, so that an app whose BPMN has an
+        // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
         // eFormidling task but never called it is told at startup instead of mid-process.
         services.AddHostedService<EFormidlingConfigValidationService>();
     }

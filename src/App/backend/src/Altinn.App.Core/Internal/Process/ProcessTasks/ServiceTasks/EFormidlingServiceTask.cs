@@ -277,7 +277,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     private IEFormidlingService RequireEFormidlingService() =>
         _eFormidlingService
         ?? throw new ProcessException(
-            $"No implementation of {nameof(IEFormidlingService)} has been added to the DI container. Remember to add eFormidling services. Use AddEFormidlingServices2<TM,TR> to register eFormidling services."
+            $"No implementation of {nameof(IEFormidlingService)} has been added to the DI container. Register eFormidling with AddEFormidling().WithMetadata<T>() when configuring services."
         );
 
     private Task<ValidAltinnEFormidlingConfiguration> GetValidAltinnEFormidlingConfiguration(string taskId)

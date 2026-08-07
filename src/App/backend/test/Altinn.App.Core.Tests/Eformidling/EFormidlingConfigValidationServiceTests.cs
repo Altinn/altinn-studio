@@ -1,5 +1,6 @@
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -42,6 +43,7 @@ public class EFormidlingConfigValidationServiceTests
     private static Task RunValidation(
         IReadOnlyList<ProcessTask> tasks,
         bool registerEFormidlingService = true,
+        bool registerEFormidlingMetadata = true,
         string environment = "Production",
         List<DataType>? dataTypes = null
     )
@@ -64,12 +66,17 @@ public class EFormidlingConfigValidationServiceTests
         hostEnvironment.Setup(x => x.EnvironmentName).Returns(environment);
 
         var services = new ServiceCollection();
+        services.AddAppImplementationFactory();
         services.AddSingleton(processReader.Object);
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
         if (registerEFormidlingService)
         {
             services.AddSingleton(new Mock<IEFormidlingService>().Object);
+        }
+        if (registerEFormidlingMetadata)
+        {
+            services.AddSingleton(new Mock<IEFormidlingMetadata>().Object);
         }
 
         ServiceProvider provider = services.BuildServiceProvider();
@@ -142,7 +149,20 @@ public class EFormidlingConfigValidationServiceTests
             RunValidation([EFormidlingTask("Task_Send", ValidConfig())], registerEFormidlingService: false)
         );
 
-        Assert.Contains("AddEFormidlingServices2", exception.Message);
+        Assert.Contains("AddEFormidling()", exception.Message);
+    }
+
+    [Fact]
+    public async Task Fails_When_EnabledButMetadataIsNotRegistered()
+    {
+        // The shape of an app that called AddEFormidling() but never completed the builder: everything
+        // except the one implementation only the app can supply.
+        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+            RunValidation([EFormidlingTask("Task_Send", ValidConfig())], registerEFormidlingMetadata: false)
+        );
+
+        Assert.Contains(nameof(IEFormidlingMetadata), exception.Message);
+        Assert.Contains("WithMetadata", exception.Message);
     }
 
     [Fact]
