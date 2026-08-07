@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
@@ -402,5 +403,57 @@ public class ProcessStepOptionsResolverTests
 
         Assert.NotNull(entryStage);
         Assert.Null(entryStage.WaitBudget);
+    }
+
+    /// <summary>
+    /// Both merges in this resolver enumerate <see cref="ProcessStepOptions"/>' fields by hand — the
+    /// step-over-task merge, and <c>Resolve</c>'s own merge with the command default. A field added to
+    /// that record and forgotten in either place would be silently dropped for every service task.
+    /// Record equality is what keeps this honest: the assertions never name a field, so they start
+    /// failing on their own once one goes missing.
+    /// </summary>
+    [Fact]
+    public void Resolve_ServiceTask_CarriesEveryStepOptionsField()
+    {
+        ProcessStepOptions everyField = new()
+        {
+            MaxExecutionTime = TimeSpan.FromMinutes(7),
+            RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(2), maxRetries: 4),
+            WaitBudget = TimeSpan.FromHours(9),
+        };
+
+        // Tripwire for the fixture itself: a new field left unset here would be null on both sides of
+        // every comparison below, which would pass while proving nothing.
+        foreach (PropertyInfo property in typeof(ProcessStepOptions).GetProperties())
+        {
+            Assert.NotNull(property.GetValue(everyField));
+        }
+
+        // Declared on the conclusion, nothing at task level. The resolver builds a copy rather than
+        // passing the instance through, so every field has to survive that copy.
+        var declaredPerStep = CreateResolver(services =>
+            services.AddSingleton<IPipelineServiceTask>(new PerStepOptionsTask(everyField))
+        );
+        Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options"));
+
+        // Declared on a stage, which merges over the task's own.
+        Assert.Equal(
+            everyField,
+            declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", "Stage")
+        );
+
+        // Declared at task level, reaching the conclusion as its fallback.
+        var declaredOnTask = CreateResolver(ServiceTask("task-options", everyField));
+        Assert.Equal(everyField, declaredOnTask.Resolve(ExecuteServiceTask.Key, taskId: null, "task-options"));
+    }
+
+    private sealed class PerStepOptionsTask(ProcessStepOptions options) : IPipelineServiceTask
+    {
+        public string Type => "per-step-options";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("Stage", _ => Task.FromResult(ServiceTaskStageResult.Completed()), options)
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()), options);
     }
 }
