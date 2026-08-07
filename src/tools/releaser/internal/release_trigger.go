@@ -9,12 +9,14 @@ import (
 )
 
 var (
-	errReleaseTriggerEvent          = errors.New("unsupported release trigger event")
-	errReleaseTriggerBranchRequired = errors.New("release trigger must run from a branch")
-	errReleaseTriggerRefRequired    = errors.New("release trigger ref is required")
-	errReleaseTriggerSHARequired    = errors.New("release trigger commit SHA is required")
-	errReleaseTriggerBeforeRequired = errors.New("release trigger before SHA is required")
-	errReleaseTriggerPromotionCount = errors.New(
+	errReleaseTriggerEvent           = errors.New("unsupported release trigger event")
+	errReleaseTriggerBranchRequired  = errors.New("release trigger must run from a branch")
+	errReleaseTriggerRefRequired     = errors.New("release trigger ref is required")
+	errReleaseTriggerSHARequired     = errors.New("release trigger commit SHA is required")
+	errReleaseTriggerBeforeRequired  = errors.New("release trigger before SHA is required")
+	errReleaseTriggerVersionRequired = errors.New("manual release version is required")
+	errReleaseTriggerVersionMissing  = errors.New("manual release version is not present in the changelog")
+	errReleaseTriggerPromotionCount  = errors.New(
 		"push contains release promotions for multiple components",
 	)
 )
@@ -27,6 +29,7 @@ type ReleaseTriggerRequest struct {
 	Commit            string
 	BeforeSHA         string
 	SelectedComponent string
+	SelectedVersion   string
 }
 
 // ReleasePlan is the immutable release context emitted to CI.
@@ -77,6 +80,9 @@ func resolveReleaseTriggerWithDeps(
 
 	switch req.EventName {
 	case "workflow_dispatch":
+		if req.SelectedVersion == "" {
+			return ReleaseTriggerResult{}, errReleaseTriggerVersionRequired
+		}
 		component, err := validateReleaseTriggerComponent(req.SelectedComponent, req.RefName)
 		if err != nil {
 			return ReleaseTriggerResult{}, err
@@ -84,15 +90,22 @@ func resolveReleaseTriggerWithDeps(
 		if git == nil {
 			return ReleaseTriggerResult{}, errGitRequired
 		}
-		cl, err := loadChangelogAtRef(ctx, git, req.Commit, component.ChangelogPath)
+		commit, err := git.Run(ctx, "rev-parse", req.Commit+"^{commit}")
 		if err != nil {
-			return ReleaseTriggerResult{}, fmt.Errorf("load %s changelog at %s: %w", component.Name, req.Commit, err)
+			return ReleaseTriggerResult{}, fmt.Errorf("resolve manual release commit: %w", err)
 		}
-		resolvedVersion, err := resolveWorkflowVersionFromChangelog(component, req.RefName, cl)
+		cl, err := loadChangelogAtRef(ctx, git, commit, component.ChangelogPath)
 		if err != nil {
-			return ReleaseTriggerResult{}, fmt.Errorf("resolve manual release version: %w", err)
+			return ReleaseTriggerResult{}, fmt.Errorf("load %s changelog at %s: %w", component.Name, commit, err)
 		}
-		return releaseTriggerResult(component.Name, req.RefName, req.Commit, resolvedVersion), nil
+		selectedVersion := normalizeVersionPrefix(req.SelectedVersion)
+		if err := validateWorkflowReleasePlan(component, req.RefName, selectedVersion); err != nil {
+			return ReleaseTriggerResult{}, fmt.Errorf("validate manual release plan: %w", err)
+		}
+		if !cl.HasVersion(selectedVersion) {
+			return ReleaseTriggerResult{}, fmt.Errorf("%w: %s", errReleaseTriggerVersionMissing, selectedVersion)
+		}
+		return releaseTriggerResult(component.Name, req.RefName, commit, selectedVersion), nil
 	case "push":
 		return resolvePushReleaseTrigger(ctx, req, git)
 	default:

@@ -98,8 +98,9 @@ prerelease, stabilization, and patch release flows.
 - The dispatcher intentionally runs on every `main` and `release/**` push and lets `resolve-trigger` no-op when no
   promotion is present. GitHub path filters inspect at most 300 changed files and could otherwise miss a release in
   a large push.
-- Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
-  `release/<component>/vX.Y` branch.
+- Manual workflow dispatch is a recovery path. Select the component, enter the exact promoted version and full
+  commit SHA, and dispatch from `main` or the matching `release/<component>/vX.Y` branch. A matching existing draft
+  release is updated in place so retries can continue after a later publication step fails.
 - Release publication depends on the unified CI workflow routing the component to its reusable publisher workflow.
-- Manual dispatch resolves the version once from the selected commit and branch; publishers never select a newer
-  version or move their checkout while executing a release plan.
+- Manual dispatch validates the exact selected version against the selected commit and branch; publishers never
+  select a newer version or move their checkout while executing a release plan.

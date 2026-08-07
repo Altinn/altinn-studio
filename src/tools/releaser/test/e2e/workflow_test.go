@@ -943,6 +943,17 @@ func (g *fakeGH) CreateRelease(_ context.Context, opts internal.Options) error {
 	return nil
 }
 
+func (g *fakeGH) FindRelease(
+	_ context.Context,
+	_, _ string,
+) (internal.GitHubRelease, bool, error) {
+	return internal.GitHubRelease{}, false, nil
+}
+
+func (g *fakeGH) UpdateRelease(ctx context.Context, opts internal.Options) error {
+	return g.CreateRelease(ctx, opts)
+}
+
 func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) (string, error) {
 	g.prCreated = true
 	g.prBase = opts.Base
