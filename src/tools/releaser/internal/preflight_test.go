@@ -1714,6 +1714,17 @@ func TestGitCLI_TagExistsChecksRequestedRemote(t *testing.T) {
 	if !exists {
 		t.Fatalf("TagExists() = false, want requested remote tag %s", tag)
 	}
+	target, found, err := git.RemoteTagCommit(t.Context(), "tag-source", tag)
+	if err != nil {
+		t.Fatalf("RemoteTagCommit() error = %v", err)
+	}
+	if !found {
+		t.Fatalf("RemoteTagCommit() found = false, want requested remote tag %s", tag)
+	}
+	wantTarget := remoteBranchHead(t, repo, "tag-source", "main")
+	if target != wantTarget {
+		t.Fatalf("RemoteTagCommit() = %s, want %s", target, wantTarget)
+	}
 }
 
 func TestGitCLI_RemoteRefChecksFailClosed(t *testing.T) {
