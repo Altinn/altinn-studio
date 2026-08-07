@@ -5,6 +5,7 @@ This directory contains components and utilities that are reused between layout 
 This means that they are allowed to use utilities like `useTranslation`, so they are not 100% dumb like the components in app-components.
 
 - `HelpTextContainer` — the help-text tooltip used by several components.
+- `LabelAsSpan` — span-based label wrapper for display components (Date, Text, Number, …) that are not tied to an input.
 - `storybook/` — the shared Storybook docs setup described below.
 
 Most likely these will be components migrated from `src/App/frontend/src/components` and we hope to move many of them here.

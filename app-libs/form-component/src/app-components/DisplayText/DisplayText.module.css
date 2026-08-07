@@ -2,3 +2,7 @@
   width: 24px;
   margin-right: 12px;
 }
+
+.value {
+  word-break: break-word;
+}

@@ -1,0 +1,22 @@
+.fieldWrapper {
+  display: grid;
+  gap: var(--ds-size-2);
+}
+
+/* Matches app-frontend LabelContent.module.css */
+.labelContainer {
+  display: flex;
+  gap: var(--ds-size-2);
+  align-items: center;
+}
+
+.labelContent {
+  word-break: break-word;
+}
+
+.labelWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+  align-items: flex-start;
+}

@@ -5,6 +5,7 @@ export * from './Alert';
 export * from './AttachmentList';
 export * from './Audio';
 export * from './ButtonGroup';
+export * from './Date';
 export * from './Datepicker';
 export * from './Divider';
 export * from './Dropdown';
