@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useAltinityAssistant } from './useAltinityAssistant';
+import { useAssistant } from './useAssistant';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantThreads } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkflow';
@@ -12,7 +12,7 @@ const mockUseAssistantWorkflow = useAssistantWorkflow as jest.MockedFunction<
   typeof useAssistantWorkflow
 >;
 
-describe('useAltinityAssistant', () => {
+describe('useAssistant', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -32,7 +32,7 @@ describe('useAltinityAssistant', () => {
       messages: [],
     });
 
-    const { result } = renderUseAltinityAssistant();
+    const { result } = renderUseAssistant();
 
     act(() => {
       result.current.selectThread(null);
@@ -55,4 +55,4 @@ const createThreadState = (): AssistantThreadState => ({
   createMessage: jest.fn(),
 });
 
-const renderUseAltinityAssistant = () => renderHook(() => useAltinityAssistant());
+const renderUseAssistant = () => renderHook(() => useAssistant());

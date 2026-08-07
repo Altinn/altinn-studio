@@ -17,7 +17,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
-import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
+import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import {
   decorateMessagesWithTraceIds,
@@ -57,7 +57,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     respondToPermission: sendPermissionResponse,
     registerSession,
     onAgentMessage,
-  } = useAltinityWebSocket();
+  } = useAssistantWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);

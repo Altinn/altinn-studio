@@ -8,7 +8,7 @@ import type {
 import { useAssistantThreads } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkflow';
 
-export interface UseAltinityAssistantResult {
+export interface UseAssistantResult {
   connectionStatus: ConnectionStatus;
   workflowStatusByThread: Record<string, WorkflowStatus>;
   chatThreads: ChatThread[];
@@ -27,7 +27,7 @@ export interface UseAltinityAssistantResult {
  * Cohabitates all the callers that the main AiAssistant component needs. Do not add logic to this hook beyond this.
  * TODO: consider exposing useAssistantWorkflow to the caller directly, and deleting this hook.
  */
-export const useAltinityAssistant = (): UseAltinityAssistantResult => {
+export const useAssistant = (): UseAssistantResult => {
   const threads = useAssistantThreads();
   const {
     connectionStatus,
