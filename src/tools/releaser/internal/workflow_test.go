@@ -192,6 +192,52 @@ func TestWorkflow_Run_RejectsUnsafeExistingRelease(t *testing.T) {
 	}
 }
 
+func TestWorkflow_Run_RejectsDraftWithMovedTag(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.1] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+	builder := &fakeBuilder{}
+	gh := &fakeGH{existingRelease: &internal.GitHubRelease{
+		TargetCommitish: fakeHeadCommit,
+		IsDraft:         true,
+	}}
+	git := &fakeGit{
+		currentBranch:   "main",
+		remoteTagCommit: "another-commit",
+		remoteTagExists: true,
+	}
+	workflow, err := internal.NewWorkflow(t.Context(), internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3-preview.1",
+		ChangelogPath: changelogPath,
+		OutputDir:     t.TempDir(),
+		RepoRoot:      os.TempDir(),
+		Draft:         true,
+	}, git, gh, builder, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	err = workflow.Run(t.Context())
+	if !errors.Is(err, internal.ErrReleaseTagMismatch) {
+		t.Fatalf("workflow.Run() error = %v, want %v", err, internal.ErrReleaseTagMismatch)
+	}
+	if !builder.called {
+		t.Fatal("expected tag target to be rechecked after the build")
+	}
+	if gh.updated {
+		t.Fatal("moved tag reached draft update")
+	}
+}
+
 func TestGitHubCLI_UpdateReleaseReplacesDraftAssets(t *testing.T) {
 	t.Parallel()
 
@@ -676,15 +722,21 @@ func TestNewWorkflow_OutputDirSafety_RejectsSymlinkEscape(t *testing.T) {
 type fakeGit struct {
 	currentBranch               string
 	headCommit                  string
+	remoteTagCommit             string
 	remoteBranchExistsResponses []bool
 	remoteBranchExistsCallCount int
 	tagExists                   bool
+	remoteTagExists             bool
 	remoteBranchExists          bool
 	workingTreeClean            bool
 }
 
 func (g *fakeGit) TagExists(_ context.Context, _, _ string) (bool, error) {
 	return g.tagExists, nil
+}
+
+func (g *fakeGit) RemoteTagCommit(_ context.Context, _, _ string) (string, bool, error) {
+	return g.remoteTagCommit, g.remoteTagExists, nil
 }
 
 func (g *fakeGit) CurrentBranch(_ context.Context) (string, error) {

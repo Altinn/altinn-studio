@@ -22,6 +22,7 @@ var (
 	ErrReleaseBranchMissing  = errors.New("release branch does not exist for stable release")
 	ErrReleasePublished      = errors.New("release already exists and is not a draft")
 	ErrReleaseTargetMismatch = errors.New("existing draft targets a different commit")
+	ErrReleaseTagMismatch    = errors.New("release tag targets a different commit")
 	ErrWrongReleaseBranch    = errors.New("release must run from its canonical branch")
 	errReleaseTargetMissing  = errors.New("release target commit is empty")
 )
@@ -548,7 +549,32 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 
 	// gh CLI needs to run from repo root
 	w.gh.SetWorkdir(w.config.RepoRoot)
+	if err := w.validateRemoteTagTarget(ctx, target); err != nil {
+		return err
+	}
 	return w.publishGitHubRelease(ctx, opts)
+}
+
+func (w *Workflow) validateRemoteTagTarget(ctx context.Context, target string) error {
+	tag := w.tag.Full()
+	remoteTarget, exists, err := w.git.RemoteTagCommit(ctx, w.topology.SourceRemote, tag)
+	if err != nil {
+		return fmt.Errorf("resolve remote release tag: %w", err)
+	}
+	if !exists {
+		return nil
+	}
+	if remoteTarget != target {
+		return fmt.Errorf(
+			"%w: %s targets %s, expected %s",
+			ErrReleaseTagMismatch,
+			tag,
+			remoteTarget,
+			target,
+		)
+	}
+	w.log.Success("Existing release tag matches release plan")
+	return nil
 }
 
 func (w *Workflow) publishGitHubRelease(ctx context.Context, opts Options) error {
