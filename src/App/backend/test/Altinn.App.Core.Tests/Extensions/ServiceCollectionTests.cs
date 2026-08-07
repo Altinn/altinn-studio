@@ -13,9 +13,9 @@ public class ServiceCollectionTests
     public void IsAdded_Added_ShouldReturnTrue()
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+        services.AddHttpClient<IEventsClient, EventsClient>();
 
-        services.IsAdded(typeof(IEventsSubscription)).Should().BeTrue();
+        services.IsAdded(typeof(IEventsClient)).Should().BeTrue();
     }
 
     [Fact]
@@ -23,6 +23,6 @@ public class ServiceCollectionTests
     {
         IServiceCollection services = new ServiceCollection();
 
-        services.IsAdded(typeof(IEventsSubscription)).Should().BeFalse();
+        services.IsAdded(typeof(IEventsClient)).Should().BeFalse();
     }
 }
