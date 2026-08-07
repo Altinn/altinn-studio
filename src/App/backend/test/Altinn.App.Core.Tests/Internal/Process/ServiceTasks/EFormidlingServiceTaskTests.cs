@@ -142,7 +142,7 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
             Times.Once
         );
     }
@@ -187,7 +187,7 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
             Times.Once
         );
     }
@@ -211,7 +211,11 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                ),
             Times.Never
         );
         _loggerMock.Verify(
@@ -252,7 +256,7 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
             Times.Once
         );
     }
@@ -278,7 +282,11 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("earlier pass", failed.ErrorMessage);
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                ),
             Times.Never
         );
     }
@@ -302,7 +310,7 @@ public class EFormidlingServiceTaskTests
 
         Assert.IsType<ServiceTaskSuccessResult>(result);
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instance, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
             Times.Once
         );
     }
@@ -349,7 +357,10 @@ public class EFormidlingServiceTaskTests
 
         _eFormidlingServiceMock
             .Setup(x =>
-                x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>())
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
             )
             .ThrowsAsync(new Exception("send failed"));
 
@@ -382,7 +393,10 @@ public class EFormidlingServiceTaskTests
 
         _eFormidlingServiceMock
             .Setup(x =>
-                x.SendEFormidlingShipment(It.IsAny<Instance>(), It.IsAny<ValidAltinnEFormidlingConfiguration>())
+                x.SendEFormidlingShipment(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                )
             )
             .ThrowsAsync(new EformidlingDeliveryException("message id cannot be reused"));
 

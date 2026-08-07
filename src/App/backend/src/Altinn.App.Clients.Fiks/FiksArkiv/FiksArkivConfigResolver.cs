@@ -4,9 +4,9 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.Factories;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Registers;
@@ -24,7 +24,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly ITranslationService _translationService;
-    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly ILayoutEvaluatorStateInitializer _layoutStateInitializer;
     private readonly ILogger<FiksArkivConfigResolver> _logger;
     private readonly GeneralSettings _generalSettings;
@@ -34,7 +33,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         IOptions<FiksArkivSettings> fiksArkivSettings,
         IAppMetadata appMetadata,
         ITranslationService translationService,
-        InstanceDataUnitOfWorkInitializer instanceDataUnitOfWorkInitializer,
         ILayoutEvaluatorStateInitializer layoutStateInitializer,
         IOptions<GeneralSettings> generalSettings,
         IAltinnPartyClient altinnPartyClient,
@@ -44,7 +42,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         _fiksArkivSettings = fiksArkivSettings.Value;
         _appMetadata = appMetadata;
         _translationService = translationService;
-        _instanceDataUnitOfWorkInitializer = instanceDataUnitOfWorkInitializer;
         _layoutStateInitializer = layoutStateInitializer;
         _generalSettings = generalSettings.Value;
         _altinnPartyClient = altinnPartyClient;
@@ -72,132 +69,129 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
 
     /// <inheritdoc />
     public async Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken = default
     )
     {
         if (_fiksArkivSettings.Metadata is null)
             return null;
 
-        try
-        {
-            var layoutState = await GetLayoutState(instance);
+        var layoutState = await _layoutStateInitializer.Init(
+            dataAccessor,
+            dataAccessor.TaskId,
+            language: dataAccessor.Language
+        );
+        Instance instance = dataAccessor.Instance;
 
-            var caseFileTitle = await GetBindableConfigValue(
-                layoutState,
-                instance,
-                _fiksArkivSettings.Metadata.CaseFileTitle,
-                x => ParseString(x, nameof(FiksArkivMetadataSettings.CaseFileTitle)),
-                cancellationToken
-            );
-            var journalEntryTitle = await GetBindableConfigValue(
-                layoutState,
-                instance,
-                _fiksArkivSettings.Metadata.JournalEntryTitle,
-                x => ParseString(x, nameof(FiksArkivMetadataSettings.JournalEntryTitle)),
-                cancellationToken
-            );
-            var systemId = await GetBindableConfigValue(
-                layoutState,
-                instance,
-                _fiksArkivSettings.Metadata.SystemId,
-                x => ParseString(x, nameof(FiksArkivMetadataSettings.SystemId)),
-                cancellationToken
-            );
-            var ruleId = await GetBindableConfigValue(
-                layoutState,
-                instance,
-                _fiksArkivSettings.Metadata.RuleId,
-                x => ParseString(x, nameof(FiksArkivMetadataSettings.RuleId)),
-                cancellationToken
-            );
-            var caseFileId = await GetBindableConfigValue(
-                layoutState,
-                instance,
-                _fiksArkivSettings.Metadata.CaseFileId,
-                x => ParseString(x, nameof(FiksArkivMetadataSettings.CaseFileId)),
-                cancellationToken
-            );
+        var caseFileTitle = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            _fiksArkivSettings.Metadata.CaseFileTitle,
+            x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.CaseFileTitle)),
+            cancellationToken
+        );
+        var journalEntryTitle = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            _fiksArkivSettings.Metadata.JournalEntryTitle,
+            x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.JournalEntryTitle)),
+            cancellationToken
+        );
+        var systemId = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            _fiksArkivSettings.Metadata.SystemId,
+            x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.SystemId)),
+            cancellationToken
+        );
+        var ruleId = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            _fiksArkivSettings.Metadata.RuleId,
+            x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.RuleId)),
+            cancellationToken
+        );
+        var caseFileId = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            _fiksArkivSettings.Metadata.CaseFileId,
+            x => ParseMetadataString(x, nameof(FiksArkivMetadataSettings.CaseFileId)),
+            cancellationToken
+        );
 
-            return new FiksArkivDocumentMetadata(systemId, ruleId, caseFileId, caseFileTitle, journalEntryTitle);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Fiks Arkiv error: {Error}", e.Message);
-            throw;
-        }
-
-        static string? ParseString(object? data, string paramName) =>
-            (data as string).EnsureNotEmpty($"{nameof(FiksArkivMetadataSettings)}.{paramName}");
+        return new FiksArkivDocumentMetadata(systemId, ruleId, caseFileId, caseFileTitle, journalEntryTitle);
     }
 
     /// <inheritdoc />
-    public async Task<FiksArkivRecipient> GetRecipient(Instance instance, CancellationToken cancellationToken = default)
+    public async Task<FiksArkivRecipient> GetRecipient(
+        IInstanceDataAccessor dataAccessor,
+        CancellationToken cancellationToken = default
+    )
     {
-        try
-        {
-            var recipientSettings =
-                _fiksArkivSettings.Recipient
-                ?? throw new FiksArkivConfigurationException("FiksArkivSettings.Recipient must be configured.");
-            var layoutState = await GetLayoutState(instance);
+        var recipientSettings =
+            _fiksArkivSettings.Recipient
+            ?? throw new FiksArkivConfigurationException("FiksArkivSettings.Recipient must be configured.");
+        var layoutState = await _layoutStateInitializer.Init(
+            dataAccessor,
+            dataAccessor.TaskId,
+            language: dataAccessor.Language
+        );
+        Instance instance = dataAccessor.Instance;
 
-            var accountId =
-                await GetBindableConfigValue(
-                    layoutState,
-                    instance,
-                    recipientSettings.FiksAccount,
-                    ParseGuid,
-                    cancellationToken
-                )
-                ?? throw new FiksArkivException(
-                    "FiksArkivSettings.Recipient.FiksAccount is required, but did not resolve to a value."
-                );
-            var identifier =
-                await GetBindableConfigValue(
-                    layoutState,
-                    instance,
-                    recipientSettings.Identifier,
-                    x => ParseString(x, nameof(FiksArkivRecipient.Identifier)),
-                    cancellationToken
-                )
-                ?? throw new FiksArkivException(
-                    "FiksArkivSettings.Recipient.Identifier is required, but did not resolve to a value."
-                );
-            var name =
-                await GetBindableConfigValue(
-                    layoutState,
-                    instance,
-                    recipientSettings.Name,
-                    x => ParseString(x, nameof(FiksArkivRecipient.Name)),
-                    cancellationToken
-                )
-                ?? throw new FiksArkivException(
-                    "FiksArkivSettings.Recipient.Name is required, but did not resolve to a value."
-                );
-            var orgNumber = await GetBindableConfigValue(
+        var accountId =
+            await GetBindableConfigValue(
                 layoutState,
                 instance,
-                recipientSettings.OrganizationNumber,
-                x => ParseString(x, nameof(FiksArkivRecipient.OrgNumber)),
+                recipientSettings.FiksAccount,
+                ParseGuid,
                 cancellationToken
+            )
+            ?? throw new FiksArkivException(
+                "FiksArkivSettings.Recipient.FiksAccount is required, but did not resolve to a value."
             );
+        var identifier =
+            await GetBindableConfigValue(
+                layoutState,
+                instance,
+                recipientSettings.Identifier,
+                x => ParseRecipientString(x, nameof(FiksArkivRecipient.Identifier)),
+                cancellationToken
+            )
+            ?? throw new FiksArkivException(
+                "FiksArkivSettings.Recipient.Identifier is required, but did not resolve to a value."
+            );
+        var name =
+            await GetBindableConfigValue(
+                layoutState,
+                instance,
+                recipientSettings.Name,
+                x => ParseRecipientString(x, nameof(FiksArkivRecipient.Name)),
+                cancellationToken
+            )
+            ?? throw new FiksArkivException(
+                "FiksArkivSettings.Recipient.Name is required, but did not resolve to a value."
+            );
+        var orgNumber = await GetBindableConfigValue(
+            layoutState,
+            instance,
+            recipientSettings.OrganizationNumber,
+            x => ParseRecipientString(x, nameof(FiksArkivRecipient.OrgNumber)),
+            cancellationToken
+        );
 
-            return new FiksArkivRecipient(accountId, identifier, name, orgNumber);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Fiks Arkiv error: {Error}", e.Message);
-            throw;
-        }
-
-        static Guid? ParseGuid(object? data) =>
-            Guid.TryParse($"{data}", out var parsedGuid)
-                ? parsedGuid
-                : throw new FiksArkivException($"Could not parse recipient account from data binding: {data}");
-
-        static string? ParseString(object? data, string paramName) =>
-            (data as string).EnsureNotEmpty($"{nameof(FiksArkivReceiptSettings)}.{paramName}");
+        return new FiksArkivRecipient(accountId, identifier, name, orgNumber);
     }
+
+    private static Guid? ParseGuid(object? data) =>
+        Guid.TryParse($"{data}", out var parsedGuid)
+            ? parsedGuid
+            : throw new FiksArkivException($"Could not parse recipient account from data binding: {data}");
+
+    private static string? ParseMetadataString(object? data, string paramName) =>
+        (data as string).EnsureNotEmpty($"{nameof(FiksArkivMetadataSettings)}.{paramName}");
+
+    private static string? ParseRecipientString(object? data, string paramName) =>
+        (data as string).EnsureNotEmpty($"{nameof(FiksArkivReceiptSettings)}.{paramName}");
 
     /// <inheritdoc />
     public string GetCorrelationId(Instance instance) => instance.GetInstanceUrl(_generalSettings);
@@ -292,12 +286,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         }
 
         return null;
-    }
-
-    private async Task<LayoutEvaluatorState> GetLayoutState(Instance instance)
-    {
-        var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(instance, null, null);
-        return await _layoutStateInitializer.Init(unitOfWork, null);
     }
 
     private static async Task<T?> GetBindableConfigValue<T>(

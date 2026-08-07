@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -8,7 +7,6 @@ using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -36,7 +34,6 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly PlatformSettings? _platformSettings;
     private readonly IEFormidlingClient? _eFormidlingClient;
     private readonly IAppMetadata _appMetadata;
-    private readonly IDataClient _dataClient;
     private readonly IEventsClient _eventClient;
     private readonly AppImplementationFactory _appImplementationFactory;
 
@@ -47,7 +44,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         ILogger<DefaultEFormidlingService> logger,
         IUserTokenProvider userTokenProvider,
         IAppMetadata appMetadata,
-        IDataClient dataClient,
         IEventsClient eventClient,
         IServiceProvider sp,
         IOptions<AppSettings>? appSettings = null,
@@ -63,18 +59,15 @@ public class DefaultEFormidlingService : IEFormidlingService
         _userTokenProvider = userTokenProvider;
         _eFormidlingClient = eFormidlingClient;
         _appMetadata = appMetadata;
-        _dataClient = dataClient;
         _eventClient = eventClient;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <inheritdoc />
-    public async Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration)
-    {
-        await SendEFormidlingShipmentInternal(instance, configuration);
-    }
-
-    private async Task SendEFormidlingShipmentInternal(Instance instance, ValidAltinnEFormidlingConfiguration config)
+    public async Task SendEFormidlingShipment(
+        IInstanceDataAccessor dataAccessor,
+        ValidAltinnEFormidlingConfiguration configuration
+    )
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
         if (
@@ -106,9 +99,14 @@ public class DefaultEFormidlingService : IEFormidlingService
             { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
         };
 
+        Instance instance = dataAccessor.Instance;
         string instanceGuid = instance.Id.Split("/")[1];
 
-        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance, config);
+        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(
+            instanceGuid,
+            configuration,
+            dataAccessor
+        );
 
         // The message id is the instance guid, so a retry of a send that already reached the
         // integrasjonspunkt fails with MessageAlreadyExistsException on create. Instead of leaving
@@ -141,7 +139,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             resumingExistingMessage = true;
         }
 
-        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance);
+        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(dataAccessor);
 
         await using (stream)
         {
@@ -160,7 +158,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             }
         }
 
-        await SendInstanceData(instance, requestHeaders, metadataFilename, config, resumingExistingMessage);
+        await SendInstanceData(dataAccessor, requestHeaders, metadataFilename, configuration, resumingExistingMessage);
 
         try
         {
@@ -176,8 +174,8 @@ public class DefaultEFormidlingService : IEFormidlingService
 
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
         string instanceGuid,
-        Instance instance,
-        ValidAltinnEFormidlingConfiguration config
+        ValidAltinnEFormidlingConfiguration config,
+        IInstanceDataAccessor dataAccessor
     )
     {
         if (_appSettings is null)
@@ -198,7 +196,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         };
 
         var eFormidlingReceivers = _appImplementationFactory.GetRequired<IEFormidlingReceivers>();
-        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(instance, config.Receiver);
+        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(dataAccessor, config.Receiver);
 
         Scope scope = new Scope
         {
@@ -306,7 +304,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         }
     }
 
-    /// <param name="instance">The instance whose data elements are shipped.</param>
+    /// <param name="dataAccessor">Reads the shipped instance and its data element content from the current unit of work.</param>
     /// <param name="requestHeaders">Headers for the eFormidling client calls.</param>
     /// <param name="eformidlingMetadataFilename">Filename already claimed by the metadata document.</param>
     /// <param name="config">The validated eFormidling configuration for the task.</param>
@@ -318,7 +316,7 @@ public class DefaultEFormidlingService : IEFormidlingService
     /// unverified. Hence the loud warning per skipped attachment rather than silence.
     /// </param>
     private async Task SendInstanceData(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
         ValidAltinnEFormidlingConfiguration config,
@@ -327,8 +325,8 @@ public class DefaultEFormidlingService : IEFormidlingService
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
+        Instance instance = dataAccessor.Instance;
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         // Keep track of already used file names to ensure they are unique. eFormidling does not allow duplicate filenames.
         HashSet<string> usedFileNames = [eformidlingMetadataFilename];
@@ -359,12 +357,9 @@ public class DefaultEFormidlingService : IEFormidlingService
             );
             usedFileNames.Add(uniqueFileName);
 
-            await using Stream stream = await _dataClient.GetBinaryData(
-                instanceOwnerPartyId,
-                instanceGuid,
-                new Guid(dataElement.Id),
-                authenticationMethod: null,
-                CancellationToken.None
+            using Stream stream = new MemoryStream(
+                (await dataAccessor.GetBinaryData(dataElement)).ToArray(),
+                writable: false
             );
 
             Debug.Assert(_eFormidlingClient is not null, "This is validated before use");
