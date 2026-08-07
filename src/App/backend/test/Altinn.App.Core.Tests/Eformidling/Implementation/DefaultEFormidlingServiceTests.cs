@@ -8,7 +8,6 @@ using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -84,7 +83,6 @@ public class DefaultEFormidlingServiceTests
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
         var eFormidlingMetadata = new Mock<IEFormidlingMetadata>(MockBehavior.Strict);
         var eFormidlingReceivers = new Mock<IEFormidlingReceivers>(MockBehavior.Strict);
-        var eventClient = new Mock<IEventsClient>(MockBehavior.Loose);
         var appSettings = Options.Create(
             new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456" }
         );
@@ -186,7 +184,6 @@ public class DefaultEFormidlingServiceTests
         services.TryAddTransient(_ => appMetadata.Object);
         services.TryAddTransient(_ => eFormidlingReceivers.Object);
         services.TryAddTransient(_ => eFormidlingMetadata.Object);
-        services.TryAddTransient(_ => eventClient.Object);
         services.TryAddTransient(_ => appSettings);
         services.TryAddTransient(_ => platformSettings);
         services.TryAddTransient(_ => eFormidlingClient.Object);
@@ -274,10 +271,6 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
 
         eFormidlingClient.VerifyNoOtherCalls();
-
-        // The send publishes nothing. It used to post a reminder CloudEvent to the app itself, whose
-        // webhook then checked the delivery status; the service task's delivery wait replaced it.
-        fixture.Mock<IEventsClient>().VerifyNoOtherCalls();
         fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
         fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
         fixture.Mock<IEFormidlingReceivers>().VerifyNoOtherCalls();
@@ -379,7 +372,6 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
 
         eFormidlingClient.VerifyNoOtherCalls();
-        fixture.Mock<IEventsClient>().VerifyNoOtherCalls();
         fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
         fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
         fixture.Mock<IEFormidlingReceivers>().VerifyNoOtherCalls();

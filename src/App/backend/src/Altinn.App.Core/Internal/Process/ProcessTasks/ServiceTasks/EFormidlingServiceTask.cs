@@ -31,24 +31,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 /// </remarks>
 internal sealed class EFormidlingServiceTask : IPipelineServiceTask
 {
-    /// <summary>
-    /// The send stage's name. Wire identity for in-flight workflows: a workflow enqueued against
-    /// this pipeline keeps calling back by this literal until it settles, so it must not drift.
-    /// </summary>
-    internal const string SendShipmentStageName = "SendShipment";
-
-    /// <summary>
-    /// How long, in total, the task waits for delivery confirmation before giving up.
-    /// </summary>
-    /// <remarks>
-    /// Sized to be generous enough that an ordinary slow recipient never trips it, and short enough
-    /// that a shipment nobody will ever confirm surfaces within a working day. Deliberately
-    /// unrelated to the shipment's own <c>ExpectedResponseDateTime</c> (2 hours): that tells the
-    /// recipient when a business response is expected, whereas this bounds our wait for the
-    /// integrasjonspunkt to confirm that the shipment arrived at all.
-    /// </remarks>
-    internal static readonly TimeSpan ShipmentWaitBudget = TimeSpan.FromHours(24);
-
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
@@ -77,11 +59,15 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     public string Type => "eFormidling";
 
     /// <inheritdoc />
-    public ProcessStepOptions StepOptions => new() { WaitBudget = ShipmentWaitBudget };
+    public ProcessStepOptions StepOptions => new() { WaitBudget = TimeSpan.FromHours(24) };
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The stage name is wire identity for in-flight workflows — a workflow enqueued against this
+    /// pipeline keeps calling back by this literal until it settles, so it must not drift.
+    /// </remarks>
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-        pipeline.Stage(SendShipmentStageName, SendShipment).Finally(AwaitDelivery);
+        pipeline.Stage("SendShipment", SendShipment).Finally(AwaitDelivery);
 
     /// <summary>
     /// Dispatches the shipment to the integrasjonspunkt. Completing this stage is what makes the
@@ -222,9 +208,9 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                     // the engine's generic wait-expiry.
                     await RecordShipmentStatus(instance, status, context.CancellationToken);
                     return ServiceTaskResult.FailedPermanent(
-                        $"eFormidling did not confirm delivery of this instance's shipment within the "
-                            + $"{ShipmentWaitBudget.TotalHours:0.#}-hour delivery wait. The last status reported by "
-                            + $"the integrasjonspunkt was '{status.Status ?? "none"}'. The shipment may still be "
+                        $"eFormidling did not confirm delivery of this instance's shipment. The wait began at "
+                            + $"{context.Wait.StartedAt:u} and its allowance is now spent. The last status reported "
+                            + $"by the integrasjonspunkt was '{status.Status ?? "none"}'. The shipment may still be "
                             + "delivered; manual follow-up is required."
                     );
                 }

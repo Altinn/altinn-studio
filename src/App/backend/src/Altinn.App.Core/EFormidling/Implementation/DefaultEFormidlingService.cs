@@ -193,13 +193,8 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (_eFormidlingClient == null || _platformSettings == null)
-        {
-            throw new EntryPointNotFoundException(
-                "eFormidling support has not been correctly configured in App.cs. "
-                    + "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor."
-            );
-        }
+        ArgumentNullException.ThrowIfNull(_eFormidlingClient);
+        ArgumentNullException.ThrowIfNull(_platformSettings);
 
         string instanceGuid = dataAccessor.Instance.Id.Split("/")[1];
 

@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
@@ -400,6 +401,10 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IServiceTask, PdfServiceTask>();
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
+
+        // Registered here rather than in AddEFormidlingServices2, so that an app whose BPMN has an
+        // eFormidling task but never called it is told at startup instead of mid-process.
+        services.AddHostedService<EFormidlingConfigValidationService>();
     }
 
     private static void AddActionServices(IServiceCollection services)

@@ -59,7 +59,7 @@ public class EFormidlingServiceTaskTests
     private static Task<ServiceTaskStageResult> SendShipment(EFormidlingServiceTask task, ServiceTaskContext context)
     {
         ServiceTaskStage stage =
-            task.ResolvePipeline().FindStage(EFormidlingServiceTask.SendShipmentStageName)
+            task.ResolvePipeline().FindStage("SendShipment")
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
         return stage.Work(context);
     }
@@ -102,11 +102,8 @@ public class EFormidlingServiceTaskTests
         // The stage name is a compatibility surface for in-flight workflows, so it is pinned here.
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
-        Assert.Equal(
-            new[] { EFormidlingServiceTask.SendShipmentStageName },
-            pipeline.Stages.Select(stage => stage.Name)
-        );
-        Assert.Equal(EFormidlingServiceTask.ShipmentWaitBudget, _serviceTask.StepOptions?.WaitBudget);
+        Assert.Equal(new[] { "SendShipment" }, pipeline.Stages.Select(stage => stage.Name));
+        Assert.Equal(TimeSpan.FromHours(24), _serviceTask.StepOptions?.WaitBudget);
     }
 
     // ===== SEND STAGE =====

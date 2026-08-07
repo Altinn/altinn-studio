@@ -52,7 +52,7 @@
                         <altinn:securityLevel>3</altinn:securityLevel>
                         <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
                         <altinn:dataTypes>
-                            <altinn:dataType>model</altinn:dataType>
+                            <altinn:dataType>Model</altinn:dataType>
                             <altinn:dataType>ref-data-as-pdf</altinn:dataType>
                         </altinn:dataTypes>
                     </altinn:eFormidlingConfig>
