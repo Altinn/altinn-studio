@@ -122,8 +122,6 @@ public static class ServiceRegistration
         services.AddTransient<IOrgTextsService, OrgTextsService>();
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
         services.RegisterDatamodeling(configuration);
-        services.RegisterSettingsSingleton<KafkaSettings>(configuration);
-        services.AddTransient<IKafkaProducer, KafkaProducer>();
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
         services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();

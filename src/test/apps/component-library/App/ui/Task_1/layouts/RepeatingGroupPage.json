@@ -335,7 +335,6 @@
       },
       {
         "id": "RepeatingGroup-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

@@ -31,7 +31,6 @@
       },
       {
         "id": "ImageUploadPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

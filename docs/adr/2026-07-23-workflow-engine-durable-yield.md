@@ -9,8 +9,8 @@
 - A1: A new non-failure command outcome (`ExecutionResult.Defer(delay)`) that parks the step in a
   non-terminal `Waiting` status and reschedules it via the existing `backoff_until` gate, bounded by
   an engine-enforced wait budget (`command.waitBudget`), with a first-class `nudge` endpoint as
-  the optional push accelerator. eFormidling delivery confirmation moves onto this primitive, and the
-  app-side Altinn Events receive stack it exists to serve is retired in v9.
+  the optional push accelerator. eFormidling delivery confirmation moved onto this primitive in
+  #19827, and the app-side Altinn Events receive stack it existed to serve is retired in v9.
 
 ## Problem context
 
@@ -91,7 +91,7 @@ alert for a non-error condition.
 
 - Multi-phase integrations ("send, then confirm") get their shape from **pipeline service
   tasks**: `IPipelineServiceTask` is the root contract — `Define(builder)` composes
-  `Stage(name, work, options?)` calls ended by the one `Finally(work)`, the builder's types making
+  `Stage(name, work, options?)` calls ended by the one `Finally(work, options?)`, the builder's types making
   any other shape uncompilable. `IServiceTask` — the simple task the 99% implement — derives from
   it with a sealed forwarding default, `Define => Finally(Execute)` (enforced by analyzer rule
   ALTINNAPP0700 plus a startup backstop — replacing it would silently orphan `Execute`), so the
@@ -103,8 +103,8 @@ alert for a non-error condition.
   send, crash before answering, and re-run with the count unchanged. Stage names are explicit
   literals (the wire identity — renaming the work method never moves it); stages share state
   through the instance data mutator, saved on stage completion — no new handoff channel.
-  eFormidling in v9 migrates onto this as a send stage plus a polling `Finally`, idempotent per
-  #18888.
+  eFormidling migrated onto this shape in #19827 — a send stage plus a polling `Finally`, idempotent
+  per #18888.
 - **Durable business evidence lives in instance data, app-side.** What a stage learns is ordinary
   instance data, saved on its completion through the lock-holding save path. Storing it
   engine-side is rejected: that would make the engine's database a second source of business
@@ -118,7 +118,7 @@ alert for a non-error condition.
 - The app-facing surface ships with the primitive, not after it: `ServiceTaskResult.Defer`, the
   `ProcessStepOptions.WaitBudget` that bounds it, and the pipeline surface. Shipping the budget
   alone would release a public, binary-compatible-forever knob configuring a wait no app could
-  request. Migrating eFormidling is the next phase.
+  request.
 - **Deferral is stateless.** A deferring attempt saves nothing: the app echoes the incoming state
   blob back unchanged and rejects (non-retryable) a deferring handler that modified instance data,
   so every re-check starts from exactly the state the step first received. A stage that

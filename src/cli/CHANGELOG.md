@@ -14,6 +14,24 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Auto-migrate the `PlatformHttpException` changes in `studioctl app upgrade v9`: rename `PlatformHttpException.CreateAsync(...)` to `Create(...)`, and rewrite constructor calls that built a throwaway `HttpResponseMessage` just to carry a status code into the v9 constructor that takes the status code directly. Every rewrite is listed for review, and any constructor call whose response argument cannot be identified is reported for you to finish by hand.
 - Warn in `studioctl app upgrade v9` about uses of `PlatformHttpException.Response` that the v9 response snapshot cannot satisfy. Reading `Response.StatusCode` is unaffected and is not reported. This includes a warning for apps that read the property by reflection and cast it to `HttpResponseMessage`, which keeps compiling but silently stops finding the status code.
 
+## [0.1.0-preview.20] - 2026-08-07
+
+### Added
+
+- Accept Studio repository URLs, with or without `.git`, in `studioctl app clone` and select the environment from the URL.
+
+### Changed
+
+- Wait up to 30 seconds for an app to become reachable through Localtest when using `studioctl run`; use `--startup-timeout` to choose a different limit.
+- `studioctl app upgrade v9` is firmer about a feedback task behind an **eFormidling** service task: it now says the task must be removed, rather than that it may be redundant. The v9 eFormidling service task waits for the delivery confirmation itself, and the Altinn Events reminder that used to move the process past the feedback task is gone — so leaving it in place strands instances there indefinitely. A feedback task behind any other service task still reports as a judgement call.
+
+### Fixed
+
+- Explain access errors during `studioctl app upgrade`
+- Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
+- Detect apps started directly with `dotnet run` sooner by checking process endpoints every five seconds while retaining the ten-second container check interval.
+- Discover apps launched by `studioctl run` from their registered process without relying on process-name or command-line matching.
+
 ## [0.1.0-preview.19] - 2026-08-06
 
 ### Added
@@ -28,6 +46,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
+- Remove redundant `showBackButton: true` properties from `NavigationButtons` components during `studioctl app upgrade v9`, while preserving explicit `false` values.
 
 ### Fixed
 

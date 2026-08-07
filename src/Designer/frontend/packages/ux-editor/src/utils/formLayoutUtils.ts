@@ -229,7 +229,6 @@ export const addNavigationButtons = (layout: IInternalLayout, id: string): IInte
     id,
     itemType: 'COMPONENT',
     onClickAction: () => {},
-    showBackButton: true,
     textResourceBindings: { next: undefined, back: undefined },
     type: ComponentType.NavigationButtons,
   };

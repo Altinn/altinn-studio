@@ -78,7 +78,6 @@
       {
         "id": "Datepicker-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

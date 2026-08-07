@@ -7,7 +7,6 @@ using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -29,14 +28,11 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     private readonly IHostEnvironment _env;
     private readonly TimeProvider _timeProvider;
     private readonly FiksArkivSettings _fiksArkivSettings;
-    private readonly IAppModel _appModelResolver;
     private readonly IFiksArkivConfigResolver _fiksArkivConfigResolver;
     private readonly AppImplementationFactory _appImplementationFactory;
 
     private static readonly TimeSpan _raceConditionDeferralInterval = TimeSpan.FromSeconds(1);
 
-    private IFiksArkivPayloadGenerator _fiksArkivPayloadGenerator =>
-        _appImplementationFactory.GetRequired<IFiksArkivPayloadGenerator>();
     private IFiksArkivResponseHandler _fiksArkivResponseHandler =>
         _appImplementationFactory.GetRequired<IFiksArkivResponseHandler>();
 
@@ -44,7 +40,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         IFiksIOClient fiksIOClient,
         IOptions<FiksArkivSettings> fiksArkivSettings,
         ILogger<FiksArkivHost> logger,
-        IAppModel appModelResolver,
         IFiksArkivConfigResolver fiksArkivConfigResolver,
         IFiksArkivInstanceClient fiksArkivInstanceClient,
         AppImplementationFactory appImplementationFactory,
@@ -57,7 +52,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         _fiksIOClient = fiksIOClient;
         _telemetry = telemetry;
         _fiksArkivSettings = fiksArkivSettings.Value;
-        _appModelResolver = appModelResolver;
         _fiksArkivConfigResolver = fiksArkivConfigResolver;
         _appImplementationFactory = appImplementationFactory;
         _fiksArkivInstanceClient = fiksArkivInstanceClient;
@@ -111,34 +105,85 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     /// <inheritdoc />
     public async Task<FiksIOMessageResponse> GenerateAndSendMessage(
         string taskId,
-        Instance instance,
         string messageType,
+        Guid sendersReference,
+        DateTimeOffset executionReferenceTime,
+        IInstanceDataMutator dataMutator,
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogInformation("Sending Fiks Arkiv message for instance {InstanceId}", instance.Id);
-        using Activity? mainActivity = _telemetry?.StartGenerateAndSendFiksActivity(taskId, instance, messageType);
-
-        var instanceId = new InstanceIdentifier(instance.Id);
-        var recipient = await _fiksArkivConfigResolver.GetRecipient(instance, cancellationToken);
-        var messagePayloads = await _fiksArkivPayloadGenerator.GeneratePayload(
+        using Activity? mainActivity = _telemetry?.StartGenerateAndSendFiksActivity(
             taskId,
-            instance,
-            recipient,
+            dataMutator.Instance,
+            messageType
+        );
+
+        (FiksIOMessageRequest request, ReadOnlyMemory<byte> archiveRecordData) = await CreateMessageRequest(
+            taskId,
             messageType,
+            sendersReference,
+            executionReferenceTime,
+            dataMutator,
             cancellationToken
         );
 
-        FiksIOMessageRequest request = new(
-            Recipient: recipient.AccountId,
-            MessageType: messageType,
-            SendersReference: instanceId.InstanceGuid,
-            MessageLifetime: TimeSpan.FromDays(2),
-            Payload: messagePayloads,
-            CorrelationId: _fiksArkivConfigResolver.GetCorrelationId(instance)
+        SaveArchiveRecord(dataMutator, request, archiveRecordData, taskId);
+        return await SendMessage(request, dataMutator.Instance, cancellationToken);
+    }
+
+    private async Task<(FiksIOMessageRequest Request, ReadOnlyMemory<byte> ArchiveRecordData)> CreateMessageRequest(
+        string taskId,
+        string messageType,
+        Guid sendersReference,
+        DateTimeOffset executionReferenceTime,
+        IInstanceDataAccessor dataAccessor,
+        CancellationToken cancellationToken
+    )
+    {
+        var recipient = await _fiksArkivConfigResolver.GetRecipient(dataAccessor, cancellationToken);
+        IFiksArkivPayloadGenerator payloadGenerator =
+            _appImplementationFactory.GetRequired<IFiksArkivPayloadGenerator>();
+        IEnumerable<FiksIOMessagePayload> generatedPayloads = await payloadGenerator.GeneratePayload(
+            taskId,
+            recipient,
+            messageType,
+            executionReferenceTime,
+            dataAccessor,
+            cancellationToken
+        );
+        List<FiksIOMessagePayload> messagePayloads = [.. generatedPayloads];
+        int archiveRecordIndex = messagePayloads.FindIndex(x =>
+            x.Filename == FiksArkivConstants.Filenames.ArchiveRecord
+        );
+        FiksIOMessagePayload archiveRecordPayload = messagePayloads.Single(x =>
+            x.Filename == FiksArkivConstants.Filenames.ArchiveRecord
+        );
+        ReadOnlyMemory<byte> archiveRecordData = await ReadPayloadData(archiveRecordPayload, cancellationToken);
+        messagePayloads[archiveRecordIndex] = new FiksIOMessagePayload(
+            archiveRecordPayload.Filename,
+            archiveRecordData
         );
 
-        await SaveArchiveRecord(instance, request);
+        return (
+            new FiksIOMessageRequest(
+                Recipient: recipient.AccountId,
+                MessageType: messageType,
+                SendersReference: sendersReference,
+                MessageLifetime: TimeSpan.FromDays(2),
+                Payload: messagePayloads,
+                CorrelationId: _fiksArkivConfigResolver.GetCorrelationId(dataAccessor.Instance)
+            ),
+            archiveRecordData
+        );
+    }
+
+    private async Task<FiksIOMessageResponse> SendMessage(
+        FiksIOMessageRequest request,
+        Instance instance,
+        CancellationToken cancellationToken
+    )
+    {
+        _logger.LogInformation("Sending Fiks Arkiv message for instance {InstanceId}", instance.Id);
 
         FiksIOMessageResponse response = await _fiksIOClient.SendMessage(request, cancellationToken);
         _logger.LogInformation("Fiks Arkiv responded with message ID {MessageId}", response.MessageId);
@@ -273,29 +318,25 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         )
             is true;
 
-    private async Task<DataElement> SaveArchiveRecord(Instance instance, FiksIOMessageRequest request)
+    private void SaveArchiveRecord(
+        IInstanceDataMutator dataMutator,
+        FiksIOMessageRequest request,
+        ReadOnlyMemory<byte> archiveRecordData,
+        string taskId
+    )
     {
-        _logger.LogInformation("Saving archive record for Fiks Arkiv request: {Request}", request);
+        _logger.LogInformation("Staging archive record for Fiks Arkiv request: {Request}", request);
         ArgumentNullException.ThrowIfNull(_fiksArkivSettings.Receipt);
 
-        await DeleteExistingDataElements(instance, _fiksArkivSettings.Receipt.ArchiveRecord);
+        DeleteExistingDataElements(dataMutator, _fiksArkivSettings.Receipt.ArchiveRecord);
 
-        DataElement result = await _fiksArkivInstanceClient.InsertBinaryData(
-            new InstanceIdentifier(instance),
+        dataMutator.AddBinaryDataElement(
             _fiksArkivSettings.Receipt.ArchiveRecord.DataType,
             "application/xml",
             _fiksArkivSettings.Receipt.ArchiveRecord.GetFilenameOrDefault(),
-            request.Payload.Single(x => x.Filename == FiksArkivConstants.Filenames.ArchiveRecord).Data
+            archiveRecordData,
+            generatedFromTask: taskId
         );
-
-        _logger.LogInformation(
-            "Saved {Filename} with ID {DataElementId} to instance {InstanceId}",
-            result.Filename,
-            result.Id,
-            instance.Id
-        );
-
-        return result;
     }
 
     private async Task<DataElement> SaveArchiveReceipt(
@@ -347,6 +388,49 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             );
             await _fiksArkivInstanceClient.DeleteBinaryData(instanceIdentifier, Guid.Parse(dataElement.Id));
         }
+    }
+
+    private void DeleteExistingDataElements(
+        IInstanceDataMutator dataMutator,
+        FiksArkivDataTypeSettings dataTypeSettings
+    )
+    {
+        var dataElements = dataMutator
+            .Instance.GetOptionalDataElements(dataTypeSettings.DataType)
+            .Where(x => x.Filename == dataTypeSettings.GetFilenameOrDefault())
+            .ToList();
+
+        foreach (var dataElement in dataElements)
+        {
+            _logger.LogInformation(
+                "Removing existing {DataType} data from unit of work: {Filename} -> {DataElementId}",
+                dataTypeSettings.DataType,
+                dataTypeSettings.Filename,
+                dataElement.Id
+            );
+            dataMutator.RemoveDataElement(dataElement);
+        }
+    }
+
+    private static async Task<ReadOnlyMemory<byte>> ReadPayloadData(
+        FiksIOMessagePayload payload,
+        CancellationToken cancellationToken
+    )
+    {
+        if (payload.Data.CanSeek)
+        {
+            payload.Data.Position = 0;
+        }
+
+        using var memoryStream = new MemoryStream();
+        await payload.Data.CopyToAsync(memoryStream, cancellationToken);
+
+        if (payload.Data.CanSeek)
+        {
+            payload.Data.Position = 0;
+        }
+
+        return memoryStream.ToArray();
     }
 
     private async Task TryMoveProcessOnError(Instance? instance)
@@ -452,23 +536,8 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
 
         _fiksArkivSettings.Receipt.Validate(nameof(_fiksArkivSettings.Receipt), configuredDataTypes);
 
-        if (_fiksArkivPayloadGenerator is FiksArkivDefaultPayloadGenerator)
-        {
-            if (_fiksArkivSettings.Recipient is null)
-                throw new FiksArkivConfigurationException(
-                    $"{nameof(FiksArkivSettings.Recipient)} configuration is required, but missing."
-                );
-            _fiksArkivSettings.Recipient.Validate(configuredDataTypes, _appModelResolver);
-
-            if (_fiksArkivSettings.Documents is null)
-                throw new FiksArkivConfigurationException(
-                    $"{nameof(FiksArkivSettings.Documents)} configuration is required, but missing."
-                );
-            _fiksArkivSettings.Documents.Validate(configuredDataTypes);
-
-            _fiksArkivSettings.Metadata?.Validate(configuredDataTypes, _appModelResolver);
-        }
-
-        return Task.CompletedTask;
+        IFiksArkivPayloadGenerator payloadGenerator =
+            _appImplementationFactory.GetRequired<IFiksArkivPayloadGenerator>();
+        return payloadGenerator.ValidateConfiguration(configuredDataTypes, configuredProcessTasks);
     }
 }

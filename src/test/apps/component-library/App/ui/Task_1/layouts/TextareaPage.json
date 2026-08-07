@@ -64,7 +64,6 @@
       },
       {
         "id": "TextareaPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

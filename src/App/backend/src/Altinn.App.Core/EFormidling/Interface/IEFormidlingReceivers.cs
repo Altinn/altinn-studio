@@ -1,6 +1,5 @@
 using Altinn.App.Core.Features;
 using Altinn.Common.EFormidlingClient.Models.SBD;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.EFormidling.Interface;
 
@@ -18,9 +17,9 @@ public interface IEFormidlingReceivers
     /// Note that the identifier value property on the receiver objects should be prefixed with `0192:` for Norwegian organisations.
     /// </para>
     /// </remarks>
-    /// <param name="instance">Instance data</param>
+    /// <param name="dataAccessor">The active instance data accessor for the instance being shipped.</param>
     /// <param name="receiverFromConfig">Receiver organization number from the eFormidling service task configuration (BPMN).</param>
     /// <returns>List of eFormidling receivers</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null</exception>
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig);
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="dataAccessor"/> is null</exception>
+    public Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig);
 }

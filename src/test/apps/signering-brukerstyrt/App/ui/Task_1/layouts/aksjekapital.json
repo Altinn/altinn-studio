@@ -55,7 +55,6 @@
       },
       {
         "id": "NavigationButtons-pc5iGc",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

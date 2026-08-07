@@ -8,9 +8,10 @@
   payload: test-payload,
   workflowId: {Scrubbed},
   stepId: Guid_1,
+  executionReferenceTime: DateTimeOffset_1,
   state: null,
   retryCount: 0,
-  executionDeadline: DateTimeOffset_1,
+  executionDeadline: DateTimeOffset_2,
   deferCount: 0,
   firstDeferredAt: null,
   waitDeadline: null

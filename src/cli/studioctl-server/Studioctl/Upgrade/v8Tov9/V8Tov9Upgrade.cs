@@ -4,6 +4,7 @@ using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
@@ -145,6 +146,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -181,7 +185,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error upgrading project file: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error upgrading project file", ex);
             return 1;
         }
     }
@@ -195,7 +199,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Dockerfile: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating Dockerfile", ex);
             return 1;
         }
     }
@@ -211,9 +215,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync(
-                $"Error removing Swashbuckle.AspNetCore package reference: {ex.Message}"
-            );
+            await UpgradeConsole.WriteErrorAsync("Error removing Swashbuckle.AspNetCore package reference", ex);
             return 1;
         }
     }
@@ -228,7 +230,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating OpenAPI namespace in Program.cs: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating OpenAPI namespace in Program.cs", ex);
             return 1;
         }
     }
@@ -273,7 +275,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error resolving package downgrades: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error resolving package downgrades", ex);
             return ExitError;
         }
     }
@@ -289,7 +291,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating IServiceTask namespace: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating IServiceTask namespace", ex);
             return ExitError;
         }
     }
@@ -318,7 +320,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating IEFormidlingReceivers signature: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating IEFormidlingReceivers signature", ex);
             return ExitError;
         }
     }
@@ -353,7 +355,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Correspondence APIs: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating Correspondence APIs", ex);
             return ExitError;
         }
     }
@@ -418,7 +420,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error checking for removed C# APIs: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error checking for removed C# APIs", ex);
             return ExitError;
         }
     }
@@ -433,7 +435,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating launch settings: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating launch settings", ex);
             return 1;
         }
     }
@@ -447,7 +449,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating OrganisationLookup components: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating OrganisationLookup components", ex);
             return ExitError;
         }
     }
@@ -490,7 +492,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error converting to project references: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error converting to project references", ex);
             return 1;
         }
     }
@@ -524,7 +526,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error converting conditional rendering rules: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error converting conditional rendering rules", ex);
             return 1;
         }
     }
@@ -661,7 +663,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error generating data processors: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error generating data processors", ex);
             return 1;
         }
     }
@@ -693,7 +695,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error cleaning up legacy rule files: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error cleaning up legacy rule files", ex);
             return 1;
         }
     }
@@ -728,8 +730,28 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating layout-sets.json: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating layout-sets.json", ex);
             return 1;
+        }
+    }
+
+    static async Task<int> MigrateNavigationButtons(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Removing redundant NavigationButtons showBackButton flags...");
+            var result = await new ShowBackButtonMigrator(projectFolder).Migrate();
+            await UpgradeConsole.Out.WriteLineAsync(
+                $"Removed {result.PropertiesRemoved} showBackButton flag(s) from {result.FilesChanged} layout file(s)"
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error migrating NavigationButtons showBackButton flags: {ex.Message}"
+            );
+            return ExitError;
         }
     }
 
@@ -745,7 +767,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating Index.cshtml", ex);
             return 1;
         }
     }
@@ -785,7 +807,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating PDF service tasks: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating PDF service tasks", ex);
             return ExitError;
         }
     }
@@ -828,7 +850,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating service-owner policy: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating service-owner policy", ex);
             return ExitError;
         }
     }
@@ -869,7 +891,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating eFormidling service tasks: {ex.Message}");
+            await UpgradeConsole.WriteErrorAsync("Error migrating eFormidling service tasks", ex);
             return ExitError;
         }
     }
@@ -906,9 +928,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync(
-                $"Error checking for feedback tasks behind service tasks: {ex.Message}"
-            );
+            await UpgradeConsole.WriteErrorAsync("Error checking for feedback tasks behind service tasks", ex);
             return ExitError;
         }
     }

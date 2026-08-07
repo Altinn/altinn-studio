@@ -85,7 +85,6 @@
       {
         "id": "ParagraphPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]
