@@ -111,6 +111,12 @@
       "commitMessageSuffix": " (pdf3)"
     },
     {
+      "description": "Keep Go module updates in repository-wide groups",
+      "matchManagers": ["gomod"],
+      "additionalBranchPrefix": "",
+      "commitMessageSuffix": ""
+    },
+    {
       "matchFileNames": ["src/App/**"],
       "matchPackageNames": [
         "/dotnet(-|\\/)sdk/",
