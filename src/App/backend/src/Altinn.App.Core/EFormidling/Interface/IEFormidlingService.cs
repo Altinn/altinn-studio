@@ -6,13 +6,22 @@ namespace Altinn.App.Core.EFormidling.Interface;
 
 /// <summary>
 /// Interface for implementing custom logic for sending eFormidling shipments and following them to
-/// delivery. Default implementation is <see cref="Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService"/>.
+/// delivery. A default implementation is registered by <c>AddEFormidlingServices2</c>; replace it by
+/// registering your own implementation of this interface.
 /// </summary>
 public interface IEFormidlingService
 {
     /// <summary>
     /// Send the eFormidling shipment with explicit configuration context.
     /// </summary>
+    /// <remarks>
+    /// <strong>Must be idempotent.</strong> The send runs as its own workflow-engine step and may be
+    /// retried, so a repeated call for the same instance must converge rather than dispatch twice.
+    /// Throwing fails the step retryably; throw
+    /// <see cref="Altinn.App.Core.EFormidling.Implementation.EformidlingDeliveryException"/> instead
+    /// when the shipment can never succeed (for example an id that cannot be reused), and the task
+    /// fails permanently for manual follow-up rather than retrying into the same wall.
+    /// </remarks>
     /// <param name="dataAccessor">The active instance data accessor for the instance being shipped.</param>
     /// <param name="configuration">A valid config for eFormidling.</param>
     /// <returns></returns>

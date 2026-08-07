@@ -23,9 +23,11 @@ using Arkivmelding = Altinn.Common.EFormidlingClient.Models.SBD.Arkivmelding;
 namespace Altinn.App.Core.EFormidling.Implementation;
 
 /// <summary>
-/// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingService"/>
+/// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingService"/>,
+/// registered by <c>AddEFormidlingServices2</c>. An app replaces it by implementing the interface,
+/// not by deriving from or wrapping this class — which is why it is internal.
 /// </summary>
-public class DefaultEFormidlingService : IEFormidlingService
+internal sealed class DefaultEFormidlingService : IEFormidlingService
 {
     private readonly ILogger<DefaultEFormidlingService> _logger;
     private readonly IAccessTokenGenerator? _tokenGenerator;

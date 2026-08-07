@@ -37,6 +37,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: `DefaultEFormidlingService` is no longer public. It was never something to derive from or wrap — its methods were not virtual — and replacing the default has always meant registering your own `IEFormidlingService`, which is unchanged. This also stops two internal abstractions (`IUserTokenProvider`, `IAppMetadata`) from appearing in the public API through its constructor.
 - Breaking: the eFormidling delivery reminder built on Altinn Events is gone — `EformidlingStartup` (which subscribed the app to reminder events it published to itself), `EformidlingConstants.CheckInstanceStatusEventType`, and the webhook handler behind them. The service task now does the waiting itself, so the cadence is the app's own rather than another service's retry policy, and it works locally, where events are never delivered. An app that registered `IEventsSubscription` solely for this can drop it. Publishing app events for third-party subscribers (`IEventsClient`) is unchanged.
 
 ## [9.0.0-preview.3] - 2026-07-29
