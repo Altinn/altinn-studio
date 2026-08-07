@@ -13,6 +13,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: release-studioctl-${{ inputs.base-branch }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Build and release studioctl
