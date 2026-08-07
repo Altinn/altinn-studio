@@ -9,7 +9,7 @@
         },
         {
           "id": "MapPage-Header",
-          "type": "Header",
+          "type": "Heading",
           "size": "h2",
           "textResourceBindings": {
             "title": "MapPage"
@@ -17,7 +17,7 @@
         },
         {
           "id": "MapPage-Header-Component",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Component"
@@ -63,7 +63,7 @@
         },
         {
           "id": "MapPage-Header-Summary",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Summary"
@@ -76,7 +76,7 @@
         },
         {
           "id": "MapPage-Header-Summary2",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Summary2"

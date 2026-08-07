@@ -130,6 +130,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -415,6 +418,20 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.WriteErrorAsync("Error migrating OrganisationLookup components", ex);
+            return ExitError;
+        }
+    }
+
+    static async Task<int> MigrateHeadingLayouts(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating Header layout components to Heading...");
+            return await HeadingLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Header components to Heading: {ex.Message}");
             return ExitError;
         }
     }

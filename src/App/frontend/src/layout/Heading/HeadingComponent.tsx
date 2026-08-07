@@ -1,17 +1,17 @@
 import React from 'react';
 
-import { Header } from '@app/form-component';
+import { Heading } from '@app/form-component';
 
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export function HeaderComponent({ baseComponentId }: PropsFromGenericComponent<'Header'>) {
-  const { size, textResourceBindings } = useItemWhenType(baseComponentId, 'Header');
+export function HeadingComponent({ baseComponentId }: PropsFromGenericComponent<'Heading'>) {
+  const { size, textResourceBindings } = useItemWhenType(baseComponentId, 'Heading');
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   return (
-    <Header
+    <Heading
       componentId={componentId}
       title={textResourceBindings?.title}
       help={textResourceBindings?.help}

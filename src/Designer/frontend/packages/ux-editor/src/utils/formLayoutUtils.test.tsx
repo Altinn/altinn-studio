@@ -51,9 +51,9 @@ const baseContainer: FormContainer<ComponentType.Group> = {
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
-const headerComponent: FormComponent<ComponentType.Header> = {
+const headingComponent: FormComponent<ComponentType.Heading> = {
   id: headerId,
-  type: ComponentType.Header,
+  type: ComponentType.Heading,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -115,7 +115,7 @@ const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> =
 };
 const mockInternal: IInternalLayout = {
   components: {
-    [headerId]: headerComponent,
+    [headerId]: headingComponent,
     [paragraphId]: paragraphComponent,
     [paragraphInGroupId]: paragraphInGroupComponent,
     [paragraphInGroupInGroupId]: paragraphInGroupInGroupComponent,
@@ -392,10 +392,13 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    // The shared enum includes the pre-v9 OrganisationLookup name used by ux-editor-v4.
+    // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
     it.each(
       Object.values(ComponentType).filter(
-        (v) => v !== ComponentType.OrganisationLookup && !containerComponentTypes.includes(v),
+        (v) =>
+          v !== ComponentType.OrganisationLookup &&
+          v !== ComponentType.Header &&
+          !containerComponentTypes.includes(v),
       ),
     )('Adds a new component to the layout when the given type is %s', (componentType) => {
       const id = 'newItemId';

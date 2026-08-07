@@ -16,7 +16,7 @@
       },
       {
         "id": "agentInformation",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "agentInformation"
         },

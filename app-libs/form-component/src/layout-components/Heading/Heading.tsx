@@ -4,13 +4,13 @@ import { HelpTextContainer } from '@app/form-component/layout-components/common/
 import { Heading as DsHeading } from '@digdir/designsystemet-react';
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
-import classes from './Header.module.css';
+import classes from './Heading.module.css';
 
-export type HeaderSize = 'L' | 'M' | 'S' | 'h2' | 'h3' | 'h4';
+export type HeadingSize = 'L' | 'M' | 'S' | 'h2' | 'h3' | 'h4';
 
 type DsHeadingProps = Pick<Parameters<typeof DsHeading>[0], 'level' | 'data-size'>;
 
-function getHeaderProps(size?: HeaderSize): DsHeadingProps {
+function getHeadingProps(size?: HeadingSize): DsHeadingProps {
   switch (size) {
     case 'L':
     case 'h2': {
@@ -28,7 +28,7 @@ function getHeaderProps(size?: HeaderSize): DsHeadingProps {
   }
 }
 
-export interface HeaderProps {
+export interface HeadingProps {
   /** The indexed component ID; drives the heading's DOM id and the form-content wrapper. */
   componentId: string;
   /** Text resource key for the heading text. */
@@ -36,18 +36,18 @@ export interface HeaderProps {
   /** Text resource key for the help tooltip. */
   help?: string;
   /** Heading size; controls the heading level (h2/h3/h4) and its visual size. */
-  size?: HeaderSize;
+  size?: HeadingSize;
   /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
 }
 
-export function Header({ componentId, title, help, size, innerGrid }: HeaderProps) {
+export function Heading({ componentId, title, help, size, innerGrid }: HeadingProps) {
   const { lang } = useTranslation();
 
   return (
     <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
-      <div className={classes.headerWrapper}>
-        <DsHeading id={componentId} {...getHeaderProps(size)}>
+      <div className={classes.headingWrapper}>
+        <DsHeading id={componentId} {...getHeadingProps(size)}>
           {lang(title)}
         </DsHeading>
         {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}

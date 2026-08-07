@@ -9,7 +9,7 @@
       },
       {
         "id": "LikertPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
             "title": "LikertPage"
@@ -17,7 +17,7 @@
       },
       {
         "id": "LikertPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
             "title": "Header.Component"
@@ -61,7 +61,7 @@
       {
         "size": "h3",
         "id": "LikertPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
@@ -74,7 +74,7 @@
       {
         "size": "h3",
         "id": "LikertPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }

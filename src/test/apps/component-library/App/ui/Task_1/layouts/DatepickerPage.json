@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "DatepickerHeader",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "DatepickerPage"
         }
@@ -62,7 +62,7 @@
       {
         "size": "h3",
         "id": "DatepickerHeader2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Datepicker Summary example:"
         }
