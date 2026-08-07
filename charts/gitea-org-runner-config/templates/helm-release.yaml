@@ -38,6 +38,10 @@ spec:
       enabled: {{ .Values.dockerInDocker.enabled }}
     shareWorkspace:
       enabled: {{ .Values.shareWorkspace.enabled }}
+    actCacheSeed:
+      enabled: {{ .Values.actCacheSeed.enabled }}
+      image:
+        tag: "{{ .Values.actCacheSeed.imageTag }}"
 
     # Chart-level Gitea config: the workload chart synthesises each runner
     # pod's GITEA_INSTANCE_URL / RUNNER_LABELS env vars from here. The KEDA
