@@ -20,6 +20,7 @@ var (
 	ErrChangelogMissing     = errors.New("changelog version section not found")
 	ErrBuildFailed          = errors.New("build failed")
 	ErrReleaseBranchMissing = errors.New("release branch does not exist for stable release")
+	ErrWrongReleaseBranch   = errors.New("release must run from its canonical branch")
 	errReleaseTargetMissing = errors.New("release target commit is empty")
 )
 
@@ -350,7 +351,8 @@ func (w *Workflow) enforceStablePolicy(ctx context.Context, currentBranch string
 	}
 	if currentBranch != releaseBranch {
 		return fmt.Errorf(
-			"stable releases must run from %s: current branch is %s",
+			"%w: expected %s, current branch is %s",
+			ErrWrongReleaseBranch,
 			releaseBranch,
 			currentBranch,
 		)

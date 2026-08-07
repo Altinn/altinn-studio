@@ -109,7 +109,7 @@ func resolvePushReleaseTrigger(
 		return ReleaseTriggerResult{}, errReleaseTriggerBeforeRequired
 	}
 	if isZeroCommit(req.BeforeSHA) || isZeroCommit(req.Commit) {
-		return ReleaseTriggerResult{}, nil
+		return ReleaseTriggerResult{Release: nil}, nil
 	}
 	if git == nil {
 		return ReleaseTriggerResult{}, errGitRequired
@@ -127,7 +127,7 @@ func resolvePushReleaseTrigger(
 
 	switch len(promotedComponents) {
 	case 0:
-		return ReleaseTriggerResult{}, nil
+		return ReleaseTriggerResult{Release: nil}, nil
 	case 1:
 		promotion := promotedComponents[0]
 		if _, err := validateReleaseTriggerComponent(promotion.component, req.RefName); err != nil {

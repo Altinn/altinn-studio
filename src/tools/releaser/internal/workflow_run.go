@@ -23,11 +23,7 @@ type workflowRunDeps struct {
 
 // RunWorkflow executes the release workflow.
 func RunWorkflow(ctx context.Context, req WorkflowRequest, log Logger) error {
-	deps, err := buildWorkflowRunDeps(ctx, req, log)
-	if err != nil {
-		return err
-	}
-
+	deps := buildWorkflowRunDeps(req, log)
 	return RunWorkflowWithDeps(ctx, req, deps.git, deps.gh, nil, log)
 }
 
@@ -68,8 +64,8 @@ func RunWorkflowWithDeps(
 	if err != nil {
 		return fmt.Errorf("get component: %w", err)
 	}
-	if err := validateWorkflowReleasePlan(component, req.BaseBranch, req.Version); err != nil {
-		return fmt.Errorf("validate release plan: %w", err)
+	if planErr := validateWorkflowReleasePlan(component, req.BaseBranch, req.Version); planErr != nil {
+		return fmt.Errorf("validate release plan: %w", planErr)
 	}
 
 	repoRoot, err := git.RepoRoot(ctx)
@@ -105,7 +101,7 @@ func RunWorkflowWithDeps(
 	return nil
 }
 
-func buildWorkflowRunDeps(ctx context.Context, req WorkflowRequest, log Logger) (workflowRunDeps, error) {
+func buildWorkflowRunDeps(req WorkflowRequest, log Logger) workflowRunDeps {
 	git := NewGitCLI(
 		WithDryRun(req.DryRun),
 		WithLogger(log),
@@ -118,5 +114,5 @@ func buildWorkflowRunDeps(ctx context.Context, req WorkflowRequest, log Logger) 
 	return workflowRunDeps{
 		git: git,
 		gh:  gh,
-	}, nil
+	}
 }
