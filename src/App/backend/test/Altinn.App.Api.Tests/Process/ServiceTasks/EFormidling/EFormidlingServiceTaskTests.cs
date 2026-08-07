@@ -137,7 +137,8 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
             .Setup(x =>
                 x.SendEFormidlingShipment(
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ThrowsAsync(new Exception());
@@ -186,7 +187,8 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
             .Setup(x =>
                 x.GetEFormidlingShipmentStatus(
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(() => statuses.Count > 1 ? statuses.Dequeue() : statuses.Peek());
@@ -207,7 +209,8 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
             x =>
                 x.GetEFormidlingShipmentStatus(
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(3)
         );
@@ -219,7 +222,8 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
             x =>
                 x.SendEFormidlingShipment(
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -266,7 +270,8 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
             .Setup(x =>
                 x.GetEFormidlingShipmentStatus(
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(

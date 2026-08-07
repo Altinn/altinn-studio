@@ -40,7 +40,8 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
             .Setup(x =>
                 x.GetEFormidlingShipmentStatus(
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<ValidAltinnEFormidlingConfiguration>()
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(

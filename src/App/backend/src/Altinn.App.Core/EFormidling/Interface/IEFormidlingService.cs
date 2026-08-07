@@ -24,10 +24,16 @@ public interface IEFormidlingService
     /// </remarks>
     /// <param name="dataAccessor">The active instance data accessor for the instance being shipped.</param>
     /// <param name="configuration">A valid config for eFormidling.</param>
+    /// <param name="cancellationToken">
+    /// Cancelled when the workflow engine cuts the attempt off at its execution deadline. Observe it
+    /// between the calls a shipment is made of — the eFormidling client itself accepts no token — so a
+    /// send that is already over budget stops instead of uploading into a cancelled step.
+    /// </param>
     /// <returns></returns>
     public Task SendEFormidlingShipment(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -42,8 +48,10 @@ public interface IEFormidlingService
     /// </remarks>
     /// <param name="dataAccessor">The active instance data accessor for the shipped instance.</param>
     /// <param name="configuration">A valid config for eFormidling.</param>
+    /// <param name="cancellationToken">Cancelled when the workflow engine cuts the attempt off at its execution deadline.</param>
     public Task<EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     );
 }

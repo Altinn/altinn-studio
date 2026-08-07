@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
@@ -27,7 +28,8 @@ public sealed class ScriptedEFormidlingService : IEFormidlingService
 {
     public Task SendEFormidlingShipment(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     )
     {
         int run = EFormidlingRunCounter.NextRun("Send");
@@ -37,7 +39,8 @@ public sealed class ScriptedEFormidlingService : IEFormidlingService
 
     public Task<EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     )
     {
         int run = EFormidlingRunCounter.NextRun("Status");

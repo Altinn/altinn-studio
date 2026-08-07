@@ -65,7 +65,8 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     /// <inheritdoc />
     public async Task SendEFormidlingShipment(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     )
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
@@ -112,7 +113,12 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         // the instance permanently stuck (the retry can never use a fresh id), resume the existing
         // message: skip everything if it already left the outbox, otherwise finish the upload/send
         // steps the earlier attempt did not complete.
+        // Abandoning a shipment part-way is safe, and is why the token is observed between calls
+        // rather than ignored: a created-but-unsent message is exactly what the duplicate-create
+        // recovery above resumes on the next attempt. The eFormidling client accepts no token of its
+        // own, so these seams are as fine-grained as cancellation can get.
         bool resumingExistingMessage = false;
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
@@ -138,6 +144,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             resumingExistingMessage = true;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(dataAccessor);
 
         await using (stream)
@@ -157,8 +164,16 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             }
         }
 
-        await SendInstanceData(dataAccessor, requestHeaders, metadataFilename, configuration, resumingExistingMessage);
+        await SendInstanceData(
+            dataAccessor,
+            requestHeaders,
+            metadataFilename,
+            configuration,
+            resumingExistingMessage,
+            cancellationToken
+        );
 
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
@@ -173,9 +188,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     /// <inheritdoc />
     public async Task<EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (_eFormidlingClient == null || _platformSettings == null)
         {
             throw new EntryPointNotFoundException(
@@ -333,12 +350,14 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behaviour is
     /// unverified. Hence the loud warning per skipped attachment rather than silence.
     /// </param>
+    /// <param name="cancellationToken">Checked before each attachment; see the caller's remarks on why abandoning here is safe.</param>
     private async Task SendInstanceData(
         IInstanceDataAccessor dataAccessor,
         Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
         ValidAltinnEFormidlingConfiguration config,
-        bool tolerateUploadFailures = false
+        bool tolerateUploadFailures = false,
+        CancellationToken cancellationToken = default
     )
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -353,6 +372,10 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
 
         foreach (DataElement dataElement in instance.Data.OrderBy(x => x.Created))
         {
+            // The loop worth cancelling: a shipment with many attachments can outlive the step's
+            // execution deadline, and each upload is another call the engine is no longer waiting for.
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!config.DataTypes.Contains(dataElement.DataType))
             {
                 continue;

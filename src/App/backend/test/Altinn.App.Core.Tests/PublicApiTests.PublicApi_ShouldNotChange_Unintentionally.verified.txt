@@ -165,8 +165,8 @@ namespace Altinn.App.Core.EFormidling.Interface
     }
     public interface IEFormidlingService
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
-        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
+        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration, System.Threading.CancellationToken cancellationToken = default);
     }
 }
 namespace Altinn.App.Core.EFormidling.Models

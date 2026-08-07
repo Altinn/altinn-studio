@@ -133,7 +133,11 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         );
         try
         {
-            await eFormidlingService.SendEFormidlingShipment(context.InstanceDataMutator, configuration);
+            await eFormidlingService.SendEFormidlingShipment(
+                context.InstanceDataMutator,
+                configuration,
+                context.CancellationToken
+            );
         }
         catch (EformidlingDeliveryException e)
         {
@@ -175,7 +179,8 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
         EFormidlingShipmentStatus status = await eFormidlingService.GetEFormidlingShipmentStatus(
             context.InstanceDataMutator,
-            configuration
+            configuration,
+            context.CancellationToken
         );
 
         switch (status.State)

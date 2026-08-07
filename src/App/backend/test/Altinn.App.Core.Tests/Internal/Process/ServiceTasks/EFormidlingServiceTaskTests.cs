@@ -201,7 +201,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instanceMutatorMock.Object,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -246,7 +251,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instanceMutatorMock.Object,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -315,7 +325,12 @@ public class EFormidlingServiceTaskTests
 
         // Assert
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instanceMutatorMock.Object,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -369,7 +384,12 @@ public class EFormidlingServiceTaskTests
 
         Assert.IsType<CompletedServiceTaskStageResult>(result);
         _eFormidlingServiceMock.Verify(
-            x => x.SendEFormidlingShipment(instanceMutatorMock.Object, It.IsAny<ValidAltinnEFormidlingConfiguration>()),
+            x =>
+                x.SendEFormidlingShipment(
+                    instanceMutatorMock.Object,
+                    It.IsAny<ValidAltinnEFormidlingConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
