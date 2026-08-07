@@ -18,6 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Wait up to 30 seconds for an app to become reachable through Localtest when using `studioctl run`; use `--startup-timeout` to choose a different limit.
+- `studioctl app upgrade v9` is firmer about a feedback task behind an **eFormidling** service task: it now says the task must be removed, rather than that it may be redundant. The v9 eFormidling service task waits for the delivery confirmation itself, and the Altinn Events reminder that used to move the process past the feedback task is gone — so leaving it in place strands instances there indefinitely. A feedback task behind any other service task still reports as a judgement call.
 
 ### Fixed
 
