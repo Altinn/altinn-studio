@@ -45,6 +45,27 @@ describe('PrefillSection', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('Updates the displayed mapping when the prefill prop changes on an already-mounted instance', () => {
+    const { rerender } = render();
+    expect(
+      screen.getByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).toHaveValue('');
+
+    rerender()(
+      <PrefillSection
+        schemaPointer={schemaPointer}
+        prefill={{ source: PrefillSource.ER, key: 'OrgNumber' }}
+      />,
+    );
+
+    expect(
+      screen.getByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
+    ).toHaveValue('ER');
+    expect(
+      screen.getByRole('combobox', { name: textMock('schema_editor.prefill.field') }),
+    ).toHaveValue('OrgNumber');
+  });
+
   it('Pre-selects the source and field from an existing ER mapping', () => {
     render({ prefill: { source: PrefillSource.ER, key: 'OrgNumber' } });
     expect(

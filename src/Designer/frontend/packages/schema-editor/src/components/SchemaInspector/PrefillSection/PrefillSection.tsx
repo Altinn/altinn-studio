@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioFieldset, StudioSelect, StudioTextfield } from '@studio/components';
 import type { PrefillMapping } from '@altinn/schema-model';
@@ -31,6 +31,18 @@ export const PrefillSection = ({ schemaPointer, prefill: currentMapping }: Prefi
   const [queryParameterName, setQueryParameterName] = useState<string>(
     currentMapping?.source === PrefillSource.QueryParameters ? currentMapping.key : '',
   );
+
+  // The prefill mapping for this field can change from outside a direct edit here too - e.g.
+  // renaming this field updates its data-binding path, and the corresponding prefill mapping is
+  // only reattached to the node once the (asynchronously saved) prefill config has caught up with
+  // the rename. Re-sync from the prop whenever that happens, since useState's initial value is
+  // only used on mount and wouldn't otherwise pick up a mapping that appears/changes later.
+  useEffect(() => {
+    setSelectedSource(currentMapping?.source ?? '');
+    setQueryParameterName(
+      currentMapping?.source === PrefillSource.QueryParameters ? currentMapping.key : '',
+    );
+  }, [currentMapping?.source, currentMapping?.key]);
 
   // Saving the prefill config alone isn't enough: the internal schema model caches each field's
   // prefill mapping directly on the node (see mergePrefillConfig) so the UI doesn't need to search
