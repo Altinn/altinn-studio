@@ -21,7 +21,7 @@
   "dependencies": {
     "classnames": "2.5.1",
     "date-fns": "4.4.0",
-    "dompurify": "3.4.12",
+    "dompurify": "3.4.13",
     "html-react-parser": "6.1.5",
     "marked": "17.0.6",
     "marked-mangle": "1.1.13",
@@ -52,7 +52,7 @@
     "@storybook/react-vite": "10.4.6",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
-    "@testing-library/user-event": "14.6.1",
+    "@testing-library/user-event": "14.6.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@typescript-eslint/eslint-plugin": "8.61.1",

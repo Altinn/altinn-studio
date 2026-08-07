@@ -144,7 +144,7 @@ __metadata:
     "@storybook/react-vite": "npm:10.4.6"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.1"
+    "@testing-library/user-event": "npm:14.6.3"
     "@types/react": "npm:19.2.18"
     "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
@@ -153,7 +153,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:6.0.5"
     classnames: "npm:2.5.1"
     date-fns: "npm:4.4.0"
-    dompurify: "npm:3.4.12"
+    dompurify: "npm:3.4.13"
     eslint: "npm:10.5.0"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
@@ -199,7 +199,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.1"
+    "@testing-library/user-event": "npm:14.6.3"
     "@types/react": "npm:19.2.18"
     "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
@@ -4384,14 +4384,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/cypress@npm:3.1.8":
-  version: 3.1.8
-  resolution: "@percy/cypress@npm:3.1.8"
+"@percy/cypress@npm:3.1.9":
+  version: 3.1.9
+  resolution: "@percy/cypress@npm:3.1.9"
   dependencies:
-    "@percy/sdk-utils": "npm:^1.31.10"
+    "@percy/sdk-utils": "npm:1.32.3-beta.1"
   peerDependencies:
     cypress: ">=3"
-  checksum: 10/a424c9c793da0a18c29ba9bbdd8889afb1e1e9345897fe8357fa455adf646d93795b0a21bc18c6b9d3e341255977f150917eda84fbf0a576a292722a481d5c64
+  checksum: 10/86ceb402092fb14e1bd1857d8ed5b90fdbeaaa2711eb4ee09aa2a5dd8dda98cab9f06ffb6dd2b9a6185f70807fec38ba4855d90ab1a0556143d6241bbb72644c
   languageName: node
   linkType: hard
 
@@ -4439,12 +4439,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/sdk-utils@npm:^1.31.10":
-  version: 1.32.5
-  resolution: "@percy/sdk-utils@npm:1.32.5"
+"@percy/sdk-utils@npm:1.32.3-beta.1":
+  version: 1.32.3-beta.1
+  resolution: "@percy/sdk-utils@npm:1.32.3-beta.1"
   dependencies:
     pac-proxy-agent: "npm:^7.0.2"
-  checksum: 10/870234341e0cb1b1567faf58735497415a596ad78151ff68d3b30a920acd32ef80ef015f5c901d0540bf2f63a833708f7bc284997b28a3247f6035f52f7ac080
+  checksum: 10/ff2582ea87b364ea41b1677595f591f096550fbb54b037eb20fe2758ad3af8aa0f0ccb0881f1aa93fae7fcb4b79290b2bca3b3aec6071cfbb6e06605c8377b24
   languageName: node
   linkType: hard
 
@@ -5754,6 +5754,15 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 10/34b74fff56a0447731a94b40d4cf246deb8dbc1c1e3aec93acd1c3377a760bb062e979f1572bb34ec164ad28ee2a391744b42d0d6d6cc16c4ce527e5e09610e1
+  languageName: node
+  linkType: hard
+
+"@testing-library/user-event@npm:14.6.3":
+  version: 14.6.3
+  resolution: "@testing-library/user-event@npm:14.6.3"
+  peerDependencies:
+    "@testing-library/dom": ">=7.21.4"
+  checksum: 10/a41add78922fa7ea4a0026995d8c00f0fc8bc51f037d67a0ecac1b11b2d1632f4fa2147e9690d2bb755789d2c33bf173195230d7ede13957d36f86607c2316c1
   languageName: node
   linkType: hard
 
@@ -7217,7 +7226,7 @@ __metadata:
     "@lhci/cli": "npm:^0.15.1"
     "@navikt/aksel-icons": "npm:8.13.1"
     "@percy/cli": "npm:1.31.14"
-    "@percy/cypress": "npm:3.1.8"
+    "@percy/cypress": "npm:3.1.9"
     "@rolldown/plugin-babel": "npm:0.2.3"
     "@tanstack/react-query": "npm:5.101.4"
     "@tanstack/react-query-devtools": "npm:5.101.4"
@@ -7226,7 +7235,7 @@ __metadata:
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.1"
+    "@testing-library/user-event": "npm:14.6.3"
     "@types/babel__core": "npm:7.20.5"
     "@types/dot-object": "npm:2.1.6"
     "@types/js-levenshtein": "npm:1.1.3"
@@ -9745,7 +9754,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.12, dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
+"dompurify@npm:3.4.13":
+  version: 3.4.13
+  resolution: "dompurify@npm:3.4.13"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/0db0a309a868a38aca042f606b37446977c35ee4501850a8c1bf2781337d79871daf1f4344bbf5b545f2a8c62e4d4e192c8fd6f1ff49ecec7c865c55a0aefee3
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
   version: 3.4.12
   resolution: "dompurify@npm:3.4.12"
   dependencies:
