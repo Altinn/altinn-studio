@@ -44,7 +44,7 @@ describe('PageAccordion', () => {
     const user = userEvent.setup();
     await render();
 
-    const accordionButton = screen.getByRole('button', { name: mockPageName1 });
+    const accordionButton = screen.getByText(mockPageName1);
     await user.click(accordionButton);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -149,20 +149,17 @@ describe('PageAccordion', () => {
     await render({ props: { isInvalid: true } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
     expect(headerContainer).toHaveClass('accordionHeaderWarning');
-    expect(headerContainer).not.toHaveClass('accordionHeader');
   });
 
   it('render warning class to header when hasDuplicatedIds is true', async () => {
     await render({ props: { hasDuplicatedIds: true } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
     expect(headerContainer).toHaveClass('accordionHeaderWarning');
-    expect(headerContainer).not.toHaveClass('accordionHeader');
   });
 
-  it('Applies normal header class when neither isInvalid nor hasDuplicatedIds is true', async () => {
+  it('does not render warning class when neither isInvalid nor hasDuplicatedIds is true', async () => {
     await render({ props: { isInvalid: false, hasDuplicatedIds: false } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
-    expect(headerContainer).toHaveClass('accordionHeader');
     expect(headerContainer).not.toHaveClass('accordionHeaderWarning');
   });
 });

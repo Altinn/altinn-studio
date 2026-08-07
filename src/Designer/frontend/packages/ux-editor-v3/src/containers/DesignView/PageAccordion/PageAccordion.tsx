@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
-import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
@@ -12,7 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDetails } from '@studio/components';
 import { useDeleteLayout } from './useDeleteLayout';
 
 export type PageAccordionProps = {
@@ -65,32 +64,29 @@ export const PageAccordion = ({
   }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
 
   return (
-    <Accordion.Item
-      className={cn(classes.accordionItem, pageIsReceipt && classes.receiptItem)}
-      open={isOpen}
-    >
-      <div className={classes.accordionHeaderRow}>
-        <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
+    <div className={cn(classes.accordionItem, pageIsReceipt && classes.receiptItem)}>
+      <StudioDetails open={isOpen} onToggle={onClick} className={classes.details}>
+        <StudioDetails.Summary className={classes.accordionHeader}>
           {pageName}
-        </Accordion.Header>
-        <div className={classes.navigationMenu}>
-          <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
-          <StudioButton
-            color='danger'
-            icon={<TrashIcon aria-hidden />}
-            onClick={handleConfirmDelete}
-            title={t('general.delete_item', { item: pageName })}
-            variant='tertiary'
-            disabled={isPending}
-          />
-        </div>
+        </StudioDetails.Summary>
+        <StudioDetails.Content
+          data-testid={pageAccordionContentId(pageName)}
+          className={classes.accordionContent}
+        >
+          {children}
+        </StudioDetails.Content>
+      </StudioDetails>
+      <div className={classes.navigationMenu}>
+        <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
+        <StudioButton
+          color='danger'
+          icon={<TrashIcon aria-hidden />}
+          onClick={handleConfirmDelete}
+          title={t('general.delete_item', { item: pageName })}
+          variant='tertiary'
+          disabled={isPending}
+        />
       </div>
-      <Accordion.Content
-        data-testid={pageAccordionContentId(pageName)}
-        className={classes.accordionContent}
-      >
-        {children}
-      </Accordion.Content>
-    </Accordion.Item>
+    </div>
   );
 };
