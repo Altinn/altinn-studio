@@ -9,7 +9,7 @@ import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';
 
-export async function instanceIndexLoader({ context, params, request }: LoaderFunctionArgs) {
+export async function clientLoader({ context, params, request }: LoaderFunctionArgs) {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   const { instanceOwnerPartyId, instanceGuid } = params;

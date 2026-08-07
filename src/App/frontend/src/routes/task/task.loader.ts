@@ -4,7 +4,7 @@ import { ensureInstanceData } from 'src/core/queries/instance';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 
-export async function taskLoader({ context, params }: LoaderFunctionArgs): Promise<null> {
+export async function clientLoader({ context, params }: LoaderFunctionArgs): Promise<null> {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   const { instanceOwnerPartyId, instanceGuid } = params;

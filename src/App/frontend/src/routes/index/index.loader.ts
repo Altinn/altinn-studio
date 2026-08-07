@@ -21,7 +21,7 @@ export type IndexLoaderError =
 
 export type IndexLoaderResult = null | IndexLoaderError;
 
-export async function indexLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
+export async function clientLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   if (isStateless()) {
