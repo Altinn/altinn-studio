@@ -1,45 +1,106 @@
+using System.Net;
 using Altinn.App.Core.Exceptions;
 
 namespace Altinn.App.Core.Helpers;
 
 /// <summary>
-/// Exception class to hold exceptions when talking to the platform REST services
+/// Exception thrown when a call to one of the Altinn Platform REST services fails.
 /// </summary>
 public class PlatformHttpException : AltinnException
 {
     /// <summary>
-    /// Responsible for holding an http request exception towards platform (storage).
+    /// An immutable snapshot of the failed response.
     /// </summary>
-    public HttpResponseMessage Response { get; }
+    /// <remarks>
+    /// This is a snapshot, not a live <see cref="HttpResponseMessage"/>: the body has already been read
+    /// and bounded, and sensitive headers are redacted. It stays valid for the lifetime of the exception.
+    /// </remarks>
+    public PlatformHttpResponse Response { get; }
 
     /// <summary>
-    /// Create a new <see cref="PlatformHttpException"/> by reading the <see cref="HttpResponseMessage"/>
-    /// content asynchronously.
+    /// The HTTP status code of the failed response. Shorthand for <c>Response.StatusCode</c>.
     /// </summary>
-    /// <param name="response">The <see cref="HttpResponseMessage"/> to read.</param>
-    /// <returns>A new <see cref="PlatformHttpException"/>.</returns>
-    public static async Task<PlatformHttpException> CreateAsync(HttpResponseMessage response)
-    {
-        string content = await response.Content.ReadAsStringAsync();
-        string message = $"{(int)response.StatusCode} - {response.ReasonPhrase} - {content}";
-
-        return new PlatformHttpException(response, message);
-    }
+    public HttpStatusCode StatusCode => Response.StatusCode;
 
     /// <summary>
-    /// Copy the response for further investigations
+    /// Creates a new <see cref="PlatformHttpException"/> without an underlying response — for a synthetic
+    /// failure, or for faking one in a test.
     /// </summary>
-    /// <param name="response">the response</param>
+    /// <remarks>
+    /// Use <see cref="Create(HttpResponseMessage, CancellationToken)"/> when you have a real response: it
+    /// captures the body and headers too. The status code is the only part of a response that callers are
+    /// observed to branch on, so it is the only part this overload asks for.
+    /// </remarks>
+    /// <param name="statusCode">The HTTP status code to report.</param>
     /// <param name="message">A description of the cause of the exception.</param>
-    public PlatformHttpException(HttpResponseMessage response, string message)
-        : base(message)
-    {
-        Response = response;
-    }
+    /// <param name="innerException">The exception that caused this one, if any.</param>
+    public PlatformHttpException(HttpStatusCode statusCode, string message, Exception? innerException = null)
+        : this(new PlatformHttpResponse(statusCode), message, innerException) { }
 
-    internal PlatformHttpException(HttpResponseMessage response, string message, Exception? innerException)
+    internal PlatformHttpException(PlatformHttpResponse response, string message, Exception? innerException = null)
         : base(message, innerException)
     {
+        ArgumentNullException.ThrowIfNull(response);
         Response = response;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="PlatformHttpException"/> by snapshotting <paramref name="response"/>,
+    /// deriving the message from its status, reason phrase and body.
+    /// </summary>
+    /// <remarks>
+    /// The body is read with a bounded streaming read, so the exception carries the diagnostic content
+    /// without holding on to the response. <paramref name="response"/> is borrowed, not taken over: it is
+    /// neither disposed nor modified, and disposing it afterwards — as the usual <c>using</c> at the call
+    /// site does — leaves the exception fully readable, which is what the snapshot is for.
+    /// <para>
+    /// Reading the body twice is not guaranteed to work: whether content can be re-read is up to the
+    /// <see cref="HttpContent"/> implementation and the completion option the request used. Buffered
+    /// responses — the default <see cref="HttpCompletionOption.ResponseContentRead"/> — re-read fine, so
+    /// calling this after inspecting the body yourself normally captures it. A body that cannot be read is
+    /// simply omitted: this runs on the failure path, so it never throws and never replaces the error you
+    /// are reporting. The status code, reason phrase and headers are captured regardless.
+    /// </para>
+    /// </remarks>
+    /// <param name="response">The failed response. Read but not disposed; the caller keeps ownership.</param>
+    /// <param name="cancellationToken">Cancels reading the response body.</param>
+    public static Task<PlatformHttpException> Create(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken = default
+    ) => CreateCore(response, message: null, innerException: null, cancellationToken);
+
+    /// <summary>
+    /// Creates a new <see cref="PlatformHttpException"/> by snapshotting <paramref name="response"/>, using
+    /// the supplied message.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="response"/> is borrowed, not taken over. See
+    /// <see cref="Create(HttpResponseMessage, CancellationToken)"/>.
+    /// </remarks>
+    /// <param name="response">The failed response. Read but not disposed; the caller keeps ownership.</param>
+    /// <param name="message">A description of the cause of the exception.</param>
+    /// <param name="innerException">The exception that caused this one, if any.</param>
+    /// <param name="cancellationToken">Cancels reading the response body.</param>
+    public static Task<PlatformHttpException> Create(
+        HttpResponseMessage response,
+        string message,
+        Exception? innerException = null,
+        CancellationToken cancellationToken = default
+    ) => CreateCore(response, message, innerException, cancellationToken);
+
+    private static async Task<PlatformHttpException> CreateCore(
+        HttpResponseMessage response,
+        string? message,
+        Exception? innerException,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentNullException.ThrowIfNull(response);
+
+        // Deliberately does not dispose: passing an IDisposable to a method does not transfer ownership,
+        // and the caller's `using` must stay in charge. The snapshot is what keeps the exception readable
+        // once they do dispose it.
+        PlatformHttpResponse snapshot = await PlatformHttpResponse.Snapshot(response, cancellationToken);
+        return new PlatformHttpException(snapshot, message ?? snapshot.BuildMessage(), innerException);
     }
 }

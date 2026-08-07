@@ -65,7 +65,7 @@ public class SignClient : ISignClient
             return;
         }
 
-        throw new PlatformHttpException(response, "Failed to sign dataelements");
+        throw await PlatformHttpException.Create(response, "Failed to sign dataelements");
     }
 
     private static JsonContent BuildSignRequest(SignatureContext signatureContext)

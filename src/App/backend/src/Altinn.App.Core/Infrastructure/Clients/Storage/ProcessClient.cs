@@ -98,6 +98,6 @@ public class ProcessClient : IProcessClient
             return processHistoryList;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 }
