@@ -369,8 +369,9 @@ public class PlatformHttpExceptionTests
     }
 
     /// <summary>
-    /// Content whose body cannot be read at all — the failure mode <see cref="PlatformHttpException.Create"/>
-    /// has to absorb. Deliberate rather than incidental: draining a seekable stream does not reliably fail.
+    /// Content whose body cannot be read at all — the failure mode
+    /// <see cref="PlatformHttpException.Create(HttpResponseMessage, CancellationToken)"/> has to absorb.
+    /// Deliberate rather than incidental: draining a seekable stream does not reliably fail.
     /// </summary>
     private sealed class FailingContent : HttpContent
     {
