@@ -239,10 +239,15 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+			selectedVersion := tc.version
+			if selectedVersion == "" {
+				selectedVersion = triggerVersion
+			}
 			git := fakeReleaseTriggerGit{}
 			if tc.version != "" {
 				component := components[tc.component]
 				git.outputs = map[string]string{
+					"rev-parse " + triggerHeadSHA + "^{commit}":              triggerHeadSHA,
 					"show " + triggerHeadSHA + ":" + component.ChangelogPath: triggerReleasedChangelog(tc.version),
 				}
 			}
@@ -252,6 +257,7 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 				RefType:           tc.refType,
 				Commit:            triggerHeadSHA,
 				SelectedComponent: tc.component,
+				SelectedVersion:   selectedVersion,
 			}, git)
 			if tc.wantErr != nil {
 				if !errors.Is(err, tc.wantErr) {
@@ -267,6 +273,83 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 				t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
 			}
 		})
+	}
+}
+
+func TestResolveReleaseTriggerManualRequiresExactVersion(t *testing.T) {
+	t.Parallel()
+
+	_, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            triggerHeadSHA,
+		SelectedComponent: "studioctl",
+	}, fakeReleaseTriggerGit{})
+	if !errors.Is(err, errReleaseTriggerVersionRequired) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerVersionRequired)
+	}
+}
+
+func TestResolveReleaseTriggerManualCanRecoverOlderVersion(t *testing.T) {
+	t.Parallel()
+
+	const selectedVersion = "v1.3.0-preview.1"
+	appPath := components["app"].ChangelogPath
+	git := fakeReleaseTriggerGit{outputs: map[string]string{
+		"rev-parse " + triggerHeadSHA + "^{commit}": triggerHeadSHA,
+		"show " + triggerHeadSHA + ":" + appPath: `# Changelog
+
+## [Unreleased]
+
+## [v1.3.0-preview.2] - 2026-08-07
+
+### Added
+
+- Newer release
+
+## [v1.3.0-preview.1] - 2026-08-06
+
+### Added
+
+- Failed release
+`,
+	}}
+	got, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            triggerHeadSHA,
+		SelectedComponent: "app",
+		SelectedVersion:   selectedVersion,
+	}, git)
+	if err != nil {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
+	}
+	want := releaseTriggerResult("app", "main", triggerHeadSHA, selectedVersion)
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
+	}
+}
+
+func TestResolveReleaseTriggerManualRejectsMissingVersion(t *testing.T) {
+	t.Parallel()
+
+	appPath := components["app"].ChangelogPath
+	git := fakeReleaseTriggerGit{outputs: map[string]string{
+		"rev-parse " + triggerHeadSHA + "^{commit}": triggerHeadSHA,
+		"show " + triggerHeadSHA + ":" + appPath:    triggerReleasedChangelog("v1.3.0-preview.2"),
+	}}
+	_, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            triggerHeadSHA,
+		SelectedComponent: "app",
+		SelectedVersion:   "v1.3.0-preview.1",
+	}, git)
+	if !errors.Is(err, errReleaseTriggerVersionMissing) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerVersionMissing)
 	}
 }
 

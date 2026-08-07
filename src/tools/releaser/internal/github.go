@@ -3,9 +3,11 @@ package internal
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -19,6 +21,10 @@ var (
 type GitHubRunner interface {
 	// CreateRelease creates a GitHub release.
 	CreateRelease(ctx context.Context, opts Options) error
+	// FindRelease returns a release by tag and whether it exists.
+	FindRelease(ctx context.Context, repository, tag string) (GitHubRelease, bool, error)
+	// UpdateRelease updates a release and replaces matching draft assets.
+	UpdateRelease(ctx context.Context, opts Options) error
 	// CreatePR creates a GitHub pull request.
 	CreatePR(ctx context.Context, opts PullRequestOptions) (string, error)
 	// SetWorkdir sets the working directory for gh commands.
@@ -48,6 +54,12 @@ type Options struct {
 	Draft           bool     // Create as draft
 	Prerelease      bool     // Mark as prerelease
 	FailOnNoCommits bool     // Fail if no new commits since last release
+}
+
+// GitHubRelease is the release state needed to validate a safe retry.
+type GitHubRelease struct {
+	TargetCommitish string `json:"targetCommitish"`
+	IsDraft         bool   `json:"isDraft"`
 }
 
 // GitHubCLI implements GitHubRunner, using the gh CLI for mutations.
@@ -118,6 +130,68 @@ func (g *GitHubCLI) CreateRelease(ctx context.Context, opts Options) error {
 	args = append(args, opts.Assets...)
 
 	return g.runWrite(ctx, args...)
+}
+
+// FindRelease returns a GitHub release by tag.
+func (g *GitHubCLI) FindRelease(ctx context.Context, repository, tag string) (GitHubRelease, bool, error) {
+	args := []string{
+		"release", "view", tag,
+		"--json", "targetCommitish,isDraft",
+	}
+	if repository != "" {
+		args = append(args, "--repo", repository)
+	}
+	output, err := g.runRead(ctx, args...)
+	if err != nil {
+		if strings.HasSuffix(strings.TrimSpace(err.Error()), ": release not found") {
+			return GitHubRelease{
+				TargetCommitish: "",
+				IsDraft:         false,
+			}, false, nil
+		}
+		return GitHubRelease{}, false, fmt.Errorf("find release %s: %w", tag, err)
+	}
+	var release GitHubRelease
+	if err := json.Unmarshal([]byte(output), &release); err != nil {
+		return GitHubRelease{}, false, fmt.Errorf("decode release %s: %w", tag, err)
+	}
+	return release, true, nil
+}
+
+// UpdateRelease updates an existing draft release and replaces matching assets.
+func (g *GitHubCLI) UpdateRelease(ctx context.Context, opts Options) error {
+	args := []string{"release", "edit", opts.Tag}
+	if opts.Repository != "" {
+		args = append(args, "--repo", opts.Repository)
+	}
+	if opts.Title != "" {
+		args = append(args, "--title", opts.Title)
+	}
+	if opts.NotesFile != "" {
+		args = append(args, "--notes-file", opts.NotesFile)
+	}
+	if opts.Target != "" {
+		args = append(args, "--target", opts.Target)
+	}
+	args = append(
+		args,
+		"--draft="+strconv.FormatBool(opts.Draft),
+		"--prerelease="+strconv.FormatBool(opts.Prerelease),
+	)
+	if err := g.runWrite(ctx, args...); err != nil {
+		return err
+	}
+	if len(opts.Assets) == 0 {
+		return nil
+	}
+
+	uploadArgs := []string{"release", "upload", opts.Tag}
+	if opts.Repository != "" {
+		uploadArgs = append(uploadArgs, "--repo", opts.Repository)
+	}
+	uploadArgs = append(uploadArgs, "--clobber")
+	uploadArgs = append(uploadArgs, opts.Assets...)
+	return g.runWrite(ctx, uploadArgs...)
 }
 
 // CreatePR creates a GitHub pull request using the gh CLI.

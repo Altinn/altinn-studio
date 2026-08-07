@@ -207,13 +207,15 @@ func runResolveTrigger(args []string) error {
 	commit := fs.String("commit", "", "Commit SHA for the event")
 	beforeSHA := fs.String("before-sha", "", "Commit before a push event")
 	selectedComponent := fs.String("selected-component", "", "Component selected for manual recovery")
+	selectedVersion := fs.String("selected-version", "", "Exact version selected for manual recovery")
 	fs.Usage = func() {
 		fmt.Print(`Usage: releaser resolve-trigger [options]
 
 Resolves a trusted canonical repository event into a component release context.
 Push events are inspected with Git for a registered component changelog promotion
 between the before and head commits, then validated against the component's branch
-policy. Manual dispatches validate the selected component and branch for recovery.
+policy. Manual dispatches validate an exact component, version, commit, and branch
+for recovery.
 
 The result is emitted as JSON for CI orchestration.
 
@@ -232,6 +234,7 @@ Options:
 		Commit:            *commit,
 		BeforeSHA:         *beforeSHA,
 		SelectedComponent: *selectedComponent,
+		SelectedVersion:   *selectedVersion,
 	})
 	if err != nil {
 		return fmt.Errorf("resolve trigger: %w", err)
