@@ -19,17 +19,15 @@ public interface IEFormidlingService
     /// retried, so a repeated call for the same instance must converge rather than dispatch twice.
     /// Throwing fails the step retryably; throw
     /// <see cref="Altinn.App.Core.EFormidling.Implementation.EformidlingDeliveryException"/> instead
-    /// when the shipment can never succeed (for example an id that cannot be reused), and the task
-    /// fails permanently for manual follow-up rather than retrying into the same wall.
+    /// when the shipment can never succeed — an id that cannot be reused, say — and the task fails
+    /// permanently for manual follow-up.
     /// </remarks>
     /// <param name="dataAccessor">The active instance data accessor for the instance being shipped.</param>
     /// <param name="configuration">A valid config for eFormidling.</param>
     /// <param name="cancellationToken">
-    /// Cancelled when the workflow engine cuts the attempt off at its execution deadline. Observe it
-    /// between the calls a shipment is made of — the eFormidling client itself accepts no token — so a
-    /// send that is already over budget stops instead of uploading into a cancelled step.
+    /// Cancelled when the engine cuts the attempt off at its execution deadline. The eFormidling client
+    /// takes no token of its own, so observe it between calls.
     /// </param>
-    /// <returns></returns>
     public Task SendEFormidlingShipment(
         IInstanceDataAccessor dataAccessor,
         ValidAltinnEFormidlingConfiguration configuration,
@@ -42,9 +40,9 @@ public interface IEFormidlingService
     /// as delivered — the eFormidling service task polls it until it reports a terminal state.
     /// </summary>
     /// <remarks>
-    /// Called repeatedly while the service task waits, so it must be a cheap read with no side
-    /// effects. It also must not throw for "no outcome yet": report
-    /// <see cref="EFormidlingDeliveryState.Pending"/> instead, or the wait becomes a retry loop.
+    /// Called on every re-check, so keep it a cheap read with no side effects. Do not throw for "no
+    /// outcome yet" — report <see cref="EFormidlingDeliveryState.Pending"/>, or the wait becomes a
+    /// retry loop.
     /// </remarks>
     /// <param name="dataAccessor">The active instance data accessor for the shipped instance.</param>
     /// <param name="configuration">A valid config for eFormidling.</param>

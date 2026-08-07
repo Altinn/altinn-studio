@@ -25,12 +25,11 @@ namespace Altinn.App.Api.Tests;
 /// directly per command while keeping an in-memory workflow store for polling and failure handling.
 /// </summary>
 /// <remarks>
-/// Time is compressed rather than simulated: a step that defers is re-executed immediately, with the
-/// requested delay added to a virtual elapsed wait, so a test that exercises a delivery wait finishes
-/// in milliseconds. Consequences worth knowing: a deferring workflow never actually rests in
-/// <see cref="PersistentItemStatus.Waiting"/> between polls here, and the early release of a parked
-/// <c>process/next</c> is therefore not exercised by these tests — that belongs to the integration
-/// suite, which runs the real engine.
+/// Time is compressed rather than simulated: a deferring step re-executes immediately with the
+/// requested delay added to a virtual elapsed wait, so a test of a long wait finishes in milliseconds.
+/// The consequence worth knowing is that a workflow never actually rests in
+/// <see cref="PersistentItemStatus.Waiting"/> here, so the early release of a parked
+/// <c>process/next</c> is not covered — that needs the integration suite and a real engine.
 /// </remarks>
 internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 {
@@ -38,10 +37,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private static readonly TimeSpan DefaultStepWaitBudget = TimeSpan.FromDays(1);
 
     /// <summary>
-    /// Loop guard. Because the wait is compressed, a handler that defers without ever observing its
-    /// wait clocks would spin forever; this turns that into a legible failure. Set well above what a
-    /// day-long budget costs a handler that backs off in minutes, so only a genuinely unbounded wait
-    /// trips it.
+    /// Loop guard: with the wait compressed, a handler that defers without observing its wait clocks
+    /// would spin forever. Set well above what a day-long budget costs a handler backing off in
+    /// minutes, so only a genuinely unbounded wait trips it.
     /// </summary>
     private const int MaxDeferralsPerStep = 1000;
 
@@ -511,9 +509,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 {
                     if (response.Defer is { } defer)
                     {
-                        // A deferral is not a completion: no error is recorded, the retry counter
-                        // resets, and the next attempt starts from the state this one received (the
-                        // app echoes it back unchanged, so currentState stays put).
+                        // Not a completion: no error recorded, retry counter reset, and the next
+                        // attempt starts from the state this one received (the app echoes it back
+                        // unchanged, so currentState stays put).
                         step.FirstDeferredAt ??= DateTimeOffset.UtcNow;
                         step.DeferCount++;
                         step.RetryCount = 0;

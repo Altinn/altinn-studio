@@ -30,12 +30,11 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 internal sealed class DefaultEFormidlingService : IEFormidlingService
 {
     /// <summary>
-    /// How long the integrasjonspunkt lets the shipment live. It takes this from the SBD's
-    /// <c>expectedResponseDateTime</c> — which is why that field is not merely advisory — and marks the
-    /// message <c>levetid_utlopt</c> once it passes; its own 24-hour default applies only when the field
-    /// is absent, which the frozen client model does not allow. Long-standing value, kept deliberately.
-    /// The service task's delivery wait is sized to outlast it, so a shipment that dies of old age
-    /// reaches the instance as the integrasjonspunkt's verdict rather than as our own expiry.
+    /// How long the integrasjonspunkt lets the shipment live: it reads this from the SBD's
+    /// <c>expectedResponseDateTime</c> and marks the message <c>levetid_utlopt</c> once it passes. Its
+    /// own 24-hour default applies only when the field is absent, which the frozen client model does not
+    /// allow. Long-standing value, kept deliberately; the service task's delivery wait is sized to
+    /// outlast it so an expired shipment fails with the integrasjonspunkt's verdict rather than ours.
     /// </summary>
     private static readonly TimeSpan _shipmentLifetime = TimeSpan.FromHours(2);
 
@@ -123,11 +122,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         // the instance permanently stuck (the retry can never use a fresh id), resume the existing
         // message: skip everything if it already left the outbox, otherwise finish the upload/send
         // steps the earlier attempt did not complete.
-        // Abandoning a shipment part-way is safe, and is why the token is observed between calls
-        // rather than ignored: a created-but-unsent message is exactly what the duplicate-create
-        // recovery above resumes on the next attempt. The eFormidling client accepts no token of its
-        // own, so these seams are as fine-grained as cancellation can get.
         bool resumingExistingMessage = false;
+
+        // Safe to abandon between calls, for the same reason: a created-but-unsent message is exactly
+        // what the recovery above resumes. The client takes no token, so these seams are as fine-grained
+        // as cancellation gets.
         cancellationToken.ThrowIfCancellationRequested();
         try
         {

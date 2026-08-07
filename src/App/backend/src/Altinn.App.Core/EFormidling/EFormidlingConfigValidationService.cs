@@ -17,21 +17,20 @@ namespace Altinn.App.Core.EFormidling;
 /// the app registered the services it needs.
 /// </summary>
 /// <remarks>
-/// The configuration is resolved per environment, so this validates what <em>this</em> deployment
-/// would use. Registration is only required where the task is actually enabled — an app that ships in
-/// production but disables eFormidling in development (a common shape) must still start locally.
-/// Authentication is deliberately not checked: eFormidling's tokens are minted per request from
-/// settings the platform provides, so there is nothing an app can get wrong here that a startup probe
-/// would catch.
+/// Configuration resolves per environment, so this validates what <em>this</em> deployment would use —
+/// and the services are only required where the task is actually enabled, since an app running
+/// eFormidling in production alone must still start locally. Authentication is deliberately not
+/// probed: those tokens are minted per request from platform settings, so a startup check could not
+/// tell an app anything it can get wrong.
 /// </remarks>
 internal sealed class EFormidlingConfigValidationService : IHostedService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<EFormidlingConfigValidationService> _logger;
 
-    // Everything is resolved inside StartAsync rather than injected: a hosted service's constructor
-    // runs whenever anything merely enumerates IHostedService, and taking the app's process/metadata
-    // services here would make that enumeration require the whole graph to be constructible.
+    // Resolved inside StartAsync rather than injected: a hosted service's constructor runs whenever
+    // anything merely enumerates IHostedService, and taking process/metadata services here would make
+    // that enumeration require the whole graph to be constructible.
     public EFormidlingConfigValidationService(
         IServiceScopeFactory scopeFactory,
         ILogger<EFormidlingConfigValidationService> logger
@@ -73,9 +72,8 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
         }
         catch (Exception e)
         {
-            // Mirrors the workflow-engine validators: a startup check that cannot read what it needs
-            // stands down rather than taking the app with it. Only an actual configuration violation
-            // below is worth failing a boot over.
+            // Mirrors the workflow-engine validators: a check that cannot read what it needs stands
+            // down rather than taking the app with it. Only a real violation below is worth a failed boot.
             _logger.LogWarning(
                 e,
                 "Could not read the process definition or application metadata; skipping eFormidling configuration validation."
@@ -108,8 +106,8 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
 
             anyEnabled |= !validConfig.Disabled;
 
-            // Shipping a data type the app does not declare cannot work, and today it surfaces as a
-            // missing attachment rather than an error.
+            // Shipping an undeclared data type cannot work, and surfaces as a missing attachment
+            // rather than an error.
             foreach (string dataTypeId in validConfig.DataTypes)
             {
                 if (!appMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
@@ -122,16 +120,13 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
             }
         }
 
-        if (anyEnabled)
+        if (anyEnabled && services.GetService<IEFormidlingService>() is null)
         {
-            if (services.GetService<IEFormidlingService>() is null)
-            {
-                errors.Add(
-                    $"eFormidling is enabled for this environment ({environment}), but no "
-                        + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidlingServices2<TM,TR> when "
-                        + "configuring services, or disable the task with <altinn:disabled>."
-                );
-            }
+            errors.Add(
+                $"eFormidling is enabled for this environment ({environment}), but no "
+                    + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidlingServices2<TM,TR> when "
+                    + "configuring services, or disable the task with <altinn:disabled>."
+            );
         }
 
         if (errors.Count > 0)

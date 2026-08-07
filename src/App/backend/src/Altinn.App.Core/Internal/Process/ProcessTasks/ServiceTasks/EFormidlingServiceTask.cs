@@ -21,13 +21,9 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 /// confirm its delivery, if eFormidling is enabled in config.
 /// </summary>
 /// <remarks>
-/// A two-stage pipeline, because sending and waiting have different durability needs. The send
-/// stage's completion is recorded by the workflow engine, so the shipment is dispatched exactly
-/// once per pass through the task no matter how often the wait re-checks; the concluding step then
-/// polls, deferring until the outcome arrives. Before v9 the wait was outsourced to Altinn Events:
-/// the app published a reminder to itself and answered the resulting webhook with HTTP status codes
-/// as a scheduling protocol, which made the poll cadence another service's retry policy and left
-/// give-up in a dead-letter queue.
+/// Two stages, because sending and waiting have different durability needs: the engine records the
+/// send stage's completion, so the shipment is dispatched exactly once per pass through the task no
+/// matter how often the wait re-checks, and the concluding step polls until the outcome arrives.
 /// </remarks>
 internal sealed class EFormidlingServiceTask : IPipelineServiceTask
 {
@@ -61,13 +57,12 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// <inheritdoc />
     /// <remarks>
     /// The stage name is wire identity for in-flight workflows — a workflow enqueued against this
-    /// pipeline keeps calling back by this literal until it settles, so it must not drift.
+    /// pipeline keeps calling back by this literal, so it must not drift.
     /// <para>
-    /// The wait budget belongs to the delivery poll, so it is declared on the conclusion rather than
-    /// on the task: task-level options are inherited by every stage too, and the send never waits.
-    /// Sized to outlast the shipment's own two-hour lifetime plus the integrasjonspunkt's 30-second
-    /// expiry sweep and one poll interval, so a shipment that dies of old age fails with its verdict
-    /// rather than ours.
+    /// The wait budget sits on the conclusion, not the task, because only the poll waits and
+    /// task-level options reach every stage. It outlasts the shipment's own two-hour lifetime plus the
+    /// integrasjonspunkt's 30-second expiry sweep and one poll interval, so a shipment that dies of old
+    /// age fails with its verdict rather than ours.
     /// </para>
     /// </remarks>
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
@@ -180,10 +175,9 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
             case EFormidlingDeliveryState.Delivered:
                 await RecordShipmentStatus(instance, status, context.CancellationToken);
 
-                // The shipment has reached the recipient, so the service owner has what it needed
-                // from this instance. Idempotent per stakeholder, and done before concluding: the
-                // conclusion may end the process, and an ended process can take the instance with
-                // it.
+                // The service owner has what it needed from this instance. Idempotent per
+                // stakeholder, and done before concluding: the conclusion may end the process, and an
+                // ended process can take the instance with it.
                 InstanceIdentifier instanceIdentifier = new(instance);
                 await _instanceClient.AddCompleteConfirmation(
                     instanceIdentifier.InstanceOwnerPartyId,
