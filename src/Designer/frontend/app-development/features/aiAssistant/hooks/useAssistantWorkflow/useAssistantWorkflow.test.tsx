@@ -8,8 +8,8 @@ import type {
   WorkflowRequest,
 } from '@studio/assistant';
 import { ErrorMessages, MessageAuthor } from '@studio/assistant';
-import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
-import { useAltinityWorkflow } from './useAltinityWorkflow';
+import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
+import { useAssistantWorkflow } from './useAssistantWorkflow';
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { renderHookWithProviders } from '../../../../test/mocks';
@@ -25,7 +25,7 @@ const mockUseCurrentBranchQuery = useCurrentBranchQuery as jest.MockedFunction<
   typeof useCurrentBranchQuery
 >;
 
-describe('useAltinityWorkflow', () => {
+describe('useAssistantWorkflow', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -46,7 +46,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -81,7 +81,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     const assistantMessageEvent: AssistantMessageEvent = {
       type: 'assistant_message',
@@ -117,7 +117,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAltinityWorkflow(threads);
+    const { result, rerender } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -171,7 +171,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAltinityWorkflow(threads);
+    const { result, rerender } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -221,7 +221,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -275,7 +275,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -318,7 +318,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -368,7 +368,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -418,7 +418,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -450,7 +450,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -501,7 +501,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -551,7 +551,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -588,7 +588,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -626,7 +626,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -655,7 +655,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.respondToPermission('stale-request-id', true);
@@ -691,7 +691,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -735,7 +735,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -746,7 +746,7 @@ describe('useAltinityWorkflow', () => {
   });
 });
 
-const createThreadState = (overrides: Partial<AltinityThreadState> = {}): AltinityThreadState => ({
+const createThreadState = (overrides: Partial<AssistantThreadState> = {}): AssistantThreadState => ({
   chatThreads: [],
   selectedThreadId: null,
   chatMessages: [],
@@ -758,9 +758,9 @@ const createThreadState = (overrides: Partial<AltinityThreadState> = {}): Altini
   ...overrides,
 });
 
-const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {
+const renderUseAssistantWorkflow = (threads: AssistantThreadState) => {
   const queryClient = new QueryClient();
-  return renderHookWithProviders({}, queryClient)(() => useAltinityWorkflow(threads))
+  return renderHookWithProviders({}, queryClient)(() => useAssistantWorkflow(threads))
     .renderHookResult;
 };
 

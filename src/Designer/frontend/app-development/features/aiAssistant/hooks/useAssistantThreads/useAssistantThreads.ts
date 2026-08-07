@@ -9,7 +9,7 @@ import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQu
 import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
 import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
-export interface AltinityThreadState {
+export interface AssistantThreadState {
   chatThreads: ChatThread[];
   selectedThreadId: string | null;
   chatMessages: Message[];
@@ -23,8 +23,7 @@ export interface AltinityThreadState {
   ) => Promise<ChatMessage>;
 }
 
-// TODO: rename to useAssistantThreads.
-export const useAltinityThreads = (): AltinityThreadState => {
+export const useAssistantThreads = (): AssistantThreadState => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
   const { data: chatThreads } = useChatThreadsQuery();

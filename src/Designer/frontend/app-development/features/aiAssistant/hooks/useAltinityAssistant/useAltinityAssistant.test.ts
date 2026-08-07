@@ -1,15 +1,15 @@
 import { act, renderHook } from '@testing-library/react';
 import { useAltinityAssistant } from './useAltinityAssistant';
-import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
-import { useAltinityThreads } from '../useAltinityThreads/useAltinityThreads';
-import { useAltinityWorkflow } from '../useAltinityWorkflow/useAltinityWorkflow';
+import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
+import { useAssistantThreads } from '../useAssistantThreads/useAssistantThreads';
+import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkflow';
 
-jest.mock('../useAltinityThreads/useAltinityThreads');
-jest.mock('../useAltinityWorkflow/useAltinityWorkflow');
+jest.mock('../useAssistantThreads/useAssistantThreads');
+jest.mock('../useAssistantWorkflow/useAssistantWorkflow');
 
-const mockUseAltinityThreads = useAltinityThreads as jest.MockedFunction<typeof useAltinityThreads>;
-const mockUseAltinityWorkflow = useAltinityWorkflow as jest.MockedFunction<
-  typeof useAltinityWorkflow
+const mockUseAssistantThreads = useAssistantThreads as jest.MockedFunction<typeof useAssistantThreads>;
+const mockUseAssistantWorkflow = useAssistantWorkflow as jest.MockedFunction<
+  typeof useAssistantWorkflow
 >;
 
 describe('useAltinityAssistant', () => {
@@ -20,8 +20,8 @@ describe('useAltinityAssistant', () => {
   it('exposes thread data and delegates selectThread to the threads hook', () => {
     const threads = createThreadState();
 
-    mockUseAltinityThreads.mockReturnValue(threads);
-    mockUseAltinityWorkflow.mockReturnValue({
+    mockUseAssistantThreads.mockReturnValue(threads);
+    mockUseAssistantWorkflow.mockReturnValue({
       connectionStatus: 'connected',
       workflowStatusByThread: {},
       onSubmitMessage: jest.fn(),
@@ -44,7 +44,7 @@ describe('useAltinityAssistant', () => {
   });
 });
 
-const createThreadState = (): AltinityThreadState => ({
+const createThreadState = (): AssistantThreadState => ({
   chatThreads: [],
   selectedThreadId: null,
   chatMessages: [],
