@@ -108,6 +108,11 @@
         "Nullable": true
       },
       {
+        "Name": "executionReferenceTime",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
         "Name": "firstDeferredAt",
         "Kind": "datetimeoffset",
         "Nullable": true

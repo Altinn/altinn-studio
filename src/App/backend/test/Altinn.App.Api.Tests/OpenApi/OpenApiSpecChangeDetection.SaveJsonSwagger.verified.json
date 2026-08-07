@@ -8120,6 +8120,7 @@
         "required": [
           "actor",
           "commandKey",
+          "executionReferenceTime",
           "lockToken",
           "workflowId"
         ],
@@ -8147,6 +8148,10 @@
           "stepId": {
             "type": "string",
             "format": "uuid"
+          },
+          "executionReferenceTime": {
+            "type": "string",
+            "format": "date-time"
           },
           "state": {
             "type": "string",

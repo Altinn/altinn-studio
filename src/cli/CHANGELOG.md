@@ -11,11 +11,17 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Wait up to 30 seconds for an app to become reachable through Localtest when using `studioctl run`; use `--startup-timeout` to choose a different limit.
+
+### Changed
+
 - Rename `Header` layout components (and summary `componentType` refs) to `Heading` when running `studioctl app upgrade v9`.
 
 ### Fixed
 
 - Explain access errors during `studioctl app upgrade`
+- Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
+- Detect apps started directly with `dotnet run` sooner by checking process endpoints every five seconds while retaining the ten-second container check interval.
 
 ## [0.1.0-preview.19] - 2026-08-06
 
