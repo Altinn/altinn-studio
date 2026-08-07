@@ -222,7 +222,6 @@ public static class ServiceCollectionExtensions
         AddPdfServices(services);
         AddPaymentServices(services, configuration, env);
         AddSignatureServices(services);
-        AddEventServices(services);
         AddNotificationServices(services);
         AddProcessServices(services);
         services.AddWorkflowEngineIntegration();
@@ -274,24 +273,6 @@ public static class ServiceCollectionExtensions
     public static bool IsAdded(this IServiceCollection services, Type serviceType)
     {
         return services.Any(x => x.ServiceType == serviceType);
-    }
-
-    private static void AddEventServices(IServiceCollection services)
-    {
-        services.AddTransient<IEventHandler, SubscriptionValidationHandler>();
-        services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
-        services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
-
-        // TODO: Event subs could be handled by the new automatic Maskinporten auth, once implemented.
-        // The event subscription client depends upon a Maskinporten message handler being
-        // added to the client during setup. As of now this needs to be done in the apps
-        // if subscription is to be added. This registration is to prevent the DI container
-        // from failing for the apps not using event subscription. If you try to use
-        // event subscription with this client you will get a 401 Unauthorized.
-        if (!services.IsAdded(typeof(IEventsSubscription)))
-        {
-            services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
-        }
     }
 
     private static void AddNotificationServices(IServiceCollection services)
