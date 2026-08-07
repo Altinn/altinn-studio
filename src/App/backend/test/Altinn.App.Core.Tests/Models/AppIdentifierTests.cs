@@ -80,7 +80,7 @@ public class AppIdentifierTests
 
     [Theory]
     [InlineData(
-        "https://dihe.apps.tt02.altinn.no/dihe/redusert-foreldrebetaling-bhg/api/v1/lookup/person?code=16eda4f0-653a-4fdc-b516-c4702392a4eb",
+        "https://dihe.apps.tt02.altinn.no/dihe/redusert-foreldrebetaling-bhg/api/v1/lookup/person",
         "dihe",
         "redusert-foreldrebetaling-bhg"
     )]
