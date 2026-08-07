@@ -56,6 +56,25 @@ func TestCLIArgValidation(t *testing.T) {
 		}
 	})
 
+	t.Run("workflow requires version", func(t *testing.T) {
+		err := runWorkflow([]string{"-component", "studioctl", "-base-branch", "main", "-dry-run"})
+		if !errors.Is(err, errReleaseVersionRequired) {
+			t.Fatalf("runWorkflow() error = %v, want %v", err, errReleaseVersionRequired)
+		}
+	})
+
+	t.Run("workflow requires commit", func(t *testing.T) {
+		err := runWorkflow([]string{
+			"-component", "studioctl",
+			"-version", "v1.2.3-preview.1",
+			"-base-branch", "main",
+			"-dry-run",
+		})
+		if !errors.Is(err, errCommitRequired) {
+			t.Fatalf("runWorkflow() error = %v, want %v", err, errCommitRequired)
+		}
+	})
+
 	t.Run("prepare requires version", func(t *testing.T) {
 		err := runPrepare([]string{"-component", "studioctl"})
 		if !errors.Is(err, errReleaseVersionRequired) {
@@ -96,7 +115,12 @@ func TestWorkflowCommandRequiresCI(t *testing.T) {
 	t.Setenv("CI", "")
 	t.Setenv("GITHUB_ACTIONS", "")
 
-	err := runWorkflow([]string{"-component", "studioctl", "-base-branch", "main"})
+	err := runWorkflow([]string{
+		"-component", "studioctl",
+		"-version", "v1.2.3-preview.1",
+		"-commit", "0123456789abcdef",
+		"-base-branch", "main",
+	})
 	if !errors.Is(err, errWorkflowRequiresCI) {
 		t.Fatalf("runWorkflow() error = %v, want %v", err, errWorkflowRequiresCI)
 	}

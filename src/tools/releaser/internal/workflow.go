@@ -321,10 +321,6 @@ func (w *Workflow) ensurePrereleaseLineOpen(ctx context.Context) error {
 	return nil
 }
 
-func (w *Workflow) validateWorkingTreeClean(ctx context.Context) error {
-	return ensureWorkingTreeClean(ctx, w.git, w.log)
-}
-
 func (w *Workflow) prepareOutputDir() error {
 	w.log.Step("Preparing output directory")
 	if err := EnsureCleanDir(w.config.OutputDir); err != nil {
@@ -348,26 +344,16 @@ func (w *Workflow) enforceStablePolicy(ctx context.Context, currentBranch string
 
 	w.log.Detail("Release branch exists", releaseBranch)
 
-	if currentBranch == releaseBranch {
-		w.log.Success("Using release branch")
-		return nil
-	}
-
-	if w.config.UnsafeSkipBranchCheck {
+	if currentBranch != releaseBranch && w.config.UnsafeSkipBranchCheck {
 		w.log.Info("(unsafe-skip-branch-check) Ignoring branch requirement, on %s", currentBranch)
 		return nil
 	}
-
-	if err := w.validateWorkingTreeClean(ctx); err != nil {
-		return err
-	}
-
-	w.log.Info("Checking out release branch")
-	if err := w.git.Checkout(ctx, releaseBranch); err != nil {
-		return fmt.Errorf("checkout release branch: %w", err)
-	}
-	if err := w.git.Pull(ctx, w.topology.SourceRemote, releaseBranch); err != nil {
-		return fmt.Errorf("pull release branch: %w", err)
+	if currentBranch != releaseBranch {
+		return fmt.Errorf(
+			"stable releases must run from %s: current branch is %s",
+			releaseBranch,
+			currentBranch,
+		)
 	}
 
 	w.log.Success("Using release branch")

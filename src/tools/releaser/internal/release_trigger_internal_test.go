@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -189,19 +190,28 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 		component string
 		refName   string
 		refType   string
+		version   string
 	}{
-		{name: "app from main", component: "app", refName: "main", refType: "branch"},
+		{
+			name:      "app from main",
+			component: "app",
+			refName:   "main",
+			refType:   "branch",
+			version:   "v1.3.0-preview.1",
+		},
 		{
 			name:      "studioctl from release branch",
 			component: "studioctl",
 			refName:   "release/studioctl/v1.2",
 			refType:   "branch",
+			version:   "v1.2.3",
 		},
 		{
 			name:      "studioctl from zero-major release branch",
 			component: "studioctl",
 			refName:   "release/studioctl/v0.1",
 			refType:   "branch",
+			version:   "v0.1.2",
 		},
 		{
 			name:      "component does not match release branch",
@@ -229,13 +239,20 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+			git := fakeReleaseTriggerGit{}
+			if tc.version != "" {
+				component := components[tc.component]
+				git.outputs = map[string]string{
+					"show " + triggerHeadSHA + ":" + component.ChangelogPath: triggerReleasedChangelog(tc.version),
+				}
+			}
 			got, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
 				EventName:         "workflow_dispatch",
 				RefName:           tc.refName,
 				RefType:           tc.refType,
-				SHA:               triggerHeadSHA,
+				Commit:            triggerHeadSHA,
 				SelectedComponent: tc.component,
-			}, nil)
+			}, git)
 			if tc.wantErr != nil {
 				if !errors.Is(err, tc.wantErr) {
 					t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, tc.wantErr)
@@ -245,12 +262,8 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
 			}
-			want := ReleaseTriggerResult{
-				Component:  tc.component,
-				BaseBranch: tc.refName,
-				MergeSHA:   triggerHeadSHA,
-			}
-			if got != want {
+			want := releaseTriggerResult(tc.component, tc.refName, triggerHeadSHA, tc.version)
+			if !reflect.DeepEqual(got, want) {
 				t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
 			}
 		})
@@ -280,31 +293,21 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			refName:    "main",
 			changed:    []string{appPath},
 			changelogs: map[string]triggerChangelogPair{appPath: promotion},
-			want: ReleaseTriggerResult{
-				Component:      "app",
-				BaseBranch:     "main",
-				MergeSHA:       triggerHeadSHA,
-				ReleaseVersion: triggerVersion,
-			},
+			want:       releaseTriggerResult("app", "main", triggerHeadSHA, triggerVersion),
 		},
 		{
 			name:       "studioctl promotion on release branch",
 			refName:    "release/studioctl/v1.2",
 			changed:    []string{studioctlPath},
 			changelogs: map[string]triggerChangelogPair{studioctlPath: promotion},
-			want: ReleaseTriggerResult{
-				Component:      "studioctl",
-				BaseBranch:     "release/studioctl/v1.2",
-				MergeSHA:       triggerHeadSHA,
-				ReleaseVersion: triggerVersion,
-			},
+			want:       releaseTriggerResult("studioctl", "release/studioctl/v1.2", triggerHeadSHA, triggerVersion),
 		},
 		{
 			name:       "ordinary changelog update is a no-op",
 			refName:    "main",
 			changed:    []string{appPath},
 			changelogs: map[string]triggerChangelogPair{appPath: ordinary},
-			want:       ReleaseTriggerResult{BaseBranch: "main", MergeSHA: triggerHeadSHA},
+			want:       ReleaseTriggerResult{},
 		},
 		{
 			name:    "multiple ordinary updates are a no-op",
@@ -314,7 +317,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 				appPath:       ordinary,
 				studioctlPath: ordinary,
 			},
-			want: ReleaseTriggerResult{BaseBranch: "main", MergeSHA: triggerHeadSHA},
+			want: ReleaseTriggerResult{},
 		},
 		{
 			name:    "one promotion remains unambiguous beside an ordinary update",
@@ -324,12 +327,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 				appPath:       promotion,
 				studioctlPath: ordinary,
 			},
-			want: ReleaseTriggerResult{
-				Component:      "app",
-				BaseBranch:     "main",
-				MergeSHA:       triggerHeadSHA,
-				ReleaseVersion: triggerVersion,
-			},
+			want: releaseTriggerResult("app", "main", triggerHeadSHA, triggerVersion),
 		},
 		{
 			name:    "promotion remains detectable beside a later entry for the same component",
@@ -338,12 +336,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			changelogs: map[string]triggerChangelogPair{
 				appPath: {base: triggerBaseChangelog, head: triggerPromotedWithNewEntry},
 			},
-			want: ReleaseTriggerResult{
-				Component:      "app",
-				BaseBranch:     "main",
-				MergeSHA:       triggerHeadSHA,
-				ReleaseVersion: triggerVersion,
-			},
+			want: releaseTriggerResult("app", "main", triggerHeadSHA, triggerVersion),
 		},
 		{
 			name:    "multiple promotions fail closed",
@@ -389,12 +382,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			changelogs: map[string]triggerChangelogPair{
 				appPath: {base: triggerStabilizationBase, head: triggerStabilizedChangelog},
 			},
-			want: ReleaseTriggerResult{
-				Component:      "app",
-				BaseBranch:     "release/app/v1.0",
-				MergeSHA:       triggerHeadSHA,
-				ReleaseVersion: triggerVersion,
-			},
+			want: releaseTriggerResult("app", "release/app/v1.0", triggerHeadSHA, triggerVersion),
 		},
 		{
 			name:    "component without a publisher is ignored",
@@ -403,7 +391,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			changelogs: map[string]triggerChangelogPair{
 				fileanalyzersPath: promotion,
 			},
-			want: ReleaseTriggerResult{BaseBranch: "main", MergeSHA: triggerHeadSHA},
+			want: ReleaseTriggerResult{},
 		},
 		{
 			name:    "deleted registered changelog fails closed",
@@ -434,7 +422,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			name:    "unrelated push is a no-op",
 			refName: "main",
 			changed: []string{"README.md"},
-			want:    ReleaseTriggerResult{BaseBranch: "main", MergeSHA: triggerHeadSHA},
+			want:    ReleaseTriggerResult{},
 		},
 		{
 			name:    "git errors fail closed",
@@ -452,7 +440,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 				EventName: "push",
 				RefName:   tc.refName,
 				RefType:   "branch",
-				SHA:       triggerHeadSHA,
+				Commit:    triggerHeadSHA,
 				BeforeSHA: triggerBeforeSHA,
 			}, git)
 			if tc.wantErr != nil {
@@ -464,7 +452,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
 			}
-			if got != tc.want {
+			if !reflect.DeepEqual(got, tc.want) {
 				t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, tc.want)
 			}
 		})
@@ -478,7 +466,7 @@ func TestResolveReleaseTriggerPushRequiredInputs(t *testing.T) {
 		EventName: "push",
 		RefName:   "main",
 		RefType:   "branch",
-		SHA:       triggerHeadSHA,
+		Commit:    triggerHeadSHA,
 		BeforeSHA: triggerBeforeSHA,
 	}
 
@@ -508,8 +496,8 @@ func TestResolveReleaseTriggerPushRequiredInputs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
 		}
-		want := ReleaseTriggerResult{BaseBranch: "main", MergeSHA: triggerHeadSHA}
-		if got != want {
+		want := ReleaseTriggerResult{}
+		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
 		}
 	})
@@ -517,16 +505,29 @@ func TestResolveReleaseTriggerPushRequiredInputs(t *testing.T) {
 	t.Run("deleted branch is a no-op", func(t *testing.T) {
 		t.Parallel()
 		deletedBranch := request
-		deletedBranch.SHA = strings.Repeat("0", 40)
+		deletedBranch.Commit = strings.Repeat("0", 40)
 		got, err := resolveReleaseTriggerWithDeps(t.Context(), deletedBranch, nil)
 		if err != nil {
 			t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
 		}
-		want := ReleaseTriggerResult{BaseBranch: "main", MergeSHA: deletedBranch.SHA}
-		if got != want {
+		want := ReleaseTriggerResult{}
+		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
 		}
 	})
+}
+
+func triggerReleasedChangelog(version string) string {
+	return fmt.Sprintf(`# Changelog
+
+## [Unreleased]
+
+## [%s] - 2026-08-07
+
+### Added
+
+- Released
+`, version)
 }
 
 func newFakeReleaseTriggerGit(

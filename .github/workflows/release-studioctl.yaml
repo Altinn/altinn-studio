@@ -6,7 +6,7 @@ on:
       base-branch:
         required: true
         type: string
-      merge-sha:
+      commit:
         required: true
         type: string
       release-version:
@@ -25,19 +25,19 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ inputs.merge-sha }}
+          ref: ${{ inputs.commit }}
 
       - name: Checkout base branch
         env:
           BASE_BRANCH: ${{ inputs.base-branch }}
-          MERGE_SHA: ${{ inputs.merge-sha }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
         run: |
           git fetch origin "$BASE_BRANCH"
-          if ! git merge-base --is-ancestor "$MERGE_SHA" FETCH_HEAD; then
-            echo "Release commit $MERGE_SHA is not on origin/$BASE_BRANCH" >&2
+          if ! git merge-base --is-ancestor "$RELEASE_COMMIT" FETCH_HEAD; then
+            echo "Release commit $RELEASE_COMMIT is not on origin/$BASE_BRANCH" >&2
             exit 1
           fi
-          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+          git checkout -B "$BASE_BRANCH" "$RELEASE_COMMIT"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
@@ -59,7 +59,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_BRANCH: ${{ inputs.base-branch }}
-        run: go run . workflow --component studioctl --base-branch "$BASE_BRANCH"
+          RELEASE_COMMIT: ${{ inputs.commit }}
+          RELEASE_VERSION: ${{ inputs.release-version }}
+        run: |
+          go run . workflow \
+            --component studioctl \
+            --version "$RELEASE_VERSION" \
+            --commit "$RELEASE_COMMIT" \
+            --base-branch "$BASE_BRANCH"
         working-directory: src/tools/releaser
 
       - name: Summary

@@ -28,7 +28,7 @@ jobs:
     outputs:
       component: ${{ steps.resolve.outputs.component }}
       base-branch: ${{ steps.resolve.outputs.base-branch }}
-      merge-sha: ${{ steps.resolve.outputs.merge-sha }}
+      commit: ${{ steps.resolve.outputs.commit }}
       release-version: ${{ steps.resolve.outputs.release-version }}
     steps:
       - name: Checkout repository
@@ -50,7 +50,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
           REF_TYPE: ${{ github.ref_type }}
-          MERGE_SHA: ${{ github.event.after || github.sha }}
+          RELEASE_COMMIT: ${{ github.event.after || github.sha }}
           BEFORE_SHA: ${{ github.event.before || '' }}
           SELECTED_COMPONENT: ${{ inputs.component || '' }}
         run: |
@@ -59,19 +59,19 @@ jobs:
             -event-name "$EVENT_NAME" \
             -ref-name "$REF_NAME" \
             -ref-type "$REF_TYPE" \
-            -sha "$MERGE_SHA" \
+            -commit "$RELEASE_COMMIT" \
             -before-sha "$BEFORE_SHA" \
             -selected-component "$SELECTED_COMPONENT" > "$result_file"
 
-          component="$(jq -r '.component' "$result_file")"
-          base_branch="$(jq -r '.baseBranch' "$result_file")"
-          merge_sha="$(jq -r '.mergeSha' "$result_file")"
-          release_version="$(jq -r '.releaseVersion' "$result_file")"
+          component="$(jq -r '.release.component // ""' "$result_file")"
+          base_branch="$(jq -r '.release.baseBranch // ""' "$result_file")"
+          commit="$(jq -r '.release.commit // ""' "$result_file")"
+          release_version="$(jq -r '.release.releaseVersion // ""' "$result_file")"
 
           {
             echo "component=$component"
             echo "base-branch=$base_branch"
-            echo "merge-sha=$merge_sha"
+            echo "commit=$commit"
             echo "release-version=$release_version"
           } >> "$GITHUB_OUTPUT"
 
@@ -82,92 +82,68 @@ jobs:
           fi
         working-directory: src/tools/releaser
 
-  resolve-release-context:
-    name: Resolve release context
+  resolve-environment:
+    name: Resolve release environment
     if: needs.resolve-trigger.outputs.component != ''
     needs: resolve-trigger
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.context.outputs.environment }}
-      version: ${{ steps.context.outputs.version }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ needs.resolve-trigger.outputs.merge-sha }}
-          persist-credentials: false
-
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: 'src/tools/releaser/go.mod'
-          cache-dependency-path: src/tools/releaser/go.sum
-
       - name: Resolve environment
         id: context
         env:
-          COMPONENT: ${{ needs.resolve-trigger.outputs.component }}
-          BASE_BRANCH: ${{ needs.resolve-trigger.outputs.base-branch }}
-          TRIGGER_RELEASE_VERSION: ${{ needs.resolve-trigger.outputs.release-version }}
+          RELEASE_VERSION: ${{ needs.resolve-trigger.outputs.release-version }}
         run: |
-          version="$(go run . resolve-version --component "$COMPONENT" --base-branch "$BASE_BRANCH")"
-
-          if [[ -n "$TRIGGER_RELEASE_VERSION" && "$version" != "$TRIGGER_RELEASE_VERSION" ]]; then
-            echo "Promoted version $TRIGGER_RELEASE_VERSION does not match resolved version $version" >&2
-            exit 1
-          fi
-
           environment="prod"
-          if [[ "$version" == *"-preview."* ]]; then
+          if [[ "$RELEASE_VERSION" == *"-preview."* ]]; then
             environment="dev"
-          elif [[ "$version" == *"-rc."* ]]; then
+          elif [[ "$RELEASE_VERSION" == *"-rc."* ]]; then
             environment="staging"
           fi
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "environment=$environment" >> "$GITHUB_OUTPUT"
-        working-directory: src/tools/releaser
 
   release-app:
     name: Release app
     if: needs.resolve-trigger.outputs.component == 'app'
     needs:
       - resolve-trigger
-      - resolve-release-context
+      - resolve-environment
     permissions:
       contents: write
       id-token: write
     uses: ./.github/workflows/release-app.yaml
     with:
       base-branch: ${{ needs.resolve-trigger.outputs.base-branch }}
-      environment: ${{ needs.resolve-release-context.outputs.environment }}
-      merge-sha: ${{ needs.resolve-trigger.outputs.merge-sha }}
-      release-version: ${{ needs.resolve-release-context.outputs.version }}
+      environment: ${{ needs.resolve-environment.outputs.environment }}
+      commit: ${{ needs.resolve-trigger.outputs.commit }}
+      release-version: ${{ needs.resolve-trigger.outputs.release-version }}
 
   release-studioctl:
     name: Release studioctl
     if: needs.resolve-trigger.outputs.component == 'studioctl'
     needs:
       - resolve-trigger
-      - resolve-release-context
+      - resolve-environment
     permissions:
       contents: write
     uses: ./.github/workflows/release-studioctl.yaml
     with:
       base-branch: ${{ needs.resolve-trigger.outputs.base-branch }}
-      merge-sha: ${{ needs.resolve-trigger.outputs.merge-sha }}
-      release-version: ${{ needs.resolve-release-context.outputs.version }}
+      commit: ${{ needs.resolve-trigger.outputs.commit }}
+      release-version: ${{ needs.resolve-trigger.outputs.release-version }}
 
   verify-release-routed:
     name: Verify release is routed to a publisher
     if: >-
       always() &&
       needs.resolve-trigger.result == 'success' &&
-      needs.resolve-release-context.result == 'success' &&
+      needs.resolve-environment.result == 'success' &&
       needs.resolve-trigger.outputs.component != ''
     needs:
       - resolve-trigger
-      - resolve-release-context
+      - resolve-environment
       - release-app
       - release-studioctl
     runs-on: ubuntu-latest

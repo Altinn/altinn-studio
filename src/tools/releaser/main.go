@@ -17,6 +17,7 @@ import (
 var (
 	errComponentRequired         = errors.New("component is required")
 	errBaseBranchRequired        = errors.New("base-branch is required")
+	errCommitRequired            = errors.New("commit is required")
 	errReleaseVersionRequired    = errors.New("version or release kind is required")
 	errReleaseCommitLineRequired = errors.New("commit and line are required")
 	errBaseHeadRequired          = errors.New("base and head are required")
@@ -77,7 +78,7 @@ Commands:
   resolve-trigger     Resolve whether a trusted repository event should release a component
 
 Notes:
-  - workflow resolves the release version from CHANGELOG.md using -base-branch
+  - workflow executes an exact component, version, commit, and base-branch plan
   - non-dry-run workflow is CI-only (requires CI=true)
 
 Run 'releaser <command> -h' for command-specific help.
@@ -87,15 +88,16 @@ Run 'releaser <command> -h' for command-specific help.
 func runWorkflow(args []string) error {
 	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
 	component := fs.String("component", "", "Component name (e.g., studioctl)")
+	version := fs.String("version", "", "Exact promoted version (e.g., v1.2.3-preview.1)")
+	commit := fs.String("commit", "", "Exact release commit expected at HEAD")
 	baseBranch := fs.String("base-branch", "", "Base branch (main or release/<component>/vX.Y)")
 	dryRun := fs.Bool("dry-run", false, "Validate without creating tags/releases")
 	skipBranchCheck := fs.Bool("skip-branch-check", false, "Skip branch requirement (unsafe)")
 	fs.Usage = func() {
 		fmt.Print(`Usage: releaser workflow [options]
 
-Runs the complete release workflow. Version is derived from changelog:
-  - base-branch=main -> latest prerelease version
-  - base-branch=release/<component>/vX.Y -> latest stable on that line
+Runs the complete release workflow for an immutable release plan. The supplied
+version and commit must match the checked-out changelog and HEAD.
 
 Then it:
   1. Enforces ref policy (prerelease from main, stable from release branch)
@@ -108,8 +110,8 @@ Options:
 		fs.PrintDefaults()
 		fmt.Print(`
 Examples:
-  releaser workflow -component studioctl -base-branch main
-  releaser workflow -component studioctl -base-branch release/studioctl/v1.2
+  releaser workflow -component studioctl -version v1.3.0-preview.2 -commit <sha> -base-branch main
+  releaser workflow -component studioctl -version v1.2.3 -commit <sha> -base-branch release/studioctl/v1.2
 `)
 	}
 	if err := fs.Parse(args); err != nil {
@@ -123,6 +125,14 @@ Examples:
 		fs.Usage()
 		return errBaseBranchRequired
 	}
+	if *version == "" {
+		fs.Usage()
+		return errReleaseVersionRequired
+	}
+	if *commit == "" {
+		fs.Usage()
+		return errCommitRequired
+	}
 
 	if err := validateWorkflowExecutionContext(*dryRun); err != nil {
 		return fmt.Errorf("validate workflow execution context: %w", err)
@@ -133,6 +143,8 @@ Examples:
 
 	req := internal.WorkflowRequest{
 		Component:             *component,
+		Version:               *version,
+		Commit:                *commit,
 		BaseBranch:            *baseBranch,
 		DryRun:                *dryRun,
 		Draft:                 true,
@@ -192,7 +204,7 @@ func runResolveTrigger(args []string) error {
 	eventName := fs.String("event-name", "", "GitHub event name (push or workflow_dispatch)")
 	refName := fs.String("ref-name", "", "Git ref name")
 	refType := fs.String("ref-type", "", "Git ref type")
-	sha := fs.String("sha", "", "Commit SHA for the event")
+	commit := fs.String("commit", "", "Commit SHA for the event")
 	beforeSHA := fs.String("before-sha", "", "Commit before a push event")
 	selectedComponent := fs.String("selected-component", "", "Component selected for manual recovery")
 	fs.Usage = func() {
@@ -217,7 +229,7 @@ Options:
 		EventName:         *eventName,
 		RefName:           *refName,
 		RefType:           *refType,
-		SHA:               *sha,
+		Commit:            *commit,
 		BeforeSHA:         *beforeSHA,
 		SelectedComponent: *selectedComponent,
 	})

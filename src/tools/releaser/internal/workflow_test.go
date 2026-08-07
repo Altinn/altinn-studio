@@ -232,7 +232,7 @@ func TestWorkflow_Run_ChangelogMissing(t *testing.T) {
 	}
 }
 
-func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
+func TestWorkflow_Run_StableRejectsWrongBranch(t *testing.T) {
 	t.Parallel()
 
 	changelogPath := writeChangelog(t, `# Changelog
@@ -269,18 +269,11 @@ func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewWorkflow() error: %v", err)
 	}
-	if err := workflow.Run(t.Context()); err != nil {
-		t.Fatalf("workflow.Run() error: %v", err)
+	if err := workflow.Run(t.Context()); err == nil {
+		t.Fatal("workflow.Run() expected branch error, got nil")
 	}
-
-	if git.checkoutCount != 1 {
-		t.Fatalf("expected checkout to be called once, got %d", git.checkoutCount)
-	}
-	if git.pullCount != 1 {
-		t.Fatalf("expected pull to be called once, got %d", git.pullCount)
-	}
-	if gh.target != fakeHeadCommit {
-		t.Fatalf("target = %s, want %s", gh.target, fakeHeadCommit)
+	if gh.target != "" {
+		t.Fatalf("release target = %s, want no release", gh.target)
 	}
 }
 
@@ -356,7 +349,7 @@ func TestWorkflow_Run_UsesBuilderArtifacts(t *testing.T) {
 	builder := &fakeBuilder{}
 	gh := &fakeGH{}
 	git := &fakeGit{
-		currentBranch:      "main",
+		currentBranch:      "release/studioctl/v1.2",
 		remoteBranchExists: true,
 		workingTreeClean:   true,
 	}
@@ -386,56 +379,6 @@ func TestWorkflow_Run_UsesBuilderArtifacts(t *testing.T) {
 	}
 	if len(gh.assets) != 1 || filepath.Base(gh.assets[0]) != "dummy-asset" {
 		t.Fatalf("assets = %v, want only builder-returned dummy-asset", gh.assets)
-	}
-}
-
-func TestWorkflow_Run_DirtyWorkingTree(t *testing.T) {
-	t.Parallel()
-
-	changelogPath := writeChangelog(t, `# Changelog
-
-## [Unreleased]
-
-## [v1.2.3] - 2025-01-01
-
-### Added
-
-- Test entry
-`)
-
-	outputDir := t.TempDir()
-	builder := &fakeBuilder{}
-	gh := &fakeGH{}
-	git := &fakeGit{
-		currentBranch:      "main",
-		remoteBranchExists: true,
-		workingTreeClean:   false,
-	}
-
-	cfg := internal.WorkflowConfig{
-		Component:     "studioctl",
-		Version:       "v1.2.3",
-		ChangelogPath: changelogPath,
-		OutputDir:     outputDir,
-		DryRun:        false,
-		Draft:         true,
-		RepoRoot:      os.TempDir(),
-	}
-
-	workflow, err := internal.NewWorkflow(t.Context(), cfg, git, gh, builder, internal.NopLogger{})
-	if err != nil {
-		t.Fatalf("NewWorkflow() error: %v", err)
-	}
-	err = workflow.Run(t.Context())
-
-	if err == nil {
-		t.Fatalf("expected error for dirty working tree, got nil")
-	}
-	if !errors.Is(err, internal.ErrWorkingTreeDirty) {
-		t.Fatalf("error = %v, want ErrWorkingTreeDirty", err)
-	}
-	if git.checkoutCount != 0 {
-		t.Fatalf("expected checkout not to be called, got %d calls", git.checkoutCount)
 	}
 }
 
@@ -607,11 +550,7 @@ func TestNewWorkflow_OutputDirSafety_RejectsSymlinkEscape(t *testing.T) {
 type fakeGit struct {
 	currentBranch               string
 	headCommit                  string
-	lastCheckout                string
-	lastPull                    string
 	remoteBranchExistsResponses []bool
-	checkoutCount               int
-	pullCount                   int
 	remoteBranchExistsCallCount int
 	tagExists                   bool
 	remoteBranchExists          bool
@@ -636,18 +575,6 @@ func (g *fakeGit) RemoteBranchExists(_ context.Context, _, _ string) (bool, erro
 		return response, nil
 	}
 	return g.remoteBranchExists, nil
-}
-
-func (g *fakeGit) Checkout(_ context.Context, ref string) error {
-	g.lastCheckout = ref
-	g.checkoutCount++
-	return nil
-}
-
-func (g *fakeGit) Pull(_ context.Context, remote, branch string) error {
-	g.lastPull = remote + "/" + branch
-	g.pullCount++
-	return nil
 }
 
 func (g *fakeGit) RepoRoot(_ context.Context) (string, error) {

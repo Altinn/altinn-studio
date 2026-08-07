@@ -92,13 +92,14 @@ prerelease, stabilization, and patch release flows.
 - Automatic publication detects a release promotion by comparing publisher-enabled component changelogs before and
   after a trusted canonical branch push. It does not depend on GitHub PR metadata or labels, so fork and
   same-repository PRs behave alike. Trigger resolution reuses the component registry, branch policy, and
-  `Changelog.Promote` semantics in this tool. It fails if one push adds multiple release sections, promotes multiple
-  components, or does not exactly preserve the expected promotion content. Before publishing, CI also asserts that
-  the promoted version is the version resolved for that canonical branch.
+  `Changelog.Promote` semantics in this tool. It emits one immutable component, version, commit, and branch plan, and
+  fails if a push adds multiple release sections, promotes multiple components, or does not exactly preserve the
+  expected promotion content. The publisher verifies that exact plan against its pinned checkout before releasing.
 - The dispatcher intentionally runs on every `main` and `release/**` push and lets `resolve-trigger` no-op when no
   promotion is present. GitHub path filters inspect at most 300 changed files and could otherwise miss a release in
   a large push.
 - Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
   `release/<component>/vX.Y` branch.
 - Release publication depends on the unified CI workflow routing the component to its reusable publisher workflow.
-- Version is resolved from the latest released section in the component changelog on the base branch.
+- Manual dispatch resolves the version once from the selected commit and branch; publishers never select a newer
+  version or move their checkout while executing a release plan.

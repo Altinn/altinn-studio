@@ -33,10 +33,6 @@ type GitRunner interface {
 	CurrentBranch(ctx context.Context) (string, error)
 	// RemoteBranchExists checks if a branch exists on the authoritative source remote.
 	RemoteBranchExists(ctx context.Context, remote, branch string) (bool, error)
-	// Checkout switches to the specified ref.
-	Checkout(ctx context.Context, ref string) error
-	// Pull pulls the latest changes from the remote.
-	Pull(ctx context.Context, remote, branch string) error
 	// RepoRoot returns the git repository root directory.
 	RepoRoot(ctx context.Context) (string, error)
 	// HeadCommit returns the current HEAD commit SHA.
@@ -232,16 +228,6 @@ func findGitRemote(remotes []GitRemote, name string) (GitRemote, bool) {
 		}
 	}
 	return GitRemote{Name: "", FetchURL: "", PushURL: "", PushURLs: 0}, false
-}
-
-// Checkout switches to the specified ref.
-func (g *GitCLI) Checkout(ctx context.Context, ref string) error {
-	return g.runWrite(ctx, "checkout", ref)
-}
-
-// Pull pulls the latest changes from the remote.
-func (g *GitCLI) Pull(ctx context.Context, remote, branch string) error {
-	return g.runWrite(ctx, "pull", remote, branch)
 }
 
 // Run executes a git command and returns stdout.

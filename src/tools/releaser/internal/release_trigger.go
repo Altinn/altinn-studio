@@ -24,17 +24,22 @@ type ReleaseTriggerRequest struct {
 	EventName         string
 	RefName           string
 	RefType           string
-	SHA               string
+	Commit            string
 	BeforeSHA         string
 	SelectedComponent string
 }
 
-// ReleaseTriggerResult is the trusted release context emitted to CI.
-type ReleaseTriggerResult struct {
+// ReleasePlan is the immutable release context emitted to CI.
+type ReleasePlan struct {
 	Component      string `json:"component"`
 	BaseBranch     string `json:"baseBranch"`
-	MergeSHA       string `json:"mergeSha"`
+	Commit         string `json:"commit"`
 	ReleaseVersion string `json:"releaseVersion"`
+}
+
+// ReleaseTriggerResult either contains one complete release plan or represents a no-op.
+type ReleaseTriggerResult struct {
+	Release *ReleasePlan `json:"release"`
 }
 
 type releaseTriggerPromotion struct {
@@ -63,28 +68,33 @@ func resolveReleaseTriggerWithDeps(
 	if req.RefName == "" {
 		return ReleaseTriggerResult{}, errReleaseTriggerRefRequired
 	}
-	if req.SHA == "" {
+	if req.Commit == "" {
 		return ReleaseTriggerResult{}, errReleaseTriggerSHARequired
 	}
 	if req.RefType != "branch" {
 		return ReleaseTriggerResult{}, errReleaseTriggerBranchRequired
 	}
 
-	result := ReleaseTriggerResult{
-		Component:      "",
-		BaseBranch:     req.RefName,
-		MergeSHA:       req.SHA,
-		ReleaseVersion: "",
-	}
 	switch req.EventName {
 	case "workflow_dispatch":
-		if err := validateReleaseTriggerComponent(req.SelectedComponent, req.RefName); err != nil {
+		component, err := validateReleaseTriggerComponent(req.SelectedComponent, req.RefName)
+		if err != nil {
 			return ReleaseTriggerResult{}, err
 		}
-		result.Component = req.SelectedComponent
-		return result, nil
+		if git == nil {
+			return ReleaseTriggerResult{}, errGitRequired
+		}
+		cl, err := loadChangelogAtRef(ctx, git, req.Commit, component.ChangelogPath)
+		if err != nil {
+			return ReleaseTriggerResult{}, fmt.Errorf("load %s changelog at %s: %w", component.Name, req.Commit, err)
+		}
+		resolvedVersion, err := resolveWorkflowVersionFromChangelog(component, req.RefName, cl)
+		if err != nil {
+			return ReleaseTriggerResult{}, fmt.Errorf("resolve manual release version: %w", err)
+		}
+		return releaseTriggerResult(component.Name, req.RefName, req.Commit, resolvedVersion), nil
 	case "push":
-		return resolvePushReleaseTrigger(ctx, req, result, git)
+		return resolvePushReleaseTrigger(ctx, req, git)
 	default:
 		return ReleaseTriggerResult{}, fmt.Errorf("%w: %s", errReleaseTriggerEvent, req.EventName)
 	}
@@ -93,20 +103,19 @@ func resolveReleaseTriggerWithDeps(
 func resolvePushReleaseTrigger(
 	ctx context.Context,
 	req ReleaseTriggerRequest,
-	result ReleaseTriggerResult,
 	git gitReader,
 ) (ReleaseTriggerResult, error) {
 	if req.BeforeSHA == "" {
 		return ReleaseTriggerResult{}, errReleaseTriggerBeforeRequired
 	}
-	if isZeroCommit(req.BeforeSHA) || isZeroCommit(req.SHA) {
-		return result, nil
+	if isZeroCommit(req.BeforeSHA) || isZeroCommit(req.Commit) {
+		return ReleaseTriggerResult{}, nil
 	}
 	if git == nil {
 		return ReleaseTriggerResult{}, errGitRequired
 	}
 
-	changedOutput, err := git.Run(ctx, releaseTriggerDiffArgs(req.BeforeSHA, req.SHA)...)
+	changedOutput, err := git.Run(ctx, releaseTriggerDiffArgs(req.BeforeSHA, req.Commit)...)
 	if err != nil {
 		return ReleaseTriggerResult{}, fmt.Errorf("list changed files: %w", err)
 	}
@@ -118,15 +127,13 @@ func resolvePushReleaseTrigger(
 
 	switch len(promotedComponents) {
 	case 0:
-		return result, nil
+		return ReleaseTriggerResult{}, nil
 	case 1:
 		promotion := promotedComponents[0]
-		if err := validateReleaseTriggerComponent(promotion.component, req.RefName); err != nil {
+		if _, err := validateReleaseTriggerComponent(promotion.component, req.RefName); err != nil {
 			return ReleaseTriggerResult{}, err
 		}
-		result.Component = promotion.component
-		result.ReleaseVersion = promotion.version
-		return result, nil
+		return releaseTriggerResult(promotion.component, req.RefName, req.Commit, promotion.version), nil
 	default:
 		return ReleaseTriggerResult{}, fmt.Errorf(
 			"%w: %s",
@@ -167,12 +174,12 @@ func releaseTriggerPromotions(
 				loadErr,
 			)
 		}
-		headChangelog, loadErr := loadChangelogAtRef(ctx, git, req.SHA, component.ChangelogPath)
+		headChangelog, loadErr := loadChangelogAtRef(ctx, git, req.Commit, component.ChangelogPath)
 		if loadErr != nil {
 			return nil, fmt.Errorf(
 				"load %s changelog at %s: %w",
 				name,
-				req.SHA,
+				req.Commit,
 				loadErr,
 			)
 		}
@@ -218,13 +225,22 @@ func changedFileSet(output string) map[string]struct{} {
 	return files
 }
 
-func validateReleaseTriggerComponent(component, baseBranch string) error {
+func releaseTriggerResult(component, baseBranch, commit, releaseVersion string) ReleaseTriggerResult {
+	return ReleaseTriggerResult{Release: &ReleasePlan{
+		Component:      component,
+		BaseBranch:     baseBranch,
+		Commit:         commit,
+		ReleaseVersion: releaseVersion,
+	}}
+}
+
+func validateReleaseTriggerComponent(component, baseBranch string) (*Component, error) {
 	registered, err := GetComponent(component)
 	if err != nil {
-		return fmt.Errorf("get release trigger component: %w", err)
+		return nil, fmt.Errorf("get release trigger component: %w", err)
 	}
 	if _, err := parseBaseBranchSelector(registered.Name, baseBranch); err != nil {
-		return fmt.Errorf("validate release trigger branch: %w", err)
+		return nil, fmt.Errorf("validate release trigger branch: %w", err)
 	}
-	return nil
+	return registered, nil
 }
