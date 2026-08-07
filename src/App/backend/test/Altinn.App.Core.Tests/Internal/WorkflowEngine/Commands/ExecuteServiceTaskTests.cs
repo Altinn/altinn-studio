@@ -68,6 +68,7 @@ public class ExecuteServiceTaskTests
                 Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
                 LockToken = Guid.NewGuid().ToString(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
                 StepId = stepId,
