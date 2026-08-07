@@ -39,11 +39,13 @@ internal sealed class PlatformHttpExceptionApiMigration
     public MigrationResult Migrate()
     {
         var changes = new List<string>();
+        var unresolved = new List<string>();
 
         foreach (var file in _scanner.Files)
         {
             var rewriter = new Rewriter(file);
             var updated = rewriter.Visit(file.Root);
+            unresolved.AddRange(rewriter.Unresolved);
             if (rewriter.Changes.Count == 0)
             {
                 continue;
@@ -60,20 +62,32 @@ internal sealed class PlatformHttpExceptionApiMigration
             changes.AddRange(rewriter.Changes);
         }
 
-        if (changes.Count == 0)
+        if (changes.Count == 0 && unresolved.Count == 0)
         {
             return new MigrationResult(ManualActionRequired: false, Array.Empty<string>());
         }
 
-        changes.Insert(
-            0,
-            "Migrated PlatformHttpException to the v9 response snapshot. Note that the constructor no longer "
-                + "captures the response body - where the body matters, switch the call site to the async "
-                + "PlatformHttpException.Create(response), which reads it. Rewrites:"
-        );
+        if (changes.Count > 0)
+        {
+            changes.Insert(
+                0,
+                "Migrated PlatformHttpException to the v9 response snapshot. Note that the constructor no longer "
+                    + "captures the response body - where the body matters, switch the call site to the async "
+                    + "PlatformHttpException.Create(response), which reads it. Rewrites:"
+            );
+        }
 
-        // Every rewrite here leaves the app compiling, so no manual follow-up is demanded.
-        return new MigrationResult(ManualActionRequired: false, changes);
+        if (unresolved.Count > 0)
+        {
+            changes.Add(
+                "These PlatformHttpException constructor calls could not be rewritten - the response argument's "
+                    + "type is not determinable from syntax, and a wrong guess would not compile:"
+            );
+            changes.AddRange(unresolved);
+        }
+
+        // The rewrites leave the app compiling; anything left unresolved does need a human.
+        return new MigrationResult(ManualActionRequired: unresolved.Count > 0, changes);
     }
 
     private static CompilationUnitSyntax AddUsingIfMissing(CompilationUnitSyntax unit, string namespaceName)
@@ -105,6 +119,14 @@ internal sealed class PlatformHttpExceptionApiMigration
         }
 
         public List<string> Changes { get; } = [];
+
+        public List<string> Unresolved { get; } = [];
+
+        private static bool AlreadyMigrated(ExpressionSyntax argument) =>
+            argument
+                .DescendantNodesAndSelf()
+                .OfType<SimpleNameSyntax>()
+                .Any(name => name.Identifier.Text == SnapshotTypeName);
 
         public bool NeedsHelpersUsing { get; private set; }
 
@@ -185,6 +207,16 @@ internal sealed class PlatformHttpExceptionApiMigration
             var replacement = BuildSnapshotArgument(first.Expression);
             if (replacement is null)
             {
+                if (!AlreadyMigrated(first.Expression))
+                {
+                    Unresolved.Add(
+                        $"{_file.RelativePath}:{_file.GetLine(original)}: new PlatformHttpException(..) - could not "
+                            + "determine the response argument's type. Build the snapshot explicitly, e.g. "
+                            + "new PlatformHttpResponse { StatusCode = response.StatusCode }, or switch the call "
+                            + "site to the asynchronous PlatformHttpException.Create(response)."
+                    );
+                }
+
                 return visited;
             }
 
@@ -245,12 +277,7 @@ internal sealed class PlatformHttpExceptionApiMigration
         private static ExpressionSyntax? BuildSnapshotArgument(ExpressionSyntax argument)
         {
             // Already migrated (or hand-written against v9): re-running the upgrade must not double-wrap.
-            if (
-                argument
-                    .DescendantNodesAndSelf()
-                    .OfType<SimpleNameSyntax>()
-                    .Any(name => name.Identifier.Text == SnapshotTypeName)
-            )
+            if (AlreadyMigrated(argument))
             {
                 return null;
             }
@@ -269,8 +296,11 @@ internal sealed class PlatformHttpExceptionApiMigration
                 );
             }
 
-            // Anything else (including a parameterless `new HttpResponseMessage()`): snapshot at runtime.
-            return SyntaxFactory.ParseExpression($"{SnapshotTypeName}.FromHttpResponse({argument})");
+            // Anything else: the argument's type cannot be resolved from syntax, and there is no public
+            // API that turns an arbitrary HttpResponseMessage into a snapshot - PlatformHttpResponse is
+            // built either by Create (which reads the body) or via an object initializer. Report it
+            // rather than emit a call the app cannot compile.
+            return null;
         }
 
         private static string? TrailingName(ExpressionSyntax expression) =>

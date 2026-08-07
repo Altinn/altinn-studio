@@ -206,24 +206,33 @@ public class PlatformHttpExceptionTests
         Assert.Equal(["gzip", "deflate", "br"], exception.Response.Headers["Accept-Encoding"]);
     }
 
+    /// <summary>
+    /// Passing an <see cref="IDisposable"/> to a method does not transfer ownership, so the caller's
+    /// <c>using</c> stays in charge and must not be pre-empted.
+    /// </summary>
     [Fact]
-    public async Task Create_DisposesTheOriginalResponse()
+    public async Task Create_DoesNotDisposeTheResponse()
     {
-        var response = TextResponse(HttpStatusCode.OK, "Test");
+        using var response = TextResponse(HttpStatusCode.OK, "Test");
 
         await PlatformHttpException.Create(response);
 
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await response.Content.ReadAsStringAsync());
+        Assert.Equal("Test", await response.Content.ReadAsStringAsync());
     }
 
+    /// <summary>
+    /// The reason the exception can afford to borrow rather than own: once the caller disposes, the
+    /// snapshot is still there.
+    /// </summary>
     [Fact]
-    public async Task Create_SnapshotSurvivesDisposalOfTheOriginalResponse()
+    public async Task Create_SnapshotSurvivesTheCallerDisposingTheResponse()
     {
-        var response = TextResponse(HttpStatusCode.BadGateway, "upstream exploded");
+        PlatformHttpException exception;
+        using (var response = TextResponse(HttpStatusCode.BadGateway, "upstream exploded"))
+        {
+            exception = await PlatformHttpException.Create(response);
+        }
 
-        var exception = await PlatformHttpException.Create(response);
-
-        // The whole point of the snapshot: readable long after the response is gone.
         Assert.Equal(HttpStatusCode.BadGateway, exception.Response.StatusCode);
         Assert.Equal("upstream exploded", exception.Response.Content);
     }

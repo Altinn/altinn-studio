@@ -2429,7 +2429,6 @@ namespace Altinn.App.Core.Helpers
         public string? ReasonPhrase { get; init; }
         public required System.Net.HttpStatusCode StatusCode { get; init; }
         public override string ToString() { }
-        public static Altinn.App.Core.Helpers.PlatformHttpResponse FromHttpResponse(System.Net.Http.HttpResponseMessage response, string? content = null) { }
     }
     public class ProcessError
     {

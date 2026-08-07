@@ -66,10 +66,14 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
         Assert.Contains("SomethingElse.CreateAsync(ex)", migrated);
     }
 
+    /// <summary>
+    /// Without a semantic model the argument's type is unknowable, and there is no public API that turns
+    /// an arbitrary HttpResponseMessage into a snapshot — so this is reported rather than guessed at.
+    /// </summary>
     [Fact]
-    public void Migration_RewritesConstructorToSnapshotFactory()
+    public void Migration_ReportsConstructorCallsItCannotType()
     {
-        var migrated = Migrate(
+        _app.Write(
             "logic/Client.cs",
             """
             using Altinn.App.Core.Helpers;
@@ -81,10 +85,12 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
         );
 
-        Assert.Contains(
-            "new PlatformHttpException(PlatformHttpResponse.FromHttpResponse(response), content)",
-            migrated
-        );
+        var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(Locations(result), w => w.Contains("Client.cs") && w.Contains("could not"));
+        // Left untouched rather than rewritten into something that will not compile.
+        Assert.Contains("new PlatformHttpException(response, content)", _app.Read("logic/Client.cs"));
     }
 
     /// <summary>
@@ -137,13 +143,13 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             using Altinn.App.Core.Helpers;
             public class Named
             {
-                public PlatformHttpException Fail(HttpResponseMessage response, string body) =>
-                    new PlatformHttpException(message: body, response: response);
+                public PlatformHttpException Fail(string body) =>
+                    new PlatformHttpException(message: body, response: new HttpResponseMessage(HttpStatusCode.Gone));
             }
             """
         );
 
-        Assert.Contains("response: PlatformHttpResponse.FromHttpResponse(response)", migrated);
+        Assert.Contains("response: new PlatformHttpResponse { StatusCode = HttpStatusCode.Gone }", migrated);
         Assert.Contains("message: body", migrated);
     }
 
@@ -174,8 +180,8 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             using Altinn.App.Core.Helpers;
             public class Client
             {
-                public PlatformHttpException Fail(HttpResponseMessage response) =>
-                    new PlatformHttpException(response, "boom");
+                public PlatformHttpException Fail() =>
+                    new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.NotFound), "boom");
             }
             """
         );
@@ -183,7 +189,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
         new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
         var afterFirst = _app.Read("logic/Client.cs");
 
-        // A second pass must not wrap the already-wrapped argument again.
+        // A second pass must not rewrite the already-migrated argument again.
         var second = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
         var afterSecond = _app.Read("logic/Client.cs");
 
@@ -199,14 +205,15 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
             public class Qualified
             {
-                public Altinn.App.Core.Helpers.PlatformHttpException Fail(HttpResponseMessage response) =>
-                    new Altinn.App.Core.Helpers.PlatformHttpException(response, "boom");
+                public Altinn.App.Core.Helpers.PlatformHttpException Fail() =>
+                    new Altinn.App.Core.Helpers.PlatformHttpException(
+                        new HttpResponseMessage(HttpStatusCode.NotFound), "boom");
             }
             """
         );
 
         Assert.Contains("using Altinn.App.Core.Helpers;", migrated);
-        Assert.Contains("PlatformHttpResponse.FromHttpResponse(response)", migrated);
+        Assert.Contains("new PlatformHttpResponse { StatusCode = HttpStatusCode.NotFound }", migrated);
     }
 
     [Fact]

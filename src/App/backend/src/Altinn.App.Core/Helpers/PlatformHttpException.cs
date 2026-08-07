@@ -40,11 +40,12 @@ public class PlatformHttpException : AltinnException
     /// deriving the message from its status, reason phrase and body.
     /// </summary>
     /// <remarks>
-    /// <b>Takes ownership of <paramref name="response"/> and disposes it.</b> The body is read first, with
-    /// a bounded streaming read, so the resulting exception carries the diagnostic content without holding
-    /// the connection open. Do not use <paramref name="response"/> afterwards.
+    /// The body is read with a bounded streaming read, so the exception carries the diagnostic content
+    /// without holding on to the response. <paramref name="response"/> is borrowed, not taken over: it is
+    /// neither disposed nor modified, and disposing it afterwards — as the usual <c>using</c> at the call
+    /// site does — leaves the exception fully readable, which is what the snapshot is for.
     /// </remarks>
-    /// <param name="response">The failed response. Disposed before this method returns.</param>
+    /// <param name="response">The failed response. Read but not disposed; the caller keeps ownership.</param>
     /// <param name="cancellationToken">Cancels reading the response body.</param>
     public static Task<PlatformHttpException> Create(
         HttpResponseMessage response,
@@ -56,10 +57,10 @@ public class PlatformHttpException : AltinnException
     /// the supplied message.
     /// </summary>
     /// <remarks>
-    /// <b>Takes ownership of <paramref name="response"/> and disposes it.</b> See
+    /// <paramref name="response"/> is borrowed, not taken over. See
     /// <see cref="Create(HttpResponseMessage, CancellationToken)"/>.
     /// </remarks>
-    /// <param name="response">The failed response. Disposed before this method returns.</param>
+    /// <param name="response">The failed response. Read but not disposed; the caller keeps ownership.</param>
     /// <param name="message">A description of the cause of the exception.</param>
     /// <param name="innerException">The exception that caused this one, if any.</param>
     /// <param name="cancellationToken">Cancels reading the response body.</param>
@@ -79,14 +80,10 @@ public class PlatformHttpException : AltinnException
     {
         ArgumentNullException.ThrowIfNull(response);
 
-        try
-        {
-            PlatformHttpResponse snapshot = await PlatformHttpResponse.Snapshot(response, cancellationToken);
-            return new PlatformHttpException(snapshot, message ?? snapshot.BuildMessage(), innerException);
-        }
-        finally
-        {
-            response.Dispose();
-        }
+        // Deliberately does not dispose: passing an IDisposable to a method does not transfer ownership,
+        // and the caller's `using` must stay in charge. The snapshot is what keeps the exception readable
+        // once they do dispose it.
+        PlatformHttpResponse snapshot = await PlatformHttpResponse.Snapshot(response, cancellationToken);
+        return new PlatformHttpException(snapshot, message ?? snapshot.BuildMessage(), innerException);
     }
 }

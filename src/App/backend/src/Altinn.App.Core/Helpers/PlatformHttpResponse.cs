@@ -83,7 +83,7 @@ public sealed record PlatformHttpResponse
     /// </remarks>
     /// <param name="response">The response to snapshot.</param>
     /// <param name="content">The already-read response body, if available.</param>
-    public static PlatformHttpResponse FromHttpResponse(HttpResponseMessage response, string? content = null)
+    internal static PlatformHttpResponse FromHttpResponse(HttpResponseMessage response, string? content = null)
     {
         ArgumentNullException.ThrowIfNull(response);
 
@@ -214,7 +214,8 @@ public sealed record PlatformHttpResponse
             encoding,
             detectEncodingFromByteOrderMarks: true,
             bufferSize: 1024,
-            leaveOpen: false
+            // The `using` above owns the stream; letting the reader close it too would dispose it twice.
+            leaveOpen: true
         );
 
         char[] buffer = new char[maxChars];
