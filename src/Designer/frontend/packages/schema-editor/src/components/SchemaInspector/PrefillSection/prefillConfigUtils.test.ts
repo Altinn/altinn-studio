@@ -1,6 +1,11 @@
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import { PrefillSource } from 'app-shared/types/PrefillConfig';
-import { findPrefillMapping, removePrefillMapping, setPrefillMapping } from './prefillConfigUtils';
+import {
+  findPrefillMapping,
+  removePrefillMapping,
+  renamePrefillMappings,
+  setPrefillMapping,
+} from './prefillConfigUtils';
 
 describe('prefillConfigUtils', () => {
   describe('findPrefillMapping', () => {
@@ -62,6 +67,41 @@ describe('prefillConfigUtils', () => {
         ER: { Name: 'otherField' },
         DSF: { SSN: 'someField' },
       });
+    });
+  });
+
+  describe('renamePrefillMappings', () => {
+    it('Renames a mapping that points exactly to the renamed field', () => {
+      const config: PrefillConfig = { ER: { OrgNumber: 'Foretak.OrgNr' } };
+      expect(renamePrefillMappings(config, 'Foretak.OrgNr', 'Firma.OrgNr')).toEqual({
+        ER: { OrgNumber: 'Firma.OrgNr' },
+      });
+    });
+
+    it('Renames mappings that point to a descendant of the renamed field', () => {
+      const config: PrefillConfig = {
+        ER: { OrgNumber: 'Foretak.OrgNr' },
+        DSF: { Name: 'Foretak.Navn' },
+      };
+      expect(renamePrefillMappings(config, 'Foretak', 'Firma')).toEqual({
+        ER: { OrgNumber: 'Firma.OrgNr' },
+        DSF: { Name: 'Firma.Navn' },
+      });
+    });
+
+    it('Does not rename mappings for unrelated fields with a shared prefix', () => {
+      const config: PrefillConfig = { ER: { Name: 'ForetakNavn.Name' } };
+      expect(renamePrefillMappings(config, 'Foretak', 'Firma')).toEqual(config);
+    });
+
+    it('Returns the same config reference when nothing needs to be renamed', () => {
+      const config: PrefillConfig = { ER: { OrgNumber: 'someField' } };
+      expect(renamePrefillMappings(config, 'unrelatedField', 'newName')).toBe(config);
+    });
+
+    it('Returns the same config reference when the config is empty', () => {
+      const config: PrefillConfig = {};
+      expect(renamePrefillMappings(config, 'someField', 'newName')).toBe(config);
     });
   });
 });
