@@ -16,6 +16,7 @@ var (
 	errReleaseTriggerBeforeRequired  = errors.New("release trigger before SHA is required")
 	errReleaseTriggerVersionRequired = errors.New("manual release version is required")
 	errReleaseTriggerVersionMissing  = errors.New("manual release version is not present in the changelog")
+	errReleaseTriggerCommitExact     = errors.New("manual release commit must be a full commit SHA")
 	errReleaseTriggerPromotionCount  = errors.New(
 		"push contains release promotions for multiple components",
 	)
@@ -90,9 +91,9 @@ func resolveReleaseTriggerWithDeps(
 		if git == nil {
 			return ReleaseTriggerResult{}, errGitRequired
 		}
-		commit, err := git.Run(ctx, "rev-parse", req.Commit+"^{commit}")
+		commit, err := resolveExactManualCommit(ctx, git, req.Commit)
 		if err != nil {
-			return ReleaseTriggerResult{}, fmt.Errorf("resolve manual release commit: %w", err)
+			return ReleaseTriggerResult{}, err
 		}
 		cl, err := loadChangelogAtRef(ctx, git, commit, component.ChangelogPath)
 		if err != nil {
@@ -111,6 +112,22 @@ func resolveReleaseTriggerWithDeps(
 	default:
 		return ReleaseTriggerResult{}, fmt.Errorf("%w: %s", errReleaseTriggerEvent, req.EventName)
 	}
+}
+
+func resolveExactManualCommit(ctx context.Context, git gitReader, requestedCommit string) (string, error) {
+	commit, err := git.Run(ctx, "rev-parse", requestedCommit+"^{commit}")
+	if err != nil {
+		return "", fmt.Errorf("resolve manual release commit: %w", err)
+	}
+	if !strings.EqualFold(requestedCommit, commit) {
+		return "", fmt.Errorf(
+			"%w: got %s, resolved to %s",
+			errReleaseTriggerCommitExact,
+			requestedCommit,
+			commit,
+		)
+	}
+	return commit, nil
 }
 
 func resolvePushReleaseTrigger(
