@@ -35,10 +35,12 @@ type ReleaseTriggerRequest struct {
 
 // ReleasePlan is the immutable release context emitted to CI.
 type ReleasePlan struct {
-	Component      string `json:"component"`
-	BaseBranch     string `json:"baseBranch"`
-	Commit         string `json:"commit"`
-	ReleaseVersion string `json:"releaseVersion"`
+	Component      string             `json:"component"`
+	Publisher      ReleasePublisher   `json:"publisher"`
+	Environment    ReleaseEnvironment `json:"environment"`
+	BaseBranch     string             `json:"baseBranch"`
+	Commit         string             `json:"commit"`
+	ReleaseVersion string             `json:"releaseVersion"`
 }
 
 // ReleaseTriggerResult either contains one complete release plan or represents a no-op.
@@ -100,13 +102,14 @@ func resolveReleaseTriggerWithDeps(
 			return ReleaseTriggerResult{}, fmt.Errorf("load %s changelog at %s: %w", component.Name, commit, err)
 		}
 		selectedVersion := normalizeVersionPrefix(req.SelectedVersion)
-		if err := validateWorkflowReleasePlan(component, req.RefName, selectedVersion); err != nil {
-			return ReleaseTriggerResult{}, fmt.Errorf("validate manual release plan: %w", err)
+		result, err := releaseTriggerResult(component, req.RefName, commit, selectedVersion)
+		if err != nil {
+			return ReleaseTriggerResult{}, fmt.Errorf("build manual release plan: %w", err)
 		}
 		if !cl.HasVersion(selectedVersion) {
 			return ReleaseTriggerResult{}, fmt.Errorf("%w: %s", errReleaseTriggerVersionMissing, selectedVersion)
 		}
-		return releaseTriggerResult(component.Name, req.RefName, commit, selectedVersion), nil
+		return result, nil
 	case "push":
 		return resolvePushReleaseTrigger(ctx, req, git)
 	default:
@@ -160,10 +163,15 @@ func resolvePushReleaseTrigger(
 		return ReleaseTriggerResult{Release: nil}, nil
 	case 1:
 		promotion := promotedComponents[0]
-		if _, err := validateReleaseTriggerComponent(promotion.component, req.RefName); err != nil {
+		component, err := validateReleaseTriggerComponent(promotion.component, req.RefName)
+		if err != nil {
 			return ReleaseTriggerResult{}, err
 		}
-		return releaseTriggerResult(promotion.component, req.RefName, req.Commit, promotion.version), nil
+		result, err := releaseTriggerResult(component, req.RefName, req.Commit, promotion.version)
+		if err != nil {
+			return ReleaseTriggerResult{}, fmt.Errorf("build push release plan: %w", err)
+		}
+		return result, nil
 	default:
 		return ReleaseTriggerResult{}, fmt.Errorf(
 			"%w: %s",
@@ -188,7 +196,7 @@ func releaseTriggerPromotions(
 	promotedComponents := make([]releaseTriggerPromotion, 0, 1)
 	for _, name := range componentNames {
 		component := components[name]
-		if !component.HasReleasePublisher {
+		if component.Publisher == ReleasePublisherNone {
 			continue
 		}
 		if _, changed := changedFiles[component.ChangelogPath]; !changed {
@@ -255,13 +263,29 @@ func changedFileSet(output string) map[string]struct{} {
 	return files
 }
 
-func releaseTriggerResult(component, baseBranch, commit, releaseVersion string) ReleaseTriggerResult {
+func releaseTriggerResult(
+	component *Component,
+	baseBranch, commit, releaseVersion string,
+) (ReleaseTriggerResult, error) {
+	if err := validateWorkflowReleasePlan(component, baseBranch, releaseVersion); err != nil {
+		return ReleaseTriggerResult{}, fmt.Errorf("validate release plan: %w", err)
+	}
+	if component.Publisher == ReleasePublisherNone {
+		return ReleaseTriggerResult{}, fmt.Errorf("%w: %s", errReleasePublisherUnavailable, component.Name)
+	}
+	environment, err := resolveReleaseEnvironment(releaseVersion)
+	if err != nil {
+		return ReleaseTriggerResult{}, fmt.Errorf("resolve release environment: %w", err)
+	}
+
 	return ReleaseTriggerResult{Release: &ReleasePlan{
-		Component:      component,
+		Component:      component.Name,
+		Publisher:      component.Publisher,
+		Environment:    environment,
 		BaseBranch:     baseBranch,
 		Commit:         commit,
 		ReleaseVersion: releaseVersion,
-	}}
+	}}, nil
 }
 
 func validateReleaseTriggerComponent(component, baseBranch string) (*Component, error) {

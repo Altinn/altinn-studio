@@ -35,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       component: ${{ steps.resolve.outputs.component }}
+      publisher: ${{ steps.resolve.outputs.publisher }}
+      environment: ${{ steps.resolve.outputs.environment }}
       base-branch: ${{ steps.resolve.outputs.base-branch }}
       commit: ${{ steps.resolve.outputs.commit }}
       release-version: ${{ steps.resolve.outputs.release-version }}
@@ -74,12 +76,16 @@ jobs:
             -selected-version "$SELECTED_VERSION" > "$result_file"
 
           component="$(jq -r '.release.component // ""' "$result_file")"
+          publisher="$(jq -r '.release.publisher // ""' "$result_file")"
+          environment="$(jq -r '.release.environment // ""' "$result_file")"
           base_branch="$(jq -r '.release.baseBranch // ""' "$result_file")"
           commit="$(jq -r '.release.commit // ""' "$result_file")"
           release_version="$(jq -r '.release.releaseVersion // ""' "$result_file")"
 
           {
             echo "component=$component"
+            echo "publisher=$publisher"
+            echo "environment=$environment"
             echo "base-branch=$base_branch"
             echo "commit=$commit"
             echo "release-version=$release_version"
@@ -92,50 +98,24 @@ jobs:
           fi
         working-directory: src/tools/releaser
 
-  resolve-environment:
-    name: Resolve release environment
-    if: needs.resolve-trigger.outputs.component != ''
-    needs: resolve-trigger
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.context.outputs.environment }}
-    steps:
-      - name: Resolve environment
-        id: context
-        env:
-          RELEASE_VERSION: ${{ needs.resolve-trigger.outputs.release-version }}
-        run: |
-          environment="prod"
-          if [[ "$RELEASE_VERSION" == *"-preview."* ]]; then
-            environment="dev"
-          elif [[ "$RELEASE_VERSION" == *"-rc."* ]]; then
-            environment="staging"
-          fi
-
-          echo "environment=$environment" >> "$GITHUB_OUTPUT"
-
   release-app:
     name: Release app
-    if: needs.resolve-trigger.outputs.component == 'app'
-    needs:
-      - resolve-trigger
-      - resolve-environment
+    if: needs.resolve-trigger.outputs.publisher == 'app'
+    needs: resolve-trigger
     permissions:
       contents: write
       id-token: write
     uses: ./.github/workflows/release-app.yaml
     with:
       base-branch: ${{ needs.resolve-trigger.outputs.base-branch }}
-      environment: ${{ needs.resolve-environment.outputs.environment }}
+      environment: ${{ needs.resolve-trigger.outputs.environment }}
       commit: ${{ needs.resolve-trigger.outputs.commit }}
       release-version: ${{ needs.resolve-trigger.outputs.release-version }}
 
   release-studioctl:
     name: Release studioctl
-    if: needs.resolve-trigger.outputs.component == 'studioctl'
-    needs:
-      - resolve-trigger
-      - resolve-environment
+    if: needs.resolve-trigger.outputs.publisher == 'studioctl'
+    needs: resolve-trigger
     permissions:
       contents: write
     uses: ./.github/workflows/release-studioctl.yaml
@@ -149,11 +129,9 @@ jobs:
     if: >-
       always() &&
       needs.resolve-trigger.result == 'success' &&
-      needs.resolve-environment.result == 'success' &&
-      needs.resolve-trigger.outputs.component != ''
+      needs.resolve-trigger.outputs.publisher != ''
     needs:
       - resolve-trigger
-      - resolve-environment
       - release-app
       - release-studioctl
     runs-on: ubuntu-latest
@@ -162,9 +140,10 @@ jobs:
         env:
           APP_RESULT: ${{ needs.release-app.result }}
           COMPONENT: ${{ needs.resolve-trigger.outputs.component }}
+          PUBLISHER: ${{ needs.resolve-trigger.outputs.publisher }}
           STUDIOCTL_RESULT: ${{ needs.release-studioctl.result }}
         run: |
           if [[ "$APP_RESULT" == "skipped" && "$STUDIOCTL_RESULT" == "skipped" ]]; then
-            echo "No publisher job is configured for resolved component: $COMPONENT" >&2
+            echo "No publisher job is configured for $COMPONENT publisher: $PUBLISHER" >&2
             exit 1
           fi
