@@ -147,6 +147,84 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.DoesNotContain(result.Warnings, w => w.Contains("MyServiceTask.cs:5"));
     }
 
+    // --- RemovedEventsReceiveStackDetector -------------------------------------------------------
+
+    [Fact]
+    public void EventsReceiveStackDetector_FlagsHandlerImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyEventHandler.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyEventHandler : IEventHandler
+            {
+                public string EventType => "app.my-org.something-happened";
+                public Task<bool> ProcessEvent(CloudEvent cloudEvent) => Task.FromResult(true);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IEventHandler, MyEventHandler>();
+            builder.Services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+            builder.Services.AddSingleton<IEventSecretCodeProvider, MySecretCodeProvider>();
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyEventHandler.cs") && w.Contains("MyEventHandler : IEventHandler")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventsSubscription"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventSecretCodeProvider"));
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_DoesNotFlagEventPublishing()
+    {
+        _app.Write(
+            "logic/MyPublisher.cs",
+            """
+            using Altinn.App.Core.Internal.Events;
+            public class MyPublisher
+            {
+                private readonly IEventsClient _eventsClient;
+                public MyPublisher(IEventsClient eventsClient) => _eventsClient = eventsClient;
+                public Task Publish() => _eventsClient.AddEvent("app.my-org.something-happened", new Instance());
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- LegacyEFormidlingCodeDetector -----------------------------------------------------------
 
     [Fact]
