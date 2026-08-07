@@ -9,6 +9,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.20] - 2026-08-07
+
+### Added
+
+- Accept Studio repository URLs, with or without `.git`, in `studioctl app clone` and select the environment from the URL.
+
 ### Changed
 
 - Wait up to 30 seconds for an app to become reachable through Localtest when using `studioctl run`; use `--startup-timeout` to choose a different limit.
@@ -18,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Explain access errors during `studioctl app upgrade`
 - Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
 - Detect apps started directly with `dotnet run` sooner by checking process endpoints every five seconds while retaining the ten-second container check interval.
+- Discover apps launched by `studioctl run` from their registered process without relying on process-name or command-line matching.
 
 ## [0.1.0-preview.19] - 2026-08-06
 

@@ -144,7 +144,7 @@ __metadata:
     "@storybook/react-vite": "npm:10.4.6"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.3"
+    "@testing-library/user-event": "npm:14.6.1"
     "@types/react": "npm:19.2.18"
     "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
@@ -153,7 +153,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:6.0.5"
     classnames: "npm:2.5.1"
     date-fns: "npm:4.4.0"
-    dompurify: "npm:3.4.13"
+    dompurify: "npm:3.4.12"
     eslint: "npm:10.5.0"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
@@ -199,7 +199,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.3"
+    "@testing-library/user-event": "npm:14.6.1"
     "@types/react": "npm:19.2.18"
     "@types/react-dom": "npm:19.2.4"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
@@ -3615,16 +3615,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/signalr@npm:8.0.17":
-  version: 8.0.17
-  resolution: "@microsoft/signalr@npm:8.0.17"
+"@microsoft/signalr@npm:8.0.29":
+  version: 8.0.29
+  resolution: "@microsoft/signalr@npm:8.0.29"
   dependencies:
     abort-controller: "npm:^3.0.0"
     eventsource: "npm:^2.0.2"
     fetch-cookie: "npm:^2.0.3"
     node-fetch: "npm:^2.6.7"
     ws: "npm:^7.5.10"
-  checksum: 10/378907e59bdaa4ab38db6e6172f1d2e0f9c3c89d3d3d3d3ff8b007980f5f884bd6d4996e92e6c2def4e713271b3bad3bdeb5aeda4a0e68e83225831c2867316e
+  checksum: 10/9ae9083f2120a88a72e65842ad98f139628fb1aee71e80746c501535bb3e94a92383e072056241c9b4942e14ef33003f7894d509afb3de28585f3f49ed15d7ac
   languageName: node
   linkType: hard
 
@@ -4440,11 +4440,11 @@ __metadata:
   linkType: hard
 
 "@percy/sdk-utils@npm:^1.31.10":
-  version: 1.32.6
-  resolution: "@percy/sdk-utils@npm:1.32.6"
+  version: 1.32.5
+  resolution: "@percy/sdk-utils@npm:1.32.5"
   dependencies:
     pac-proxy-agent: "npm:^7.0.2"
-  checksum: 10/57f84516ce75f79b708b99d1bc09a8e67dd7b153391037bfa9ff1fbd124a7cbd8fafce3352db84bcf7869f9cffb016bdda7734f33f2c6c6d499885d8b21f46c0
+  checksum: 10/870234341e0cb1b1567faf58735497415a596ad78151ff68d3b30a920acd32ef80ef015f5c901d0540bf2f63a833708f7bc284997b28a3247f6035f52f7ac080
   languageName: node
   linkType: hard
 
@@ -5444,7 +5444,7 @@ __metadata:
   dependencies:
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.1"
+    "@testing-library/user-event": "npm:14.6.3"
     "@types/jest": "npm:30.0.0"
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.5.0"
@@ -7235,7 +7235,7 @@ __metadata:
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.3"
+    "@testing-library/user-event": "npm:14.6.1"
     "@types/babel__core": "npm:7.20.5"
     "@types/dot-object": "npm:2.1.6"
     "@types/js-levenshtein": "npm:1.1.3"
@@ -9754,19 +9754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.13":
-  version: 3.4.13
-  resolution: "dompurify@npm:3.4.13"
-  dependencies:
-    "@types/trusted-types": "npm:^2.0.7"
-  dependenciesMeta:
-    "@types/trusted-types":
-      optional: true
-  checksum: 10/0db0a309a868a38aca042f606b37446977c35ee4501850a8c1bf2781337d79871daf1f4344bbf5b545f2a8c62e4d4e192c8fd6f1ff49ecec7c865c55a0aefee3
-  languageName: node
-  linkType: hard
-
-"dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
+"dompurify@npm:3.4.12":
   version: 3.4.12
   resolution: "dompurify@npm:3.4.12"
   dependencies:
@@ -9775,6 +9763,18 @@ __metadata:
     "@types/trusted-types":
       optional: true
   checksum: 10/f826b68920887eb75115a162facb42380d1c3fac441548217b30068c9fadeed14f63fa1f7a1d2ab6f63613e5a0f897aa245c9224d4abf7939cd8ae58c04646af
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
+  version: 3.4.13
+  resolution: "dompurify@npm:3.4.13"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/0db0a309a868a38aca042f606b37446977c35ee4501850a8c1bf2781337d79871daf1f4344bbf5b545f2a8c62e4d4e192c8fd6f1ff49ecec7c865c55a0aefee3
   languageName: node
   linkType: hard
 
@@ -18488,7 +18488,7 @@ __metadata:
     "@eslint/eslintrc": "npm:3.3.6"
     "@microsoft/applicationinsights-react-js": "npm:17.3.6"
     "@microsoft/applicationinsights-web": "npm:3.4.3"
-    "@microsoft/signalr": "npm:8.0.17"
+    "@microsoft/signalr": "npm:8.0.29"
     "@oddbird/popover-polyfill": "npm:^0.7.0"
     "@swc/core": "npm:1.15.47"
     "@swc/jest": "npm:0.2.39"
@@ -18497,7 +18497,7 @@ __metadata:
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.1"
+    "@testing-library/user-event": "npm:14.6.3"
     "@types/css-modules": "npm:1.0.5"
     "@types/jest": "npm:30.0.0"
     "@types/react": "npm:19.2.18"
