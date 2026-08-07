@@ -135,6 +135,8 @@ const GROUPS = [
       '.github/workflows/template-runtime-construct-environments.yaml',
       '.github/workflows/template-studio-construct-environments.yaml',
       '.github/workflows/validate-renovate.yaml',
+      'src/tools/releaser/internal/component.go',
+      'src/tools/releaser/internal/release_policy.go',
       'src/tools/releaser/internal/release_trigger.go',
     ],
   },
