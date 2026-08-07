@@ -33,5 +33,7 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
         builder.Property(e => e.AttachmentFileNames).HasColumnType("text[]").HasColumnName("attachment_file_names");
 
         builder.Property(e => e.Sources).HasColumnType("jsonb").HasColumnName("sources");
+
+        builder.Property(e => e.TraceId).HasColumnType("character varying").HasColumnName("trace_id");
     }
 }

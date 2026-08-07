@@ -99,7 +99,13 @@ def build_graph():
 graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
-from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client, flush_langfuse
+from shared.utils.langfuse_utils import (
+    init_langfuse,
+    is_langfuse_enabled,
+    get_langfuse_client,
+    get_current_trace_id,
+    flush_langfuse,
+)
 from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
 
 import logging as _logging
@@ -154,16 +160,22 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
     assistant_message + terminal status pair a real answer produces, and
     the decline lands in conversation history so follow-up turns see it.
     """
+    decline_data = {
+        "author": "assistant",
+        "content": decline_text,
+        "filesChanged": [],
+        "sources": [],
+        "no_branch_operations": True,
+    }
+    # Same event identity as a real answer: lets the frontend dedupe
+    # redelivered events and submit feedback on the decline.
+    trace_id = get_current_trace_id()
+    if trace_id:
+        decline_data["traceId"] = trace_id
     event_sink.send(AgentEvent(
         type="assistant_message",
         session_id=state.session_id,
-        data={
-            "author": "assistant",
-            "content": decline_text,
-            "filesChanged": [],
-            "sources": [],
-            "no_branch_operations": True,
-        },
+        data=decline_data,
     ))
     try:
         event_sink.add_to_conversation_history(state.session_id, "assistant", decline_text)

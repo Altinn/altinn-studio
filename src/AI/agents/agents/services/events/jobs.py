@@ -3,9 +3,19 @@ from .events import AgentEvent
 import asyncio
 import logging
 import threading
+import time
 from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
+
+# Event types that only narrate an in-flight run. Once a session is cancelled
+# these must not reach clients: the terminal "cancelled" error event has
+# already been sent, and a trailing status/permission event would resurrect
+# the workflow activity indicator in the frontend with nothing left to turn
+# it off. Result-bearing events (assistant_message, error, done) still flow.
+PROGRESS_EVENT_TYPES = frozenset(
+    {"status", "assistant_message_chunk", "permission_request", "plan_proposed"}
+)
 
 
 class _SessionBuffer:
@@ -85,6 +95,10 @@ class EventSink:
         self._session_status: Dict[str, Dict[str, Any]] = {}
         self._conversation_history: Dict[str, List[Dict[str, Any]]] = {}
         self._cancelled: set = set()
+        # Monotonic run-start timestamps, used to stamp elapsed_ms on status
+        # events so every tab (including ones that adopt an in-flight run
+        # mid-way) can show trail timers relative to the actual run start.
+        self._session_started_monotonic: Dict[str, float] = {}
         self._session_to_developer: Dict[str, str] = {}  # Maps session_id -> developer
 
     # --- lifecycle ------------------------------------------------------------
@@ -122,6 +136,15 @@ class EventSink:
 
         # Update session status cache
         with self._state_lock:
+            if event.type in PROGRESS_EVENT_TYPES and event.session_id in self._cancelled:
+                log.info(
+                    f"🛑 Dropping {event.type} for cancelled session {event.session_id}"
+                )
+                return
+            if event.type == "status":
+                started = self._session_started_monotonic.get(event.session_id)
+                if started is not None:
+                    event.data.setdefault("elapsed_ms", int((time.monotonic() - started) * 1000))
             if event.type == "assistant_message":
                 self._session_status.setdefault(event.session_id, {"status": "running"})
                 self._session_status[event.session_id]["last_message"] = event.data
@@ -207,6 +230,7 @@ class EventSink:
         """Mark a session as started/running."""
         with self._state_lock:
             self._cancelled.discard(session_id)
+            self._session_started_monotonic[session_id] = time.monotonic()
             self._session_status[session_id] = {
                 "status": "running",
                 "started_at": datetime.now(timezone.utc).isoformat(),

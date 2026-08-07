@@ -1,29 +1,113 @@
 import { renderHook } from '@testing-library/react';
+import type { WorkflowEvent } from '@studio/assistant';
 import { useAltinityWebSocket } from './useAltinityWebSocket';
+import { WSConnector } from 'app-shared/websockets/WSConnector';
 
 const mockInvoke = jest.fn();
-const mockConnection = { on: jest.fn(), off: jest.fn(), invoke: mockInvoke };
-let mockConnections: Array<typeof mockConnection> = [mockConnection];
+// A fresh connection object per test: the hook registers its dispatcher once
+// per connection (WeakSet), so reusing one object across tests would leak
+// registration state between them.
+let mockConnection: { on: jest.Mock; off: jest.Mock; invoke: jest.Mock };
+let mockConnections: Array<typeof mockConnection>;
 
 jest.mock('app-shared/websockets/WSConnector', () => ({
-  WSConnector: jest.fn().mockImplementation(() => ({
-    get connections() {
-      return mockConnections;
-    },
-  })),
+  WSConnector: {
+    getInstance: jest.fn(() => ({
+      get connections() {
+        return mockConnections;
+      },
+    })),
+  },
 }));
 
+const mockGetInstance = WSConnector.getInstance as jest.Mock;
+
 describe('useAltinityWebSocket', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
+  beforeEach(() => {
+    mockConnection = { on: jest.fn(), off: jest.fn(), invoke: mockInvoke };
     mockConnections = [mockConnection];
   });
 
-  it('registers the agent message handler and reports connected', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('acquires the shared hub connection and reports connected', () => {
     const { result } = renderUseAltinityWebSocket();
 
+    expect(mockGetInstance).toHaveBeenCalledWith(expect.any(Array), ['ReceiveAgentMessage']);
     expect(mockConnection.on).toHaveBeenCalledWith('ReceiveAgentMessage', expect.any(Function));
     expect(result.current.connectionStatus).toBe('connected');
+  });
+
+  it('registers a single dispatcher even when the hook mounts twice', () => {
+    renderUseAltinityWebSocket();
+    renderUseAltinityWebSocket();
+
+    expect(mockConnection.on).toHaveBeenCalledTimes(1);
+  });
+
+  it('never detaches the shared handler on unmount', () => {
+    const { unmount } = renderUseAltinityWebSocket();
+    unmount();
+
+    expect(mockConnection.off).not.toHaveBeenCalled();
+  });
+
+  it('keeps delivering messages to a second mount after the first unmounts', () => {
+    const { unmount: unmountFirst } = renderUseAltinityWebSocket();
+    const { result } = renderUseAltinityWebSocket();
+    const received: WorkflowEvent[] = [];
+    result.current.onAgentMessage((message) => received.push(message));
+    unmountFirst();
+
+    const dispatch = mockConnection.on.mock.calls[0][1];
+    const event: WorkflowEvent = {
+      type: 'assistant_message',
+      session_id: 'thread-1',
+      data: { content: 'Svar' },
+    };
+    dispatch(event);
+
+    expect(received).toEqual([event]);
+  });
+
+  it('keeps delivering to other subscribers when one of them throws', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result: first } = renderUseAltinityWebSocket();
+    const { result: second } = renderUseAltinityWebSocket();
+    first.current.onAgentMessage(() => {
+      throw new Error('subscriber crashed');
+    });
+    const received: WorkflowEvent[] = [];
+    second.current.onAgentMessage((message) => received.push(message));
+
+    const dispatch = mockConnection.on.mock.calls[0][1];
+    const event: WorkflowEvent = {
+      type: 'assistant_message',
+      session_id: 'thread-1',
+      data: { content: 'Svar' },
+    };
+    dispatch(event);
+
+    expect(received).toEqual([event]);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('filters out the "session created" status noise', () => {
+    const { result } = renderUseAltinityWebSocket();
+    const received: WorkflowEvent[] = [];
+    result.current.onAgentMessage((message) => received.push(message));
+
+    const dispatch = mockConnection.on.mock.calls[0][1];
+    dispatch({
+      type: 'workflow_status',
+      session_id: 'thread-1',
+      data: { message: 'Session created' },
+    });
+
+    expect(received).toEqual([]);
   });
 
   describe('respondToPermission', () => {

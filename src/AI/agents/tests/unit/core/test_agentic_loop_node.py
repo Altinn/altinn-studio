@@ -24,6 +24,7 @@ from agents.core import (
 from agents.graph.nodes.agentic_loop_node import (
     _apply_result_to_state,
     _build_registry,
+    _emit_workflow_completion,
     _final_summary_text,
     _make_event_bridge,
     handle,
@@ -333,11 +334,79 @@ class TestApplyResultToState:
 
 
 # ---------------------------------------------------------------------------
+# Workflow completion event
+# ---------------------------------------------------------------------------
+
+
+class _SinkStub:
+    def __init__(self):
+        self.events = []
+
+    def send(self, event):
+        self.events.append(event)
+
+    def add_to_conversation_history(self, *args, **kwargs):
+        pass
+
+
+class TestEmitWorkflowCompletion:
+    def _emit(self, monkeypatch, trace_id):
+        stub = _SinkStub()
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.get_current_trace_id",
+            lambda: trace_id,
+        )
+        result = LoopResult(
+            reason=TerminationReason.COMPLETED,
+            messages=[],
+            final_text="Ferdig.",
+            turns=1,
+        )
+        ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        _emit_workflow_completion(_state(), result, ctx)
+        return next(e for e in stub.events if e.type == "assistant_message")
+
+    def test_assistant_message_carries_trace_id(self, monkeypatch):
+        message = self._emit(monkeypatch, trace_id="trace-123")
+        assert message.data["traceId"] == "trace-123"
+
+    def test_assistant_message_omits_trace_id_when_tracing_is_off(self, monkeypatch):
+        message = self._emit(monkeypatch, trace_id=None)
+        assert "traceId" not in message.data
+
+
+# ---------------------------------------------------------------------------
 # Node end-to-end (run_loop monkeypatched)
 # ---------------------------------------------------------------------------
 
 
 class TestHandle:
+    async def test_cancelled_result_emits_no_completion_message(self, monkeypatch):
+        """The cancel endpoint already sent the terminal 'cancelled' event —
+        a cancelled run must not also deliver (and persist) an answer."""
+        seen: list = []
+
+        async def fake_run_loop(**kwargs):
+            return LoopResult(reason=TerminationReason.CANCELLED, messages=[], turns=1)
+
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt)
+        )
+        monkeypatch.setattr(
+            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: True
+        )
+
+        await handle(_state())
+
+        assert [e.type for e in seen if e.type in ("assistant_message", "done")] == []
+
     async def test_invokes_run_loop_with_expected_inputs(self, monkeypatch):
         captured: dict[str, Any] = {}
 
