@@ -11,6 +11,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </summary>
 internal sealed class RemovedEventsReceiveStackDetector
 {
+    // The Subscription/SubscriptionRequest DTOs are also removed but are far too generically named to
+    // match on a simple name; an app touching them names IEventsSubscription in the same file anyway.
     private static readonly IReadOnlySet<string> _removedTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "IEventHandler",
@@ -21,6 +23,7 @@ internal sealed class RemovedEventsReceiveStackDetector
         "EventsSubscriptionClient",
         "SubscriptionValidationHandler",
         "UnhandledEventHandler",
+        "EventsReceiverController",
     };
 
     private const string Summary =

@@ -164,6 +164,15 @@ public sealed class CSharpApiMigrationTests : IDisposable
             builder.Services.AddSingleton<IEventSecretCodeProvider, MySecretCodeProvider>();
             """
         );
+        _app.Write(
+            "logic/MyReceiver.cs",
+            """
+            using Altinn.App.Api.Controllers;
+            public class MyReceiver : EventsReceiverController
+            {
+            }
+            """
+        );
 
         var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
 
@@ -174,6 +183,10 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventsSubscription"));
         Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventSecretCodeProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyReceiver.cs") && w.Contains("MyReceiver : EventsReceiverController")
+        );
     }
 
     [Fact]
