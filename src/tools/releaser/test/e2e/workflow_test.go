@@ -283,6 +283,8 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 
 	runReleaser(t, logger, repo.dir, "workflow",
 		"-component", studioctlComponent,
+		"-version", "v1.2.0-preview.2",
+		"-commit", strings.TrimSpace(runGit(t, logger, repo.dir, "rev-parse", "HEAD")),
 		"-base-branch", mainBranchName,
 		"-dry-run",
 	)

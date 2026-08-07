@@ -36,8 +36,8 @@ Context: on `main`
      `prepare` verifies that the active line has a canonical release branch, carries its prerelease channel forward,
      and starts the newer line at `<channel>.1`.
 3. Approve and merge the prep PR.
-4. For same-repository PRs, CI runs automatically on merge. For fork PRs, dispatch the component's release
-   workflow from the merged `main` branch. It calls:
+4. CI detects the changelog promotion in the canonical `main` push and runs automatically, including for PRs
+   from forks. It calls:
    - `go run . workflow -component <component> -base-branch main`
 5. Workflow resolves the latest prerelease from the component changelog, builds artifacts (if applicable), creates tag `<component>/v...`, and creates a draft prerelease.
 
@@ -55,8 +55,8 @@ Context: on `main`
    - Creating the canonical release branch requires write access. Contributors can ask a maintainer to pre-create it
      from canonical `main`, then rerun the same command.
    - changelog is combined from prerelease changelogs for the same line
-2. Merge the prep PR. For fork PRs, dispatch the component's release workflow from the merged
-   `release/<component>/v1.0` branch. CI creates a non-prerelease stable release from that branch.
+2. Merge the prep PR. CI detects it from the canonical `release/<component>/v1.0` push and creates a
+   non-prerelease stable release from that branch.
 
 ### Patching, bugfixing
 
@@ -70,8 +70,7 @@ Context: on `main`
 3. Prepare next patch:
    - `go run . prepare -component <component> -kind patch -line v1.0`
    - `prepare` resolves the next patch version from the latest stable section on `release/<component>/v1.0`.
-4. Merge the prep PR. For fork PRs, dispatch the component's release workflow from the merged release branch;
-   CI publishes the patch release.
+4. Merge the prep PR. CI detects it from the canonical release-branch push and publishes the patch release.
 
 ## Explicit versions
 
@@ -90,6 +89,17 @@ prerelease, stabilization, and patch release flows.
   contributor prep and backport branches use the configured push remote.
 - Dry runs and repository discovery only require Git. Creating pull requests or releases requires an authenticated
   `gh` CLI.
-- The workflow job typically requires merged PRs with label `release/<component>`.
-- Release publication depends on a component-specific CI workflow being configured.
-- Version is resolved from the latest released section in the component changelog on the base branch.
+- Automatic publication detects a release promotion by comparing publisher-enabled component changelogs before and
+  after a trusted canonical branch push. It does not depend on GitHub PR metadata or labels, so fork and
+  same-repository PRs behave alike. Trigger resolution reuses the component registry, branch policy, and
+  `Changelog.Promote` semantics in this tool. It emits one immutable component, version, commit, and branch plan, and
+  fails if a push adds multiple release sections, promotes multiple components, or does not exactly preserve the
+  expected promotion content. The publisher verifies that exact plan against its pinned checkout before releasing.
+- The dispatcher intentionally runs on every `main` and `release/**` push and lets `resolve-trigger` no-op when no
+  promotion is present. GitHub path filters inspect at most 300 changed files and could otherwise miss a release in
+  a large push.
+- Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
+  `release/<component>/vX.Y` branch.
+- Release publication depends on the unified CI workflow routing the component to its reusable publisher workflow.
+- Manual dispatch resolves the version once from the selected commit and branch; publishers never select a newer
+  version or move their checkout while executing a release plan.
