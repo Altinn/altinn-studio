@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
@@ -34,9 +35,15 @@ type AppCommand struct {
 	service *appsvc.Service
 }
 
-const appLogsSubcommand = "logs"
+const (
+	appLogsSubcommand = "logs"
+	cloneEnvFlagName  = "env"
+)
 
-var errAppUpgradeFailed = errors.New("upgrade failed")
+var (
+	errAppUpgradeFailed         = errors.New("upgrade failed")
+	errCloneEnvironmentMismatch = errors.New("repository URL environment conflicts with --env")
+)
 
 type appBuildOutput struct {
 	ImageTag   string `json:"imageTag"`
@@ -50,6 +57,12 @@ type appBuildFlags struct {
 	imageTag   string
 	push       bool
 	jsonOutput bool
+}
+
+type cloneSource struct {
+	org  string
+	repo string
+	env  string
 }
 
 func (o appBuildOutput) PrintImage(out *ui.Output) error {
@@ -522,7 +535,7 @@ func (c *AppCommand) appUpgradeUsage() string {
 func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("app clone", flag.ContinueOnError)
 	var env string
-	fs.StringVar(&env, "env", auth.DefaultEnv, "Environment name (prod, dev, staging)")
+	fs.StringVar(&env, cloneEnvFlagName, auth.DefaultEnv, "Environment name (prod, dev, staging, local)")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -534,19 +547,34 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 	remaining := fs.Args()
 	if len(remaining) == 0 {
 		return fmt.Errorf(
-			"%w: usage: %s app clone [--env ENV] <org>/<repo> [destination]",
+			"%w: usage: %s app clone [--env ENV] <org>/<repo|repository-url> [destination]",
 			ErrMissingArgument,
 			osutil.CurrentBin(),
 		)
 	}
+	if len(remaining) > 2 || (len(remaining) == 2 && isCloneFlag(remaining[1])) {
+		return fmt.Errorf(
+			"%w: flags must be specified before the repository; expected at most one destination",
+			ErrInvalidFlagValue,
+		)
+	}
 
-	repoArg := remaining[0]
-	org, repo, parseErr := parseOrgRepo(repoArg)
+	source, parseErr := parseCloneSource(remaining[0])
 	if parseErr != nil {
 		return parseErr
 	}
+	envSet := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == cloneEnvFlagName {
+			envSet = true
+		}
+	})
+	env, err := resolveCloneEnvironment(env, envSet, source.env)
+	if err != nil {
+		return err
+	}
 
-	dest := repo
+	dest := source.repo
 	if len(remaining) > 1 {
 		dest = remaining[1]
 	}
@@ -559,16 +587,16 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 		return fmt.Errorf("resolve host: %w", err)
 	}
 
-	c.out.Verbosef("Cloning %s/%s from %s...", org, repo, host)
+	c.out.Verbosef("Cloning %s/%s from %s...", source.org, source.repo, host)
 
 	result, err := c.service.Clone(ctx, appsvc.CloneRequest{
 		Env:         env,
-		Org:         org,
-		Repo:        repo,
+		Org:         source.org,
+		Repo:        source.repo,
 		Destination: dest,
 	})
 	if err != nil {
-		return mapCloneError(err, env, org, repo, host, dest)
+		return mapCloneError(err, env, source.org, source.repo, host, dest)
 	}
 
 	c.out.Successf("Cloned to %s", result.AbsPath)
@@ -577,6 +605,80 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 	c.out.Printlnf("  cd %s && %s env up", dest, osutil.CurrentBin())
 
 	return nil
+}
+
+func isCloneFlag(value string) bool {
+	return value == "-env" || value == "--env" ||
+		strings.HasPrefix(value, "-env=") || strings.HasPrefix(value, "--env=") ||
+		value == "-h" || value == "--help"
+}
+
+func parseCloneSource(value string) (cloneSource, error) {
+	repositoryURL, err := url.Parse(value)
+	if err != nil {
+		return cloneSource{}, invalidCloneSource(value)
+	}
+	if !repositoryURL.IsAbs() && repositoryURL.Host == "" {
+		org, repo, parseErr := parseOrgRepo(value)
+		return cloneSource{org: org, repo: repo, env: ""}, parseErr
+	}
+	return parseStudioRepositoryURL(repositoryURL, value)
+}
+
+func parseStudioRepositoryURL(repositoryURL *url.URL, value string) (cloneSource, error) {
+	if repositoryURL.User != nil || repositoryURL.RawQuery != "" || repositoryURL.Fragment != "" ||
+		repositoryURL.Port() != "" {
+		return cloneSource{}, invalidCloneSource(value)
+	}
+	env := auth.EnvForHost(repositoryURL.Hostname())
+	if env == "" || !strings.EqualFold(repositoryURL.Host, auth.HostForEnv(env)) ||
+		!strings.EqualFold(repositoryURL.Scheme, auth.SchemeForEnv(env)) {
+		return cloneSource{}, invalidCloneSource(value)
+	}
+
+	parts := strings.Split(repositoryURL.EscapedPath(), "/")
+	if len(parts) != 4 || parts[0] != "" || parts[1] != "repos" {
+		return cloneSource{}, invalidCloneSource(value)
+	}
+	org, repo, err := parseStudioRepositoryPath(parts[2], parts[3])
+	if err != nil {
+		return cloneSource{}, invalidCloneSource(value)
+	}
+
+	return cloneSource{org: org, repo: repo, env: env}, nil
+}
+
+func parseStudioRepositoryPath(escapedOrg, escapedRepo string) (string, string, error) {
+	org, orgErr := url.PathUnescape(escapedOrg)
+	repo, repoErr := url.PathUnescape(strings.TrimSuffix(escapedRepo, ".git"))
+	if orgErr != nil || repoErr != nil || org == "" || repo == "" ||
+		strings.Contains(org, "/") || strings.Contains(repo, "/") {
+		return "", "", ErrInvalidRepoFormat
+	}
+	return org, repo, nil
+}
+
+func resolveCloneEnvironment(flagEnv string, envSet bool, inferredEnv string) (string, error) {
+	if inferredEnv == "" {
+		return flagEnv, nil
+	}
+	if envSet && flagEnv != inferredEnv {
+		return "", fmt.Errorf(
+			"%w: --env %s, URL environment %s",
+			errCloneEnvironmentMismatch,
+			flagEnv,
+			inferredEnv,
+		)
+	}
+	return inferredEnv, nil
+}
+
+func invalidCloneSource(value string) error {
+	return fmt.Errorf(
+		"%w: %q (expected org/repo or a Studio repository URL ending in /repos/org/repo[.git])",
+		ErrInvalidRepoFormat,
+		value,
+	)
 }
 
 func mapCloneError(err error, env, org, repo, host, dest string) error {
