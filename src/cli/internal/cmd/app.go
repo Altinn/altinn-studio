@@ -547,7 +547,7 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 	remaining := fs.Args()
 	if len(remaining) == 0 {
 		return fmt.Errorf(
-			"%w: usage: %s app clone [--env ENV] <org>/<repo|repository-url> [destination]",
+			"%w: usage: %s app clone [--env ENV] <org/repo|repository-url> [destination]",
 			ErrMissingArgument,
 			osutil.CurrentBin(),
 		)
