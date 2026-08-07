@@ -59,7 +59,14 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     public string Type => "eFormidling";
 
     /// <inheritdoc />
-    public ProcessStepOptions StepOptions => new() { WaitBudget = TimeSpan.FromHours(24) };
+    /// <remarks>
+    /// The wait budget bounds the delivery poll and nothing else: the send is its own engine step,
+    /// bounded by its retry strategy, and each step anchors its own budget at its own first deferral —
+    /// so a send that struggles cannot eat the poll's allowance. Sized to outlast the shipment's own
+    /// two-hour lifetime plus the integrasjonspunkt's 30-second expiry sweep and one poll interval, so
+    /// that a shipment which dies of old age fails with its verdict rather than ours.
+    /// </remarks>
+    public ProcessStepOptions StepOptions => new() { WaitBudget = TimeSpan.FromHours(2.5) };
 
     /// <inheritdoc />
     /// <remarks>
