@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- Warn in `studioctl app upgrade v9` about uses of the Altinn Events receive stack removed in v9: `IEventHandler` implementations, `IEventsSubscription`, and `IEventSecretCodeProvider`. Apps no longer expose the `/api/v1/eventsreceiver` endpoint, so these are never invoked; the warning explains what to move to instead (a workflow-engine service task for self-addressed reminder events, or a purpose-built endpoint for genuine inbound events). Publishing app events through `IEventsClient` is unaffected and not reported.
+
 - Auto-migrate the `PlatformHttpException` changes in `studioctl app upgrade v9`: rename `PlatformHttpException.CreateAsync(...)` to `Create(...)`, and rewrite constructor calls that built a throwaway `HttpResponseMessage` just to carry a status code into the v9 constructor that takes the status code directly. Every rewrite is listed for review, and any constructor call whose response argument cannot be identified is reported for you to finish by hand.
 - Warn in `studioctl app upgrade v9` about uses of `PlatformHttpException.Response` that the v9 response snapshot cannot satisfy. Reading `Response.StatusCode` is unaffected and is not reported. This includes a warning for apps that read the property by reflection and cast it to `HttpResponseMessage`, which keeps compiling but silently stops finding the status code.
 

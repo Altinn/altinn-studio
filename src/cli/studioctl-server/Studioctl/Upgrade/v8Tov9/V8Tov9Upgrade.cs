@@ -396,6 +396,7 @@ internal static class V8Tov9Upgrade
             var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),

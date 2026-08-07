@@ -202,19 +202,6 @@ namespace Altinn.App.Api.Controllers
         public void OnResourceExecuted(Microsoft.AspNetCore.Mvc.Filters.ResourceExecutedContext context) { }
         public void OnResourceExecuting(Microsoft.AspNetCore.Mvc.Filters.ResourceExecutingContext context) { }
     }
-    [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/eventsreceiver")]
-    public class EventsReceiverController : Microsoft.AspNetCore.Mvc.ControllerBase
-    {
-        public EventsReceiverController(Altinn.App.Core.Internal.Events.IEventHandlerResolver eventHandlerResolver, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.EventsReceiverController> logger, System.IServiceProvider serviceProvider) { }
-        [Microsoft.AspNetCore.Mvc.HttpPost]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(425)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(500)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Post([Microsoft.AspNetCore.Mvc.FromQuery] string code, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Core.Models.CloudEvent cloudEvent) { }
-    }
     [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/api/external")]
     public class ExternalApiController : Microsoft.AspNetCore.Mvc.ControllerBase
