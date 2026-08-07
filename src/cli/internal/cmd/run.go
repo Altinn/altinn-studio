@@ -38,7 +38,7 @@ const (
 	foregroundContainerCleanupTimeout = 15 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
 	studioctlServerCleanupTimeout     = 2 * time.Second
-	defaultAppStartupTimeout          = 15 * time.Second
+	defaultAppStartupTimeout          = 30 * time.Second
 	appStartupPollInterval            = 500 * time.Millisecond
 	maxAppLogCreateAttempts           = 3
 )
