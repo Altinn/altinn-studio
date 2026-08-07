@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/common/**'
+      - 'src/common/dotnet/**'
       - 'src/Runtime/workflow-engine/src/**'
       - 'src/Runtime/workflow-engine/tests/**'
       - 'src/Runtime/workflow-engine/Directory.Build.props'

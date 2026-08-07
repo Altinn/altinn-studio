@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - src/Runtime/common/dotnet/**
       - src/Runtime/localtest/**
       - .github/workflows/deploy-runtime-localtest.yaml
   workflow_dispatch:

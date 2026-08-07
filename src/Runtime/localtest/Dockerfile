@@ -2,14 +2,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:7d3a75ca5c8ac4679908ef7a2591
 WORKDIR /src
 
 COPY Runtime/localtest/src/LocalTest.csproj Runtime/localtest/src/
-COPY Shared/HostBridge/ Shared/HostBridge/
-COPY Shared/EnvTopology/ Shared/EnvTopology/
+COPY Runtime/common/dotnet/Altinn.Studio.Runtime.Common/Altinn.Studio.Runtime.Common.csproj Runtime/common/dotnet/Altinn.Studio.Runtime.Common/
 WORKDIR /src/Runtime/localtest/src
 RUN dotnet restore LocalTest.csproj
 
 COPY Runtime/localtest/src/ .
-COPY Shared/HostBridge/ /src/Shared/HostBridge/
-COPY Shared/EnvTopology/ /src/Shared/EnvTopology/
+COPY Runtime/common/dotnet/Altinn.Studio.Runtime.Common/ /src/Runtime/common/dotnet/Altinn.Studio.Runtime.Common/
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:0389d5b7d60f75ebbeec3bfffd2ad0a06d234e7b998231a5a86abf5e919a7d01 AS final

@@ -2,12 +2,11 @@
 **
 !Runtime/
 !Runtime/localtest/
-!Shared/
+!Runtime/common/
 !Runtime/localtest/src/**
 !Runtime/localtest/testdata/**
-!Shared/HostBridge/
-!Shared/HostBridge/**
-!Shared/EnvTopology/
-!Shared/EnvTopology/**
+!Runtime/common/dotnet/
+!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/
+!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/**
 **/bin
 **/obj
