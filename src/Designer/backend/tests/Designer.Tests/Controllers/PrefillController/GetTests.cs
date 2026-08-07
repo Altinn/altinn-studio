@@ -39,6 +39,26 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     }
 
     [Theory]
+    [InlineData("/App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task Get_ModelPathHasLeadingSlash_ShouldReturnNoContent(
+        string modelPath,
+        string org,
+        string repo,
+        string user
+    )
+    {
+        // Data models are listed with a RepositoryRelativeUrl that has a leading slash
+        // (see AltinnCoreFile.GetRepositoryRelativeUrl), and that is the modelPath value the
+        // frontend actually sends. This must not be rejected as an invalid/rooted path.
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/prefill?modelPath={modelPath}";
+
+        using var response = await HttpClient.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Theory]
     [InlineData("../../../App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
     public async Task Get_ModelPathContainsPathTraversal_ShouldNotSucceed(
         string modelPath,

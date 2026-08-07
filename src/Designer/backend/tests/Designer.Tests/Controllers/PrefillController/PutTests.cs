@@ -93,6 +93,32 @@ public class PutTests : DesignerEndpointsTestsBase<PutTests>, IClassFixture<WebA
     }
 
     [Theory]
+    [InlineData("/App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task Put_ModelPathHasLeadingSlash_ShouldReturnNoContent_AndCreatePrefillFile(
+        string modelPath,
+        string org,
+        string repo,
+        string user
+    )
+    {
+        // Data models are listed with a RepositoryRelativeUrl that has a leading slash
+        // (see AltinnCoreFile.GetRepositoryRelativeUrl), and that is the modelPath value the
+        // frontend actually sends. This must not be rejected as an invalid/rooted path.
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/prefill?modelPath={modelPath}";
+
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(PrefillConfig, Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
+        using var putResponse = await HttpClient.SendAsync(putRequest);
+        Assert.Equal(HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        string prefillFilePath = Path.Combine(TestRepoPath, "App", "models", "HvemErHvem_SERES.prefill.json");
+        Assert.True(File.Exists(prefillFilePath));
+    }
+
+    [Theory]
     [InlineData("../../../App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
     public async Task Put_ModelPathContainsPathTraversal_ShouldNotSucceed(
         string modelPath,

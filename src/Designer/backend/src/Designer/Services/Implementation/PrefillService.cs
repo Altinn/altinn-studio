@@ -87,7 +87,21 @@ public class PrefillService : IPrefillService
 
     private static void ValidateModelPath(string modelPath)
     {
-        if (string.IsNullOrWhiteSpace(modelPath) || modelPath.Contains("..") || Path.IsPathRooted(modelPath))
+        if (string.IsNullOrWhiteSpace(modelPath) || modelPath.Contains(".."))
+        {
+            throw new ArgumentException($"Invalid model path: {modelPath}", nameof(modelPath));
+        }
+
+        // Repository-relative paths (e.g. AltinnCoreFile.RepositoryRelativeUrl, which is what the
+        // frontend sends as modelPath) conventionally start with a single leading slash. That leading
+        // separator is stripped in GitRepository.GetAbsoluteFileOrDirectoryPathSanitized before the path
+        // is resolved, so it must be stripped here too before checking for an actually rooted path
+        // (e.g. a Windows drive path or a UNC/double-slash path), otherwise every legitimate model path
+        // would be rejected.
+        string pathWithoutLeadingSeparator =
+            modelPath.StartsWith('/') || modelPath.StartsWith('\\') ? modelPath[1..] : modelPath;
+
+        if (Path.IsPathRooted(pathWithoutLeadingSeparator))
         {
             throw new ArgumentException($"Invalid model path: {modelPath}", nameof(modelPath));
         }
