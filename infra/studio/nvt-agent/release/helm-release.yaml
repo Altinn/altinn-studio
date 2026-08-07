@@ -355,6 +355,8 @@ spec:
                   json:
                     theme: dark-daltonized
                     skipDangerousModePermissionPrompt: true
+                    env:
+                      DISABLE_AUTOUPDATER: "1"
                 - path: "$HOME/.claude.json"
                   mode: "0600"
                   overwrite: false
