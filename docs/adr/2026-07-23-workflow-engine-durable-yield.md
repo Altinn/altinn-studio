@@ -110,9 +110,16 @@ alert for a non-error condition.
   generic expiry. Two details the design did not anticipate, both consequences of the split rather
   than departures from it: the delivery judgement became a method on `IEFormidlingService`
   (`GetEFormidlingShipmentStatus`), so an app that replaces the send also owns what counts as
-  delivered; and the wait budget is deliberately unrelated to the shipment's own
-  `ExpectedResponseDateTime` (2 hours), which tells the recipient when a *business response* is
-  expected and never bounded our wait for delivery to be confirmed at all.
+  delivered; and the wait budget (24h) is a second clock alongside the integrasjonspunkt's own
+  message lifetime, which Digdir documents as defaulting to roughly the same 24 hours before it
+  marks a shipment `LEVETID_UTLOPT`. **Open question, worth settling with someone who has tt02
+  access:** whether the shipment's `ExpectedResponseDateTime` (which the app sets to +2h) is what
+  drives that lifetime. Digdir's tracking documentation describes the lifetime as an
+  integrasjonspunkt property and never mentions the SBD field; a secondary source says the field
+  drives it. If the latter is right, shipments expire hours before our wait does, and both numbers
+  need revisiting together. Whichever is true, the two clocks want ordering deliberately: a wait
+  budget longer than the message lifetime lets the integrasjonspunkt's own verdict reach the
+  instance as a specific failure, instead of our generic "not confirmed in time".
 - **Durable business evidence lives in instance data, app-side.** What a stage learns is ordinary
   instance data, saved on its completion through the lock-holding save path. Storing it
   engine-side is rejected: that would make the engine's database a second source of business
