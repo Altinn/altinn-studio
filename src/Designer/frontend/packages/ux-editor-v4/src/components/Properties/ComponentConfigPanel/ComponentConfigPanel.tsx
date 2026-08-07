@@ -125,7 +125,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
         key={`${formItemId}-dynamics`}
       >
         <StudioDetails.Summary>{t('right_menu.dynamics')}</StudioDetails.Summary>
-        <StudioDetails.Content className={classes.accordionContent}>
+        <StudioDetails.Content>
           <Expressions />
         </StudioDetails.Content>
       </StudioDetails>
