@@ -85,7 +85,7 @@
       "groupName": "Design system in App"
     },
     {
-      "matchFileNames": ["src/App/**", "app-libs/**"],
+      "matchFileNames": ["src/App/**", "src/common/typescript/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
     },

@@ -25,8 +25,8 @@ See the root [`/AGENTS.md`](../../AGENTS.md) for how this fits into Altinn 3 as 
   Designer generates apps from.
 - The backend's process/workflow layer integrates with the Runtime [`workflow-engine`](../Runtime/workflow-engine/AGENTS.md);
   see `backend/src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md`.
-- Form rendering/logic is gradually being extracted from `frontend` into the top-level
-  [`app-libs`](../../app-libs/AGENTS.md) workspace (`form-component`, `form-engine`, `language`).
+- Form rendering/logic is gradually being extracted from `frontend` into the repository-wide
+  [common TypeScript workspace](../common/typescript/AGENTS.md) (`form-component`, `form-engine`, `language`).
 
 ## Build & test
 

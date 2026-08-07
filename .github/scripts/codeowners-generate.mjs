@@ -37,7 +37,7 @@ const GROUPS = [
   {
     title: 'Team Utforming',
     owner: '@altinn/team-altinn-studio-utforming',
-    roots: ['app-libs', 'src/App/frontend', 'src/Designer/frontend'],
+    roots: ['src/common/typescript', 'src/App/frontend', 'src/Designer/frontend'],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
       '.github/workflows/app-frontend-cypress.yml',
@@ -86,7 +86,9 @@ const GROUPS = [
       'src/Runtime/operator',
       'src/Runtime/pdf3',
       'src/Runtime/gateway',
+      'src/Runtime/common',
       'src/Runtime/devenv',
+      'src/common/dotnet',
       'src/Designer/development/fake-ansattporten',
       'src/test/K6',
       'src/tools/health',

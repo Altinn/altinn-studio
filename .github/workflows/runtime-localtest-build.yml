@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - '.github/workflows/runtime-localtest-build.yml'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'

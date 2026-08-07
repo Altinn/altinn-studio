@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - src/common/**
+      - src/common/dotnet/**
       - src/Runtime/workflow-engine/src/**
       - src/Runtime/workflow-engine/Directory.Packages.props
       - src/Runtime/workflow-engine-app/src/**
