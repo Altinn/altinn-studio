@@ -4,6 +4,8 @@ namespace Altinn.Studio.StudioctlServer.Discovery.Process;
 
 internal sealed class ProcessDiscovery : IAppDiscovery
 {
+    public TimeSpan PassivePollInterval => TimeSpan.FromSeconds(5);
+
     private readonly PortListeners _portListeners;
 
     public ProcessDiscovery(PortListeners portListeners)
