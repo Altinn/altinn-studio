@@ -7,7 +7,9 @@ import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkfl
 jest.mock('../useAssistantThreads/useAssistantThreads');
 jest.mock('../useAssistantWorkflow/useAssistantWorkflow');
 
-const mockUseAssistantThreads = useAssistantThreads as jest.MockedFunction<typeof useAssistantThreads>;
+const mockUseAssistantThreads = useAssistantThreads as jest.MockedFunction<
+  typeof useAssistantThreads
+>;
 const mockUseAssistantWorkflow = useAssistantWorkflow as jest.MockedFunction<
   typeof useAssistantWorkflow
 >;

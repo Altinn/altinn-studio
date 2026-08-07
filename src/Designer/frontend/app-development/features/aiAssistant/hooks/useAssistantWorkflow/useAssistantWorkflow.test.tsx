@@ -746,7 +746,9 @@ describe('useAssistantWorkflow', () => {
   });
 });
 
-const createThreadState = (overrides: Partial<AssistantThreadState> = {}): AssistantThreadState => ({
+const createThreadState = (
+  overrides: Partial<AssistantThreadState> = {},
+): AssistantThreadState => ({
   chatThreads: [],
   selectedThreadId: null,
   chatMessages: [],
