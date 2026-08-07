@@ -62,7 +62,6 @@
       {
         "id": "nav2",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "back": "Forrige"
         }

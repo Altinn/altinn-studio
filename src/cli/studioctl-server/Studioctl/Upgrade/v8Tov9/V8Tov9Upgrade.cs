@@ -4,6 +4,7 @@ using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
@@ -140,6 +141,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -697,6 +701,26 @@ internal static class V8Tov9Upgrade
         {
             await UpgradeConsole.WriteErrorAsync("Error migrating layout-sets.json", ex);
             return 1;
+        }
+    }
+
+    static async Task<int> MigrateNavigationButtons(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Removing redundant NavigationButtons showBackButton flags...");
+            var result = await new ShowBackButtonMigrator(projectFolder).Migrate();
+            await UpgradeConsole.Out.WriteLineAsync(
+                $"Removed {result.PropertiesRemoved} showBackButton flag(s) from {result.FilesChanged} layout file(s)"
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error migrating NavigationButtons showBackButton flags: {ex.Message}"
+            );
+            return ExitError;
         }
     }
 

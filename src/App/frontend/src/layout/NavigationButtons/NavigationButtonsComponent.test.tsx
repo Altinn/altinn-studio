@@ -32,6 +32,13 @@ describe('NavigationButtons', () => {
     textResourceBindings: {},
   };
 
+  const navButtonWithoutBackButton: CompNavigationButtonsExternal = {
+    id: 'nav-button-without-back-button',
+    type: 'NavigationButtons',
+    showBackButton: false,
+    textResourceBindings: {},
+  };
+
   const navButton3: CompNavigationButtonsExternal = {
     id: 'nav-button3',
     type: 'NavigationButtons',
@@ -107,11 +114,14 @@ describe('NavigationButtons', () => {
   };
 
   test('renders default NavigationButtons component', async () => {
-    await render({
-      component: navButton1,
-    });
+    await render({ component: navButton1, currentPageId: 'layout2' });
 
-    expect(await screen.findByText('next')).toBeInTheDocument();
+    expect(await screen.findByText('back')).toBeInTheDocument();
+  });
+
+  test('does not render back button when explicitly disabled', async () => {
+    await render({ component: navButtonWithoutBackButton, currentPageId: 'layout2' });
+
     expect(screen.queryByText('back')).not.toBeInTheDocument();
   });
 

@@ -40,7 +40,6 @@
             {
                 "id": "OrganisationLookupPage-NavigationButtons",
                 "type": "NavigationButtons",
-                "showBackButton": true,
                 "textResourceBindings": {
                     "next": "Neste",
                     "back": "Forrige"

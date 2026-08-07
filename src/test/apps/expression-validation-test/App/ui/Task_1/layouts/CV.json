@@ -420,7 +420,6 @@
       {
         "id": "nav",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "validateOnNext": {
           "page": "current",
           "show": ["All"]
