@@ -1533,7 +1533,7 @@
   "schema_editor.prefill.source_dsf": "Folkeregisteret (DSF)",
   "schema_editor.prefill.source_er": "Enhetsregisteret (ER)",
   "schema_editor.prefill.source_none": "Ingen",
-  "schema_editor.prefill.source_queryparameters": "Spørreparameter",
+  "schema_editor.prefill.source_queryparameters": "Spørringsparameter",
   "schema_editor.prefill.source_userprofile": "Brukerprofil",
   "schema_editor.promote": "Konverter til type",
   "schema_editor.properties": "Egenskaper",
