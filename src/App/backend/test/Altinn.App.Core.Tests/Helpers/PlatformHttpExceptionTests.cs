@@ -331,16 +331,7 @@ public class PlatformHttpExceptionTests
     [Fact]
     public async Task Create_StillSucceedsWhenTheBodyCannotBeRead()
     {
-        // Unbuffered content that has already been drained — the one shape that cannot be re-read.
-        using var response = new HttpResponseMessage(HttpStatusCode.BadGateway)
-        {
-            Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("gone"))),
-        };
-        using (var stream = await response.Content.ReadAsStreamAsync())
-        using (var reader = new StreamReader(stream, leaveOpen: true))
-        {
-            await reader.ReadToEndAsync();
-        }
+        using var response = new HttpResponseMessage(HttpStatusCode.BadGateway) { Content = new FailingContent() };
 
         var exception = await PlatformHttpException.Create(response, "upstream failed");
 
@@ -375,5 +366,21 @@ public class PlatformHttpExceptionTests
 
         Assert.DoesNotContain(new string('x', 100), rendered);
         Assert.Contains("ContentLength = 4096", rendered);
+    }
+
+    /// <summary>
+    /// Content whose body cannot be read at all — the failure mode <see cref="PlatformHttpException.Create"/>
+    /// has to absorb. Deliberate rather than incidental: draining a seekable stream does not reliably fail.
+    /// </summary>
+    private sealed class FailingContent : HttpContent
+    {
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) =>
+            throw new IOException("the connection went away");
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

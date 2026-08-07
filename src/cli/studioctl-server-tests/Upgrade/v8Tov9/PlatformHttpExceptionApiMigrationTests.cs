@@ -149,8 +149,8 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
         );
 
-        Assert.Contains("response: HttpStatusCode.Gone", migrated);
-        Assert.Contains("message: body", migrated);
+        Assert.Contains("new PlatformHttpException(message: body, statusCode: HttpStatusCode.Gone)", migrated);
+        Assert.DoesNotContain("response:", migrated);
     }
 
     [Fact]
@@ -230,6 +230,103 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
         var migrated = Migrate("logic/Handler.cs", source);
 
         Assert.Equal(source, migrated);
+    }
+
+    /// <summary>
+    /// A v8 call can target-type the throwaway response: the outer constructor gives the inner
+    /// <c>new(..)</c> its <c>HttpResponseMessage</c> type.
+    /// </summary>
+    [Fact]
+    public void Migration_UnwrapsTargetTypedThrowawayResponses()
+    {
+        var migrated = Migrate(
+            "logic/Implicit.cs",
+            """
+            using Altinn.App.Core.Helpers;
+            public class Implicit
+            {
+                public PlatformHttpException Fail() =>
+                    new PlatformHttpException(new(HttpStatusCode.NotFound), "gone");
+            }
+            """
+        );
+
+        Assert.Contains("new PlatformHttpException(HttpStatusCode.NotFound, \"gone\")", migrated);
+    }
+
+    /// <summary>
+    /// Re-running the upgrade must not report an already-migrated call. The status code here is a bare
+    /// identifier, so this only works if the type is resolved from the enclosing member rather than
+    /// guessed from tokens in the expression.
+    /// </summary>
+    [Fact]
+    public void Migration_LeavesAMigratedStatusCodeIdentifierAlone()
+    {
+        _app.Write(
+            "logic/Helper.cs",
+            """
+            using Altinn.App.Core.Helpers;
+            public class Helper
+            {
+                public static PlatformHttpException Error(HttpStatusCode statusCode) =>
+                    new PlatformHttpException(statusCode, "already migrated");
+            }
+            """
+        );
+
+        var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(Locations(result));
+    }
+
+    /// <summary>
+    /// The inverse trap: a helper that returns a response but mentions HttpStatusCode must not be
+    /// mistaken for already-migrated code.
+    /// </summary>
+    [Fact]
+    public void Migration_ReportsAResponseHelperThatMentionsAStatusCode()
+    {
+        _app.Write(
+            "logic/Builder.cs",
+            """
+            using Altinn.App.Core.Helpers;
+            public class Builder
+            {
+                public PlatformHttpException Fail()
+                {
+                    HttpResponseMessage response = BuildResponse(HttpStatusCode.NotFound);
+                    return new PlatformHttpException(response, "gone");
+                }
+            }
+            """
+        );
+
+        var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(Locations(result), w => w.Contains("Builder.cs") && w.Contains("could not"));
+    }
+
+    [Fact]
+    public void Migration_ReportsAThrowawayResponseWithNoStatusToUnwrap()
+    {
+        _app.Write(
+            "logic/Bare.cs",
+            """
+            using Altinn.App.Core.Helpers;
+            public class Bare
+            {
+                public PlatformHttpException Fail() =>
+                    new PlatformHttpException(new HttpResponseMessage(), "boom");
+            }
+            """
+        );
+
+        var result = new PlatformHttpExceptionApiMigration(Scanner()).Migrate();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(Locations(result), w => w.Contains("Bare.cs"));
     }
 
     // --- PlatformHttpExceptionApiDetector (warn-only) --------------------------------------------

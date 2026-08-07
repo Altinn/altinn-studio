@@ -53,6 +53,14 @@ public class PlatformHttpException : AltinnException
     /// without holding on to the response. <paramref name="response"/> is borrowed, not taken over: it is
     /// neither disposed nor modified, and disposing it afterwards — as the usual <c>using</c> at the call
     /// site does — leaves the exception fully readable, which is what the snapshot is for.
+    /// <para>
+    /// Reading the body twice is not guaranteed to work: whether content can be re-read is up to the
+    /// <see cref="HttpContent"/> implementation and the completion option the request used. Buffered
+    /// responses — the default <see cref="HttpCompletionOption.ResponseContentRead"/> — re-read fine, so
+    /// calling this after inspecting the body yourself normally captures it. A body that cannot be read is
+    /// simply omitted: this runs on the failure path, so it never throws and never replaces the error you
+    /// are reporting. The status code, reason phrase and headers are captured regardless.
+    /// </para>
     /// </remarks>
     /// <param name="response">The failed response. Read but not disposed; the caller keeps ownership.</param>
     /// <param name="cancellationToken">Cancels reading the response body.</param>

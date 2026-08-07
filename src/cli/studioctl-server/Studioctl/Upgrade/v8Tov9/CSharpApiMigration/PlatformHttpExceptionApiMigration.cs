@@ -25,6 +25,7 @@ internal sealed class PlatformHttpExceptionApiMigration
     private const string StatusCodeTypeName = "HttpStatusCode";
     private const string HttpResponseMessageTypeName = "HttpResponseMessage";
     private const string ResponseParameterName = "response";
+    private const string StatusCodeParameterName = "statusCode";
     private const string RenamedFactory = "CreateAsync";
     private const string NewFactory = "Create";
 
@@ -190,7 +191,16 @@ internal sealed class PlatformHttpExceptionApiMigration
                     + "status code instead of a response"
             );
 
-            var updatedArguments = argumentList.Arguments.Replace(first, first.WithExpression(replacement));
+            var migrated = first.WithExpression(replacement);
+            if (migrated.NameColon is { } nameColon)
+            {
+                // v9's first parameter is `statusCode`; keeping the old `response:` label would not compile.
+                migrated = migrated.WithNameColon(
+                    nameColon.WithName(SyntaxFactory.IdentifierName(StatusCodeParameterName))
+                );
+            }
+
+            var updatedArguments = argumentList.Arguments.Replace(first, migrated);
             return visited.WithArgumentList(argumentList.WithArguments(updatedArguments));
         }
 
@@ -239,42 +249,104 @@ internal sealed class PlatformHttpExceptionApiMigration
         /// there is none — whether that is worth reporting.
         /// </summary>
         /// <remarks>
-        /// Order matters. A v8 call reads <c>new PlatformHttpException(new HttpResponseMessage(status), ..)</c>,
-        /// which mentions <c>HttpStatusCode</c> too, so the already-migrated check has to come second or it
-        /// swallows the very shape this exists to rewrite.
+        /// Type is resolved from the enclosing member's parameters and locals rather than inferred from
+        /// tokens appearing inside the expression. Token-sniffing gets both directions wrong: a v8
+        /// <c>BuildResponse(HttpStatusCode.NotFound)</c> returning a response would look migrated, and an
+        /// already-migrated bare <c>statusCode</c> identifier would look unresolved on a second pass.
+        /// When the type cannot be established the call is left alone silently: a genuine v8 call that
+        /// slips through fails to compile against v9, which is loud enough, whereas reporting every
+        /// unclassifiable expression would flag already-migrated code on every re-run.
         /// </remarks>
         private static (ExpressionSyntax? Replacement, bool Reportable) ClassifyResponseArgument(
             ExpressionSyntax argument
         )
         {
-            // The test-double shape. v9 has a constructor for exactly it — the status code alone — so the
-            // throwaway response is unwrapped to the status it carried. This keeps the call site
-            // synchronous, which matters: these are usually expression-bodied test helpers.
-            if (
-                argument is ObjectCreationExpressionSyntax creation
-                && SimpleTypeName(creation.Type) == HttpResponseMessageTypeName
-                && creation.ArgumentList?.Arguments.Count == 1
-            )
+            // A response constructed inline. Target-typed `new(status)` counts: it sits in the first
+            // argument of a PlatformHttpException construction, and v8's first parameter is an
+            // HttpResponseMessage, so that is what it constructs.
+            if (argument is BaseObjectCreationExpressionSyntax creation && IsResponseCreation(creation))
             {
-                return (creation.ArgumentList.Arguments[0].Expression, false);
+                var arguments = creation.ArgumentList?.Arguments;
+
+                // v9 takes the status code directly, so the throwaway response is unwrapped to the status
+                // it carried. This keeps the call site synchronous.
+                if (arguments is { Count: 1 })
+                {
+                    return (arguments.Value[0].Expression, false);
+                }
+
+                // `new HttpResponseMessage()` carries no status to unwrap.
+                return (null, true);
             }
 
-            // Already a status code — either migrated, or written against v9 in the first place. Re-running
-            // the upgrade must leave it alone, and silently.
+            if (argument is IdentifierNameSyntax identifier)
+            {
+                return DeclaredTypeName(identifier) switch
+                {
+                    StatusCodeTypeName => (null, false),
+                    HttpResponseMessageTypeName => (null, true),
+                    _ => (null, false),
+                };
+            }
+
+            // `HttpStatusCode.NotFound` and friends - already migrated, or written against v9.
             if (
-                argument
-                    .DescendantNodesAndSelf()
-                    .OfType<SimpleNameSyntax>()
-                    .Any(name => name.Identifier.Text == StatusCodeTypeName)
+                argument is MemberAccessExpressionSyntax memberAccess
+                && TrailingName(memberAccess.Expression) == StatusCodeTypeName
             )
             {
                 return (null, false);
             }
 
-            // Anything else: the argument's type cannot be resolved from syntax. v9 builds the exception
-            // either from a live response (the asynchronous Create, which reads the body) or from a bare
-            // status code — and picking between those is the caller's call, not ours.
-            return (null, true);
+            return (null, false);
+        }
+
+        private static bool IsResponseCreation(BaseObjectCreationExpressionSyntax creation) =>
+            creation switch
+            {
+                ObjectCreationExpressionSyntax explicitCreation => SimpleTypeName(explicitCreation.Type)
+                    == HttpResponseMessageTypeName,
+                ImplicitObjectCreationExpressionSyntax => true,
+                _ => false,
+            };
+
+        /// <summary>
+        /// The declared type of <paramref name="identifier"/>, resolved from the parameters and
+        /// explicitly-typed locals of the enclosing member, or <c>null</c> when it cannot be determined.
+        /// </summary>
+        private static string? DeclaredTypeName(IdentifierNameSyntax identifier)
+        {
+            string name = identifier.Identifier.Text;
+
+            for (SyntaxNode? node = identifier.Parent; node is not null; node = node.Parent)
+            {
+                var declarations = node.ChildNodes()
+                    .Select(child =>
+                        child switch
+                        {
+                            LocalDeclarationStatementSyntax local => local.Declaration,
+                            VariableDeclarationSyntax variable => variable,
+                            _ => null,
+                        }
+                    )
+                    .OfType<VariableDeclarationSyntax>();
+
+                foreach (var declaration in declarations)
+                {
+                    if (declaration.Variables.Any(variable => variable.Identifier.Text == name))
+                    {
+                        return SimpleTypeName(declaration.Type);
+                    }
+                }
+
+                if (node is BaseMethodDeclarationSyntax method)
+                {
+                    var parameter = method.ParameterList.Parameters.FirstOrDefault(p => p.Identifier.Text == name);
+                    return parameter is null ? null : SimpleTypeName(parameter.Type);
+                }
+            }
+
+            return null;
         }
 
         private static string? TrailingName(ExpressionSyntax expression) =>
