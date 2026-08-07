@@ -116,16 +116,18 @@ internal sealed class ProcessStepOptionsResolver
                 ? pipeline.FindStage(serviceTaskStageName)?.StepOptions
                 : pipeline.FinalStepOptions;
             ProcessStepOptions? taskOptions = serviceTask.StepOptions;
-            if (stepOptions is null || taskOptions is null)
+            if (stepOptions is null && taskOptions is null)
             {
-                return stepOptions ?? taskOptions;
+                return null;
             }
 
+            // Every field is listed deliberately: the merge is the only thing standing between a new
+            // ProcessStepOptions field and being silently dropped for service tasks.
             return new ProcessStepOptions
             {
-                MaxExecutionTime = stepOptions.MaxExecutionTime ?? taskOptions.MaxExecutionTime,
-                RetryStrategy = stepOptions.RetryStrategy ?? taskOptions.RetryStrategy,
-                WaitBudget = stepOptions.WaitBudget ?? taskOptions.WaitBudget,
+                MaxExecutionTime = stepOptions?.MaxExecutionTime ?? taskOptions?.MaxExecutionTime,
+                RetryStrategy = stepOptions?.RetryStrategy ?? taskOptions?.RetryStrategy,
+                WaitBudget = stepOptions?.WaitBudget ?? taskOptions?.WaitBudget,
             };
         }
 
