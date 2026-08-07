@@ -50,6 +50,34 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
         return [.. listeners.Distinct()];
     }
 
+    public async Task<IReadOnlyList<PortListener>> GetForProcesses(
+        IReadOnlySet<int> processIds,
+        CancellationToken cancellationToken
+    )
+    {
+        if (processIds.Count == 0)
+            return [];
+
+        var pendingInodes = await ReadListenerPorts(cancellationToken);
+        var listeners = new List<PortListener>();
+        var ignoredKnownListeners = new Dictionary<string, PortListener>(StringComparer.Ordinal);
+        foreach (var processId in processIds)
+        {
+            var procDir = Path.Join("/proc", processId.ToString(CultureInfo.InvariantCulture));
+            await AddProcessListeners(
+                listeners,
+                ignoredKnownListeners,
+                pendingInodes,
+                procDir,
+                processId,
+                includeProcessMetadata: false,
+                cancellationToken
+            );
+        }
+
+        return [.. listeners.Distinct()];
+    }
+
     private void PruneProcessNames(IEnumerable<PortListener> listeners)
     {
         var activeProcessIds = listeners.Select(static listener => listener.ProcessId).ToHashSet();
@@ -80,7 +108,15 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
             if (processUserId != effectiveUserId)
                 continue;
 
-            await AddProcessListeners(listeners, knownListeners, pendingInodes, procDir, processId, cancellationToken);
+            await AddProcessListeners(
+                listeners,
+                knownListeners,
+                pendingInodes,
+                procDir,
+                processId,
+                includeProcessMetadata: true,
+                cancellationToken
+            );
         }
     }
 
@@ -90,6 +126,7 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
         Dictionary<string, LinuxListenerBinding> pendingInodes,
         string procDir,
         int processId,
+        bool includeProcessMetadata,
         CancellationToken cancellationToken
     )
     {
@@ -97,8 +134,8 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
         if (!Directory.Exists(fdDir))
             return;
 
-        var processName = await ReadProcessName(procDir, processId, cancellationToken);
-        var commandLine = await ReadCommandLine(procDir, cancellationToken);
+        var processName = includeProcessMetadata ? await ReadProcessName(procDir, processId, cancellationToken) : null;
+        var commandLine = includeProcessMetadata ? await ReadCommandLine(procDir, cancellationToken) : null;
 
         foreach (var fdPath in EnumerateFdEntries(fdDir))
         {

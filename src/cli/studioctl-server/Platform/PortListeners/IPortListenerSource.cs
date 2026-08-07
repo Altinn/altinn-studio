@@ -5,4 +5,9 @@ internal interface IPortListenerSource
     bool SupportsCurrentPlatform();
 
     Task<IReadOnlyList<PortListener>> Get(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<PortListener>> GetForProcesses(
+        IReadOnlySet<int> processIds,
+        CancellationToken cancellationToken
+    );
 }
