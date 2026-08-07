@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
@@ -63,10 +63,17 @@ export const PageAccordion = ({
     }
   }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
 
+  // The open state is driven entirely by isOpen, so the native toggle is prevented to stop
+  // Details from opening and closing the panel on its own before React updates.
+  const handleSummaryClick = (event: MouseEvent<HTMLElement>): void => {
+    event.preventDefault();
+    onClick();
+  };
+
   return (
     <div className={cn(classes.accordionItem, pageIsReceipt && classes.receiptItem)}>
       <StudioDetails open={isOpen} onToggle={onClick} className={classes.details}>
-        <StudioDetails.Summary className={classes.accordionHeader}>
+        <StudioDetails.Summary onClick={handleSummaryClick} className={classes.accordionHeader}>
           {pageName}
         </StudioDetails.Summary>
         <StudioDetails.Content
