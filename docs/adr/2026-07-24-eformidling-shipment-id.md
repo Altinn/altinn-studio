@@ -11,13 +11,10 @@ the fixed id: duplicate-create self-healing in `DefaultEFormidlingService`, plus
 shipment-ownership claim (`eFormidlingShipmentWorkflowId` instance data value) gating
 `EFormidlingServiceTask`.
 
-Later note (Aug 2026): driver B5 - "no changes to the status-check event loop" - lapsed when that loop
-was deleted and the delivery wait moved into the service task itself (see
-`2026-07-23-workflow-engine-durable-yield.md`). The decision is unaffected, and if anything more
-firmly held: the poll queries status by the same instance guid, so *shipment id == instance id* stays
-the only correlation the app needs to keep. Both idempotency layers survive the move unchanged, with
-the engine's step ledger added on top - the send is now its own pipeline stage, so a completed send is
-never re-run by a delivery re-check.
+Later note (Aug 2026): driver B5 - "no changes to the status-check event loop" - lapsed in #19827,
+which deleted that loop and moved the delivery wait into the service task. The decision itself is
+unaffected: the poll queries status by the same instance guid, so *shipment id == instance id* remains
+the only correlation the app keeps, and both idempotency layers survive the move unchanged.
 
 ## Problem context
 
