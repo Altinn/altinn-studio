@@ -447,7 +447,7 @@ spec:
             operator: Equal
             value: nvt-agent
         ttl:
-          activeDeadlineSeconds: 14400
+          activeDeadlineSeconds: 259200
           completedTTLSeconds: 300
           failedTTLSeconds: 3600
           runRetentionSeconds: 2592000
