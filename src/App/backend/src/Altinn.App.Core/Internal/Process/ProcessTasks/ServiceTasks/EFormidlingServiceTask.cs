@@ -60,21 +60,20 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
 
     /// <inheritdoc />
     /// <remarks>
-    /// The wait budget bounds the delivery poll and nothing else: the send is its own engine step,
-    /// bounded by its retry strategy, and each step anchors its own budget at its own first deferral —
-    /// so a send that struggles cannot eat the poll's allowance. Sized to outlast the shipment's own
-    /// two-hour lifetime plus the integrasjonspunkt's 30-second expiry sweep and one poll interval, so
-    /// that a shipment which dies of old age fails with its verdict rather than ours.
-    /// </remarks>
-    public ProcessStepOptions StepOptions => new() { WaitBudget = TimeSpan.FromHours(2.5) };
-
-    /// <inheritdoc />
-    /// <remarks>
     /// The stage name is wire identity for in-flight workflows — a workflow enqueued against this
     /// pipeline keeps calling back by this literal until it settles, so it must not drift.
+    /// <para>
+    /// The wait budget belongs to the delivery poll, so it is declared on the conclusion rather than
+    /// on the task: task-level options are inherited by every stage too, and the send never waits.
+    /// Sized to outlast the shipment's own two-hour lifetime plus the integrasjonspunkt's 30-second
+    /// expiry sweep and one poll interval, so a shipment that dies of old age fails with its verdict
+    /// rather than ours.
+    /// </para>
     /// </remarks>
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-        pipeline.Stage("SendShipment", SendShipment).Finally(AwaitDelivery);
+        pipeline
+            .Stage("SendShipment", SendShipment)
+            .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
 
     /// <summary>
     /// Dispatches the shipment to the integrasjonspunkt. Completing this stage is what makes the

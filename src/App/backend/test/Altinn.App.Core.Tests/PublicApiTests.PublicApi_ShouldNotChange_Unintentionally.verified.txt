@@ -2082,7 +2082,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class ServiceTaskPipelineBuilder
     {
         public ServiceTaskPipelineBuilder() { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(string name, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
     public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>

@@ -80,9 +80,21 @@ public sealed class ServiceTaskPipelineBuilder
     /// <see cref="Stage(string, Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
     /// apply here too.
     /// </param>
-    public ServiceTaskPipeline Finally(Func<ServiceTaskContext, Task<ServiceTaskResult>> work)
+    /// <param name="options">
+    /// Optional execution options (timeout, retry strategy, wait budget) for the concluding step
+    /// alone, winning field-wise over the task's own
+    /// <see cref="IProcessStepConfigurable.StepOptions"/>. Declare a polling pipeline's
+    /// <see cref="ProcessStepOptions.WaitBudget"/> here rather than on the task: the task's options
+    /// are inherited by every stage as well, so a budget declared there is also handed to stages
+    /// that never wait, where it reads as though it might apply.
+    /// </param>
+    public ServiceTaskPipeline Finally(
+        Func<ServiceTaskContext, Task<ServiceTaskResult>> work,
+        ProcessStepOptions? options = null
+    )
     {
         ArgumentNullException.ThrowIfNull(work);
-        return new ServiceTaskPipeline([.. _stages], work);
+        options?.Validate();
+        return new ServiceTaskPipeline([.. _stages], work, options);
     }
 }

@@ -103,9 +103,13 @@ public class EFormidlingServiceTaskTests
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
         Assert.Equal(new[] { "SendShipment" }, pipeline.Stages.Select(stage => stage.Name));
-        // Deliberately longer than the two-hour lifetime the shipment carries in its own SBD, so the
-        // integrasjonspunkt's expiry verdict reaches the instance before our wait gives up.
-        Assert.Equal(TimeSpan.FromHours(2.5), _serviceTask.StepOptions?.WaitBudget);
+        // The wait budget belongs to the conclusion, not the task — the send stage must not be
+        // handed a budget it can never use. Deliberately longer than the two-hour lifetime the
+        // shipment carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the
+        // instance before our wait gives up.
+        Assert.Equal(TimeSpan.FromHours(2.5), pipeline.FinalStepOptions?.WaitBudget);
+        Assert.Null(((IPipelineServiceTask)_serviceTask).StepOptions);
+        Assert.Null(pipeline.Stages.Single().StepOptions);
     }
 
     // ===== SEND STAGE =====

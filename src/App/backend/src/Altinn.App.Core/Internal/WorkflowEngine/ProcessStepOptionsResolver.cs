@@ -44,9 +44,9 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
     /// <param name="serviceTaskStageName">
-    /// For a service-task pipeline stage: the stage's name — tier 3 is then the stage's own
-    /// options over the task's, field-wise. Null for the pipeline's conclusion (the task's own
-    /// options apply).
+    /// For a service-task pipeline stage: the stage's name. Null for the pipeline's conclusion.
+    /// Either way tier 3 is that one step's own options over the task's, field-wise — a stage's from
+    /// the builder's <c>Stage</c>, the conclusion's from its <c>Finally</c>.
     /// </param>
     public ProcessStepOptions? Resolve(
         string operationId,
@@ -103,29 +103,30 @@ internal sealed class ProcessStepOptionsResolver
         if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
             IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
-            if (serviceTask is not null && serviceTaskStageName is not null)
+            if (serviceTask is null)
             {
-                // Per-stage options win field-wise over the task's own, mirroring how the
-                // merged result then wins over the command default in Resolve.
-                ProcessStepOptions? stageOptions = serviceTask
-                    .ResolvePipeline()
-                    .FindStage(serviceTaskStageName)
-                    ?.StepOptions;
-                ProcessStepOptions? taskOptions = serviceTask.StepOptions;
-                if (stageOptions is null || taskOptions is null)
-                {
-                    return stageOptions ?? taskOptions;
-                }
-
-                return new ProcessStepOptions
-                {
-                    MaxExecutionTime = stageOptions.MaxExecutionTime ?? taskOptions.MaxExecutionTime,
-                    RetryStrategy = stageOptions.RetryStrategy ?? taskOptions.RetryStrategy,
-                    WaitBudget = stageOptions.WaitBudget ?? taskOptions.WaitBudget,
-                };
+                return null;
             }
 
-            return serviceTask?.StepOptions;
+            // Options declared for one step — a stage by name, or the conclusion — win field-wise
+            // over the task's own, mirroring how the merged result then wins over the command
+            // default in Resolve. A null stage name is the conclusion by construction.
+            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            ProcessStepOptions? stepOptions = serviceTaskStageName is not null
+                ? pipeline.FindStage(serviceTaskStageName)?.StepOptions
+                : pipeline.FinalStepOptions;
+            ProcessStepOptions? taskOptions = serviceTask.StepOptions;
+            if (stepOptions is null || taskOptions is null)
+            {
+                return stepOptions ?? taskOptions;
+            }
+
+            return new ProcessStepOptions
+            {
+                MaxExecutionTime = stepOptions.MaxExecutionTime ?? taskOptions.MaxExecutionTime,
+                RetryStrategy = stepOptions.RetryStrategy ?? taskOptions.RetryStrategy,
+                WaitBudget = stepOptions.WaitBudget ?? taskOptions.WaitBudget,
+            };
         }
 
         if (operationId == OnTaskStartingHook.Key && taskId is not null)
