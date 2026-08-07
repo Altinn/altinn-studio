@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.20] - 2026-08-07
+
 ### Added
 
 - Accept Studio repository URLs, with or without `.git`, in `studioctl app clone` and select the environment from the URL.
