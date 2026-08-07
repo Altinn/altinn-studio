@@ -111,6 +111,15 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
+        // An instance fetch that raced the mutation can resolve after this handler and overwrite
+        // the fresh cache with a pre-transition snapshot. Cancel in-flight fetches so the
+        // response instance is the newest write.
+        if (instanceOwnerPartyId && instanceGuid) {
+          await queryClient.cancelQueries({
+            queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
+          });
+        }
+
         // Atomic flip: cache and navigate dispatch in the same task so React 18 batches both
         // into one commit. ProcessWrapper covers the cache/URL gap during the router's loading
         // state via useNavigation() and the useIsMutating() guard on this mutation.

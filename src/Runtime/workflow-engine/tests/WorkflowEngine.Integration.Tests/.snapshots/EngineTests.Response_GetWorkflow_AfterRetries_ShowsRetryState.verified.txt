@@ -22,6 +22,7 @@
       },
       status: Completed,
       retryCount: 2,
+      deferCount: 0,
       errorHistory: [
         {
           timestamp: DateTimeOffset_1,

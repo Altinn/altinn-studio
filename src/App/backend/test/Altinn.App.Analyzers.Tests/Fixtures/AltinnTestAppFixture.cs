@@ -28,14 +28,35 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
         return modification;
     }
 
-    public IDisposable WithInvalidHttpContextAccessorUse()
+    public IDisposable WithInvalidHttpContextAccessorUse() => WithAddedDocument(Content.InvalidHttpContextAccessorUse);
+
+    public IDisposable WithReplacedSealedDefine() => WithAddedDocument(Content.ReplacedSealedDefine);
+
+    /// <summary>
+    /// Adds a source file to the project for the duration of the modification. Restoring the
+    /// fixture's captured snapshots alone is not enough on dispose: the workspace's *current*
+    /// solution still contains the added document, and the next modification's TryApplyChanges
+    /// (derived from the restored, older snapshot) would fail — so the dispose action also
+    /// removes the document from the live workspace and re-syncs the fixture's project to it.
+    /// </summary>
+    private IDisposable WithAddedDocument(DocumentSelector content)
     {
         if (!IsInitialized)
             throw new InvalidOperationException("Fixture not initialized");
 
-        var content = Content.InvalidHttpContextAccessorUse;
-
-        var modification = new ProjectModification(this);
+        var modification = new ProjectModification(
+            this,
+            action: () =>
+            {
+                var project = Workspace.CurrentSolution.GetProject(Project!.Id);
+                var addedDoc = project?.Documents.SingleOrDefault(d => d.FilePath == content.FilePath);
+                if (addedDoc is not null)
+                {
+                    Assert.True(Workspace.TryApplyChanges(project!.RemoveDocument(addedDoc.Id).Solution));
+                }
+                Project = Workspace.CurrentSolution.GetProject(Project.Id)!;
+            }
+        );
 
         var doc = Project.AddDocument(
             content.FilePath,

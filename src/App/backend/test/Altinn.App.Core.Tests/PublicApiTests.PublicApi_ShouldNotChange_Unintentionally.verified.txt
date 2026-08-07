@@ -147,12 +147,12 @@ namespace Altinn.App.Core.EFormidling.Implementation
     public class DefaultEFormidlingReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers
     {
         public DefaultEFormidlingReceivers() { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig) { }
     }
     public class DefaultEFormidlingService : Altinn.App.Core.EFormidling.Interface.IEFormidlingService
     {
-        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
-        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
+        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
+        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
     }
     public class EformidlingDeliveryException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -168,15 +168,15 @@ namespace Altinn.App.Core.EFormidling.Interface
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "MetadataFilename",
                 "Metadata"})]
-        System.Threading.Tasks.Task<System.ValueTuple<string, System.IO.Stream>> GenerateEFormidlingMetadata(Altinn.Platform.Storage.Interface.Models.Instance instance);
+        System.Threading.Tasks.Task<System.ValueTuple<string, System.IO.Stream>> GenerateEFormidlingMetadata(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor);
     }
     public interface IEFormidlingReceivers
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig);
     }
     public interface IEFormidlingService
     {
-        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
+        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
     }
 }
 namespace Altinn.App.Core.Exceptions
@@ -1980,11 +1980,15 @@ namespace Altinn.App.Core.Features.Process
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
         bool ShouldRunForTask(string taskId);
     }
+    public interface IPipelineServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    {
+        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder pipeline);
+    }
     public interface IProcessStepConfigurable
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IServiceTask : Altinn.App.Core.Features.Process.IPipelineServiceTask, Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
@@ -2026,6 +2030,7 @@ namespace Altinn.App.Core.Features.Process
         public ProcessStepOptions() { }
         public System.TimeSpan? MaxExecutionTime { get; init; }
         public Altinn.App.Core.Features.Process.ProcessStepRetryStrategy? RetryStrategy { get; init; }
+        public System.TimeSpan? WaitBudget { get; init; }
     }
     public sealed class ProcessStepRetryStrategy : System.IEquatable<Altinn.App.Core.Features.Process.ProcessStepRetryStrategy>
     {
@@ -2040,30 +2045,70 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
+    {
+        public ServiceTaskAttempt() { }
+        public System.DateTimeOffset? Deadline { get; init; }
+        public int RetryCount { get; init; }
+    }
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
+        public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
+        public System.DateTimeOffset ExecutionReferenceTime { get; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-        public System.Guid? WorkflowId { get; init; }
+        public required System.Guid StepId { get; init; }
+        public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
+        public required System.Guid WorkflowId { get; init; }
+    }
+    public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
+    {
+        public ServiceTaskDeferredResult() { }
+        public required System.TimeSpan Delay { get; init; }
+        public string? Reason { get; init; }
     }
     public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
     {
         public required string ErrorMessage { get; init; }
     }
+    public sealed class ServiceTaskPipeline { }
+    public sealed class ServiceTaskPipelineBuilder
+    {
+        public ServiceTaskPipelineBuilder() { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(string name, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+    }
     public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
         protected ServiceTaskResult() { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult SuccessWithoutAutoAdvance() { }
+    }
+    public abstract class ServiceTaskStageResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageResult>
+    {
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Completed() { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedRetryable(string errorMessage) { }
     }
     public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskSuccessResult>
     {
         public ServiceTaskSuccessResult() { }
         public string? Action { get; init; }
         public bool AutoAdvanceProcess { get; init; }
+    }
+    public sealed class ServiceTaskWait : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskWait>
+    {
+        public ServiceTaskWait() { }
+        public System.DateTimeOffset? Deadline { get; init; }
+        public int DeferCount { get; init; }
+        public bool IsFinalCheck { get; }
+        public System.TimeSpan? Remaining { get; }
+        public System.DateTimeOffset? StartedAt { get; init; }
     }
     public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
     {
@@ -3727,6 +3772,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("targetTask")]
         public string? TargetTask { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("waitingReason")]
+        public string? WaitingReason { get; init; }
     }
     [System.Xml.Serialization.XmlRoot("definitions", Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
     [System.Xml.Serialization.XmlType(Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
@@ -4171,12 +4219,26 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("commandKey")]
         public required string CommandKey { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("deferCount")]
+        public int DeferCount { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("executionDeadline")]
+        public System.DateTimeOffset? ExecutionDeadline { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("executionReferenceTime")]
+        public required System.DateTimeOffset ExecutionReferenceTime { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
+        public System.DateTimeOffset? FirstDeferredAt { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("lockToken")]
         public required string LockToken { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
         public string? Payload { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("retryCount")]
+        public int RetryCount { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string? State { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("stepId")]
+        public System.Guid StepId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("waitDeadline")]
+        public System.DateTimeOffset? WaitDeadline { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
         public required System.Guid WorkflowId { get; init; }
     }

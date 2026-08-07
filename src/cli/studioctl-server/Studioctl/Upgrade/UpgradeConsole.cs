@@ -30,6 +30,12 @@ internal static class UpgradeConsole
         Error.WriteLine(message);
     }
 
+    /// <summary>
+    /// Writes description and exception to the error output, with a hint added for file-access failures.
+    /// </summary>
+    public static Task WriteErrorAsync(string description, Exception exception) =>
+        Error.WriteLineAsync($"{description}: {FileAccessDiagnostics.Describe(exception)}");
+
     private sealed record Writers(TextWriter StandardOutput, TextWriter StandardError);
 
     private sealed class Scope(Writers? previous) : IDisposable

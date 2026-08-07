@@ -8120,6 +8120,7 @@
         "required": [
           "actor",
           "commandKey",
+          "executionReferenceTime",
           "lockToken",
           "workflowId"
         ],
@@ -8144,8 +8145,39 @@
             "type": "string",
             "format": "uuid"
           },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "executionReferenceTime": {
+            "type": "string",
+            "format": "date-time"
+          },
           "state": {
             "type": "string",
+            "nullable": true
+          },
+          "retryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "executionDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deferCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstDeferredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "waitDeadline": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
@@ -8394,6 +8426,10 @@
           },
           "retrying": {
             "type": "boolean",
+            "nullable": true
+          },
+          "waitingReason": {
+            "type": "string",
             "nullable": true
           },
           "progress": {

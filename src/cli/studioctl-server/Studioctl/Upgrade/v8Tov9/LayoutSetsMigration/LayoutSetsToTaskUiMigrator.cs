@@ -74,7 +74,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 }
 
                 touchedFolders.Add(destinationId);
-                UpsertDefaultDataType(destinationPath, plan.DataType);
+                UpsertLayoutSetMetadata(destinationPath, plan.DataType, plan.Type);
             }
 
             if (plan.DestinationIds.Count > 1 && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal))
@@ -167,7 +167,8 @@ internal sealed class LayoutSetsToTaskUiMigrator
                     sourceId,
                     sourcePath,
                     ResolveDestinationFolderIds(sourceId, setObject["tasks"] as JsonArray),
-                    setObject["dataType"]?.GetValue<string>()
+                    setObject["dataType"]?.GetValue<string>(),
+                    setObject["type"]?.GetValue<string>()
                 )
             );
         }
@@ -230,9 +231,9 @@ internal sealed class LayoutSetsToTaskUiMigrator
         return taskIds;
     }
 
-    private void UpsertDefaultDataType(string folderPath, string? dataType)
+    private void UpsertLayoutSetMetadata(string folderPath, string? dataType, string? type)
     {
-        if (string.IsNullOrWhiteSpace(dataType))
+        if (string.IsNullOrWhiteSpace(dataType) && string.IsNullOrWhiteSpace(type))
         {
             return;
         }
@@ -250,7 +251,16 @@ internal sealed class LayoutSetsToTaskUiMigrator
             settings = [];
         }
 
-        settings["defaultDataType"] = dataType;
+        if (!string.IsNullOrWhiteSpace(dataType))
+        {
+            settings["defaultDataType"] = dataType;
+        }
+
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            settings["type"] = type;
+        }
+
         var options = new JsonSerializerOptions { WriteIndented = true };
         File.WriteAllText(settingsPath, settings.ToJsonString(options));
     }
@@ -286,5 +296,6 @@ internal sealed record LayoutSetMigrationPlan(
     string SourceId,
     string SourcePath,
     List<string> DestinationIds,
-    string? DataType
+    string? DataType,
+    string? Type
 );

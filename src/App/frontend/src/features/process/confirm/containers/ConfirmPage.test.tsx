@@ -13,11 +13,11 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { maskSsn } from 'src/utils/maskSsn';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
-jest.mock('src/features/instance/useProcessQuery', () => ({
-  ...jest.requireActual<typeof import('src/features/instance/useProcessQuery')>(
+vi.mock('src/features/instance/useProcessQuery', async () => ({
+  ...(await vi.importActual<typeof import('src/features/instance/useProcessQuery')>(
     'src/features/instance/useProcessQuery',
-  ),
-  useIsAuthorized: jest.fn().mockReturnValue(() => true),
+  )),
+  useIsAuthorized: vi.fn().mockReturnValue(() => true),
 }));
 
 describe('ConfirmPage', () => {
@@ -89,7 +89,7 @@ describe('ConfirmPage', () => {
       // Never resolves
     });
 
-    jest.mocked(doProcessNext).mockImplementation(async () => processNextPromise);
+    vi.mocked(doProcessNext).mockImplementation(async () => processNextPromise);
 
     await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,

@@ -53,6 +53,12 @@ internal interface IEngine
         string ns,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Clears the pending backoff of a parked workflow (Requeued or Waiting) so the processor picks
+    /// it up immediately instead of when its timer elapses. Idempotent.
+    /// </summary>
+    Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -380,6 +386,38 @@ internal sealed class Engine(
         return new AbandonWorkflowResult.NotAbandonable(info.Status);
     }
 
+    /// <inheritdoc/>
+    public async Task<NudgeWorkflowResult> NudgeWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = timeProvider.GetUtcNow();
+        var cleared = await repository.ClearBackoff(workflowId, ns, cancellationToken);
+
+        if (cleared)
+        {
+            Metrics.WorkflowsNudged.Add(1);
+
+            // Without the signal the nudge would only take effect on the processor's next poll tick,
+            // which defeats the point of asking for an immediate re-check.
+            workflowSignal.Signal();
+
+            return new NudgeWorkflowResult.Nudged(workflowId, now);
+        }
+
+        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
+        if (status is null)
+            return new NudgeWorkflowResult.NotFound();
+
+        // Parked but nothing to clear: the workflow is already due, so the nudge is a no-op success.
+        if (status is PersistentItemStatus.Requeued or PersistentItemStatus.Waiting)
+            return new NudgeWorkflowResult.AlreadyRunnable(workflowId);
+
+        return new NudgeWorkflowResult.NotParked(status.Value);
+    }
+
     /// <summary>
     /// Validates that all command types in the request are known to the registry
     /// and that command-specific validation passes (including typed deserialization).
@@ -529,6 +567,19 @@ internal sealed class Engine(
                     if (maxExecutionTime > _settings.MaxStepCommandTimeout)
                         return new RequestConstraintValidationResult.Invalid(
                             $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has maxExecutionTime {maxExecutionTime}, maximum is {_settings.MaxStepCommandTimeout}."
+                        );
+                }
+
+                if (step.Command.WaitBudget is { } waitBudget)
+                {
+                    if (waitBudget <= TimeSpan.Zero)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has a non-positive waitBudget ({waitBudget})."
+                        );
+
+                    if (waitBudget > _settings.MaxStepWaitBudget)
+                        return new RequestConstraintValidationResult.Invalid(
+                            $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' has waitBudget {waitBudget}, maximum is {_settings.MaxStepWaitBudget}."
                         );
                 }
 

@@ -30,6 +30,15 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     /// <inheritdoc />
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
+        Guid sendersReference = context.StepId;
+        if (sendersReference == Guid.Empty)
+        {
+            const string errorMessage =
+                "The workflow engine did not supply a step id, so there is no retry-stable Fiks client message ID to send with.";
+            _logger.LogError("FiksArkivServiceTask cannot execute: {ErrorMessage}", errorMessage);
+            return ServiceTaskResult.FailedPermanent(errorMessage);
+        }
+
         try
         {
             Instance instance = context.InstanceDataMutator.Instance;
@@ -43,8 +52,11 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
             var response = await _fiksArkivHost.GenerateAndSendMessage(
                 taskId,
-                instance,
-                FiksArkivConstants.MessageTypes.CreateArchiveRecord
+                FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+                sendersReference,
+                context.ExecutionReferenceTime,
+                context.InstanceDataMutator,
+                context.CancellationToken
             );
 
             _logger.LogInformation(

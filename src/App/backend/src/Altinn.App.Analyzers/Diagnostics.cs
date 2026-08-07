@@ -36,6 +36,16 @@ public static class Diagnostics
         );
     }
 
+    public static class Contracts
+    {
+        public static readonly DiagnosticDescriptor SealedImplementationReplaced = Error(
+            "ALTINNAPP0700",
+            Category.Contracts,
+            "Sealed default implementation replaced",
+            "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}."
+        );
+    }
+
     internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
@@ -76,5 +86,6 @@ public static class Diagnostics
         public const string Metadata = nameof(Metadata);
         public const string CodeSmells = nameof(CodeSmells);
         public const string Deprecation = nameof(Deprecation);
+        public const string Contracts = nameof(Contracts);
     }
 }

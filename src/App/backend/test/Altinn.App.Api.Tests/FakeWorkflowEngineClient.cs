@@ -96,12 +96,14 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 }
             }
 
+            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             createdWorkflows.Add(
                 new StoredWorkflow
                 {
                     DatabaseId = databaseId,
                     Ref = workflow.Ref,
                     IsHead = workflow.IsHead,
+                    StartAt = workflow.StartAt,
                     Namespace = ns,
                     CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
@@ -124,11 +126,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                                     CommandType = step.Command.Type,
                                     CommandData = step.Command.Data,
                                     RetryStrategy = step.RetryStrategy,
+                                    CreatedAt = createdAt,
                                 }
                         )
                         .ToList(),
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
+                    CreatedAt = createdAt,
+                    UpdatedAt = createdAt,
                 }
             );
         }
@@ -456,6 +459,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     LockToken = workflow.Context.LockToken,
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
+                    StepId = step.DatabaseId,
+                    ExecutionReferenceTime = workflow.StartAt ?? step.CreatedAt,
                 };
 
                 IActionResult result = await controller.ExecuteCommand(
@@ -704,6 +709,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         public bool? IsHead { get; init; }
 
+        public DateTimeOffset? StartAt { get; init; }
+
         public required string Namespace { get; init; }
 
         public required string? CollectionKey { get; init; }
@@ -748,6 +755,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public required JsonElement? CommandData { get; init; }
 
         public required RetryStrategy? RetryStrategy { get; init; }
+
+        public required DateTimeOffset CreatedAt { get; init; }
 
         public DateTimeOffset? UpdatedAt { get; set; }
 

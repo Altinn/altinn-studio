@@ -12,13 +12,11 @@ import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
 import type { AppQueries } from 'src/queries/types';
 
-jest.mock('axios');
-
-jest.mock('src/core/routing/useIsReceiptPage', () => ({
-  useIsReceiptPage: jest.fn(),
+vi.mock('src/core/routing/useIsReceiptPage', () => ({
+  useIsReceiptPage: vi.fn(),
 }));
 
-const mockUseIsReceiptPage = useIsReceiptPage as jest.MockedFunction<typeof useIsReceiptPage>;
+const mockUseIsReceiptPage = useIsReceiptPage as MockedFunction<typeof useIsReceiptPage>;
 
 describe('Presentation', () => {
   let realLocation: Location = window.location;
@@ -29,15 +27,15 @@ describe('Presentation', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should link to query parameter returnUrl if valid URL', async () => {
     const returnUrl = 'foo';
 
     const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}` };
-    jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
 
     window.altinnAppGlobalData.returnUrl = returnUrl;
 
@@ -55,7 +53,7 @@ describe('Presentation', () => {
     const host = 'ttd.apps.tt02.altinn.no';
     const returnUrl = 'https://altinn.cloud.no';
     const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}`, host };
-    jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
     const messageBoxUrl = getMessageBoxUrl(getPartyMock().partyId);
 
     await render();
@@ -71,7 +69,7 @@ describe('Presentation', () => {
     const host = 'ttd.apps.tt02.altinn.no';
     const partyId = getPartyMock().partyId;
     const mockedLocation = { ...realLocation, host, search: '' };
-    jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+    vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
     const messageBoxUrl = getMessageBoxUrl(partyId);
 
     await render();
@@ -125,3 +123,4 @@ const render = async (props: Partial<IPresentationProvidedProps> = {}, queries: 
     },
   });
 };
+import type { MockedFunction } from 'vitest';

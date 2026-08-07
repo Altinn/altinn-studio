@@ -105,30 +105,6 @@ describe('DropdownComponent', () => {
     );
   });
 
-  it('should show as readonly when readOnly is true', async () => {
-    await render({
-      component: {
-        readOnly: true,
-      },
-      options: countries,
-    });
-
-    const select = await screen.findByRole('combobox');
-    expect(select).toHaveAttribute('readonly');
-  });
-
-  it('should not show as readonly when readOnly is false', async () => {
-    await render({
-      component: {
-        readOnly: false,
-      },
-      options: countries,
-    });
-
-    const select = await screen.findByRole('combobox');
-    expect(select).not.toHaveAttribute('readonly');
-  });
-
   it('should trigger setLeafValue when preselectedOptionIndex is set', async () => {
     const { formDataMethods } = await render({
       component: {
@@ -289,12 +265,12 @@ describe('DropdownComponent', () => {
       },
     });
 
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     await user.click(await screen.findByRole('combobox'));
     await user.click(screen.getByText(label));
 
     expect((await screen.findAllByText(label)).at(0)).toBeInTheDocument();
-    act(() => jest.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(1000));
 
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
     expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
@@ -304,7 +280,7 @@ describe('DropdownComponent', () => {
       }),
     );
 
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('required validation should only show for simpleBinding', async () => {

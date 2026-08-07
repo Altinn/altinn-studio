@@ -6,15 +6,15 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.Common.EFormidlingClient.Models;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Code;
 
 public class EFormidlingMetadata : IEFormidlingMetadata
 {
     public async Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(
-        Instance instance
+        IInstanceDataAccessor dataAccessor
     )
     {
         var arkivmelding = new Arkivmelding

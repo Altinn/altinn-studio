@@ -29,8 +29,8 @@
     "classnames": "2.5.1",
     "i18next": "25.10.10",
     "posthog-js": "1.386.8",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-i18next": "17.0.11",
     "react-router-dom": "7.17.0"
   },

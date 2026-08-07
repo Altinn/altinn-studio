@@ -26,5 +26,10 @@ partial class AltinnTestAppFixture
             "additional",
             "InvalidHttpContextAccessorUse.cs"
         );
+
+        public static readonly DocumentSelector ReplacedSealedDefine = new DocumentSelector(
+            "additional",
+            "ReplacedSealedDefine.cs"
+        );
     }
 }

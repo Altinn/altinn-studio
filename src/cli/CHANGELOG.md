@@ -9,6 +9,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Wait up to 30 seconds for an app to become reachable through Localtest when using `studioctl run`; use `--startup-timeout` to choose a different limit.
+
+### Fixed
+
+- Explain access errors during `studioctl app upgrade`
+- Explain whether app endpoint discovery or Localtest Storage was still incomplete when `studioctl run` reaches its startup timeout.
+- Detect apps started directly with `dotnet run` sooner by checking process endpoints every five seconds while retaining the ten-second container check interval.
+- Discover apps launched by `studioctl run` from their registered process without relying on process-name or command-line matching.
+
+## [0.1.0-preview.19] - 2026-08-06
+
 ### Added
 
 - Auto-migrate the Correspondence APIs removed in v9 in `studioctl app upgrade v9`: drop the builder calls and properties v8 already discarded, rename `CustomRecipient` to the `CustomRecipients` list, rename the removed builder step interface, wrap a byte payload passed to `WithData` in a `MemoryStream`, and replace the two superseded payload constructors with `CorrespondenceAuthenticationMethod`. Every rewrite is listed for review.
@@ -16,9 +29,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Update the workflow-engine image used by `studioctl env up` to a version with durable-yield support: service tasks can wait for external outcomes (for example a delivery confirmation) without occupying a worker or being treated as failures.
+- Refuse to start `studioctl app upgrade` when the git repository has local changes, so the upgrade lands as one clean reviewable changeset.
 - Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
+
+### Fixed
+
+- Keep subforms identifiable when running `studioctl app upgrade v9`.
+- Prefer the latest stable v9 app packages in `studioctl app upgrade v9`, falling back to the latest preview until a stable version is available.
 
 ## [0.1.0-preview.18] - 2026-07-24
 

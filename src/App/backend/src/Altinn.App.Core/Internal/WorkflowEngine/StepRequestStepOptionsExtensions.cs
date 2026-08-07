@@ -28,14 +28,24 @@ internal static class StepRequestStepOptionsExtensions
 
     /// <summary>
     /// Resolves the effective step options for a single step (via <paramref name="resolver"/>) and maps
-    /// them onto the wire request.
+    /// them onto the wire request. A service-task pipeline stage resolves by its command key plus its
+    /// stage name (its OperationId is a display identity carrying the stage name); every other
+    /// step's OperationId is its command key.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
         ProcessStepOptionsResolver resolver,
         string? taskId,
         string? serviceTaskType
-    ) => step.WithStepOptions(resolver.Resolve(step.OperationId, taskId, serviceTaskType));
+    ) =>
+        step.WithStepOptions(
+            resolver.Resolve(
+                step.ServiceTaskStageName is null ? step.OperationId : Commands.ExecuteServiceTask.Key,
+                taskId,
+                serviceTaskType,
+                step.ServiceTaskStageName
+            )
+        );
 
     /// <summary>
     /// Maps already-resolved options onto the wire request. A null <paramref name="options"/> leaves the
@@ -48,12 +58,14 @@ internal static class StepRequestStepOptionsExtensions
 
         return step with
         {
-            Command = options.MaxExecutionTime is not null
-                ? step.Command with
-                {
-                    MaxExecutionTime = options.MaxExecutionTime,
-                }
-                : step.Command,
+            Command =
+                options.MaxExecutionTime is not null || options.WaitBudget is not null
+                    ? step.Command with
+                    {
+                        MaxExecutionTime = options.MaxExecutionTime ?? step.Command.MaxExecutionTime,
+                        WaitBudget = options.WaitBudget ?? step.Command.WaitBudget,
+                    }
+                    : step.Command,
             RetryStrategy = options.RetryStrategy?.ToRetryStrategy() ?? step.RetryStrategy,
         };
     }

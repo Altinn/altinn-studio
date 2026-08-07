@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
@@ -237,6 +238,35 @@ public class ProcessStepOptionsResolverTests
             _ => throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "Not a task hook key"),
         };
 
+    [Fact]
+    public void Resolve_ServiceTask_WaitBudgetOnly_IsResolvedIndependently()
+    {
+        // A handler that only needs a longer wait allowance (an eFormidling poll, say) must not have to
+        // restate the timeout or retry strategy: each field falls through its own tiers.
+        var serviceTask = ServiceTask("eformidling", new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) });
+        var resolver = CreateResolver(serviceTask.Object);
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "eformidling");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromDays(7), result.WaitBudget);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime); // tier 2
+        Assert.Null(result.RetryStrategy);
+    }
+
+    [Fact]
+    public void Resolve_ServiceTask_NonPositiveWaitBudget_ThrowsAtEnqueue()
+    {
+        var serviceTask = ServiceTask("signing", new ProcessStepOptions { WaitBudget = TimeSpan.Zero });
+        var resolver = CreateResolver(serviceTask.Object);
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "signing")
+        );
+
+        Assert.Contains(nameof(ProcessStepOptions.WaitBudget), ex.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [MemberData(nameof(TaskHookKeys))]
     public void Resolve_TaskHook_MatchingTask_ResolvesImplementationOptions(string operationId)
@@ -274,5 +304,84 @@ public class ProcessStepOptionsResolverTests
         var result = resolver.Resolve(operationId, taskId: null, serviceTaskType: null);
 
         Assert.Null(result);
+    }
+
+    // ── Pipeline service tasks: per-stage options (tier 3, two levels) ───────────────────────
+
+    /// <summary>
+    /// Task-level options (1 h timeout) with one stage overriding the timeout (2 h) and a second
+    /// stage declaring only a wait budget.
+    /// </summary>
+    private sealed class PipelineTask : IPipelineServiceTask
+    {
+        public string Type => "pipeline";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(
+                    "Entry",
+                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+                )
+                .Stage(
+                    "Done",
+                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) }
+                )
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    }
+
+    private static ProcessStepOptionsResolver CreateResolverWithPipelineTask() =>
+        CreateResolver(services => services.AddSingleton<IPipelineServiceTask, PipelineTask>());
+
+    [Fact]
+    public void Resolve_Stage_StageFieldWinsOverTaskField()
+    {
+        var resolver = CreateResolverWithPipelineTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Entry");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
+    }
+
+    [Fact]
+    public void Resolve_Stage_UnsetStageFieldFallsBackToTaskField()
+    {
+        var resolver = CreateResolverWithPipelineTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Done");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // task level
+        Assert.Equal(TimeSpan.FromHours(48), result.WaitBudget); // stage level
+    }
+
+    [Fact]
+    public void Resolve_Stage_UnknownStageName_FallsBackToTaskOptions()
+    {
+        var resolver = CreateResolverWithPipelineTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Nope");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
+    }
+
+    [Fact]
+    public void Resolve_Conclusion_NullStageName_UsesTheTasksOwnOptions()
+    {
+        // The concluding engine step carries no stage name — the task's own options apply directly.
+        var resolver = CreateResolverWithPipelineTask();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline");
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
     }
 }
