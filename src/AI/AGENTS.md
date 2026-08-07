@@ -8,7 +8,8 @@ The `/AI` folder contains three projects:
 | --------------- | -------------------------------------------------------------------------------- | ------------------- |
 | Altinity agents | Agent service that enables users to develop apps with natural language           | `./agents`          |
 | MCP server      | Altinn App tools, used by Altinity and developers working directly with app code | `./mcp`             |
-| Augmenter agent | Augments caseworker workflow with LLM support                                    | `./augmenter-agent` |
+| Augmenter agent | Augments caseworker workflow with LLM support (superseded by AI enrichment)      | `./augmenter-agent` |
+| AI enrichment   | KI Beriking: LLM caseworker support as a 1st-party process step in Altinn apps   | `./enrichment`      |
 
 These are all R&D projects from the AI lab, that will later be handed off to the Altinn Studio team.
 

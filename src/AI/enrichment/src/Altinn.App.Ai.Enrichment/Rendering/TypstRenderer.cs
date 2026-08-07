@@ -1,0 +1,119 @@
+using System.Diagnostics;
+using System.Text.Json;
+using Altinn.App.Ai.Enrichment.Configuration;
+using Microsoft.Extensions.Options;
+
+namespace Altinn.App.Ai.Enrichment.Rendering;
+
+/// <summary>
+/// Shells out to the <c>typst</c> binary. The template's whole folder is copied
+/// to a temp dir (templates may import shared .typ files) together with the
+/// data as <c>data.json</c>, which the template reads via <c>json("data.json")</c>.
+/// </summary>
+public sealed class TypstRenderer(
+    ILogger<TypstRenderer> logger,
+    IOptions<TypstOptions> options) : ITypstRenderer
+{
+    public async Task<byte[]> RenderPdfAsync(
+        JsonDocument data,
+        string templatePath,
+        CancellationToken cancellationToken = default)
+    {
+        var fullTemplatePath = Path.IsPathRooted(templatePath)
+            ? templatePath
+            : Path.Combine(AppContext.BaseDirectory, templatePath);
+        var templateDir = Path.GetDirectoryName(fullTemplatePath)!;
+        var templateFile = Path.GetFileName(fullTemplatePath);
+
+        var tempDir = Path.Combine(Path.GetTempPath(), "altinn-ai-enrichment", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDir);
+
+        var inputPath = Path.Combine(tempDir, templateFile);
+        var outputPath = Path.Combine(tempDir, "output.pdf");
+        var dataPath = Path.Combine(tempDir, "data.json");
+
+        try
+        {
+            CopyTemplateFiles(templateDir, tempDir);
+
+            await using (var fs = File.Create(dataPath))
+            {
+                using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true });
+                data.WriteTo(writer);
+            }
+
+            using var process = new Process();
+            process.StartInfo = new ProcessStartInfo
+            {
+                FileName = options.Value.BinaryPath,
+                Arguments = $"compile \"{inputPath}\" \"{outputPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            process.Start();
+
+            var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
+            var timeoutSeconds = options.Value.ProcessTimeoutSeconds;
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                try
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Process may have already exited
+                }
+
+                throw new InvalidOperationException(
+                    $"Typst process timed out after {timeoutSeconds} seconds.");
+            }
+
+            var stderr = await stderrTask;
+            await stdoutTask;
+
+            if (process.ExitCode != 0)
+            {
+                logger.LogError("Typst compilation failed (exit code {ExitCode}): {Error}", process.ExitCode, stderr);
+                throw new InvalidOperationException($"Typst compilation failed: {stderr}");
+            }
+
+            return await File.ReadAllBytesAsync(outputPath, cancellationToken);
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(tempDir, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to clean up temp directory: {TempDir}", tempDir);
+            }
+        }
+    }
+
+    private static void CopyTemplateFiles(string sourceDir, string targetDir)
+    {
+        if (!Directory.Exists(sourceDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            var destFile = Path.Combine(targetDir, Path.GetFileName(file));
+            File.Copy(file, destFile, overwrite: true);
+        }
+    }
+}
