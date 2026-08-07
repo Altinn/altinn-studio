@@ -1,29 +1,6 @@
 import type { PrefillConfig, PrefillFieldMap } from 'app-shared/types/PrefillConfig';
 import { PrefillSource } from 'app-shared/types/PrefillConfig';
 
-export interface PrefillMapping {
-  source: PrefillSource;
-  key: string;
-}
-
-/**
- * Finds the source and key mapped to the given data model field (if any) within a prefill config.
- */
-export const findPrefillMapping = (
-  prefillConfig: PrefillConfig,
-  dataBindingName: string,
-): PrefillMapping | undefined => {
-  for (const source of Object.values(PrefillSource)) {
-    const sourceConfig = prefillConfig[source];
-    const key =
-      sourceConfig && Object.keys(sourceConfig).find((k) => sourceConfig[k] === dataBindingName);
-    if (key) {
-      return { source, key };
-    }
-  }
-  return undefined;
-};
-
 /**
  * Returns a new prefill config where any existing mapping to the given data model field has been removed.
  */

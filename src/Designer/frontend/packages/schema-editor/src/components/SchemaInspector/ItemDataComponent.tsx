@@ -5,7 +5,7 @@ import { getCombinationOptions } from './helpers/options';
 import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
+import type { CombinationKind, FieldNode, UiSchemaNode } from '@altinn/schema-model';
 import {
   addCombinationItem,
   deleteNode,
@@ -201,7 +201,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               isRequired={isRequired}
             />
           )}
-          {isPrefillableField && <PrefillSection schemaPointer={schemaPointer} />}
+          {isPrefillableField && (
+            <PrefillSection
+              schemaPointer={schemaPointer}
+              prefill={(schemaNode as FieldNode).prefill}
+            />
+          )}
           <ItemRestrictions schemaNode={schemaNode} />
         </>
       )}

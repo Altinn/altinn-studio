@@ -4,7 +4,12 @@ import type { SchemaEditorAppContextProps } from './contexts/SchemaEditorAppCont
 import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
-import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
+import {
+  buildJsonSchema,
+  buildUiSchema,
+  mergePrefillConfig,
+  SchemaModel,
+} from '@altinn/schema-model';
 import { SchemaEditor } from './components/SchemaEditor';
 
 export type SchemaEditorAppProps = {
@@ -25,28 +30,28 @@ export function SchemaEditorApp({
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
   const [selectedUniquePointer, setSelectedUniquePointer] = useState<string>(null);
 
-  const value = useMemo<SchemaEditorAppContextProps>(
-    () => ({
-      schemaModel: convertJsonSchemaToInternalModel(jsonSchema),
+  const value = useMemo<SchemaEditorAppContextProps>(() => {
+    const resolvedPrefillConfig = prefillConfig ?? {};
+    return {
+      schemaModel: convertJsonSchemaToInternalModel(jsonSchema, resolvedPrefillConfig),
       save: (model: SchemaModel) => save(convertInternalModelToJsonSchema(model)),
       selectedTypePointer,
       setSelectedTypePointer,
       selectedUniquePointer,
       setSelectedUniquePointer,
       name,
-      prefillConfig: prefillConfig ?? {},
+      prefillConfig: resolvedPrefillConfig,
       savePrefillConfig: savePrefillConfig ?? (() => {}),
-    }),
-    [
-      jsonSchema,
-      save,
-      selectedTypePointer,
-      selectedUniquePointer,
-      name,
-      prefillConfig,
-      savePrefillConfig,
-    ],
-  );
+    };
+  }, [
+    jsonSchema,
+    save,
+    selectedTypePointer,
+    selectedUniquePointer,
+    name,
+    prefillConfig,
+    savePrefillConfig,
+  ]);
 
   return (
     <SchemaEditorAppContext.Provider value={value}>
@@ -55,8 +60,11 @@ export function SchemaEditorApp({
   );
 }
 
-const convertJsonSchemaToInternalModel = (jsonSchema: JsonSchema): SchemaModel =>
-  SchemaModel.fromArray(buildUiSchema(jsonSchema));
+const convertJsonSchemaToInternalModel = (
+  jsonSchema: JsonSchema,
+  prefillConfig: PrefillConfig,
+): SchemaModel =>
+  SchemaModel.fromArray(mergePrefillConfig(buildUiSchema(jsonSchema), prefillConfig));
 
 const convertInternalModelToJsonSchema = (model: SchemaModel): JsonSchema =>
   buildJsonSchema(model.asArray());

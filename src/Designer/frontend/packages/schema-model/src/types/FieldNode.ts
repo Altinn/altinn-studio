@@ -2,6 +2,7 @@ import type { ObjectKind } from './ObjectKind';
 import type { FieldType } from './FieldType';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { StringFormat } from './StringFormat';
+import type { PrefillMapping } from './PrefillMapping';
 
 export interface FieldNode {
   objectKind: ObjectKind.Field;
@@ -21,4 +22,5 @@ export interface FieldNode {
   restrictions: KeyValuePairs;
   default?: any;
   format?: StringFormat;
+  prefill?: PrefillMapping;
 }

@@ -2,22 +2,28 @@ import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioFieldset, StudioSelect, StudioTextfield } from '@studio/components';
-import { schemaPointerToDataBindingName } from '@altinn/schema-model';
+import type { PrefillMapping } from '@altinn/schema-model';
+import {
+  mergePrefillConfig,
+  schemaPointerToDataBindingName,
+  SchemaModel,
+} from '@altinn/schema-model';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import { PrefillSource } from 'app-shared/types/PrefillConfig';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { findPrefillMapping, removePrefillMapping, setPrefillMapping } from './prefillConfigUtils';
+import { removePrefillMapping, setPrefillMapping } from './prefillConfigUtils';
 import { PREFILL_SOURCE_FIELDS } from './prefillSourceFields';
 import classes from './PrefillSection.module.css';
 
 export interface PrefillSectionProps {
   schemaPointer: string;
+  prefill?: PrefillMapping;
 }
 
-export const PrefillSection = ({ schemaPointer }: PrefillSectionProps) => {
+export const PrefillSection = ({ schemaPointer, prefill: currentMapping }: PrefillSectionProps) => {
   const { t } = useTranslation();
-  const { prefillConfig, savePrefillConfig } = useSchemaEditorAppContext();
+  const { schemaModel, save, prefillConfig, savePrefillConfig } = useSchemaEditorAppContext();
   const dataBindingName = schemaPointerToDataBindingName(schemaPointer);
-  const currentMapping = findPrefillMapping(prefillConfig, dataBindingName);
 
   const [selectedSource, setSelectedSource] = useState<PrefillSource | ''>(
     currentMapping?.source ?? '',
@@ -26,30 +32,40 @@ export const PrefillSection = ({ schemaPointer }: PrefillSectionProps) => {
     currentMapping?.source === PrefillSource.QueryParameters ? currentMapping.key : '',
   );
 
+  // Saving the prefill config alone isn't enough: the internal schema model caches each field's
+  // prefill mapping directly on the node (see mergePrefillConfig) so the UI doesn't need to search
+  // the whole prefill config every time a field is selected. That cache must be refreshed from the
+  // updated config whenever a mapping changes, or it would go stale (e.g. if this change reassigns
+  // a source/key pair away from another field that previously held it).
+  const updatePrefillConfig = (updatedConfig: PrefillConfig) => {
+    savePrefillConfig(updatedConfig);
+    save(SchemaModel.fromArray(mergePrefillConfig(schemaModel.asArray(), updatedConfig)));
+  };
+
   const handleSourceChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const newSource = event.target.value as PrefillSource | '';
     setSelectedSource(newSource);
     setQueryParameterName('');
-    savePrefillConfig(removePrefillMapping(prefillConfig, dataBindingName));
+    updatePrefillConfig(removePrefillMapping(prefillConfig, dataBindingName));
   };
 
   const handleSourceFieldChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const fieldKey = event.target.value;
     if (!fieldKey) {
-      savePrefillConfig(removePrefillMapping(prefillConfig, dataBindingName));
+      updatePrefillConfig(removePrefillMapping(prefillConfig, dataBindingName));
       return;
     }
-    savePrefillConfig(
+    updatePrefillConfig(
       setPrefillMapping(prefillConfig, dataBindingName, selectedSource as PrefillSource, fieldKey),
     );
   };
 
   const handleQueryParameterNameBlur = () => {
     if (!queryParameterName) {
-      savePrefillConfig(removePrefillMapping(prefillConfig, dataBindingName));
+      updatePrefillConfig(removePrefillMapping(prefillConfig, dataBindingName));
       return;
     }
-    savePrefillConfig(
+    updatePrefillConfig(
       setPrefillMapping(
         prefillConfig,
         dataBindingName,

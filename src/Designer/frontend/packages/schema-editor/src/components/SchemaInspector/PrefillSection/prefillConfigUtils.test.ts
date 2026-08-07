@@ -1,35 +1,12 @@
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import { PrefillSource } from 'app-shared/types/PrefillConfig';
 import {
-  findPrefillMapping,
   removePrefillMapping,
   renamePrefillMappings,
   setPrefillMapping,
 } from './prefillConfigUtils';
 
 describe('prefillConfigUtils', () => {
-  describe('findPrefillMapping', () => {
-    it('Returns undefined when there is no mapping for the given field', () => {
-      expect(findPrefillMapping({}, 'someField')).toBeUndefined();
-    });
-
-    it('Finds the source and key mapped to the given field', () => {
-      const config: PrefillConfig = { ER: { OrgNumber: 'someField' } };
-      expect(findPrefillMapping(config, 'someField')).toEqual({
-        source: PrefillSource.ER,
-        key: 'OrgNumber',
-      });
-    });
-
-    it('Finds a mapping under QueryParameters', () => {
-      const config: PrefillConfig = { QueryParameters: { caseId: 'someField' } };
-      expect(findPrefillMapping(config, 'someField')).toEqual({
-        source: PrefillSource.QueryParameters,
-        key: 'caseId',
-      });
-    });
-  });
-
   describe('removePrefillMapping', () => {
     it('Removes the mapping for the given field and drops the source entirely if it becomes empty', () => {
       const config: PrefillConfig = { ER: { OrgNumber: 'someField' } };
