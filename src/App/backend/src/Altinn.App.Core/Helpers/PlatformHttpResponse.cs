@@ -42,59 +42,41 @@ public sealed record PlatformHttpResponse
     /// <summary>
     /// The HTTP status code of the response.
     /// </summary>
-    public required HttpStatusCode StatusCode { get; init; }
+    public HttpStatusCode StatusCode { get; }
 
     /// <summary>
     /// The reason phrase sent by the server, if any.
     /// </summary>
-    public string? ReasonPhrase { get; init; }
+    public string? ReasonPhrase { get; internal init; }
 
     /// <summary>
     /// The response body as text, capped at <see cref="MaxCapturedContentLength"/> characters.
     /// </summary>
     /// <remarks>
-    /// Empty when the response had no body, or when the snapshot was taken without reading it (see
-    /// <see cref="FromHttpResponse"/>). For non-textual bodies this is a short descriptor such as
+    /// Empty when the response had no body, or when the body could not be read. For non-textual bodies
+    /// this is a short descriptor such as
     /// <c>&lt;application/pdf; 40213 bytes&gt;</c> rather than the raw payload, so that a failed binary
     /// download does not pull megabytes into an exception message.
     /// </remarks>
-    public string Content { get; init; } = string.Empty;
+    public string Content { get; internal init; } = string.Empty;
 
     /// <summary>
     /// Whether <see cref="Content"/> was truncated because the body exceeded
     /// <see cref="MaxCapturedContentLength"/>.
     /// </summary>
-    public bool ContentTruncated { get; init; }
+    public bool ContentTruncated { get; internal init; }
 
     /// <summary>
     /// The response, content and trailing headers, merged. Sensitive headers (<c>Authorization</c>,
     /// <c>Proxy-Authorization</c>, <c>Cookie</c>, <c>Set-Cookie</c>) have their values redacted.
     /// </summary>
-    public IReadOnlyDictionary<string, IReadOnlyList<string>> Headers { get; init; } = _emptyHeaders;
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> Headers { get; internal init; } = _emptyHeaders;
 
     /// <summary>
-    /// Captures status, reason phrase and headers from <paramref name="response"/> without reading its
-    /// body.
+    /// Snapshots are produced by <see cref="PlatformHttpException"/>; there is no way to build one from
+    /// outside this assembly, and no reason to.
     /// </summary>
-    /// <remarks>
-    /// Use this when the body has already been consumed, or is not wanted — pass it as
-    /// <paramref name="content"/> if you have it. To have the body read for you, use
-    /// <see cref="PlatformHttpException.Create(HttpResponseMessage, CancellationToken)"/> instead.
-    /// </remarks>
-    /// <param name="response">The response to snapshot.</param>
-    /// <param name="content">The already-read response body, if available.</param>
-    internal static PlatformHttpResponse FromHttpResponse(HttpResponseMessage response, string? content = null)
-    {
-        ArgumentNullException.ThrowIfNull(response);
-
-        return new PlatformHttpResponse
-        {
-            StatusCode = response.StatusCode,
-            ReasonPhrase = response.ReasonPhrase,
-            Content = content ?? string.Empty,
-            Headers = SnapshotHeaders(response),
-        };
-    }
+    internal PlatformHttpResponse(HttpStatusCode statusCode) => StatusCode = statusCode;
 
     /// <summary>
     /// Captures the full response, reading the body with a bounded, streaming read.
@@ -104,15 +86,27 @@ public sealed record PlatformHttpResponse
         CancellationToken cancellationToken
     )
     {
-        (string content, bool truncated) = await ReadContentSnapshot(
-            response.Content,
-            MaxCapturedContentLength,
-            cancellationToken
-        );
+        string content = string.Empty;
+        bool truncated = false;
 
-        return new PlatformHttpResponse
+        try
         {
-            StatusCode = response.StatusCode,
+            (content, truncated) = await ReadContentSnapshot(
+                response.Content,
+                MaxCapturedContentLength,
+                cancellationToken
+            );
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // The body is a diagnostic nicety; the status code is the part that matters. A body that
+            // cannot be read - an unbuffered response someone already drained, a disposed content, a
+            // mid-flight connection failure - must not stop us reporting the original error, and must
+            // certainly not replace it. Everything else on the snapshot is still captured below.
+        }
+
+        return new PlatformHttpResponse(response.StatusCode)
+        {
             ReasonPhrase = response.ReasonPhrase,
             Content = content,
             ContentTruncated = truncated,

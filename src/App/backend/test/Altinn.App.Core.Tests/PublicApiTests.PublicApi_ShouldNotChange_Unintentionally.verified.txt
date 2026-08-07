@@ -2413,7 +2413,7 @@ namespace Altinn.App.Core.Helpers
     }
     public class PlatformHttpException : Altinn.App.Core.Exceptions.AltinnException
     {
-        public PlatformHttpException(Altinn.App.Core.Helpers.PlatformHttpResponse response, string message, System.Exception? innerException = null) { }
+        public PlatformHttpException(System.Net.HttpStatusCode statusCode, string message, System.Exception? innerException = null) { }
         public Altinn.App.Core.Helpers.PlatformHttpResponse Response { get; }
         public System.Net.HttpStatusCode StatusCode { get; }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Helpers.PlatformHttpException> Create(System.Net.Http.HttpResponseMessage response, System.Threading.CancellationToken cancellationToken = default) { }
@@ -2422,12 +2422,11 @@ namespace Altinn.App.Core.Helpers
     public sealed class PlatformHttpResponse : System.IEquatable<Altinn.App.Core.Helpers.PlatformHttpResponse>
     {
         public const int MaxCapturedContentLength = 16384;
-        public PlatformHttpResponse() { }
-        public string Content { get; init; }
-        public bool ContentTruncated { get; init; }
-        public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Headers { get; init; }
-        public string? ReasonPhrase { get; init; }
-        public required System.Net.HttpStatusCode StatusCode { get; init; }
+        public string Content { get; }
+        public bool ContentTruncated { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Headers { get; }
+        public string? ReasonPhrase { get; }
+        public System.Net.HttpStatusCode StatusCode { get; }
         public override string ToString() { }
     }
     public class ProcessError

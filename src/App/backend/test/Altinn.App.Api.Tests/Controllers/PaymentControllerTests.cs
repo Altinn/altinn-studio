@@ -603,11 +603,6 @@ public class PaymentControllerTests
 
         _services.Services.RemoveAll<IPaymentService>();
 
-        var lockedResponse = new PlatformHttpResponse
-        {
-            StatusCode = HttpStatusCode.Conflict,
-            Content = "data element 00000000-0000-0000-0000-000000000abc is locked and cannot be updated",
-        };
         _services
             .Mock<IPaymentService>()
             .Setup(s =>
@@ -619,7 +614,7 @@ public class PaymentControllerTests
             )
             .ThrowsAsync(
                 new PlatformHttpException(
-                    lockedResponse,
+                    HttpStatusCode.Conflict,
                     "409 - Conflict - data element is locked and cannot be updated"
                 )
             );

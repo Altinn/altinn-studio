@@ -9,8 +9,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <list type="bullet">
 /// <item><c>PlatformHttpException.CreateAsync(response)</c> is renamed to <c>Create(response)</c>.</item>
 /// <item>
-/// The public constructor takes a <c>PlatformHttpResponse</c> snapshot instead of a live
-/// <c>HttpResponseMessage</c>, so the first argument is wrapped.
+/// The public constructor takes an <c>HttpStatusCode</c> instead of a live <c>HttpResponseMessage</c>,
+/// so a constructed throwaway response is unwrapped to the status it carried.
 /// </item>
 /// </list>
 /// <para>
@@ -22,12 +22,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 internal sealed class PlatformHttpExceptionApiMigration
 {
     private const string ExceptionTypeName = "PlatformHttpException";
-    private const string SnapshotTypeName = "PlatformHttpResponse";
+    private const string StatusCodeTypeName = "HttpStatusCode";
     private const string HttpResponseMessageTypeName = "HttpResponseMessage";
     private const string ResponseParameterName = "response";
     private const string RenamedFactory = "CreateAsync";
     private const string NewFactory = "Create";
-    private const string HelpersNamespace = "Altinn.App.Core.Helpers";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -51,13 +50,6 @@ internal sealed class PlatformHttpExceptionApiMigration
                 continue;
             }
 
-            // A file may reference the exception fully qualified, in which case the emitted
-            // `PlatformHttpResponse` would not bind without the using.
-            if (rewriter.NeedsHelpersUsing && updated is CompilationUnitSyntax unit)
-            {
-                updated = AddUsingIfMissing(unit, HelpersNamespace);
-            }
-
             File.WriteAllText(file.Path, updated.ToFullString());
             changes.AddRange(rewriter.Changes);
         }
@@ -71,9 +63,9 @@ internal sealed class PlatformHttpExceptionApiMigration
         {
             changes.Insert(
                 0,
-                "Migrated PlatformHttpException to the v9 response snapshot. Note that the constructor no longer "
-                    + "captures the response body - where the body matters, switch the call site to the async "
-                    + "PlatformHttpException.Create(response), which reads it. Rewrites:"
+                "Migrated PlatformHttpException to its v9 shape. The constructor now takes a status code; where "
+                    + "the response body and headers matter, switch the call site to the asynchronous "
+                    + "PlatformHttpException.Create(response), which captures them. Rewrites:"
             );
         }
 
@@ -90,25 +82,6 @@ internal sealed class PlatformHttpExceptionApiMigration
         return new MigrationResult(ManualActionRequired: unresolved.Count > 0, changes);
     }
 
-    private static CompilationUnitSyntax AddUsingIfMissing(CompilationUnitSyntax unit, string namespaceName)
-    {
-        if (unit.Usings.Any(existing => existing.Name?.ToString() == namespaceName))
-        {
-            return unit;
-        }
-
-        var directive = SyntaxFactory
-            .UsingDirective(SyntaxFactory.ParseName(namespaceName))
-            .NormalizeWhitespace()
-            .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
-
-        var insertAt = unit.Usings.IndexOf(existing =>
-            string.CompareOrdinal(existing.Name?.ToString(), namespaceName) > 0
-        );
-
-        return unit.WithUsings(insertAt < 0 ? unit.Usings.Add(directive) : unit.Usings.Insert(insertAt, directive));
-    }
-
     private sealed class Rewriter : CSharpSyntaxRewriter
     {
         private readonly ScannedCSharpFile _file;
@@ -121,14 +94,6 @@ internal sealed class PlatformHttpExceptionApiMigration
         public List<string> Changes { get; } = [];
 
         public List<string> Unresolved { get; } = [];
-
-        private static bool AlreadyMigrated(ExpressionSyntax argument) =>
-            argument
-                .DescendantNodesAndSelf()
-                .OfType<SimpleNameSyntax>()
-                .Any(name => name.Identifier.Text == SnapshotTypeName);
-
-        public bool NeedsHelpersUsing { get; private set; }
 
         public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
         {
@@ -204,26 +169,25 @@ internal sealed class PlatformHttpExceptionApiMigration
                 first = named;
             }
 
-            var replacement = BuildSnapshotArgument(first.Expression);
+            var (replacement, reportable) = ClassifyResponseArgument(first.Expression);
             if (replacement is null)
             {
-                if (!AlreadyMigrated(first.Expression))
+                if (reportable)
                 {
                     Unresolved.Add(
                         $"{_file.RelativePath}:{_file.GetLine(original)}: new PlatformHttpException(..) - could not "
-                            + "determine the response argument's type. Build the snapshot explicitly, e.g. "
-                            + "new PlatformHttpResponse { StatusCode = response.StatusCode }, or switch the call "
-                            + "site to the asynchronous PlatformHttpException.Create(response)."
+                            + "determine the response argument's type. Use await PlatformHttpException.Create("
+                            + "response, message) to capture the whole response, or new PlatformHttpException("
+                            + "statusCode, message) when a status code is all you need."
                     );
                 }
 
                 return visited;
             }
 
-            NeedsHelpersUsing = true;
             Changes.Add(
                 $"{_file.RelativePath}:{_file.GetLine(original)}: new PlatformHttpException(..) now takes a "
-                    + "PlatformHttpResponse snapshot"
+                    + "status code instead of a response"
             );
 
             var updatedArguments = argumentList.Arguments.Replace(first, first.WithExpression(replacement));
@@ -271,36 +235,46 @@ internal sealed class PlatformHttpExceptionApiMigration
         }
 
         /// <summary>
-        /// The snapshot expression to substitute for a live-response argument, or <c>null</c> to leave the
-        /// argument alone.
+        /// Classifies the constructor's response argument: the expression to replace it with, and — when
+        /// there is none — whether that is worth reporting.
         /// </summary>
-        private static ExpressionSyntax? BuildSnapshotArgument(ExpressionSyntax argument)
+        /// <remarks>
+        /// Order matters. A v8 call reads <c>new PlatformHttpException(new HttpResponseMessage(status), ..)</c>,
+        /// which mentions <c>HttpStatusCode</c> too, so the already-migrated check has to come second or it
+        /// swallows the very shape this exists to rewrite.
+        /// </remarks>
+        private static (ExpressionSyntax? Replacement, bool Reportable) ClassifyResponseArgument(
+            ExpressionSyntax argument
+        )
         {
-            // Already migrated (or hand-written against v9): re-running the upgrade must not double-wrap.
-            if (AlreadyMigrated(argument))
-            {
-                return null;
-            }
-
-            // `new PlatformHttpException(new HttpResponseMessage(status), ..)` is the test-double shape.
-            // Constructing a throwaway HttpResponseMessage just to snapshot it is pointless, so build the
-            // snapshot directly. The status expression already implies a `System.Net` using in this file.
+            // The test-double shape. v9 has a constructor for exactly it — the status code alone — so the
+            // throwaway response is unwrapped to the status it carried. This keeps the call site
+            // synchronous, which matters: these are usually expression-bodied test helpers.
             if (
                 argument is ObjectCreationExpressionSyntax creation
                 && SimpleTypeName(creation.Type) == HttpResponseMessageTypeName
                 && creation.ArgumentList?.Arguments.Count == 1
             )
             {
-                return SyntaxFactory.ParseExpression(
-                    $"new {SnapshotTypeName} {{ StatusCode = {creation.ArgumentList.Arguments[0].Expression} }}"
-                );
+                return (creation.ArgumentList.Arguments[0].Expression, false);
             }
 
-            // Anything else: the argument's type cannot be resolved from syntax, and there is no public
-            // API that turns an arbitrary HttpResponseMessage into a snapshot - PlatformHttpResponse is
-            // built either by Create (which reads the body) or via an object initializer. Report it
-            // rather than emit a call the app cannot compile.
-            return null;
+            // Already a status code — either migrated, or written against v9 in the first place. Re-running
+            // the upgrade must leave it alone, and silently.
+            if (
+                argument
+                    .DescendantNodesAndSelf()
+                    .OfType<SimpleNameSyntax>()
+                    .Any(name => name.Identifier.Text == StatusCodeTypeName)
+            )
+            {
+                return (null, false);
+            }
+
+            // Anything else: the argument's type cannot be resolved from syntax. v9 builds the exception
+            // either from a live response (the asynchronous Create, which reads the body) or from a bare
+            // status code — and picking between those is the caller's call, not ours.
+            return (null, true);
         }
 
         private static string? TrailingName(ExpressionSyntax expression) =>

@@ -112,8 +112,8 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
         );
 
-        Assert.Contains("new PlatformHttpResponse { StatusCode = statusCode }", migrated);
-        Assert.DoesNotContain("new HttpResponseMessage(statusCode)", migrated);
+        Assert.Contains("new(statusCode, $\"Platform returned {statusCode}\")", migrated);
+        Assert.DoesNotContain("HttpResponseMessage", migrated);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
         );
 
-        Assert.Contains("new PlatformHttpResponse { StatusCode = HttpStatusCode.NotFound }", migrated);
+        Assert.Contains("new PlatformHttpException(HttpStatusCode.NotFound, \"gone\")", migrated);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
         );
 
-        Assert.Contains("response: new PlatformHttpResponse { StatusCode = HttpStatusCode.Gone }", migrated);
+        Assert.Contains("response: HttpStatusCode.Gone", migrated);
         Assert.Contains("message: body", migrated);
     }
 
@@ -198,7 +198,7 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void Migration_AddsHelpersUsingWhenTheExceptionIsFullyQualified()
+    public void Migration_RewritesFullyQualifiedConstructorCalls()
     {
         var migrated = Migrate(
             "logic/Qualified.cs",
@@ -212,8 +212,8 @@ public sealed class PlatformHttpExceptionApiMigrationTests : IDisposable
             """
         );
 
-        Assert.Contains("using Altinn.App.Core.Helpers;", migrated);
-        Assert.Contains("new PlatformHttpResponse { StatusCode = HttpStatusCode.NotFound }", migrated);
+        Assert.Contains("HttpStatusCode.NotFound, \"boom\"", migrated);
+        Assert.DoesNotContain("HttpResponseMessage", migrated);
     }
 
     [Fact]

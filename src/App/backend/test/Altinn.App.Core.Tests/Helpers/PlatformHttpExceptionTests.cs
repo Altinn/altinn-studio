@@ -305,52 +305,73 @@ public class PlatformHttpExceptionTests
         Assert.Contains("200", exception.Message);
     }
 
+    /// <summary>
+    /// The shape an app reaches for when faking the exception: no response to hand over, and the status
+    /// code is the only part anyone branches on.
+    /// </summary>
     [Fact]
-    public void FromHttpResponse_CapturesMetadataWithoutReadingTheBody()
+    public void StatusCodeConstructor_BuildsAUsableExceptionWithoutAResponse()
     {
-        using var response = TextResponse(HttpStatusCode.BadRequest, "never read");
-        response.Headers.TryAddWithoutValidation("Authorization", "Bearer nope");
+        var inner = new InvalidOperationException("boom");
 
-        var snapshot = PlatformHttpResponse.FromHttpResponse(response);
+        var exception = new PlatformHttpException(HttpStatusCode.NotFound, "Platform returned NotFound", inner);
 
-        Assert.Equal(HttpStatusCode.BadRequest, snapshot.StatusCode);
-        Assert.Empty(snapshot.Content);
-        Assert.False(snapshot.ContentTruncated);
-        Assert.Equal(["[REDACTED]"], snapshot.Headers["Authorization"]);
+        Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, exception.Response.StatusCode);
+        Assert.Equal("Platform returned NotFound", exception.Message);
+        Assert.Same(inner, exception.InnerException);
+        Assert.Empty(exception.Response.Content);
+        Assert.Empty(exception.Response.Headers);
     }
 
+    /// <summary>
+    /// Building the exception must never fail: it runs on the failure path, and an escape here would
+    /// replace the error being reported with an unrelated one.
+    /// </summary>
     [Fact]
-    public void FromHttpResponse_AcceptsAnAlreadyReadBody()
+    public async Task Create_StillSucceedsWhenTheBodyCannotBeRead()
     {
-        using var response = TextResponse(HttpStatusCode.BadRequest, "ignored");
-
-        var snapshot = PlatformHttpResponse.FromHttpResponse(response, "already read");
-
-        Assert.Equal("already read", snapshot.Content);
-    }
-
-    [Fact]
-    public void FromHttpResponse_ThrowsOnNullResponse()
-    {
-        Assert.Throws<ArgumentNullException>(() => PlatformHttpResponse.FromHttpResponse(null!));
-    }
-
-    [Fact]
-    public void Constructor_ThrowsOnNullResponse()
-    {
-        Assert.Throws<ArgumentNullException>(() => new PlatformHttpException(null!, "message"));
-    }
-
-    [Fact]
-    public void ToString_OmitsTheBodySoItDoesNotSwampLogs()
-    {
-        var snapshot = new PlatformHttpResponse
+        // Unbuffered content that has already been drained — the one shape that cannot be re-read.
+        using var response = new HttpResponseMessage(HttpStatusCode.BadGateway)
         {
-            StatusCode = HttpStatusCode.InternalServerError,
-            Content = new string('x', 4096),
+            Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes("gone"))),
         };
+        using (var stream = await response.Content.ReadAsStreamAsync())
+        using (var reader = new StreamReader(stream, leaveOpen: true))
+        {
+            await reader.ReadToEndAsync();
+        }
 
-        string rendered = snapshot.ToString();
+        var exception = await PlatformHttpException.Create(response, "upstream failed");
+
+        Assert.Equal(HttpStatusCode.BadGateway, exception.StatusCode);
+        Assert.Equal("upstream failed", exception.Message);
+        Assert.Empty(exception.Response.Content);
+    }
+
+    /// <summary>
+    /// The premise this API rests on: buffered content — everything except an explicit streaming read —
+    /// can be snapshotted even after the caller has already consumed it.
+    /// </summary>
+    [Fact]
+    public async Task Create_CapturesTheBodyEvenAfterTheCallerHasReadIt()
+    {
+        using var response = TextResponse(HttpStatusCode.Conflict, "already consumed by the caller");
+        string consumedByCaller = await response.Content.ReadAsStringAsync();
+
+        var exception = await PlatformHttpException.Create(response);
+
+        Assert.Equal("already consumed by the caller", consumedByCaller);
+        Assert.Equal("already consumed by the caller", exception.Response.Content);
+    }
+
+    [Fact]
+    public async Task ToString_OmitsTheBodySoItDoesNotSwampLogs()
+    {
+        using var response = TextResponse(HttpStatusCode.InternalServerError, new string('x', 4096));
+        var exception = await PlatformHttpException.Create(response);
+
+        string rendered = exception.Response.ToString();
 
         Assert.DoesNotContain(new string('x', 100), rendered);
         Assert.Contains("ContentLength = 4096", rendered);

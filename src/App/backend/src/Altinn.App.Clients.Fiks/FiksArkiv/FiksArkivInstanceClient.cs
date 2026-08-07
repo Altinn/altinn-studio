@@ -258,17 +258,14 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         }
         catch (Exception e)
         {
-            // Not PlatformHttpException.Create: reading the body is what makes it asynchronous, and the
-            // body was consumed into `content` above, so a re-read would capture nothing. Create also
-            // disposes the response, which the caller still owns.
-            throw new PlatformHttpException(
-                PlatformHttpResponse.FromHttpResponse(response, content),
+            throw await PlatformHttpException.Create(
+                response,
                 $"Error deserializing JSON data: {e.Message}. The content was: {content}",
                 e
             );
         }
 
-        return deserializedContent ?? throw GetPlatformHttpException(response, content);
+        return deserializedContent ?? throw await GetPlatformHttpException(response, content);
     }
 
     private static async Task EnsureSuccessStatusCode(HttpResponseMessage response)
@@ -277,23 +274,17 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
             return;
 
         string content = await response.Content.ReadAsStringAsync();
-        throw GetPlatformHttpException(response, content);
+        throw await GetPlatformHttpException(response, content);
     }
 
-    private static PlatformHttpException GetPlatformHttpException(
+    private static Task<PlatformHttpException> GetPlatformHttpException(
         HttpResponseMessage response,
         string content,
         Exception? innerException = null
     )
     {
         string errorMessage = $"{(int)response.StatusCode} {response.ReasonPhrase}: {content}";
-        // The callers have already read the body into `content`, so this snapshots it rather than
-        // going through the asynchronous PlatformHttpException.Create, which would re-read and dispose.
-        return new PlatformHttpException(
-            PlatformHttpResponse.FromHttpResponse(response, content),
-            errorMessage,
-            innerException
-        );
+        return PlatformHttpException.Create(response, errorMessage, innerException);
     }
 
     private async Task<HttpClient> GetAuthenticatedClient(HttpClientTarget target)

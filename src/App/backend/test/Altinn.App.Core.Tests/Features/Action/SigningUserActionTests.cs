@@ -232,12 +232,7 @@ public class SigningUserActionTests
             .SignClient.Setup(x =>
                 x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>())
             )
-            .ThrowsAsync(
-                new PlatformHttpException(
-                    new PlatformHttpResponse { StatusCode = HttpStatusCode.OK },
-                    "Failed to sign dataelements"
-                )
-            );
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.OK, "Failed to sign dataelements"));
 
         var userActionContext = new UserActionContext(
             fixture.InstanceDataMutatorMock.Object,

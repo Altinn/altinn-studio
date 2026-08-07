@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Auto-migrate the `PlatformHttpException` changes in `studioctl app upgrade v9`: rename `PlatformHttpException.CreateAsync(...)` to `Create(...)`, and adapt constructor calls to the new response snapshot. Every rewrite is listed for review, and any constructor call whose response argument cannot be identified is reported for you to finish by hand.
+- Auto-migrate the `PlatformHttpException` changes in `studioctl app upgrade v9`: rename `PlatformHttpException.CreateAsync(...)` to `Create(...)`, and rewrite constructor calls that built a throwaway `HttpResponseMessage` just to carry a status code into the v9 constructor that takes the status code directly. Every rewrite is listed for review, and any constructor call whose response argument cannot be identified is reported for you to finish by hand.
 - Warn in `studioctl app upgrade v9` about uses of `PlatformHttpException.Response` that the v9 response snapshot cannot satisfy. Reading `Response.StatusCode` is unaffected and is not reported. This includes a warning for apps that read the property by reflection and cast it to `HttpResponseMessage`, which keeps compiling but silently stops finding the status code.
 
 ## [0.1.0-preview.19] - 2026-08-06

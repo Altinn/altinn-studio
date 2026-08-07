@@ -23,12 +23,21 @@ public class PlatformHttpException : AltinnException
     public HttpStatusCode StatusCode => Response.StatusCode;
 
     /// <summary>
-    /// Creates a new <see cref="PlatformHttpException"/> from an existing response snapshot.
+    /// Creates a new <see cref="PlatformHttpException"/> without an underlying response — for a synthetic
+    /// failure, or for faking one in a test.
     /// </summary>
-    /// <param name="response">A snapshot of the failed response.</param>
+    /// <remarks>
+    /// Use <see cref="Create(HttpResponseMessage, CancellationToken)"/> when you have a real response: it
+    /// captures the body and headers too. The status code is the only part of a response that callers are
+    /// observed to branch on, so it is the only part this overload asks for.
+    /// </remarks>
+    /// <param name="statusCode">The HTTP status code to report.</param>
     /// <param name="message">A description of the cause of the exception.</param>
     /// <param name="innerException">The exception that caused this one, if any.</param>
-    public PlatformHttpException(PlatformHttpResponse response, string message, Exception? innerException = null)
+    public PlatformHttpException(HttpStatusCode statusCode, string message, Exception? innerException = null)
+        : this(new PlatformHttpResponse(statusCode), message, innerException) { }
+
+    internal PlatformHttpException(PlatformHttpResponse response, string message, Exception? innerException = null)
         : base(message, innerException)
     {
         ArgumentNullException.ThrowIfNull(response);
