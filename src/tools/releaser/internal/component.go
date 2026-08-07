@@ -24,11 +24,11 @@ type ComponentBuilder interface {
 
 // Component represents a releasable component in the repository.
 type Component struct {
-	Builder             ComponentBuilder
-	Name                string
-	ChangelogPath       string
-	SourcePath          string
-	HasReleasePublisher bool
+	Builder       ComponentBuilder
+	Name          string
+	ChangelogPath string
+	SourcePath    string
+	Publisher     ReleasePublisher
 }
 
 // Component registry.
@@ -36,25 +36,25 @@ type Component struct {
 //nolint:gochecknoglobals // registry pattern
 var components = map[string]*Component{
 	"studioctl": {
-		Name:                "studioctl",
-		ChangelogPath:       "src/cli/CHANGELOG.md",
-		SourcePath:          "src/cli",
-		Builder:             nil, // registered by the releaser CLI
-		HasReleasePublisher: true,
+		Name:          "studioctl",
+		ChangelogPath: "src/cli/CHANGELOG.md",
+		SourcePath:    "src/cli",
+		Builder:       nil, // registered by the releaser CLI
+		Publisher:     ReleasePublisherStudioctl,
 	},
 	"fileanalyzers": {
-		Name:                "fileanalyzers",
-		ChangelogPath:       "src/App/fileanalyzers/CHANGELOG.md",
-		SourcePath:          "src/App/fileanalyzers",
-		Builder:             nil, // YAML handles dotnet pack/push
-		HasReleasePublisher: false,
+		Name:          "fileanalyzers",
+		ChangelogPath: "src/App/fileanalyzers/CHANGELOG.md",
+		SourcePath:    "src/App/fileanalyzers",
+		Builder:       nil, // YAML handles dotnet pack/push
+		Publisher:     ReleasePublisherNone,
 	},
 	"app": {
-		Name:                "app",
-		ChangelogPath:       "src/App/backend/CHANGELOG.md",
-		SourcePath:          "src/App/backend",
-		Builder:             nil, // registered by the releaser CLI
-		HasReleasePublisher: true,
+		Name:          "app",
+		ChangelogPath: "src/App/backend/CHANGELOG.md",
+		SourcePath:    "src/App/backend",
+		Builder:       nil, // registered by the releaser CLI
+		Publisher:     ReleasePublisherApp,
 	},
 }
 

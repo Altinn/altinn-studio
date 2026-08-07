@@ -104,6 +104,178 @@ func TestWorkflow_Run_DryRunAllowsExistingTag(t *testing.T) {
 	}
 }
 
+func TestWorkflow_Run_ResumesMatchingDraft(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.1] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+	builder := &fakeBuilder{}
+	gh := &fakeGH{existingRelease: &internal.GitHubRelease{
+		TargetCommitish: fakeHeadCommit,
+		IsDraft:         true,
+	}}
+	workflow, err := internal.NewWorkflow(t.Context(), internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3-preview.1",
+		ChangelogPath: changelogPath,
+		OutputDir:     t.TempDir(),
+		RepoRoot:      os.TempDir(),
+		Draft:         true,
+	}, &fakeGit{currentBranch: "main"}, gh, builder, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	if err := workflow.Run(t.Context()); err != nil {
+		t.Fatalf("workflow.Run() error: %v", err)
+	}
+	if !builder.called || !gh.updated {
+		t.Fatalf("resume called builder=%v updated=%v, want both true", builder.called, gh.updated)
+	}
+}
+
+func TestWorkflow_Run_RejectsUnsafeExistingRelease(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		wantErr error
+		name    string
+		release internal.GitHubRelease
+	}{
+		{
+			name: "published release",
+			release: internal.GitHubRelease{
+				TargetCommitish: fakeHeadCommit,
+				IsDraft:         false,
+			},
+			wantErr: internal.ErrReleasePublished,
+		},
+		{
+			name: "draft at another commit",
+			release: internal.GitHubRelease{
+				TargetCommitish: "another-commit",
+				IsDraft:         true,
+			},
+			wantErr: internal.ErrReleaseTargetMismatch,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			builder := &fakeBuilder{}
+			gh := &fakeGH{existingRelease: &tc.release}
+			workflow, err := internal.NewWorkflow(t.Context(), internal.WorkflowConfig{
+				Component: "studioctl",
+				Version:   "v1.2.3-preview.1",
+				OutputDir: t.TempDir(),
+				RepoRoot:  os.TempDir(),
+				Draft:     true,
+			}, &fakeGit{currentBranch: "main"}, gh, builder, internal.NopLogger{})
+			if err != nil {
+				t.Fatalf("NewWorkflow() error: %v", err)
+			}
+			err = workflow.Run(t.Context())
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("workflow.Run() error = %v, want %v", err, tc.wantErr)
+			}
+			if builder.called || gh.called {
+				t.Fatal("unsafe retry reached build or release mutation")
+			}
+		})
+	}
+}
+
+func TestWorkflow_Run_RejectsDraftWithMovedTag(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.1] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+	builder := &fakeBuilder{}
+	gh := &fakeGH{existingRelease: &internal.GitHubRelease{
+		TargetCommitish: fakeHeadCommit,
+		IsDraft:         true,
+	}}
+	git := &fakeGit{
+		currentBranch:   "main",
+		remoteTagCommit: "another-commit",
+		remoteTagExists: true,
+	}
+	workflow, err := internal.NewWorkflow(t.Context(), internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3-preview.1",
+		ChangelogPath: changelogPath,
+		OutputDir:     t.TempDir(),
+		RepoRoot:      os.TempDir(),
+		Draft:         true,
+	}, git, gh, builder, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	err = workflow.Run(t.Context())
+	if !errors.Is(err, internal.ErrReleaseTagMismatch) {
+		t.Fatalf("workflow.Run() error = %v, want %v", err, internal.ErrReleaseTagMismatch)
+	}
+	if !builder.called {
+		t.Fatal("expected tag target to be rechecked after the build")
+	}
+	if gh.updated {
+		t.Fatal("moved tag reached draft update")
+	}
+}
+
+func TestGitHubCLI_UpdateReleaseReplacesDraftAssets(t *testing.T) {
+	t.Parallel()
+
+	commands := make([]string, 0, 2)
+	logger := &commandHookLogger{onCommand: func(command string, args []string) {
+		commands = append(commands, command+" "+strings.Join(args, " "))
+	}}
+	gh := internal.NewGitHubCLI(
+		internal.WithGHDryRun(true),
+		internal.WithGHLogger(logger),
+	)
+	err := gh.UpdateRelease(t.Context(), internal.Options{
+		Tag:             "studioctl/v1.2.3-preview.1",
+		Title:           "studioctl v1.2.3-preview.1",
+		NotesFile:       "/tmp/notes.md",
+		Target:          fakeHeadCommit,
+		Repository:      "Altinn/altinn-studio",
+		Assets:          []string{"/tmp/studioctl.tar.gz"},
+		Draft:           true,
+		Prerelease:      true,
+		FailOnNoCommits: false,
+	})
+	if err != nil {
+		t.Fatalf("UpdateRelease() error: %v", err)
+	}
+	if len(commands) != 2 {
+		t.Fatalf("commands = %v, want edit and upload", commands)
+	}
+	if !strings.Contains(commands[0], "release edit studioctl/v1.2.3-preview.1") ||
+		!strings.Contains(commands[0], "--target "+fakeHeadCommit) {
+		t.Fatalf("edit command = %q", commands[0])
+	}
+	if !strings.Contains(commands[1], "release upload studioctl/v1.2.3-preview.1") ||
+		!strings.Contains(commands[1], "--clobber /tmp/studioctl.tar.gz") {
+		t.Fatalf("upload command = %q", commands[1])
+	}
+}
+
 func TestWorkflow_Run_PreviewMustBeOnMain(t *testing.T) {
 	t.Parallel()
 
@@ -550,15 +722,21 @@ func TestNewWorkflow_OutputDirSafety_RejectsSymlinkEscape(t *testing.T) {
 type fakeGit struct {
 	currentBranch               string
 	headCommit                  string
+	remoteTagCommit             string
 	remoteBranchExistsResponses []bool
 	remoteBranchExistsCallCount int
 	tagExists                   bool
+	remoteTagExists             bool
 	remoteBranchExists          bool
 	workingTreeClean            bool
 }
 
 func (g *fakeGit) TagExists(_ context.Context, _, _ string) (bool, error) {
 	return g.tagExists, nil
+}
+
+func (g *fakeGit) RemoteTagCommit(_ context.Context, _, _ string) (string, bool, error) {
+	return g.remoteTagCommit, g.remoteTagExists, nil
 }
 
 func (g *fakeGit) CurrentBranch(_ context.Context) (string, error) {
@@ -612,41 +790,44 @@ func (g *fakeGit) PushRemote(
 }
 
 type fakeGH struct {
-	tag                     string
-	target                  string
-	prBase                  string
+	existingRelease         *internal.GitHubRelease
+	canonicalRepositoryName string
+	pushRepositoryName      string
 	prTitle                 string
-	prBody                  string
+	tag                     string
 	prLabel                 string
 	prHead                  string
 	prRepository            string
 	releaseRepository       string
+	prBase                  string
 	canonicalRepositoryURL  string
-	canonicalRepositoryName string
-	pushRepositoryName      string
+	prBody                  string
+	target                  string
 	assets                  []string
 	assetCount              int
 	prerelease              bool
 	hasReleaseNotes         bool
 	called                  bool
+	updated                 bool
 	prCreated               bool
 }
 
 func (g *fakeGH) CreateRelease(_ context.Context, opts internal.Options) error {
-	g.called = true
-	g.tag = opts.Tag
-	g.target = opts.Target
-	g.releaseRepository = opts.Repository
-	g.prerelease = opts.Prerelease
-	g.assetCount = len(opts.Assets)
-	g.assets = append([]string(nil), opts.Assets...)
-	for _, asset := range opts.Assets {
-		if filepath.Base(asset) == "release-notes.md" {
-			g.hasReleaseNotes = true
-			break
-		}
+	return g.recordRelease(opts, false)
+}
+
+func (g *fakeGH) FindRelease(
+	_ context.Context,
+	_, _ string,
+) (internal.GitHubRelease, bool, error) {
+	if g.existingRelease == nil {
+		return internal.GitHubRelease{}, false, nil
 	}
-	return nil
+	return *g.existingRelease, true, nil
+}
+
+func (g *fakeGH) UpdateRelease(_ context.Context, opts internal.Options) error {
+	return g.recordRelease(opts, true)
 }
 
 func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) (string, error) {
@@ -678,6 +859,24 @@ func (g *fakeGH) Repository(
 		URL:           g.canonicalRepositoryURL,
 	}
 	return repository, parent, nil
+}
+
+func (g *fakeGH) recordRelease(opts internal.Options, updated bool) error {
+	g.called = true
+	g.updated = updated
+	g.tag = opts.Tag
+	g.target = opts.Target
+	g.releaseRepository = opts.Repository
+	g.prerelease = opts.Prerelease
+	g.assetCount = len(opts.Assets)
+	g.assets = append([]string(nil), opts.Assets...)
+	for _, asset := range opts.Assets {
+		if filepath.Base(asset) == "release-notes.md" {
+			g.hasReleaseNotes = true
+			break
+		}
+	}
+	return nil
 }
 
 type fakeBuilder struct {

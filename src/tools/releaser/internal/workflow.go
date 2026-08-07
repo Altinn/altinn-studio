@@ -17,11 +17,14 @@ import (
 
 // Workflow errors.
 var (
-	ErrChangelogMissing     = errors.New("changelog version section not found")
-	ErrBuildFailed          = errors.New("build failed")
-	ErrReleaseBranchMissing = errors.New("release branch does not exist for stable release")
-	ErrWrongReleaseBranch   = errors.New("release must run from its canonical branch")
-	errReleaseTargetMissing = errors.New("release target commit is empty")
+	ErrChangelogMissing      = errors.New("changelog version section not found")
+	ErrBuildFailed           = errors.New("build failed")
+	ErrReleaseBranchMissing  = errors.New("release branch does not exist for stable release")
+	ErrReleasePublished      = errors.New("release already exists and is not a draft")
+	ErrReleaseTargetMismatch = errors.New("existing draft targets a different commit")
+	ErrReleaseTagMismatch    = errors.New("release tag targets a different commit")
+	ErrWrongReleaseBranch    = errors.New("release must run from its canonical branch")
+	errReleaseTargetMissing  = errors.New("release target commit is empty")
 )
 
 // WorkflowConfig configures the release workflow.
@@ -50,6 +53,7 @@ type Workflow struct {
 	artifacts        []string
 	topology         RepositoryTopology
 	config           WorkflowConfig
+	resumeDraft      bool
 }
 
 // NewWorkflow creates a new Workflow instance.
@@ -117,6 +121,7 @@ func NewWorkflow(
 		parsedChangelog:  nil,
 		artifacts:        nil,
 		topology:         topology,
+		resumeDraft:      false,
 	}, nil
 }
 
@@ -193,7 +198,7 @@ func (w *Workflow) Run(ctx context.Context) error {
 		return err
 	}
 
-	if err := w.validateTagNotExists(ctx); err != nil {
+	if err := w.prepareReleaseState(ctx); err != nil {
 		return err
 	}
 
@@ -250,10 +255,20 @@ func (w *Workflow) parseTag() error {
 	return nil
 }
 
-func (w *Workflow) validateTagNotExists(ctx context.Context) error {
-	w.log.Step("Checking tag does not exist")
+func (w *Workflow) prepareReleaseState(ctx context.Context) error {
+	w.log.Step("Checking release state")
 
 	tagFull := w.tag.Full()
+	if !w.config.DryRun {
+		resumed, err := w.prepareExistingDraft(ctx, tagFull)
+		if err != nil {
+			return err
+		}
+		if resumed {
+			return nil
+		}
+	}
+
 	exists, err := w.git.TagExists(ctx, w.topology.SourceRemote, tagFull)
 	if err != nil {
 		return fmt.Errorf("check tag exists: %w", err)
@@ -270,6 +285,39 @@ func (w *Workflow) validateTagNotExists(ctx context.Context) error {
 
 	w.log.Success("Tag does not exist")
 	return nil
+}
+
+func (w *Workflow) prepareExistingDraft(ctx context.Context, tag string) (bool, error) {
+	existingRelease, found, err := w.gh.FindRelease(
+		ctx,
+		w.topology.BaseRepository.NameWithOwner,
+		tag,
+	)
+	if err != nil {
+		return false, fmt.Errorf("check existing release: %w", err)
+	}
+	if !found {
+		return false, nil
+	}
+	if !existingRelease.IsDraft {
+		return false, fmt.Errorf("%w: %s", ErrReleasePublished, tag)
+	}
+	target, err := w.determineReleaseTarget(ctx)
+	if err != nil {
+		return false, err
+	}
+	if existingRelease.TargetCommitish != target {
+		return false, fmt.Errorf(
+			"%w: %s targets %s, expected %s",
+			ErrReleaseTargetMismatch,
+			tag,
+			existingRelease.TargetCommitish,
+			target,
+		)
+	}
+	w.resumeDraft = true
+	w.log.Success("Existing draft matches release plan; publication will resume")
+	return true, nil
 }
 
 // enforceRefPolicy validates the planned ref against release type rules.
@@ -501,7 +549,42 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 
 	// gh CLI needs to run from repo root
 	w.gh.SetWorkdir(w.config.RepoRoot)
+	if err := w.validateRemoteTagTarget(ctx, target); err != nil {
+		return err
+	}
+	return w.publishGitHubRelease(ctx, opts)
+}
 
+func (w *Workflow) validateRemoteTagTarget(ctx context.Context, target string) error {
+	tag := w.tag.Full()
+	remoteTarget, exists, err := w.git.RemoteTagCommit(ctx, w.topology.SourceRemote, tag)
+	if err != nil {
+		return fmt.Errorf("resolve remote release tag: %w", err)
+	}
+	if !exists {
+		return nil
+	}
+	if remoteTarget != target {
+		return fmt.Errorf(
+			"%w: %s targets %s, expected %s",
+			ErrReleaseTagMismatch,
+			tag,
+			remoteTarget,
+			target,
+		)
+	}
+	w.log.Success("Existing release tag matches release plan")
+	return nil
+}
+
+func (w *Workflow) publishGitHubRelease(ctx context.Context, opts Options) error {
+	if w.resumeDraft {
+		if err := w.gh.UpdateRelease(ctx, opts); err != nil {
+			return fmt.Errorf("update draft release: %w", err)
+		}
+		w.log.Success("GitHub draft release updated")
+		return nil
+	}
 	if err := w.gh.CreateRelease(ctx, opts); err != nil {
 		return fmt.Errorf("create release: %w", err)
 	}

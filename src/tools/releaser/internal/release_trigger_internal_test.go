@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	triggerBeforeSHA = "abcdef0123456789"
-	triggerHeadSHA   = "0123456789abcdef"
-	triggerVersion   = "v1.0.0"
+	triggerBeforeSHA     = "abcdef0123456789abcdef0123456789abcdef01"
+	triggerHeadSHA       = "0123456789abcdef0123456789abcdef01234567"
+	triggerVersion       = "v1.0.0-preview.1"
+	triggerStableVersion = "v1.0.0"
 
 	triggerBaseChangelog = `# Changelog
 
@@ -26,7 +27,7 @@ const (
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-08-06
+## [1.0.0-preview.1] - 2026-08-06
 
 ### Added
 
@@ -40,7 +41,7 @@ const (
 
 - Arrived after the promotion
 
-## [1.0.0] - 2026-08-06
+## [1.0.0-preview.1] - 2026-08-06
 
 ### Added
 
@@ -239,10 +240,15 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+			selectedVersion := tc.version
+			if selectedVersion == "" {
+				selectedVersion = triggerVersion
+			}
 			git := fakeReleaseTriggerGit{}
 			if tc.version != "" {
 				component := components[tc.component]
 				git.outputs = map[string]string{
+					"rev-parse " + triggerHeadSHA + "^{commit}":              triggerHeadSHA,
 					"show " + triggerHeadSHA + ":" + component.ChangelogPath: triggerReleasedChangelog(tc.version),
 				}
 			}
@@ -252,6 +258,7 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 				RefType:           tc.refType,
 				Commit:            triggerHeadSHA,
 				SelectedComponent: tc.component,
+				SelectedVersion:   selectedVersion,
 			}, git)
 			if tc.wantErr != nil {
 				if !errors.Is(err, tc.wantErr) {
@@ -262,11 +269,108 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
 			}
-			want := releaseTriggerResult(tc.component, tc.refName, triggerHeadSHA, tc.version)
+			want := expectedReleaseTriggerResult(tc.component, tc.refName, tc.version)
 			if !reflect.DeepEqual(got, want) {
 				t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
 			}
 		})
+	}
+}
+
+func TestResolveReleaseTriggerManualRequiresExactVersion(t *testing.T) {
+	t.Parallel()
+
+	_, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            triggerHeadSHA,
+		SelectedComponent: "studioctl",
+	}, fakeReleaseTriggerGit{})
+	if !errors.Is(err, errReleaseTriggerVersionRequired) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerVersionRequired)
+	}
+}
+
+func TestResolveReleaseTriggerManualRequiresFullCommitSHA(t *testing.T) {
+	t.Parallel()
+
+	const abbreviatedCommit = "01234567"
+	git := fakeReleaseTriggerGit{outputs: map[string]string{
+		"rev-parse " + abbreviatedCommit + "^{commit}": triggerHeadSHA,
+	}}
+	_, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            abbreviatedCommit,
+		SelectedComponent: "studioctl",
+		SelectedVersion:   "v0.1.0-preview.1",
+	}, git)
+	if !errors.Is(err, errReleaseTriggerCommitExact) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerCommitExact)
+	}
+}
+
+func TestResolveReleaseTriggerManualCanRecoverOlderVersion(t *testing.T) {
+	t.Parallel()
+
+	const selectedVersion = "v1.3.0-preview.1"
+	appPath := components["app"].ChangelogPath
+	git := fakeReleaseTriggerGit{outputs: map[string]string{
+		"rev-parse " + triggerHeadSHA + "^{commit}": triggerHeadSHA,
+		"show " + triggerHeadSHA + ":" + appPath: `# Changelog
+
+## [Unreleased]
+
+## [v1.3.0-preview.2] - 2026-08-07
+
+### Added
+
+- Newer release
+
+## [v1.3.0-preview.1] - 2026-08-06
+
+### Added
+
+- Failed release
+`,
+	}}
+	got, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            triggerHeadSHA,
+		SelectedComponent: "app",
+		SelectedVersion:   selectedVersion,
+	}, git)
+	if err != nil {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v", err)
+	}
+	want := expectedReleaseTriggerResult("app", "main", selectedVersion)
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
+	}
+}
+
+func TestResolveReleaseTriggerManualRejectsMissingVersion(t *testing.T) {
+	t.Parallel()
+
+	appPath := components["app"].ChangelogPath
+	git := fakeReleaseTriggerGit{outputs: map[string]string{
+		"rev-parse " + triggerHeadSHA + "^{commit}": triggerHeadSHA,
+		"show " + triggerHeadSHA + ":" + appPath:    triggerReleasedChangelog("v1.3.0-preview.2"),
+	}}
+	_, err := resolveReleaseTriggerWithDeps(t.Context(), ReleaseTriggerRequest{
+		EventName:         "workflow_dispatch",
+		RefName:           "main",
+		RefType:           "branch",
+		Commit:            triggerHeadSHA,
+		SelectedComponent: "app",
+		SelectedVersion:   "v1.3.0-preview.1",
+	}, git)
+	if !errors.Is(err, errReleaseTriggerVersionMissing) {
+		t.Fatalf("resolveReleaseTriggerWithDeps() error = %v, want %v", err, errReleaseTriggerVersionMissing)
 	}
 }
 
@@ -293,14 +397,21 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			refName:    "main",
 			changed:    []string{appPath},
 			changelogs: map[string]triggerChangelogPair{appPath: promotion},
-			want:       releaseTriggerResult("app", "main", triggerHeadSHA, triggerVersion),
+			want:       expectedReleaseTriggerResult("app", "main", triggerVersion),
 		},
 		{
-			name:       "studioctl promotion on release branch",
-			refName:    "release/studioctl/v1.2",
-			changed:    []string{studioctlPath},
-			changelogs: map[string]triggerChangelogPair{studioctlPath: promotion},
-			want:       releaseTriggerResult("studioctl", "release/studioctl/v1.2", triggerHeadSHA, triggerVersion),
+			name:    "studioctl promotion on release branch",
+			refName: "release/studioctl/v1.0",
+			changed: []string{studioctlPath},
+			changelogs: map[string]triggerChangelogPair{studioctlPath: {
+				base: triggerStabilizationBase,
+				head: triggerStabilizedChangelog,
+			}},
+			want: expectedReleaseTriggerResult(
+				"studioctl",
+				"release/studioctl/v1.0",
+				triggerStableVersion,
+			),
 		},
 		{
 			name:       "ordinary changelog update is a no-op",
@@ -327,7 +438,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 				appPath:       promotion,
 				studioctlPath: ordinary,
 			},
-			want: releaseTriggerResult("app", "main", triggerHeadSHA, triggerVersion),
+			want: expectedReleaseTriggerResult("app", "main", triggerVersion),
 		},
 		{
 			name:    "promotion remains detectable beside a later entry for the same component",
@@ -336,7 +447,7 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			changelogs: map[string]triggerChangelogPair{
 				appPath: {base: triggerBaseChangelog, head: triggerPromotedWithNewEntry},
 			},
-			want: releaseTriggerResult("app", "main", triggerHeadSHA, triggerVersion),
+			want: expectedReleaseTriggerResult("app", "main", triggerVersion),
 		},
 		{
 			name:    "multiple promotions fail closed",
@@ -382,7 +493,11 @@ func TestResolveReleaseTriggerPush(t *testing.T) {
 			changelogs: map[string]triggerChangelogPair{
 				appPath: {base: triggerStabilizationBase, head: triggerStabilizedChangelog},
 			},
-			want: releaseTriggerResult("app", "release/app/v1.0", triggerHeadSHA, triggerVersion),
+			want: expectedReleaseTriggerResult(
+				"app",
+				"release/app/v1.0",
+				triggerStableVersion,
+			),
 		},
 		{
 			name:    "component without a publisher is ignored",
@@ -515,6 +630,24 @@ func TestResolveReleaseTriggerPushRequiredInputs(t *testing.T) {
 			t.Fatalf("resolveReleaseTriggerWithDeps() = %+v, want %+v", got, want)
 		}
 	})
+}
+
+func expectedReleaseTriggerResult(
+	componentName, baseBranch, releaseVersion string,
+) ReleaseTriggerResult {
+	component := components[componentName]
+	environment, err := resolveReleaseEnvironment(releaseVersion)
+	if err != nil {
+		panic(err)
+	}
+	return ReleaseTriggerResult{Release: &ReleasePlan{
+		Component:      component.Name,
+		Publisher:      component.Publisher,
+		Environment:    environment,
+		BaseBranch:     baseBranch,
+		Commit:         triggerHeadSHA,
+		ReleaseVersion: releaseVersion,
+	}}
 }
 
 func triggerReleasedChangelog(version string) string {

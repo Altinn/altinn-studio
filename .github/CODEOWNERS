@@ -142,6 +142,8 @@ src/test/K6/**/yarn.lock                                                  @altin
 src/tools/health/**/go.mod                                                @altinn/team-altinn-studio-kjoring
 src/tools/health/**/go.sum                                                @altinn/team-altinn-studio-kjoring
 src/tools/releaser/**/go.mod                                              @altinn/team-altinn-studio-kjoring
+src/tools/releaser/internal/component.go                                  @altinn/team-altinn-studio-kjoring
+src/tools/releaser/internal/release_policy.go                             @altinn/team-altinn-studio-kjoring
 src/tools/releaser/internal/release_trigger.go                            @altinn/team-altinn-studio-kjoring
 
 # Squad Flyt
