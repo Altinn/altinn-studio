@@ -105,5 +105,7 @@ prerelease, stabilization, and patch release flows.
 - The Go trigger policy is the publication source of truth. The component registry selects the reusable publisher;
   version policy maps `preview` releases to the `dev` environment, `rc` releases to `staging`, and stable releases to
   `prod`. Unknown prerelease channels fail closed during trigger resolution.
+- Publisher workflows serialize releases for the same component and base branch without cancelling an in-progress
+  publication. Different components and release lines can still publish independently.
 - Manual dispatch validates the exact selected version against the selected commit and branch; publishers never
   select a newer version or move their checkout while executing a release plan.
