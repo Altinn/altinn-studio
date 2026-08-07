@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using Altinn.Studio.StudioctlServer.Discovery.Process;
 
 namespace Altinn.Studio.StudioctlServer.Discovery;
 
@@ -219,6 +220,13 @@ internal sealed class AppRegistry : BackgroundService
     {
         var discoveryResults = new ConcurrentBag<DiscoveryResult>();
         var discoveryItems = _discoveries.Where(discovery => forceRefresh || now >= discovery.NextPoll);
+        var knownProcessIds = Volatile
+            .Read(ref _apps)
+            .Select(static app => app.ProcessId)
+            .Concat(_pendingStarts.Select(static waiter => waiter.ProcessId))
+            .Where(static processId => processId.HasValue)
+            .Select(static processId => processId.GetValueOrDefault())
+            .ToHashSet();
         var discoveryOptions = new ParallelOptions { CancellationToken = cancellationToken };
 
         await Parallel.ForEachAsync(
@@ -226,7 +234,9 @@ internal sealed class AppRegistry : BackgroundService
             discoveryOptions,
             async (discoveryItem, discoveryCancellationToken) =>
             {
-                var candidates = await discoveryItem.Discovery.Discover(discoveryCancellationToken);
+                var candidates = discoveryItem.Discovery is ProcessDiscovery processDiscovery
+                    ? await processDiscovery.Discover(knownProcessIds, discoveryCancellationToken)
+                    : await discoveryItem.Discovery.Discover(discoveryCancellationToken);
                 var probeResults = new ConcurrentBag<CandidateProbeResult>();
                 var candidateItems = candidates.Select(
                     static (candidate, index) => new CandidateItem(index, candidate)
@@ -296,7 +306,16 @@ internal sealed class AppRegistry : BackgroundService
 
         var appId = await _probe.Probe(candidate.BaseUri, cancellationToken);
         if (string.IsNullOrWhiteSpace(appId))
-            return null;
+        {
+            var existingBaseUri = AppEndpointUri.From(candidate.BaseUri);
+            return Volatile
+                .Read(ref _apps)
+                .FirstOrDefault(app =>
+                    app.BaseUri == existingBaseUri
+                    && app.ProcessId == candidate.ProcessId
+                    && string.Equals(app.ContainerId, candidate.ContainerId, StringComparison.Ordinal)
+                );
+        }
 
         var baseUri = AppEndpointUri.From(candidate.BaseUri);
         return new DiscoveredApp(
