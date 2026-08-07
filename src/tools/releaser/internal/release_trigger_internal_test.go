@@ -198,11 +198,24 @@ func TestResolveReleaseTriggerManual(t *testing.T) {
 			refType:   "branch",
 		},
 		{
+			name:      "studioctl from zero-major release branch",
+			component: "studioctl",
+			refName:   "release/studioctl/v0.1",
+			refType:   "branch",
+		},
+		{
 			name:      "component does not match release branch",
 			component: "app",
 			refName:   "release/studioctl/v1.2",
 			refType:   "branch",
 			wantErr:   errBaseBranchMismatch,
+		},
+		{
+			name:      "non-canonical release branch is rejected",
+			component: "app",
+			refName:   "release/app/v01.02",
+			refType:   "branch",
+			wantErr:   errBaseBranchFormat,
 		},
 		{
 			name:      "tags are rejected",

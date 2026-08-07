@@ -13,7 +13,7 @@ import (
 	semver "altinn.studio/releaser/internal/version"
 )
 
-var releaseBaseBranchPattern = regexp.MustCompile(`^release/([a-z0-9-]+)/v(\d+)\.(\d+)$`)
+var releaseBaseBranchPattern = regexp.MustCompile(`^release/([a-z0-9-]+)/v(0|[1-9]\d*)\.(0|[1-9]\d*)$`)
 
 var (
 	errBaseBranchFormat          = errors.New("base branch must be main or release/<component>/vX.Y")
