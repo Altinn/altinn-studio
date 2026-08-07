@@ -1,13 +1,13 @@
-name: App Libraries - Unit tests
+name: Common TypeScript - Unit tests
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'app-libs/**'
+      - 'src/common/typescript/**'
       - 'package.json'
       - 'yarn.lock'
-      - '.github/workflows/app-libs-unit-test.yml'
+      - '.github/workflows/common-typescript-unit-test.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
   workflow_dispatch:
@@ -24,7 +24,7 @@ jobs:
     name: Unit tests
     defaults:
       run:
-        working-directory: app-libs/
+        working-directory: src/common/typescript/
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -5482,6 +5482,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/common-typescript@workspace:src/common/typescript":
+  version: 0.0.0-use.local
+  resolution: "@studio/common-typescript@workspace:src/common/typescript"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    vitest: "npm:4.1.10"
+  languageName: unknown
+  linkType: soft
+
 "@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
   resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
@@ -7573,15 +7582,6 @@ __metadata:
     vitest: "npm:4.1.10"
     zod: "npm:4.4.3"
     zustand: "npm:5.0.14"
-  languageName: unknown
-  linkType: soft
-
-"app-libs@workspace:src/common/typescript":
-  version: 0.0.0-use.local
-  resolution: "app-libs@workspace:src/common/typescript"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    vitest: "npm:4.1.10"
   languageName: unknown
   linkType: soft
 

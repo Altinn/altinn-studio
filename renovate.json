@@ -88,7 +88,7 @@
       "groupName": "Design system in Designer"
     },
     {
-      "matchFileNames": ["src/App/**", "app-libs/**"],
+      "matchFileNames": ["src/App/**", "src/common/typescript/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)",
       "separateMinorPatch": true
@@ -96,7 +96,7 @@
     {
       "description": "Keep App Designsystemet updates together and separate from other dependency updates",
       "matchManagers": ["npm"],
-      "matchFileNames": ["src/App/frontend/**", "app-libs/**"],
+      "matchFileNames": ["src/App/frontend/**", "src/common/typescript/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in App"
     },

@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'app-libs/form-component/**'
+      - 'src/common/typescript/form-component/**'
       - '.github/workflows/apps-storybook-preview.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -36,7 +36,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build Storybook
-        working-directory: app-libs/form-component
+        working-directory: src/common/typescript/form-component
         run: yarn build-storybook
 
       - name: Deploy preview to Azure Static Web Apps
@@ -45,7 +45,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.APPS_DEV_STORYBOOK }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "app-libs/form-component/storybook-static"
+          app_location: "src/common/typescript/form-component/storybook-static"
           api_location: ""
           output_location: ""
           skip_app_build: true

@@ -10,11 +10,11 @@ for the wider repository picture.
 
 ## Packages
 
-| Folder | Package | What it is |
-| --- | --- | --- |
+| Folder           | Package               | What it is                                           |
+| ---------------- | --------------------- | ---------------------------------------------------- |
 | `form-component` | `@app/form-component` | React UI and layout components used to render forms. |
-| `form-engine` | `@app/form-engine` | Form logic that does not depend on React. |
-| `language` | `@app/language` | Language resources and text helpers. |
+| `form-engine`    | `@app/form-engine`    | Form logic that does not depend on React.            |
+| `language`       | `@app/language`       | Language resources and text helpers.                 |
 
 ## Build & test
 
@@ -26,7 +26,7 @@ yarn typecheck
 yarn lint
 ```
 
-CI: `.github/workflows/app-libs-unit-test.yml` validates this workspace.
+CI: `.github/workflows/common-typescript-unit-test.yml` validates this workspace.
 
 ## Working here
 

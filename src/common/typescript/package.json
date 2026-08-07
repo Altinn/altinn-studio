@@ -1,5 +1,5 @@
 {
-  "name": "app-libs",
+  "name": "@studio/common-typescript",
   "version": "0.0.0",
   "private": true,
   "packageManager": "yarn@4.18.0",
