@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { useAltinityWebSocket } from './useAltinityWebSocket';
+import { useAssistantWebSocket } from './useAssistantWebSocket';
 
 const mockInvoke = jest.fn();
 const mockConnection = { on: jest.fn(), off: jest.fn(), invoke: mockInvoke };
@@ -13,14 +13,14 @@ jest.mock('app-shared/websockets/WSConnector', () => ({
   })),
 }));
 
-describe('useAltinityWebSocket', () => {
+describe('useAssistantWebSocket', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockConnections = [mockConnection];
   });
 
   it('registers the agent message handler and reports connected', () => {
-    const { result } = renderUseAltinityWebSocket();
+    const { result } = renderUseAssistantWebSocket();
 
     expect(mockConnection.on).toHaveBeenCalledWith('ReceiveAgentMessage', expect.any(Function));
     expect(result.current.connectionStatus).toBe('connected');
@@ -29,7 +29,7 @@ describe('useAltinityWebSocket', () => {
   describe('respondToPermission', () => {
     it('sends the permission response over the hub connection', async () => {
       mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAltinityWebSocket();
+      const { result } = renderUseAssistantWebSocket();
 
       await result.current.respondToPermission('session-1', 'request-1', true);
 
@@ -44,7 +44,7 @@ describe('useAltinityWebSocket', () => {
     it('rethrows when the hub invocation fails', async () => {
       mockInvoke.mockRejectedValue(new Error('Hub disconnected'));
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      const { result } = renderUseAltinityWebSocket();
+      const { result } = renderUseAssistantWebSocket();
 
       await expect(
         result.current.respondToPermission('session-1', 'request-1', false),
@@ -55,7 +55,7 @@ describe('useAltinityWebSocket', () => {
 
     it('throws when there is no active hub connection', async () => {
       mockConnections = [];
-      const { result } = renderUseAltinityWebSocket();
+      const { result } = renderUseAssistantWebSocket();
 
       await expect(
         result.current.respondToPermission('session-1', 'request-1', true),
@@ -67,7 +67,7 @@ describe('useAltinityWebSocket', () => {
   describe('cancelWorkflow', () => {
     it('sends the cancellation over the hub connection', async () => {
       mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAltinityWebSocket();
+      const { result } = renderUseAssistantWebSocket();
 
       await result.current.cancelWorkflow('session-1');
 
@@ -78,7 +78,7 @@ describe('useAltinityWebSocket', () => {
   describe('registerSession', () => {
     it('registers the session over the hub connection', async () => {
       mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAltinityWebSocket();
+      const { result } = renderUseAssistantWebSocket();
 
       await result.current.registerSession('testOrg', 'testApp', 'thread-1');
 
@@ -87,4 +87,4 @@ describe('useAltinityWebSocket', () => {
   });
 });
 
-const renderUseAltinityWebSocket = () => renderHook(() => useAltinityWebSocket());
+const renderUseAssistantWebSocket = () => renderHook(() => useAssistantWebSocket());

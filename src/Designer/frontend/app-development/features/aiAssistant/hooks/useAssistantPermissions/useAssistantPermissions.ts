@@ -5,10 +5,8 @@ export const ALLOWED_ORGANIZATIONS = ['ttd'];
 /**
  * During beta, access is restricted to specific organizations.
  * Backend permissions are enforced by AuthorizationConfiguration/AiAssistantPermissionHandler.
- *
- * TODO: rename to useAssistantPermissions.
  */
-export const useAltinityPermissions = (): boolean => {
+export const useAssistantPermissions = (): boolean => {
   const { org } = useStudioEnvironmentParams();
   return ALLOWED_ORGANIZATIONS.includes(org);
 };

@@ -17,8 +17,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
-import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
-import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
+import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
+import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import {
   decorateMessagesWithTraceIds,
   formatRejectedEventMessage,
@@ -33,7 +33,7 @@ const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
 
-export interface UseAltinityWorkflowResult {
+export interface UseAssistantWorkflowResult {
   connectionStatus: ConnectionStatus;
   workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
@@ -44,8 +44,7 @@ export interface UseAltinityWorkflowResult {
   messages: Message[];
 }
 
-// TODO: rename to useAssistantWorkflow.
-export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
+export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistantWorkflowResult => {
   const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
     Record<string, WorkflowStatus>
   >({});
@@ -58,7 +57,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     respondToPermission: sendPermissionResponse,
     registerSession,
     onAgentMessage,
-  } = useAltinityWebSocket();
+  } = useAssistantWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);

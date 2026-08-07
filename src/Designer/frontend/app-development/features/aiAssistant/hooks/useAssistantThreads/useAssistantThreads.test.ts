@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { MessageAuthor } from '@studio/assistant';
 import type { AssistantMessage, UserMessage } from '@studio/assistant';
-import { useAltinityThreads } from './useAltinityThreads';
+import { useAssistantThreads } from './useAssistantThreads';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
@@ -37,7 +37,7 @@ const mockUseDeleteChatMessageMutation = useDeleteChatMessageMutation as jest.Mo
 
 const threadId = 'session-1';
 
-describe('useAltinityThreads', () => {
+describe('useAssistantThreads', () => {
   beforeEach(() => {
     mockUseChatThreadsQuery.mockReturnValue({ data: [] } as any);
     mockUseCreateChatThreadMutation.mockReturnValue({
@@ -56,7 +56,7 @@ describe('useAltinityThreads', () => {
   });
 
   it('updates current session when selecting a thread', () => {
-    const { result } = renderUseAltinityThreads();
+    const { result } = renderUseAssistantThreads();
 
     act(() => {
       result.current.selectThread(threadId);
@@ -69,7 +69,7 @@ describe('useAltinityThreads', () => {
     const createMutateAsync = jest.fn().mockResolvedValue({ id: 'new-thread-id' });
     mockUseCreateChatThreadMutation.mockReturnValue({ mutateAsync: createMutateAsync } as any);
 
-    const { result } = renderUseAltinityThreads();
+    const { result } = renderUseAssistantThreads();
 
     let createdId: string | undefined;
     await act(async () => {
@@ -84,7 +84,7 @@ describe('useAltinityThreads', () => {
     const deleteMessageMutate = jest.fn();
     mockUseDeleteChatMessageMutation.mockReturnValue({ mutate: deleteMessageMutate } as any);
 
-    const { result } = renderUseAltinityThreads();
+    const { result } = renderUseAssistantThreads();
 
     act(() => {
       result.current.deleteMessage(threadId, 'message-1');
@@ -107,7 +107,7 @@ describe('useAltinityThreads', () => {
       attachments: [{ name: 'file-a.pdf' }, { name: 'file-b.png' }],
     };
 
-    const { result } = renderUseAltinityThreads();
+    const { result } = renderUseAssistantThreads();
 
     await act(async () => {
       await result.current.createMessage(threadId, userMessage);
@@ -140,7 +140,7 @@ describe('useAltinityThreads', () => {
       sources: [{ tool: 'search', title: 'Doc' }],
     };
 
-    const { result } = renderUseAltinityThreads();
+    const { result } = renderUseAssistantThreads();
 
     await act(async () => {
       await result.current.createMessage(threadId, assistantMessage);
@@ -165,7 +165,7 @@ describe('useAltinityThreads', () => {
       .mockImplementation((_id, options) => options?.onSuccess?.());
     mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: deleteThreadMutate } as any);
 
-    const { result } = renderUseAltinityThreads();
+    const { result } = renderUseAssistantThreads();
 
     act(() => {
       result.current.selectThread(threadId);
@@ -180,4 +180,4 @@ describe('useAltinityThreads', () => {
   });
 });
 
-const renderUseAltinityThreads = () => renderHook(() => useAltinityThreads());
+const renderUseAssistantThreads = () => renderHook(() => useAssistantThreads());

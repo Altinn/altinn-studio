@@ -14,7 +14,7 @@ enum AltinityClientsName {
   ReceiveAgentMessage = 'ReceiveAgentMessage',
 }
 
-export interface UseAltinityWebSocketResult {
+export interface UseAssistantWebSocketResult {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   startWorkflow: (request: WorkflowRequest) => Promise<AgentResponse>;
   cancelWorkflow: (sessionId: string) => Promise<void>;
@@ -23,8 +23,7 @@ export interface UseAltinityWebSocketResult {
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
 
-// TODO: rename to useAssistantWebSocket.
-export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
+export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const wsInstanceRef = useRef<any>(null);
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);

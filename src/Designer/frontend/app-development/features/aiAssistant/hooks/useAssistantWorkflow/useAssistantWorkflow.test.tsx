@@ -8,24 +8,24 @@ import type {
   WorkflowRequest,
 } from '@studio/assistant';
 import { ErrorMessages, MessageAuthor } from '@studio/assistant';
-import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
-import { useAltinityWorkflow } from './useAltinityWorkflow';
-import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
+import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
+import { useAssistantWorkflow } from './useAssistantWorkflow';
+import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { renderHookWithProviders } from '../../../../test/mocks';
 import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 
-jest.mock('../useAltinityWebSocket/useAltinityWebSocket');
+jest.mock('../useAssistantWebSocket/useAssistantWebSocket');
 jest.mock('app-shared/hooks/queries/useCurrentBranchQuery');
 
-const mockUseAltinityWebSocket = useAltinityWebSocket as jest.MockedFunction<
-  typeof useAltinityWebSocket
+const mockUseAssistantWebSocket = useAssistantWebSocket as jest.MockedFunction<
+  typeof useAssistantWebSocket
 >;
 const mockUseCurrentBranchQuery = useCurrentBranchQuery as jest.MockedFunction<
   typeof useCurrentBranchQuery
 >;
 
-describe('useAltinityWorkflow', () => {
+describe('useAssistantWorkflow', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -34,7 +34,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState();
     const startWorkflow = jest.fn();
 
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow,
       cancelWorkflow: jest.fn(),
@@ -46,7 +46,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -67,7 +67,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'database-thread-id' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
@@ -81,7 +81,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     const assistantMessageEvent: AssistantMessageEvent = {
       type: 'assistant_message',
@@ -103,7 +103,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -117,7 +117,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAltinityWorkflow(threads);
+    const { result, rerender } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -157,7 +157,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -171,7 +171,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAltinityWorkflow(threads);
+    const { result, rerender } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -207,7 +207,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -221,7 +221,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -261,7 +261,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -275,7 +275,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -306,7 +306,7 @@ describe('useAltinityWorkflow', () => {
       message: 'Rejected',
     });
 
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow,
       cancelWorkflow: jest.fn(),
@@ -318,7 +318,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -354,7 +354,7 @@ describe('useAltinityWorkflow', () => {
     const respondToPermission = jest.fn().mockResolvedValue(undefined);
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -368,7 +368,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -404,7 +404,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
@@ -418,7 +418,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -436,7 +436,7 @@ describe('useAltinityWorkflow', () => {
     const respondToPermission = jest.fn().mockResolvedValue(undefined);
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -450,7 +450,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -487,7 +487,7 @@ describe('useAltinityWorkflow', () => {
     const respondToPermission = jest.fn().mockRejectedValue(new Error('Hub disconnected'));
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
       cancelWorkflow: jest.fn(),
@@ -501,7 +501,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -537,7 +537,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
@@ -551,7 +551,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -574,7 +574,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
@@ -588,7 +588,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -612,7 +612,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
@@ -626,7 +626,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAltinityWorkflow(threads);
+    renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -643,7 +643,7 @@ describe('useAltinityWorkflow', () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
     const respondToPermission = jest.fn();
 
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow: jest.fn(),
@@ -655,7 +655,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.respondToPermission('stale-request-id', true);
@@ -679,7 +679,7 @@ describe('useAltinityWorkflow', () => {
     });
     const cancelWorkflow = jest.fn();
 
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow,
@@ -691,7 +691,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -723,7 +723,7 @@ describe('useAltinityWorkflow', () => {
     });
     const cancelWorkflow = jest.fn();
 
-    mockUseAltinityWebSocket.mockReturnValue({
+    mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
       startWorkflow: jest.fn(),
       cancelWorkflow,
@@ -735,7 +735,7 @@ describe('useAltinityWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAltinityWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -746,7 +746,9 @@ describe('useAltinityWorkflow', () => {
   });
 });
 
-const createThreadState = (overrides: Partial<AltinityThreadState> = {}): AltinityThreadState => ({
+const createThreadState = (
+  overrides: Partial<AssistantThreadState> = {},
+): AssistantThreadState => ({
   chatThreads: [],
   selectedThreadId: null,
   chatMessages: [],
@@ -758,9 +760,9 @@ const createThreadState = (overrides: Partial<AltinityThreadState> = {}): Altini
   ...overrides,
 });
 
-const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {
+const renderUseAssistantWorkflow = (threads: AssistantThreadState) => {
   const queryClient = new QueryClient();
-  return renderHookWithProviders({}, queryClient)(() => useAltinityWorkflow(threads))
+  return renderHookWithProviders({}, queryClient)(() => useAssistantWorkflow(threads))
     .renderHookResult;
 };
 

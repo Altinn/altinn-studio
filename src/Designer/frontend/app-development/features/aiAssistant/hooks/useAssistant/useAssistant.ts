@@ -5,10 +5,10 @@ import type {
   WorkflowStatus,
   ConnectionStatus,
 } from '@studio/assistant';
-import { useAltinityThreads } from '../useAltinityThreads/useAltinityThreads';
-import { useAltinityWorkflow } from '../useAltinityWorkflow/useAltinityWorkflow';
+import { useAssistantThreads } from '../useAssistantThreads/useAssistantThreads';
+import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkflow';
 
-export interface UseAltinityAssistantResult {
+export interface UseAssistantResult {
   connectionStatus: ConnectionStatus;
   workflowStatusByThread: Record<string, WorkflowStatus>;
   chatThreads: ChatThread[];
@@ -25,10 +25,10 @@ export interface UseAltinityAssistantResult {
 
 /**
  * Cohabitates all the callers that the main AiAssistant component needs. Do not add logic to this hook beyond this.
- * TODO: consider exposing useAltinityWorkflow to the caller directly, and deleting this hook.
+ * TODO: consider exposing useAssistantWorkflow to the caller directly, and deleting this hook.
  */
-export const useAltinityAssistant = (): UseAltinityAssistantResult => {
-  const threads = useAltinityThreads();
+export const useAssistant = (): UseAssistantResult => {
+  const threads = useAssistantThreads();
   const {
     connectionStatus,
     workflowStatusByThread,
@@ -38,7 +38,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     cancelledMessageContent,
     clearCancelledMessageContent,
     messages,
-  } = useAltinityWorkflow(threads);
+  } = useAssistantWorkflow(threads);
 
   return {
     connectionStatus,

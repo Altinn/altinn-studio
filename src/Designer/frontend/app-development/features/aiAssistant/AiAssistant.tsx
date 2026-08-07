@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { Trans, useTranslation } from 'react-i18next';
-import { useAltinityAssistant, useAltinityPermissions } from './hooks';
+import { useAssistant, useAssistantPermissions } from './hooks';
 import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
@@ -15,7 +15,7 @@ function AiAssistant(): ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentUser } = useUserQuery();
-  const userHasAccessToAssistant = useAltinityPermissions();
+  const userHasAccessToAssistant = useAssistantPermissions();
   const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
 
   const {
@@ -31,7 +31,7 @@ function AiAssistant(): ReactElement {
     clearCancelledMessageContent,
     selectThread,
     deleteThread,
-  } = useAltinityAssistant();
+  } = useAssistant();
 
   // TODO: extract into new useAssistantTexts hook
   const texts: AssistantTexts = {
