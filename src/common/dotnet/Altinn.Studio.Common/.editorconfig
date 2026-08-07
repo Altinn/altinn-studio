@@ -123,6 +123,10 @@ dotnet_diagnostic.S3251.severity = none
 dotnet_diagnostic.S3267.severity = none
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = none
+# CA1848: Existing hosting logs use the ILogger extension API
+dotnet_diagnostic.CA1848.severity = none
+# CA1873: Existing signal logging evaluates an enum value
+dotnet_diagnostic.CA1873.severity = none
 
 [*.{yml,yaml,json}]
 indent_size = 2

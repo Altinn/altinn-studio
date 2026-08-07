@@ -126,9 +126,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-component@workspace:*, @app/form-component@workspace:app-libs/form-component":
+"@app/form-component@workspace:*, @app/form-component@workspace:src/common/typescript/form-component":
   version: 0.0.0-use.local
-  resolution: "@app/form-component@workspace:app-libs/form-component"
+  resolution: "@app/form-component@workspace:src/common/typescript/form-component"
   dependencies:
     "@app/language": "workspace:0.1.0"
     "@chromatic-com/storybook": "npm:5.2.1"
@@ -192,9 +192,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-engine@workspace:*, @app/form-engine@workspace:app-libs/form-engine":
+"@app/form-engine@workspace:*, @app/form-engine@workspace:src/common/typescript/form-engine":
   version: 0.0.0-use.local
-  resolution: "@app/form-engine@workspace:app-libs/form-engine"
+  resolution: "@app/form-engine@workspace:src/common/typescript/form-engine"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@testing-library/jest-dom": "npm:6.9.1"
@@ -217,9 +217,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/language@workspace:*, @app/language@workspace:0.1.0, @app/language@workspace:app-libs/language":
+"@app/language@workspace:*, @app/language@workspace:0.1.0, @app/language@workspace:src/common/typescript/language":
   version: 0.0.0-use.local
-  resolution: "@app/language@workspace:app-libs/language"
+  resolution: "@app/language@workspace:src/common/typescript/language"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@typescript-eslint/eslint-plugin": "npm:8.61.1"
@@ -7320,9 +7320,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"app-libs@workspace:app-libs":
+"app-libs@workspace:src/common/typescript":
   version: 0.0.0-use.local
-  resolution: "app-libs@workspace:app-libs"
+  resolution: "app-libs@workspace:src/common/typescript"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
     vitest: "npm:4.1.10"

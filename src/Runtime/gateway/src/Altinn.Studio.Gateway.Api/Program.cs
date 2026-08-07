@@ -1,9 +1,9 @@
+using Altinn.Studio.Common;
 using Altinn.Studio.Gateway.Api;
 using Altinn.Studio.Gateway.Api.Authentication;
 using Altinn.Studio.Gateway.Api.Hosting;
-using Altinn.Studio.Runtime.Common;
-using HostPortScope = Altinn.Studio.Runtime.Common.PortScope;
-using HostPortScopeMetadata = Altinn.Studio.Runtime.Common.PortScopeMetadata;
+using HostPortScope = Altinn.Studio.Common.PortScope;
+using HostPortScopeMetadata = Altinn.Studio.Common.PortScopeMetadata;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.AddGateway();
