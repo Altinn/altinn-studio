@@ -28,6 +28,7 @@ var (
 type WorkflowConfig struct {
 	Component             string // Required: component name (e.g., "studioctl")
 	Version               string // Required: version to release (e.g., "v1.0.0")
+	BaseBranch            string // Canonical branch supplied by an immutable release plan
 	ChangelogPath         string // Optional: override component's default changelog path
 	OutputDir             string // Directory for build artifacts (default: build/release)
 	RepoRoot              string // Repository root directory (for gh CLI, default: ../..)
@@ -271,21 +272,25 @@ func (w *Workflow) validateTagNotExists(ctx context.Context) error {
 	return nil
 }
 
-// enforceRefPolicy validates the current ref against release type rules.
+// enforceRefPolicy validates the planned ref against release type rules.
 func (w *Workflow) enforceRefPolicy(ctx context.Context) error {
 	w.log.Step("Enforcing ref policy")
 
-	currentBranch, err := w.git.CurrentBranch(ctx)
-	if err != nil {
-		return fmt.Errorf("get current branch: %w", err)
+	baseBranch := w.config.BaseBranch
+	if baseBranch == "" {
+		currentBranch, err := w.git.CurrentBranch(ctx)
+		if err != nil {
+			return fmt.Errorf("get current branch: %w", err)
+		}
+		baseBranch = currentBranch
 	}
-	w.log.Detail("Current branch", currentBranch)
+	w.log.Detail("Base branch", baseBranch)
 
 	if w.tag.Version.IsPrerelease {
-		return w.enforcePrereleasePolicy(ctx, currentBranch)
+		return w.enforcePrereleasePolicy(ctx, baseBranch)
 	}
 
-	return w.enforceStablePolicy(ctx, currentBranch)
+	return w.enforceStablePolicy(ctx, baseBranch)
 }
 
 func (w *Workflow) enforcePrereleasePolicy(ctx context.Context, currentBranch string) error {

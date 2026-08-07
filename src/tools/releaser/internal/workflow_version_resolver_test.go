@@ -83,6 +83,23 @@ func TestRunWorkflow_RejectsMismatchedCommit(t *testing.T) {
 	}
 }
 
+func TestRunWorkflow_UsesPlannedBranchFromDetachedCommit(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, triggerPlanChangelog)
+	runGitCmd(t, repo, "checkout", "--detach")
+	t.Chdir(repo)
+
+	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
+		Component:  "studioctl",
+		Version:    "v1.2.3-preview.1",
+		BaseBranch: "main",
+		DryRun:     true,
+		Draft:      true,
+	})
+	if err != nil {
+		t.Fatalf("RunWorkflowWithDeps() error = %v", err)
+	}
+}
+
 func TestRunWorkflow_RejectsVersionFromWrongBranch(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, triggerPlanChangelog)
 	t.Chdir(repo)

@@ -35,7 +35,7 @@ jobs:
           ref: ${{ inputs.commit }}
           persist-credentials: false
 
-      - name: Checkout base branch
+      - name: Verify release commit
         env:
           BASE_BRANCH: ${{ inputs.base-branch }}
           RELEASE_COMMIT: ${{ inputs.commit }}
@@ -45,7 +45,6 @@ jobs:
             echo "Release commit $RELEASE_COMMIT is not on origin/$BASE_BRANCH" >&2
             exit 1
           fi
-          git checkout -B "$BASE_BRANCH" "$RELEASE_COMMIT"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0

@@ -84,6 +84,7 @@ func RunWorkflowWithDeps(
 	cfg := WorkflowConfig{
 		Component:             req.Component,
 		Version:               req.Version,
+		BaseBranch:            req.BaseBranch,
 		ChangelogPath:         "",
 		OutputDir:             "",
 		RepoRoot:              repoRoot,
