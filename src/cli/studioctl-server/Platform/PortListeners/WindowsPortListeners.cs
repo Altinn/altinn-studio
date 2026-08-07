@@ -20,34 +20,8 @@ internal sealed partial class WindowsPortListeners : IPortListenerSource
 
     public async Task<IReadOnlyList<PortListener>> Get(CancellationToken cancellationToken)
     {
-        var listeners = await ReadListeners(cancellationToken);
-
-        await ResolveMissingCommandLines(listeners, cancellationToken);
-
-        var resolvedListeners = new List<PortListener>(listeners.Count);
-        foreach (var listener in listeners)
-            resolvedListeners.Add(ResolveProcessMetadata(listener));
-
-        PruneProcessCaches(resolvedListeners);
-        return resolvedListeners;
-    }
-
-    public async Task<IReadOnlyList<PortListener>> GetForProcesses(
-        IReadOnlySet<int> processIds,
-        CancellationToken cancellationToken
-    )
-    {
-        if (processIds.Count == 0)
-            return [];
-
-        var listeners = await ReadListeners(cancellationToken);
-        return [.. listeners.Where(listener => processIds.Contains(listener.ProcessId))];
-    }
-
-    private static Task<IReadOnlyList<PortListener>> ReadListeners(CancellationToken cancellationToken)
-    {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(
+        var listeners = await Task.Run(
             () =>
             {
                 var snapshot = new List<PortListener>();
@@ -57,6 +31,15 @@ internal sealed partial class WindowsPortListeners : IPortListenerSource
             },
             cancellationToken
         );
+
+        await ResolveMissingCommandLines(listeners, cancellationToken);
+
+        var resolvedListeners = new List<PortListener>(listeners.Count);
+        foreach (var listener in listeners)
+            resolvedListeners.Add(ResolveProcessMetadata(listener));
+
+        PruneProcessCaches(resolvedListeners);
+        return resolvedListeners;
     }
 
     private void PruneProcessCaches(IEnumerable<PortListener> listeners)

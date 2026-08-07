@@ -12,9 +12,4 @@ internal sealed class PortListeners
     }
 
     public Task<IReadOnlyList<PortListener>> Get(CancellationToken cancellationToken) => _source.Get(cancellationToken);
-
-    public Task<IReadOnlyList<PortListener>> GetForProcesses(
-        IReadOnlySet<int> processIds,
-        CancellationToken cancellationToken
-    ) => _source.GetForProcesses(processIds, cancellationToken);
 }

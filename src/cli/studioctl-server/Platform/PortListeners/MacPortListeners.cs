@@ -41,39 +41,13 @@ internal sealed partial class MacPortListeners : IPortListenerSource
         }
 
         if (needsRefresh)
-            await AddProcessMetadata(
-                nextKnownListeners,
-                currentListeners,
-                processIds: null,
-                includeCommandLines: true,
-                cancellationToken
-            );
+            await AddProcessMetadata(nextKnownListeners, currentListeners, cancellationToken);
 
         _knownListeners.Clear();
         foreach (var (listenerKey, listener) in nextKnownListeners)
             _knownListeners[listenerKey] = listener;
 
         return [.. nextKnownListeners.Values.Distinct()];
-    }
-
-    public async Task<IReadOnlyList<PortListener>> GetForProcesses(
-        IReadOnlySet<int> processIds,
-        CancellationToken cancellationToken
-    )
-    {
-        if (processIds.Count == 0)
-            return [];
-
-        var currentListeners = await ReadListeningPorts(cancellationToken);
-        var listeners = new Dictionary<MacListenerKey, PortListener>();
-        await AddProcessMetadata(
-            listeners,
-            currentListeners,
-            processIds,
-            includeCommandLines: false,
-            cancellationToken
-        );
-        return [.. listeners.Values.Distinct()];
     }
 
     private async Task<HashSet<MacListenerKey>> ReadListeningPorts(CancellationToken cancellationToken)
@@ -94,8 +68,6 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     private async Task AddProcessMetadata(
         Dictionary<MacListenerKey, PortListener> knownListeners,
         HashSet<MacListenerKey> currentListeners,
-        IReadOnlySet<int>? processIds,
-        bool includeCommandLines,
         CancellationToken cancellationToken
     )
     {
@@ -122,18 +94,13 @@ internal sealed partial class MacPortListeners : IPortListenerSource
                     if (processId == 0 || value.Contains("->", StringComparison.Ordinal))
                         continue;
 
-                    if (processIds is not null && !processIds.Contains(processId))
-                        continue;
-
                     if (!TryParseListener(value, out var listenerKey))
                         continue;
 
                     if (!currentListeners.Contains(listenerKey))
                         continue;
 
-                    var commandLine = includeCommandLines
-                        ? await ReadCommandLine(processId, commandLines, cancellationToken)
-                        : null;
+                    var commandLine = await ReadCommandLine(processId, commandLines, cancellationToken);
                     knownListeners[listenerKey] = new PortListener(
                         processId,
                         listenerKey.Port,

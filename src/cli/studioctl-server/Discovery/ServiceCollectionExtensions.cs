@@ -34,7 +34,6 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<PortListeners>();
         services.AddSingleton<AppMetadataProbe>();
         services.AddSingleton<LocaltestStorageProbe>();
-        services.AddSingleton<StartupDiscovery>();
         services.AddSingleton<IAppDiscovery, ProcessDiscovery>();
         services.AddSingleton<IAppDiscovery, ContainerDiscovery>();
         services.AddSingleton<AppRegistry>();

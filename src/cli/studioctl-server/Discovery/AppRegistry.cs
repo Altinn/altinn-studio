@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using Altinn.Studio.StudioctlServer.Discovery.Process;
 
 namespace Altinn.Studio.StudioctlServer.Discovery;
 
@@ -10,20 +11,18 @@ internal sealed class AppRegistry : BackgroundService
 
     private readonly DiscoveryState[] _discoveries;
     private readonly TimeSpan _passivePollInterval;
-    private readonly StartupDiscovery _startupDiscovery;
     private readonly AppMetadataProbe _probe;
     private readonly LocaltestStorageProbe _storageProbe;
     private readonly ILogger<AppRegistry> _logger;
     private readonly Channel<AppRegistryMessage> _messages = Channel.CreateUnbounded<AppRegistryMessage>();
     private readonly List<AppStartWaiter> _pendingStarts = [];
-    private readonly List<AppRegistration> _registrations = [];
 
     private DiscoveredApp[] _apps = [];
+    private bool _lastRefreshFailed;
     private Action? _changed;
 
     public AppRegistry(
         IEnumerable<IAppDiscovery> discoveries,
-        StartupDiscovery startupDiscovery,
         AppMetadataProbe probe,
         LocaltestStorageProbe storageProbe,
         ILogger<AppRegistry> logger
@@ -31,7 +30,6 @@ internal sealed class AppRegistry : BackgroundService
     {
         _discoveries = [.. discoveries.Select(static (discovery, index) => new DiscoveryState(index, discovery))];
         _passivePollInterval = _discoveries.Min(static discovery => discovery.Discovery.PassivePollInterval);
-        _startupDiscovery = startupDiscovery;
         _probe = probe;
         _storageProbe = storageProbe;
         _logger = logger;
@@ -155,7 +153,8 @@ internal sealed class AppRegistry : BackgroundService
     )
     {
         var now = DateTimeOffset.UtcNow;
-        var shouldRefresh = message is not TimerTick || _pendingStarts.Count > 0 || now >= nextPoll;
+        var shouldRefresh =
+            message is not TimerTick || (_pendingStarts.Count > 0 && !_lastRefreshFailed) || now >= nextPoll;
         if (!shouldRefresh)
         {
             PrunePendingStarts(now);
@@ -168,27 +167,24 @@ internal sealed class AppRegistry : BackgroundService
                 _pendingStarts.Add(started.Waiter);
                 break;
             case AppStoppedMessage stopped when stopped.AppId is { } appId:
-                _registrations.RemoveAll(registration =>
-                    string.Equals(registration.AppId, appId, StringComparison.OrdinalIgnoreCase)
-                );
                 if (_logger.IsEnabled(LogLevel.Debug))
                     _logger.LogDebug("App stopped notification received for {AppId}", appId);
                 break;
             case AppStoppedMessage:
-                _registrations.Clear();
                 if (_logger.IsEnabled(LogLevel.Debug))
                     _logger.LogDebug("App stopped notification received");
                 break;
         }
 
-        var forcePassiveRefresh = message is AppStoppedMessage;
-        var refreshPassiveDiscoveries = forcePassiveRefresh || now >= nextPoll;
         try
         {
-            await Refresh(now, refreshPassiveDiscoveries, forcePassiveRefresh, cancellationToken);
+            var forceRefresh = message is not TimerTick || _pendingStarts.Count > 0;
+            await Refresh(now, forceRefresh, cancellationToken);
+            _lastRefreshFailed = false;
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
+            _lastRefreshFailed = true;
             _logger.LogError(ex, "App discovery refresh failed");
         }
         finally
@@ -196,21 +192,14 @@ internal sealed class AppRegistry : BackgroundService
             PrunePendingStarts(DateTimeOffset.UtcNow);
         }
 
-        return refreshPassiveDiscoveries && now >= nextPoll ? now + _passivePollInterval : nextPoll;
+        return now >= nextPoll ? now + _passivePollInterval : nextPoll;
     }
 
-    private async Task Refresh(
-        DateTimeOffset now,
-        bool refreshPassiveDiscoveries,
-        bool forcePassiveRefresh,
-        CancellationToken cancellationToken
-    )
+    private async Task Refresh(DateTimeOffset now, bool forceRefresh, CancellationToken cancellationToken)
     {
         var previous = Volatile.Read(ref _apps);
 
-        var passiveApps = await DiscoverApps(now, refreshPassiveDiscoveries, forcePassiveRefresh, cancellationToken);
-        var startupApps = await DiscoverStartupApps(passiveApps, cancellationToken);
-        var apps = MergeApps(passiveApps, startupApps);
+        var apps = await DiscoverApps(now, forceRefresh, cancellationToken);
         if (!previous.SequenceEqual(apps))
         {
             Volatile.Write(ref _apps, apps);
@@ -225,15 +214,19 @@ internal sealed class AppRegistry : BackgroundService
 
     private async Task<DiscoveredApp[]> DiscoverApps(
         DateTimeOffset now,
-        bool refreshDiscoveries,
         bool forceRefresh,
         CancellationToken cancellationToken
     )
     {
         var discoveryResults = new ConcurrentBag<DiscoveryResult>();
-        var discoveryItems = _discoveries.Where(discovery =>
-            refreshDiscoveries && (forceRefresh || now >= discovery.NextPoll)
-        );
+        var discoveryItems = _discoveries.Where(discovery => forceRefresh || now >= discovery.NextPoll);
+        var knownProcessIds = Volatile
+            .Read(ref _apps)
+            .Select(static app => app.ProcessId)
+            .Concat(_pendingStarts.Select(static waiter => waiter.ProcessId))
+            .Where(static processId => processId.HasValue)
+            .Select(static processId => processId.GetValueOrDefault())
+            .ToHashSet();
         var discoveryOptions = new ParallelOptions { CancellationToken = cancellationToken };
 
         await Parallel.ForEachAsync(
@@ -241,11 +234,38 @@ internal sealed class AppRegistry : BackgroundService
             discoveryOptions,
             async (discoveryItem, discoveryCancellationToken) =>
             {
-                var candidates = await discoveryItem.Discovery.Discover(discoveryCancellationToken);
+                var candidates = discoveryItem.Discovery is ProcessDiscovery processDiscovery
+                    ? await processDiscovery.Discover(knownProcessIds, discoveryCancellationToken)
+                    : await discoveryItem.Discovery.Discover(discoveryCancellationToken);
+                var probeResults = new ConcurrentBag<CandidateProbeResult>();
+                var candidateItems = candidates.Select(
+                    static (candidate, index) => new CandidateItem(index, candidate)
+                );
+                var candidateOptions = new ParallelOptions
+                {
+                    CancellationToken = discoveryCancellationToken,
+                    MaxDegreeOfParallelism = MaxConcurrentProbes,
+                };
+
+                await Parallel.ForEachAsync(
+                    candidateItems,
+                    candidateOptions,
+                    async (candidateItem, probeCancellationToken) =>
+                    {
+                        var app = await ProbeCandidate(candidateItem.Candidate, probeCancellationToken);
+                        if (app is not null)
+                            probeResults.Add(new CandidateProbeResult(candidateItem.Index, app));
+                    }
+                );
+
                 discoveryResults.Add(
                     new DiscoveryResult(
                         discoveryItem.Index,
-                        await ProbeCandidates(candidates, discoveryCancellationToken)
+                        [
+                            .. probeResults
+                                .OrderBy(static result => result.CandidateIndex)
+                                .Select(static result => result.App),
+                        ]
                     )
                 );
             }
@@ -269,66 +289,6 @@ internal sealed class AppRegistry : BackgroundService
         return [.. apps.Values];
     }
 
-    private async Task<DiscoveredApp[]> DiscoverStartupApps(
-        IReadOnlyList<DiscoveredApp> passiveApps,
-        CancellationToken cancellationToken
-    )
-    {
-        var registrations = _registrations
-            .Concat(_pendingStarts.Select(static waiter => new AppRegistration(waiter.AppId, waiter.Target)))
-            .Distinct()
-            .Where(registration => !passiveApps.Any(registration.Matches))
-            .ToArray();
-        if (registrations.Length == 0)
-            return [];
-
-        var candidates = await _startupDiscovery.Discover(
-            [.. registrations.Select(static registration => registration.Target).Distinct()],
-            cancellationToken
-        );
-        var apps = await ProbeCandidates(candidates, cancellationToken);
-        return [.. apps.Where(app => registrations.Any(registration => registration.Matches(app)))];
-    }
-
-    private async Task<DiscoveredApp[]> ProbeCandidates(
-        IReadOnlyList<AppDiscoveryCandidate> candidates,
-        CancellationToken cancellationToken
-    )
-    {
-        var probeResults = new ConcurrentBag<CandidateProbeResult>();
-        var candidateItems = candidates.Select(static (candidate, index) => new CandidateItem(index, candidate));
-        var candidateOptions = new ParallelOptions
-        {
-            CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = MaxConcurrentProbes,
-        };
-        await Parallel.ForEachAsync(
-            candidateItems,
-            candidateOptions,
-            async (candidateItem, probeCancellationToken) =>
-            {
-                var app = await ProbeCandidate(candidateItem.Candidate, probeCancellationToken);
-                if (app is not null)
-                    probeResults.Add(new CandidateProbeResult(candidateItem.Index, app));
-            }
-        );
-
-        return [.. probeResults.OrderBy(static result => result.CandidateIndex).Select(static result => result.App)];
-    }
-
-    private static DiscoveredApp[] MergeApps(
-        IReadOnlyList<DiscoveredApp> passiveApps,
-        IReadOnlyList<DiscoveredApp> startupApps
-    )
-    {
-        var apps = new Dictionary<AppKey, DiscoveredApp>();
-        foreach (var app in passiveApps)
-            apps[AppKey.From(app)] = app;
-        foreach (var app in startupApps)
-            apps[AppKey.From(app)] = app;
-        return [.. apps.Values];
-    }
-
     private async Task<DiscoveredApp?> ProbeCandidate(
         AppDiscoveryCandidate candidate,
         CancellationToken cancellationToken
@@ -346,7 +306,16 @@ internal sealed class AppRegistry : BackgroundService
 
         var appId = await _probe.Probe(candidate.BaseUri, cancellationToken);
         if (string.IsNullOrWhiteSpace(appId))
-            return null;
+        {
+            var existingBaseUri = AppEndpointUri.From(candidate.BaseUri);
+            return Volatile
+                .Read(ref _apps)
+                .FirstOrDefault(app =>
+                    app.BaseUri == existingBaseUri
+                    && app.ProcessId == candidate.ProcessId
+                    && string.Equals(app.ContainerId, candidate.ContainerId, StringComparison.Ordinal)
+                );
+        }
 
         var baseUri = AppEndpointUri.From(candidate.BaseUri);
         return new DiscoveredApp(
@@ -382,9 +351,6 @@ internal sealed class AppRegistry : BackgroundService
             )
                 continue;
 
-            var registration = new AppRegistration(waiter.AppId, waiter.Target);
-            if (!_registrations.Contains(registration))
-                _registrations.Add(registration);
             waiter.TrySetResult(app.BaseUri.Value);
             _pendingStarts.RemoveAt(i);
         }
@@ -474,12 +440,6 @@ internal sealed class AppRegistry : BackgroundService
 
     private sealed record AppStoppedMessage(string? AppId) : AppRegistryMessage;
 
-    private sealed record AppRegistration(string AppId, AppDiscoveryTarget Target)
-    {
-        public bool Matches(DiscoveredApp app) =>
-            string.Equals(AppId, app.AppId, StringComparison.OrdinalIgnoreCase) && Target.Matches(app);
-    }
-
     private sealed class DiscoveryState
     {
         public DiscoveryState(int index, IAppDiscovery discovery)
@@ -511,7 +471,6 @@ internal sealed class AppRegistry : BackgroundService
         public int? ProcessId { get; }
         public string? ContainerId { get; }
         public int? HostPort { get; }
-        public AppDiscoveryTarget Target => new(ProcessId, ContainerId, HostPort);
         public DateTimeOffset Deadline { get; }
         public Task<Uri> Task => _result.Task;
         public bool IsCompleted => _result.Task.IsCompleted;
@@ -520,7 +479,17 @@ internal sealed class AppRegistry : BackgroundService
         {
             if (!string.Equals(app.AppId, AppId, StringComparison.OrdinalIgnoreCase))
                 return false;
-            return Target.Matches(app);
+
+            if (ProcessId.HasValue && app.ProcessId != ProcessId)
+                return false;
+
+            if (
+                !string.IsNullOrWhiteSpace(ContainerId)
+                && !string.Equals(app.ContainerId, ContainerId, StringComparison.Ordinal)
+            )
+                return false;
+
+            return !HostPort.HasValue || app.HostPort == HostPort || app.BaseUri.Port == HostPort;
         }
 
         public void TrySetResult(Uri baseUri) => _result.TrySetResult(baseUri);
