@@ -14,7 +14,9 @@ namespace Altinn.App.Core.EFormidling.Configuration;
 /// <see cref="IEFormidlingBuilder"/>, which you reach by making it.
 /// </remarks>
 [IncompleteBuilder(
-    "Complete the registration by calling WithMetadata<T>() with your IEFormidlingMetadata implementation"
+    $"Complete the registration by calling WithMetadata<T>() with your {nameof(IEFormidlingMetadata)} implementation"
+        + $" — or, if the app registers its own {nameof(IEFormidlingService)} and needs nothing else from the builder,"
+        + " discard the result explicitly with '_ ='"
 )]
 public interface IEFormidlingMetadataStage
 {
