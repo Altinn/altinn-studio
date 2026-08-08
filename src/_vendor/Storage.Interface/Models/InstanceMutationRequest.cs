@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Altinn.Platform.Storage.Interface.Enums;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models;

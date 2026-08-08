@@ -19,6 +19,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.App.Tests.Common.Mocks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -299,7 +300,7 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(StatusCodes.Status409Conflict, storageProblem.RootElement.GetProperty("status").GetInt32());
         Assert.Equal("Process status conflict", storageProblem.RootElement.GetProperty("title").GetString());
         Assert.Contains(
-            $"Current status: '{ProcessStatus.Processing}'",
+            "Current status: 'processing'",
             storageProblem.RootElement.GetProperty("detail").GetString(),
             StringComparison.Ordinal
         );

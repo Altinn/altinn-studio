@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
@@ -881,7 +882,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (!ProcessStatusHelper.IsIdle(_instance))
         {
             throw new InvalidOperationException(
-                $"Cannot save user-facing instance changes while process status is '{_instance.Process?.Status}'."
+                $"Cannot save user-facing instance changes while process status is '{_instance.Process?.Status?.ToString().ToLowerInvariant()}'."
             );
         }
         if (

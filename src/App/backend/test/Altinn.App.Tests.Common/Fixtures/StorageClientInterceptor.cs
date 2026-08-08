@@ -8,6 +8,7 @@ using System.Web;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
@@ -859,7 +860,7 @@ public class StorageClientInterceptor : HttpMessageHandler
                 HttpStatusCode.Conflict,
                 "process_status_conflict",
                 "Process status conflict",
-                $"Process status did not match expected status. Current status: '{instance.Process?.Status ?? ProcessStatus.Idle}'."
+                $"Process status did not match expected status. Current status: '{(instance.Process?.Status ?? ProcessStatus.Idle).ToString().ToLowerInvariant()}'."
             );
         }
 

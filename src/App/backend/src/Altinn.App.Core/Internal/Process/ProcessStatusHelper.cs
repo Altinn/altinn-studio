@@ -1,3 +1,4 @@
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,8 @@ internal static class ProcessStatusHelper
         {
             Type = MutationBlockedProblemType,
             Title = "Instance mutation blocked.",
-            Detail = $"The instance cannot be changed while its process status is '{currentStatus}'.",
+            Detail =
+                $"The instance cannot be changed while its process status is '{currentStatus.ToString().ToLowerInvariant()}'.",
             Status = StatusCodes.Status409Conflict,
         };
         problem.Extensions["processStatus"] = currentStatus;

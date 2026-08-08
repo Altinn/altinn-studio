@@ -15,6 +15,7 @@ using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.App.Tests.Common.Mocks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -127,7 +128,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false))
         );
 
-        Assert.Contains(processStatus.ToString(), exception.Message, StringComparison.Ordinal);
+        Assert.Contains(processStatus.ToString().ToLowerInvariant(), exception.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true

@@ -7,6 +7,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Tests.Data;
