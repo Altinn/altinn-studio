@@ -72,7 +72,7 @@ public sealed class SpellingConfigMigrationTests : IDisposable
               "resources": [
                 { "id": "date_picker.min_date_exeeded", "value": "For tidlig" },
                 { "id": "date_picker.max_date_exeeded", "value": "For sent" },
-                { "id": "my.own.key", "value": "Min tekst" }
+                { "id": "my.own.key", "value": "My own value" }
               ]
             }
             """

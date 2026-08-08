@@ -25,7 +25,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         };
         public const string XACML_CACHE_KEY = "/api/v1/meta/authorizationpolicy/";
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
-        public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
+        public const string TEXT_RESOURCE_CACHE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
         private static readonly TimeSpan ApplicationMetadataRequestTimeout = TimeSpan.FromSeconds(5);
         private readonly IMemoryCache _cache;
@@ -120,7 +120,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         public async Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default)
         {
             var appId = $"{org}/{app}";
-            var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
+            var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACHE_KEY + org + app + language, async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 return await GetStringAsync($"{appId}/api/v1/texts/{language}", appId, cancellationToken);

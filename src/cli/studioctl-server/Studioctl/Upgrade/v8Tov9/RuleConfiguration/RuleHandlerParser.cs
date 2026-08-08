@@ -144,8 +144,8 @@ internal sealed class RuleHandlerParser
                 // Check if the value is a function (regular function or arrow function)
                 IFunction? function = prop.Value switch
                 {
-                    FunctionExpression fe => fe,
-                    ArrowFunctionExpression afe => afe,
+                    FunctionExpression functionExpression => functionExpression,
+                    ArrowFunctionExpression arrowFunctionExpression => arrowFunctionExpression,
                     _ => null,
                 };
 

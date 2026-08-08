@@ -99,7 +99,7 @@ public class TenorDataRepository
             Persons = freg.Select(f =>
             {
                 var fnr = f.Identifikasjonsnummer.FirstErGjeldende()?.FoedselsEllerDNummer ?? throw new Exception("fødselsnummer ikke funnet");
-                var adresse = f.Bostedsadresse.FirstErGjeldende() ?? throw new Exception("Mangler bostedsadresse");
+                var address = f.Bostedsadresse.FirstErGjeldende() ?? throw new Exception("Mangler bostedsadresse");
                 return new AppTestPerson
                 {
                     UserId = userId++,
@@ -108,10 +108,10 @@ public class TenorDataRepository
                     FirstName = f.Navn.FirstErGjeldende()?.Fornavn ?? "Ukjent",
                     LastName = f.Navn.FirstErGjeldende()?.Etternavn ?? "Ukjent",
                     MiddleName = f.Navn.FirstErGjeldende()?.Mellomnavn,
-                    UserName = $"user-{99999999999 - long.Parse(fnr)}", // Make an sytnetic username based on an obfuscated fnr
-                    AddressCity = adresse.Vegadresse.Poststed.Poststedsnavn,
-                    // AddressMunicipalName = adresse.Vegadresse.Kommunenummer,
-                    AddressMunicipalNumber = adresse.Vegadresse.Kommunenummer,
+                    UserName = $"user-{99999999999 - long.Parse(fnr)}", // Make a synthetic username based on an obfuscated fnr
+                    AddressCity = address.Vegadresse.Poststed.Poststedsnavn,
+                    // AddressMunicipalName = address.Vegadresse.Kommunenummer,
+                    AddressMunicipalNumber = address.Vegadresse.Kommunenummer,
                     AddressHouseLetter = f.Bostedsadresse.FirstErGjeldende()?.Vegadresse.Adressekode,
                     AddressHouseNumber = f.Bostedsadresse.FirstErGjeldende()?.Vegadresse.Adressenummer.Husnummer,
                     AddressMunicipalName = null,
@@ -212,7 +212,7 @@ public class TenorDataRepository
     }
 }
 
-public static class ListExtentions
+public static class ListExtensions
 {
     public static T? FirstErGjeldende<T>(this List<T> list)
     {

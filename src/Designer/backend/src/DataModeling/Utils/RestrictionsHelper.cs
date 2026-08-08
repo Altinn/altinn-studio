@@ -9,8 +9,10 @@ namespace Altinn.Studio.DataModeling.Utils;
 public static class RestrictionsHelper
 {
     /// <summary>
-    /// UsedFo
+    /// Checks whether a facet restricts a date based simple type.
     /// </summary>
+    /// <param name="facet">The facet to check</param>
+    /// <returns>True if the facet belongs to a restriction of a date based type, otherwise false</returns>
     public static bool IsRestrictionOnDateType(XmlSchemaFacet facet)
     {
         if (facet.Parent is not XmlSchemaSimpleTypeRestriction parent)

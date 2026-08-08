@@ -23,7 +23,7 @@ const policySubject = [
     id: '16857e39-441f-4dd4-8592-aed94e816c04',
     name: 'Begrenset signeringsrettighet',
     description:
-      'Tilgang til å signere utvalgte skjema og tjenester. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.',
+      'Access to sign selected forms and services. The access granted by the role may change when regulations change or new digital services are introduced.',
     urn: 'urn:altinn:rolecode:SISKD',
     legacyRoleCode: 'SISKD',
     legacyUrn: 'urn:altinn:rolecode:SISKD',

@@ -4,7 +4,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
 /// Renames the v8 Altinn.App API members whose names were misspelled or spelled in British English.
-/// v9 standardised on US English for code, so an app referencing the old names no longer compiles.
+/// v9 standardized on US English for code, so an app referencing the old names no longer compiles.
 ///
 /// Each entry is matched on a whole word, so an app's own identifiers that merely contain one of these
 /// as a substring are left alone. Names too generic to match safely are reported instead of rewritten.
@@ -47,7 +47,7 @@ internal static class SpellingRenameMigration
     /// <c>IFileAnalyser.Analyse</c> became <c>IFileAnalyzer.Analyze</c>. "Analyse" on its own is far too
     /// common a word to rewrite blindly, so only a call or declaration directly on the member is matched.
     /// </summary>
-    private static readonly Regex _analyseMember = new(
+    private static readonly Regex _legacyAnalyzeMember = new(
         @"(?<=\.|\bTask<FileAnalysisResult>\s+|\bpublic\s+Task<FileAnalysisResult>\s+)Analyse(?=\s*\()",
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
@@ -80,12 +80,12 @@ internal static class SpellingRenameMigration
                 totalReplacements += count;
             }
 
-            var analyseCount = _analyseMember.Matches(updated).Count;
-            if (analyseCount > 0)
+            var legacyAnalyzeCount = _legacyAnalyzeMember.Matches(updated).Count;
+            if (legacyAnalyzeCount > 0)
             {
-                updated = _analyseMember.Replace(updated, "Analyze");
-                perName["Analyse"] = perName.GetValueOrDefault("Analyse") + analyseCount;
-                totalReplacements += analyseCount;
+                updated = _legacyAnalyzeMember.Replace(updated, "Analyze");
+                perName["Analyse"] = perName.GetValueOrDefault("Analyse") + legacyAnalyzeCount;
+                totalReplacements += legacyAnalyzeCount;
             }
 
             if (ReferenceEquals(updated, text) || updated == text)

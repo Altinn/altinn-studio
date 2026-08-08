@@ -4,8 +4,8 @@ import * as header from '../../buildrequestheaders.js';
 import { httpGet } from '../../wrapper.js';
 
 //Api call to App Api:Data to get a data by id of an app instance and returns response
-export function getDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, appOwner, appName) {
-  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'dataid');
+export function getDataById(altinnStudioRuntimeCookie, partyId, instanceId, dataId, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, dataId, 'dataid');
   var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return httpGet(endpoint, params);
 }
@@ -18,8 +18,8 @@ export function findDataId(instanceJson) {
 }
 
 //Api call to App Api:Data to edit a data by id of an app instance and returns response
-export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, attachmentType, data, appOwner, appName) {
-  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'dataid');
+export function putDataById(altinnStudioRuntimeCookie, partyId, instanceId, dataId, attachmentType, data, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, dataId, 'dataid');
   var isBinaryAttachment = typeof data === 'object' ? true : false;
   var params = header.buildHeadersForData(isBinaryAttachment, attachmentType, altinnStudioRuntimeCookie, 'app');
   var requestBody = data;
@@ -27,8 +27,8 @@ export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataI
 }
 
 //Api call to App Api:Data to delete a data by id of an app instance and returns response
-export function deleteDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, appOwner, appName) {
-  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'dataid');
+export function deleteDataById(altinnStudioRuntimeCookie, partyId, instanceId, dataId, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, dataId, 'dataid');
   var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.del(endpoint, '', params);
 }
@@ -41,8 +41,8 @@ export function getValidateInstanceData(altinnStudioRuntimeCookie, partyId, inst
 }
 
 //Api call to App Api:Data to add a data to an app instance and returns response
-export function postData(altinnStudioRuntimeCookie, partyId, instaceId, dataType, data, attachmentType, appOwner, appName) {
-  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, '', 'instanceid') + '/data?dataType=' + dataType;
+export function postData(altinnStudioRuntimeCookie, partyId, instanceId, dataType, data, attachmentType, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, '', 'instanceid') + '/data?dataType=' + dataType;
   var isBinaryAttachment = typeof data === 'object' ? true : false;
   var params = header.buildHeadersForData(isBinaryAttachment, attachmentType, altinnStudioRuntimeCookie, 'app');
   return http.post(endpoint, data, params);
