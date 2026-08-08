@@ -1,0 +1,46 @@
+# Spell check for Altinn Studio — code, comments and docs, in US English.
+#
+# Customer-facing UI text is British English and is checked separately; see
+# typos.en-gb.toml and AGENTS.md ("Spelling and language").
+#
+# The rule this config encodes: spellcheck prose and code, never data. Fixtures,
+# schemas, code lists and wire payloads are data — they are full of Norwegian and
+# of names we do not own, and checking them buys nothing.
+#
+# Run:  yarn spell:check     Fix:  yarn spell:fix
+
+[files]
+extend-exclude = [
+    # Generated or not written by hand
+    "**/bin/**", "**/obj/**", "**/dist/**", "**/node_modules/**", "**/.yarn/**",
+    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
+
+    # Not English. Altinn is a Norwegian product; these are its language corpora.
+    "**/language/**", "**/texts/*.ts", "**/config/texts/**",
+    "src/gitea/files/locale/**", "**/altinn/policy/**", "**/policy_tool/**",
+    "src/tools/altinn-fleet-stats/**",
+
+    # Test data and fixtures: Norwegian by nature, and the field names are the
+    # contract under test rather than prose.
+    "**/[Tt]estdata/**", "**/_TestData/**", "**/*SourceGenerator*/**",
+    "src/test/apps/**",
+]
+
+# Data formats hold fixtures, schemas, code lists and wire payloads, not prose.
+[type.data]
+extend-glob = [
+    "*.json", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
+    "*.cshtml", "*.tmpl", "*.html", "*.svg", "*.css", "*.env", "*.txt",
+    "*.yaml", "*.yml", "*.snap", "*.lock",
+]
+check-file = false
+
+[default]
+locale = "en-us"
+
+[default.extend-identifiers]
+# Proper nouns and names we do not own. Whole identifiers, so the spelling stays
+# enforced everywhere else.
+als = "als"                          # test organization slug
+axe = "axe"                          # axe-core, the accessibility library
+ba = "ba"                            # botAccount lambda shorthand

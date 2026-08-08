@@ -34,12 +34,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Spell check
-        uses: crate-ci/typos@bee27e3a4fd1ea2111cf90ab89cd076c870fce14 # v1.48.0
-        with:
-          config: src/Runtime/workflow-engine/typos.toml
-          files: src/Runtime/workflow-engine
-
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:

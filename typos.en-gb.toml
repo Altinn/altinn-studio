@@ -1,0 +1,24 @@
+# Spell check for CUSTOMER-FACING UI TEXT — British English.
+#
+# Policy (see AGENTS.md "Spelling and language"):
+#   * Text a citizen or service owner reads in the product is British English
+#     ("organisation", "colour", "analyse").
+#   * Everything else — code, identifiers, comments, log and exception
+#     messages, docs — is US English and is checked by `typos.toml`.
+#
+# This config has no file globs of its own: it is run against an explicit list
+# of English UI-text files (see the `spell:check:en-gb` script in package.json
+# and .github/workflows/spellcheck.yaml). Those same files are excluded from
+# typos.toml so no file is ever checked against both locales.
+#
+# Run:  yarn spell:check:en-gb
+# Fix:  yarn spell:fix:en-gb
+
+[default]
+locale = "en-gb"
+
+[default.extend-words]
+# ISO 639 language codes used as translation keys (`language.ba`, `language.fo`, …)
+ba = "ba"            # Bashkir
+fo = "fo"            # Faroese
+nd = "nd"            # North Ndebele
