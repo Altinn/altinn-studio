@@ -16,9 +16,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </para>
 /// <para>
 /// In v8 that was harmless - nothing else used the client. In v9 it is not: the same default
-/// <c>IMaskinportenClient</c> is what <c>AuthenticationTokenResolver</c> injects to mint the org tokens the
-/// workflow engine's callbacks run on, so redirecting it breaks the app's process transitions rather than
-/// just its own integration. The failure is silent and deployment-only, which is why it is reported here.
+/// <c>IMaskinportenClient</c> is what <c>AuthenticationTokenResolver</c> injects to mint the service owner
+/// tokens the workflow engine's callbacks run on, so redirecting it breaks the app's process transitions
+/// rather than just its own integration. The failure is silent and deployment-only, hence reporting it.
 /// </para>
 /// <para>
 /// Binding the same section the platform uses is a no-op and is not reported; anything else is.
@@ -34,7 +34,7 @@ internal sealed class MaskinportenClientOverrideDetector
     private const string Summary =
         "This app calls ConfigureMaskinportenClient, which takes over the default Maskinporten client. In v9 "
         + "that client is shared infrastructure: Studio provisions its credentials at deploy time, and the "
-        + "workflow engine mints the app's org tokens through it, so redirecting it to another configuration "
+        + "workflow engine mints the app's service owner tokens through it, so redirecting it to another configuration "
         + "section or a custom lambda means the provisioned credentials are never read and process transitions "
         + "fail once deployed - silently, and only in a deployed environment. If this configures a Maskinporten "
         + "client for the app's own integration, give that integration its own settings type and HttpClient "

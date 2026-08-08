@@ -27,15 +27,12 @@ const (
 
 	// minWindowsVersionParts is the minimum number of parts in a Windows version string (major.minor.build).
 	minWindowsVersionParts = 3
-)
 
-// Levels shared by every levelled report section (Disk, Maskinporten). Exported because the renderer in
-// the parent command package switches on them, and because they are part of the --json output contract.
-const (
-	CheckLevelOK    = "ok"
-	CheckLevelInfo  = "info"
-	CheckLevelWarn  = "warn"
-	CheckLevelError = "error"
+	// Disk check levels.
+	diskLevelOK    = "ok"
+	diskLevelInfo  = "info"
+	diskLevelWarn  = "warn"
+	diskLevelError = "error"
 )
 
 var (
@@ -62,7 +59,6 @@ type Report struct {
 	Prerequisites *Prerequisites                 `json:"prerequisites"`
 	Auth          *Auth                          `json:"auth"`
 	App           *App                           `json:"app"`
-	Maskinporten  *Maskinporten                  `json:"maskinporten,omitempty"`
 	Disk          *Disk                          `json:"disk"`
 	LocaltestEnv  *envlocaltest.DiagnosticReport `json:"localtestEnv"`
 	System        *System                        `json:"system"`
@@ -163,14 +159,12 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 
 // BuildReport builds a doctor report from system state.
 func (s *Service) BuildReport(ctx context.Context) Report {
-	app := s.buildApp(ctx)
 	return Report{
 		CLI:           &CLI{Version: s.cfg.Version.String()},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
 		Auth:          s.buildAuth(),
-		App:           app,
-		Maskinporten:  s.buildMaskinporten(app),
+		App:           s.buildApp(ctx),
 		Disk:          s.buildDisk(),
 		LocaltestEnv:  s.buildLocaltestEnv(ctx),
 	}
@@ -194,9 +188,6 @@ func (s *Service) HasIssues(report Report) bool {
 		return true
 	}
 	if report.Disk != nil && report.Disk.HasIssues {
-		return true
-	}
-	if report.Maskinporten != nil && report.Maskinporten.HasIssues {
 		return true
 	}
 	return report.LocaltestEnv == nil || report.LocaltestEnv.HasIssues

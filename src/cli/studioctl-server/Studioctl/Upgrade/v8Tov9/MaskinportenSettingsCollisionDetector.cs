@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// Warn-only detector for an app's own <c>MaskinportenSettings</c> configuration section clashing with
 /// the one the platform provisions.
 /// <para>
-/// Every v9 app has a built-in Maskinporten client - the workflow engine's callbacks mint org tokens
+/// Every v9 app has a built-in Maskinporten client - the workflow engine's callbacks mint service owner tokens
 /// through it - and Studio provisions its credentials as a <c>maskinporten-settings.json</c> file whose
 /// root is a <c>MaskinportenSettings</c> section. That file is registered as a configuration source
 /// <em>after</em> <c>appsettings.json</c>, so it wins; and .NET configuration merges key by key, not

@@ -26,7 +26,7 @@ func (s *Service) buildDisk() *Disk {
 
 	hasIssues := false
 	for _, check := range checks {
-		if check.Level == CheckLevelWarn || check.Level == CheckLevelError {
+		if check.Level == diskLevelWarn || check.Level == diskLevelError {
 			hasIssues = true
 			break
 		}
@@ -44,14 +44,14 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 		if os.IsNotExist(err) {
 			return DiskCheck{
 				ID:      id,
-				Level:   CheckLevelError,
+				Level:   diskLevelError,
 				Path:    path,
 				Message: "directory missing",
 			}
 		}
 		return DiskCheck{
 			ID:      id,
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "stat failed: " + err.Error(),
 		}
@@ -59,7 +59,7 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 	if !info.IsDir() {
 		return DiskCheck{
 			ID:      id,
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "path exists but is not a directory",
 		}
@@ -67,7 +67,7 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 	if _, readErr := os.ReadDir(path); readErr != nil {
 		return DiskCheck{
 			ID:      id,
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "directory is not readable: " + readErr.Error(),
 		}
@@ -75,9 +75,9 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 
 	tmpFile, err := os.CreateTemp(path, ".studioctl-doctor-*")
 	if err != nil {
-		level := CheckLevelWarn
+		level := diskLevelWarn
 		if criticalWritable {
-			level = CheckLevelError
+			level = diskLevelError
 		}
 		return DiskCheck{
 			ID:      id,
@@ -88,9 +88,9 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 	}
 	tmpName := tmpFile.Name()
 	if closeErr := tmpFile.Close(); closeErr != nil {
-		level := CheckLevelWarn
+		level := diskLevelWarn
 		if criticalWritable {
-			level = CheckLevelError
+			level = diskLevelError
 		}
 		return DiskCheck{
 			ID:      id,
@@ -100,9 +100,9 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 		}
 	}
 	if removeErr := os.Remove(tmpName); removeErr != nil {
-		level := CheckLevelWarn
+		level := diskLevelWarn
 		if criticalWritable {
-			level = CheckLevelError
+			level = diskLevelError
 		}
 		return DiskCheck{
 			ID:      id,
@@ -114,7 +114,7 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 
 	return DiskCheck{
 		ID:      id,
-		Level:   CheckLevelOK,
+		Level:   diskLevelOK,
 		Path:    path,
 		Message: "ready",
 	}
@@ -127,14 +127,14 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 		if os.IsNotExist(err) {
 			return DiskCheck{
 				ID:      "credentials_file",
-				Level:   CheckLevelInfo,
+				Level:   diskLevelInfo,
 				Path:    path,
 				Message: "missing (not logged in)",
 			}
 		}
 		return DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "stat failed: " + err.Error(),
 		}
@@ -142,7 +142,7 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 	if info.IsDir() {
 		return DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "path exists but is a directory",
 		}
@@ -156,7 +156,7 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 	if warning := ownerOnlyPermissionsWarning(info.Mode()); warning != "" {
 		return DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    path,
 			Message: warning,
 		}
@@ -169,7 +169,7 @@ func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
 	if info, err := os.Stat(installDir); err == nil && !info.IsDir() {
 		return DiskCheck{
 			ID:      "appmgr_binary",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    installDir,
 			Message: "install path exists but is not a directory",
 		}
@@ -181,14 +181,14 @@ func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
 		if os.IsNotExist(err) {
 			return DiskCheck{
 				ID:      "appmgr_binary",
-				Level:   CheckLevelInfo,
+				Level:   diskLevelInfo,
 				Path:    path,
 				Message: "not installed",
 			}
 		}
 		return DiskCheck{
 			ID:      "appmgr_binary",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    path,
 			Message: "stat failed: " + err.Error(),
 		}
@@ -196,7 +196,7 @@ func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
 	if info.IsDir() {
 		return DiskCheck{
 			ID:      "appmgr_binary",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "path exists but is a directory",
 		}
@@ -204,7 +204,7 @@ func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
 	if runtime.GOOS != osutil.OSWindows && info.Mode()&0o111 == 0 {
 		return DiskCheck{
 			ID:      "appmgr_binary",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    path,
 			Message: "file is not executable",
 		}
@@ -212,7 +212,7 @@ func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
 
 	return DiskCheck{
 		ID:      "appmgr_binary",
-		Level:   CheckLevelOK,
+		Level:   diskLevelOK,
 		Path:    path,
 		Message: "present",
 	}
@@ -234,7 +234,7 @@ func (s *Service) checkStudioctlServerRuntimeState() DiskCheck {
 	if pidInfo.IsDir() {
 		return DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    pidPath,
 			Message: "pid path is a directory",
 		}
@@ -242,7 +242,7 @@ func (s *Service) checkStudioctlServerRuntimeState() DiskCheck {
 	if socketInfo.IsDir() {
 		return DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    socketPath,
 			Message: "socket path is a directory",
 		}
@@ -255,7 +255,7 @@ func (s *Service) checkStudioctlServerRuntimeState() DiskCheck {
 	if runtime.GOOS != osutil.OSWindows && socketInfo.Mode()&os.ModeSocket == 0 {
 		return DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    socketPath,
 			Message: "socket path exists but is not a unix socket",
 		}
@@ -263,7 +263,7 @@ func (s *Service) checkStudioctlServerRuntimeState() DiskCheck {
 
 	return DiskCheck{
 		ID:      "appmgr_state",
-		Level:   CheckLevelOK,
+		Level:   diskLevelOK,
 		Path:    s.cfg.Home,
 		Message: "pid and socket files are consistent",
 	}
@@ -274,14 +274,14 @@ func checkStudioctlServerRuntimeStateWindows(home, pidPath string) DiskCheck {
 		if os.IsNotExist(err) {
 			return DiskCheck{
 				ID:      "appmgr_state",
-				Level:   CheckLevelInfo,
+				Level:   diskLevelInfo,
 				Path:    home,
 				Message: "pid file absent (not running)",
 			}
 		}
 		return DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    pidPath,
 			Message: "stat pid file failed: " + err.Error(),
 		}
@@ -293,7 +293,7 @@ func checkStudioctlServerRuntimeStateWindows(home, pidPath string) DiskCheck {
 
 	return DiskCheck{
 		ID:      "appmgr_state",
-		Level:   CheckLevelOK,
+		Level:   diskLevelOK,
 		Path:    pidPath,
 		Message: "pid file present",
 	}
@@ -304,7 +304,7 @@ func (s *Service) readCredentialsFile(path string) (auth.Credentials, *DiskCheck
 	if err != nil {
 		check := DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "read failed: " + err.Error(),
 		}
@@ -315,7 +315,7 @@ func (s *Service) readCredentialsFile(path string) (auth.Credentials, *DiskCheck
 	if err := yaml.Unmarshal(data, &creds); err != nil {
 		check := DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelError,
+			Level:   diskLevelError,
 			Path:    path,
 			Message: "yaml parse failed: " + err.Error(),
 		}
@@ -329,7 +329,7 @@ func summarizeCredentialsState(path string, creds auth.Credentials) DiskCheck {
 	if len(creds.Envs) == 0 {
 		return DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelInfo,
+			Level:   diskLevelInfo,
 			Path:    path,
 			Message: "no environments stored",
 		}
@@ -339,7 +339,7 @@ func summarizeCredentialsState(path string, creds auth.Credentials) DiskCheck {
 	if invalidEntries > 0 {
 		return DiskCheck{
 			ID:      "credentials_file",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    path,
 			Message: fmt.Sprintf("contains %d incomplete environment entries", invalidEntries),
 		}
@@ -347,7 +347,7 @@ func summarizeCredentialsState(path string, creds auth.Credentials) DiskCheck {
 
 	return DiskCheck{
 		ID:      "credentials_file",
-		Level:   CheckLevelOK,
+		Level:   diskLevelOK,
 		Path:    path,
 		Message: fmt.Sprintf("valid (%d environment entries)", len(creds.Envs)),
 	}
@@ -374,7 +374,7 @@ func (s *Service) checkStudioctlServerPresenceState(
 	case !pidExists && !socketExists:
 		check := DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelInfo,
+			Level:   diskLevelInfo,
 			Path:    s.cfg.Home,
 			Message: "pid and socket files absent (not running)",
 		}
@@ -382,7 +382,7 @@ func (s *Service) checkStudioctlServerPresenceState(
 	case pidExists && !socketExists:
 		check := DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    pidPath,
 			Message: "pid file exists but socket is missing",
 		}
@@ -390,7 +390,7 @@ func (s *Service) checkStudioctlServerPresenceState(
 	case !pidExists && socketExists:
 		check := DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    socketPath,
 			Message: "socket exists but pid file is missing",
 		}
@@ -405,7 +405,7 @@ func checkStudioctlServerPIDFile(pidPath string) *DiskCheck {
 	if err != nil {
 		check := DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    pidPath,
 			Message: "read pid file failed: " + err.Error(),
 		}
@@ -417,7 +417,7 @@ func checkStudioctlServerPIDFile(pidPath string) *DiskCheck {
 	if err := json.Unmarshal(pidRaw, &state); err != nil || state.PID <= 0 {
 		check := DiskCheck{
 			ID:      "appmgr_state",
-			Level:   CheckLevelWarn,
+			Level:   diskLevelWarn,
 			Path:    pidPath,
 			Message: "pid file is not valid runtime state",
 		}
