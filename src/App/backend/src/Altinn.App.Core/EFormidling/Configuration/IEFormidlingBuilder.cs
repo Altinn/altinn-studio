@@ -9,9 +9,12 @@ namespace Altinn.App.Core.EFormidling.Configuration;
 /// The first stage of an eFormidling registration, returned by <c>AddEFormidling()</c>.
 /// </summary>
 /// <remarks>
-/// Every app must supply its own <see cref="IEFormidlingMetadata"/> — it produces the arkivmelding, which
-/// no default could stand in for — so that is the only call this stage offers. Everything else lives on
-/// <see cref="IEFormidlingBuilder"/>, which you reach by making it.
+/// The built-in <see cref="IEFormidlingService"/> builds its shipment from an app-supplied
+/// <see cref="IEFormidlingMetadata"/> — it produces the arkivmelding, which no default could stand in
+/// for — so that is the only call this stage offers. Everything else lives on
+/// <see cref="IEFormidlingBuilder"/>, which you reach by making it. (An app registering its own
+/// <see cref="IEFormidlingService"/> composes the whole shipment itself and needs no metadata generator;
+/// startup validation asks for one only where the built-in service is the one in use.)
 /// </remarks>
 [IncompleteBuilder(
     $"Complete the registration by calling WithMetadata<T>() with your {nameof(IEFormidlingMetadata)} implementation"

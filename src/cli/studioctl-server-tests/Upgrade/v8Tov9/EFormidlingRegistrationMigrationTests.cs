@@ -67,6 +67,58 @@ public sealed class EFormidlingRegistrationMigrationTests : IDisposable
     }
 
     [Fact]
+    public void KeepsWithReceivers_WhenTheAppDeclaresItsOwnTypeOfThatName()
+    {
+        // The type argument is matched on its right-most identifier, so an app that happens to name its
+        // own receivers DefaultEFormidlingReceivers would otherwise have the registration dropped and
+        // silently fall back to the library's implementation.
+        _app.Write(
+            "logic/DefaultEFormidlingReceivers.cs",
+            """
+            public class DefaultEFormidlingReceivers : IEFormidlingReceivers
+            {
+            }
+            """
+        );
+
+        var migrated = Migrate(
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config)
+            {
+                services.AddEFormidlingServices2<Meta, DefaultEFormidlingReceivers>(config);
+            }
+            """
+        );
+
+        Assert.Contains(
+            "services.AddEFormidling().WithMetadata<Meta>().WithReceivers<DefaultEFormidlingReceivers>();",
+            migrated
+        );
+    }
+
+    [Fact]
+    public void ReportsTheDroppedDefaultReceiversArgument()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config)
+            {
+                services.AddEFormidlingServices2<Meta, DefaultEFormidlingReceivers>(config);
+            }
+            """
+        );
+
+        var result = new EFormidlingRegistrationMigration(Scanner()).Migrate();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("dropped the 'DefaultEFormidlingReceivers' type argument", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
     public void RewritesTheV9SuffixedName()
     {
         var migrated = Migrate(

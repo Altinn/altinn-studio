@@ -43,6 +43,16 @@ internal sealed class EFormidlingRegistrationMigration
         var warnings = new List<string>();
         var manualActionRequired = false;
 
+        // Type arguments are matched on their right-most identifier, so an app with a type of its own
+        // called DefaultEFormidlingReceivers would otherwise have that registration dropped as if it
+        // were the library's - silently falling back to the library default. If the app declares the
+        // name anywhere, no occurrence of it is treated as the library type.
+        var appDeclaresDefaultReceivers = _scanner.Files.Any(f =>
+            f.Root.DescendantNodes()
+                .OfType<TypeDeclarationSyntax>()
+                .Any(t => t.Identifier.Text == DefaultReceiversTypeName)
+        );
+
         foreach (var file in _scanner.Files)
         {
             var rewrites = new Dictionary<InvocationExpressionSyntax, string>();
@@ -86,13 +96,28 @@ internal sealed class EFormidlingRegistrationMigration
                     continue;
                 }
 
-                rewrites[invocation] = BuildReplacement(memberAccess.Expression, typeArguments);
+                var (replacement, droppedDefaultReceivers) = BuildReplacement(
+                    memberAccess.Expression,
+                    typeArguments,
+                    appDeclaresDefaultReceivers
+                );
+                rewrites[invocation] = replacement;
                 warnings.Add(
                     $"{file.RelativePath}:{line}: rewrote '{methodName}' to "
                         + "AddEFormidling().WithMetadata<T>(). The IConfiguration argument was dropped — "
                         + "eFormidling now binds its 'EFormidlingClientSettings' section from the app's "
                         + "configuration directly. Use WithConfig(...) if the app needs a different source."
                 );
+
+                if (droppedDefaultReceivers)
+                {
+                    warnings.Add(
+                        $"{file.RelativePath}:{line}: dropped the '{DefaultReceiversTypeName}' type argument, "
+                            + "which AddEFormidling() now registers on its own. Add "
+                            + $".WithReceivers<{DefaultReceiversTypeName}>() back if that named a type other than "
+                            + "the one in Altinn.App.Core."
+                    );
+                }
 
                 if (DroppedArgumentNeedsReview(invocation))
                 {
@@ -150,19 +175,37 @@ internal sealed class EFormidlingRegistrationMigration
         return true;
     }
 
-    private static string BuildReplacement(ExpressionSyntax receiver, SeparatedSyntaxList<TypeSyntax> typeArguments)
+    /// <param name="appDeclaresDefaultReceivers">
+    /// Whether the app declares a type of its own named <see cref="DefaultReceiversTypeName"/>. When it
+    /// does, the name cannot be assumed to mean the library's type and the argument is carried over.
+    /// </param>
+    /// <returns>
+    /// The replacement expression, and whether a <see cref="DefaultReceiversTypeName"/> argument was
+    /// dropped as redundant — which the caller reports, since a silent drop is the one outcome the
+    /// developer could not otherwise notice.
+    /// </returns>
+    private static (string Text, bool DroppedDefaultReceivers) BuildReplacement(
+        ExpressionSyntax receiver,
+        SeparatedSyntaxList<TypeSyntax> typeArguments,
+        bool appDeclaresDefaultReceivers
+    )
     {
         // The replacement node inherits the original invocation's leading/trailing trivia, so only the
         // pieces carried over need normalising - and they need it: a receiver written across several
         // lines keeps those line breaks between its own tokens, which would land mid-chain here.
         var text = $"{Render(receiver)}.AddEFormidling().WithMetadata<{Render(typeArguments[0])}>()";
 
-        if (typeArguments.Count == 2 && SimpleName(typeArguments[1]) != DefaultReceiversTypeName)
+        if (typeArguments.Count != 2)
         {
-            text += $".WithReceivers<{Render(typeArguments[1])}>()";
+            return (text, false);
         }
 
-        return text;
+        if (!appDeclaresDefaultReceivers && SimpleName(typeArguments[1]) == DefaultReceiversTypeName)
+        {
+            return (text, true);
+        }
+
+        return ($"{text}.WithReceivers<{Render(typeArguments[1])}>()", false);
     }
 
     /// <summary>
