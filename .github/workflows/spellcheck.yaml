@@ -22,10 +22,6 @@ jobs:
     name: Spell check
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # ADVISORY until the backlog of existing typos is fixed. The follow-up PR that
-    # applies those fixes removes this line and makes the check blocking. Until then
-    # this reports without failing, so the rules can land before the cleanup.
-    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
