@@ -11,11 +11,11 @@ import type { StoredImage } from './imageUploadUtils';
  * Sorts each prop into a Storybook docs group.
  */
 export const IMAGE_UPLOAD_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   title: 'text',
   description: 'text',
   help: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   crop: 'content',
   readOnly: 'content',

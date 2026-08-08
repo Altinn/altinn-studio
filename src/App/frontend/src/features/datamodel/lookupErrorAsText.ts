@@ -10,7 +10,7 @@ const mapping: Mapping = {
     `på \`${err.stoppedAtDotNotation}\`. Det ser ut til at referansen \`${err.reference}\` ` +
     `ikke er definert i schemaet.`,
 
-  misCasedProperty: (err) =>
+  incorrectlyCasedProperty: (err) =>
     `Ved oppslag av \`${err.fullDotNotation}\` i datamodellen ble ikke egenskapen \`${err.referencedName}\` funnet. ` +
     `Kanskje det skulle stå \`${err.actualName}\`?`,
 

@@ -234,7 +234,7 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize("0.1", false, false);
         TestTryDeserialize("false", false, true);
         TestTryDeserialize("true", true, true);
-        TestTryDeserialize("trUe", true, true);
+        TestTryDeserialize("tRUE", true, true);
         TestTryDeserialize("falSe", false, true);
 
         TestTryDeserialize<bool?>("0", false, true);
@@ -245,7 +245,7 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize<bool?>("false", false, true);
         TestTryDeserialize<bool?>("true", true, true);
         TestTryDeserialize<bool?>("faLse", false, true);
-        TestTryDeserialize<bool?>("trUe", true, true);
+        TestTryDeserialize<bool?>("tRUE", true, true);
         TestTryDeserialize(true, true, true);
         TestTryDeserialize(false, false, true);
         TestTryDeserialize(ExpressionValue.Null, (string?)null, true);

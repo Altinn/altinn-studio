@@ -393,7 +393,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             JsonValueKind.False => "false",
             JsonValueKind.String => String switch
             {
-                // Special case for "TruE" to be equal to true
+                // Special case so that any casing of "true" is equal to true
                 { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => "true",
                 { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => "false",
                 { } sValue when sValue.Equals("null", StringComparison.OrdinalIgnoreCase) => null,

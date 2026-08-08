@@ -5,10 +5,10 @@ import { Alert } from './Alert';
 import type { AlertProps } from './Alert';
 
 export const ALERT_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   title: 'text',
   body: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   severity: 'content',
   innerGrid: 'content',

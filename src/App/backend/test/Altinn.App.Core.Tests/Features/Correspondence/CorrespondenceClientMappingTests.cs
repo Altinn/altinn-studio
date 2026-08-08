@@ -44,7 +44,7 @@ public class CorrespondenceClientMappingTests
         string? capturedJson = null;
         var existingAttachmentId = Guid.NewGuid();
         var orgRecipient = TestHelpers.GetOrganizationNumber(1);
-        var ninRecipient = TestHelpers.GetNationalIdentityNumber(0);
+        var personRecipient = TestHelpers.GetNationalIdentityNumber(0);
         var requestedPublishTime = DateTimeOffset.UtcNow.AddDays(1);
         var dueDateTime = DateTimeOffset.UtcNow.AddDays(2);
 
@@ -54,7 +54,7 @@ public class CorrespondenceClientMappingTests
             .WithSendersReference("senders-ref")
             .WithRecipients([
                 OrganizationOrPersonIdentifier.Create(orgRecipient),
-                OrganizationOrPersonIdentifier.Create(ninRecipient),
+                OrganizationOrPersonIdentifier.Create(personRecipient),
             ])
             .WithContent(
                 CorrespondenceContentBuilder
@@ -158,7 +158,7 @@ public class CorrespondenceClientMappingTests
         var recipients = root.GetProperty("recipients");
         recipients.GetArrayLength().Should().Be(2);
         recipients[0].GetString().Should().Be(orgRecipient.ToUrnFormattedString());
-        recipients[1].GetString().Should().Be(ninRecipient.ToUrnFormattedString());
+        recipients[1].GetString().Should().Be(personRecipient.ToUrnFormattedString());
 
         root.GetProperty("existingAttachments")[0].GetGuid().Should().Be(existingAttachmentId);
 

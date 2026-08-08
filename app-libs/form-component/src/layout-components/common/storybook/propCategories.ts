@@ -3,9 +3,9 @@
  * They mirror the configuration sections a service owner sees in Altinn Studio:
  */
 export const STUDIO_CATEGORIES = [
-  { category: 'text', label: 'Tekst' },
+  { category: 'text', label: 'Text' },
   { category: 'data', label: 'Data' },
-  { category: 'content', label: 'Innhold' },
+  { category: 'content', label: 'Content' },
 ] as const;
 
 /**

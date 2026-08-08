@@ -10,7 +10,7 @@ import type { AddressLayoutProps } from './AddressLayout';
  * `satisfies PropCategories<AddressLayoutProps>` makes it exhaustive — a new prop must be classified.
  */
 export const ADDRESS_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section (textResourceBindings)
+  // Text resources — Studio's text section (textResourceBindings)
   title: 'text',
   careOfTitle: 'text',
   zipCodeTitle: 'text',
@@ -22,7 +22,7 @@ export const ADDRESS_PROP_CATEGORIES = {
   zipCode: 'data',
   postPlace: 'data',
   houseNumber: 'data',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   id: 'content',
   simplified: 'content',
   required: 'content',

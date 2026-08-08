@@ -5,11 +5,11 @@ import { Link } from './Link';
 import type { LinkProps } from './Link';
 
 export const LINK_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   title: 'text',
   target: 'text',
   download: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   style: 'content',
   openInNewTab: 'content',

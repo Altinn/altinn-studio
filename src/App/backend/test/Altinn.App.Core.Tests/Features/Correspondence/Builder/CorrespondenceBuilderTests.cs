@@ -497,7 +497,7 @@ public class CorrespondenceBuilderTests
     {
         // Arrange
         var org = TestHelpers.GetOrganizationNumber(1);
-        var nin = TestHelpers.GetNationalIdentityNumber(0);
+        var nationalIdentityNumber = TestHelpers.GetNationalIdentityNumber(0);
 
         // Act: mix all four entry points on one builder
         var notification = CorrespondenceNotificationBuilder
@@ -507,7 +507,9 @@ public class CorrespondenceBuilderTests
             .WithRecipientOverride(CorrespondenceNotificationOverrideBuilder.Create().WithOrganizationNumber(org))
             .WithRecipientOverrideIfConfigured(null)
             .WithRecipientOverrideIfConfigured(new CorrespondenceNotificationRecipient { MobileNumber = "+4799999999" })
-            .WithRecipientOverrides([new CorrespondenceNotificationRecipient { NationalIdentityNumber = nin }])
+            .WithRecipientOverrides([
+                new CorrespondenceNotificationRecipient { NationalIdentityNumber = nationalIdentityNumber },
+            ])
             .Build();
 
         // Assert: order preserved, the null skipped
@@ -515,7 +517,7 @@ public class CorrespondenceBuilderTests
         notification.CustomRecipients![0].EmailAddress.Should().Be("a@example.com");
         notification.CustomRecipients[1].OrganizationNumber.Should().Be(org);
         notification.CustomRecipients[2].MobileNumber.Should().Be("+4799999999");
-        notification.CustomRecipients[3].NationalIdentityNumber.Should().Be(nin);
+        notification.CustomRecipients[3].NationalIdentityNumber.Should().Be(nationalIdentityNumber);
     }
 
     [Fact]

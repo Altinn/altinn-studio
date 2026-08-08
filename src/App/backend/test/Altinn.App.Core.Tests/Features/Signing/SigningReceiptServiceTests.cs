@@ -211,7 +211,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         SigningReceiptService service = SetupService(hostEnvironmentMockOverride: hostEnvironmentMock);
 
-        var recipientNin = "11854995997";
+        var recipientNationalIdentityNumber = "11854995997";
 
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
@@ -221,7 +221,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         // Act & Assert
         await Assert.ThrowsAsync<ConfigurationException>(() =>
             service.GetCorrespondenceHeaders(
-                recipientNin,
+                recipientNationalIdentityNumber,
                 applicationMetadata,
                 correspondenceResources,
                 CancellationToken.None
@@ -230,7 +230,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task GetCorrespondenceHeaders_RecipientNinIsNull_ThrowsInvalidOperationException()
+    public async Task GetCorrespondenceHeaders_RecipientNationalIdentityNumberIsNull_ThrowsInvalidOperationException()
     {
         // Arrange
         ApplicationMetadata applicationMetadata = new("org/app")
@@ -244,7 +244,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         SigningReceiptService service = SetupService(hostEnvironmentMockOverride: hostEnvironmentMock);
 
-        string? recipientNin = null;
+        string? recipientNationalIdentityNumber = null;
 
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
@@ -254,7 +254,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.GetCorrespondenceHeaders(
-                recipientNin,
+                recipientNationalIdentityNumber,
                 applicationMetadata,
                 correspondenceResources,
                 CancellationToken.None

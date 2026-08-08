@@ -105,7 +105,7 @@ public class EqualTests(ITestOutputHelper outputHelper)
     [InlineData("null", null)]
     [InlineData("Null", null)]
     [InlineData("true", "true")]
-    [InlineData("trUe", "true")]
+    [InlineData("tRUE", "true")]
     [InlineData("True", "true")]
     [InlineData(true, "true")]
     [InlineData("false", "false")]

@@ -37,7 +37,7 @@ public class TestDataModel
     {
         var modelHelper = new ReflectionFormDataWrapper(new Model { OnlyNewtonsoft = "asdfsf559" }, null!);
         modelHelper.Get("OnlyNewtonsoft").Should().BeNull("Attribute should win over property when set");
-        modelHelper.Get("ONlyNewtonsoft").Should().BeNull();
+        modelHelper.Get("ONLYNewtonsoft").Should().BeNull();
         modelHelper.Get("onlyNewtonsoft").Should().Be("asdfsf559");
     }
 

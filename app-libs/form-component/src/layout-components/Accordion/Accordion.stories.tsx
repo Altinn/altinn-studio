@@ -12,9 +12,9 @@ import type { AccordionProps } from './Accordion';
  * makes it exhaustive — a new prop must be classified here.
  */
 export const ACCORDION_PROP_CATEGORIES = {
-  // Text resource — Studio "Tekst" section (textResourceBindings)
+  // Text resource — Studio's text section (textResourceBindings)
   title: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   openByDefault: 'content',
   componentId: 'content',
   innerGrid: 'content',

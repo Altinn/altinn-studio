@@ -112,7 +112,7 @@ describe('readonly data models', () => {
     cy.reloadAndWait();
 
     cy.findByRole('textbox', { name: /tekstfelt 3/i }).clear();
-    cy.findByRole('textbox', { name: /tekstfelt 3/i }).type('Noe annet denne gangen');
+    cy.findByRole('textbox', { name: /tekstfelt 3/i }).type('Something else');
     cy.findByRole('button', { name: /legg til ny/i }).click();
     cy.findByRole('textbox', { name: /e-post/i }).type('test123@test.test');
     cy.findByRole('textbox', { name: /mobilnummer/i }).type('12345678');
@@ -138,7 +138,7 @@ describe('readonly data models', () => {
     cy.findByRole('heading', { name: /kvittering/i }).should('be.visible');
     cy.get(appFrontend.multipleDatamodelsTest.textField1Summary).should('contain.text', 'første');
     cy.get(appFrontend.multipleDatamodelsTest.textField2Paragraph).should('contain.text', 'andre');
-    cy.get(appFrontend.multipleDatamodelsTest.textField3Summary).should('contain.text', 'Noe annet denne gangen');
+    cy.get(appFrontend.multipleDatamodelsTest.textField3Summary).should('contain.text', 'Something else');
 
     // This assertion helps to make sure the post place field is not updated above. Since we save on page changes,
     // any updates to that field would have resulted in another save request.

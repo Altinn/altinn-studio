@@ -90,7 +90,7 @@ internal sealed class SigningReceiptService(
         AltinnCdnOrgDetails senderDetails,
         string recipient
     )> GetCorrespondenceHeaders(
-        string? recipientNin,
+        string? recipientNationalIdentityNumber,
         ApplicationMetadata appMetadata,
         List<AltinnEnvironmentConfig>? correspondenceResources,
         CancellationToken ct,
@@ -107,7 +107,7 @@ internal sealed class SigningReceiptService(
             );
         }
 
-        string? recipient = recipientNin;
+        string? recipient = recipientNationalIdentityNumber;
         if (string.IsNullOrEmpty(recipient))
         {
             throw new InvalidOperationException(

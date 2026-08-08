@@ -5,9 +5,9 @@ import { IFrame } from './IFrame';
 import type { IFrameProps } from './IFrame';
 
 export const IFRAME_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   title: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   sandbox: 'content',
   // Runtime — injected by wrapper

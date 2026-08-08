@@ -9,10 +9,10 @@ import type { ImageLayoutProps } from './ImageLayout';
  * Sorts each prop into a Storybook docs group.
  */
 export const IMAGE_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section (textResourceBindings)
+  // Text resources — Studio's text section (textResourceBindings)
   altText: 'text',
   help: 'text',
-  // Configurable options — Studio "Innhold" section (image.*)
+  // Configurable options — Studio's content section (image.*)
   componentId: 'content',
   src: 'content',
   width: 'content',

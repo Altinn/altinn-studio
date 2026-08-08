@@ -11,7 +11,7 @@ public class NotificationTextsTests
     public void ReplaceTokens_AllTokens_ReplacesAll()
     {
         string text =
-            "App: $appName$, Owner: $instanceOwnerName$, Service: $serviceOwnerName$, Org: $orgNumber$, NIN: $personNumber$, Due: $dueDate$";
+            "App: $appName$, Owner: $instanceOwnerName$, Service: $serviceOwnerName$, Org: $orgNumber$, Person: $personNumber$, Due: $dueDate$";
 
         string result = NotificationTexts.ReplaceTokens(
             text,
@@ -25,7 +25,7 @@ public class NotificationTextsTests
         );
 
         Assert.Equal(
-            "App: skattemelding, Owner: John Doe, Service: TestDepartementet, Org: 123456789, NIN: 01010112345, Due: 31-12-2024 01:00:00",
+            "App: skattemelding, Owner: John Doe, Service: TestDepartementet, Org: 123456789, Person: 01010112345, Due: 31-12-2024 01:00:00",
             result
         );
     }
@@ -34,7 +34,7 @@ public class NotificationTextsTests
     public void ReplaceTokens_NullValues_ReplacesWithEmptyStrings()
     {
         string text =
-            "App: $appName$, Owner: $instanceOwnerName$, Service: $serviceOwnerName$, Org: $orgNumber$, NIN: $personNumber$, Due: $dueDate$";
+            "App: $appName$, Owner: $instanceOwnerName$, Service: $serviceOwnerName$, Org: $orgNumber$, Person: $personNumber$, Due: $dueDate$";
 
         string result = NotificationTexts.ReplaceTokens(
             text,
@@ -47,7 +47,7 @@ public class NotificationTextsTests
             dueDateTime: null
         );
 
-        Assert.Equal("App: , Owner: , Service: , Org: , NIN: , Due: ", result);
+        Assert.Equal("App: , Owner: , Service: , Org: , Person: , Due: ", result);
     }
 
     [Fact]
@@ -445,7 +445,7 @@ public class NotificationTextsTests
     public void ReplaceTokens_AllTokens_WithTitle_UsesTitleForAppName()
     {
         string text =
-            "App: $appName$, Owner: $instanceOwnerName$, Service: $serviceOwnerName$, Org: $orgNumber$, NIN: $personNumber$, Due: $dueDate$";
+            "App: $appName$, Owner: $instanceOwnerName$, Service: $serviceOwnerName$, Org: $orgNumber$, Person: $personNumber$, Due: $dueDate$";
 
         string result = NotificationTexts.ReplaceTokens(
             text,
@@ -459,7 +459,7 @@ public class NotificationTextsTests
         );
 
         Assert.Equal(
-            "App: Utenriksøkonomi (RA-0532), Owner: John Doe, Service: TestDepartementet, Org: 123456789, NIN: 01010112345, Due: 31-12-2024 01:00:00",
+            "App: Utenriksøkonomi (RA-0532), Owner: John Doe, Service: TestDepartementet, Org: 123456789, Person: 01010112345, Due: 31-12-2024 01:00:00",
             result
         );
     }
