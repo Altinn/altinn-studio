@@ -104,8 +104,8 @@ public static class ServiceRegistration
     public static void RegisterServices(IServiceCollection services)
     {
         // The framework's EFormidlingServiceTask takes IEFormidlingService as an optional dependency,
-        // so registering this alone is enough - the rest of AddEFormidlingServices2 (metadata,
-        // receivers, the client itself) is only reachable through the real service.
+        // so registering this alone is enough - the rest of AddEFormidling() (metadata, receivers,
+        // the client itself) is only reachable through the real service.
         services.AddTransient<IEFormidlingService, ScriptedEFormidlingService>();
         services.AddSingleton<IEndpointConfigurator, EFormidlingPipelineEndpoints>();
     }

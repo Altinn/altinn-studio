@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Auto-migrate the `PlatformHttpException` changes in `studioctl app upgrade v9`: rename `PlatformHttpException.CreateAsync(...)` to `Create(...)`, and rewrite constructor calls that built a throwaway `HttpResponseMessage` just to carry a status code into the v9 constructor that takes the status code directly. Every rewrite is listed for review, and any constructor call whose response argument cannot be identified is reported for you to finish by hand.
 - Warn in `studioctl app upgrade v9` about uses of `PlatformHttpException.Response` that the v9 response snapshot cannot satisfy. Reading `Response.StatusCode` is unaffected and is not reported. This includes a warning for apps that read the property by reflection and cast it to `HttpResponseMessage`, which keeps compiling but silently stops finding the status code.
 
+### Changed
+
+- `studioctl app upgrade v9` rewrites the eFormidling registration in the app's C# code: `AddEFormidlingServices<TM>(config)` and `AddEFormidlingServices<TM, TR>(config)` become `AddEFormidling().WithMetadata<TM>()`, with `.WithReceivers<TR>()` added only where the app supplies its own receivers. The `IConfiguration` argument is dropped, and the upgrade says so — eFormidling now reads its `EFormidlingClientSettings` section from the app's configuration directly. A registration written as a static call rather than `services.AddEFormidlingServices<..>(config)` is reported for you to change by hand.
+
 ## [0.1.0-preview.20] - 2026-08-07
 
 ### Added
