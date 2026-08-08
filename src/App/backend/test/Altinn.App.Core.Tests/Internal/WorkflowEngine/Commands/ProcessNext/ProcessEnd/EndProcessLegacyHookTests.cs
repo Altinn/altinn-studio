@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

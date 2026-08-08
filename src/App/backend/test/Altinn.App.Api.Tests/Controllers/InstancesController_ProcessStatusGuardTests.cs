@@ -1,5 +1,6 @@
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

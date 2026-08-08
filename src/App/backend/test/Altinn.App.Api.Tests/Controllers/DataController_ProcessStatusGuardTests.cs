@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Json.Patch;

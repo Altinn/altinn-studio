@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 
@@ -23,7 +24,7 @@ internal static class ProcessStatusProblemAssertions
         type.GetString().Should().Be("instance-processing");
         root.GetProperty("title").GetString().Should().Be("Instance mutation blocked.");
         root.GetProperty("status").GetInt32().Should().Be(409);
-        root.GetProperty("detail").GetString().Should().Contain($"'{expectedStatus}'");
-        root.GetProperty("processStatus").Deserialize<ProcessStatus>().Should().Be(expectedStatus);
+        root.GetProperty("detail").GetString().Should().Contain($"'{expectedStatus.ToString().ToLowerInvariant()}'");
+        root.GetProperty("processStatus").GetString().Should().Be(expectedStatus.ToString().ToLowerInvariant());
     }
 }

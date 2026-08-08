@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Core.Internal.Process;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

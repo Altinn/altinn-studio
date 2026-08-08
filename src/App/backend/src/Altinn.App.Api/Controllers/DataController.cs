@@ -23,6 +23,7 @@ using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 using Microsoft.AspNetCore.Authorization;
