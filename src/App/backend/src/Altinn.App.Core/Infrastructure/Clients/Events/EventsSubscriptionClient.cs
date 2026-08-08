@@ -93,7 +93,7 @@ public class EventsSubscriptionClient : IEventsSubscription
                 response.StatusCode,
                 content
             );
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response);
         }
     }
 }

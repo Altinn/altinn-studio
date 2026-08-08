@@ -82,7 +82,6 @@
       {
         "id": "AccordionGroupPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

@@ -71,6 +71,12 @@
       "matchPackageNames": ["gitea/gitea"]
     },
     {
+      "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["nginx"],
+      "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
+    },
+    {
       "matchFileNames": ["frontend/testing/cypress/**"],
       "ignoreDeps": ["yarn"]
     },
@@ -109,6 +115,12 @@
       "matchFileNames": ["src/Runtime/pdf3/**"],
       "additionalBranchPrefix": "pdf3/",
       "commitMessageSuffix": " (pdf3)"
+    },
+    {
+      "description": "Keep Go module updates in repository-wide groups",
+      "matchManagers": ["gomod"],
+      "additionalBranchPrefix": "",
+      "commitMessageSuffix": ""
     },
     {
       "matchFileNames": ["src/App/**"],

@@ -1,6 +1,5 @@
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
-using Altinn.App.Core.Features;
 using Altinn.Common.EFormidlingClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,7 +43,5 @@ public static class ServiceCollectionExtensions
             configuration.GetSection("EFormidlingClientSettings")
         );
         services.AddTransient(typeof(IEFormidlingMetadata), typeof(TM));
-        services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler2>();
-        services.AddHostedService<EformidlingStartup>();
     }
 }

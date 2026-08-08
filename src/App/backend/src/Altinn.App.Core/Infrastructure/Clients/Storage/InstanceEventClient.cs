@@ -94,7 +94,7 @@ public class InstanceEventClient : IInstanceEventClient
             return instanceEvents.InstanceEvents;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 
     /// <inheritdoc/>
@@ -132,6 +132,6 @@ public class InstanceEventClient : IInstanceEventClient
             return id;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 }
