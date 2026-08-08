@@ -2280,8 +2280,7 @@ public sealed class ProcessEngineTest
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    public async Task Next_blocks_non_idle_process_status_after_workflow_recovery_check(string processStatus)
+    public async Task Next_blocks_non_idle_process_status_after_workflow_recovery_check(ProcessStatus processStatus)
     {
         await using var fixture = Fixture.Create();
         Instance instance = CreateTask1Instance();

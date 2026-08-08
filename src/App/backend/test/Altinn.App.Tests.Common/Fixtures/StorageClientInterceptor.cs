@@ -852,11 +852,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         if (
             EnforceExpectedProcessStatus
             && mutation.ExpectedProcessStatus is { } expectedProcessStatus
-            && !string.Equals(
-                instance.Process?.Status ?? ProcessStatus.Idle,
-                expectedProcessStatus,
-                StringComparison.Ordinal
-            )
+            && (instance.Process?.Status ?? ProcessStatus.Idle) != expectedProcessStatus
         )
         {
             return CreateProblemResponse(

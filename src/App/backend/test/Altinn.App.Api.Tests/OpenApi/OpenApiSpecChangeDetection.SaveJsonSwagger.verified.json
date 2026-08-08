@@ -8687,8 +8687,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/ProcessStatus"
           },
           "started": {
             "type": "string",
@@ -11515,8 +11514,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/ProcessStatus"
           },
           "started": {
             "type": "string",
@@ -11541,6 +11539,13 @@
           }
         },
         "additionalProperties": false
+      },
+      "ProcessStatus": {
+        "enum": [
+          "idle",
+          "processing"
+        ],
+        "type": "string"
       },
       "ProfileSettingPreference": {
         "type": "object",

@@ -51,7 +51,7 @@ public sealed class ProcessNextConcurrencyTests(ITestOutputHelper _output, AppFi
             JsonElement root = problem.RootElement;
             Assert.Equal("instance-processing", root.GetProperty("type").GetString());
             Assert.Equal((int)HttpStatusCode.Conflict, root.GetProperty("status").GetInt32());
-            Assert.Equal(ProcessStatus.Processing, root.GetProperty("processStatus").GetString());
+            Assert.Equal("processing", root.GetProperty("processStatus").GetString());
             Assert.Equal(1, await GetTaskEndInvocations(client));
         }
         finally

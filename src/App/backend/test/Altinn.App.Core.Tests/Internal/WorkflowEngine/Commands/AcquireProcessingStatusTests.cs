@@ -148,7 +148,7 @@ public class AcquireProcessingStatusTests
             language: null
         );
 
-    private static Instance CreateInstance(string status) =>
+    private static Instance CreateInstance(ProcessStatus status) =>
         new()
         {
             Id = $"1337/{Guid.NewGuid()}",

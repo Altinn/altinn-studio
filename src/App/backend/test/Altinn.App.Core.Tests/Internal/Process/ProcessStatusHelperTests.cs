@@ -17,13 +17,7 @@ public sealed class ProcessStatusHelperTests
     [InlineData(null, true)]
     [InlineData(ProcessStatus.Idle, true)]
     [InlineData(ProcessStatus.Processing, false)]
-    [InlineData("future-status", false)]
-    [InlineData("Idle", false)]
-    [InlineData(" idle", false)]
-    [InlineData("idle ", false)]
-    [InlineData("", false)]
-    [InlineData(" ", false)]
-    public void IsIdle_UsesFailClosedExactStatusSemantics(string? status, bool expected)
+    public void IsIdle_TreatsAbsentAndIdleAsIdle(ProcessStatus? status, bool expected)
     {
         var instance = new Instance { Process = new ProcessState { Status = status } };
 
@@ -32,10 +26,7 @@ public sealed class ProcessStatusHelperTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    [InlineData("")]
-    [InlineData(" idle")]
-    public void GetMutationProblem_ExposesExactBlockingStatus(string status)
+    public void GetMutationProblem_ExposesExactBlockingStatus(ProcessStatus status)
     {
         var instance = new Instance { Process = new ProcessState { Status = status } };
 

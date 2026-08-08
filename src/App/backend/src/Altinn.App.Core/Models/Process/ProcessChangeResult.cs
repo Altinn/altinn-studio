@@ -76,7 +76,7 @@ public class ProcessChangeResult
     /// <summary>
     /// The exact non-idle process status that blocked this user-facing request, if applicable.
     /// </summary>
-    internal string? BlockingProcessStatus { get; init; }
+    internal ProcessStatus? BlockingProcessStatus { get; init; }
 
     /// <summary>
     /// Indicates that CompleteProcess's legacy task-type authorization failed and must retain its bare 403 response.

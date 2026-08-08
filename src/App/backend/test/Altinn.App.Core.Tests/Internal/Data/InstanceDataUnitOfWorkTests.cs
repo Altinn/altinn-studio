@@ -85,7 +85,7 @@ public sealed class InstanceDataUnitOfWorkTests
     [InlineData(null)]
     [InlineData(ProcessStatus.Idle)]
     public async Task SaveChanges_WhenProcessStatusIsIdleOrAbsent_AllowsMutationWithoutExplicitExpectedStatus(
-        string? processStatus
+        ProcessStatus? processStatus
     )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
@@ -111,10 +111,9 @@ public sealed class InstanceDataUnitOfWorkTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    [InlineData("Idle")]
-    [InlineData(" idle")]
-    public async Task SaveChanges_WhenProcessStatusIsNotCanonicalIdle_ThrowsBeforeStorageMutation(string processStatus)
+    public async Task SaveChanges_WhenProcessStatusIsNotCanonicalIdle_ThrowsBeforeStorageMutation(
+        ProcessStatus processStatus
+    )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
         setup.DataMutator.Instance.Process!.Status = processStatus;
@@ -128,7 +127,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false))
         );
 
-        Assert.Contains(processStatus, exception.Message, StringComparison.Ordinal);
+        Assert.Contains(processStatus.ToString(), exception.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
@@ -1216,9 +1215,9 @@ public sealed class InstanceDataUnitOfWorkTests
     [InlineData(ProcessStatus.Idle, null, ProcessStatus.Processing)]
     [InlineData(ProcessStatus.Processing, ProcessStatus.Idle, ProcessStatus.Idle)]
     public async Task SaveWorkflowOwnedAggregate_WithProcessStateMutation_OverwritesStagedStatusWithTransitionOrProcessingDefault(
-        string stagedProcessStatus,
-        string? transitionProcessStatus,
-        string expectedPayloadProcessStatus
+        ProcessStatus stagedProcessStatus,
+        ProcessStatus? transitionProcessStatus,
+        ProcessStatus expectedPayloadProcessStatus
     )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
@@ -1279,7 +1278,7 @@ public sealed class InstanceDataUnitOfWorkTests
     [InlineData(ProcessStatus.Processing)]
     [InlineData(ProcessStatus.Idle)]
     public async Task SaveWorkflowOwnedAggregate_WithDataMutation_AlwaysExpectsProcessingAndKeepsStatus(
-        string snapshotStatus
+        ProcessStatus snapshotStatus
     )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
@@ -1381,8 +1380,8 @@ public sealed class InstanceDataUnitOfWorkTests
     [InlineData(ProcessStatus.Idle, ProcessStatus.Processing)]
     [InlineData(ProcessStatus.Processing, ProcessStatus.Idle)]
     public async Task SaveWorkflowOwnedAggregate_WithStagedStatusTransition_SavesAndClearsPendingTransition(
-        string expectedProcessStatus,
-        string newProcessStatus
+        ProcessStatus expectedProcessStatus,
+        ProcessStatus newProcessStatus
     )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
@@ -1435,28 +1434,6 @@ public sealed class InstanceDataUnitOfWorkTests
                 request.RequestMethod == HttpMethod.Post
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
-    }
-
-    [Theory]
-    [InlineData(null, ProcessStatus.Processing, "expectedProcessStatus")]
-    [InlineData("", ProcessStatus.Processing, "expectedProcessStatus")]
-    [InlineData("Idle", ProcessStatus.Processing, "expectedProcessStatus")]
-    [InlineData(ProcessStatus.Idle, null, "newProcessStatus")]
-    [InlineData(ProcessStatus.Idle, "", "newProcessStatus")]
-    [InlineData(ProcessStatus.Idle, "processing ", "newProcessStatus")]
-    public async Task TransitionProcessStatus_WithInvalidStatus_Throws(
-        string? expectedProcessStatus,
-        string? newProcessStatus,
-        string parameterName
-    )
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
-
-        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-            setup.DataMutator.TransitionProcessStatus(expectedProcessStatus!, newProcessStatus!)
-        );
-
-        Assert.Equal(parameterName, exception.ParamName);
     }
 
     [Fact]

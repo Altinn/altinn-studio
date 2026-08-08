@@ -539,25 +539,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedProcessStateChange = processStateChange;
     }
 
-    internal void TransitionProcessStatus(string expectedProcessStatus, string newProcessStatus)
+    internal void TransitionProcessStatus(ProcessStatus expectedProcessStatus, ProcessStatus newProcessStatus)
     {
-        if (expectedProcessStatus is not (ProcessStatus.Idle or ProcessStatus.Processing))
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(expectedProcessStatus),
-                expectedProcessStatus,
-                "Expected process status must be a Storage process status."
-            );
-        }
-        if (newProcessStatus is not (ProcessStatus.Idle or ProcessStatus.Processing))
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(newProcessStatus),
-                newProcessStatus,
-                "New process status must be a Storage process status."
-            );
-        }
-
         if (_stagedProcessStatusTransition is not null)
         {
             throw new InvalidOperationException("A process status transition is already staged.");
@@ -806,7 +789,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         bool workflowOwned,
         StorageAuthenticationMethod defaultAuthenticationMethod,
         StorageWritePreconditions preconditions,
-        string? expectedProcessStatus,
+        ProcessStatus? expectedProcessStatus,
         CancellationToken cancellationToken
     )
     {
@@ -1542,7 +1525,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             || Request.ProcessState?.Events?.Count > 0;
     }
 
-    private sealed record ProcessStatusTransition(string ExpectedProcessStatus, string NewProcessStatus);
+    private sealed record ProcessStatusTransition(ProcessStatus ExpectedProcessStatus, ProcessStatus NewProcessStatus);
 
     internal async Task<ReadOnlyMemory<byte>> GetPersistedBinaryData(DataElementIdentifier dataElementIdentifier)
     {

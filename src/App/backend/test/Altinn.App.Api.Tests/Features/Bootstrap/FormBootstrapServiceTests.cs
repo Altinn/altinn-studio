@@ -812,8 +812,7 @@ public class FormBootstrapServiceTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    public async Task GetInstanceFormBootstrap_WhenNonIdle_ReturnsReadHookChangesWithoutPersisting(string status)
+    public async Task GetInstanceFormBootstrap_WhenNonIdle_ReturnsReadHookChangesWithoutPersisting(ProcessStatus status)
     {
         var instance = CreateTestInstance("Task_1");
         instance.Process.Status = status;

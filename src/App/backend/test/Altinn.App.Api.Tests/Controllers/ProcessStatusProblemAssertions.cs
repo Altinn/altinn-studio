@@ -1,12 +1,13 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
 internal static class ProcessStatusProblemAssertions
 {
-    public static async Task AssertResponse(HttpResponseMessage response, string expectedStatus)
+    public static async Task AssertResponse(HttpResponseMessage response, ProcessStatus expectedStatus)
     {
         response.Should().HaveStatusCode(HttpStatusCode.Conflict);
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
@@ -23,6 +24,6 @@ internal static class ProcessStatusProblemAssertions
         root.GetProperty("title").GetString().Should().Be("Instance mutation blocked.");
         root.GetProperty("status").GetInt32().Should().Be(409);
         root.GetProperty("detail").GetString().Should().Contain($"'{expectedStatus}'");
-        root.GetProperty("processStatus").GetString().Should().Be(expectedStatus);
+        root.GetProperty("processStatus").Deserialize<ProcessStatus>().Should().Be(expectedStatus);
     }
 }

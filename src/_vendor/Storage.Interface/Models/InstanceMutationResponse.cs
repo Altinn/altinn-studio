@@ -27,5 +27,4 @@ public class InstanceMutationResponse
     /// </summary>
     [JsonProperty(PropertyName = "replayed")]
     public bool Replayed { get; set; }
-
 }

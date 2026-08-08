@@ -13,10 +13,10 @@ internal static class ProcessStatusHelper
         return GetBlockingStatus(instance) is null;
     }
 
-    public static string? GetBlockingStatus(Instance instance)
+    public static ProcessStatus? GetBlockingStatus(Instance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
-        string? status = instance.Process?.Status;
+        ProcessStatus? status = instance.Process?.Status;
         return status is null or ProcessStatus.Idle ? null : status;
     }
 
@@ -25,10 +25,8 @@ internal static class ProcessStatusHelper
         return GetBlockingStatus(instance) is { } currentStatus ? CreateMutationProblem(currentStatus) : null;
     }
 
-    public static ProblemDetails CreateMutationProblem(string currentStatus)
+    public static ProblemDetails CreateMutationProblem(ProcessStatus currentStatus)
     {
-        ArgumentNullException.ThrowIfNull(currentStatus);
-
         var problem = new ProblemDetails
         {
             Type = MutationBlockedProblemType,

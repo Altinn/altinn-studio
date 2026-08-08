@@ -6,6 +6,7 @@ using System.Text.Json;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -247,7 +248,7 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
         string token = TestAuthentication.GetUserToken(1337, _instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         TestData.PrepareInstance(_org, _app, _instanceOwnerPartyId, _instanceGuid);
-        await TestData.SetProcessStatus(_org, _app, _instanceOwnerPartyId, _instanceGuid, "processing");
+        await TestData.SetProcessStatus(_org, _app, _instanceOwnerPartyId, _instanceGuid, ProcessStatus.Processing);
         try
         {
             using JsonContent content = JsonContent.Create(new SetTagsRequest { Tags = ["ChangedTag"] });
@@ -257,7 +258,7 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
                 content
             );
 
-            await ProcessStatusProblemAssertions.AssertResponse(response, "processing");
+            await ProcessStatusProblemAssertions.AssertResponse(response, ProcessStatus.Processing);
             using HttpResponseMessage getResponse = await client.GetAsync(
                 $"/{_org}/{_app}/instances/{_instanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}/tags"
             );

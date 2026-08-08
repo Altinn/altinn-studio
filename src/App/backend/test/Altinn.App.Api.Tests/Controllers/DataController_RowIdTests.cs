@@ -29,8 +29,9 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    public async Task GetWithRowIds_WhenNonIdle_ReturnsStoredRowsWithoutWritingAndStillRunsReadHook(string status)
+    public async Task GetWithRowIds_WhenNonIdle_ReturnsStoredRowsWithoutWritingAndStillRunsReadHook(
+        ProcessStatus status
+    )
     {
         TestState state = CreateState(status);
         var storedModel = CreateModel();
@@ -128,9 +129,8 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
     public async Task GetWithRowIds_WhenAcquireWinsPersistenceRace_ReturnsInitializedSnapshotWithoutRetrying(
-        string acquiredStatus
+        ProcessStatus acquiredStatus
     )
     {
         TestState state = CreateState(ProcessStatus.Idle);
@@ -424,8 +424,9 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    public async Task GetWithoutRowIds_WhenNonIdle_ReturnsReadHookChangesWithoutPersistingOrRefreshing(string status)
+    public async Task GetWithoutRowIds_WhenNonIdle_ReturnsReadHookChangesWithoutPersistingOrRefreshing(
+        ProcessStatus status
+    )
     {
         TestState state = CreateState(status);
         Guid existingRowId = Guid.NewGuid();
@@ -584,7 +585,7 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
     private static string GetUrl(TestState state, bool includeRowId) =>
         $"/{Org}/{App}/instances/{InstanceOwnerPartyId}/{state.InstanceId}/data/{state.DataElementId}?includeRowId={includeRowId.ToString().ToLowerInvariant()}";
 
-    private static TestState CreateState(string status)
+    private static TestState CreateState(ProcessStatus status)
     {
         Guid instanceId = Guid.NewGuid();
         Guid dataElementId = Guid.NewGuid();
