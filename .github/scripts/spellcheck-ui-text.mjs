@@ -17,6 +17,11 @@
  * numbers intact, and spell-check that masked copy instead. Findings map
  * straight back onto the real file.
  *
+ * The same trick covers an { nb, nn, en } triplet declared inline in code: the
+ * key already tags each value's language, so the Norwegian lines are blanked and
+ * only the en value is checked. Adding such a file needs one entry in FILES here
+ * and one exclude in typos.toml — no per-string exceptions.
+ *
  * Usage:
  *   node .github/scripts/spellcheck-ui-text.mjs                  # check (needs typos on PATH)
  *   node .github/scripts/spellcheck-ui-text.mjs --write          # apply fixes
@@ -31,11 +36,13 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, basename, dirname } from 'node:path';
 
-/** English UI-text files. Keep in sync with the excludes in typos.toml. */
+/** Files holding English UI text. Keep in sync with the excludes in typos.toml. */
 const FILES = [
   'src/Designer/frontend/language/src/en.json',
   'src/Designer/frontend/resourceadm/language/src/en.json',
   'app-libs/language/src/texts/en.ts',
+  // Holds an { nb, nn, en } triplet inline; only the en value is checked (see below).
+  'src/Designer/frontend/packages/shared/src/constants.js',
 ];
 
 const CONFIG = 'typos.en-gb.toml';
@@ -43,16 +50,32 @@ const write = process.argv.includes('--write');
 const emitIdx = process.argv.indexOf('--emit-masked');
 const emitDir = emitIdx === -1 ? null : process.argv[emitIdx + 1];
 
-/** Matches a leading `"key":` / `'key':` and returns how many bytes it spans. */
-const KEY_RE = /^\s*(['"])(?:\\.|(?!\1)[^\\])*\1\s*:/;
+/**
+ * A leading `"key":`, `'key':` or bare `key:`. Group 2 or 3 is the key name.
+ */
+const KEY_RE = /^\s*(?:(['"])((?:\\.|(?!\1)[^\\])*)\1|([A-Za-z_$][\w$-]*))\s*:/;
 
-/** Replace the key span with spaces so offsets and line numbers are preserved. */
-function maskKeys(source) {
+/** Keys that tag their value as Norwegian rather than English. */
+const NORWEGIAN_KEYS = new Set(['nb', 'nn', 'no', 'nb-NO', 'nn-NO']);
+
+/**
+ * Blank out everything that is not English text, keeping byte offsets and line
+ * numbers intact so findings map straight back onto the real file.
+ *
+ * Two things get masked:
+ *  - the key itself, which is a code contract and so US English
+ *  - the whole line when the key tags the value as Norwegian, which is how an
+ *    inline { nb, nn, en } triplet declares its own languages
+ */
+function maskNonEnglish(source) {
   return source
     .split('\n')
     .map((line) => {
       const m = KEY_RE.exec(line);
-      return m ? ' '.repeat(m[0].length) + line.slice(m[0].length) : line;
+      if (!m) return line;
+      const key = m[2] ?? m[3];
+      if (NORWEGIAN_KEYS.has(key)) return ' '.repeat(line.length);
+      return ' '.repeat(m[0].length) + line.slice(m[0].length);
     })
     .join('\n');
 }
@@ -75,7 +98,7 @@ if (emitDir) {
   for (const file of FILES) {
     const out = join(emitDir, file);
     mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, maskKeys(readFileSync(file, 'utf8')));
+    writeFileSync(out, maskNonEnglish(readFileSync(file, 'utf8')));
   }
   console.log(`Wrote ${FILES.length} masked UI-text file(s) to ${emitDir}`);
   process.exit(0);
@@ -88,7 +111,7 @@ try {
   for (const file of FILES) {
     const original = readFileSync(file, 'utf8');
     const masked = join(tmp, basename(file));
-    writeFileSync(masked, maskKeys(original));
+    writeFileSync(masked, maskNonEnglish(original));
 
     const res = runTypos(['--config', CONFIG, '--format', 'json', masked]);
     const findings = res.stdout
