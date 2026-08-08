@@ -25,7 +25,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/test?language=esperanto";
@@ -68,7 +68,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/test?";
@@ -107,7 +107,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/test";
@@ -124,7 +124,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task Get_ShouldWorkWithFileSource()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/fileSourceOptions";
@@ -142,7 +142,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task Get_NonExistentList_ShouldReturn404()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/non-existent-option-list";
@@ -161,7 +161,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/testInstance";
@@ -185,7 +185,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         string url = $"/{org}/{app}/api/options/test";
@@ -208,7 +208,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
         var altinn3LibraryCodeListService = (DummyAltinn3LibraryCodeListService)
             Services.GetRequiredService<IAltinn3LibraryCodeListService>();
@@ -254,7 +254,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
         var altinn3LibraryCodeListService = (DummyAltinn3LibraryCodeListService)
             Services.GetRequiredService<IAltinn3LibraryCodeListService>();
@@ -286,7 +286,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
         var altinn3LibraryCodeListService = (DummyAltinn3LibraryCodeListService)
             Services.GetRequiredService<IAltinn3LibraryCodeListService>();
@@ -309,7 +309,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -366,7 +366,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -411,7 +411,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -435,7 +435,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task GetInstance_NonExistentList_ShouldReturn404()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -461,7 +461,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -499,7 +499,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -522,7 +522,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task GetInstance_ShouldWorkWithFileSourceFromAppOptionsProvider()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -552,7 +552,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -606,7 +606,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
@@ -647,7 +647,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);

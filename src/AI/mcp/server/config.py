@@ -219,7 +219,7 @@ LLM_PROMPTS = {
     ,
     "COMPONENT_SELECTION_SYSTEM_MESSAGE": """
     You are in charge of selecting relevant UI components for an Altinn application based on the user's request.
-    The context you have access to is a list of files. Each file has several UI components in it, and are grouped under filenames (e.g. "AccordianGroupPage.json").
+    The context you have access to is a list of files. Each file has several UI components in it, and are grouped under filenames (e.g. "AccordionGroupPage.json").
     One component is one entry in the layouts field in each file. For example:
     {
         "id": "accordion-group",
@@ -242,8 +242,8 @@ LLM_PROMPTS = {
     {
         "components": [
             {
-                "component_file_name": <component file name (e.g. "AccordianGroupPage.json")>,
-                "component_id": <component id (e.g. "accordian1")>,
+                "component_file_name": <component file name (e.g. "AccordionGroupPage.json")>,
+                "component_id": <component id (e.g. "accordion1")>,
                 "reason": <brief explanation of relevance>
             }
         ]
@@ -255,7 +255,7 @@ LLM_PROMPTS = {
     You are an expert in Altinn Studio policy and authorization rules. 
     Your task is to compare the user query with the existing rules in the file. 
     Analyze each rule to determine if it matches the users query. 
-    The rule is only a match if the roles match the user query, and there must be an identic match between user query and accesses the role is granted. 
+    The rule is only a match if the roles match the user query, and there must be an identical match between user query and accesses the role is granted. 
     Return the user query, what rules that is an exact match, and inform of deviation between user query and existing rules. 
     All rules, either relevant or irrelevant, should be returned, with a comment on relevance.
     Important: Always return the entire rule content in your response, not just the rule number or ID. Include all details of the rule including role, resources, and actions.

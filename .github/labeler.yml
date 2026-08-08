@@ -34,7 +34,7 @@ area/dashboard:
 
 area/data-modeling:
 - changed-files:
-  - any-glob-to-any-file: ['src/Designer/frontend/packages/schema-editor/**/*', 'src/Designer/frontend/packages/schema-model/**/*', 'src/Designer/frontend/app-development/features/dataModelling/**/*', 'src/Designer/backend/src/DataModeling/**/*']
+  - any-glob-to-any-file: ['src/Designer/frontend/packages/schema-editor/**/*', 'src/Designer/frontend/packages/schema-model/**/*', 'src/Designer/frontend/app-development/features/dataModeling/**/*', 'src/Designer/backend/src/DataModeling/**/*']
 
 area/overview:
 - changed-files:

@@ -37,7 +37,7 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
           : SummaryContains.SomeUserContent
       }
     >
-      <div className={classes.organisationSummaryWrapper}>
+      <div className={classes.organizationSummaryWrapper}>
         <Heading
           data-size='sm'
           level={2}

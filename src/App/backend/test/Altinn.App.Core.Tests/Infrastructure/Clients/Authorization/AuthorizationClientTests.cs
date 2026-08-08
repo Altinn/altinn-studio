@@ -30,7 +30,7 @@ public class AuthorizationClientTests
         Mock<HttpContextAccessor> httpContextAccessorMock = new();
         Mock<HttpClient> httpClientMock = new();
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
-        var pdpResponse = GetXacmlJsonRespons("one-action-denied");
+        var pdpResponse = GetXacmlJsonResponse("one-action-denied");
         pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
         AuthorizationClient client = CreateClient(
             pdpMock.Object,
@@ -150,9 +150,9 @@ public class AuthorizationClientTests
         );
     }
 
-    private static XacmlJsonResponse GetXacmlJsonRespons(string filename)
+    private static XacmlJsonResponse GetXacmlJsonResponse(string filename)
     {
-        var xacmlJesonRespons = File.ReadAllText(
+        var xacmlJsonResponse = File.ReadAllText(
             Path.Join(
                 PathUtils.GetCoreTestsPath(),
                 "Infrastructure",
@@ -162,7 +162,7 @@ public class AuthorizationClientTests
                 $"{filename}.json"
             )
         );
-        var response = JsonSerializer.Deserialize<XacmlJsonResponse>(xacmlJesonRespons);
+        var response = JsonSerializer.Deserialize<XacmlJsonResponse>(xacmlJsonResponse);
         Assert.NotNull(response);
         return response;
     }

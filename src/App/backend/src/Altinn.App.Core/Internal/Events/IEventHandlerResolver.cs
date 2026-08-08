@@ -10,7 +10,7 @@ public interface IEventHandlerResolver
     /// <summary>
     /// Resolves the correct implementation based on the event type.
     /// </summary>
-    /// <param name="eventType">The type of event that has occured</param>
+    /// <param name="eventType">The type of event that has occurred</param>
     /// <returns>A implementation of <see cref="IEventHandler"/> that is dedicated to handle events of the given type.</returns>
     public IEventHandler ResolveEventHandler(string eventType);
 }

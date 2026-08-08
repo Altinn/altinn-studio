@@ -1,6 +1,6 @@
 /**
  * This workaround will make sure that styles from libraries are injected before altinn-app-frontend.css
- * Otherwise we would have to use !important or unecessarily great specificity in our styles to override styles from libraries
+ * Otherwise we would have to use !important or unnecessarily great specificity in our styles to override styles from libraries
  * @see https://github.com/Altinn/app-frontend-react/issues/1000
  *
  * In production our own styles arrive as a <link> element in the backend-generated HTML, so library

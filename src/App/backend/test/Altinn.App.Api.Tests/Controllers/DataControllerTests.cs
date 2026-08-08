@@ -23,7 +23,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 1337;
         Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
         HttpClient client = GetRootedClient(org, app);
@@ -44,7 +44,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int instanceOwnerPartyId = 1337;
         string dataType = "specificFileType"; // Should have restrictions on 1 mb in app metadata
         Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
@@ -77,17 +77,17 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 
     [Fact]
-    public async Task CreateDataElement_BinaryPdf_AnalyserShouldRunOk()
+    public async Task CreateDataElement_BinaryPdf_AnalyzerShouldRunOk()
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
@@ -110,17 +110,17 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 
     [Fact]
-    public async Task CreateDataElement_ZeroBytes_BinaryPdf_AnalyserShouldReturnBadRequest()
+    public async Task CreateDataElement_ZeroBytes_BinaryPdf_AnalyzerShouldReturnBadRequest()
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
@@ -145,17 +145,17 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 
     [Fact]
-    public async Task CreateDataElement_JpgFakedAsPdf_AnalyserShouldRunAndFail()
+    public async Task CreateDataElement_JpgFakedAsPdf_AnalyzerShouldRunAndFail()
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserFailureStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerFailureStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
         // Setup test data
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         HttpClient client = GetRootedClient(org, app);
 
         Guid guid = new Guid("1fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
@@ -196,16 +196,18 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 }
 
-public class MimeTypeAnalyserSuccessStub : IFileAnalyser
+public class MimeTypeAnalyzerSuccessStub : IFileAnalyzer
 {
+    // Must match the id listed under "enabledFileAnalysers" in the test app's
+    // applicationmetadata.json, which keeps Altinn Storage's spelling of that field.
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)
@@ -218,16 +220,16 @@ public class MimeTypeAnalyserSuccessStub : IFileAnalyser
     }
 }
 
-public class MimeTypeAnalyserFailureStub : IFileAnalyser
+public class MimeTypeAnalyzerFailureStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)

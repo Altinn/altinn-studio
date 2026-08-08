@@ -44,7 +44,7 @@ namespace Altinn.App.Clients.Fiks.Tests;
 /// <summary>
 /// Test fixture for FiksIO and FiksArkiv.
 /// Sets up mocks for external dependencies, but not for FiksIO/Arkiv implementations.
-/// <p>Use the <see cref="Action{IServiceCollection}"/> delegate in the <see cref="Create"/> metod to register
+/// <p>Use the <see cref="Action{IServiceCollection}"/> delegate in the <see cref="Create"/> method to register
 /// <see cref="Fiks.Extensions.ServiceCollectionExtensions.AddFiksIOClient"/> or <see cref="Fiks.Extensions.ServiceCollectionExtensions.AddFiksArkiv"/>
 /// along with any additional services and mocks.</p>
 /// </summary>

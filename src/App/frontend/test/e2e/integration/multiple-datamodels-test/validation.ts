@@ -141,7 +141,7 @@ describe('validating multiple data models', () => {
     cy.findAllByRole('checkbox').eq(7).click();
     cy.findAllByRole('checkbox').eq(8).click();
 
-    cy.get(appFrontend.fieldValidation(appFrontend.multipleDatamodelsTest.chooseIndusty)).should(
+    cy.get(appFrontend.fieldValidation(appFrontend.multipleDatamodelsTest.chooseIndustry)).should(
       'contain.text',
       'Du kan ikke velge både IKT og Verkstedindustri',
     );
@@ -158,7 +158,7 @@ describe('validating multiple data models', () => {
 
     cy.findByRole('checkbox', { name: /verkstedindustri/i }).click();
 
-    cy.get(appFrontend.fieldValidation(appFrontend.multipleDatamodelsTest.chooseIndusty)).should('not.exist');
+    cy.get(appFrontend.fieldValidation(appFrontend.multipleDatamodelsTest.chooseIndustry)).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.gotoNavPage('Side3');

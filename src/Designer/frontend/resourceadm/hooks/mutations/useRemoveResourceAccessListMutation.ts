@@ -5,7 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 /**
  * Mutation to remove a access list connection from a resource
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param resourceId the identifier of the resource to remove the list to
  * @param env the list environment
  */

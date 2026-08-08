@@ -14,7 +14,7 @@
   }
 }
 
-.organisationSummaryWrapper {
+.organizationSummaryWrapper {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-6);

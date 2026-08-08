@@ -23,8 +23,8 @@ interface MissingProperty extends BaseError {
   validProperties: string[];
 }
 
-interface MisCasedProperty extends BaseError {
-  error: 'misCasedProperty';
+interface IncorrectlyCasedProperty extends BaseError {
+  error: 'incorrectlyCasedProperty';
   referencedName: string;
   actualName: string;
 }
@@ -38,14 +38,14 @@ export type SchemaLookupError =
   | ReferenceError
   | MissingRepeatingGroup
   | MissingProperty
-  | MisCasedProperty
+  | IncorrectlyCasedProperty
   | NotAnArray;
 
 const errorMap: Record<SchemaLookupError['error'], true> = {
   referenceError: true,
   missingRepeatingGroup: true,
   missingProperty: true,
-  misCasedProperty: true,
+  incorrectlyCasedProperty: true,
   notAnArray: true,
 };
 

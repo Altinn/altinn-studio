@@ -17,8 +17,8 @@ public class CorrespondenceRequestTests
             SendersReference = "senders-reference",
             Recipients =
             [
-                OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)),
-                OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)),
+                OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)),
+                OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)),
             ],
             Content = new CorrespondenceContent
             {
@@ -45,7 +45,7 @@ public class CorrespondenceRequestTests
             ResourceId = "resource-id",
             SendersReference = "senders-reference",
             IsConfirmationNeeded = true,
-            Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
+            Recipients = [OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1))],
             Content = new CorrespondenceContent
             {
                 Title = "title",
@@ -70,7 +70,7 @@ public class CorrespondenceRequestTests
         {
             ResourceId = "resource-id",
             SendersReference = "senders-reference",
-            Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
+            Recipients = [OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1))],
             Content = new CorrespondenceContent
             {
                 Title = "title",
@@ -100,7 +100,7 @@ public class CorrespondenceRequestTests
             ResourceId = "resource-id",
             SendersReference = "senders-reference",
             RequestedPublishTime = DateTimeOffset.Now.AddDays(2),
-            Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
+            Recipients = [OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1))],
             Content = new CorrespondenceContent
             {
                 Title = "title",
@@ -130,7 +130,7 @@ public class CorrespondenceRequestTests
             {
                 ResourceId = "resource-id",
                 SendersReference = "senders-reference",
-                Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
+                Recipients = [OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1))],
                 Content = new CorrespondenceContent
                 {
                     Title = "title",
@@ -169,7 +169,7 @@ public class CorrespondenceRequestTests
                 SendersReference = "senders-reference",
                 Recipients = Enumerable
                     .Range(1, recipientCount)
-                    .Select(i => OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(i)))
+                    .Select(i => OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(i)))
                     .ToList(),
                 Content = new CorrespondenceContent
                 {

@@ -49,7 +49,7 @@ public class DictionaryExtensionsTests
     }
 
     [Fact]
-    public void ToNameValueString_OptionParametersWithSpecialCharaters_IsValidAsHeaders()
+    public void ToNameValueString_OptionParametersWithSpecialCharacters_IsValidAsHeaders()
     {
         var options = new AppOptions
         {

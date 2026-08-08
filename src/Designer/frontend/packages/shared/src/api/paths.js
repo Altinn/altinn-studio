@@ -207,10 +207,10 @@ export const instancesPath = (org, app) => `/${org}/${app}/instances`;
 export const createInstancePath = (org, app, partyId, taskId) => `${instancesPath(org, app)}?instanceOwnerPartyId=${partyId}&taskId=${taskId}`; // Post
 
 // Process Editor
-export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/process-definition`; // Get, Put
-export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/data-types`; // Put
-export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
-export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`; // Post, Delete
+export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/process-modeling/process-definition`; // Get, Put
+export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modeling/data-types`; // Put
+export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modeling/task-type/${taskId}`; // Get
+export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${apiBasePath}/${org}/${app}/process-modeling/data-type/${dataTypeId}?${s({ taskId })}`; // Post, Delete
 
 // Env
 export const envFilePath = () => `${basePath}/config/env.json`;

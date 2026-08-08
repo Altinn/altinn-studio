@@ -87,7 +87,7 @@ describe('PolicyRuleUtils', () => {
     {
       id: '2651ed07-f31b-4bc1-87bd-4d270742a19d',
       name: 'Innehaver',
-      description: 'Fysisk person som er eier av et enkeltpersonforetak',
+      description: 'Natural person who owns a sole proprietorship',
       urn: 'urn:altinn:external-role:ccr:innehaver',
       legacyRoleCode: 'INNH',
       legacyUrn: 'urn:altinn:rolecode:INNH',
@@ -101,7 +101,7 @@ describe('PolicyRuleUtils', () => {
       id: '3c99647d-10b5-447e-9f0b-7bef1c7880f7',
       name: 'Samferdsel',
       description:
-        'Rollen gir rettighet til tjenester relatert til samferdsel. For eksempel tjenester fra Statens Vegvesen, Sjøfartsdirektoratet og Luftfartstilsynet. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rolen gir.',
+        'The role grants access to transport related services, for example services from the Norwegian Public Roads Administration, the Norwegian Maritime Authority and the Civil Aviation Authority. The access granted by the role may change when regulations change or new digital services are introduced.',
       urn: 'urn:altinn:rolecode:UILUF',
       legacyRoleCode: 'UILUF',
       legacyUrn: 'urn:altinn:rolecode:UILUF',
@@ -115,7 +115,7 @@ describe('PolicyRuleUtils', () => {
       id: '1c6eeec1-fe70-4fc5-8b45-df4a2255dea6',
       name: 'Privatperson',
       description:
-        'Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.',
+        'This role comes from the National Population Register and grants access to several services.',
       urn: 'urn:altinn:role:privatperson',
       legacyRoleCode: 'PRIV',
       legacyUrn: 'urn:altinn:rolecode:PRIV',

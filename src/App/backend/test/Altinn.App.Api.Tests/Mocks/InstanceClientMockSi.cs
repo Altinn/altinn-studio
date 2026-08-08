@@ -523,11 +523,11 @@ public sealed class InstanceClientMockSi : IInstanceClient
         if (Directory.Exists(instancesPath))
         {
             string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
-            int instancePathLenght = instancesPath.Split(Path.DirectorySeparatorChar).Length;
+            int instancePathLength = instancesPath.Split(Path.DirectorySeparatorChar).Length;
 
             // only parse files at the correct level. Instances are places four levels [org/app/partyId/instance] below instance path.
             List<string> instanceFiles = files
-                .Where(f => f.Split(Path.DirectorySeparatorChar).Length == (instancePathLenght + fileDepth))
+                .Where(f => f.Split(Path.DirectorySeparatorChar).Length == (instancePathLength + fileDepth))
                 .ToList();
 
             foreach (var file in instanceFiles)

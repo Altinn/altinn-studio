@@ -66,13 +66,13 @@ describe('TextResource', () => {
   });
 
   it('Renders placeholder text when no resource id is given', async () => {
-    const placeholder = 'Legg til tekst her';
+    const placeholder = 'Add text here';
     await render({ placeholder });
     expect(screen.getByText(placeholder)).toBeInTheDocument();
   });
 
   it('Renders placeholder text when resource with given id is empty', async () => {
-    const placeholder = 'Legg til tekst her';
+    const placeholder = 'Add text here';
     const textResourceId = 'some-id';
     const textResource: ITextResource = { id: textResourceId, value: '' };
     await render({ placeholder, textResourceId }, [textResource]);
@@ -80,7 +80,7 @@ describe('TextResource', () => {
   });
 
   it('Renders placeholder text when resource with given id does not exist', async () => {
-    const placeholder = 'Legg til tekst her';
+    const placeholder = 'Add text here';
     const textResourceId = 'some-id';
     await render({ placeholder, textResourceId });
     expect(screen.getByText(placeholder)).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('TextResource', () => {
   });
 
   it('Does not render placeholder text when resource with given id has a value', async () => {
-    const placeholder = 'Legg til tekst her';
+    const placeholder = 'Add text here';
     const textResourceId = 'some-id';
     const textResource: ITextResource = { id: textResourceId, value: 'Lipsum' };
     await render({ placeholder, textResourceId }, [textResource]);

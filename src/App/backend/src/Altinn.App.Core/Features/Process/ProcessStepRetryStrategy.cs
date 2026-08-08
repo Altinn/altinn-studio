@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Process;
 /// An app-facing description of how the workflow engine should retry the step that runs a process
 /// handler (a service task or a task/process lifecycle hook). Returned from
 /// <see cref="ProcessStepOptions.RetryStrategy"/> so an implementation can override the engine's
-/// default retry behaviour for its own step. This is the app contract; the workflow engine has its
+/// default retry behavior for its own step. This is the app contract; the workflow engine has its
 /// own internal wire model that this is mapped onto at enqueue time.
 /// </summary>
 /// <remarks>

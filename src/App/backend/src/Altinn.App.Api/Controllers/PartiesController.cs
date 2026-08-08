@@ -32,8 +32,8 @@ public class PartiesController : ControllerBase
     /// <summary>
     /// Gets the list of parties the user can represent
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
     /// <returns>parties</returns>
     [ProducesResponseType(typeof(IReadOnlyList<Party>), StatusCodes.Status200OK)]
@@ -76,8 +76,8 @@ public class PartiesController : ControllerBase
     /// <summary>
     /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="partyId">The selected partyId</param>
     /// <returns>A validation status</returns>
     [ProducesResponseType(typeof(InstantiationValidationResult), StatusCodes.Status200OK)]

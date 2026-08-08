@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="JWTCookieAuthentication"/>
-    <!-- The follwoing are depencencies for JWTCookieAuthentication, but we need newer versions-->
+    <!-- The following are dependencies for JWTCookieAuthentication, but we need newer versions-->
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime.Azure" />

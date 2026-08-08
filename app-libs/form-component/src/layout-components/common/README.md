@@ -13,7 +13,7 @@ Most likely these will be components migrated from `src/App/frontend/src/compone
 
 Layout components share a single docs page layout so every component's Storybook page looks the
 same: the **Studio configurable** props are shown under a heading — grouped into **Text**, **Data**
-and **Innhold** subsections that mirror the configuration sections in Altinn Studio — and the
+and **Content** subsections that mirror the configuration sections in Altinn Studio — and the
 **Runtime (injected)** props in a collapsed section below them. They are plain controls tables (not
 `table.category` sections), and every prop stays editable.
 
@@ -50,12 +50,12 @@ const meta = {
 ```
 
 The first three categories map 1:1 to the component's Studio-configurable options and are shown
-under the headings **Text**, **Data** and **Innhold**:
+under the headings **Text**, **Data** and **Content**:
 
-- `text` — text-resource bound props (label, help, description, ...). Studio's "Tekst" section.
-- `data` — data-model bound props. Studio's "Datamodeller" section.
+- `text` — text-resource bound props (label, help, description, ...). Studio's text section.
+- `data` — data-model bound props. Studio's data models section.
 - `content` — the remaining configurable options (formatting, constraints, layout, ...). Studio's
-  "Innhold" section.
+  content section.
 - `runtime` — internal wiring supplied by the runtime wrapper (validation state, event handlers).
 
 ### 2. Add the `*.mdx` docs page

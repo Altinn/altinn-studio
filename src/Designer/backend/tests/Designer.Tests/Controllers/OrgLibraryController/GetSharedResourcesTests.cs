@@ -302,10 +302,10 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory)
         // Arrange
         string path = "some/path";
         string apiUrl = ApiUrl(path);
-        const bool IsMemberOfTheOrganisation = false;
+        const bool IsMemberOfTheOrganization = false;
         _userOrganizationServiceMock
             .Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>()))
-            .ReturnsAsync(IsMemberOfTheOrganisation);
+            .ReturnsAsync(IsMemberOfTheOrganization);
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);

@@ -273,7 +273,7 @@ describe('Frontend urlHelper.ts', () => {
       expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/datalists/country?language=no');
     });
 
-    it('should return correct url when only sorting paramters are provided', () => {
+    it('should return correct url when only sorting parameters are provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
         sortColumn: 'id',
@@ -284,7 +284,7 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
 
-    it('should return correct url when only pagination paramters are provided', () => {
+    it('should return correct url when only pagination parameters are provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
         pageSize: '10',
@@ -304,7 +304,7 @@ describe('Frontend urlHelper.ts', () => {
       expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/datalists/country?selectedCountry=Norway');
     });
 
-    it('should render correct url when formData/Mapping, language, pagination and sorting paramters are provided', () => {
+    it('should render correct url when formData/Mapping, language, pagination and sorting parameters are provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
         queryParameters: {

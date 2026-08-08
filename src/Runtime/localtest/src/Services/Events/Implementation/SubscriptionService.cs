@@ -12,7 +12,7 @@ namespace Altinn.Platform.Events.Services
     /// <inheritdoc/>
     public class SubscriptionService : ISubscriptionService
     {
-        private const string OrganisationPrefix = "/org/";
+        private const string OrganizationPrefix = "/org/";
         private const string PersonPrefix = "/person/";
         private const string UserPrefix = "/user/";
         private const string OrgPrefix = "/org/";

@@ -17,7 +17,7 @@ const dataTask: BpmnTaskType = 'data';
 const initialId: string = 'Task_1';
 const newDataModel: string = 'testDataModel';
 
-// This line must be there to ensure that the tests do not run in parallell, and
+// This line must be there to ensure that the tests do not run in parallel, and
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
 

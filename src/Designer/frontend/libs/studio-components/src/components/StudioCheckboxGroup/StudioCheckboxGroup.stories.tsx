@@ -14,7 +14,7 @@ const ComposedComponent = (args: ArgsProps): ReactElement => {
   const { getCheckboxProps, validationMessageProps, value } = useStudioCheckboxGroup({
     name: 'my-checkbox-group',
     value: [],
-    error: hasError ? 'Du må velge et alternativ' : undefined,
+    error: hasError ? 'You must select an option' : undefined,
   });
 
   return (

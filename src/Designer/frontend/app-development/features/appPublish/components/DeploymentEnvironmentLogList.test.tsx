@@ -297,7 +297,7 @@ describe('DeploymentEnvironmentLogList', () => {
   });
 
   describe('when resource registry fails', () => {
-    const deploySuceeded: PipelineDeployment = {
+    const deploySucceeded: PipelineDeployment = {
       ...pipelineDeployment,
       build: {
         ...pipelineDeployment.build,
@@ -318,7 +318,7 @@ describe('DeploymentEnvironmentLogList', () => {
 
     it('renders warning status from event', () => {
       render({
-        pipelineDeploymentList: [deploySuceeded],
+        pipelineDeploymentList: [deploySucceeded],
       });
       expect(
         screen.getByText(

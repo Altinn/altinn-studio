@@ -25,7 +25,7 @@ describe('saving multiple data models', () => {
     cy.findByRole('textbox', { name: /tekstfelt 2/i }).clear();
     cy.findByRole('textbox', { name: /tekstfelt 2/i }).type('fjerde', { delay: 0 });
 
-    // At this point we've typed into two field in two diffrent data models, but we've done it fast enough to not
+    // At this point we've typed into two field in two different data models, but we've done it fast enough to not
     // go beyond the debounce timeout. We should only end up with one more save request, since multiple models can
     // be saved in one request.
     cy.waitUntilSaved();

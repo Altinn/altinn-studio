@@ -167,7 +167,7 @@ public class DataModel
         }
 
         var modelWrapper = new DataModelWrapper(serviceModel);
-        var field = modelWrapper.AddIndicies(key.Field, rowIndexes);
+        var field = modelWrapper.AddIndices(key.Field, rowIndexes);
         return new DataReference() { Field = field, DataElementIdentifier = dataElementId };
     }
 

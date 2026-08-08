@@ -3,12 +3,12 @@
 namespace Altinn.Codelists.Utilities;
 
 /// <summary>
-/// Helper class for embeded resources.
+/// Helper class for embedded resources.
 /// </summary>
 internal static class EmbeddedResource
 {
     /// <summary>
-    /// Finds an embeded resource, by name, within the executing assembly and reads it as string.
+    /// Finds an embedded resource, by name, within the executing assembly and reads it as string.
     /// </summary>
     /// <param name="resourceName"></param>
     /// <returns></returns>
@@ -23,7 +23,7 @@ internal static class EmbeddedResource
     }
 
     /// <summary>
-    /// Finds an embeded resource, by name, within the executing assembly and reads it as a <see cref="Stream"/>
+    /// Finds an embedded resource, by name, within the executing assembly and reads it as a <see cref="Stream"/>
     /// </summary>
     /// <param name="resourceName">The name of the resource including namespace.</param>
     /// <exception cref="InvalidOperationException"></exception>

@@ -47,7 +47,7 @@ public class JoinedAppOptionsTests
             );
         _serviceCollection.AddSingleton(_sentinelOptionsProviderMock.Object);
 
-        // Registrer a mocked default handler
+        // Register a mocked default handler
         _serviceCollection.AddSingleton(_fileHandlerMock.Object);
 
         // This provider should never be used and cause an error if it is
@@ -145,7 +145,7 @@ public class JoinedAppOptionsTests
     }
 
     [Fact]
-    public async Task JoinWithMissingProvider_ThrowsExceptionToWarnAboutMissconfiguration()
+    public async Task JoinWithMissingProvider_ThrowsExceptionToWarnAboutMisconfiguration()
     {
         _fileHandlerMock.Setup(p => p.ReadOptionsFromFileAsync("missing")).ReturnsAsync((List<AppOption>)null!);
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "missing");
@@ -155,7 +155,7 @@ public class JoinedAppOptionsTests
 
         var action = new Func<Task>(async () => await appOptionsService.GetOptionsAsync("country", _language, new()));
         var exception = await action.Should().ThrowAsync<KeyNotFoundException>();
-        exception.WithMessage("missing is not registrered as an app option");
+        exception.WithMessage("missing is not registered as an app option");
 
         _neverUsedOptionsProviderMock.VerifyAll();
         _countryAppOptionsMock.VerifyAll();

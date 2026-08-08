@@ -209,7 +209,7 @@ public class Xml2JsonTestData : IEnumerable<object[]>
         {
             "Model/XmlSchema/Seres/SeresNillable.xsd",
             "Model/JsonSchema/Seres/SeresNillable.json",
-            "Test to verify conversion from XSD to JSON Schema - feature: Nillable ellements",
+            "Test to verify conversion from XSD to JSON Schema - feature: Nillable elements",
         };
         yield return new object[]
         {

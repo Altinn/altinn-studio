@@ -3,7 +3,7 @@
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits;
 
 /// <summary>
-/// Information on Norways offical administrative units for counties and municipalities.
+/// Information on Norways official administrative units for counties and municipalities.
 /// </summary>
 public interface IAdministrativeUnitsClient
 {

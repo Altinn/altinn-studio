@@ -162,7 +162,7 @@ describe('Grid component', () => {
         }
       }
       if (component.type === 'Input' && component.id === 'fordeling-studie' && component.textResourceBindings) {
-        component.textResourceBindings.description = 'Dette er en beskrivende tekst';
+        component.textResourceBindings.description = 'This is a description';
         component.textResourceBindings.help = 'Dette er en hjelpetekst';
       }
     });
@@ -174,7 +174,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.helpText.alert).should('contain.text', 'Help text');
 
     cy.findByRole('cell', {
-      name: /prosentandel av gjeld i studielån dette er en beskrivende tekst/i,
+      name: /prosentandel av gjeld i studielån this is a description/i,
     }).should('exist');
     cy.findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i }).click();
     cy.focused().should('have.attr', 'aria-label', 'Hjelpetekst for Prosentandel av gjeld i studielån');

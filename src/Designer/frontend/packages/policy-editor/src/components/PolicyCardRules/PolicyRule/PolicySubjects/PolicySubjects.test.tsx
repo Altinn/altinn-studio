@@ -120,7 +120,7 @@ const utinnRoleSubject = {
   id: 'dbaae9f8-107a-4222-9afd-d9f95cd5319c',
   name: 'Utfyller/Innsender',
   description:
-    'Denne rollen gir rettighet til et bredt utvalg skjema og tjenester som ikke har så strenge krav til autorisasjon. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.',
+    'This role grants access to a wide range of forms and services that do not have strict authorization requirements. The access granted by the role may change when regulations change or new digital services are introduced.',
   urn: 'urn:altinn:rolecode:UTINN',
   legacyRoleCode: 'UTINN',
   legacyUrn: 'urn:altinn:rolecode:UTINN',
@@ -133,7 +133,7 @@ const utinnRoleSubject = {
 const agentRoleSubject = {
   id: 'ff4c33f5-03f7-4445-85ed-1e60b8aafb30',
   name: 'Agent',
-  description: 'Gir mulighet til å motta delegerte fullmakter for virksomheten',
+  description: 'Makes it possible to receive delegated authorizations for the business',
   urn: 'urn:altinn:role:agent',
   legacyRoleCode: null,
   legacyUrn: null,
@@ -146,7 +146,8 @@ const agentRoleSubject = {
 const privRoleSubject = {
   id: '1c6eeec1-fe70-4fc5-8b45-df4a2255dea6',
   name: 'Privatperson',
-  description: 'Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.',
+  description:
+    'This role comes from the National Population Register and grants access to several services.',
   urn: 'urn:altinn:role:privatperson',
   legacyRoleCode: 'PRIV',
   legacyUrn: 'urn:altinn:rolecode:PRIV',

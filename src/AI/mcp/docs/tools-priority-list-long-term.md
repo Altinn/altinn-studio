@@ -16,7 +16,7 @@ Priority levels are 1, 2 and 3 (from high to low), and describe how important it
 | Subform             | 2        | Not supported                                                                                                |
 | Footer              | 3        | Not supported                                                                                                |
 | Layout as PDF       | 3        | Not supported                                                                                                |
-| Auto-save behaviour | 3        | Not supported                                                                                                |
+| Auto-save behavior  | 3        | Not supported                                                                                                |
 
 ## Texts
 
@@ -58,7 +58,7 @@ Priority levels are 1, 2 and 3 (from high to low), and describe how important it
 | Data fields/data values config | 3        | Not supported |
 | Virus scan config              | 3        | Not supported |
 | Stateless config               | 3        | Not supported |
-| Startup behaviour              | 3        | Not supported |
+| Startup behavior               | 3        | Not supported |
 
 ## Backend specific
 
@@ -66,7 +66,7 @@ Priority levels are 1, 2 and 3 (from high to low), and describe how important it
 | ---------------------------------------------------------------------- | -------- | ----- |
 | Custom process hooks (IProcessTaskStart, IProcessTaskEnd, IProcessEnd) | 3        |       |
 | Data processing (IDataProcessor)                                       | 3        |       |
-| Instansiation (IInstantiationValidator, IInstantiationProcessor)       | 3        |       |
+| Instantiation (IInstantiationValidator, IInstantiationProcessor)        | 3        |       |
 | Events                                                                 | 3        |       |
 | Email and SMS alerts                                                   | 3        |       |
 | Shadow fields                                                          | 3        |       |

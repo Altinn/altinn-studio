@@ -91,7 +91,7 @@ class TestCheckScopeAsync:
 
         assert result.in_scope is True
 
-    async def test_fails_open_on_unparseable_output(self):
+    async def test_fails_open_on_unparsable_output(self):
         client = MagicMock()
         client.call_async = AsyncMock(return_value="Sorry, I cannot classify that.")
         with (

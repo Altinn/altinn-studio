@@ -23,7 +23,7 @@ export const InlineFormatting: Story = {
   args: {
     children: (
       <span>
-        Paragraph with <strong>bold</strong> and <em>emphasised</em> inline elements.
+        Paragraph with <strong>bold</strong> and <em>emphasized</em> inline elements.
       </span>
     ),
   },

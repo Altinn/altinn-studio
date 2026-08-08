@@ -20,7 +20,7 @@ export type PagesModel = {
   showExpandWidthButton?: boolean;
   expandedWidth?: boolean;
   showProgress?: boolean;
-  autoSaveBehaviour?: string;
+  autoSaveBehavior?: string;
   taskNavigation?: TaskNavigationGroup[];
   excludeFromPdf?: string[];
 } & (PagesModelWithPageGroups | PagesModelWithPageOrder);

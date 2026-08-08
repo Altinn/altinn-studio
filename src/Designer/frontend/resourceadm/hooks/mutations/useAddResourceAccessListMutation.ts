@@ -5,7 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 /**
  * Mutation to connect a access list to a resource
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param resourceId the identifier of the resource to connect the list to
  * @param env the list environment
  */

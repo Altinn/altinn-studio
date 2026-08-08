@@ -69,8 +69,8 @@ public class CorrespondenceResponseTests
             }
             """;
 
-        var testOrg = OrganisationOrPersonIdentifier.Create(OrganisationNumber.Parse("213872702"));
-        var testPerson = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("13896396174"));
+        var testOrg = OrganizationOrPersonIdentifier.Create(OrganizationNumber.Parse("213872702"));
+        var testPerson = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("13896396174"));
 
         // Act
         var parsedResponse = JsonSerializer.Deserialize<SendCorrespondenceResponse>(encodedResponse);
@@ -306,7 +306,7 @@ public class CorrespondenceResponseTests
                             Recipient = new CorrespondenceNotificationRecipientResponse
                             {
                                 EmailAddress = "someone@digdir.no",
-                                OrganisationNumber = "213872702",
+                                OrganizationNumber = "213872702",
                             },
                             SendStatus = new CorrespondenceNotificationStatusSummaryResponse
                             {
@@ -352,7 +352,7 @@ public class CorrespondenceResponseTests
         parsedResponse.Status.Should().Be(CorrespondenceStatus.Published);
         parsedResponse.StatusText.Should().Be("Published");
         parsedResponse.ResourceId.Should().Be("test-resource-id");
-        parsedResponse.Sender.Should().Be(OrganisationNumber.Parse("991825827"));
+        parsedResponse.Sender.Should().Be(OrganizationNumber.Parse("991825827"));
         parsedResponse.SendersReference.Should().Be("1234");
         parsedResponse.MessageSender.Should().Be("Test Testesen");
         parsedResponse.RequestedPublishTime.Should().Be(DateTimeOffset.Parse("2024-05-29T13:31:28.290518+00:00"));

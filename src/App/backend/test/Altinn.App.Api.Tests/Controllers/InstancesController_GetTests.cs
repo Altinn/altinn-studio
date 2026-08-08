@@ -21,7 +21,7 @@ public class InstancesController_GetTests : ApiTestBase, IClassFixture<WebApplic
     {
         // Arrange
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         var userId = 1337;
         int instanceOwnerPartyId = 501337;
 
@@ -67,7 +67,7 @@ public class InstancesController_GetTests : ApiTestBase, IClassFixture<WebApplic
     {
         // Arrange
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         var userId = 1337;
         int instanceOwnerPartyId = 501337;
 

@@ -8,14 +8,14 @@ public class CustomTextTests
     private static CustomText CreateCustomText() =>
         new()
         {
-            Nb = "Bokmål tekst",
-            Nn = "Nynorsk tekst",
+            Nb = "Bokmål text",
+            Nn = "Nynorsk text",
             En = "English text",
         };
 
     [Theory]
-    [InlineData(LanguageConst.Nb, "Bokmål tekst")]
-    [InlineData(LanguageConst.Nn, "Nynorsk tekst")]
+    [InlineData(LanguageConst.Nb, "Bokmål text")]
+    [InlineData(LanguageConst.Nn, "Nynorsk text")]
     [InlineData(LanguageConst.En, "English text")]
     public void GetTextForLanguage_KnownLanguage_ReturnsCorrectText(string language, string expected)
     {

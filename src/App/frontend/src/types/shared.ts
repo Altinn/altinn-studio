@@ -97,7 +97,7 @@ export interface ISubstatus {
 export interface IInstanceOwner {
   partyId: string;
   personNumber?: string;
-  organisationNumber?: string | null;
+  organizationNumber?: string | null;
   username?: string;
   party?: IParty | null;
 }
@@ -116,7 +116,7 @@ export interface IAppLanguage {
 /**
  * @see https://github.com/Altinn/altinn-platform/blob/main/Altinn.Platform.Models/src/Register/Models/Organization.cs
  */
-export interface IOrganisation {
+export interface IOrganization {
   orgNumber: string;
   name: string;
   unitType: string;
@@ -147,7 +147,7 @@ export interface IParty {
   isDeleted: boolean;
   onlyHierarchyElementWithNoAccess: boolean;
   person?: IPerson | null;
-  organization?: IOrganisation | null;
+  organization?: IOrganization | null;
   childParties?: IParty[] | null;
 }
 
@@ -156,7 +156,7 @@ export interface IParty {
  */
 export enum PartyType {
   Person = 1,
-  Organisation = 2,
+  Organization = 2,
 
   /**
    * Commenting these out so nobody uses them by accident. The enum linked above has

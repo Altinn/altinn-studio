@@ -7,7 +7,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using Altinn.Studio.Designer.Services.Interfaces.Organization;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -91,10 +91,10 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         string apiUrl = ApiUrl();
-        const bool IsMemberOfTheOrganisation = false;
+        const bool IsMemberOfTheOrganization = false;
         _userOrganizationServiceMock
             .Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>()))
-            .ReturnsAsync(IsMemberOfTheOrganisation);
+            .ReturnsAsync(IsMemberOfTheOrganization);
 
         UpdateSharedResourceRequest updateRequest = new([], "someCommitSha", "Updating shared resources");
 

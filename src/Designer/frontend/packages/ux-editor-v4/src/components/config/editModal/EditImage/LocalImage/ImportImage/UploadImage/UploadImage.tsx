@@ -33,7 +33,7 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
     });
   };
 
-  const handleOverrideExisingUploadedImage = (formData: FormData, imageFileName: string) => {
+  const handleOverrideExistingUploadedImage = (formData: FormData, imageFileName: string) => {
     const userConfirmed = window.confirm(
       t('ux_editor.properties_panel.images.override_existing_image_confirm_content'),
     );
@@ -61,7 +61,7 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
         customFileValidation={{
           validateFileName: (fileName: string) => isFileNameValid(fileName, imageFileNames),
-          onInvalidFileName: handleOverrideExisingUploadedImage,
+          onInvalidFileName: handleOverrideExistingUploadedImage,
           fileSizeLimitMb: MAX_FILE_SIZE_MB,
           onInvalidFileSize: handleInvalidFileSize,
         }}

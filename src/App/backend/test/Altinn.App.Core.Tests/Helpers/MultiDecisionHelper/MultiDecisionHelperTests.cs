@@ -110,7 +110,7 @@ public class MultiDecisionHelperTests
     [Fact]
     public void ValidateDecisionResult_all_actions_allowed()
     {
-        var response = GetXacmlJsonRespons("all-actions-allowed");
+        var response = GetXacmlJsonResponse("all-actions-allowed");
         var expected = new Dictionary<string, bool>()
         {
             { "read", true },
@@ -132,7 +132,7 @@ public class MultiDecisionHelperTests
     [Fact]
     public void ValidateDecisionResult_one_action_denied()
     {
-        var response = GetXacmlJsonRespons("one-action-denied");
+        var response = GetXacmlJsonResponse("one-action-denied");
         var expected = new Dictionary<string, bool>()
         {
             { "read", true },
@@ -168,7 +168,7 @@ public class MultiDecisionHelperTests
     [Fact]
     public void ValidateDecisionResult_throws_ArgumentNullException_if_user_is_null()
     {
-        var response = GetXacmlJsonRespons("one-action-denied");
+        var response = GetXacmlJsonResponse("one-action-denied");
         var actions = new Dictionary<string, bool>()
         {
             { "read", false },
@@ -196,12 +196,12 @@ public class MultiDecisionHelperTests
         );
     }
 
-    private static List<XacmlJsonResult> GetXacmlJsonRespons(string filename)
+    private static List<XacmlJsonResult> GetXacmlJsonResponse(string filename)
     {
-        var xacmlJesonRespons = File.ReadAllText(
+        var xacmlJsonResponse = File.ReadAllText(
             Path.Join(PathUtils.GetCoreTestsPath(), "Helpers", "TestData", "MultiDecisionHelper", filename + ".json")
         );
-        return JsonSerializer.Deserialize<List<XacmlJsonResult>>(xacmlJesonRespons)
-            ?? throw new Exception("Deserialization failed for XacmlJsonRespons");
+        return JsonSerializer.Deserialize<List<XacmlJsonResult>>(xacmlJsonResponse)
+            ?? throw new Exception("Deserialization failed for XacmlJsonResponse");
     }
 }

@@ -48,7 +48,7 @@ type pendingAuth struct {
 	userIdx              int
 	nonce                string
 	authorizationDetails string   // raw JSON from authorize request, empty if not requested
-	selectedOrg          *FakeOrg // nil = "Meg selv" or no orgs
+	selectedOrg          *FakeOrg // nil = personal login (no organization selected)
 }
 
 // pendingCodes maps authorization codes to the selected user and nonce.

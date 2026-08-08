@@ -44,7 +44,7 @@ export default function (data) {
   res = appInstances.postInstance(runtimeToken, partyId, appOwner, appName);
   success = check(res, {
     'App POST Create Instance status is 201': (r) => r.status === 201,
-    'App POST Create Instance Instace Id is not null': (r) => JSON.parse(r.body).id != null,
+    'App POST Create Instance Instance Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
   instanceJson = res.body;
@@ -82,7 +82,7 @@ export default function (data) {
   res = appInstances.postSimplifiedInstantiation(runtimeToken, appOwner, appName, instanceInfo);
   success = check(res, {
     'Simplified instantiation - status is 201': (r) => r.status === 201,
-    'Simplified instantiation - Instace Id is not null': (r) => JSON.parse(r.body).id != null,
+    'Simplified instantiation - Instance Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
   instanceJson = res.body;

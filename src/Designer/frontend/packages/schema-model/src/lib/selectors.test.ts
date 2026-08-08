@@ -50,8 +50,8 @@ describe('selectors', () => {
 
   test('getReferredNodes', () => {
     const uiSchemaNodes = buildUiSchema(dataMock);
-    const referedNodes = getReferredNodes(uiSchemaNodes, '#/$defs/RA-0678_M');
-    expect(referedNodes).toHaveLength(1);
-    expect(referedNodes[0].schemaPointer).toBe('#/properties/melding');
+    const referredNodes = getReferredNodes(uiSchemaNodes, '#/$defs/RA-0678_M');
+    expect(referredNodes).toHaveLength(1);
+    expect(referredNodes[0].schemaPointer).toBe('#/properties/melding');
   });
 });

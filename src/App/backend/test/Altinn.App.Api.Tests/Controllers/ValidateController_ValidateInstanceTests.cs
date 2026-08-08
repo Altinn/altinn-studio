@@ -3,7 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Models.Validation;
@@ -20,7 +20,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const int InstanceOwnerPartyId = 500600;
     private static readonly Guid InstanceGuid = new("3102f61d-1446-4ca5-9fed-3c7c7d67249c");
     private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";

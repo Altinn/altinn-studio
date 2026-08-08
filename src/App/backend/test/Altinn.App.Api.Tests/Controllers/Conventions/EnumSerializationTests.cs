@@ -18,7 +18,7 @@ namespace Altinn.App.Api.Tests.Controllers.Conventions;
 public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const int PartyId = 500600;
 
     private readonly Mock<IAuthorizationClient> _authorizationClientMock;

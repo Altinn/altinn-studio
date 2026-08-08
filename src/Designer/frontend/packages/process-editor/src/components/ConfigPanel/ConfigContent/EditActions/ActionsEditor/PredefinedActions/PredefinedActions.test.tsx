@@ -27,9 +27,9 @@ describe('PredefinedActions', () => {
   it('should be possible to choose predefined action', async () => {
     const user = userEvent.setup();
 
-    const handeOnActionChangeMock = jest.fn();
+    const handleOnActionChangeMock = jest.fn();
     (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: handeOnActionChangeMock,
+      handleOnActionChange: handleOnActionChangeMock,
     }));
 
     renderPredefinedActions();
@@ -40,8 +40,8 @@ describe('PredefinedActions', () => {
 
     await user.selectOptions(select, 'reject');
 
-    await waitFor(() => expect(handeOnActionChangeMock).toHaveBeenCalledTimes(1));
-    expect(handeOnActionChangeMock).toHaveBeenCalledWith(
+    await waitFor(() => expect(handleOnActionChangeMock).toHaveBeenCalledTimes(1));
+    expect(handleOnActionChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         target: expect.objectContaining({
           value: 'reject',
@@ -53,9 +53,9 @@ describe('PredefinedActions', () => {
   it('should disable actions that are not available', async () => {
     const user = userEvent.setup();
 
-    const handeOnActionChangeMock = jest.fn();
+    const handleOnActionChangeMock = jest.fn();
     (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: handeOnActionChangeMock,
+      handleOnActionChange: handleOnActionChangeMock,
     }));
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
@@ -76,9 +76,9 @@ describe('PredefinedActions', () => {
   });
 
   it('should have blank value if action is not a predefined action', async () => {
-    const handeOnActionChangeMock = jest.fn();
+    const handleOnActionChangeMock = jest.fn();
     (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: handeOnActionChangeMock,
+      handleOnActionChange: handleOnActionChangeMock,
     }));
 
     renderPredefinedActions({ actionElement: { ...actionElementMock, action: 'not-predefined' } });

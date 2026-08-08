@@ -73,7 +73,7 @@ public class TextsServiceTest : IDisposable
     }
 
     [Fact]
-    public async Task UpdateRelatedFiles_MultipleKeysExistInLayoutsAcrossLayoutSets_ShouldFindNewIdInMutlipleFiles()
+    public async Task UpdateRelatedFiles_MultipleKeysExistInLayoutsAcrossLayoutSets_ShouldFindNewIdInMultipleFiles()
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 

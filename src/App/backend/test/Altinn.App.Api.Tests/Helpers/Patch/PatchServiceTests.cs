@@ -105,7 +105,7 @@ public sealed class PatchServiceTests : IDisposable
             .ReturnsAsync(true);
 
         _hostEnvironment.SetupGet(h => h.EnvironmentName).Returns("Development");
-        _webHostEnvironment.SetupGet(whe => whe.EnvironmentName).Returns("Development");
+        _webHostEnvironment.SetupGet(env => env.EnvironmentName).Returns("Development");
         var services = new ServiceCollection();
         services.AddAppImplementationFactory();
         services.AddSingleton<IDataElementValidator>(_dataElementValidator.Object);

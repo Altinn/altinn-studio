@@ -486,7 +486,7 @@ func TestRun_SyncAllSkipsWhitelist(t *testing.T) {
 	}
 }
 
-func TestRun_UnlabelledManagedSecretIsSkippedOnDelete(t *testing.T) {
+func TestRun_UnlabeledManagedSecretIsSkippedOnDelete(t *testing.T) {
 	src := &stubSource{orgs: []cdn.Org{{Code: "ttd", Environments: []string{"tt02"}}}}
 	store := newStubStore()
 	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretValid

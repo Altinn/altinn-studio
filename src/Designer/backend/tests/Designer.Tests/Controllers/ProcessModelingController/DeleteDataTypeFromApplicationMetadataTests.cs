@@ -15,7 +15,7 @@ public class DeleteDataTypeFromApplicationMetadataTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository, string dataTypeId) =>
-        $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}";
+        $"/designer/api/{org}/{repository}/process-modeling/data-type/{dataTypeId}";
 
     public DeleteDataTypeFromApplicationMetadataTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

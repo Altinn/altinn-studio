@@ -116,19 +116,19 @@
   {
     "name": "Admin-AT21",
     "permission": "write",
-    "description": "Administrer publiserte apper i AT21",
+    "description": "Manage published apps in AT21",
     "includes_all_repositories": true
   },
   {
     "name": "Admin-AT22",
     "permission": "write",
-    "description": "Administrer publiserte apper i AT22",
+    "description": "Manage published apps in AT22",
     "includes_all_repositories": true
   },
   {
     "name": "Admin-TT02",
     "permission": "write",
-    "description": "Administrer publiserte apper i TT02",
+    "description": "Manage published apps in TT02",
     "includes_all_repositories": true
   }
 ]

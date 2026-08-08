@@ -11,7 +11,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const int InstanceOwnerPartyId = 501337;
 
     public UserDefinedMetadataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)

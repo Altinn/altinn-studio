@@ -67,7 +67,7 @@ public class AltinnApiJsonFormatterTests
     }
 
     [Fact]
-    public void CanWriteResult_SettingsNameMisMatch_ReturnsFalse()
+    public void CanWriteResult_SettingsNameMismatch_ReturnsFalse()
     {
         // Arrange
         string formatterSettingsName = "FormatterSettingName";

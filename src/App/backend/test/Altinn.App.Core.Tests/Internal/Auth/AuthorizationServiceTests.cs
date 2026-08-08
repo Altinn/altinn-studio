@@ -157,7 +157,7 @@ public class AuthorizationServiceTests
     }
 
     [Fact]
-    public async Task AuthorizeAction_returns_true_when_AutorizationClient_true_and_no_IUserActinAuthorizerProvider_is_provided()
+    public async Task AuthorizeAction_returns_true_when_AuthorizationClient_true_and_no_IUserActinAuthorizerProvider_is_provided()
     {
         var partyId = 1337;
         using var fixture = Fixture.Create(
@@ -199,7 +199,7 @@ public class AuthorizationServiceTests
     }
 
     [Fact]
-    public async Task AuthorizeAction_returns_false_when_AutorizationClient_false_and_no_IUserActinAuthorizerProvider_is_provided()
+    public async Task AuthorizeAction_returns_false_when_AuthorizationClient_false_and_no_IUserActinAuthorizerProvider_is_provided()
     {
         var partyId = 1337;
         using var fixture = Fixture.Create(partyId: partyId, withTelemetry: true);
@@ -237,7 +237,7 @@ public class AuthorizationServiceTests
     }
 
     [Fact]
-    public async Task AuthorizeAction_returns_false_when_AutorizationClient_true_and_one_IUserActinAuthorizerProvider_returns_false()
+    public async Task AuthorizeAction_returns_false_when_AuthorizationClient_true_and_one_IUserActinAuthorizerProvider_returns_false()
     {
         var partyId = 1337;
         using var fixture = Fixture.Create(partyId: partyId, withTelemetry: true);

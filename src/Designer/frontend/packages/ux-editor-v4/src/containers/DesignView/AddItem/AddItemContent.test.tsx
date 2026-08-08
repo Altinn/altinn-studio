@@ -14,11 +14,11 @@ describe('AddItemContent', () => {
   const MockIcon = () => <span>Icon</span>;
 
   const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {
-    Skjema: [
-      { type: ComponentType.Input, label: 'Lite tekstfelt', icon: MockIcon },
-      { type: ComponentType.Datepicker, label: 'Dato', icon: MockIcon },
+    Form: [
+      { type: ComponentType.Input, label: 'Short text field', icon: MockIcon },
+      { type: ComponentType.Datepicker, label: 'Date', icon: MockIcon },
     ],
-    Tekst: [{ type: ComponentType.Header, label: 'Tittel', icon: MockIcon }],
+    Text: [{ type: ComponentType.Header, label: 'Title', icon: MockIcon }],
   };
 
   it('should render the search field label', () => {

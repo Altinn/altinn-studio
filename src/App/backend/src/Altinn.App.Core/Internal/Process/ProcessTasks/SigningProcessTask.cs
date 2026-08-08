@@ -62,7 +62,7 @@ internal sealed class SigningProcessTask : IProcessTask
             && signingConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, ct);
+            await InitializeRuntimeDelegatedSigning(dataMutator, signingConfiguration, ct);
         }
     }
 
@@ -118,7 +118,7 @@ internal sealed class SigningProcessTask : IProcessTask
         await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, ct);
     }
 
-    private async Task InitialiseRuntimeDelegatedSigning(
+    private async Task InitializeRuntimeDelegatedSigning(
         IInstanceDataMutator cachedDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         CancellationToken ct

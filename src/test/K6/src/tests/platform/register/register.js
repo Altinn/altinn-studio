@@ -4,7 +4,7 @@
     -e env=*** -e org=*** -e level2app=*** -e pid=*** -e testidppwd=*** -e appsaccesskey=***
 
     Optional:
-    Decide org for instansiation (not take the first one from lookup for parties).
+    Decide org for instantiation (not take the first one from lookup for parties).
     Command: docker-compose run k6 run /src/tests/platform/register/register.js
     -e env=*** -e org=*** -e level2app=*** -e pid=*** -e testidppwd=*** -e appsaccesskey=*** -e instanceOwnerOrgnr=***
 */
@@ -46,13 +46,13 @@ export default function (data) {
   const orgNr = data['orgNumber'];
   var res;
 
-  //Test regiter party lookup indirectly by creating an instance with app api and ssn details
+  //Test register party lookup indirectly by creating an instance with app api and ssn details
   res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, 'ssn', ssn, appOwner, level2App);
   check(res, {
     'Instance created by looking up SSN in register': (r) => r.status === 201,
   });
 
-  //Test regiter party lookup indirectly by creating an instance with app api and ssn details
+  //Test register party lookup indirectly by creating an instance with app api and ssn details
   res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, 'org', orgNr, appOwner, level2App);
   check(res, {
     'Instance created by looking up Org in register': (r) => r.status === 201,

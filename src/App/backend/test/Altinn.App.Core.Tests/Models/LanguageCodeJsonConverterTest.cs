@@ -16,7 +16,7 @@ public class LanguageCodeJsonConverterTest
     [Theory]
     [InlineData("nb", "nb")]
     [InlineData("en", "en")]
-    public void JsonDeserialisesCorrectly(string incomingJsonData, string expectedParsedCode)
+    public void JsonDeserializesCorrectly(string incomingJsonData, string expectedParsedCode)
     {
         // Arrange
         var json = $$"""
@@ -35,7 +35,7 @@ public class LanguageCodeJsonConverterTest
 
     [Theory]
     [InlineData("nb", "nb")]
-    public void JsonSerialisesCorrectly(string originalValue, string expectedJsonResult)
+    public void JsonSerializesCorrectly(string originalValue, string expectedJsonResult)
     {
         // Arrange
         var data = new TestObject { Value = LanguageCode<Iso6391>.Parse(originalValue) };

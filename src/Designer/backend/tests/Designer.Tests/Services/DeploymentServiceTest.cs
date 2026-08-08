@@ -44,7 +44,7 @@ public class DeploymentServiceTest
     private readonly Mock<IDeployEventRepository> _deployEventRepository;
     private readonly Mock<IReleaseRepository> _releaseRepository;
     private readonly Mock<IApplicationInformationService> _applicationInformationService;
-    private readonly Mock<IEnvironmentsService> _environementsService;
+    private readonly Mock<IEnvironmentsService> _environmentsService;
     private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
     private readonly Mock<IPublisher> _mediatrMock;
     private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManager;
@@ -62,9 +62,9 @@ public class DeploymentServiceTest
         _deploymentRepository = new Mock<IDeploymentRepository>();
         _deployEventRepository = new Mock<IDeployEventRepository>();
         _releaseRepository = new Mock<IReleaseRepository>();
-        _environementsService = new Mock<IEnvironmentsService>();
+        _environmentsService = new Mock<IEnvironmentsService>();
         _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
-        _environementsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
+        _environmentsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
         _applicationInformationService = new Mock<IApplicationInformationService>();
         _mediatrMock = new Mock<IPublisher>();
         _gitOpsConfigurationManager = new Mock<IGitOpsConfigurationManager>();
@@ -172,7 +172,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -300,7 +300,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -389,7 +389,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -498,7 +498,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -602,7 +602,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -634,7 +634,7 @@ public class DeploymentServiceTest
     {
         // Arrange
         var environments = GetEnvironments("environments.json");
-        _environementsService
+        _environmentsService
             .Setup(e => e.GetOrganizationEnvironments(org, It.IsAny<CancellationToken>()))
             .ReturnsAsync(environments);
         var pipelineDeployments = GetDeployments("completedDeployments.json");
@@ -649,7 +649,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -759,7 +759,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -909,7 +909,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1037,7 +1037,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1215,7 +1215,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1317,7 +1317,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1417,7 +1417,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1526,7 +1526,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1672,7 +1672,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1794,7 +1794,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -1951,7 +1951,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,
@@ -2089,7 +2089,7 @@ public class DeploymentServiceTest
             _deploymentRepository.Object,
             _deployEventRepository.Object,
             _releaseRepository.Object,
-            _environementsService.Object,
+            _environmentsService.Object,
             _applicationInformationService.Object,
             _mediatrMock.Object,
             _generalSettings,

@@ -5,10 +5,10 @@ import { Header } from './Header';
 import type { HeaderProps } from './Header';
 
 export const HEADER_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   title: 'text',
   help: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   size: 'content',
   innerGrid: 'content',

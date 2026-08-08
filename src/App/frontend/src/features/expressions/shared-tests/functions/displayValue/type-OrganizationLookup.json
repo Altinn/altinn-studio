@@ -1,5 +1,5 @@
 {
-  "name": "Display value of Organisation Lookup component",
+  "name": "Display value of Organization Lookup component",
   "expression": [
     "displayValue",
     "organizationlookup"

@@ -11,7 +11,7 @@ export const FavoriteReposList = () => {
   return (
     <div>
       <Heading level={2} size='small' spacing>
-        {t('dashboard.favourites')}
+        {t('dashboard.favorites')}
       </Heading>
       <RepoList
         repos={userStarredRepos}

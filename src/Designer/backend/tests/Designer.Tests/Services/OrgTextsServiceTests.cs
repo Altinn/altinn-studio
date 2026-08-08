@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Implementation.Organisation;
+using Altinn.Studio.Designer.Services.Implementation.Organization;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
 using SharedResources.Tests;

@@ -121,9 +121,9 @@ class SimpleSchemaTraversal {
       }
     }
 
-    const [isMisCased, correctCasing] = this.isMisCased(property, foundProperties);
-    if (isMisCased) {
-      throw this.makeError('misCasedProperty', {
+    const [isIncorrectlyCased, correctCasing] = this.isIncorrectlyCased(property, foundProperties);
+    if (isIncorrectlyCased) {
+      throw this.makeError('incorrectlyCasedProperty', {
         actualName: correctCasing,
         referencedName: property,
       });
@@ -162,7 +162,7 @@ class SimpleSchemaTraversal {
     throw this.makeError('notAnArray', { actualType: typeof actual?.type === 'string' ? actual.type : undefined });
   }
 
-  private isMisCased(property: string, foundProperties: string[]): [boolean, string] {
+  private isIncorrectlyCased(property: string, foundProperties: string[]): [boolean, string] {
     const lowerCaseMap: { [key: string]: string } = {};
     for (const key of foundProperties) {
       lowerCaseMap[key.toLowerCase()] = key;

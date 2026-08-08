@@ -20,7 +20,7 @@ describe('StudioCodeFragment', () => {
     testRootClassNameAppending((className) => render(<StudioCodeFragment className={className} />));
   });
 
-  it('Adds any additonal props to the element', () => {
+  it('Adds any additional props to the element', () => {
     const renderComponent = (attributes) => render(<StudioCodeFragment {...attributes} />);
     testCustomAttributes(renderComponent);
   });

@@ -22,7 +22,7 @@ public class LayoutSetsFileSyncTaskIdTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/process-modelling/process-definition";
+        $"/designer/api/{org}/{repository}/process-modeling/process-definition";
 
     public LayoutSetsFileSyncTaskIdTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

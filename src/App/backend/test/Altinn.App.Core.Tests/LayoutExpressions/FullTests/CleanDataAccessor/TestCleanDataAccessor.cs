@@ -235,7 +235,7 @@ public class TestCleanDataAccessor
         Assert.Equivalent(expectedSub2, cleanSub2);
     }
 
-    private async Task<(T1?, T2?[])> GetMainAndSubClean<T1, T2>(T1 data, T2[] subDatas)
+    private async Task<(T1?, T2?[])> GetMainAndSubClean<T1, T2>(T1 data, T2[] subDataItems)
         where T1 : class
         where T2 : class
     {
@@ -244,7 +244,7 @@ public class TestCleanDataAccessor
             _outputHelper
         );
         fixture.AddFormData(data);
-        foreach (var subData in subDatas)
+        foreach (var subData in subDataItems)
         {
             fixture.AddFormData(subData);
         }

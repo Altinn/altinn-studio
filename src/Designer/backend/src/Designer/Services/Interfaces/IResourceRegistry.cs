@@ -160,7 +160,7 @@ public interface IResourceRegistry
     Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env);
 
     /// <summary>
-    /// Get consent templates which can be used by this organisation
+    /// Get consent templates which can be used by this organization
     /// </summary>
     /// <param name="org">Current organization</param>
     /// <returns>List of consent templates</returns>

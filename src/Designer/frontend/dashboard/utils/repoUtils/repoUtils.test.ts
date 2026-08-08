@@ -61,7 +61,7 @@ describe('validateRepoName', () => {
     expect(validateRepoName('repo')).toBe(true);
   });
 
-  it('should return false when repo name containes uppercase letters', () => {
+  it('should return false when repo name contains uppercase letters', () => {
     expect(validateRepoName('REPO')).toBe(false);
   });
 

@@ -45,7 +45,7 @@ describe('PageHeader', () => {
     expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
   });
 
-  it('should not render the subheader when showSubMenu is fasle', () => {
+  it('should not render the subheader when showSubMenu is false', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     renderPageHeader({ componentProps: { showSubMenu: false } });
 

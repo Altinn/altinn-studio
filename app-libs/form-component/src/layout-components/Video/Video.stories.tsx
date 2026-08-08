@@ -5,9 +5,9 @@ import { Video } from './Video';
 import type { VideoProps } from './Video';
 
 export const VIDEO_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   altText: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   src: 'content',
   innerGrid: 'content',

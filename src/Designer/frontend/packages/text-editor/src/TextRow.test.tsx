@@ -133,11 +133,11 @@ describe('TextRow', () => {
       textRowEntries: [
         {
           lang: 'nb',
-          translation: 'Dette er en tekst',
+          translation: 'This is a text',
         },
         {
           lang: 'nn',
-          translation: 'Dette er en tekst',
+          translation: 'This is a text',
         },
       ],
     });

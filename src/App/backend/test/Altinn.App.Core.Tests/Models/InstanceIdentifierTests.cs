@@ -22,7 +22,7 @@ public class InstanceIdentifierTests
         512345,
         "2539cacc-1f49-4852-907b-d184e7285a60"
     )]
-    public void Url_CreateFromUrl_ShouldReturnOwnerIdAndInstaceGuid(
+    public void Url_CreateFromUrl_ShouldReturnOwnerIdAndInstanceGuid(
         string url,
         int expectedInstanceOwnerId,
         Guid expectedInstanceGuid

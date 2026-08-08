@@ -691,7 +691,7 @@ def _gitea_web_url(repo_url: str | None) -> str:
     if not repo_url:
         return ""
     url = repo_url
-    # Strip any embedded credentials (defence in depth — scanner already does this)
+    # Strip any embedded credentials (defense in depth — scanner already does this)
     import re as _re
     url = _re.sub(r"://[^@/]+@", "://", url)
     url = url.removesuffix(".git")

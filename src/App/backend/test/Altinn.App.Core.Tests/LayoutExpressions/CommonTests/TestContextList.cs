@@ -113,7 +113,7 @@ public class TestContextList
     [Fact]
     public void Ensure_tests_For_All_Folders()
     {
-        // This is just a way to ensure that all folders have test methods associcated.
+        // This is just a way to ensure that all folders have test methods associated.
         var jsonTestFolders = Directory
             .GetDirectories(
                 Path.Join(

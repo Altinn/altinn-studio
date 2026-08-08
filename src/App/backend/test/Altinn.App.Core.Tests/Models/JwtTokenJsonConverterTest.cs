@@ -18,7 +18,7 @@ public class JwtTokenJsonConverterTest
     }
 
     [Fact]
-    public void JsonDeserialisesCorrectly()
+    public void JsonDeserializesCorrectly()
     {
         // Arrange
         var json = $$"""
@@ -36,7 +36,7 @@ public class JwtTokenJsonConverterTest
     }
 
     [Fact]
-    public void JsonSerialisesCorrectly()
+    public void JsonSerializesCorrectly()
     {
         // Arrange
         var data = new TestObject { Value = _token };

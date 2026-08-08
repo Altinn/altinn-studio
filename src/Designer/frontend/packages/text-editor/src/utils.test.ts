@@ -127,7 +127,7 @@ describe('mapResourceFilesToTableRows', () => {
         { id, value: 'Min nøkkel' },
         {
           id: 'some-other-key',
-          value: 'en tekst med variabel {0}',
+          value: 'a text with variable {0}',
           variables: [{ key: 'some-key-in-data-model', dataSource: 'dataModel' }],
         },
       ],
@@ -152,7 +152,7 @@ describe('mapResourceFilesToTableRows', () => {
         { id, value: 'My key' },
         {
           id: 'some-other-key',
-          value: 'en tekst med variabel {0}',
+          value: 'a text with variable {0}',
           variables: [{ key: 'some-key-in-data-model', dataSource: 'dataModel' }],
         },
       ],

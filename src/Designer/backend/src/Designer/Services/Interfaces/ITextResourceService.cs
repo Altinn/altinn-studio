@@ -12,7 +12,7 @@ public interface ITextResourceService
     /// <summary>
     /// Registers the text resources connected to a specific GITEA repository on a certain commitId
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
     /// <param name="shortCommitId">Commit Id</param>
     /// <param name="envName">Environment Name</param>

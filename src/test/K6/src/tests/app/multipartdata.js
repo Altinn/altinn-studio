@@ -43,7 +43,7 @@ export default function (data) {
   res = appInstances.postInstanceWithMultipartData(runtimeToken, partyId, appOwner, appName, instanceFormDataXml);
   check(res, {
     'App POST Create Instance with Multipart data status is 201': (r) => r.status === 201,
-    'App POST Create Instance with Multipart data Instace Id is not null': (r) => JSON.parse(r.body).id != null,
+    'App POST Create Instance with Multipart data Instance Id is not null': (r) => JSON.parse(r.body).id != null,
   });
 
   instanceId = platformInstances.findInstanceId(res.body);

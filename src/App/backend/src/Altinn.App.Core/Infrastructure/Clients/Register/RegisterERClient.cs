@@ -78,7 +78,7 @@ public class RegisterERClient : IOrganizationClient
         else
         {
             _logger.LogError(
-                "Getting organisation with orgnr {OrgNr} failed with statuscode {StatusCode}",
+                "Getting organization with orgnr {OrgNr} failed with statuscode {StatusCode}",
                 OrgNr,
                 response.StatusCode
             );

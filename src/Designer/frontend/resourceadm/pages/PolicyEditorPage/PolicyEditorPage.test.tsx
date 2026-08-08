@@ -31,7 +31,7 @@ const mockSubjects: PolicySubject[] = [
   {
     id: 'd41d67f2-15b0-4c82-95db-b8d5baaa14a4',
     name: 'Varamedlem',
-    description: 'Fysisk- eller juridisk person som er stedfortreder for et styremedlem',
+    description: 'Natural or legal person who is a deputy for a board member',
     urn: 'urn:altinn:rolecode:VARA',
     legacyRoleCode: 'VARA',
     legacyUrn: 'urn:altinn:rolecode:VARA',
@@ -44,7 +44,8 @@ const mockSubjects: PolicySubject[] = [
   {
     id: '1f8a2518-9494-468a-80a0-7405f0daf9e9',
     name: 'Observatør',
-    description: 'Fysisk person som deltar i styremøter i en virksomhet, men uten stemmerett',
+    description:
+      'Natural person who attends board meetings in a business, but without voting rights',
     urn: 'urn:altinn:rolecode:OBS',
     legacyRoleCode: 'OBS',
     legacyUrn: 'urn:altinn:rolecode:OBS',
@@ -57,7 +58,7 @@ const mockSubjects: PolicySubject[] = [
   {
     id: 'f045ffda-dbdc-41da-b674-b9b276ad5b01',
     name: 'Styremedlem',
-    description: 'Fysisk- eller juridisk person som inngår i et styre',
+    description: 'Natural or legal person who is a member of a board',
     urn: 'urn:altinn:rolecode:MEDL',
     legacyRoleCode: 'MEDL',
     legacyUrn: 'urn:altinn:rolecode:MEDL',

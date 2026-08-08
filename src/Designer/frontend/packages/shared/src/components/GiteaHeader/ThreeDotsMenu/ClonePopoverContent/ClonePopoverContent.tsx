@@ -22,7 +22,7 @@ export const ClonePopoverContent = () => {
   return (
     <div className={classes.modalContainer}>
       <StudioLabelAsParagraph data-size='sm'>
-        {t('sync_header.favourite_tool')}
+        {t('sync_header.favorite_tool')}
       </StudioLabelAsParagraph>
       <Paragraph asChild size='small'>
         <Link
@@ -31,7 +31,7 @@ export const ClonePopoverContent = () => {
           target='_blank'
           rel='noopener noreferrer'
         >
-          {t('sync_header.favourite_tool_link')}
+          {t('sync_header.favorite_tool_link')}
         </Link>
       </Paragraph>
       {dataModel.length === 0 && (

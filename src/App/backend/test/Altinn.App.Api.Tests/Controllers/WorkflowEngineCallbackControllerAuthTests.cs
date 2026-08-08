@@ -21,7 +21,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const int InstanceOwnerPartyId = 500600;
 
     public WorkflowEngineCallbackControllerAuthTests(
@@ -269,7 +269,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
 
         using var response = await client.GetAsync($"{Org}/{App}/api/v1/profile/user");
 
-        // Auth passed via JwtCookie; specifically NOT the 401 we'd get if the selector mis-routed or the token
+        // Auth passed via JwtCookie; specifically NOT the 401 we'd get if the selector misrouted or the token
         // were rejected.
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
     }

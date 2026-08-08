@@ -134,7 +134,7 @@ The app enqueues and returns immediately. The engine handles execution, retries,
 
 # How it handles the same failures
 
-| Failure point             | Current behaviour               | Workflow Engine behaviour                               |
+| Failure point             | Current behavior                | Workflow Engine behavior                                |
 | ------------------------- | ------------------------------- | ------------------------------------------------------- |
 | Service task crashes      | Lost. Manual recovery.          | Requeued with backoff. Retried automatically.           |
 | Storage/network timeout   | Unknown state. No retry.        | Step marked retryable. Engine retries.                  |

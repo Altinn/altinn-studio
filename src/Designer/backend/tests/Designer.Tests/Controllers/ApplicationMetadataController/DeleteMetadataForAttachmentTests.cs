@@ -27,7 +27,7 @@ public class DeleteMetadataForAttachmentTests
         string org,
         string app,
         string developer,
-        string attacmentIdToDelete
+        string attachmentIdToDelete
     )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -42,12 +42,12 @@ public class DeleteMetadataForAttachmentTests
             previousMetadata,
             JsonSerializerOptions
         );
-        Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attacmentIdToDelete);
+        Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attachmentIdToDelete);
         string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
 
         using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
         requestMessage.Content = new StringContent(
-            $"\"{attacmentIdToDelete}\"",
+            $"\"{attachmentIdToDelete}\"",
             Encoding.UTF8,
             MediaTypeNames.Application.Json
         );
@@ -65,6 +65,6 @@ public class DeleteMetadataForAttachmentTests
             currentMetadata,
             JsonSerializerOptions
         );
-        Assert.DoesNotContain(applicationMetadataAfterDelete.DataTypes, x => x.Id == attacmentIdToDelete);
+        Assert.DoesNotContain(applicationMetadataAfterDelete.DataTypes, x => x.Id == attachmentIdToDelete);
     }
 }

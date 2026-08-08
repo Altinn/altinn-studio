@@ -56,7 +56,7 @@ export const Config = new CG.component({
         )
         .addExample({
           productId: 'product.id',
-          description: 'Beskrivelse av produkt',
+          description: 'Product description',
         }),
     ),
   )

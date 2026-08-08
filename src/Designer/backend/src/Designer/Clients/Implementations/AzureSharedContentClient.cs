@@ -83,7 +83,7 @@ public class AzureSharedContentClient : ISharedContentClient
         string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment);
         string versionIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
 
-        Task organisationIndexTask = PrepareOrganisationIndexFile(orgName, cancellationToken);
+        Task organizationIndexTask = PrepareOrganizationIndexFile(orgName, cancellationToken);
         Task resourceTypeTask = PrepareResourceTypeIndexFile(
             resourceTypeIndexPrefix,
             CodeListsSegment,
@@ -91,7 +91,7 @@ public class AzureSharedContentClient : ISharedContentClient
         );
         Task resourceTask = PrepareResourceIndexFile(resourceIndexPrefix, codeListId, cancellationToken);
         Task versionTask = PrepareVersionIndexFile(versionIndexPrefix, cancellationToken);
-        await Task.WhenAll(organisationIndexTask, resourceTypeTask, resourceTask, versionTask);
+        await Task.WhenAll(organizationIndexTask, resourceTypeTask, resourceTask, versionTask);
 
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
@@ -126,7 +126,7 @@ public class AzureSharedContentClient : ISharedContentClient
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 throw new HttpRequestException(
-                    $"Unexpected response from blob storage. Organisation name: {orgName}. CodeListId: {codeListId}. Version: {version}. Status code: {response.StatusCode}"
+                    $"Unexpected response from blob storage. Organization name: {orgName}. CodeListId: {codeListId}. Version: {version}. Status code: {response.StatusCode}"
                 );
             }
 
@@ -147,7 +147,7 @@ public class AzureSharedContentClient : ISharedContentClient
         }
     }
 
-    internal async Task PrepareOrganisationIndexFile(string orgName, CancellationToken cancellationToken = default)
+    internal async Task PrepareOrganizationIndexFile(string orgName, CancellationToken cancellationToken = default)
     {
         string url = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
         string path = IndexFileName; // No prefix since it's on root.

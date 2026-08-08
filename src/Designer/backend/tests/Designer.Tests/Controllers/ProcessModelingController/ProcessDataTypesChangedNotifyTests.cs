@@ -18,7 +18,7 @@ public class ProcessDataTypesChangedNotifyTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/process-modelling/data-types";
+        $"/designer/api/{org}/{repository}/process-modeling/data-types";
 
     public ProcessDataTypesChangedNotifyTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

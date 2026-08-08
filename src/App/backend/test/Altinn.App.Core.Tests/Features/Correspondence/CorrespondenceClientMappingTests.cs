@@ -43,8 +43,8 @@ public class CorrespondenceClientMappingTests
 
         string? capturedJson = null;
         var existingAttachmentId = Guid.NewGuid();
-        var orgRecipient = TestHelpers.GetOrganisationNumber(1);
-        var ninRecipient = TestHelpers.GetNationalIdentityNumber(0);
+        var orgRecipient = TestHelpers.GetOrganizationNumber(1);
+        var personRecipient = TestHelpers.GetNationalIdentityNumber(0);
         var requestedPublishTime = DateTimeOffset.UtcNow.AddDays(1);
         var dueDateTime = DateTimeOffset.UtcNow.AddDays(2);
 
@@ -53,8 +53,8 @@ public class CorrespondenceClientMappingTests
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
             .WithRecipients([
-                OrganisationOrPersonIdentifier.Create(orgRecipient),
-                OrganisationOrPersonIdentifier.Create(ninRecipient),
+                OrganizationOrPersonIdentifier.Create(orgRecipient),
+                OrganizationOrPersonIdentifier.Create(personRecipient),
             ])
             .WithContent(
                 CorrespondenceContentBuilder
@@ -101,7 +101,7 @@ public class CorrespondenceClientMappingTests
                     .WithRecipientOverride(
                         CorrespondenceNotificationOverrideBuilder
                             .Create()
-                            .WithOrganizationNumber(TestHelpers.GetOrganisationNumber(2))
+                            .WithOrganizationNumber(TestHelpers.GetOrganizationNumber(2))
                             .Build()
                     )
                     .WithOverrideRegisteredContactInformation(true)
@@ -158,7 +158,7 @@ public class CorrespondenceClientMappingTests
         var recipients = root.GetProperty("recipients");
         recipients.GetArrayLength().Should().Be(2);
         recipients[0].GetString().Should().Be(orgRecipient.ToUrnFormattedString());
-        recipients[1].GetString().Should().Be(ninRecipient.ToUrnFormattedString());
+        recipients[1].GetString().Should().Be(personRecipient.ToUrnFormattedString());
 
         root.GetProperty("existingAttachments")[0].GetGuid().Should().Be(existingAttachmentId);
 
@@ -206,10 +206,10 @@ public class CorrespondenceClientMappingTests
             .GetProperty("organizationNumber")
             .GetString()
             .Should()
-            .Be(TestHelpers.GetOrganisationNumber(2).ToUrnFormattedString());
+            .Be(TestHelpers.GetOrganizationNumber(2).ToUrnFormattedString());
 
-        // The API deprecated both of these in favour of `customRecipients`, which we now emit directly.
-        // It honoured only the first entry of `customNotificationRecipients`, so nothing is lost.
+        // The API deprecated both of these in favor of `customRecipients`, which we now emit directly.
+        // It honored only the first entry of `customNotificationRecipients`, so nothing is lost.
         notification.TryGetProperty("customRecipient", out _).Should().BeFalse();
         notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
 
@@ -229,7 +229,7 @@ public class CorrespondenceClientMappingTests
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(TestHelpers.GetOrganisationNumber(1))
+            .WithRecipient(TestHelpers.GetOrganizationNumber(1))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
             .WithNotification(
                 CorrespondenceNotificationBuilder
@@ -276,7 +276,7 @@ public class CorrespondenceClientMappingTests
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
+            .WithRecipient(OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
             .WithAttachment(
                 CorrespondenceAttachmentBuilder
@@ -352,7 +352,7 @@ public class CorrespondenceClientMappingTests
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
+            .WithRecipient(OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
             .WithAttachment(
                 CorrespondenceAttachmentBuilder
@@ -425,7 +425,7 @@ public class CorrespondenceClientMappingTests
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
+            .WithRecipient(OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
             .WithExistingAttachment(preExistingId1)
             .WithExistingAttachment(preExistingId2)
@@ -484,7 +484,7 @@ public class CorrespondenceClientMappingTests
             .Create()
             .WithResourceId("resource-id")
             .WithSendersReference("senders-ref")
-            .WithRecipient(OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)))
+            .WithRecipient(OrganizationOrPersonIdentifier.Create(TestHelpers.GetOrganizationNumber(1)))
             .WithContent(LanguageCode<Iso6391>.Parse("nb"), "title", "summary", "body")
             .WithAttachment(
                 CorrespondenceAttachmentBuilder

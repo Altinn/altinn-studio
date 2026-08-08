@@ -30,7 +30,7 @@ public class JsonSchemaSeresAnalyzerTests
     [InlineData(
         @"Model/JsonSchema/General/ComplexContentExtension.json",
         "#",
-        "Schema has allOf keyword which in turn has a decendant with properties."
+        "Schema has allOf keyword which in turn has a descendant with properties."
     )]
     [InlineData(
         @"Model/JsonSchema/General/ComplexSchema.json",
@@ -60,7 +60,7 @@ public class JsonSchemaSeresAnalyzerTests
         "#",
         "Schema has allOf keyword which has at least two sub-schemas - one with a $ref keyword and another with a properties keyword extending the $ref base type."
     )]
-    public void IsValidComplexContentExtension_ComplexContentExtention_ShouldReturnTrue(
+    public void IsValidComplexContentExtension_ComplexContentExtension_ShouldReturnTrue(
         string path,
         string jsonPointer,
         string testCase
@@ -96,9 +96,9 @@ public class JsonSchemaSeresAnalyzerTests
     [InlineData(
         @"Model/JsonSchema/General/ComplexContentExtension_negative.json",
         "#/properties/Root/allOf/[0]",
-        "Schema has allOf keyword with multiple sub schemas, but they don't fullfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)"
+        "Schema has allOf keyword with multiple sub schemas, but they don't fulfill the requirement of one being a $ref and one being a properties (which in turn is a valid ComplexType)"
     )]
-    public void IsValidComplexContentExtension_NotComplexContentExtention_ShouldReturnFalse(
+    public void IsValidComplexContentExtension_NotComplexContentExtension_ShouldReturnFalse(
         string path,
         string jsonPointer,
         string testCase
@@ -159,7 +159,7 @@ public class JsonSchemaSeresAnalyzerTests
     [InlineData(
         @"Model/JsonSchema/General/NillableAttribute.json",
         "#/$defs/main/properties/refered",
-        "Schema (refered) has a oneOf with one refered type and one null schema."
+        "Schema (referred) has a oneOf with one referred type and one null schema."
     )]
     [InlineData(
         @"Model/JsonSchema/General/NillableAttribute.json",

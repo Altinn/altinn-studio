@@ -67,7 +67,7 @@ function onChange(id, value) {
 
 ### Run against mock
 
-`http://localhost:8080/editor/my-org/my-app/datamodelling`
+`http://localhost:8080/editor/my-org/my-app/data-model`
 
 ### Context menu logic
 

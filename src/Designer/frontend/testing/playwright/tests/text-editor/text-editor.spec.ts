@@ -21,7 +21,7 @@ const INITIAL_TEXT_KEY: string = `${PAGE_1}.${COMPONENT_ID}.title`;
 const UPDATED_TEXT_KEY: string = `${INITIAL_TEXT_KEY}-new`;
 const TEXT_VALUE_IN_TEXTAREA: string = 'textValue';
 
-// This line must be there to ensure that the tests do not run in parallell, and
+// This line must be there to ensure that the tests do not run in parallel, and
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
 
@@ -93,7 +93,7 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await textEditorPage.verifyThatTextKeyIsVisible(INITIAL_TEXT_KEY);
   await updateTextKey(textEditorPage, INITIAL_TEXT_KEY, UPDATED_TEXT_KEY);
 
-  // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has updated label
+  // When the button is clicked, it might take some ms for the API call to be executed - It is success when the textarea has updated label
   await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, UPDATED_TEXT_KEY);
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);

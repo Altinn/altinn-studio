@@ -208,7 +208,7 @@ public class PlatformHttpExceptionTests
 
     /// <summary>
     /// Passing an <see cref="IDisposable"/> to a method does not transfer ownership, so the caller's
-    /// <c>using</c> stays in charge and must not be pre-empted.
+    /// <c>using</c> stays in charge and must not be preempted.
     /// </summary>
     [Fact]
     public async Task Create_DoesNotDisposeTheResponse()

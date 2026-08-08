@@ -24,7 +24,7 @@
     }
   ],
   "paths": {
-    "/tdd/contributer-restriction/instances": {
+    "/tdd/contributor-restriction/instances": {
       "summary": "Operations for instances",
       "description": "CRUD operations for instances",
       "post": {
@@ -176,7 +176,7 @@
         }
       }
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}": {
       "summary": "Operations for instance",
       "description": "CRUD operations for a specific instance",
       "get": {
@@ -253,7 +253,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data": {
       "summary": "Operations for data elements",
       "description": "CRUD operations for data elements in an instance",
       "patch": {
@@ -402,7 +402,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}": {
       "summary": "Delete data element",
       "delete": {
         "tags": [
@@ -434,7 +434,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next": {
       "summary": "Move instance to next process step",
       "put": {
         "tags": [
@@ -537,7 +537,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/api/v1/applicationmetadata": {
+    "/tdd/contributor-restriction/api/v1/applicationmetadata": {
       "summary": "Get application metadata",
       "description": "Get the metadata for the application",
       "get": {
@@ -681,7 +681,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}": {
       "summary": "Get instance app options",
       "get": {
         "tags": [
@@ -764,7 +764,7 @@
         }
       }
     },
-    "/tdd/contributer-restriction/api/options/{optionsId}": {
+    "/tdd/contributor-restriction/api/options/{optionsId}": {
       "summary": "Get app options",
       "get": {
         "tags": [
@@ -841,7 +841,7 @@
         }
       }
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/validate": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/validate": {
       "summary": "Validate an app instance",
       "get": {
         "tags": [
@@ -962,7 +962,7 @@
         }
       }
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/default": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/default": {
       "summary": "Operations for default",
       "description": "CRUD operations for data of type default",
       "get": {
@@ -970,7 +970,7 @@
           "FormData default"
         ],
         "summary": "Get data",
-        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributer-restriction/api/jsonschema/default)",
+        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributor-restriction/api/jsonschema/default)",
         "responses": {
           "200": {
             "description": "# Data found\n\nThe response body contains the data in the format specified by the Accept header.\n\n",
@@ -1067,7 +1067,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/default": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/default": {
       "summary": "Operations for default",
       "description": "CRUD operations for data of type default",
       "post": {
@@ -1132,7 +1132,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/customElement": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/customElement": {
       "summary": "Operations for customElement",
       "description": "Data type for an element with limited contributors",
       "get": {
@@ -1173,7 +1173,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/customElement": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/customElement": {
       "summary": "Operations for customElement",
       "description": "CRUD operations for data of type customElement",
       "post": {
@@ -1205,7 +1205,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/9edd53de-f46f-40a1-bb4d-3efb93dc113d": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/9edd53de-f46f-40a1-bb4d-3efb93dc113d": {
       "summary": "Operations for 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
       "description": "Http operations for data of type 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
       "get": {
@@ -1246,7 +1246,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/9edd53de-f46f-40a1-bb4d-3efb93dc113d": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/9edd53de-f46f-40a1-bb4d-3efb93dc113d": {
       "summary": "Operations for 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
       "description": "CRUD operations for data of type 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
       "post": {
@@ -1278,7 +1278,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/specificFileType": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/specificFileType": {
       "summary": "Operations for specificFileType",
       "description": "Data type for attachments with specific file types allowed",
       "get": {
@@ -1319,7 +1319,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/specificFileType": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/specificFileType": {
       "summary": "Operations for specificFileType",
       "description": "CRUD operations for data of type specificFileType",
       "post": {
@@ -1353,7 +1353,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/userInteractionUnspecified": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/userInteractionUnspecified": {
       "summary": "Operations for userInteractionUnspecified",
       "description": "CRUD operations for data of type userInteractionUnspecified",
       "get": {
@@ -1361,7 +1361,7 @@
           "FormData userInteractionUnspecified"
         ],
         "summary": "Get data",
-        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributer-restriction/api/jsonschema/userInteractionUnspecified)",
+        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributor-restriction/api/jsonschema/userInteractionUnspecified)",
         "responses": {
           "200": {
             "description": "# Data found\n\nThe response body contains the data in the format specified by the Accept header.\n\n",
@@ -1458,7 +1458,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/userInteractionUnspecified": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/userInteractionUnspecified": {
       "summary": "Operations for userInteractionUnspecified",
       "description": "CRUD operations for data of type userInteractionUnspecified",
       "post": {
@@ -1523,7 +1523,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/disallowUserCreate": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/disallowUserCreate": {
       "summary": "Operations for disallowUserCreate",
       "description": "CRUD operations for data of type disallowUserCreate",
       "get": {
@@ -1531,7 +1531,7 @@
           "FormData disallowUserCreate"
         ],
         "summary": "Get data",
-        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributer-restriction/api/jsonschema/disallowUserCreate)",
+        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributor-restriction/api/jsonschema/disallowUserCreate)",
         "responses": {
           "200": {
             "description": "# Data found\n\nThe response body contains the data in the format specified by the Accept header.\n\n",
@@ -1628,7 +1628,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/disallowUserCreate": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/disallowUserCreate": {
       "summary": "Operations for disallowUserCreate",
       "description": "CRUD operations for data of type disallowUserCreate",
       "post": {
@@ -1693,7 +1693,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/disallowUserDelete": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/disallowUserDelete": {
       "summary": "Operations for disallowUserDelete",
       "description": "CRUD operations for data of type disallowUserDelete",
       "get": {
@@ -1701,7 +1701,7 @@
           "FormData disallowUserDelete"
         ],
         "summary": "Get data",
-        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributer-restriction/api/jsonschema/disallowUserDelete)",
+        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributor-restriction/api/jsonschema/disallowUserDelete)",
         "responses": {
           "200": {
             "description": "# Data found\n\nThe response body contains the data in the format specified by the Accept header.\n\n",
@@ -1798,7 +1798,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/disallowUserDelete": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/disallowUserDelete": {
       "summary": "Operations for disallowUserDelete",
       "description": "CRUD operations for data of type disallowUserDelete",
       "post": {
@@ -1863,7 +1863,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/requiresActionToRead": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/requiresActionToRead": {
       "summary": "Operations for requiresActionToRead",
       "description": "CRUD operations for data of type requiresActionToRead",
       "get": {
@@ -1871,7 +1871,7 @@
           "FormData requiresActionToRead"
         ],
         "summary": "Get data",
-        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributer-restriction/api/jsonschema/requiresActionToRead)",
+        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributor-restriction/api/jsonschema/requiresActionToRead)",
         "responses": {
           "200": {
             "description": "# Data found\n\nThe response body contains the data in the format specified by the Accept header.\n\n",
@@ -1968,7 +1968,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/requiresActionToRead": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/requiresActionToRead": {
       "summary": "Operations for requiresActionToRead",
       "description": "CRUD operations for data of type requiresActionToRead",
       "post": {
@@ -2033,7 +2033,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/requiresActionToWrite": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/requiresActionToWrite": {
       "summary": "Operations for requiresActionToWrite",
       "description": "CRUD operations for data of type requiresActionToWrite",
       "get": {
@@ -2041,7 +2041,7 @@
           "FormData requiresActionToWrite"
         ],
         "summary": "Get data",
-        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributer-restriction/api/jsonschema/requiresActionToWrite)",
+        "description": "Get data for a specific data element\n\nsee [JSON Schema](/tdd/contributor-restriction/api/jsonschema/requiresActionToWrite)",
         "responses": {
           "200": {
             "description": "# Data found\n\nThe response body contains the data in the format specified by the Accept header.\n\n",
@@ -2138,7 +2138,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/requiresActionToWrite": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/requiresActionToWrite": {
       "summary": "Operations for requiresActionToWrite",
       "description": "CRUD operations for data of type requiresActionToWrite",
       "post": {
@@ -2203,7 +2203,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/task2DataType": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/task2DataType": {
       "summary": "Operations for task2DataType",
       "description": "Http operations for data of type task2DataType",
       "get": {
@@ -2244,7 +2244,7 @@
         }
       ]
     },
-    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/task2DataType": {
+    "/tdd/contributor-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/task2DataType": {
       "summary": "Operations for task2DataType",
       "description": "CRUD operations for data of type task2DataType",
       "post": {
@@ -3976,7 +3976,7 @@
       "instanceOwnerPartyId": {
         "name": "instanceOwnerPartyId",
         "in": "path",
-        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
+        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organization, person or self registered user. Might be the current user, or a party the user has rights to represent.",
         "required": true,
         "schema": {
           "type": "integer"

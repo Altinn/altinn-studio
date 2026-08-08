@@ -6,11 +6,11 @@ import { ButtonGroupLayout } from './ButtonGroupLayout';
 import type { ButtonGroupLayoutProps } from './ButtonGroupLayout';
 
 export const BUTTON_GROUP_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section
+  // Text resources — Studio's text section
   title: 'text',
   description: 'text',
   help: 'text',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   id: 'content',
   componentId: 'content',
   grid: 'content',

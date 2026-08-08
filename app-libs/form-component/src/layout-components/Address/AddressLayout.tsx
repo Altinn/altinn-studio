@@ -8,14 +8,14 @@ import classes from './AddressLayout.module.css';
 export type AddressFieldKey = 'address' | 'zipCode' | 'postPlace' | 'careOf' | 'houseNumber';
 
 export interface AddressLayoutProps {
-  // Content — configurable options (Studio "Innhold")
+  // Content — configurable options (Studio's content section)
   id: string;
   simplified?: boolean;
   required?: boolean;
   readOnly?: boolean;
   showOptionalMarking?: boolean;
 
-  // Text — labels resolved via `lang`: a text-resource key, or literal text when no resource matches (Studio "Tekst")
+  // Text — labels resolved via `lang`: a text-resource key, or literal text when no resource matches (Studio's text section)
   /** Address label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.address`. */
   title?: string;
   /** Care-of label. A text-resource key (resolved via `lang`) or literal text. Defaults to `address_component.care_of`. */

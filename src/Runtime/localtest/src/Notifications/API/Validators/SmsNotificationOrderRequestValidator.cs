@@ -34,7 +34,7 @@ public class SmsNotificationOrderRequestValidator : AbstractValidator<SmsNotific
                 .WithMessage("Invalid mobile number format.");
 
             recipient.RuleFor(a => a.NationalIdentityNumber)
-                .Must(nin => nin?.Length == ValidationConstants.NationalIdentityNumberLength && nin.All(char.IsDigit))
+                .Must(nationalIdentityNumber => nationalIdentityNumber?.Length == ValidationConstants.NationalIdentityNumberLength && nationalIdentityNumber.All(char.IsDigit))
                 .When(r => !string.IsNullOrEmpty(r.NationalIdentityNumber))
                 .WithMessage($"National identity number must be {ValidationConstants.NationalIdentityNumberLength} digits long.");
 

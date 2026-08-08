@@ -13,7 +13,7 @@ const defaultProps: StudioPageHeaderHeaderButtonProps = {
 };
 
 describe('StudioPageHeaderHeaderButton', () => {
-  it('Passes the colour and variant classes to the button', () => {
+  it('Passes the color and variant classes to the button', () => {
     renderStudioPageHeaderHeaderButton();
     const button = screen.getByRole('button');
     expect(button).toHaveClass(defaultProps.color);

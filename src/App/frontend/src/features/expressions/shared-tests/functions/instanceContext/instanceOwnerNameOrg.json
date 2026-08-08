@@ -9,7 +9,7 @@
     "id": "d00ce51c-800b-416a-a906-ccab55f597e9",
     "appId": "org/app-name",
     "instanceOwner": {
-      "organisationNumber": "1234567",
+      "organizationNumber": "1234567",
       "party": {
         "name": "My Org AS"
       }

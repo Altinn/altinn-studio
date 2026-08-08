@@ -6,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 /**
  * Mutation to edit an existing policy in an app.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param app the app the user is in
  */
 export const useAppPolicyMutation = (org: string, app: string) => {

@@ -8,7 +8,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 /**
  * Query to get the validation status of a policy.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param id the id of the resource
  *

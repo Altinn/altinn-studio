@@ -78,7 +78,7 @@ namespace LocalTest.Controllers.Authentication
                 new Claim("urn:altinn:scope", scope, ClaimValueTypes.String)
             };
 
-            ClaimsIdentity identity = new ClaimsIdentity("OrganisationLogin");
+            ClaimsIdentity identity = new ClaimsIdentity("OrganizationLogin");
 
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);

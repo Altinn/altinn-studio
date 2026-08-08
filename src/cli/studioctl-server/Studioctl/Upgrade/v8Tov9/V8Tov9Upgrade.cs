@@ -40,6 +40,10 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    // The misspelled file analysis namespace, corrected in v9 (#19784).
+    private const string FileAnalysisOldNamespace = "Altinn.App.Core.Features.FileAnalyzis";
+    private const string FileAnalysisNewNamespace = "Altinn.App.Core.Features.FileAnalysis";
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
@@ -114,6 +118,17 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileAnalysisNamespace(projectFile));
+
+        // Runs after the namespace migrations so that the type names it rewrites are already
+        // reachable through the corrected usings.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateRenamedApiSpelling(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateMisspelledConfigKeys(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
@@ -296,6 +311,61 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>Rewrites the misspelled file analysis namespace usings across all app C# files.</summary>
+    static async Task<int> MigrateFileAnalysisNamespace(string projectFile)
+    {
+        try
+        {
+            var migration = new UsingNamespaceMigration(projectFile);
+            migration.Migrate(FileAnalysisOldNamespace, FileAnalysisNewNamespace, _allCSharpFilesMatcher);
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating file analysis namespace: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>Renames v8 API members that were misspelled or spelled in British English.</summary>
+    static async Task<int> MigrateRenamedApiSpelling(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Renaming v8 API names that changed spelling in v9...");
+            var result = await SpellingRenameMigration.Migrate(projectFolder);
+            return await ReportResult(result);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error renaming v9 API names: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    /// <summary>Renames misspelled keys in the app's own config files.</summary>
+    static async Task<int> MigrateMisspelledConfigKeys(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Checking for misspelled config keys...");
+            var result = await SpellingConfigMigration.Migrate(projectFolder);
+            return await ReportResult(result);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating misspelled config keys: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    private static async Task<int> ReportResult(MigrationResult result)
+    {
+        foreach (var warning in result.Warnings)
+            await UpgradeConsole.Out.WriteLineAsync($" Warning: {warning}");
+        return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+    }
+
     /// <summary>
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
@@ -326,7 +396,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>

@@ -2,7 +2,7 @@ import { Ajv, type JSONSchemaType } from 'ajv';
 import adderrors from 'ajv-errors';
 
 import type {
-  Organisation,
+  Organization,
   OrganizationLookupResponse,
 } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 
@@ -21,7 +21,7 @@ ajv.addKeyword({
   },
 });
 
-const orgNrSchema: JSONSchemaType<Pick<Organisation, 'orgNr'>> = {
+const orgNrSchema: JSONSchemaType<Pick<Organization, 'orgNr'>> = {
   type: 'object',
   properties: {
     orgNr: {
@@ -63,14 +63,14 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
     {
       properties: {
         success: { const: false },
-        organisationDetails: { type: 'null' },
+        organizationDetails: { type: 'null' },
       },
-      required: ['success', 'organisationDetails'],
+      required: ['success', 'organizationDetails'],
     },
     {
       properties: {
         success: { const: true },
-        organisationDetails: {
+        organizationDetails: {
           type: 'object',
           properties: {
             orgNr: { type: 'string' },
@@ -79,10 +79,10 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
           required: ['orgNr', 'name'],
         },
       },
-      required: ['success', 'organisationDetails'],
+      required: ['success', 'organizationDetails'],
     },
   ],
-  required: ['success', 'organisationDetails'],
+  required: ['success', 'organizationDetails'],
 };
 
 export const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);

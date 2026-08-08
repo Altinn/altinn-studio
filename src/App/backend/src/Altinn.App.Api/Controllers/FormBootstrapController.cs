@@ -61,8 +61,8 @@ public class FormBootstrapController : ControllerBase
     /// <summary>
     /// Gets all data needed to bootstrap a form for an instance.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The unique identifier of the instance.</param>
     /// <param name="uiFolder">The UI folder to use (matches the task ID or subform folder name).</param>
@@ -148,8 +148,8 @@ public class FormBootstrapController : ControllerBase
     /// <summary>
     /// Gets all data needed to bootstrap a stateless form.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="uiFolder">The layout set ID to use.</param>
     /// <param name="language">Language code for text resources.</param>
     /// <param name="prefill">Optional JSON object containing query param prefill, either for the default data type or keyed by data type.</param>

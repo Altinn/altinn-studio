@@ -55,7 +55,7 @@ namespace Altinn.ResourceRegistry.Core
         /// </summary>
         /// <param name="serviceResource">The resource</param>
         /// <param name="fileStream">The file stream to the policy file</param>
-        /// <returns>Bool if storing the policy was successfull</returns>
+        /// <returns>Bool if storing the policy was successful</returns>
         Task<bool> StorePolicy(ServiceResource serviceResource, Stream fileStream);
 
         /// <summary>

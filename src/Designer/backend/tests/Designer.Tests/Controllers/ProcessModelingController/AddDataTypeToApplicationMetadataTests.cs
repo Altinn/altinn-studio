@@ -19,7 +19,7 @@ public class AddDataTypeToApplicationMetadataTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository, string dataTypeId, string taskId) =>
-        $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}?taskId={taskId}";
+        $"/designer/api/{org}/{repository}/process-modeling/data-type/{dataTypeId}?taskId={taskId}";
 
     public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

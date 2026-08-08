@@ -41,7 +41,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
         ApplicationName = "Altinn.App.Api.Tests",
-        WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
+        WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributor-restriction"),
         EnvironmentName = "Production",
     }
 );
@@ -59,7 +59,7 @@ builder.Services.AddSingleton<TestId>(_ => new TestId(Guid.NewGuid()));
 builder.Services.AddSingleton<IStartupFilter, ApiTestBase.ApiTestBaseStartupFilter>();
 
 builder.Configuration.AddJsonFile(
-    Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json")
+    Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributor-restriction", "appsettings.json")
 );
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";

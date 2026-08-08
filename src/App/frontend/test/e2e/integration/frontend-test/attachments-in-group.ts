@@ -424,7 +424,7 @@ describe('Repeating group attachments', () => {
     expectFormDataToBe(formData);
 
     if (runReloadTests) {
-      // Reload tha page at this point to verify that attachments are mapped correctly from formData back to the
+      // Reload the page at this point to verify that attachments are mapped correctly from formData back to the
       // correct attachment state.
       cy.reload();
       cy.get(appFrontend.group.showGroupToContinue).should('be.visible');

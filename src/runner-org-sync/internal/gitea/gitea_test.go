@@ -53,7 +53,7 @@ func TestMintRegistrationToken_Happy(t *testing.T) {
 }
 
 func TestMintRegistrationToken_PathEscaped(t *testing.T) {
-	// Gitea org names are validated, but defence in depth: ensure path escaping
+	// Gitea org names are validated, but defense in depth: ensure path escaping
 	// is applied so a hostile or malformed org code cannot construct a URL.
 	var gotPath string
 	s := newStubServer(t, func(w http.ResponseWriter, r *http.Request) {

@@ -9,7 +9,7 @@ public class ResourceControllerTests : ApiTestBase, IClassFixture<WebApplication
         : base(factory, outputHelper) { }
 
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const string DefaultModelName = "Skjema";
 
     [Fact]
@@ -31,7 +31,7 @@ public class ResourceControllerTests : ApiTestBase, IClassFixture<WebApplication
         {
             using var response = await client.GetAsync($"/{Org}/{App}/api/jsonschema/InvalidModelName");
             // TODO: Should probably return 404 NotFound instead of throwing FileNotFoundException,
-            // but adding test for current behaviour.
+            // but adding test for current behavior.
             // Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
         });
     }

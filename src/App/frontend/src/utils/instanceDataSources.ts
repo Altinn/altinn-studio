@@ -7,7 +7,7 @@ export function buildInstanceDataSources(
   if (!instance?.instanceOwner) {
     return null;
   }
-  const instanceOwnerPartyType = instance.instanceOwner.organisationNumber
+  const instanceOwnerPartyType = instance.instanceOwner.organizationNumber
     ? 'org'
     : instance.instanceOwner.personNumber
       ? 'person'

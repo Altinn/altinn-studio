@@ -160,7 +160,7 @@ describe('PDF', () => {
     // Set exact location so snapshot is consistent
     cy.findByRole('textbox', { name: /eksakt lokasjon/i }).type('67.140824,16.101665');
     cy.waitUntilSaved();
-    cy.gotoNavPage('form'); // Go back to form to avoid waiting for map to load while zoom animation is happending
+    cy.gotoNavPage('form'); // Go back to form to avoid waiting for map to load while zoom animation is happening
 
     cy.testPdf({
       snapshotName: 'changeName 2',

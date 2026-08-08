@@ -265,7 +265,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public async Task CreatePullRequest_InputMappedCorectlyToCreatePullRequestOption()
+    public async Task CreatePullRequest_InputMappedCorrectlyToCreatePullRequestOption()
     {
         // Arrange
         string target = "master";

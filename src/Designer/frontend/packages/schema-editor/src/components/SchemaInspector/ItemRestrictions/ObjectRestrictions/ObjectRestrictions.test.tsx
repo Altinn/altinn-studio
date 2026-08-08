@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { ObjectRestrictions } from './ObjectRestrictions';
 
-test('ObjectRestrictions should redner correctly', async () => {
+test('ObjectRestrictions should render correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
   const path = '#/properties/xxsfds';
   render(

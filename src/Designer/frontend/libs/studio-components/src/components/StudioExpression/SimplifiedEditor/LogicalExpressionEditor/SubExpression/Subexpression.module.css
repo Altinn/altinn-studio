@@ -1,10 +1,10 @@
 .subexpression {
-  --background-colour: var(--ds-color-background-tinted);
-  --border-colour: var(--ds-color-border-default);
+  --background-color: var(--ds-color-background-tinted);
+  --border-color: var(--ds-color-border-default);
 
-  background-color: var(--background-colour);
+  background-color: var(--background-color);
   border-radius: var(--ds-border-radius-md);
-  border: 1px solid var(--border-colour);
+  border: 1px solid var(--border-color);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -23,7 +23,7 @@
 }
 
 .subexpression.editMode .fieldsetContent > *:not(:first-child) {
-  border-top: 1px solid var(--border-colour);
+  border-top: 1px solid var(--border-color);
 }
 
 .subexpression.editMode .editableItem:hover {
@@ -35,5 +35,5 @@
 }
 
 .subexpression.hasError {
-  --border-colour: var(--ds-color-border-default);
+  --border-color: var(--ds-color-border-default);
 }

@@ -10,7 +10,7 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Implementation.Organisation;
+using Altinn.Studio.Designer.Services.Implementation.Organization;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -32,9 +32,9 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> expectedCodeList = new()
         {
-            new Option { Label = "En", Value = 1.05 },
-            new Option { Label = "To", Value = 2.01 },
-            new Option { Label = "Tre", Value = 3.1 },
+            new Option { Label = "One", Value = 1.05 },
+            new Option { Label = "Two", Value = 2.01 },
+            new Option { Label = "Three", Value = 3.1 },
         };
 
         TargetOrg = TestDataHelper.GenerateTestOrgName();

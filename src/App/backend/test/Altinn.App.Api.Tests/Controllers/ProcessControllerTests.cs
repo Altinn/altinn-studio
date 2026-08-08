@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributor_restriction.models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
@@ -30,7 +30,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 {
     // Define constants
     private const string Org = "tdd";
-    private const string App = "contributer-restriction";
+    private const string App = "contributor-restriction";
     private const int InstanceOwnerPartyId = 500600;
     private static readonly Guid _instanceGuid = new("5a2fa5ec-f97c-4816-b57a-dc78a981917e");
     private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
@@ -67,7 +67,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task Get_ShouldReturnProcessTasks()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         int partyId = 500000;
         Guid instanceId = new Guid("5d9e906b-83ed-44df-85a7-2f104c640bff");
 
@@ -709,6 +709,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var content = await response.Content.ReadAsStringAsync();
 
         response.Should().HaveStatusCode(HttpStatusCode.OK);
+        // "occured" is spelled that way in Altinn Storage's ProcessHistoryItem, which we serialize
+        // straight through — it is their wire contract, not ours to correct.
         content
             .Should()
             .Be(

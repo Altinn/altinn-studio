@@ -94,7 +94,7 @@
           "refId": "A"
         }
       ],
-      "title": "Skjemaer startet",
+      "title": "Forms started",
       "type": "stat"
     },
     {
@@ -521,7 +521,7 @@
           "editorMode": "code",
           "expr": "rate(altinn_app_lib_processes_started_total{job=\"$app\"}[$__rate_interval]) * 60",
           "hide": false,
-          "legendFormat": "Skjemaer startet",
+          "legendFormat": "Forms started",
           "range": true,
           "refId": "B"
         },

@@ -21,7 +21,7 @@ const onChange = jest.fn();
 describe('StudioExpression', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Renders with the simpified tab open when the expression is simplifiable', () => {
+  it('Renders with the simplified tab open when the expression is simplifiable', () => {
     renderExpression(logicalExpression);
     expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(
       'aria-selected',

@@ -24,7 +24,7 @@ public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITes
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         var userId = 1337;
         int instanceOwnerPartyId = 501337;
 
@@ -45,7 +45,7 @@ public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITes
     public async Task PartyClient_401()
     {
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
         var userId = 1337;
         int instanceOwnerPartyId = 501337;
         int selectedPartyId = 501338;

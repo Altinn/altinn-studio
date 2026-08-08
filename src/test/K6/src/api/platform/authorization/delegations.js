@@ -21,7 +21,7 @@ export function getPolicies(resources) {
 }
 
 /**
- * POST api call to add a rule that delagates access to an user
+ * POST api call to add a rule that delegates access to an user
  * @param {*} altinnToken token for authorizing the request
  * @param {*} policyMatchKeys keys to be populated in the request
  * @param {*} delegatedByUserId user id of the user who delegates the rule
@@ -42,7 +42,7 @@ export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offere
 }
 
 /**
- * POST api call to add a rule that delagates access to an user
+ * POST api call to add a rule that delegates access to an user
  * @param {*} altinnToken token for authorizing the request
  * @param {*} rulesList list of rules to add to the request
  * @returns response of the POST request

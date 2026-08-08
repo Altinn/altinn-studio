@@ -81,7 +81,7 @@ public class LinqExpressionHelpersTests
     }
 
     [Fact]
-    public void GetJsonPath_AritmeticExpression()
+    public void GetJsonPath_ArithmeticExpression()
     {
         var list = new List<string> { "one", "two" };
         var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m => m.Children![list.Count - 1].Age);
@@ -89,7 +89,7 @@ public class LinqExpressionHelpersTests
     }
 
     [Fact]
-    public void GetJsonPath_AritmeticExpressionOnRecursiveModel()
+    public void GetJsonPath_ArithmeticExpressionOnRecursiveModel()
     {
         var model = new MyModel
         {

@@ -1,104 +1,104 @@
 # CodeRabbit Review TODOs (PR #17684)
 
-Tilbakemeldinger fra CodeRabbit som ikke er adressert ennå.
-Prioriterer validering av applikasjonen i et miljø først — arkitekturen
-kan endre seg vesentlig (tilstand, lastbalansering, filsystem-avhengigheter).
+Feedback from CodeRabbit that has not been addressed yet.
+Validating the application in a real environment comes first — the architecture
+may change substantially (state, load balancing, file system dependencies).
 
 ---
 
-## Arkitektur / Miljø-avhengigheter
+## Architecture / Environment dependencies
 
-- [ ] **Lokalt filsystem for temp-filer (PdfGeneratorService)**
-  Bruker `Path.GetTempPath()` for midlertidige Typst-filer.
-  Fungerer ikke med flere pod-replika / lastbalansering uten delt lagring.
-  Vurder om dette er OK for POC eller om vi trenger delt volum / blob storage.
+- [ ] **Local file system for temp files (PdfGeneratorService)**
+  Uses `Path.GetTempPath()` for temporary Typst files.
+  Does not work with multiple pod replicas / load balancing without shared storage.
+  Consider whether this is acceptable for the POC, or whether we need a shared volume / blob storage.
 
 ---
 
-## Sikkerhetsrelatert (SSRF / Validering)
+## Security related (SSRF / validation)
 
-- [ ] **SSRF-beskyttelse i CallbackService** (`CallbackService.cs:12`)
-  CallbackService poster til bruker-oppgitt URL uten nettverksrestriksjoner.
-  CallbackUrlValidator sjekker pattern-match, men blokkerer ikke private/loopback
-  IP-adresser. Vurder `SocketsHttpHandler` med `ConnectCallback` som avviser
-  private IP-er etter DNS-oppslag (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16,
+- [ ] **SSRF protection in CallbackService** (`CallbackService.cs:12`)
+  CallbackService posts to a user-supplied URL without network restrictions.
+  CallbackUrlValidator checks the pattern match, but does not block private/loopback
+  IP addresses. Consider a `SocketsHttpHandler` with a `ConnectCallback` that rejects
+  private IPs after DNS resolution (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16,
   169.254.0.0/16, ::1, fc00::/7, fe80::/10).
 
 ---
 
-## CallbackUrlValidator-forbedringer
+## CallbackUrlValidator improvements
 
-- [ ] **Scheme-sammenligning er case-sensitiv** (`CallbackUrlValidator.cs:74`)
-  `uri.Scheme` returnerer alltid lowercase, men pattern-scheme sammenlignes as-is.
-  Bør normalisere til lowercase.
+- [ ] **Scheme comparison is case sensitive** (`CallbackUrlValidator.cs:74`)
+  `uri.Scheme` always returns lowercase, but the pattern scheme is compared as-is.
+  It should be normalized to lowercase.
 
-- [ ] **Host-del i pattern bør case-foldes** (`CallbackUrlValidator.cs:135`)
-  DNS-navn er case-insensitive (RFC 4343). `uri.Host` returnerer lowercase,
-  men pattern-host sammenlignes as-is.
-
----
-
-## Feilhåndtering
-
-- [ ] **GenerateEndpoints: Uhåndterte PDF-feil gir 500** (`GenerateEndpoints.cs:39`)
-  `GeneratePdfAsync` kan kaste `InvalidOperationException` (timeout, kompileringsfeil),
-  men dette er ikke håndtert i `/generate`-endpointet. Bør fange og returnere
-  passende feilkode (f.eks. 422/500 med feilmelding).
-
-- [ ] **Caller-cancellation maskert som timeout** (`PdfGeneratorService.cs:56-68`)
-  Når den linkede `CancellationTokenSource` avfyres, gir både caller-cancellation
-  og intern timeout `OperationCanceledException`. Bør skille mellom de to for
-  riktig logging og feilmelding.
+- [ ] **Host part of the pattern should be case folded** (`CallbackUrlValidator.cs:135`)
+  DNS names are case insensitive (RFC 4343). `uri.Host` returns lowercase,
+  but the pattern host is compared as-is.
 
 ---
 
-## Robusthet
+## Error handling
 
-- [ ] **PdfGeneratorService: string.Format er skjørt for Typst-maler** (`PdfGeneratorService.cs:16`)
-  Typst bruker `{ }` for kodeblokker. Hvis malen inneholder uescapede
-  krøllparenteser kan `string.Format` feile. Gjeldende kode bruker JSON-data-fil
-  i stedet, men verifiser at dette er tilstrekkelig for fremtidige maler.
+- [ ] **GenerateEndpoints: unhandled PDF errors return 500** (`GenerateEndpoints.cs:39`)
+  `GeneratePdfAsync` can throw `InvalidOperationException` (timeout, compilation errors),
+  but this is not handled in the `/generate` endpoint. It should catch these and return
+  an appropriate status code (e.g. 422/500 with an error message).
 
----
-
-## Test
-
-- [ ] **PdfGeneratorServiceTests: Skip-guard for manglende Typst** (`PdfGeneratorServiceTests.cs`)
-  Testene avhenger av at `typst`-binæren er installert. Bør legge til skip-guard
-  slik at testene hoppes over (ikke feiler) i CI/dev-miljøer uten Typst.
+- [ ] **Caller cancellation masked as a timeout** (`PdfGeneratorService.cs:56-68`)
+  When the linked `CancellationTokenSource` fires, both caller cancellation and the
+  internal timeout produce an `OperationCanceledException`. The two should be
+  distinguished so logging and the error message are correct.
 
 ---
 
-## Småting / Nitpicks
+## Robustness
 
-- [ ] **ParsedFormData: Bruk `IReadOnlyList<UploadedFile>`** (`ParsedFormData.cs:3`)
-  `List<UploadedFile>` er mutable i en `record`-type. Vurder `IReadOnlyList`.
-
-- [ ] **Test-prosjekt: Wildcard package-versjoner** (`Tests.csproj`)
-  `"2.*"` og `"17.*"` gir ikke-deterministiske builds. Vurder å pinne versjoner
-  eller bruk `Directory.Packages.props`.
-
-- [ ] **UploadedFile: byte[] bryter record-equality** (`UploadedFile.cs:3`)
-  `byte[]` bruker referanse-equality i records. Vær klar over dette hvis
-  equality brukes i assertions eller samlinger.
-
-- [ ] **README: Mangler curl-eksempel for /generate-async** (`README.md`)
-  Vis callback-url-feltet i eksempel.
-
-- [ ] **README: Legg til språk-identifikator på kodeblokker** (`README.md`)
-  ASCII-art og katalogtre-blokker mangler ` ```text `.
+- [ ] **PdfGeneratorService: string.Format is fragile for Typst templates** (`PdfGeneratorService.cs:16`)
+  Typst uses `{ }` for code blocks. If the template contains unescaped
+  curly braces, `string.Format` can fail. The current code uses a JSON data file
+  instead, but verify that this is sufficient for future templates.
 
 ---
 
-## Allerede adressert (for referanse)
+## Tests
 
-- [x] Task.Run fire-and-forget → erstattet med PdfGenerationQueue + BackgroundService
-- [x] Scoped service-lifetime → bruker IServiceScopeFactory i BackgroundService
-- [x] StandardOutput-deadlock → leser stdout og stderr concurrent
-- [x] Typst-prosess timeout → CancellationTokenSource med timeout
-- [x] Request size limits → (sjekk om konfigurert via FormOptions)
-- [x] Queue full → returnerer 503
-- [x] Exponential backoff overflow → capped med Math.Min(attempt-1, 16)
-- [x] Dockerfile: Alpine community repo → bruker --repository flag
-- [x] CancellationToken på SendPdfAsync → allerede implementert
-- [x] IPv6 literal-parsing i CallbackUrlValidator → håndtert med bracket-sjekk
+- [ ] **PdfGeneratorServiceTests: skip guard for missing Typst** (`PdfGeneratorServiceTests.cs`)
+  The tests depend on the `typst` binary being installed. A skip guard should be added
+  so the tests are skipped (rather than failing) in CI/dev environments without Typst.
+
+---
+
+## Minor / nitpicks
+
+- [ ] **ParsedFormData: use `IReadOnlyList<UploadedFile>`** (`ParsedFormData.cs:3`)
+  `List<UploadedFile>` is mutable inside a `record` type. Consider `IReadOnlyList`.
+
+- [ ] **Test project: wildcard package versions** (`Tests.csproj`)
+  `"2.*"` and `"17.*"` make builds non-deterministic. Consider pinning versions
+  or using `Directory.Packages.props`.
+
+- [ ] **UploadedFile: byte[] breaks record equality** (`UploadedFile.cs:3`)
+  `byte[]` uses reference equality in records. Be aware of this if
+  equality is used in assertions or collections.
+
+- [ ] **README: missing curl example for /generate-async** (`README.md`)
+  Show the callback URL field in the example.
+
+- [ ] **README: add language identifiers to code blocks** (`README.md`)
+  The ASCII art and directory tree blocks are missing ` ```text `.
+
+---
+
+## Already addressed (for reference)
+
+- [x] Task.Run fire-and-forget → replaced with PdfGenerationQueue + BackgroundService
+- [x] Scoped service lifetime → uses IServiceScopeFactory in the BackgroundService
+- [x] StandardOutput deadlock → reads stdout and stderr concurrently
+- [x] Typst process timeout → CancellationTokenSource with a timeout
+- [x] Request size limits → (check whether configured via FormOptions)
+- [x] Queue full → returns 503
+- [x] Exponential backoff overflow → capped with Math.Min(attempt-1, 16)
+- [x] Dockerfile: Alpine community repo → uses the --repository flag
+- [x] CancellationToken on SendPdfAsync → already implemented
+- [x] IPv6 literal parsing in CallbackUrlValidator → handled with a bracket check

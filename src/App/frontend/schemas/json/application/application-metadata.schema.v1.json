@@ -358,8 +358,8 @@
         },
         "allowedContributers": {
           "type": "array",
-          "title": "Allowed contributers",
-          "description": "A list of allowed contributers. Value should be preceded by an approved key. If null or empty no contributer restrictions are set.",
+          "title": "Allowed contributors",
+          "description": "A list of allowed contributors. Value should be preceded by an approved key. If null or empty no contributor restrictions are set.",
           "items": {
             "type": "string"
           }
@@ -408,13 +408,13 @@
         "validationErrorOnPendingFileScan": {
           "type": "boolean",
           "title": "Validation error on pending file scan",
-          "description": "A value indicating wheter a file scan status of pending should trigger a validation error or not.",
+          "description": "A value indicating whether a file scan status of pending should trigger a validation error or not.",
           "default": false
         },
         "enabledFileAnalysers": {
           "type": "array",
-          "title": "Enabled file analysers",
-          "description": "A list of enabled file analysers this data type should be analysed against to extract metadata about the file. This metadata can in turn either be used to validate against or simply to extract metadata to add to the datamodel. The id's provided should match the id's registered with IFileAnalyser implementations registered in the application.",
+          "title": "Enabled file analyzers",
+          "description": "A list of enabled file analyzers this data type should be analyzed against to extract metadata about the file. This metadata can in turn either be used to validate against or simply to extract metadata to add to the datamodel. The id's provided should match the id's registered with IFileAnalyzer implementations registered in the application.",
           "items": {
             "type": "string"
           }

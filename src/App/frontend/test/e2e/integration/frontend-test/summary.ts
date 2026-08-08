@@ -82,7 +82,7 @@ describe('Summary', () => {
       .siblings()
       .then((summary) => {
         cy.wrap(summary)
-          .contains(common.altinnFlex, texts.uplodDocs)
+          .contains(common.altinnFlex, texts.uploadDocs)
           .contains(common.altinnFlex, 'test.pdf')
           .should('be.visible');
         cy.wrap(summary)
@@ -625,7 +625,7 @@ describe('Summary', () => {
       return true;
     });
 
-    // Error report to different page shoud clear backToSummary
+    // Error report to different page should clear backToSummary
     cy.gotoNavPage('summary');
     cy.get('[data-testid="summary-fordeling-bolig"] button').click();
     cy.navPage('grid').should('have.attr', 'aria-current', 'page');

@@ -14,7 +14,7 @@ const currentName = 'konnichiwa';
 const newName = 'shalom';
 const textResourceId = 'textresource-id';
 const lang = 'nb';
-const textResorceId2 = 'textresource-id-2';
+const textResourceId2 = 'textresource-id-2';
 
 const textResources: ITextResources = {
   nb: [
@@ -23,7 +23,7 @@ const textResources: ITextResources = {
       value: currentName,
     },
     {
-      id: textResorceId2,
+      id: textResourceId2,
       value: newName,
     },
   ],
@@ -71,10 +71,10 @@ describe('EditNameAction', () => {
     await user.click(textResourcesTab);
 
     const combobox = screen.getByRole('combobox');
-    const textResorceId2Option = screen.getByRole('option', {
-      name: textResorceId2,
+    const textResourceId2Option = screen.getByRole('option', {
+      name: textResourceId2,
     });
-    await user.selectOptions(combobox, textResorceId2Option);
+    await user.selectOptions(combobox, textResourceId2Option);
 
     const textInputTab = screen.getByRole('tab', {
       name: textMock('ux_editor.text_resource_binding_write'),

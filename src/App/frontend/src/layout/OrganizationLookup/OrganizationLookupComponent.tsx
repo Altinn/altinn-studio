@@ -40,19 +40,19 @@ const orgLookupQueries = {
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
 
-export type Organisation = {
+export type Organization = {
   orgNr: string;
   name: string;
 };
 export type OrganizationLookupResponse =
-  | { success: false; organisationDetails: null }
-  | { success: true; organisationDetails: Organisation };
+  | { success: false; organizationDetails: null }
+  | { success: true; organizationDetails: Organization };
 
-async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null } | { org: null; error: string }> {
+async function fetchOrg(orgNr: string): Promise<{ org: Organization; error: null } | { org: null; error: string }> {
   if (!orgNr) {
     throw new Error('orgNr is required');
   }
-  const url = `${appPath}/api/v1/lookup/organisation/${orgNr}`;
+  const url = `${appPath}/api/v1/lookup/organization/${orgNr}`;
 
   try {
     const response = await httpGet(url);
@@ -61,11 +61,11 @@ async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null
       return { org: null, error: 'organization_lookup.validation_invalid_response_from_server' };
     }
 
-    if (!response.success || !response.organisationDetails) {
+    if (!response.success || !response.organizationDetails) {
       return { org: null, error: 'organization_lookup.validation_error_not_found' };
     }
 
-    return { org: response.organisationDetails, error: null };
+    return { org: response.organizationDetails, error: null };
   } catch {
     return { org: null, error: 'organization_lookup.unknown_error' };
   }
@@ -279,7 +279,7 @@ export function OrganizationLookupComponent({
           ref={statusRef}
           tabIndex={-1}
           lang={currentLanguage}
-          data-testid='organisation-lookup-status'
+          data-testid='organization-lookup-status'
           className={utilClasses.visuallyHidden}
         >
           {statusMessage}

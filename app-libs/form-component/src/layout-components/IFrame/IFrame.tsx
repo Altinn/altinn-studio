@@ -50,7 +50,7 @@ export function IFrame({ componentId, title, sandbox, innerGrid }: IFrameProps) 
       <iframe
         className={classes.iFrame}
         srcDoc={htmlString}
-        // Preserves existing behaviour: the accessible title is the configured text-resource key.
+        // Preserves existing behavior: the accessible title is the configured text-resource key.
         title={title}
         onLoad={adjustIFrameSize}
         sandbox={getSandboxProperties(sandbox)}

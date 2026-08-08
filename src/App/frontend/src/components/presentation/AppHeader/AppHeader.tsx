@@ -5,7 +5,7 @@ import { AltinnLogo } from 'src/components/logo/AltinnLogo';
 import classes from 'src/components/presentation/AppHeader/AppHeader.module.css';
 import { AppHeaderMenu } from 'src/components/presentation/AppHeader/AppHeaderMenu';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
-import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
+import { OrganizationLogo } from 'src/components/presentation/OrganizationLogo/OrganizationLogo';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
@@ -47,5 +47,5 @@ export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) 
 
 const Logo = ({ color }: { color: LogoColor }) => {
   const enableOrgLogo = Boolean(getApplicationMetadata().logo);
-  return enableOrgLogo ? <OrganisationLogo /> : <AltinnLogo color={color} />;
+  return enableOrgLogo ? <OrganizationLogo /> : <AltinnLogo color={color} />;
 };

@@ -384,7 +384,7 @@ public sealed class InstanceClientTests : IDisposable
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
-    public async Task UpdateDataValues_WithFullInstance_SuccessfullyCallsStorage(int methodVerion)
+    public async Task UpdateDataValues_WithFullInstance_SuccessfullyCallsStorage(int methodVersion)
     {
         Guid instanceGuid = Guid.NewGuid();
         int instanceOwnerId = 1337;
@@ -415,7 +415,7 @@ public sealed class InstanceClientTests : IDisposable
         );
 
         // Act
-        switch (methodVerion)
+        switch (methodVersion)
         {
             case 1:
                 await target.UpdateDataValues(

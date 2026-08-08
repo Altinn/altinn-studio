@@ -76,7 +76,7 @@ namespace Altinn.Platform.Authentication.Model
         public bool? FrontchannelLogoutSupported { get; set; }
 
         /// <summary>
-        /// Value indicating wheter there is a front channel mechanism for session logout.
+        /// Value indicating whether there is a front channel mechanism for session logout.
         /// </summary>
         [JsonPropertyName("frontchannel_logout_session_supported")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

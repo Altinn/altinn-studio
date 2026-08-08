@@ -20,7 +20,7 @@ index accessors. Defines the shared environment-routing/topology contract.
 
 ### `HostBridge/`
 
-C# definitions (namespace `Altinn.Studio.HostBridge`) for the HostBridge WebSocket tunnelling protocol:
+C# definitions (namespace `Altinn.Studio.HostBridge`) for the HostBridge WebSocket tunneling protocol:
 
 - `HostBridgeProtocol.cs` — binary frame kinds and request/response/body/error frame records; defaults
   such as the `/internal/host-bridge` endpoint, 64 KiB frame size, and dev-server port 8080.

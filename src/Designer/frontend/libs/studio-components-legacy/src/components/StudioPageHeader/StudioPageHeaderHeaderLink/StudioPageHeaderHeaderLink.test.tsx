@@ -33,7 +33,7 @@ describe('StudioPageHeaderHeaderLink', () => {
     expect(screen.getByRole('link', { name: linkText })).toHaveClass('isBeta');
   });
 
-  it('Passes the colour and variant classes to the link', () => {
+  it('Passes the color and variant classes to the link', () => {
     renderStudioPageHeaderHeaderLink();
     const link = screen.getByRole('link');
     expect(link).toHaveClass(defaultProps.color);

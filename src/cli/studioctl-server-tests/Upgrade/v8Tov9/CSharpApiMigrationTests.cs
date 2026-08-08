@@ -462,7 +462,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     // --- LegacyCorrespondenceCodeDetector --------------------------------------------------------
 
     [Fact]
-    public void CorrespondenceDetector_FlagsLegacyAuthorisationEnumAndTokenFactoryPayload()
+    public void CorrespondenceDetector_FlagsLegacyAuthorizationEnumAndTokenFactoryPayload()
     {
         _app.Write(
             "logic/SendLetter.cs",
@@ -737,7 +737,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceDetector_FlagsFullyQualifiedLegacyAuthorisationEnum()
+    public void CorrespondenceDetector_FlagsFullyQualifiedLegacyAuthorizationEnum()
     {
         _app.Write(
             "logic/SendLetter.cs",
@@ -1293,7 +1293,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             """
         );
 
-        // `var` with an unrecognisable initializer stays unknown, so guessing would risk wrapping a Stream.
+        // `var` with an unrecognizable initializer stays unknown, so guessing would risk wrapping a Stream.
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("could not be classified"));
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
     }
@@ -1317,7 +1317,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     public void CorrespondenceDetector_FlagsTokenFactoryHeldInAVariable()
     {
         // A `Func<Task<JwtToken>>` in a field cannot be typed without binding, so it is reported rather
-        // than missed - staying silent here hid the whole authorisation break from an app that never
+        // than missed - staying silent here hid the whole authorization break from an app that never
         // wrote the enum inline.
         _app.Write(
             "logic/Purring.cs",

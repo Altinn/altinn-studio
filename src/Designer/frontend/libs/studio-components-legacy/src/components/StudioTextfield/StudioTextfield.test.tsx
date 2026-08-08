@@ -106,7 +106,7 @@ describe('StudioTextfield', () => {
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
-  it('Diplays the message provided through the errorAfterBlur prop when the user types something after blurring', async () => {
+  it('Displays the message provided through the errorAfterBlur prop when the user types something after blurring', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
     renderTextfield({ errorAfterBlur });

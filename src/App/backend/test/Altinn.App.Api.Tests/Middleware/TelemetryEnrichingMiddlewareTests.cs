@@ -28,7 +28,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         };
 
         string org = "tdd";
-        string app = "contributer-restriction";
+        string app = "contributor-restriction";
 
         HttpClient client = GetRootedClient(org, app, includeTraceContext);
         var telemetry = this.Services.GetRequiredService<TelemetrySink>();

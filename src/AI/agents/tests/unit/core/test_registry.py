@@ -94,7 +94,7 @@ class _MinimalGoodTool(Tool):
 
 class TestRegisterValidation:
     """The structural contract checks that turn typos and copy-paste
-    mis-wirings into loud startup errors instead of mysterious runtime
+    miswirings into loud startup errors instead of mysterious runtime
     failures."""
 
     def test_rejects_non_tool(self):

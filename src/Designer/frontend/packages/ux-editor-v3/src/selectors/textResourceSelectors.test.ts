@@ -5,11 +5,11 @@ describe('textResourceSelectors', () => {
   describe('getAllTextResourceIdsWithTextSelector', () => {
     it('Selects all text resource ids with corresponding text in the given language or an empty text if it does not exist in the given language', () => {
       const onlyNbId = 'onlyNbId';
-      const onlyNbIdText = 'En tekst som bare finnes på norsk';
+      const onlyNbIdText = 'A text that only exists in Norwegian';
       const onlyEnId = 'onlyEnId';
       const onlyEnIdText = 'A text that only exists in English';
       const bothId = 'bothId';
-      const bothIdTextNb = 'En tekst som finnes på begge språkene';
+      const bothIdTextNb = 'A text that exists in both languages (Norwegian)';
       const bothIdTextEn = 'A text that exists in both languages';
       const textResources: ITextResources = {
         nb: [

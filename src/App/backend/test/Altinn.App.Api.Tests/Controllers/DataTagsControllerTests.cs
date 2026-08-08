@@ -17,7 +17,7 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
         IClassFixture<WebApplicationFactory<Program>>
 {
     readonly string _org = "tdd";
-    readonly string _app = "contributer-restriction";
+    readonly string _app = "contributor-restriction";
     readonly int _instanceOwnerPartyId = 500600;
     readonly Guid _instanceGuid = new("fad57e80-ec2f-4dee-90ac-400fa6d7720f");
     readonly Guid _dataGuid = new("3b46b9ef-774c-4849-b4dd-66ef871f5b07");

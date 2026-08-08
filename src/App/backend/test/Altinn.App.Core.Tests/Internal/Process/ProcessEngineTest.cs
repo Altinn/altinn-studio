@@ -1089,7 +1089,7 @@ public sealed class ProcessEngineTest
         fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_Service")).Returns(true);
         fixture
             .Mock<IProcessNavigator>()
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+            .Setup(navigator => navigator.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
             .ReturnsAsync(
                 new ServiceTask
                 {
@@ -1118,7 +1118,10 @@ public sealed class ProcessEngineTest
         result.MutatedInstance.Process.CurrentTask.AltinnTaskType.Should().Be("service");
         fixture
             .Mock<IProcessNavigator>()
-            .Verify(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_Service", It.IsAny<string?>()), Times.Never);
+            .Verify(
+                navigator => navigator.GetNextTask(It.IsAny<Instance>(), "Task_Service", It.IsAny<string?>()),
+                Times.Never
+            );
         fixture
             .Mock<IWorkflowEngineClient>()
             .Verify(
@@ -3207,7 +3210,7 @@ public sealed class ProcessEngineTest
                         )
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
+                .Setup(navigator => navigator.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new ProcessTask()
                     {
@@ -3219,7 +3222,7 @@ public sealed class ProcessEngineTest
                     }
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+                .Setup(navigator => navigator.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new ProcessTask()
                     {
@@ -3231,7 +3234,7 @@ public sealed class ProcessEngineTest
                     }
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
+                .Setup(navigator => navigator.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new EndEvent()
                     {

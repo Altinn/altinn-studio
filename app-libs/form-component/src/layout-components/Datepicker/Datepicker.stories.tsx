@@ -10,13 +10,13 @@ import type { DatepickerProps } from './Datepicker';
  * Sorts each prop into a Storybook docs group
  */
 export const DATEPICKER_PROP_CATEGORIES = {
-  // Text resources — Studio "Tekst" section (textResourceBindings)
+  // Text resources — Studio's text section (textResourceBindings)
   title: 'text',
   help: 'text',
   description: 'text',
   // Data model binding — Studio "Datamodeller" section (dataModelBindings.simpleBinding)
   value: 'data',
-  // Configurable options — Studio "Innhold" section
+  // Configurable options — Studio's content section
   componentId: 'content',
   format: 'content',
   minDate: 'content',

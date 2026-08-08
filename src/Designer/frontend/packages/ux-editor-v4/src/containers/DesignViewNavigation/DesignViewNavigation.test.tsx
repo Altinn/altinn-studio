@@ -53,7 +53,7 @@ describe('DesignViewNavigation', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call convertToPageGroups when clicking convertion button', async () => {
+  it('should call convertToPageGroups when clicking conversion button', async () => {
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const convertToPageGroups = jest.fn();
@@ -84,7 +84,7 @@ describe('DesignViewNavigation', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call convertToPageOrder when clicking convertion button', async () => {
+  it('should call convertToPageOrder when clicking conversion button', async () => {
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
