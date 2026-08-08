@@ -1,0 +1,63 @@
+name: Spell check
+
+# Repo-wide spell check. Two passes with opposite locales:
+#   * typos.toml        — US English over code, comments and docs
+#   * typos.en-gb.toml  — British English over customer-facing UI text
+# See AGENTS.md "Spelling and language" for the policy behind the split.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  spellcheck:
+    name: Spell check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # ADVISORY until the backlog of existing typos is fixed. The follow-up PR that
+    # applies those fixes removes this line and makes the check blocking. Until then
+    # this reports without failing, so the rules can land before the cleanup.
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 1
+
+      - name: Spell check code and docs (en-US)
+        uses: crate-ci/typos@bee27e3a4fd1ea2111cf90ab89cd076c870fce14 # v1.48.0
+        with:
+          config: typos.toml
+
+      # British spelling is enforced on the text a user reads, but NOT on the
+      # translation keys, which are US English by the code rule above. So we
+      # check a copy of each language file with the key portion masked out.
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      # Not a spelling check, but the same failure mode: the app ships its UI in
+      # bokmål, nynorsk and English, and a key missing from one of them shows that
+      # user a raw key. Cheap to guard exactly, unlike Norwegian spelling — see the
+      # note in check-language-files.mjs.
+      - name: Check nb/nn/en key parity
+        run: node .github/scripts/check-language-files.mjs
+
+      - name: Mask translation keys in UI text
+        run: node .github/scripts/spellcheck-ui-text.mjs --emit-masked "$RUNNER_TEMP/ui-text"
+
+      - name: Spell check customer-facing UI text (en-GB)
+        uses: crate-ci/typos@bee27e3a4fd1ea2111cf90ab89cd076c870fce14 # v1.48.0
+        with:
+          config: typos.en-gb.toml
+          files: ${{ runner.temp }}/ui-text

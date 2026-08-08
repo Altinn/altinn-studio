@@ -94,6 +94,21 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
 - **Changelogs:** Changelog entries are release notes for product users. Describe only user-facing
   functionality in clear language, and omit implementation details that do not affect product use.
   Technical language is appropriate when it helps users understand or adopt the change.
+- **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
+  exception messages, docs, and translation _keys_ (a key is a code contract shared with the Norwegian
+  files). Text a user reads in the product is **British English** — the `-isation`, `-our` and
+  `-ise` spellings — which in practice means the _values_ in `src/Designer/frontend/language/src/en.json`,
+  `src/Designer/frontend/resourceadm/language/src/en.json` and `app-libs/language/src/texts/en.ts`.
+  Norwegian belongs in the `nb`/`nn` language files and in app text resources, not in code.
+  Both rules are enforced by `crate-ci/typos` in CI (`.github/workflows/spellcheck.yaml`); run them
+  locally with `yarn spell:check` and `yarn spell:check:en-gb`, or `yarn spell:fix` to apply.
+  Configuration lives in `typos.toml` (en-US) and `typos.en-gb.toml` (en-GB), and encodes one rule:
+  **spellcheck prose and code, never data.** Fixtures, schemas, code lists and wire payloads are full
+  of Norwegian and of names we do not own, so data formats are not checked at all — that is why the
+  config is short, and keeping it short is the point. Before adding an exception, prefer fixing the
+  spelling; if it genuinely cannot change, allow-list it as a whole _identifier_ rather than a word,
+  so the spelling stays enforced everywhere else. Note that `typos` does **not** look inside
+  path-shaped string literals, so after renaming a directory you must also `git grep` the old segment.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`
   exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
   Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`

@@ -1,0 +1,229 @@
+# Spell check for Altinn Studio — code, comments and docs, in US English.
+#
+# Customer-facing UI text is British English and is checked separately; see
+# typos.en-gb.toml and AGENTS.md ("Spelling and language").
+#
+# The rule this config encodes: spellcheck prose and code, never data. Fixtures,
+# schemas, code lists and wire payloads are data — they are full of Norwegian and
+# of names we do not own, and checking them buys nothing.
+#
+# Run:  yarn spell:check     Fix:  yarn spell:fix
+
+[files]
+extend-exclude = [
+    # Generated or not written by hand
+    "**/bin/**", "**/obj/**", "**/dist/**", "**/node_modules/**", "**/.yarn/**",
+    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
+
+    # Not English. Altinn is a Norwegian product; these are its language corpora.
+    "**/language/**", "**/texts/*.ts", "**/config/texts/**",
+    "src/gitea/files/locale/**", "**/altinn/policy/**", "**/policy_tool/**",
+    "src/tools/altinn-fleet-stats/**",
+
+    # Test data and fixtures: Norwegian by nature, and the field names are the
+    # contract under test rather than prose.
+    "**/[Tt]estdata/**", "**/_TestData/**", "**/*SourceGenerator*/**",
+    "src/test/apps/**",
+    "*.pretest",
+    "**/Altinn.App.Core.Tests/Data/SkjemaWithNamespace.cs",
+
+    # Written to name the OLD spellings. Release notes describe what an API used to
+    # be called, and the upgrade tooling matches on v8 names in order to rewrite them.
+    "**/CHANGELOG.md",
+    "src/cli/studioctl-server/Studioctl/Upgrade/**",
+    "src/cli/studioctl-server-tests/Upgrade/**",
+
+    # Assertions against the Norwegian UI the test apps render. The apps themselves
+    # are already excluded above; these are the tests that read their text.
+    "**/test/e2e/**", "**/testing/cypress/**", "**/testing/playwright/pages/**",
+    "src/App/frontend/cypress.config.js",
+
+    # Norwegian product copy that happens to live in code rather than a language
+    # file, plus the tests asserting it verbatim.
+    "**/Signing/Helpers/SigningTextHelper.cs",
+    "**/Signing/Services/SigningReceiptService.cs",
+    "**/Features/Notifications/Texts/**",
+    "**/Internal/Texts/TranslationService.cs",
+    "**/Validation/Default/SignatureHashValidator.cs",
+    "**/Signing/SigningReceiptServiceTests.cs",
+    "**/Signing/SigningCallToActionServiceTests.cs",
+    "**/Validators/Default/SignatureHashValidatorTests.cs",
+    "**/Altinn3LibraryProvider/**",
+    "**/skills/altinn-policy/**",
+
+    # Data embedded in source: code lists, file extensions, key material.
+    "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
+    "**/Helpers/MimeTypeMap.cs",
+    "**/Maskinporten/**/*Test*.cs",
+
+    # Mirrors the Norwegian KS.Fiks.Arkiv / KS.Fiks.IO models.
+    "src/App/backend/src/Altinn.App.Clients.Fiks/**",
+    "src/App/backend/test/Altinn.App.Clients.Fiks.Tests/**",
+
+    # Storybook sample content is Norwegian demo form data, not product text.
+    "**/*.stories.tsx",
+
+    # These document the British spellings they enforce, so they fail an en-US pass.
+    ".github/scripts/spellcheck-ui-text.mjs",
+    "typos.en-gb.toml",
+
+    # Holds an { nb, nn, en } text triplet inline. The en-GB pass checks the en
+    # value and skips the Norwegian ones, so this file is covered there instead.
+    "src/Designer/frontend/packages/shared/src/constants.js",
+
+    # Official English names of Norwegian agencies, in a shared docs fixture.
+    "**/StudioTable*Pagination/**",
+
+    # Norwegian DTOs mirroring Brreg/Freg via Tenor.
+    "**/Services/Tenor/**",
+
+    # ------------------------------------------------------------------
+    # DEBT: Norwegian product copy that lives in code instead of a language
+    # file, plus the tests pinning it. Each of these should eventually move
+    # into nb/nn resources and be deleted from this list — see #19789.
+    # They are excluded rather than translated because translating product
+    # copy is a UX change, not a spelling fix.
+    # ------------------------------------------------------------------
+    "**/DefaultMaskinportenScopes.cs",
+    "**/utils/maskinportenScopes.ts",
+    "**/utils/maskinportenScopes.test.ts",
+    "**/AddItem/FeedbackForm.tsx",
+    "**/AddItem/ToggleAddComponentPoc.tsx",
+    "**/PolicySummary/FeedbackForm/FeedbackForm.tsx",
+    "**/MergeConflictWarning/MergeConflictWarning.tsx",
+    "**/useAssistantWorkflow/**",
+    "**/instanceDetails/components/InstanceDataView.tsx",
+    "**/shared/src/utils/altinn2RoleUtils.ts",
+    "src/App/frontend/src/features/devtools/**",
+    "src/App/frontend/src/features/datamodel/lookupErrorAsText.ts",
+    "src/App/frontend/src/utils/layout/validation/utils.ts",
+    "src/App/frontend/src/layout/Address/index.tsx",
+    "src/App/frontend/src/layout/LikertItem/index.tsx",
+    "src/gitea/files/custom/templates/**",
+    "src/Designer/backend/src/Designer/Views/Home/StartPage.cshtml",
+    "src/Designer/development/fake-ansattporten/**",
+    "**/agents/core/context.py",
+    "**/agents/core/loop.py",
+    "**/agents/graph/nodes/**",
+    "**/agents/prompts/**",
+    "**/agents/services/llm/semantic_query.py",
+
+    # DEBT: Norwegian fixture values the assertions depend on. A bilingual
+    # {"nb": "tekst"} fixture has to stay Norwegian to test anything.
+    "**/Designer.Tests/Clients/**",
+    "**/Designer.Tests/Services/OrgCodeListServiceTests.cs",
+    "**/Designer.Tests/Services/ReleaseServiceTest.cs",
+    "**/DataModeling/Templates/**",
+    "**/DataModeling.Tests/Templates/**",
+    "**/resourceadm/testing/**",
+    "**/policy-editor/test/mocks/**",
+    "**/schema-model/test/**",
+    "**/appPublish/**/*.test.tsx",
+    "**/language/useLanguage.test.tsx",
+    "**/instance/useProcessNext.test.tsx",
+    "**/instantiateHeader/InstantiateHeader.test.tsx",
+    "**/selection/InstanceSelection.test.tsx",
+    "**/FileUpload/FileUploadComponent.test.tsx",
+    "**/ImageUploadSummary2/ImageUploadSummary2.test.tsx",
+    "**/NavigationBar/NavigationBarComponent.test.tsx",
+    "**/OrganizationLookup/OrganizationLookupComponent.test.tsx",
+    "**/layout-components/Link/Link.test.tsx",
+    "**/layout-components/common/**",
+    "**/layout-components/Address/AddressLayout.tsx",
+]
+
+# Data formats hold fixtures, schemas, code lists and wire payloads, not prose.
+[type.data]
+extend-glob = [
+    "*.json", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
+    "*.cshtml", "*.tmpl", "*.html", "*.svg", "*.css", "*.env", "*.txt",
+    "*.yaml", "*.yml", "*.snap", "*.lock",
+]
+check-file = false
+
+[default]
+locale = "en-us"
+
+[default.extend-identifiers]
+# Names we do not own. Matched as whole identifiers, so the spelling stays enforced
+# everywhere else — prefer this over extend-words.
+
+# Altinn Platform (Storage / Register) DTO members and the wire fields named after
+# them. Renaming any of these breaks the build or the contract.
+Organisation = "Organisation"
+organisation = "organisation"
+OrganisationNumber = "OrganisationNumber"
+organisationNumber = "organisationNumber"
+AllowedContributers = "AllowedContributers"
+allowedContributers = "allowedContributers"
+EnabledFileAnalysers = "EnabledFileAnalysers"
+enabledFileAnalysers = "enabledFileAnalysers"
+Submited = "Submited"
+submited = "submited"
+Occured = "Occured"
+occured = "occured"
+GetDecisionForUnvalidateRequest = "GetDecisionForUnvalidateRequest"
+Unvalidate = "Unvalidate"
+
+# Kept deliberately, each with a comment at the definition explaining why.
+OrganisationLookup = "OrganisationLookup"              # frozen ux-editor-v4 contract
+organisation_lookup_orgnr = "organisation_lookup_orgnr"
+organisation_lookup_name = "organisation_lookup_name"
+DataModelBindingsOrganisationLookup = "DataModelBindingsOrganisationLookup"
+OrganisationLookupSchema = "OrganisationLookupSchema"
+autoSaveBehaviour = "autoSaveBehaviour"                # deprecated alias, still read
+AutoSaveBehaviorLegacy = "AutoSaveBehaviorLegacy"
+OrganisationRepositoryLocation = "OrganisationRepositoryLocation"
+GeneralSettings__OrganisationRepositoryLocation = "GeneralSettings__OrganisationRepositoryLocation"
+OrganisationLogin = "OrganisationLogin"                # LocalTest ClaimsIdentity type
+mimeTypeAnalyser = "mimeTypeAnalyser"                  # analyzer id apps reference
+ExhangeToAltinnToken = "ExhangeToAltinnToken"          # MaskinportenSettings member
+
+# W3C ARIA — these mirror the aria-labelledby attribute.
+ariaLabelledBy = "ariaLabelledBy"
+AriaLabelledBy = "AriaLabelledBy"
+hasAriaLabelledBy = "hasAriaLabelledBy"
+labelledById = "labelledById"
+
+# Third-party exports and API shapes
+MenuElipsisVerticalIcon = "MenuElipsisVerticalIcon"    # @navikt/aksel-icons
+MenuElipsisHorizontalIcon = "MenuElipsisHorizontalIcon"
+Vertexes = "Vertexes"                                  # BuildKit SolveStatus
+vertexes = "vertexes"
+didi = "didi"                                          # npm package used by bpmn-js
+
+# Codes, slugs and acronyms
+acn = "acn"                          # Altinn org slug
+ACN = "ACN"
+AKS = "AKS"                          # Azure Kubernetes Service
+aks = "aks"
+OCE = "OCE"                          # OperationCanceledException
+JOD = "JOD"                          # ISO 4217 (Jordanian dinar)
+sme = "sme"                          # ISO 639-3 (Northern Sami)
+fpr = "fpr"                          # gpg --with-colons field
+caf = "caf"                          # file extensions in MimeTypeMap
+itms = "itms"
+mak = "mak"
+odf = "odf"
+thn = "thn"
+
+# Deliberate test inputs — changing these breaks what the test proves
+tru = "tru"                          # a deliberately invalid expression
+abd = "abd"                          # expected output of backspace on "abc\x08d"
+varius = "varius"                    # lorem ipsum
+erro = "erro"                        # 4-char log-level column: trac/debu/info/warn/erro
+SelvRegistrert = "SelvRegistrert"    # real self-identified username in Altinn test env
+Statistisk = "Statistisk"            # "Statistisk Sentralbyrå"
+Adedd = "Adedd"                      # fixture for a test named "typo in category"
+Maake = "Maake"                      # expected å->aa transliteration output
+ue = "ue"                            # second half of typing "true" into an input
+BA = "BA"                            # ISO 3166 (Bosnia and Herzegovina)
+
+[default.extend-words]
+# Only for a name that appears *inside* larger identifiers, where extend-identifiers
+# cannot match it.
+axe = "axe"                          # axe-core: injectAxe, axeCorePath, AxeOptions
+OCE = "OCE"                          # OperationCanceledException, in test names
+als = "als"                          # test organization slug, e.g. OnlyAlsTemplates
+Als = "Als"
+ba = "ba"                            # botAccount shorthand; also inside git SHAs
