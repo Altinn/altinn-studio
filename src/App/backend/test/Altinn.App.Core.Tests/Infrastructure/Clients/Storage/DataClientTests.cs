@@ -397,8 +397,8 @@ public class DataClientTests
         );
 
         var requestJson = Newtonsoft.Json.Linq.JObject.Parse(requestBody!);
-        Assert.Equal(ProcessStatus.Idle, requestJson["expectedProcessStatus"]?.ToObject<string>());
-        Assert.Equal(ProcessStatus.Processing, requestJson["processState"]?["state"]?["status"]?.ToObject<string>());
+        Assert.Equal("idle", requestJson["expectedProcessStatus"]?.ToObject<string>());
+        Assert.Equal("processing", requestJson["processState"]?["state"]?["status"]?.ToObject<string>());
         Assert.Null(requestJson.Property("ExpectedProcessStatus"));
     }
 

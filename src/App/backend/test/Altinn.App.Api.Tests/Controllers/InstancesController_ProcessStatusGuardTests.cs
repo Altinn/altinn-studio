@@ -17,13 +17,13 @@ public sealed class InstancesControllerProcessStatusGuardTests
     private static readonly Guid _instanceGuid = new("d2af1cfd-db99-45f9-9625-9dfa1223485f");
 
     [Theory]
-    [InlineData("complete", "processing")]
-    [InlineData("substatus", "future-status")]
-    [InlineData("soft-delete", "processing")]
-    [InlineData("hard-delete", "future-status")]
+    [InlineData("complete", ProcessStatus.Processing)]
+    [InlineData("substatus", ProcessStatus.Processing)]
+    [InlineData("soft-delete", ProcessStatus.Processing)]
+    [InlineData("hard-delete", ProcessStatus.Processing)]
     public async Task DirectInstanceMutation_WhenStatusBlocks_ReturnsSharedProblemWithoutWrite(
         string operation,
-        string processStatus
+        ProcessStatus processStatus
     )
     {
         using InstancesControllerFixture fixture = InstancesControllerFixture.Create();

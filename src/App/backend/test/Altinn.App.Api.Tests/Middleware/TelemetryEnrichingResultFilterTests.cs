@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Core.Internal.Process;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -30,7 +31,9 @@ public sealed class TelemetryEnrichingResultFilterTests
             new ActionDescriptor(),
             new Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary()
         );
-        JsonResult result = ProcessStatusProblemResult.Create(ProcessStatusHelper.CreateMutationProblem("processing"));
+        JsonResult result = ProcessStatusProblemResult.Create(
+            ProcessStatusHelper.CreateMutationProblem(ProcessStatus.Processing)
+        );
         var executedContext = new ResultExecutedContext(actionContext, [], result, new object());
 
         new TelemetryEnrichingResultFilter().OnResultExecuted(executedContext);

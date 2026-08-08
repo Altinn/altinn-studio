@@ -1,4 +1,5 @@
 using Altinn.App.Core.Internal.Process;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers;
@@ -18,6 +19,6 @@ internal static class ProcessStatusProblemResult
         };
     }
 
-    public static JsonResult Create(string currentStatus) =>
+    public static JsonResult Create(ProcessStatus currentStatus) =>
         Create(ProcessStatusHelper.CreateMutationProblem(currentStatus));
 }

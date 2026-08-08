@@ -257,7 +257,7 @@ public static class TestData
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
-        string status
+        ProcessStatus status
     )
     {
         string path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
@@ -271,7 +271,7 @@ public static class TestData
             ?? throw new InvalidOperationException(
                 $"Test instance {instanceOwnerPartyId}/{instanceGuid} does not have a process."
             );
-        process["status"] = status;
+        process["status"] = JsonSerializer.SerializeToNode(status);
         await File.WriteAllTextAsync(path, root.ToJsonString(_jsonSerializerOptions));
     }
 

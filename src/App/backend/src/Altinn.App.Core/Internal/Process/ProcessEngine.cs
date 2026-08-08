@@ -393,7 +393,7 @@ internal class ProcessEngine : IProcessEngine
             instance,
             ct
         );
-        string? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
+        ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         switch (currentTaskWorkflowState)
         {
             case CurrentTaskWorkflowState.Unblocked:
@@ -522,7 +522,7 @@ internal class ProcessEngine : IProcessEngine
 
         if (blockingProcessStatus is not null)
         {
-            ProcessChangeResult blockedResult = CreateProcessStatusBlockedResult(blockingProcessStatus);
+            ProcessChangeResult blockedResult = CreateProcessStatusBlockedResult(blockingProcessStatus.Value);
             activity?.SetProcessChangeResult(blockedResult);
             return blockedResult;
         }
@@ -1288,7 +1288,7 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
-    private static ProcessChangeResult CreateProcessStatusBlockedResult(string currentStatus)
+    private static ProcessChangeResult CreateProcessStatusBlockedResult(ProcessStatus currentStatus)
     {
         var problem = ProcessStatusHelper.CreateMutationProblem(currentStatus);
         return new ProcessChangeResult

@@ -118,12 +118,9 @@ public class FormDataReaderTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    [InlineData("Idle")]
-    [InlineData(" idle")]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task ReadFormData_WithRowIdsAndNonIdleStatus_RunsReadHookWithoutInitializingOrPersisting(string status)
+    public async Task ReadFormData_WithRowIdsAndNonIdleStatus_RunsReadHookWithoutInitializingOrPersisting(
+        ProcessStatus status
+    )
     {
         var instance = new Instance { Process = new ProcessState { Status = status } };
         var dataElement = new DataElement
@@ -226,8 +223,7 @@ public class FormDataReaderTests
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    public async Task ReadFormData_WithoutRowIdsAndNonIdleStatus_RunsReadHookWithoutPersisting(string status)
+    public async Task ReadFormData_WithoutRowIdsAndNonIdleStatus_RunsReadHookWithoutPersisting(ProcessStatus status)
     {
         var existingRowId = Guid.NewGuid();
         var instance = new Instance { Process = new ProcessState { Status = status } };

@@ -163,8 +163,7 @@ public class DataElementAccessCheckerTest
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
-    [InlineData("future-status")]
-    public async Task Mutators_BlockNonIdleProcessStatusWithOneProblemContract(string processStatus)
+    public async Task Mutators_BlockNonIdleProcessStatusWithOneProblemContract(ProcessStatus processStatus)
     {
         var fixture = Fixture.Create();
         var instance = fixture.Data.DefaultInstance;

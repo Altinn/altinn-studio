@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Storage;
 internal sealed class StorageInstanceMutationRequest
 {
     [JsonProperty(PropertyName = "expectedProcessStatus", NullValueHandling = NullValueHandling.Ignore)]
-    public string? ExpectedProcessStatus { get; set; }
+    public ProcessStatus? ExpectedProcessStatus { get; set; }
 
     [JsonProperty(PropertyName = "createDataElements")]
     public List<StorageInstanceMutationCreateDataElement> CreateDataElements { get; } = [];

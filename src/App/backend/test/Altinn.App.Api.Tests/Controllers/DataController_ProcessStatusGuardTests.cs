@@ -38,14 +38,14 @@ public sealed class DataControllerProcessStatusGuardTests : ApiTestBase, IClassF
         );
         Guid instanceGuid = Guid.Parse(createdInstance.Id.Split('/')[1]);
         Guid dataGuid = Guid.Parse(createdInstance.Data.Should().ContainSingle().Which.Id);
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, instanceGuid, "processing");
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, instanceGuid, ProcessStatus.Processing);
         try
         {
             using HttpRequestMessage request = CreateRequest(operation, instanceGuid, dataGuid);
 
             using HttpResponseMessage response = await client.SendAsync(request);
 
-            await ProcessStatusProblemAssertions.AssertResponse(response, "processing");
+            await ProcessStatusProblemAssertions.AssertResponse(response, ProcessStatus.Processing);
             var storedInstance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, instanceGuid);
             storedInstance.Data.Should().ContainSingle(element => element.Id == dataGuid.ToString());
         }
