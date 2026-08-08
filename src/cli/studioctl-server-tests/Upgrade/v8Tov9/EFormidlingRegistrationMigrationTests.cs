@@ -100,6 +100,27 @@ public sealed class EFormidlingRegistrationMigrationTests : IDisposable
     }
 
     [Fact]
+    public void CollapsesAMultiLineReceiverOntoOneLine()
+    {
+        // The receiver is re-emitted without its interior formatting: the alternative is threading the
+        // original line breaks through a call chain of a different shape, and the app is free to
+        // re-format afterwards. What must not happen is a broken or duplicated expression.
+        var migrated = Migrate(
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config)
+            {
+                builder
+                    .Services
+                    .AddEFormidlingServices<Meta>(config);
+            }
+            """
+        );
+
+        Assert.Contains("builder.Services.AddEFormidling().WithMetadata<Meta>();", migrated);
+        Assert.DoesNotContain("AddEFormidlingServices", migrated, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void IsIdempotent()
     {
         const string AlreadyMigrated = """

@@ -129,4 +129,20 @@ public class EFormidlingRegistrationTests
         using ServiceProvider provider = services.BuildServiceProvider();
         Assert.Same(custom, provider.GetRequiredService<IEFormidlingService>());
     }
+
+    [Fact]
+    public void AddEFormidling_KeepsAnEFormidlingServiceTheAppRegistersAfterwards()
+    {
+        // The other order, and the likelier one - a custom service registered further down the app's
+        // own RegisterCustomAppServices. Startup validation reads the same resolution, so both orders
+        // have to agree on which implementation is the effective one.
+        var services = ServicesWithConfig();
+        var custom = new Mock<IEFormidlingService>().Object;
+
+        services.AddEFormidling().WithMetadata<TestMetadata>();
+        services.AddSingleton(custom);
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        Assert.Same(custom, provider.GetRequiredService<IEFormidlingService>());
+    }
 }

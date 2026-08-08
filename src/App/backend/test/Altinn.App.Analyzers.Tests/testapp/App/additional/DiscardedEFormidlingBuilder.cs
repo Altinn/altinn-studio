@@ -31,5 +31,9 @@ internal static class DiscardedEFormidlingBuilder
         // Fine: the stage escapes into a local, which this analyzer deliberately does not chase.
         IEFormidlingMetadataStage stage = services.AddEFormidling();
         stage.WithMetadata<TestEFormidlingMetadata>();
+
+        // Fine: an explicit discard is the documented way to say "I only want what the entry point
+        // registers" - the app replacing the whole service the builder would otherwise configure.
+        _ = services.AddEFormidling();
     }
 }

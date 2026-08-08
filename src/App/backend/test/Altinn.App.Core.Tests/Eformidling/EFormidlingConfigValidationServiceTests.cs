@@ -1,7 +1,9 @@
 using Altinn.App.Core.EFormidling;
+using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -40,9 +42,20 @@ public class EFormidlingConfigValidationServiceTests
             },
         };
 
+    /// <summary>
+    /// Which <see cref="IEFormidlingService"/> the app under validation has. The distinction matters:
+    /// only <c>BuiltIn</c> reads an <see cref="IEFormidlingMetadata"/>, so only it requires one.
+    /// </summary>
+    private enum EFormidlingService
+    {
+        None,
+        BuiltIn,
+        Replaced,
+    }
+
     private static Task RunValidation(
         IReadOnlyList<ProcessTask> tasks,
-        bool registerEFormidlingService = true,
+        EFormidlingService eFormidlingService = EFormidlingService.BuiltIn,
         bool registerEFormidlingMetadata = true,
         string environment = "Production",
         List<DataType>? dataTypes = null
@@ -66,13 +79,20 @@ public class EFormidlingConfigValidationServiceTests
         hostEnvironment.Setup(x => x.EnvironmentName).Returns(environment);
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddAppImplementationFactory();
         services.AddSingleton(processReader.Object);
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
-        if (registerEFormidlingService)
+        services.AddSingleton(new Mock<IUserTokenProvider>().Object);
+        switch (eFormidlingService)
         {
-            services.AddSingleton(new Mock<IEFormidlingService>().Object);
+            case EFormidlingService.BuiltIn:
+                services.AddTransient<IEFormidlingService, DefaultEFormidlingService>();
+                break;
+            case EFormidlingService.Replaced:
+                services.AddSingleton(new Mock<IEFormidlingService>().Object);
+                break;
         }
         if (registerEFormidlingMetadata)
         {
@@ -99,7 +119,7 @@ public class EFormidlingConfigValidationServiceTests
 
         // Notably does not require IEFormidlingService: an app with no eFormidling task must not be
         // made to register eFormidling services.
-        await RunValidation([dataTask], registerEFormidlingService: false);
+        await RunValidation([dataTask], eFormidlingService: EFormidlingService.None);
     }
 
     [Fact]
@@ -146,7 +166,7 @@ public class EFormidlingConfigValidationServiceTests
     public async Task Fails_When_EnabledButServiceIsNotRegistered()
     {
         var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
-            RunValidation([EFormidlingTask("Task_Send", ValidConfig())], registerEFormidlingService: false)
+            RunValidation([EFormidlingTask("Task_Send", ValidConfig())], eFormidlingService: EFormidlingService.None)
         );
 
         Assert.Contains("AddEFormidling()", exception.Message);
@@ -166,13 +186,26 @@ public class EFormidlingConfigValidationServiceTests
     }
 
     [Fact]
+    public async Task Passes_When_TheAppReplacedTheServiceAndHasNoMetadata()
+    {
+        // Only the built-in service reads an IEFormidlingMetadata, to build the arkivmelding. An app
+        // supplying its own IEFormidlingService composes the whole shipment itself, so demanding a
+        // metadata generator it will never call would fail a perfectly well-formed deployment.
+        await RunValidation(
+            [EFormidlingTask("Task_Send", ValidConfig())],
+            eFormidlingService: EFormidlingService.Replaced,
+            registerEFormidlingMetadata: false
+        );
+    }
+
+    [Fact]
     public async Task Passes_When_DisabledAndServiceIsNotRegistered()
     {
         // The shape a real app ships: eFormidling configured for production, switched off and
         // unregistered in development. Requiring the service here would stop it booting locally.
         await RunValidation(
             [EFormidlingTask("Task_Send", ValidConfig(disabledValue: "true"))],
-            registerEFormidlingService: false
+            eFormidlingService: EFormidlingService.None
         );
     }
 

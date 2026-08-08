@@ -152,10 +152,10 @@ internal sealed class EFormidlingRegistrationMigration
 
     private static string BuildReplacement(ExpressionSyntax receiver, SeparatedSyntaxList<TypeSyntax> typeArguments)
     {
-        // The receiver is re-emitted without its own trivia so a multi-line original collapses to one
-        // expression; the replacement node inherits the original invocation's leading/trailing trivia.
-        var text =
-            $"{receiver.WithoutTrivia().ToFullString().Trim()}.AddEFormidling().WithMetadata<{Render(typeArguments[0])}>()";
+        // The replacement node inherits the original invocation's leading/trailing trivia, so only the
+        // pieces carried over need normalising - and they need it: a receiver written across several
+        // lines keeps those line breaks between its own tokens, which would land mid-chain here.
+        var text = $"{Render(receiver)}.AddEFormidling().WithMetadata<{Render(typeArguments[0])}>()";
 
         if (typeArguments.Count == 2 && SimpleName(typeArguments[1]) != DefaultReceiversTypeName)
         {
@@ -173,7 +173,12 @@ internal sealed class EFormidlingRegistrationMigration
     private static bool DroppedArgumentNeedsReview(InvocationExpressionSyntax invocation) =>
         invocation.ArgumentList.Arguments[0].Expression is not IdentifierNameSyntax;
 
-    private static string Render(TypeSyntax type) => type.WithoutTrivia().ToFullString().Trim();
+    /// <summary>
+    /// A node re-emitted as canonically formatted single-line source. <c>WithoutTrivia</c> is not enough:
+    /// it strips only the node's own leading/trailing trivia, leaving line breaks <em>between</em> its
+    /// tokens intact.
+    /// </summary>
+    private static string Render(SyntaxNode node) => node.NormalizeWhitespace().ToFullString().Trim();
 
     private static string? SimpleName(TypeSyntax type) =>
         type switch

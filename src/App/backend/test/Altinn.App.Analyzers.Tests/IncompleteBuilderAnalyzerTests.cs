@@ -34,9 +34,9 @@ public class IncompleteBuilderAnalyzerTests : IAsyncLifetime
     [Fact]
     public async Task Emits_Diagnostics()
     {
-        // The added file discards one eFormidling stage (which must be reported) alongside three uses
-        // that must not be: a completed chain, a discarded *completed* builder, and a stage escaping
-        // into a local, which this analyzer deliberately leaves to startup validation.
+        // The added file discards one eFormidling stage (which must be reported) alongside four uses
+        // that must not be: a completed chain, a discarded *completed* builder, a stage escaping into a
+        // local (left to startup validation), and an explicit `_ =` discard (the documented opt-out).
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
         var cancellationToken = cts.Token;
 

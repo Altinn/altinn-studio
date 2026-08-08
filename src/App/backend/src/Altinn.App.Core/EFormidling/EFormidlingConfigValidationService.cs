@@ -1,4 +1,5 @@
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
@@ -123,10 +124,8 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
 
         if (anyEnabled)
         {
-            // The metadata generator is checked separately from the service: reaching AddEFormidling()
-            // but never completing the builder registers everything except this one, and saying so is
-            // more use than reporting the feature as absent.
-            if (services.GetService<IEFormidlingService>() is null)
+            IEFormidlingService? eFormidlingService = services.GetService<IEFormidlingService>();
+            if (eFormidlingService is null)
             {
                 errors.Add(
                     $"eFormidling is enabled for this environment ({environment}), but no "
@@ -134,7 +133,13 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
                         + "services, or disable the task with <altinn:disabled>."
                 );
             }
-            else if (services.GetRequiredService<AppImplementationFactory>().Get<IEFormidlingMetadata>() is null)
+            else if (
+                // Only the built-in service consumes the metadata generator, to build the arkivmelding.
+                // An app that replaced IEFormidlingService outright composes its own shipment and needs
+                // no generator, so requiring one would fail a deployment that is entirely well-formed.
+                eFormidlingService is DefaultEFormidlingService
+                && services.GetRequiredService<AppImplementationFactory>().Get<IEFormidlingMetadata>() is null
+            )
             {
                 errors.Add(
                     $"eFormidling is enabled for this environment ({environment}), but no "

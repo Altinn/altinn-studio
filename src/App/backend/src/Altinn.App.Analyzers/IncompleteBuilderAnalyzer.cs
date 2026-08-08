@@ -9,11 +9,19 @@ namespace Altinn.App.Analyzers;
 /// the remediation text, so this analyzer stays generic over whichever builders the SDK stages.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Deliberately limited to a result that is discarded outright, which is visible in a single operation
 /// node. Proving the opposite — that a builder stored in a local, passed to a helper or returned from a
 /// method is never completed — needs dataflow that cannot be sound across method boundaries, and a false
 /// positive here breaks an app's build. Staged builder types already make the wrong <em>order</em>
 /// uncompilable, and app startup validates what neither can see.
+/// </para>
+/// <para>
+/// An explicit discard (<c>_ = services.AddEFormidling();</c>) is not reported, and is the escape hatch
+/// for the rare app that wants only what the entry point registers — one replacing the whole service the
+/// builder would otherwise configure. Writing the discard is the developer saying so on purpose, which
+/// is exactly the distinction this rule exists to draw.
+/// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class IncompleteBuilderAnalyzer : DiagnosticAnalyzer
