@@ -66,7 +66,7 @@ public class WorkflowCallbackStateTests
     [Theory]
     [InlineData(ProcessStatus.Processing)]
     [InlineData(ProcessStatus.Idle)]
-    public async Task CaptureRestoreRecapture_PreservesProcessStatus(string status)
+    public async Task CaptureRestoreRecapture_PreservesProcessStatus(ProcessStatus status)
     {
         Guid instanceGuid = Guid.NewGuid();
         var instance = new Instance

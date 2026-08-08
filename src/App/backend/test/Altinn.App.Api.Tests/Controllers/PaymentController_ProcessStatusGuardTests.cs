@@ -29,9 +29,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
         : base(factory, outputHelper) { }
 
     [Theory]
-    [InlineData("processing")]
-    [InlineData("future-status")]
-    public async Task CurrentPaymentTask_WhenStatusBlocks_ReturnsSharedProblemBeforePaymentService(string status)
+    [InlineData(ProcessStatus.Processing)]
+    public async Task CurrentPaymentTask_WhenStatusBlocks_ReturnsSharedProblemBeforePaymentService(ProcessStatus status)
     {
         using HttpClient setupClient = GetRootedUserClient(Org, App);
         Guid instanceGuid = await CreateIsolatedInstance(setupClient);
@@ -118,7 +117,7 @@ public sealed class PaymentControllerProcessStatusGuardTests
                     services.AddSingleton(paymentService.Object);
                 }
             );
-            await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, instanceGuid, "processing");
+            await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, instanceGuid, ProcessStatus.Processing);
 
             using HttpResponseMessage response = await client.GetAsync(
                 $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/payment?taskId={historicalTaskId}"

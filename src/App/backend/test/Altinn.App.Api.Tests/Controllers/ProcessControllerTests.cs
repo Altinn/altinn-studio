@@ -715,7 +715,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
         };
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "processing");
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, ProcessStatus.Processing);
         using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         using var content = new StringContent(
             """{"action": "action_defined_in_bpmn_but_unauthorized"}""",
@@ -873,9 +873,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Theory]
-    [InlineData("processing")]
-    [InlineData("future-status")]
-    public async Task NextElement_WhenProcessStatusBlocks_ReturnsSharedProblem(string processStatus)
+    [InlineData(ProcessStatus.Processing)]
+    public async Task NextElement_WhenProcessStatusBlocks_ReturnsSharedProblem(ProcessStatus processStatus)
     {
         var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
         processEngineMock
@@ -906,10 +905,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Theory]
-    [InlineData("processing")]
-    [InlineData("future-status")]
+    [InlineData(ProcessStatus.Processing)]
     public async Task CompleteProcess_WhenStoredProcessStatusBlocks_ReturnsSharedProblemBeforeAppCode(
-        string processStatus
+        ProcessStatus processStatus
     )
     {
         var workflowEngineService = CreateWorkflowEngineServiceMock(new CurrentTaskWorkflowState.Unblocked());
@@ -970,7 +968,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(authorizer.Object);
             services.AddSingleton(action.Object);
         };
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "processing");
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, ProcessStatus.Processing);
         using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
 
         using HttpResponseMessage response = await client.PutAsync(
@@ -1066,7 +1064,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(validationService.Object);
             services.AddSingleton(action.Object);
         };
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "idle");
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, ProcessStatus.Idle);
         using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
 
         using HttpResponseMessage response = await client.PutAsync(
@@ -1104,7 +1102,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(validationService.Object);
             services.AddSingleton(action.Object);
         };
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "idle");
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, ProcessStatus.Idle);
         using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
 
         using HttpResponseMessage response = await client.PutAsync(
@@ -1166,7 +1164,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.RemoveAll<IFormDataValidator>();
             services.AddSingleton(dataValidator.Object);
         };
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, "idle");
+        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, ProcessStatus.Idle);
         using HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
 
         using HttpResponseMessage response = await client.PutAsync(
@@ -1375,9 +1373,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Theory]
-    [InlineData("processing")]
-    [InlineData("future-status")]
-    public async Task StartProcess_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeEngine(string processStatus)
+    [InlineData(ProcessStatus.Processing)]
+    public async Task StartProcess_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeEngine(ProcessStatus processStatus)
     {
         await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, processStatus);
         var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);

@@ -299,7 +299,7 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(StatusCodes.Status409Conflict, storageProblem.RootElement.GetProperty("status").GetInt32());
         Assert.Equal("Process status conflict", storageProblem.RootElement.GetProperty("title").GetString());
         Assert.Contains(
-            "Current status: 'processing'",
+            $"Current status: '{ProcessStatus.Processing}'",
             storageProblem.RootElement.GetProperty("detail").GetString(),
             StringComparison.Ordinal
         );

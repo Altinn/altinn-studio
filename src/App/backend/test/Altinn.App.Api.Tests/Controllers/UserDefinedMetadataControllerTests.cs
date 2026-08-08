@@ -66,7 +66,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
         string[] instanceIdParts = instanceId.Split('/');
         int instanceOwnerPartyId = int.Parse(instanceIdParts[0], System.Globalization.CultureInfo.InvariantCulture);
         Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
-        await TestData.SetProcessStatus(Org, App, instanceOwnerPartyId, instanceGuid, "processing");
+        await TestData.SetProcessStatus(Org, App, instanceOwnerPartyId, instanceGuid, ProcessStatus.Processing);
         try
         {
             using var content = new StringContent(
@@ -80,7 +80,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
                 content
             );
 
-            await ProcessStatusProblemAssertions.AssertResponse(response, "processing");
+            await ProcessStatusProblemAssertions.AssertResponse(response, ProcessStatus.Processing);
             using HttpResponseMessage getResponse = await client.GetAsync(
                 $"/{Org}/{App}/instances/{instanceId}/data/{dataGuid}/user-defined-metadata"
             );

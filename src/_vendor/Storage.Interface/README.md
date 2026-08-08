@@ -9,17 +9,13 @@ LocalTest does not consume this project. It still references
 `Altinn.Platform.Storage.Interface` package version `4.2.1`; LocalTest parity is deferred until
 the corresponding interface package is released.
 
-The source tracks the `altinn-storage` `feat/blob-version-id` line at change
-`mrquqwnmlzlwtrvoxvpospyzttnmyrqn`, revision
-`9f9682e29a9d435f32236fcaa04c565dc860d032`. The only intentional upstream differences are
-this README and the minimal project scaffolding: MinVer, SonarCloud/SourceLink, package metadata,
+The source tracks the `altinn-storage` aggregate-mutation line at change
+`lnlnxrxumkorxorksormotltoxtvkqwv`, revision
+`6e94c6556e9095baad624784858877d5890c2b31`, which carries both the approved blob-version-id
+contract and the process status as a `ProcessStatus` enum. The only intentional upstream differences
+are this README and the minimal project scaffolding: MinVer, SonarCloud/SourceLink, package metadata,
 symbol packaging, and the unnecessary `Microsoft.NETFramework.ReferenceAssemblies` dependency
 are omitted, and `IsPackable` is `false`.
-
-The process-status members in `ProcessState` and `InstanceMutationRequest`, together with
-`ProcessStatus`, track the approved `altinn-storage` aggregate-contract change
-`lvylpkkzxxtyqktluvxsqxrzykmxmzrw`, revision
-`7387c7afdce132158f932fd2c7232a60a4b66120`.
 
 Delete this entire directory after the interface package containing `DataElement.BlobVersionId`
 and the process-status contract is released. Then:
