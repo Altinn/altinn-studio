@@ -46,6 +46,13 @@ jobs:
           node-version: "24"
           package-manager-cache: false
 
+      # Not a spelling check, but the same failure mode: the app ships its UI in
+      # bokmål, nynorsk and English, and a key missing from one of them shows that
+      # user a raw key. Cheap to guard exactly, unlike Norwegian spelling — see the
+      # note in check-language-files.mjs.
+      - name: Check nb/nn/en key parity
+        run: node .github/scripts/check-language-files.mjs
+
       - name: Mask translation keys in UI text
         run: node .github/scripts/spellcheck-ui-text.mjs --emit-masked "$RUNNER_TEMP/ui-text"
 

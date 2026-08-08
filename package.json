@@ -22,6 +22,7 @@
     "spell:fix": "typos --write-changes",
     "spell:check:en-gb": "node .github/scripts/spellcheck-ui-text.mjs",
     "spell:fix:en-gb": "node .github/scripts/spellcheck-ui-text.mjs --write",
+    "lang:check": "node .github/scripts/check-language-files.mjs",
     "start-app-development": "yarn workspace app-development start",
     "prepare": "lefthook install"
   },
