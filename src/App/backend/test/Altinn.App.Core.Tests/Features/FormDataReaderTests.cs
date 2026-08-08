@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;

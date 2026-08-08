@@ -19,6 +19,7 @@ using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -890,7 +891,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     Success = false,
                     ErrorType = Altinn.App.Core.Models.Process.ProcessErrorType.Conflict,
                     ErrorTitle = "Instance mutation blocked.",
-                    ErrorMessage = $"The instance cannot be changed while its process status is '{processStatus}'.",
+                    ErrorMessage =
+                        $"The instance cannot be changed while its process status is '{processStatus.ToString().ToLowerInvariant()}'.",
                     BlockingProcessStatus = processStatus,
                 }
             );

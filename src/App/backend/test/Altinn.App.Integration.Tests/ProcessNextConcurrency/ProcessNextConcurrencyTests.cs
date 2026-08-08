@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Xunit.Abstractions;

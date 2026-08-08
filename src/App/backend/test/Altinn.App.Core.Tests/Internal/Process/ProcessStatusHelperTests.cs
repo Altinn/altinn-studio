@@ -1,4 +1,5 @@
 using Altinn.App.Core.Internal.Process;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
@@ -36,6 +37,6 @@ public sealed class ProcessStatusHelperTests
         Assert.Equal(409, problem.Status);
         Assert.Equal(ProcessStatusHelper.MutationBlockedProblemType, problem.Type);
         Assert.Equal(status, problem.Extensions["processStatus"]);
-        Assert.Contains($"'{status}'", problem.Detail, StringComparison.Ordinal);
+        Assert.Contains($"'{status.ToString().ToLowerInvariant()}'", problem.Detail, StringComparison.Ordinal);
     }
 }

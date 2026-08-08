@@ -1,5 +1,6 @@
 #nullable disable
 using Altinn.App.Core.Extensions;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 

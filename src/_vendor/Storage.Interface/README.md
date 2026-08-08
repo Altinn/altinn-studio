@@ -10,8 +10,8 @@ LocalTest does not consume this project. It still references
 the corresponding interface package is released.
 
 The source tracks the `altinn-storage` aggregate-mutation line at change
-`lnlnxrxumkorxorksormotltoxtvkqwv`, revision
-`6e94c6556e9095baad624784858877d5890c2b31`, which carries both the approved blob-version-id
+`rmoxyzkoxxrsnlpyvnzmvtwkwmpozkzr`, revision
+`ad6617e558452f3a2ccb99495ab5c821062a7577`, which carries both the approved blob-version-id
 contract and the process status as a `ProcessStatus` enum. The only intentional upstream differences
 are this README and the minimal project scaffolding: MinVer, SonarCloud/SourceLink, package metadata,
 symbol packaging, and the unnecessary `Microsoft.NETFramework.ReferenceAssemblies` dependency

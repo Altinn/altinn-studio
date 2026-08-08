@@ -1,6 +1,7 @@
 #nullable disable
 
 using System;
+using Altinn.Platform.Storage.Interface.Enums;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models;
