@@ -1,3 +1,10 @@
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
 .info-wrapper {
   display: flex;
   gap: 2rem;
