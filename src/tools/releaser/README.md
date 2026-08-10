@@ -37,9 +37,10 @@ Context: on `main`
      and starts the newer line at `<channel>.1`.
 3. Approve and merge the prep PR.
 4. CI detects the changelog promotion in the canonical `main` push and runs automatically, including for PRs
-   from forks. It calls:
-   - `go run . workflow -component <component> -base-branch main`
-5. Workflow resolves the latest prerelease from the component changelog, builds artifacts (if applicable), creates tag `<component>/v...`, and creates a draft prerelease.
+   from forks. The dispatcher resolves and passes an immutable component, version, commit, and branch plan to the
+   selected publisher.
+5. The publisher verifies that plan, builds artifacts (if applicable), creates tag `<component>/v...`, and creates a
+   draft prerelease.
 
 ## Stable releases
 
@@ -98,8 +99,14 @@ prerelease, stabilization, and patch release flows.
 - The dispatcher intentionally runs on every `main` and `release/**` push and lets `resolve-trigger` no-op when no
   promotion is present. GitHub path filters inspect at most 300 changed files and could otherwise miss a release in
   a large push.
-- Manual workflow dispatch is a recovery path. Select the component and dispatch from `main` or the matching
-  `release/<component>/vX.Y` branch.
-- Release publication depends on the unified CI workflow routing the component to its reusable publisher workflow.
-- Manual dispatch resolves the version once from the selected commit and branch; publishers never select a newer
-  version or move their checkout while executing a release plan.
+- Manual workflow dispatch is a recovery path. Select the component, enter the exact promoted version and full
+  commit SHA, and dispatch from `main` or the matching `release/<component>/vX.Y` branch. A matching existing draft
+  release is updated in place so retries can continue after a later publication step fails.
+- The Go trigger policy is the publication source of truth. The component registry selects the reusable publisher;
+  version policy maps `preview` releases to the `dev` environment, `rc` releases to `staging`, and stable releases to
+  `prod`. Unknown prerelease channels fail closed during trigger resolution.
+- Publisher workflows serialize releases for the same component and base branch with GitHub's maximum pending queue,
+  without cancelling an in-progress publication. Different components and release lines can still publish
+  independently.
+- Manual dispatch validates the exact selected version against the selected commit and branch; publishers never
+  select a newer version or move their checkout while executing a release plan.

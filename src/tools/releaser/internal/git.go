@@ -29,6 +29,8 @@ type GitRemote struct {
 type GitRunner interface {
 	// TagExists checks if a tag exists in the repository.
 	TagExists(ctx context.Context, remote, tag string) (bool, error)
+	// RemoteTagCommit returns a remote tag's commit target and whether it exists.
+	RemoteTagCommit(ctx context.Context, remote, tag string) (string, bool, error)
 	// CurrentBranch returns the current branch name.
 	CurrentBranch(ctx context.Context) (string, error)
 	// RemoteBranchExists checks if a branch exists on the authoritative source remote.
@@ -101,6 +103,31 @@ func (g *GitCLI) TagExists(ctx context.Context, remote, tag string) (bool, error
 		return false, err
 	}
 	return remoteRefExists(exitCode, remote)
+}
+
+// RemoteTagCommit returns the commit targeted by a lightweight or annotated remote tag.
+func (g *GitCLI) RemoteTagCommit(ctx context.Context, remote, tag string) (string, bool, error) {
+	ref := "refs/tags/" + tag
+	output, err := g.Run(ctx, "ls-remote", "--tags", remote, ref, ref+"^{}")
+	if err != nil {
+		return "", false, err
+	}
+	if output == "" {
+		return "", false, nil
+	}
+
+	target := ""
+	for line := range strings.SplitSeq(output, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) != 2 {
+			return "", false, fmt.Errorf("%w: malformed remote tag output for %s", ErrGitCommandFailed, tag)
+		}
+		target = fields[0]
+		if fields[1] == ref+"^{}" {
+			return target, true, nil
+		}
+	}
+	return target, true, nil
 }
 
 // CurrentBranch returns the current branch name.
