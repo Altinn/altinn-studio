@@ -110,10 +110,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IInstanceClient, InstanceClientMockSi>();
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-    services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
-    services.AddSingleton<IEventSecretCodeProvider, EventSecretCodeProviderStub>();
-    services.AddTransient<IEventHandler, DummyFailureEventHandler>();
-    services.AddTransient<IEventHandler, DummySuccessEventHandler>();
     services.AddTransient<IAppMetadata, AppMetadataMock>();
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<IDataClient, DataClientMock>();

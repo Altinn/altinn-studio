@@ -44,6 +44,13 @@ public static class Diagnostics
             "Sealed default implementation replaced",
             "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}."
         );
+
+        public static readonly DiagnosticDescriptor IncompleteBuilderDiscarded = Error(
+            "ALTINNAPP0701",
+            Category.Contracts,
+            "Incomplete registration discarded",
+            "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
+        );
     }
 
     internal static class Deprecations

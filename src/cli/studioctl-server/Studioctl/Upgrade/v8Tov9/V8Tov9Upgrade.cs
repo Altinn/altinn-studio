@@ -116,6 +116,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -303,6 +306,32 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Rewrites the v8 eFormidling registration call to the v9 staged builder.
+    /// </summary>
+    static async Task<int> MigrateEFormidlingRegistration(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating the eFormidling registration...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = new EFormidlingRegistrationMigration(scanner).Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.WriteErrorAsync("Error migrating the eFormidling registration", ex);
+            return ExitError;
+        }
+    }
+
+    /// <summary>
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
     /// </summary>
@@ -402,6 +431,7 @@ internal static class V8Tov9Upgrade
             var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
