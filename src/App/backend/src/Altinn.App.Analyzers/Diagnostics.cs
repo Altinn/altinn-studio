@@ -49,7 +49,7 @@ public static class Diagnostics
             "ALTINNAPP0701",
             Category.Contracts,
             "Incomplete registration discarded",
-            "'{0}' returns '{1}', which does not describe a usable registration on its own, and the result is discarded. {2}."
+            "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
         );
     }
 

@@ -7,8 +7,8 @@
     Location: {ProjectDirectory}testapp/App/additional/DiscardedEFormidlingBuilder.cs(23,9),
     Code: services.AddEFormidling(),
     HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0701,
-    MessageFormat: '{0}' returns '{1}', which does not describe a usable registration on its own, and the result is discarded. {2}.,
-    Message: 'AddEFormidling' returns 'IEFormidlingMetadataStage', which does not describe a usable registration on its own, and the result is discarded. Complete the registration by calling WithMetadata<T>() with your IEFormidlingMetadata implementation — or, if the app registers its own IEFormidlingService and needs nothing else from the builder, discard the result explicitly with '_ ='.,
+    MessageFormat: The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}.,
+    Message: The result of 'AddEFormidling' is discarded, but 'IEFormidlingMetadataStage' is not a usable registration on its own. Complete it by calling WithMetadata<T>() with your IEFormidlingMetadata implementation. If the app registers its own IEFormidlingService and needs nothing else here, discard the result explicitly with '_ ='.,
     Category: Contracts
   }
 ]

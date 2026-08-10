@@ -17,9 +17,8 @@ namespace Altinn.App.Core.EFormidling.Configuration;
 /// startup validation asks for one only where the built-in service is the one in use.)
 /// </remarks>
 [IncompleteBuilder(
-    $"Complete the registration by calling WithMetadata<T>() with your {nameof(IEFormidlingMetadata)} implementation"
-        + $" — or, if the app registers its own {nameof(IEFormidlingService)} and needs nothing else from the builder,"
-        + " discard the result explicitly with '_ ='"
+    $"Complete it by calling WithMetadata<T>() with your {nameof(IEFormidlingMetadata)} implementation."
+        + $" If the app registers its own {nameof(IEFormidlingService)} and needs nothing else here, discard the result explicitly with '_ ='"
 )]
 public interface IEFormidlingMetadataStage
 {
