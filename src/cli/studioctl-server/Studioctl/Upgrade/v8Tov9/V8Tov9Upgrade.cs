@@ -134,6 +134,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveSummary2PageBreaks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -450,6 +453,22 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.WriteErrorAsync("Error migrating OrganisationLookup components", ex);
+            return ExitError;
+        }
+    }
+
+    static async Task<int> RemoveSummary2PageBreaks(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Removing ignored pageBreak properties from Summary2 components..."
+            );
+            return await Summary2PageBreakMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.WriteErrorAsync("Error removing pageBreak from Summary2 components", ex);
             return ExitError;
         }
     }

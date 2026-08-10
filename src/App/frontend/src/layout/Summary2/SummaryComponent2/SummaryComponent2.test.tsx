@@ -6,6 +6,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { type BackendValidationIssue } from 'src/features/validation';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
+import printStyles from 'src/styles/print.module.css';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
@@ -46,6 +47,24 @@ describe('SummaryComponent', () => {
       },
     });
     expect(screen.getByTestId('summary-group-component')).toBeInTheDocument();
+  });
+
+  test('applies page breaks to the Summary2 boundary', async () => {
+    await render({
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        pageBreak: {
+          breakBefore: 'always',
+          breakAfter: 'avoid',
+        },
+      },
+    });
+
+    expect(screen.getByTestId('summary2-component')).toHaveClass(
+      printStyles.breakBeforeAlways,
+      printStyles.breakAfterAvoid,
+    );
   });
 
   test('Should render in compact mode when set', async () => {
@@ -480,6 +499,7 @@ describe('SummaryComponent', () => {
       isCompact: summary2Config.isCompact,
       target: summary2Config.target,
       overrides: summary2Config?.overrides ?? [],
+      pageBreak: summary2Config.pageBreak,
     });
 
     return await renderWithInstanceAndLayout({
