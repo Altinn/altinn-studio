@@ -9,7 +9,6 @@ Altinity is a multi-agent system powered by LangGraph that understands Altinn St
 ## Prerequisites
 
 - Azure OpenAI API access (or OpenAI)
-- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** running
 
 ## Quick Start
 
@@ -20,10 +19,7 @@ Altinity is a multi-agent system powered by LangGraph that understands Altinn St
 cp .env.example .env.docker
 # Edit .env.docker with your API keys
 
-# 2. Start MCP server (separate terminal)
-# See: https://github.com/Simenwai/altinity-mcp
-
-# 3. Start Altinity
+# 2. Start Altinity
 docker-compose up
 ```
 
@@ -37,18 +33,15 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your API keys
 
-# 3. Start MCP server (separate terminal)
-# See: https://github.com/Simenwai/altinity-mcp
-
-# 4. Start Altinity
+# 3. Start Altinity
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
 ## Features
 
-- 🤖 **Code Generation** - Generates Altinn-compliant code using MCP tools
+- 🤖 **Code Generation** - Generates Altinn-compliant code using in-process Altinn tools
 - 💬 **Chat Mode** - Ask questions without making changes
-- ✅ **Validation** - Schema and business rule validation via MCP
+- ✅ **Validation** - Schema and business rule validation
 - 🔄 **Atomic Operations** - All-or-nothing changes with rollback
 - 🌲 **Git Integration** - Session-based branches for change tracking
 - 📊 **Observability** - Langfuse integration for tracing and cost monitoring
@@ -149,9 +142,6 @@ AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
 GITEA_LOCAL_TOKEN=your-token
 GITEA_BASE_URL=http://localhost:3000
 
-# Required: MCP Server
-MCP_SERVER_URL=http://localhost:8069/sse
-
 # Optional: Multi-model setup
 LLM_MODEL_PLANNER=gpt-4o
 LLM_MODEL_ACTOR=claude-sonnet-4-5
@@ -170,15 +160,15 @@ LANGFUSE_ENABLED=true
 1. **Intake** - Validates goal safety and parses intent
 2. **Repository Scan** - Discovers project structure
 3. **Planning** - Retrieves Altinn documentation, plans tool usage
-4. **Actor** - Generates code changes using MCP tools
-5. **Verifier** - Validates changes via MCP verification tools
+4. **Actor** - Generates code changes using in-process Altinn tools
+5. **Verifier** - Validates changes via in-process verification tools
 6. **Reviewer** - Commits to session branch or rolls back
 
 All operations are atomic - changes either fully succeed or are rolled back.
 
 ### Chat Mode
 
-Answers questions using MCP tools without modifying files. Scans your repository for context and generates responses with documentation examples.
+Answers questions using in-process tools without modifying files. Scans your repository for context and generates responses with documentation examples.
 
 ## Project Structure
 
@@ -192,7 +182,6 @@ altinity-agents/
 │   │   ├── nodes/        # Workflow nodes (intake, planner, actor, verifier, reviewer)
 │   │   └── runner.py     # Workflow orchestration
 │   ├── services/         # Core services
-│   │   ├── mcp/          # MCP client & verification
 │   │   ├── git/          # Git operations
 │   │   ├── llm/          # LLM client
 │   │   └── events/       # Event handling
