@@ -6,13 +6,13 @@
 .details {
   grid-column: 1 / -1;
   grid-row: 1;
-  min-width: 0;
+  border-top: none;
 }
 
 .accordionHeaderWarning {
-  --dsc-details-summary-background: var(--fds-semantic-surface-danger-subtle);
-  --dsc-details-summary-background--hover: var(--fds-semantic-surface-danger-subtle);
-  --dsc-details-summary-background--open: var(--fds-semantic-surface-danger-subtle);
+  --dsc-details-summary-background: var(--ds-color-danger-surface-tinted);
+  --dsc-details-summary-background--hover: var(--ds-color-danger-surface-tinted);
+  --dsc-details-summary-background--open: var(--ds-color-danger-surface-tinted);
 }
 
 .accordionContent {
