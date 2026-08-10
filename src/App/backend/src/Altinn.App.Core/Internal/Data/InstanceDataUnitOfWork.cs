@@ -89,6 +89,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private ProcessStateChange? _stagedProcessStateChange;
     private ProcessStatusTransition? _stagedProcessStatusTransition;
     private bool _stagedInstanceDeletion;
+    private bool _stagedCompleteConfirmation;
     private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
@@ -562,6 +563,25 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedInstanceDeletion = true;
     }
 
+    /// <summary>
+    /// Stages a complete confirmation for the service owner. Storage records it for the calling
+    /// organisation, which for an app is the instance's own org, so a confirmation this instance
+    /// already carries is not requested again: the mutation would bump the instance version for a
+    /// write that changes nothing, and every fence held elsewhere with it. A confirmation added after
+    /// this snapshot was captured is still requested, and Storage keeps that from duplicating.
+    /// </summary>
+    internal void AddCompleteConfirmation()
+    {
+        if (
+            _instance.CompleteConfirmations?.Exists(confirmation => confirmation.StakeholderId == _instance.Org) is true
+        )
+        {
+            return;
+        }
+
+        _stagedCompleteConfirmation = true;
+    }
+
     internal void UpdateInstanceDataValue(string key, string? value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -569,6 +589,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     internal IReadOnlyDictionary<string, string?> StagedInstanceDataValues => _stagedInstanceDataValues;
+
+    internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
 
     /// <summary>
     /// Captures all form data from the cache for state transport.
@@ -800,6 +822,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         mutationPlan.Request.ExpectedProcessStatus = expectedProcessStatus;
         ApplyStagedProcessState(mutationPlan.Request);
         ApplyStagedInstanceDeletion(mutationPlan.Request);
+        ApplyStagedCompleteConfirmation(mutationPlan.Request);
         ApplyStagedInstanceDataValues(mutationPlan.Request);
         if (!mutationPlan.HasMutations)
         {
@@ -821,6 +844,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             mutationPlan.AuthenticationMethods,
             defaultAuthenticationMethod
         );
+
+        // Storage records the confirmation for the calling organisation, and only a service owner token
+        // carries one. A data type demanding another authentication method resolves the whole aggregate
+        // to it, which would confirm as the wrong stakeholder or as none at all.
+        if (
+            mutationPlan.Request.AddCompleteConfirmation
+            && authenticationMethod.Request is not AuthenticationMethod.AltinnToken
+        )
+        {
+            throw new InvalidOperationException(
+                "A staged complete confirmation requires ServiceOwner authentication for the aggregate mutation, "
+                    + $"but it resolved to {authenticationMethod.Request.GetType().Name}."
+            );
+        }
 
         InstanceMutationWithStorageMetadata result;
         try
@@ -889,6 +926,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _stagedProcessStateChange is not null
             || _stagedProcessStatusTransition is not null
             || _stagedInstanceDeletion
+            || _stagedCompleteConfirmation
         )
         {
             throw new InvalidOperationException(
@@ -1081,6 +1119,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         request.DeleteInstance = new StorageInstanceMutationDeleteInstance { Hard = true };
     }
 
+    private void ApplyStagedCompleteConfirmation(StorageInstanceMutationRequest request)
+    {
+        request.AddCompleteConfirmation = _stagedCompleteConfirmation;
+    }
+
     private void ApplyStagedInstanceDataValues(StorageInstanceMutationRequest request)
     {
         foreach (var (key, value) in _stagedInstanceDataValues)
@@ -1117,6 +1160,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedProcessStateChange = null;
         _stagedProcessStatusTransition = null;
         _stagedInstanceDeletion = false;
+        _stagedCompleteConfirmation = false;
         _stagedInstanceDataValues.Clear();
     }
 
@@ -1520,6 +1564,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             || Request.UpdateDataElements.Count > 0
             || Request.DeleteDataElements.Count > 0
             || Request.DeleteInstance is not null
+            || Request.AddCompleteConfirmation
             || Request.DataValues.Count > 0
             || Request.PresentationTexts.Count > 0
             || Request.ProcessState?.State is not null

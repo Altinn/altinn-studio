@@ -794,6 +794,19 @@ func (e *Env) buildResourceOptions(
 	}, nil
 }
 
+// BuildsDevImages reports whether images are built from the local checkout. A running dev-mode
+// environment can still be serving a build of older sources, so callers must reconcile it instead
+// of treating "already running" as "up to date".
+func (e *Env) BuildsDevImages(ctx context.Context) bool {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return false
+	}
+
+	imageMode, _, _ := detectImageMode(ctx, cwd)
+	return imageMode == components.DevMode
+}
+
 func detectImageMode(ctx context.Context, cwd string) (components.ImageMode, *components.DevImageConfig, string) {
 	if !config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
 		return components.ReleaseMode, nil, ""

@@ -1321,6 +1321,134 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WithStagedCompleteConfirmation_CommitsItWithTheAggregate()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        setup.DataMutator.UpdateInstanceDataValue("eFormidlingShipmentStatus", "levert");
+        setup.DataMutator.AddCompleteConfirmation();
+
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-confirm-key",
+            CancellationToken.None
+        );
+
+        RequestResponse mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.True(mutation.AddCompleteConfirmation);
+        Assert.Equal("levert", mutation.DataValues["eFormidlingShipmentStatus"]);
+
+        // Committed, so a later save in the same unit of work must not confirm again.
+        Assert.False(setup.DataMutator.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task AddCompleteConfirmation_WhenTheInstanceAlreadyCarriesIt_StagesNothing()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.Instance.CompleteConfirmations =
+        [
+            new CompleteConfirmation
+            {
+                StakeholderId = setup.DataMutator.Instance.Org,
+                ConfirmedOn = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            },
+        ];
+
+        setup.DataMutator.AddCompleteConfirmation();
+
+        // Nothing to confirm means nothing to save: the mutation would bump the instance version for
+        // a write that changes nothing.
+        Assert.False(setup.DataMutator.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task AddCompleteConfirmation_WhenAnotherStakeholderHasConfirmed_StagesTheConfirmation()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.Instance.CompleteConfirmations =
+        [
+            new CompleteConfirmation
+            {
+                StakeholderId = "another-org",
+                ConfirmedOn = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            },
+        ];
+
+        setup.DataMutator.AddCompleteConfirmation();
+
+        Assert.True(setup.DataMutator.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_StagedCompleteConfirmationUnderUserAuthentication_ThrowsBeforeStorageMutation()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        setup.DataMutator.OverrideAuthenticationMethod(
+            setup.DataMutator.DataTypes.Single(dataType => dataType.Id == setup.DataElement.DataType),
+            StorageAuthenticationMethod.CurrentUser()
+        );
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        setup.DataMutator.AddCompleteConfirmation();
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.SaveWorkflowOwnedAggregate(
+                setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+                "workflow-user-auth-key",
+                CancellationToken.None
+            )
+        );
+
+        Assert.Contains("ServiceOwner authentication", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
+    public async Task SaveChanges_WithStagedCompleteConfirmation_ThrowsBeforeStorageMutation()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        setup.DataMutator.AddCompleteConfirmation();
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false))
+        );
+
+        Assert.Contains("SaveWorkflowOwnedAggregate", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
     public async Task SaveWorkflowOwnedAggregate_DataSaveBeforeProcessCommit_PreservesAdvancedCallbackProcessSnapshot()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
