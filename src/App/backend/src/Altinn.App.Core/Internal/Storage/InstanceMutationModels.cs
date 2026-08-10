@@ -27,6 +27,9 @@ internal sealed class StorageInstanceMutationRequest
     [JsonProperty(PropertyName = "presentationTexts")]
     public Dictionary<string, string?> PresentationTexts { get; } = [];
 
+    [JsonProperty(PropertyName = "addCompleteConfirmation")]
+    public bool AddCompleteConfirmation { get; set; }
+
     [JsonProperty(PropertyName = "processState")]
     public StorageInstanceMutationProcessStateUpdate? ProcessState { get; set; }
 }

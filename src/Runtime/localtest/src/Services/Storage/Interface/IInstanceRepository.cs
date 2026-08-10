@@ -41,6 +41,24 @@ public interface IInstanceRepository
     );
 
     /// <summary>
+    /// Gets the storage-owned versions for an instance.
+    /// </summary>
+    Task<InstanceVersionResult> ReadVersions(
+        Guid instanceGuid,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Checks optional storage-owned version preconditions for an instance.
+    /// </summary>
+    Task<InstanceVersionResult> CheckVersions(
+        Guid instanceGuid,
+        int? expectedInstanceVersion,
+        int? expectedProcessStateVersion,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// insert new instance into collection
     /// </summary>
     /// <param name="instance">the instance to base the new one on</param>
@@ -63,8 +81,15 @@ public interface IInstanceRepository
     Task<Instance> Update(
         Instance instance,
         List<string> updateProperties,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        int? expectedInstanceVersion = null,
+        int? expectedProcessStateVersion = null
     );
+
+    /// <summary>
+    /// Updates only instance read status without bumping storage-owned instance versions.
+    /// </summary>
+    Task<Instance> UpdateReadStatus(Instance instance, CancellationToken cancellationToken);
 
     /// <summary>
     /// Delets an instance.

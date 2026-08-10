@@ -2,13 +2,14 @@
 
 using System;
 using System.Net;
+using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.Platform.Storage.Repository;
 
 /// <summary>
 /// Exception thrown by the repository layer
 /// </summary>
-public class RepositoryException: Exception
+public class RepositoryException : Exception
 {
     /// <summary>
     /// Suggested status code to return to the client
@@ -35,4 +36,109 @@ public class RepositoryException: Exception
     {
         StatusCodeSuggestion = statusCodeSuggestion;
     }
+}
+
+/// <summary>
+/// Exception thrown when a data element blob version precondition does not match.
+/// </summary>
+public class DataElementBlobVersionMismatchException : RepositoryException
+{
+    /// <summary>
+    /// Create DataElementBlobVersionMismatchException with message and conflict status.
+    /// </summary>
+    /// <param name="message">Exception message</param>
+    public DataElementBlobVersionMismatchException(string message)
+        : base(message, HttpStatusCode.Conflict) { }
+}
+
+/// <summary>
+/// Exception thrown when the persisted process status does not match the mutation precondition.
+/// </summary>
+public sealed class ProcessStatusConflictException : RepositoryException
+{
+    /// <summary>
+    /// Creates a process-status conflict carrying the current persisted status.
+    /// </summary>
+    /// <param name="currentProcessStatus">Current persisted process status.</param>
+    public ProcessStatusConflictException(ProcessStatus currentProcessStatus)
+        : base(
+            $"Process status did not match expected status. Current status: '{currentProcessStatus.ToString().ToLowerInvariant()}'.",
+            HttpStatusCode.Conflict
+        )
+    {
+        CurrentProcessStatus = currentProcessStatus;
+    }
+
+    /// <summary>
+    /// Current persisted process status.
+    /// </summary>
+    public ProcessStatus CurrentProcessStatus { get; }
+}
+
+/// <summary>
+/// Exception thrown when a supplied storage-owned version precondition does not match.
+/// </summary>
+public abstract class StorageVersionMismatchException : RepositoryException
+{
+    /// <summary>
+    /// Create a storage version mismatch exception.
+    /// </summary>
+    protected StorageVersionMismatchException(
+        string message,
+        int currentInstanceVersion,
+        int currentProcessStateVersion
+    )
+        : base(message, HttpStatusCode.PreconditionFailed)
+    {
+        CurrentInstanceVersion = currentInstanceVersion;
+        CurrentProcessStateVersion = currentProcessStateVersion;
+    }
+
+    /// <summary>
+    /// Current aggregate instance version.
+    /// </summary>
+    public int CurrentInstanceVersion { get; }
+
+    /// <summary>
+    /// Current process-state version.
+    /// </summary>
+    public int CurrentProcessStateVersion { get; }
+}
+
+/// <summary>
+/// Exception thrown when If-Instance-Version-Match does not match.
+/// </summary>
+public sealed class InstanceVersionMismatchException : StorageVersionMismatchException
+{
+    /// <summary>
+    /// Create an instance-version mismatch exception.
+    /// </summary>
+    public InstanceVersionMismatchException(
+        int currentInstanceVersion,
+        int currentProcessStateVersion
+    )
+        : base(
+            "Instance version did not match expected version.",
+            currentInstanceVersion,
+            currentProcessStateVersion
+        ) { }
+}
+
+/// <summary>
+/// Exception thrown when If-Process-State-Version-Match does not match.
+/// </summary>
+public sealed class ProcessStateVersionMismatchException : StorageVersionMismatchException
+{
+    /// <summary>
+    /// Create a process-state-version mismatch exception.
+    /// </summary>
+    public ProcessStateVersionMismatchException(
+        int currentInstanceVersion,
+        int currentProcessStateVersion
+    )
+        : base(
+            "Process state version did not match expected version.",
+            currentInstanceVersion,
+            currentProcessStateVersion
+        ) { }
 }
