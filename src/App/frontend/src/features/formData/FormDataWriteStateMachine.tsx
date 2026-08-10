@@ -185,10 +185,7 @@ export const FDSetValueEqual = Symbol('FDSetValueEqual');
 export const FDSetValueUnset = Symbol('FDSetValueUnset');
 
 export type FDSetValueResult =
-  | FDSetValueSuccessful
-  | typeof FDSetValueEqual
-  | typeof FDSetValueReadOnly
-  | typeof FDSetValueUnset;
+  FDSetValueSuccessful | typeof FDSetValueEqual | typeof FDSetValueReadOnly | typeof FDSetValueUnset;
 
 export interface FormDataMethods {
   // Methods used for updating the data model. These methods will update the currentData model, and after

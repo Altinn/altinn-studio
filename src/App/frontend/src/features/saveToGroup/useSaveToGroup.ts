@@ -159,8 +159,7 @@ export function useSaveValueToGroup(
   const valuePath = toRelativePath(bindings.group, bindings.simpleBinding);
 
   const formData = FormStore.data.useFreshBindings(bindings.group ? { group: bindings.group } : {}, 'raw').group as
-    | Row[]
-    | undefined;
+    Row[] | undefined;
 
   const selectedValues = useMemo(
     () =>
