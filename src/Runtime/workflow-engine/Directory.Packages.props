@@ -17,9 +17,9 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.10" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.3.0" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.21.0.135717" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.31.0.145097" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
     <PackageVersion Include="System.Net.Http.Json" Version="10.0.10" />
     <PackageVersion Include="OpenTelemetry" Version="1.17.0" />

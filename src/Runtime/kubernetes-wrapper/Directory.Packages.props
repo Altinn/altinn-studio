@@ -14,9 +14,9 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
 
     <!-- Static analysis, formatting -->
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.3.0" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.21.0.135717" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.31.0.145097" />
 
     <!-- Testing -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.18" />
