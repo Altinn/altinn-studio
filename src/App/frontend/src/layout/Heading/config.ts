@@ -21,7 +21,7 @@ export const Config = new CG.component({
     new CG.trb({
       name: 'title',
       title: 'Title',
-      description: 'The text to display in the header',
+      description: 'The text to display in the heading',
     }),
   )
   .addTextResource(
@@ -34,7 +34,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'size',
-      new CG.enum('L', 'M', 'S', 'h2', 'h3', 'h4').setTitle('Size').setDescription('The size of the header'),
+      new CG.enum('L', 'M', 'S', 'h2', 'h3', 'h4').setTitle('Size').setDescription('The size of the heading'),
     ),
   )
   .addSummaryOverrides();

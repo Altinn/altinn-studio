@@ -9,14 +9,14 @@
       {
         "size": "h2",
         "id": "TabsHeader",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "TabsPage"
         }
       },
       {
         "id": "TabsPageHeaderComponent",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -188,7 +188,7 @@
       },
       {
         "id": "TabsPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         },
@@ -201,7 +201,7 @@
       },
       {
         "id": "TabsPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         },

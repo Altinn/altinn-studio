@@ -43,7 +43,7 @@
       },
       {
         "id": "mapSummaryHeader",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Oppsummering"
         },
