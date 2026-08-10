@@ -27,7 +27,9 @@
  *
  * Usage:
  *   node .github/spellcheck/run.mjs [check ...]   default: self-test + all
- *   --fix   apply unambiguous en-US and en-GB corrections
+ *   --fix   apply unambiguous en-US and en-GB corrections. NOTE: the code
+ *           pass renames misspelled identifiers too — a semantic change.
+ *           Always review the diff before committing.
  *   --ci    a skipped check fails the run (implied by $CI)
  */
 
@@ -39,7 +41,10 @@ import { DICTIONARY_FOR_LANG } from './dictionaries.mjs';
 import {
   HarnessError,
   REPO_ROOT,
+  applyValueFix,
   ensureDictionaries,
+  ensureOrdbank,
+  findKeyLine,
   globToRegExp,
   paramsOf,
   readGlossary,
@@ -102,6 +107,20 @@ async function checkStructure({ registry, root }) {
       throw new HarnessError(`${group.name}: a language parsed to zero entries`);
     }
 
+    // A duplicated key parses last-wins and silently drops a translation, so
+    // the parsed Maps can never see it — scan the raw JSON for it instead.
+    // (The TS files don't need this: a duplicate object-literal property is
+    // a compile error, enforced by their own builds.)
+    if (group.format === 'json-flat' || group.format === 'text-resource') {
+      for (const path of Object.values(group.files)) {
+        for (const [key, n] of duplicateJsonKeys(join(root, path), group.format)) {
+          findings.push(
+            finding(path, key, `'${key}' is defined ${n} times — only the last value survives`),
+          );
+        }
+      }
+    }
+
     if (group.parity === 'equal') {
       const union = new Set(Object.values(langs).flatMap((m) => [...m.keys()]));
       for (const [lang, entries] of Object.entries(langs)) {
@@ -157,6 +176,22 @@ async function checkStructure({ registry, root }) {
   return { findings, counts: `${registry.GROUPS.length} groups, ${keyCount} entries compared` };
 }
 
+/** Keys (or text-resource ids) defined more than once in one JSON file. */
+function duplicateJsonKeys(absPath, format) {
+  const seen = new Map();
+  if (format === 'text-resource') {
+    for (const r of JSON.parse(readFileSync(absPath, 'utf8')).resources ?? []) {
+      seen.set(r.id, (seen.get(r.id) ?? 0) + 1);
+    }
+  } else {
+    // Flat files, one `"key":` per line — count line-anchored occurrences.
+    for (const m of readFileSync(absPath, 'utf8').matchAll(/^\s*"((?:[^"\\]|\\.)*)"\s*:/gm)) {
+      seen.set(m[1], (seen.get(m[1]) ?? 0) + 1);
+    }
+  }
+  return [...seen].filter(([, n]) => n > 1);
+}
+
 // -------------------------------------------------------- coverage check ---
 
 function checkCoverage({ registry, root }) {
@@ -172,7 +207,11 @@ function checkCoverage({ registry, root }) {
     }
   }
 
-  const patterns = registry.SCAN_PATTERNS.map(globToRegExp);
+  const patterns = registry.SCAN_PATTERNS.map((glob) => ({
+    glob,
+    re: globToRegExp(glob),
+    hits: 0,
+  }));
   const oos = registry.OUT_OF_SCOPE.map((entry) => {
     if (!entry.reason) throw new HarnessError(`out-of-scope '${entry.glob}' has no reason`);
     return { ...entry, re: globToRegExp(entry.glob), hits: 0 };
@@ -180,7 +219,9 @@ function checkCoverage({ registry, root }) {
 
   let matched = 0;
   for (const path of tracked) {
-    if (!patterns.some((re) => re.test(path))) continue;
+    const hit = patterns.filter((p) => p.re.test(path));
+    if (hit.length === 0) continue;
+    for (const p of hit) p.hits += 1;
     matched += 1;
     if (registered.has(path)) continue;
     const exempt = oos.find((e) => e.re.test(path));
@@ -199,14 +240,23 @@ function checkCoverage({ registry, root }) {
   if (matched === 0) {
     throw new HarnessError('SCAN_PATTERNS matched nothing — the patterns have rotted');
   }
+  // Rot is per pattern, not just global: one pattern can silently die (a
+  // directory restructure) while the others keep `matched` comfortably high.
+  for (const p of patterns.filter((p) => p.hits === 0)) {
+    findings.push(finding(p.glob, undefined, 'scan pattern matches nothing — it has rotted'));
+  }
   for (const entry of oos.filter((e) => e.hits === 0)) {
     findings.push(finding(entry.glob, undefined, 'stale out-of-scope entry — it exempts nothing'));
   }
 
   // The registry names a file so the checks here own its text; the code pass
   // must therefore skip it. This assertion is what keeps registry.mjs and
-  // typos.toml's excludes from drifting apart.
-  const visited = typosFileList(['--force-exclude', ...registered], { cwd: root });
+  // typos.toml's excludes from drifting apart. Only existing files are
+  // probed — a registry typo is already reported as untracked above, and
+  // typos errors on paths that do not exist.
+  const probeable = [...registered].filter((p) => tracked.includes(p));
+  const visited =
+    probeable.length === 0 ? [] : typosFileList(['--force-exclude', ...probeable], { cwd: root });
   for (const path of visited) {
     findings.push(
       finding(
@@ -303,60 +353,9 @@ async function checkEnglish({ registry, root, fix }) {
   return { findings, counts: `${valueCount} values + ${keyCount} keys examined` };
 }
 
-const sourceCache = new Map();
-function sourceOf(root, file) {
-  const abs = join(root, file);
-  if (!sourceCache.has(abs)) sourceCache.set(abs, readFileSync(abs, 'utf8'));
-  return sourceCache.get(abs);
-}
-
-function findKeyLine(root, file, key) {
-  const src = sourceOf(root, file);
-  for (const probe of [`'${key}'`, `"${key}"`, key]) {
-    const idx = src.indexOf(probe);
-    if (idx !== -1) return src.slice(0, idx).split('\n').length;
-  }
-  return undefined;
-}
-
-/**
- * Applies one correction inside the VALUE of `key`, located through the real
- * file's syntax — never through byte offsets into a masked copy. Declines
- * (returns false) whenever the edit would be ambiguous.
- */
-function applyValueFix(root, file, key, typo, correction) {
-  const abs = join(root, file);
-  const src = readFileSync(abs, 'utf8');
-  const probe = [`'${key}'`, `"${key}"`].find((p) => src.includes(p));
-  if (!probe) return false;
-  const keyIdx = src.indexOf(probe);
-  if (src.indexOf(probe, keyIdx + 1) !== -1) return false; // key text is not unique
-
-  const after = src.slice(keyIdx + probe.length);
-  const m = /^\s*:\s*(['"])/.exec(after);
-  if (!m) return false;
-  const valueStart = keyIdx + key.length + 2 + m[0].length;
-  const quote = m[1];
-  let valueEnd = valueStart;
-  while (valueEnd < src.length && (src[valueEnd] !== quote || src[valueEnd - 1] === '\\')) {
-    valueEnd += 1;
-  }
-  const value = src.slice(valueStart, valueEnd);
-
-  const cased =
-    typo[0] === typo[0].toUpperCase()
-      ? correction[0].toUpperCase() + correction.slice(1)
-      : correction;
-  const occurrences = value.split(typo).length - 1;
-  if (occurrences !== 1) return false;
-  writeFileSync(abs, src.slice(0, valueStart) + value.replace(typo, cased) + src.slice(valueEnd));
-  sourceCache.delete(abs);
-  return true;
-}
-
 // -------------------------------------------------------- norwegian check ---
 
-async function checkNorwegian({ registry, root, ci }) {
+async function checkNorwegian({ registry, root }) {
   if (!toolAvailable('hunspell')) {
     return skip('hunspell is not installed (`brew install hunspell` / `apt install hunspell`)');
   }
@@ -376,6 +375,7 @@ async function checkNorwegian({ registry, root, ci }) {
     if (items.length === 0) continue;
 
     const glossary = readGlossary(join(HERE, `glossary.${lang}.txt`));
+    const fullforms = await ensureOrdbank(lang);
     const doc = items.map((i) => i.text).join('\n');
     const wordCount = doc.split(/\s+/).filter(Boolean).length;
     if (wordCount === 0) throw new HarnessError(`${lang}: extracted zero words`);
@@ -384,9 +384,16 @@ async function checkNorwegian({ registry, root, ci }) {
       doc,
       DICTIONARY_FOR_LANG[lang].map((d) => join(cacheDir, d)),
     );
+    // A word is accepted by ANY of: the hunspell dictionary (which is what
+    // handles compounds), the Norsk Ordbank full-form list (which covers the
+    // frozen dictionary's gaps — see dictionaries.mjs), or the curated
+    // glossary. Deliberately unchecked: tokens with digits or other
+    // non-letters (the first filter) and ALL-CAPS tokens (acronyms — BPMN,
+    // PDF); a shouted or digit-bearing misspelling is invisible here.
     const words = [...flagged]
       .filter((w) => /^[\p{L}'’-]{2,}$/u.test(w))
-      .filter((w) => w !== w.toUpperCase()) // acronyms: BPMN, PDF, API
+      .filter((w) => w !== w.toUpperCase())
+      .filter((w) => !fullforms.has(w) && !fullforms.has(w.toLowerCase()))
       .filter((w) => !glossary.has(w.toLowerCase()))
       .sort((a, b) => a.localeCompare(b, 'nb'));
 
@@ -412,7 +419,6 @@ async function checkNorwegian({ registry, root, ci }) {
     );
   }
   if (countsParts.length === 0) throw new HarnessError('no Norwegian values were extracted');
-  void ci;
   return { findings, counts: countsParts.join('; ') };
 }
 
@@ -426,7 +432,8 @@ async function checkNorwegian({ registry, root, ci }) {
  * be named somewhere. A failure here means the harness itself is broken.
  */
 async function checkSelfTest({ ci }) {
-  const { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS, EXPECTED } = await import('./selftest/registry.mjs');
+  const { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS, EXPECTED, DRIFT_REGISTRY, FIX_SCENARIOS } =
+    await import('./selftest/registry.mjs');
   const registry = { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS };
   const failures = [];
   let assertions = 0;
@@ -479,7 +486,7 @@ async function checkSelfTest({ ci }) {
   const english = await checkEnglish({ registry, root: REPO_ROOT, fix: false });
   assertFindings('en', english.findings, 'en');
 
-  const norwegian = await checkNorwegian({ registry, root: REPO_ROOT, ci });
+  const norwegian = await checkNorwegian({ registry, root: REPO_ROOT });
   if (norwegian.skipped) {
     if (ci) failures.push(finding('(self-test)', undefined, `no: skipped (${norwegian.skipped})`));
     else console.log(`  ⚠ self-test of the Norwegian check skipped: ${norwegian.skipped}`);
@@ -487,7 +494,43 @@ async function checkSelfTest({ ci }) {
     assertFindings('no', norwegian.findings, 'no');
   }
 
+  // The coverage arms the standard fixtures cannot reach: a registered file
+  // the code pass would still visit (drift), a registered path that does not
+  // exist (untracked), and an out-of-scope rule that exempts nothing
+  // (stale). DRIFT_REGISTRY plants one of each.
+  const drift = checkCoverage({ registry: DRIFT_REGISTRY, root: REPO_ROOT });
+  assertFindings('coverage-drift', drift.findings, 'coverageDrift');
+
+  // The fix path — the only code that writes to product files — asserted on
+  // throwaway copies, byte for byte.
+  for (const failure of fixPathFailures(FIX_SCENARIOS)) {
+    failures.push(finding('(self-test)', undefined, failure));
+    assertions += 1;
+  }
+  assertions += FIX_SCENARIOS.length;
+
   return { findings: failures, counts: `${assertions} assertions over planted fixtures` };
+}
+
+function fixPathFailures(scenarios) {
+  const failures = [];
+  const dir = mkdtempSync(join(tmpdir(), 'spellcheck-fix-'));
+  try {
+    for (const [i, s] of scenarios.entries()) {
+      const name = `fix-${i}.json`;
+      writeFileSync(join(dir, name), s.file);
+      const applied = applyValueFix(dir, name, s.key, s.typo, s.correction);
+      const got = readFileSync(join(dir, name), 'utf8');
+      if (s.want === false) {
+        if (applied || got !== s.file) failures.push(`fix path: should have declined: ${s.name}`);
+      } else if (!applied || got !== s.want) {
+        failures.push(`fix path: wrong result for: ${s.name}`);
+      }
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+  return failures;
 }
 
 // ------------------------------------------------------------------ main ---
@@ -502,6 +545,16 @@ const CHECKS = {
 };
 
 async function main() {
+  // Native TS type stripping and import.meta.dirname both need this floor;
+  // without the guard the failure is a cryptic ERR_UNKNOWN_FILE_EXTENSION.
+  const [major, minor] = process.versions.node.split('.').map(Number);
+  if (major < 22 || (major === 22 && minor < 18)) {
+    console.error(
+      `Node ${process.versions.node} is too old for the spell-check runner (need ≥ 22.18).`,
+    );
+    process.exit(64);
+  }
+
   const args = process.argv.slice(2);
   const fix = args.includes('--fix');
   const ci = args.includes('--ci') || process.env.CI === 'true';

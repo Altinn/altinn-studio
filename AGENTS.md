@@ -98,8 +98,9 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
   the product is **British English** for the English values and checked **Norwegian** (bokmål and
   nynorsk, via hunspell) for the `nb`/`nn` values. Run `yarn spell:check` locally and
-  `yarn spell:fix` to apply unambiguous corrections; CI runs the same five checks in
-  `.github/workflows/spellcheck.yaml`.
+  `yarn spell:fix` to apply unambiguous corrections — note that the fix mode also renames
+  misspelled _identifiers_, which is a semantic change, so always review the diff. CI runs the
+  same five checks in `.github/workflows/spellcheck.yaml`.
 
   The harness lives in `.github/spellcheck/`. Its one hard rule: **no check may pass without
   proving it ran** — every check counts its work, tool exit codes are inspected, a committed

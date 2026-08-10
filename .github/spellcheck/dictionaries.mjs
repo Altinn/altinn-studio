@@ -56,3 +56,37 @@ export const DICTIONARY_FOR_LANG = {
 
 export const rawUrl = (file) =>
   `https://raw.githubusercontent.com/LibreOffice/dictionaries/${DICTIONARY_SOURCE.commit}/${DICTIONARY_FILES[file].path}`;
+
+/**
+ * The hunspell dictionaries above are frozen at 2018 and demonstrably miss
+ * common vocabulary — `noen`, `noe`, and definite forms like `skjemaet` and
+ * `appen` are all rejected. Rather than pollute the curated glossaries with
+ * basic Norwegian, the check also accepts any word in Norsk Ordbank's
+ * full-form tables (Språkrådet / University of Bergen, CC-BY 4.0; the 2022
+ * update), fetched from a pinned commit of Ondkloss/norwegian-wordlist
+ * (WTFPL packaging) and SHA-256-verified like everything else. Measured
+ * effect: absorbs 51 of the 550 bokmål words hunspell flags in this repo —
+ * exactly the dictionary-gap class — while still rejecting the planted
+ * typos.
+ */
+export const ORDBANK_SOURCE = {
+  repository: 'https://github.com/Ondkloss/norwegian-wordlist',
+  commit: 'de07f3fe9c9dda2012e143205e04df539be178ab',
+  license: 'data CC-BY-4.0 (Norsk Ordbank), packaging WTFPL; fetched, never committed',
+};
+
+export const ORDBANK_FILES = {
+  nb: {
+    path: '20220201_norsk_ordbank_nob_2005.tar.gz',
+    sha256: '57d91cb3f17b85befa50a3b56fcaed9800ca665b39486fe97b668add914d5f60',
+    fullformFile: 'fullformsliste.txt',
+  },
+  nn: {
+    path: '20220201_norsk_ordbank_nno_2012.tar.gz',
+    sha256: '32987494b77c54b5c3890e891b99e35d5a45a16643a5c1820cd5e02fd55b1b8d',
+    fullformFile: 'fullformer_2012.txt',
+  },
+};
+
+export const ordbankUrl = (lang) =>
+  `https://raw.githubusercontent.com/Ondkloss/norwegian-wordlist/${ORDBANK_SOURCE.commit}/${ORDBANK_FILES[lang].path}`;

@@ -1,6 +1,9 @@
 {
   "planted.colour_key": "Farge",
   "planted.compound_ok": "Kodelisten og datamodellen er oppdatert",
+  "planted.dictionary_gap_ok": "Det er noen som har sett skjemaet",
+  "planted.duplicate": "En gang",
+  "planted.duplicate": "To ganger",
   "planted.empty_in_nb": "",
   "planted.glossary_ok": "Altinn og Maskinporten er tilgjengelige",
   "planted.loanword_ok": "Se dashboard for status",

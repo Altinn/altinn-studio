@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { DICTIONARY_FILES, rawUrl } from './dictionaries.mjs';
+import { DICTIONARY_FILES, ORDBANK_FILES, ordbankUrl, rawUrl } from './dictionaries.mjs';
 
 export const REPO_ROOT = resolve(import.meta.dirname, '../..');
 const CACHE_DIR = join(import.meta.dirname, '.cache/dictionaries');
@@ -270,6 +270,132 @@ export async function ensureDictionaries() {
 }
 
 const sha256Of = (buf) => createHash('sha256').update(buf).digest('hex');
+
+/**
+ * Ensures the Norsk Ordbank full-form word set for a language is cached and
+ * returns it. The pinned tarball is fetched and SHA-256-verified, the
+ * full-form table (ISO-8859-1, tab-separated, OPPSLAG in column 3) is
+ * extracted once, and the processed word list is kept next to the
+ * dictionaries. See dictionaries.mjs for why this supplements hunspell.
+ */
+export async function ensureOrdbank(lang) {
+  mkdirSync(CACHE_DIR, { recursive: true });
+  const { path, sha256, fullformFile } = ORDBANK_FILES[lang];
+  const processed = join(CACHE_DIR, `fullforms.${lang}.txt`);
+  const tarball = join(CACHE_DIR, path);
+
+  if (!existsSync(processed)) {
+    if (!existsSync(tarball) || sha256Of(readFileSync(tarball)) !== sha256) {
+      const url = ordbankUrl(lang);
+      const res = await fetch(url);
+      if (!res.ok) throw new HarnessError(`fetching ${url} failed: HTTP ${res.status}`);
+      const body = Buffer.from(await res.arrayBuffer());
+      const actual = sha256Of(body);
+      if (actual !== sha256) {
+        throw new HarnessError(
+          `${path} from ${url} has SHA-256 ${actual}, expected ${sha256} — refusing to use it`,
+        );
+      }
+      writeFileSync(`${tarball}.tmp`, body);
+      renameSync(`${tarball}.tmp`, tarball);
+    }
+    const tar = spawnSync('tar', ['-xzf', tarball, '-C', CACHE_DIR, fullformFile]);
+    if (tar.status !== 0) {
+      throw new HarnessError(`extracting ${path} failed: ${tar.stderr?.toString().trim()}`);
+    }
+    const rows = readFileSync(join(CACHE_DIR, fullformFile), 'latin1').split('\n');
+    const forms = new Set();
+    for (const row of rows.slice(1)) {
+      const form = row.split('\t')[2];
+      if (form) forms.add(form);
+    }
+    if (forms.size < 100_000) {
+      throw new HarnessError(
+        `${fullformFile} parsed to only ${forms.size} forms — format changed?`,
+      );
+    }
+    writeFileSync(`${processed}.tmp`, [...forms].join('\n'));
+    renameSync(`${processed}.tmp`, processed);
+  }
+
+  const forms = new Set(readFileSync(processed, 'utf8').split('\n').filter(Boolean));
+  if (forms.size < 100_000) {
+    throw new HarnessError(`${processed} holds only ${forms.size} forms — delete it and re-run`);
+  }
+  return forms;
+}
+
+// -------------------------------------------------------- fix application ---
+
+const sourceCache = new Map();
+
+export function sourceOf(root, file) {
+  const abs = join(root, file);
+  if (!sourceCache.has(abs)) sourceCache.set(abs, readFileSync(abs, 'utf8'));
+  return sourceCache.get(abs);
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Line-anchored `'key':` / `"key":` occurrences. Anchoring to the start of a
+ * line is what keeps a value that merely MENTIONS a key (e.g. documentation
+ * text quoting another entry) from being mistaken for the entry itself.
+ */
+const keyMatches = (src, key) => [
+  ...src.matchAll(new RegExp(`^[ \\t]*(['"])${escapeRe(key)}\\1[ \\t]*:`, 'gm')),
+];
+
+/** The 1-based line a key is defined on, for annotations. Best effort. */
+export function findKeyLine(root, file, key) {
+  const src = sourceOf(root, file);
+  let idx = keyMatches(src, key)[0]?.index;
+  if (idx === undefined && /^[A-Za-z_$][\w$]*$/.test(key)) {
+    // esm-export keys are identifiers, not quoted properties.
+    idx = src.search(new RegExp(`\\b${escapeRe(key)}\\b`));
+  }
+  if (idx === undefined || idx === -1) return undefined;
+  return src.slice(0, idx).split('\n').length;
+}
+
+/**
+ * Applies one correction inside the VALUE of `key`, locating it through the
+ * real file's syntax — never through byte offsets into a masked copy.
+ * Declines (returns false) whenever the edit would be ambiguous: key absent
+ * or defined twice, value not a simple quoted literal on one line, or the
+ * typo not occurring exactly once in the value.
+ */
+export function applyValueFix(root, file, key, typo, correction) {
+  const abs = join(root, file);
+  const src = readFileSync(abs, 'utf8');
+  const matches = keyMatches(src, key);
+  if (matches.length !== 1) return false;
+
+  const afterKey = matches[0].index + matches[0][0].length;
+  const q = /^\s*(['"])/.exec(src.slice(afterKey, afterKey + 40));
+  if (!q) return false;
+  const valueStart = afterKey + q[0].length;
+  const quote = q[1];
+
+  // Scan to the closing quote. `\` always escapes exactly one character, so
+  // skipping two keeps backslash parity right (`\\"` really closes); a raw
+  // newline means this is not the single-line literal we expect.
+  let end = valueStart;
+  while (end < src.length && src[end] !== '\n' && src[end] !== quote) {
+    end += src[end] === '\\' ? 2 : 1;
+  }
+  if (src[end] !== quote) return false;
+
+  const value = src.slice(valueStart, end);
+  if (value.split(typo).length - 1 !== 1) return false;
+  const cased =
+    typo[0] === typo[0].toUpperCase()
+      ? correction[0].toUpperCase() + correction.slice(1)
+      : correction;
+  writeFileSync(abs, src.slice(0, valueStart) + value.replace(typo, cased) + src.slice(end));
+  sourceCache.delete(abs);
+  return true;
+}
 
 // -------------------------------------------------------------- glossary ---
 

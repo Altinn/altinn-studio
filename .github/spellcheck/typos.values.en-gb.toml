@@ -8,8 +8,5 @@
 # does not become invalid), typos' varcon tables actually flag `color` under
 # en-gb.
 
-[files]
-extend-exclude = []
-
 [default]
 locale = "en-gb"

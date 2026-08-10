@@ -38,6 +38,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -71,6 +72,7 @@ jobs:
 
       - name: Self-test (planted fixtures, production config)
         id: selftest
+        if: always()
         run: node .github/spellcheck/run.mjs self-test
 
       - name: Code, comments and docs (en-US)
