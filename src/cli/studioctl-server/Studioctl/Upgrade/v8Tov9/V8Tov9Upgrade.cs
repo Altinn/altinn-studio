@@ -533,7 +533,7 @@ internal static class V8Tov9Upgrade
         try
         {
             await UpgradeConsole.Out.WriteLineAsync(
-                "Removing ignored pageBreak properties from Summary2 components..."
+                "The pageBreak properties on Summary2 components had no effect earlier, but would take effect after upgrading. They are removed to avoid an unintended change in layout."
             );
             return await Summary2PageBreakMigration.Migrate(projectFolder);
         }
