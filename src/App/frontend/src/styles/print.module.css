@@ -17,4 +17,27 @@
   .break-after-avoid {
     break-after: avoid-page;
   }
+
+  .page-break-boundary.break-before-auto > :first-child {
+    break-before: auto;
+  }
+  .page-break-boundary.break-before-always > :first-child {
+    break-before: page;
+  }
+  .page-break-boundary.break-before-avoid > :first-child {
+    break-before: avoid-page;
+  }
+  .page-break-boundary.break-after-auto > :last-child {
+    break-after: auto;
+  }
+  .page-break-boundary.break-after-always > :last-child {
+    break-after: page;
+  }
+  .page-break-boundary.break-after-avoid > :last-child {
+    break-after: avoid-page;
+  }
+}
+
+.page-break-boundary {
+  display: contents;
 }

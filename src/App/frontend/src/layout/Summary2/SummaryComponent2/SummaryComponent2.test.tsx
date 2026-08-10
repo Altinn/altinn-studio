@@ -61,7 +61,9 @@ describe('SummaryComponent', () => {
       },
     });
 
-    expect(screen.getByTestId('summary2-component')).toHaveClass(
+    const boundary = screen.getByTestId('summary2-component');
+    expect(boundary).toHaveClass(
+      printStyles.pageBreakBoundary,
       printStyles.breakBeforeAlways,
       printStyles.breakAfterAvoid,
     );

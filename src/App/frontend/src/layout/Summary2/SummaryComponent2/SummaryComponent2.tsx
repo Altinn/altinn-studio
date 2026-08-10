@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { Flex } from '@app/form-component';
 import cn from 'classnames';
 
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { Summary2StoreProvider } from 'src/layout/Summary2/summaryStoreContext';
+import printStyles from 'src/styles/print.module.css';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -32,11 +32,8 @@ function SummaryBody({ target }: SummaryBodyProps) {
 function SummaryComponent2Inner({ baseComponentId }: Pick<PropsFromGenericComponent<'Summary2'>, 'baseComponentId'>) {
   const { pageBreak, target } = useItemWhenType(baseComponentId, 'Summary2');
   return (
-    <Flex
-      item
-      container
-      size={{ xs: 12 }}
-      className={cn(pageBreakStyles(pageBreak))}
+    <div
+      className={cn(printStyles.pageBreakBoundary, pageBreakStyles(pageBreak))}
       data-testid='summary2-component'
     >
       <Summary2StoreProvider baseComponentId={baseComponentId}>
@@ -44,7 +41,7 @@ function SummaryComponent2Inner({ baseComponentId }: Pick<PropsFromGenericCompon
           <SummaryBody target={target} />
         </TaskSummaryWrapper>
       </Summary2StoreProvider>
-    </Flex>
+    </div>
   );
 }
 
