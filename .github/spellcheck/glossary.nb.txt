@@ -1,0 +1,24 @@
+# Bokmål glossary: words the Norwegian spell check accepts although the
+# dictionary rejects them. One word per line; '#' starts a comment;
+# matching is case-insensitive. run.mjs subtracts these from hunspell's
+# findings, so the file stays plain UTF-8 regardless of the dictionary's
+# own encoding.
+#
+# The dictionary is full-form (inflections are separate entries), so an
+# accepted term's other forms need their own lines — add them as the check
+# reports them.
+#
+# Keep this to names and genuine domain terms. A misspelling "fixed" by a
+# glossary entry stays wrong in the product, so prefer fixing the text.
+# Domain terms still awaiting native-speaker review belong in the stacked
+# corrections PR, not here.
+
+# Product and organisation names
+Altinn
+Digdir
+Maskinporten
+Ansattporten
+Gitea
+GitHub
+Kubernetes
+eFormidling

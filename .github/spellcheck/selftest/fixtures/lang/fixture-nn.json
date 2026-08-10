@@ -1,0 +1,11 @@
+{
+  "planted.colour_key": "Farge",
+  "planted.compound_ok": "Kodelista og datamodellen er oppdatert",
+  "planted.empty_in_nb": "Ikkje tom",
+  "planted.glossary_ok": "Altinn og Maskinporten er tilgjengelege",
+  "planted.loanword_ok": "Sjå dashboard for status",
+  "planted.norwegian_typo": "Skriv inn Gateadrese her",
+  "planted.param_mismatch": "Bruk {{count}} teikn",
+  "planted.typo_in_en": "Du får svar snart",
+  "planted.us_spelling": "Vel farge"
+}

@@ -1,0 +1,212 @@
+# Spell check for Altinn Studio — code, identifiers, comments and docs, in
+# US English.
+#
+# This file is one of five checks; the runner and the policy live in
+# .github/spellcheck/ (see AGENTS.md "Spelling and language"). Customer-facing
+# UI text is NOT checked here: the language files are named in
+# .github/spellcheck/registry.mjs, excluded below, and checked by the runner
+# instead — British English for the English values, hunspell for the
+# Norwegian ones, US English for the keys. The coverage check fails if this
+# exclude list and the registry drift apart.
+#
+# The rule this config encodes: spellcheck prose and code, never data.
+# Fixtures, schemas, code lists and wire payloads are data — they are full of
+# Norwegian and of names we do not own, and checking them buys nothing.
+#
+# Run:  yarn spell:check     Fix:  yarn spell:fix
+
+[files]
+# typos skips hidden paths by default, which would exempt everything under
+# .github — including every workflow comment. Check them; only the git
+# database itself is opted out.
+ignore-hidden = false
+
+extend-exclude = [
+    ".git/**",
+
+    # Agent tooling: skills are deliberately written in Norwegian, and
+    # .claude/worktrees may hold entire nested checkouts of this repository.
+    ".claude/**",
+
+    # Build output and generated code. Kept even when currently silent: a typo a
+    # generator emits cannot be fixed by hand, so it must never block CI.
+    "**/bin/**", "**/obj/**", "**/dist/**", "**/node_modules/**", "**/.yarn/**",
+    "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
+
+    # The spell-check harness itself: fixtures with deliberately planted
+    # errors (the self-test copies them elsewhere and checks them with THIS
+    # config), and the Norwegian glossaries.
+    ".github/spellcheck/selftest/**", ".github/spellcheck/glossary.*.txt",
+
+    # The registered language files (see .github/spellcheck/registry.mjs).
+    # Their values are Norwegian or British and are checked by the runner;
+    # excluding them here is asserted by the coverage check.
+    "app-libs/language/src/texts/*.ts",
+    "src/Designer/frontend/language/src/*.json",
+    "src/Designer/frontend/resourceadm/language/src/*.json",
+    "src/Designer/frontend/packages/shared/src/constants.js",
+    "src/Designer/frontend/app-development/features/overview/components/News/NewsContent/news.nb.json",
+    "src/App/template/src/App/config/applicationmetadata.json",
+    "src/App/template/src/App/config/texts/resource.nb.json",
+    "src/gitea/files/locale/**",
+
+    # Norwegian test data and fixtures, where the field names are the contract
+    # under test rather than prose.
+    "**/[Tt]estdata/**", "**/*SourceGenerator*/**", "src/test/apps/**",
+    "*.pretest", "**/Altinn.App.Core.Tests/Data/SkjemaWithNamespace.cs",
+    "**/Altinn3LibraryProvider/**", "**/Services/Tenor/**",
+    "**/Maskinporten/**/*Test*.cs",
+
+    # Norwegian throughout, rather than in places the string rule below can
+    # spot (JSX text nodes, HTML markup, whole Norwegian UIs).
+    "src/tools/altinn-fleet-stats/**", "**/policy_tool/**",
+    "src/Designer/backend/src/Designer/Views/Home/StartPage.cshtml",
+    "src/gitea/files/custom/templates/**",
+
+    # Written to name the OLD spellings: release notes describe what an API used
+    # to be called, and the upgrade tooling matches v8 names in order to rewrite
+    # them.
+    "**/CHANGELOG.md",
+    "src/cli/studioctl-server/Studioctl/Upgrade/**",
+    "src/cli/studioctl-server-tests/Upgrade/**",
+
+    # Assertions and selectors against the Norwegian UI that the test apps and
+    # Gitea render.
+    "**/test/e2e/**", "**/testing/playwright/pages/**",
+
+    # Data embedded in source: an Altinn 2 code list, and the Norwegian
+    # KS.Fiks.Arkiv / KS.Fiks.IO models.
+    "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
+    "src/App/backend/src/Altinn.App.Clients.Fiks/**",
+    "src/App/backend/test/Altinn.App.Clients.Fiks.Tests/**",
+
+    # Norwegian in JSX children and Storybook sample content, which the string
+    # rule below cannot see.
+    "**/MergeConflictWarning/MergeConflictWarning.tsx",
+    "**/AddItem/ToggleAddComponentPoc.tsx",
+    "**/DownloadXMLButton/DownloadXMLButton.tsx",
+    "**/*.stories.tsx", "**/StudioTable*Pagination/**",
+]
+
+# Data formats hold fixtures, schemas, code lists and wire payloads, not
+# prose. Deliberately NOT here, although the previous harness classified them
+# as data: .cshtml/.html (server-rendered pages users read), .yaml/.yml
+# (workflow and config comments are prose), .txt and .tmpl. Those are checked.
+[type.data]
+extend-glob = [
+    "*.json", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
+    "*.svg", "*.css", "*.env", "*.snap", "*.lock",
+]
+check-file = false
+
+[default]
+locale = "en-us"
+
+# A string containing Norwegian is Norwegian, not misspelled English. Stated
+# once here rather than by listing every file that holds Norwegian product
+# copy — a path list rots silently when files move, this does not.
+#
+# The signal is a Nordic letter or one of the function words below, which do
+# not occur in English prose. It matches string literals only, so a Norwegian
+# word in an *identifier* is still reported and must still be fixed.
+#
+# Two costs, deliberately accepted: an English typo inside a string that also
+# contains a Norwegian word is missed (such strings are Norwegian in
+# practice), and a multi-line template literal is NOT exempted — every
+# pattern is bounded to one line, because an unbounded backtick pattern can
+# match from the end of one code span to the start of the next and exempt
+# everything in between. Files where that bites are excluded by name above.
+extend-ignore-re = [
+  '''['][^'\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^'\n]*[']''',
+  '''["][^"\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^"\n]*["]''',
+  '''[`][^`\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^`\n]*[`]''',
+  '''/[^/\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^/\n]*/''',
+  '''["']n[bn]["']\s*[,:]\s*["'][^"'\n]*["']''',
+]
+
+[default.extend-identifiers]
+# Names we do not own. Matched as whole identifiers, so the spelling stays enforced
+# everywhere else — prefer this over extend-words: a shape-based regex or a bare
+# word would also admit brand-new misspellings, which is what this check exists
+# to stop.
+
+# Altinn Platform (Storage / Register) DTO members and the wire fields named after
+# them. Renaming any of these breaks the build or the contract.
+Organisation = "Organisation"
+organisation = "organisation"
+OrganisationNumber = "OrganisationNumber"
+organisationNumber = "organisationNumber"
+AllowedContributers = "AllowedContributers"
+allowedContributers = "allowedContributers"
+EnabledFileAnalysers = "EnabledFileAnalysers"
+enabledFileAnalysers = "enabledFileAnalysers"
+Submited = "Submited"
+submited = "submited"
+Occured = "Occured"
+occured = "occured"
+GetDecisionForUnvalidateRequest = "GetDecisionForUnvalidateRequest"
+Unvalidate = "Unvalidate"
+
+# Kept deliberately, each with a comment at the definition explaining why.
+OrganisationLookup = "OrganisationLookup"              # frozen ux-editor-v4 contract
+organisation_lookup_orgnr = "organisation_lookup_orgnr"
+organisation_lookup_name = "organisation_lookup_name"
+DataModelBindingsOrganisationLookup = "DataModelBindingsOrganisationLookup"
+OrganisationLookupSchema = "OrganisationLookupSchema"
+autoSaveBehaviour = "autoSaveBehaviour"                # deprecated alias, still read
+AutoSaveBehaviorLegacy = "AutoSaveBehaviorLegacy"
+OrganisationRepositoryLocation = "OrganisationRepositoryLocation"
+GeneralSettings__OrganisationRepositoryLocation = "GeneralSettings__OrganisationRepositoryLocation"
+OrganisationLogin = "OrganisationLogin"                # LocalTest ClaimsIdentity type
+mimeTypeAnalyser = "mimeTypeAnalyser"                  # analyzer id apps reference
+ExhangeToAltinnToken = "ExhangeToAltinnToken"          # MaskinportenSettings member
+
+# W3C ARIA — these mirror the aria-labelledby attribute.
+ariaLabelledBy = "ariaLabelledBy"
+AriaLabelledBy = "AriaLabelledBy"
+hasAriaLabelledBy = "hasAriaLabelledBy"
+labelledById = "labelledById"
+
+# Third-party exports and API shapes
+MenuElipsisVerticalIcon = "MenuElipsisVerticalIcon"    # @navikt/aksel-icons
+MenuElipsisHorizontalIcon = "MenuElipsisHorizontalIcon"
+Vertexes = "Vertexes"                                  # BuildKit SolveStatus
+vertexes = "vertexes"
+didi = "didi"                                          # npm package used by bpmn-js
+
+# Codes, slugs and acronyms
+acn = "acn"                          # Altinn org slug
+ACN = "ACN"
+AKS = "AKS"                          # Azure Kubernetes Service
+aks = "aks"
+OCE = "OCE"                          # OperationCanceledException
+JOD = "JOD"                          # ISO 4217 (Jordanian dinar)
+sme = "sme"                          # ISO 639-3 (Northern Sami)
+fpr = "fpr"                          # gpg --with-colons field
+caf = "caf"                          # file extensions in MimeTypeMap
+itms = "itms"
+mak = "mak"
+odf = "odf"
+thn = "thn"
+
+# Deliberate test inputs — changing these breaks what the test proves
+tru = "tru"                          # a deliberately invalid expression
+abd = "abd"                          # expected output of backspace on "abc\x08d"
+varius = "varius"                    # lorem ipsum
+erro = "erro"                        # 4-char log-level column: trac/debu/info/warn/erro
+SelvRegistrert = "SelvRegistrert"    # real self-identified username in Altinn test env
+Statistisk = "Statistisk"            # "Statistisk Sentralbyrå"
+periodeFritekst = "periodeFritekst"  # Norwegian data-model field path
+Adedd = "Adedd"                      # fixture for a test named "typo in category"
+Maake = "Maake"                      # expected å->aa transliteration output
+ue = "ue"                            # second half of typing "true" into an input
+BA = "BA"                            # ISO 3166 (Bosnia and Herzegovina)
+
+[default.extend-words]
+# Only for a name that appears *inside* larger identifiers, where extend-identifiers
+# cannot match it.
+axe = "axe"                          # axe-core: injectAxe, axeCorePath, AxeOptions
+OCE = "OCE"                          # OperationCanceledException, in test names
+als = "als"                          # test organization slug, e.g. OnlyAlsTemplates
+Als = "Als"
+ba = "ba"                            # botAccount shorthand; also inside git SHAs

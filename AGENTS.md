@@ -94,6 +94,30 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
 - **Changelogs:** Changelog entries are release notes for product users. Describe only user-facing
   functionality in clear language, and omit implementation details that do not affect product use.
   Technical language is appropriate when it helps users understand or adopt the change.
+- **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
+  exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
+  the product is **British English** for the English values and checked **Norwegian** (bokmål and
+  nynorsk, via hunspell) for the `nb`/`nn` values. Run `yarn spell:check` locally and
+  `yarn spell:fix` to apply unambiguous corrections; CI runs the same five checks in
+  `.github/workflows/spellcheck.yaml`.
+
+  The harness lives in `.github/spellcheck/`. Its one hard rule: **no check may pass without
+  proving it ran** — every check counts its work, tool exit codes are inspected, a committed
+  self-test plants one of every defect class and asserts the production configuration catches
+  each one, and every check runs independently so a failure in one cannot hide another.
+
+  Every file holding user-facing translation text is declared once, in
+  `.github/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a
+  language-file-shaped path is neither registered nor explicitly out of scope, and when a
+  registered file is not excluded from the code pass in `typos.toml`.
+
+  When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
+  correct, add it to `.github/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
+  full-form, so inflections need their own lines). If an English spelling genuinely cannot change
+  (a wire contract, someone else's API), allow-list it in `typos.toml` as a whole _identifier_,
+  never as a bare word, so the spelling stays enforced everywhere else. Note that `typos` does
+  **not** look inside path-shaped string literals, so after renaming a directory you must also
+  `git grep` the old segment.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`
   exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
   Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`

@@ -1,0 +1,13 @@
+# Nynorsk glossary — see glossary.nb.txt for the rules. The two files are
+# separate because the languages are: a term correct in bokmål is not
+# automatically correct in nynorsk.
+
+# Product and organisation names
+Altinn
+Digdir
+Maskinporten
+Ansattporten
+Gitea
+GitHub
+Kubernetes
+eFormidling
