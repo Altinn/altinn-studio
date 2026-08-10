@@ -18,22 +18,22 @@
     break-after: avoid-page;
   }
 
-  .page-break-boundary.break-before-auto > :first-child {
+  .page-break-boundary.break-before-auto > :first-child:not(.break-before-always, .break-before-avoid) {
     break-before: auto;
   }
   .page-break-boundary.break-before-always > :first-child {
     break-before: page;
   }
-  .page-break-boundary.break-before-avoid > :first-child {
+  .page-break-boundary.break-before-avoid > :first-child:not(.break-before-always) {
     break-before: avoid-page;
   }
-  .page-break-boundary.break-after-auto > :last-child {
+  .page-break-boundary.break-after-auto > :last-child:not(.break-after-always, .break-after-avoid) {
     break-after: auto;
   }
   .page-break-boundary.break-after-always > :last-child {
     break-after: page;
   }
-  .page-break-boundary.break-after-avoid > :last-child {
+  .page-break-boundary.break-after-avoid > :last-child:not(.break-after-always) {
     break-after: avoid-page;
   }
 }

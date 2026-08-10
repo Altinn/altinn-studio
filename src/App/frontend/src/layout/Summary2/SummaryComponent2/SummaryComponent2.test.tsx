@@ -69,6 +69,35 @@ describe('SummaryComponent', () => {
     );
   });
 
+  test('preserves an explicit page break on the referenced boundary component', async () => {
+    await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'Input',
+                type: 'Input',
+                dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
+                pageBreak: { breakBefore: 'always', breakAfter: 'always' },
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        pageBreak: { breakBefore: 'auto', breakAfter: 'avoid' },
+        target: { type: 'component', id: 'Input' },
+      },
+    });
+
+    const boundary = screen.getByTestId('summary2-component');
+    expect(boundary).toHaveClass(printStyles.breakBeforeAuto, printStyles.breakAfterAvoid);
+    expect(boundary.firstElementChild).toHaveClass(printStyles.breakBeforeAlways, printStyles.breakAfterAlways);
+  });
+
   test('Should render in compact mode when set', async () => {
     await render({
       summary2Config: {
