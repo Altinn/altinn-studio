@@ -1,7 +1,8 @@
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AlertProps } from '@digdir/designsystemet-react';
-import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph } from '@studio/components';
+import { Alert, Heading } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -15,12 +16,12 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
       <Heading level={2} size='small' spacing>
         {t('app_deployment.no_env_title')}
       </Heading>
-      <Paragraph spacing>
+      <StudioParagraph spacing>
         <Trans i18nKey='app_deployment.no_env_1'>
           <a href={contactByEmail.url('serviceOwner')} />
         </Trans>
-      </Paragraph>
-      <Paragraph>
+      </StudioParagraph>
+      <StudioParagraph>
         <Trans i18nKey='app_deployment.no_env_2'>
           <a
             href={altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/testing/local/' })}
@@ -28,7 +29,7 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
             rel='noopener noreferrer'
           />
         </Trans>
-      </Paragraph>
+      </StudioParagraph>
     </Alert>
   );
 };

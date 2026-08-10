@@ -1,6 +1,6 @@
 import React from 'react';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioError } from '@studio/components';
+import { Heading } from '@digdir/designsystemet-react';
+import { StudioButton, StudioError, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type SafeErrorViewProps = {
@@ -28,7 +28,7 @@ export const SafeErrorView = ({
         <Heading level={3} size='small' spacing>
           {title}
         </Heading>
-        <Paragraph spacing>{message}</Paragraph>
+        <StudioParagraph spacing>{message}</StudioParagraph>
         <div>
           <StudioButton data-color='accent' onClick={handleReloadPage}>
             {t('general.reload')}

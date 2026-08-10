@@ -42,9 +42,9 @@ export const News = () => {
                     </Heading>
                   </Card.Header>
                   <Card.Content>
-                    <Paragraph size='xsmall'>
+                    <StudioParagraph data-size='xs'>
                       {t('overview.news_date', { date: formatDateToText(date) })}
-                    </Paragraph>
+                    </StudioParagraph>
                   </Card.Content>
                   <Card.Content>
                     <StudioParagraph data-size='md'>
@@ -69,11 +69,11 @@ export const News = () => {
               </Heading>
             </Card.Header>
             <Card.Content>
-              <Paragraph size='small'>
+              <StudioParagraph data-size='md'>
                 <Link href={gitHubRoadMapUrl} rel='noopener noreferrer' target='_newTab'>
                   {t('overview.no_news_content')}
                 </Link>
-              </Paragraph>
+              </StudioParagraph>
             </Card.Content>
           </Card>
         )}

@@ -1,11 +1,12 @@
 import React, { type JSX } from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
-import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet-react';
+import { Alert, Heading, Link, Spinner } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
+import { StudioParagraph } from '@studio/components';
 
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
@@ -52,10 +53,10 @@ export const DeploymentEnvironmentStatus = ({
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
-        <Paragraph size='small' spacing={!!footer} className={classes.content}>
+        <StudioParagraph data-size='sm' spacing={!!footer} className={classes.content}>
           {content}
-        </Paragraph>
-        {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}
+        </StudioParagraph>
+        {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
       </Alert>
     );
   };

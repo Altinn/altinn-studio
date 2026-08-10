@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import classes from './CommitAndPushContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useVersionControlButtonsContext } from '../../../context';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioTextarea } from '@studio/components';
+import { Heading } from '@digdir/designsystemet-react';
+import { StudioButton, StudioTextarea, StudioParagraph } from '@studio/components';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
 
@@ -35,9 +35,9 @@ export const CommitAndPushContent = ({
       <Heading size='xxsmall' className={classes.heading} level={3}>
         {t('sync_header.describe_and_validate')}
       </Heading>
-      <Paragraph size='small' spacing>
+      <StudioParagraph spacing>
         {t('sync_header.describe_and_validate_sub_message')}
-      </Paragraph>
+      </StudioParagraph>
       <FileChangesInfoModal fileChanges={fileChanges} />
       <StudioTextarea
         label={t('sync_header.describe_changes_made')}

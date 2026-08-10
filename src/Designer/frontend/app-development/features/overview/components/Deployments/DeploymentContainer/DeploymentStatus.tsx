@@ -8,6 +8,7 @@ import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { StudioParagraph } from '@studio/components';
 
 export type DeploymentStatusProps = {
   kubernetesDeployment?: KubernetesDeployment;
@@ -53,10 +54,8 @@ export const DeploymentStatus = ({
         <Heading spacing level={2} size='xsmall'>
           {envTitle}
         </Heading>
-        <Paragraph spacing size='small'>
-          {content}
-        </Paragraph>
-        <Paragraph size='xsmall'>{footer}</Paragraph>
+        <StudioParagraph spacing>{content}</StudioParagraph>
+        <StudioParagraph data-size='xs'>{footer}</StudioParagraph>
       </Alert>
     );
   };
