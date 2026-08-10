@@ -68,14 +68,10 @@ public class AppTemplateCatalog : IAppTemplateCatalog
             return appTemplate;
         }
 
-        string available =
-            _appTemplates.Value.Count == 0
-                ? "none"
-                : string.Join(", ", _appTemplates.Value.Select(template => template.Id));
-
         throw new InvalidOperationException(
             $"The configured default app template '{_generalSettings.DefaultAppTemplate}' was not found under "
-                + $"'{_generalSettings.TemplateLocation}'. Available templates: {available}."
+                + $"'{_generalSettings.TemplateLocation}'. Found: "
+                + $"[{string.Join(", ", _appTemplates.Value.Select(template => template.Id))}]."
         );
     }
 
@@ -86,7 +82,7 @@ public class AppTemplateCatalog : IAppTemplateCatalog
         if (string.IsNullOrWhiteSpace(templateRoot) || !Directory.Exists(templateRoot))
         {
             _logger.LogError(
-                "// AppTemplateCatalog // Template root '{TemplateRoot}' does not exist. No app templates available.",
+                "App template root {TemplateRoot} does not exist. No app templates available.",
                 templateRoot
             );
             return [];
@@ -103,22 +99,20 @@ public class AppTemplateCatalog : IAppTemplateCatalog
             }
         }
 
-        _logger.LogInformation(
-            "// AppTemplateCatalog // Discovered app templates: {AppTemplates}.",
-            appTemplates.Count == 0
-                ? "none"
-                : string.Join(
-                    ", ",
-                    appTemplates.Select(template => $"{template.Id} ({template.AppLibVersion ?? "unknown version"})")
-                )
-        );
-
-        return
+        AppTemplate[] ordered =
         [
             .. appTemplates
                 .OrderBy(template => template.Deprecated)
                 .ThenBy(template => template.Id, StringComparer.Ordinal),
         ];
+
+        _logger.LogInformation(
+            "Discovered {AppTemplateCount} app templates: {AppTemplateIds}",
+            ordered.Length,
+            string.Join(", ", ordered.Select(template => template.Id))
+        );
+
+        return ordered;
     }
 
     private AppTemplate? ReadAppTemplate(string templateFolder)
@@ -141,7 +135,7 @@ public class AppTemplateCatalog : IAppTemplateCatalog
 
             if (manifest is null)
             {
-                _logger.LogError("// AppTemplateCatalog // Manifest {ManifestPath} is empty. Skipping.", manifestPath);
+                _logger.LogError("App template manifest {ManifestPath} is empty. Skipping.", manifestPath);
                 return null;
             }
 
@@ -149,8 +143,8 @@ public class AppTemplateCatalog : IAppTemplateCatalog
             {
                 // The folder name is what the paths are built from, so it wins.
                 _logger.LogWarning(
-                    "// AppTemplateCatalog // Manifest {ManifestPath} declares id '{ManifestId}' but lives in folder "
-                        + "'{FolderName}'. Using the folder name.",
+                    "App template manifest {ManifestPath} declares id {ManifestId} but lives in folder "
+                        + "{FolderName}. Using the folder name.",
                     manifestPath,
                     manifest.Id,
                     folderName
@@ -164,21 +158,17 @@ public class AppTemplateCatalog : IAppTemplateCatalog
                 Description = manifest.Description ?? string.Empty,
                 Deprecated = manifest.Deprecated,
                 RootPath = contentPath,
-                AppLibSemanticVersion = ReadAppLibVersion(contentPath, folderName),
+                AppLibSemanticVersion = ReadAppLibVersion(contentPath),
             };
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
         {
-            _logger.LogError(
-                e,
-                "// AppTemplateCatalog // Failed to read manifest {ManifestPath}. Skipping.",
-                manifestPath
-            );
+            _logger.LogError(e, "Failed to read app template manifest {ManifestPath}. Skipping.", manifestPath);
             return null;
         }
     }
 
-    private SemanticVersion? ReadAppLibVersion(string contentPath, string templateId)
+    private SemanticVersion? ReadAppLibVersion(string contentPath)
     {
         string appProjectPath = Path.Combine(contentPath, "App", "App.csproj");
 
@@ -195,21 +185,11 @@ public class AppTemplateCatalog : IAppTemplateCatalog
                 return version;
             }
 
-            _logger.LogWarning(
-                "// AppTemplateCatalog // No Altinn.App package reference found in {AppProjectPath} for template "
-                    + "'{TemplateId}'.",
-                appProjectPath,
-                templateId
-            );
+            _logger.LogWarning("No Altinn.App package reference found in {AppProjectPath}.", appProjectPath);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or XmlException)
         {
-            _logger.LogWarning(
-                e,
-                "// AppTemplateCatalog // Failed to read {AppProjectPath} for template '{TemplateId}'.",
-                appProjectPath,
-                templateId
-            );
+            _logger.LogWarning(e, "Failed to read {AppProjectPath}.", appProjectPath);
         }
 
         return null;

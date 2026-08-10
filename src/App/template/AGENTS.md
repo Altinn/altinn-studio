@@ -22,7 +22,7 @@ parts out into a base/overlay.
 | Folder | Altinn.App | TFM       | Notes                                                     |
 | ------ | ---------- | --------- | --------------------------------------------------------- |
 | `v8`   | 8.x        | `net8.0`  | **Configured default** for new applications.              |
-| `v9`   | 9.x        | `net10.0` | Version bump only — app content is not yet v9-migrated.   |
+| `v9`   | 9.x        | `net10.0` | Produced by `studioctl app upgrade v9`, not by hand.      |
 
 Each carries an `src/apptemplate.json` manifest that names it for the dashboard picker:
 
@@ -45,9 +45,9 @@ The Designer image ships every template: `src/Designer/Dockerfile` runs one rele
 folder into `Templates/AspNet/<id>/src`. The `<id>/src` shape is deliberate — the image mirrors this
 folder exactly, so a locally run Designer can point straight at `src/App/template`.
 
-> **v9 is a scaffold bump only.** Only the Altinn.App version, TFM, `Program.cs` OpenAPI namespace and
-> base images were changed so it compiles. Migrating the app content to v9 conventions (layouts under
-> `App/ui/<taskId>/`, dropping `layout-sets.json` and `views/Home/Index.cshtml`) is still to do.
+> **v9 is generated, not hand-written.** It started as a byte-for-byte copy of `v8` and was then
+> migrated with `studioctl app upgrade v9 -p src/App/template/v9/src`. Redo it that way when the `v8`
+> baseline changes, so the template stays in step with what the tool does to real apps.
 
 > **v8 needs a sunset date.** A frozen duplicate still has to be security-patched (base images, CVE
 > bumps) and doubles the CI matrix. Once new applications default to `v9`, delete `v8`.
