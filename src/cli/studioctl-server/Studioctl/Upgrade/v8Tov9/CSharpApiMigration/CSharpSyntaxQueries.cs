@@ -398,6 +398,33 @@ internal static class CSharpSyntaxQueries
     }
 
     /// <summary>
+    /// <c>using</c> directives naming <paramref name="namespacePrefix"/> or a namespace nested under it.
+    /// Unlike the name-based queries above this is exact rather than heuristic - a using directive
+    /// carries the full namespace - which makes it the reliable way to spot a whole package's surface
+    /// (e.g. <c>Altinn.ApiClients.Maskinporten</c>) without enumerating every type in it. Aliased usings
+    /// (<c>using X = A.B;</c>) count: the namespace is still referenced.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> UsingNamespaces(ScannedCSharpFile file, string namespacePrefix)
+    {
+        foreach (var directive in file.Root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            if (directive.Name?.ToString() is not { } name)
+            {
+                continue;
+            }
+
+            var isPrefixMatch =
+                name.Equals(namespacePrefix, StringComparison.Ordinal)
+                || name.StartsWith(namespacePrefix + ".", StringComparison.Ordinal);
+
+            if (isPrefixMatch)
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(directive), $"using {name}");
+            }
+        }
+    }
+
+    /// <summary>
     /// Whether <paramref name="name"/> is the name that identifies a base-list entry itself - the
     /// name <see cref="TypesImplementing"/> resolves and reports - as opposed to a name nested
     /// inside it (a generic type argument).

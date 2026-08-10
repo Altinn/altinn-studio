@@ -712,9 +712,9 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     const string sql = """
-                    SELECT id FROM engine.workflows
-                    WHERE id = ANY(@ids) AND cancellation_requested_at IS NOT NULL
-                    """;
+                        SELECT id FROM engine.workflows
+                        WHERE id = ANY(@ids) AND cancellation_requested_at IS NOT NULL
+                        """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
