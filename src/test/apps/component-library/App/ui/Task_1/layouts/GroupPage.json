@@ -130,7 +130,6 @@
             },
             {
                 "id": "NavigationButtons",
-                "showBackButton": true,
                 "textResourceBindings": {},
                 "type": "NavigationButtons"
             },

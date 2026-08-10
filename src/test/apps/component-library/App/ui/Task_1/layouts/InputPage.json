@@ -154,7 +154,6 @@
       {
         "id": "InputPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

@@ -77,7 +77,6 @@
       },
       {
         "id": "NavigationButtons-uebNGK",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       },

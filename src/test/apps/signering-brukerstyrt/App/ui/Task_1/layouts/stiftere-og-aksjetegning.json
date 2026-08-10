@@ -68,7 +68,6 @@
       },
       {
         "id": "NavigationButtons-A564Nt",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       },

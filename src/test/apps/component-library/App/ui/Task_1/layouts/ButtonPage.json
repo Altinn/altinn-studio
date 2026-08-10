@@ -98,7 +98,6 @@
       {
         "id": "Button-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

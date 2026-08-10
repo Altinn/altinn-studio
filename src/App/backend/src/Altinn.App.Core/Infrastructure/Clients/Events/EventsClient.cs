@@ -107,6 +107,6 @@ public class EventsClient : IEventsClient
             return eventId;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 }

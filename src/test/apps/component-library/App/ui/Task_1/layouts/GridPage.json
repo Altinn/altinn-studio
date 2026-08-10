@@ -566,7 +566,6 @@
       },
       {
         "id": "NavigationButtons-nkqJlY",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

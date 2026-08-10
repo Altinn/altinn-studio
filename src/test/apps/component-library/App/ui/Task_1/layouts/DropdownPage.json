@@ -85,7 +85,6 @@
       },
       {
         "id": "DropdownPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }
