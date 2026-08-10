@@ -49,7 +49,6 @@ export function Number({
 
   return (
     <div
-      id={labelId}
       className={cn(
         classes.label,
         classes.numberComponent,
@@ -60,7 +59,9 @@ export function Number({
         <span className={classes.labelWrapper}>
           <span className={classes.labelRow}>
             <DsLabel asChild>
-              <span className={classes.labelContent}>{lang(title)}</span>
+              <span id={labelId} className={classes.labelContent}>
+                {lang(title)}
+              </span>
             </DsLabel>
             {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
           </span>
