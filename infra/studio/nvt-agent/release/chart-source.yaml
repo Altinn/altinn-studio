@@ -9,5 +9,5 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    digest: sha256:07e0430cb46c6d631420f9e2e2d1ae0a74256c1ef516177b4d448c50b8855afc
+    digest: sha256:0ac4e39daad2b2e3b193b64bc24a04f0e578942af07137e2d5e7af8c9b24187d
   url: oci://ghcr.io/mirkosekulic/helm/nvt
