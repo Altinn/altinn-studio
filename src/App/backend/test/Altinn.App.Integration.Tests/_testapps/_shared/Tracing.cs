@@ -12,7 +12,6 @@ using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Validation;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
@@ -47,7 +46,6 @@ public static class TracingDI
         services.AddSingleton<IDataListProvider, DataListProvider>();
         services.AddSingleton<IDataProcessor, DataProcessor>();
         services.AddSingleton<IDataWriteProcessor, DataWriteProcessor>();
-        services.AddSingleton<IEventHandler, EventHandler>();
         services.AddSingleton<IFormDataValidator, FormDataValidator>();
         services.AddSingleton<IInstanceAppOptionsProvider, InstanceAppOptionsProvider>();
         services.AddSingleton<IInstanceDataListProvider, InstanceDataListProvider>();
@@ -67,7 +65,6 @@ public static class TracingDI
         services.AddSingleton<IFileValidator, FileValidator>();
         services.AddSingleton<IEFormidlingMetadata, EFormidlingMetadata>();
         services.AddSingleton<IEFormidlingReceivers, EFormidlingReceivers>();
-        services.AddSingleton<IEventSecretCodeProvider, EventSecretCodeProvider>();
         services.AddSingleton<IUserActionAuthorizerProvider, UserActionAuthorizerProvider>();
         return services;
     }
@@ -191,17 +188,6 @@ internal sealed class DataWriteProcessor : IDataWriteProcessor
     {
         SnapshotLogger.LogInfo("IDataWriteProcessor.ProcessDataWrite");
         return Task.CompletedTask;
-    }
-}
-
-internal sealed class EventHandler : IEventHandler
-{
-    public string EventType => "tracing-event";
-
-    public Task<bool> ProcessEvent(CloudEvent cloudEvent)
-    {
-        SnapshotLogger.LogInfo("IEventHandler.ProcessEvent");
-        return Task.FromResult(false);
     }
 }
 
@@ -452,15 +438,6 @@ internal sealed class EFormidlingReceivers : IEFormidlingReceivers
     {
         SnapshotLogger.LogInfo("IEFormidlingReceivers.GetEFormidlingReceivers");
         return Task.FromResult(new List<Receiver>());
-    }
-}
-
-internal sealed class EventSecretCodeProvider : IEventSecretCodeProvider
-{
-    public Task<string> GetSecretCode()
-    {
-        SnapshotLogger.LogInfo("IEventSecretCodeProvider.GetSecretCode");
-        return Task.FromResult("secret-code");
     }
 }
 

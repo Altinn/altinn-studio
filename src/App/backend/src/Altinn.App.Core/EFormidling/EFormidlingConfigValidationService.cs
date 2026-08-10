@@ -1,5 +1,7 @@
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -120,13 +122,31 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
             }
         }
 
-        if (anyEnabled && services.GetService<IEFormidlingService>() is null)
+        if (anyEnabled)
         {
-            errors.Add(
-                $"eFormidling is enabled for this environment ({environment}), but no "
-                    + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidlingServices2<TM,TR> when "
-                    + "configuring services, or disable the task with <altinn:disabled>."
-            );
+            IEFormidlingService? eFormidlingService = services.GetService<IEFormidlingService>();
+            if (eFormidlingService is null)
+            {
+                errors.Add(
+                    $"eFormidling is enabled for this environment ({environment}), but no "
+                        + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidling() when configuring "
+                        + "services, or disable the task with <altinn:disabled>."
+                );
+            }
+            else if (
+                // Only the built-in service consumes the metadata generator, to build the arkivmelding.
+                // An app that replaced IEFormidlingService outright composes its own shipment and needs
+                // no generator, so requiring one would fail a deployment that is entirely well-formed.
+                eFormidlingService is DefaultEFormidlingService
+                && services.GetRequiredService<AppImplementationFactory>().Get<IEFormidlingMetadata>() is null
+            )
+            {
+                errors.Add(
+                    $"eFormidling is enabled for this environment ({environment}), but no "
+                        + $"{nameof(IEFormidlingMetadata)} is registered. Complete the registration with "
+                        + "AddEFormidling().WithMetadata<T>(), or disable the task with <altinn:disabled>."
+                );
+            }
         }
 
         if (errors.Count > 0)
