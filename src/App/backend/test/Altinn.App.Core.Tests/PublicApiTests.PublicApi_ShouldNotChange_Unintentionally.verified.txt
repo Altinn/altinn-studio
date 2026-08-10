@@ -1151,11 +1151,6 @@ namespace Altinn.App.Core.Features
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Notifications.Email.EmailOrderResponse> Order(Altinn.App.Core.Models.Notifications.Email.EmailNotification emailNotification, System.Threading.CancellationToken ct);
     }
-    public interface IEventHandler
-    {
-        string EventType { get; }
-        System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent);
-    }
     public interface IFormDataValidator
     {
         string DataType { get; }
@@ -2640,31 +2635,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         public EventsClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
         public System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
     }
-    public class EventsSubscriptionClient : Altinn.App.Core.Internal.Events.IEventsSubscription
-    {
-        public EventsSubscriptionClient(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, System.Net.Http.HttpClient httpClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Infrastructure.Clients.Events.EventsSubscriptionClient> logger) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Infrastructure.Clients.Events.Subscription> AddSubscription(string org, string app, string eventType) { }
-    }
-    public class Subscription
-    {
-        public Subscription() { }
-        public string? AlternativeSubjectFilter { get; set; }
-        public string? Consumer { get; set; }
-        public System.DateTime Created { get; set; }
-        public string? CreatedBy { get; set; }
-        public System.Uri? EndPoint { get; set; }
-        public int Id { get; set; }
-        public System.Uri? SourceFilter { get; set; }
-        public string? SubjectFilter { get; set; }
-        public string? TypeFilter { get; set; }
-    }
-    public class SubscriptionRequest
-    {
-        public SubscriptionRequest() { }
-        public System.Uri? EndPoint { get; set; }
-        public System.Uri? SourceFilter { get; set; }
-        public string? TypeFilter { get; set; }
-    }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
 {
@@ -3306,43 +3276,9 @@ namespace Altinn.App.Core.Internal.Data
 }
 namespace Altinn.App.Core.Internal.Events
 {
-    public class EventHandlerResolver : Altinn.App.Core.Internal.Events.IEventHandlerResolver
-    {
-        public EventHandlerResolver(System.IServiceProvider serviceProvider) { }
-        public Altinn.App.Core.Features.IEventHandler ResolveEventHandler(string eventType) { }
-    }
-    public interface IEventHandlerResolver
-    {
-        Altinn.App.Core.Features.IEventHandler ResolveEventHandler(string eventType);
-    }
-    public interface IEventSecretCodeProvider
-    {
-        System.Threading.Tasks.Task<string> GetSecretCode();
-    }
     public interface IEventsClient
     {
         System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
-    }
-    public interface IEventsSubscription
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Infrastructure.Clients.Events.Subscription> AddSubscription(string org, string app, string eventType);
-    }
-    public class KeyVaultEventSecretCodeProvider : Altinn.App.Core.Internal.Events.IEventSecretCodeProvider
-    {
-        public KeyVaultEventSecretCodeProvider(Altinn.App.Core.Internal.Secrets.ISecretsClient keyVaultClient) { }
-        public System.Threading.Tasks.Task<string> GetSecretCode() { }
-    }
-    public class SubscriptionValidationHandler : Altinn.App.Core.Features.IEventHandler
-    {
-        public SubscriptionValidationHandler() { }
-        public string EventType { get; }
-        public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
-    }
-    public class UnhandledEventHandler : Altinn.App.Core.Features.IEventHandler
-    {
-        public UnhandledEventHandler() { }
-        public string EventType { get; }
-        public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
     }
 }
 namespace Altinn.App.Core.Internal.Expressions
