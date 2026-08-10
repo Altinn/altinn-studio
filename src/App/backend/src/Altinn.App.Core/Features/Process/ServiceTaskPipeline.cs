@@ -10,11 +10,13 @@ public sealed class ServiceTaskPipeline
 {
     internal ServiceTaskPipeline(
         IReadOnlyList<ServiceTaskStage> stages,
-        Func<ServiceTaskContext, Task<ServiceTaskResult>> final
+        Func<ServiceTaskContext, Task<ServiceTaskResult>> final,
+        ProcessStepOptions? finalStepOptions
     )
     {
         Stages = stages;
         Final = final;
+        FinalStepOptions = finalStepOptions;
     }
 
     /// <summary>The durable stages, in execution order. Empty for a simple service task.</summary>
@@ -22,6 +24,13 @@ public sealed class ServiceTaskPipeline
 
     /// <summary>The concluding step — for an <see cref="IServiceTask"/>, its <c>Execute</c>.</summary>
     internal Func<ServiceTaskContext, Task<ServiceTaskResult>> Final { get; }
+
+    /// <summary>
+    /// Options declared for the concluding step alone, winning field-wise over the task's own — the
+    /// same precedence a stage's options have. Null for a simple <see cref="IServiceTask"/>, whose
+    /// conclusion is configured by the task-level options and nothing else.
+    /// </summary>
+    internal ProcessStepOptions? FinalStepOptions { get; }
 
     /// <summary>
     /// The stage with the given name (exact match — stage names are our own wire values), or

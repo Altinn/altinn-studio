@@ -69,7 +69,6 @@
       {
         "id": "AttachmentList-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

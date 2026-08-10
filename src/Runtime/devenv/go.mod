@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/containerd/errdefs v1.0.0
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/docker/go-connections v0.7.0
+	github.com/docker/go-connections v0.8.1
 	github.com/fluxcd/flux2/v2 v2.8.8
 	github.com/fluxcd/helm-controller/api v1.5.5
 	github.com/fluxcd/kustomize-controller/api v1.8.5
@@ -13,7 +13,7 @@ require (
 	github.com/fluxcd/pkg/oci v0.62.0
 	github.com/fluxcd/source-controller/api v1.8.5
 	github.com/go-git/go-git/v5 v5.19.2
-	golang.org/x/sync v0.21.0
+	golang.org/x/sync v0.22.0
 	helm.sh/helm/v3 v3.21.1
 	k8s.io/api v0.35.7
 	k8s.io/apiextensions-apiserver v0.35.7

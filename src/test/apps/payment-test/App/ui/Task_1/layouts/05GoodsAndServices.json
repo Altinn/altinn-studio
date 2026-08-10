@@ -422,7 +422,6 @@
         "textResourceBindings": {
           "next": "next"
         },
-        "showBackButton": true,
         "validateOnNext": {
           "page": "current",
           "show": [

@@ -500,7 +500,6 @@
       {
         "id": "page3-navbtns",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

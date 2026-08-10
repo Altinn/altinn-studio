@@ -179,7 +179,6 @@
         "textResourceBindings": {
           "next": "next"
         },
-        "showBackButton": true
       }
     ]
   }

@@ -41,7 +41,7 @@ export const Config = new CG.component({
     new CG.prop(
       'showBackButton',
       new CG.bool()
-        .optional({ default: false })
+        .optional({ default: true })
         .setTitle('Show back button')
         .setDescription("Shows two buttons (back/next) instead of just 'next'."),
     ),

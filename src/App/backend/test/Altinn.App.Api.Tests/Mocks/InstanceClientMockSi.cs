@@ -305,7 +305,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
 
         if (substatus == null || string.IsNullOrEmpty(substatus.Label))
         {
-            throw await PlatformHttpException.CreateAsync(
+            throw await PlatformHttpException.Create(
                 new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.BadRequest }
             );
         }
@@ -495,7 +495,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
                 Content = new StringContent($"Unknown query parameter: {invalidKey}"),
             };
 
-            throw await PlatformHttpException.CreateAsync(res);
+            throw await PlatformHttpException.Create(res);
         }
 
         List<Instance> instances = new();

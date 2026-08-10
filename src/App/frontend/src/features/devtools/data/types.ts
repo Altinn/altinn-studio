@@ -2,7 +2,6 @@ export type DevToolsHiddenComponents = 'show' | 'disabled' | 'hide';
 
 export type IDevToolsState = {
   isOpen: boolean;
-  pdfPreview: boolean;
   hiddenComponents: DevToolsHiddenComponents;
   activeTab: DevToolsTab;
   layoutInspector: {
@@ -25,7 +24,6 @@ export type IDevToolsActions = {
   setActiveTab: (tabName: DevToolsTab) => void;
   focusLayoutInspector: (componentId: string) => void;
   focusNodeInspector: (nodeId: string) => void;
-  setPdfPreview: (preview: boolean) => void;
   setShowHiddenComponents: (value: DevToolsHiddenComponents) => void;
   exprPlaygroundSetExpression: (expression: string | undefined) => void;
   exprPlaygroundSetContext: (nodeId: string | undefined, baseId: string | undefined) => void;

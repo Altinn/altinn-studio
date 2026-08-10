@@ -92,7 +92,6 @@
         },
         {
           "id": "MapPage-NavigationButtons",
-          "showBackButton": true,
           "textResourceBindings": {},
           "type": "NavigationButtons"
         }

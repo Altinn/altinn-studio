@@ -375,6 +375,7 @@ public class GitRepository
         try
         {
             absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
         }
         catch (ArgumentException)
         {

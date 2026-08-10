@@ -112,7 +112,6 @@
       },
       {
         "id": "navbuttons1",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

@@ -4,10 +4,10 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
@@ -23,10 +23,21 @@ using Arkivmelding = Altinn.Common.EFormidlingClient.Models.SBD.Arkivmelding;
 namespace Altinn.App.Core.EFormidling.Implementation;
 
 /// <summary>
-/// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingService"/>
+/// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingService"/>,
+/// registered by <c>AddEFormidlingServices2</c>. An app replaces it by implementing the interface,
+/// not by deriving from or wrapping this class — which is why it is internal.
 /// </summary>
-public class DefaultEFormidlingService : IEFormidlingService
+internal sealed class DefaultEFormidlingService : IEFormidlingService
 {
+    /// <summary>
+    /// How long the integrasjonspunkt lets the shipment live: it reads this from the SBD's
+    /// <c>expectedResponseDateTime</c> and marks the message <c>levetid_utlopt</c> once it passes. Its
+    /// own 24-hour default applies only when the field is absent, which the frozen client model does not
+    /// allow. Long-standing value, kept deliberately; the service task's delivery wait is sized to
+    /// outlast it so an expired shipment fails with the integrasjonspunkt's verdict rather than ours.
+    /// </summary>
+    private static readonly TimeSpan _shipmentLifetime = TimeSpan.FromHours(2);
+
     private readonly ILogger<DefaultEFormidlingService> _logger;
     private readonly IAccessTokenGenerator? _tokenGenerator;
     private readonly IUserTokenProvider _userTokenProvider;
@@ -34,7 +45,6 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly PlatformSettings? _platformSettings;
     private readonly IEFormidlingClient? _eFormidlingClient;
     private readonly IAppMetadata _appMetadata;
-    private readonly IEventsClient _eventClient;
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
@@ -44,7 +54,6 @@ public class DefaultEFormidlingService : IEFormidlingService
         ILogger<DefaultEFormidlingService> logger,
         IUserTokenProvider userTokenProvider,
         IAppMetadata appMetadata,
-        IEventsClient eventClient,
         IServiceProvider sp,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
@@ -59,14 +68,14 @@ public class DefaultEFormidlingService : IEFormidlingService
         _userTokenProvider = userTokenProvider;
         _eFormidlingClient = eFormidlingClient;
         _appMetadata = appMetadata;
-        _eventClient = eventClient;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <inheritdoc />
     public async Task SendEFormidlingShipment(
         IInstanceDataAccessor dataAccessor,
-        ValidAltinnEFormidlingConfiguration configuration
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
     )
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
@@ -114,6 +123,11 @@ public class DefaultEFormidlingService : IEFormidlingService
         // message: skip everything if it already left the outbox, otherwise finish the upload/send
         // steps the earlier attempt did not complete.
         bool resumingExistingMessage = false;
+
+        // Safe to abandon between calls, for the same reason: a created-but-unsent message is exactly
+        // what the recovery above resumes. The client takes no token, so these seams are as fine-grained
+        // as cancellation gets.
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
@@ -121,7 +135,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         catch (WebException e) when (IsMessageAlreadyExistsError(e))
         {
             Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
-            if (HasMessageLeftOutbox(statuses))
+            if (EFormidlingStatusReader.HasLeftOutbox(statuses))
             {
                 _logger.LogInformation(
                     "eFormidling message {MessageId} already exists and has been sent; treating as an idempotent retry.",
@@ -139,6 +153,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             resumingExistingMessage = true;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(dataAccessor);
 
         await using (stream)
@@ -158,18 +173,59 @@ public class DefaultEFormidlingService : IEFormidlingService
             }
         }
 
-        await SendInstanceData(dataAccessor, requestHeaders, metadataFilename, configuration, resumingExistingMessage);
+        await SendInstanceData(
+            dataAccessor,
+            requestHeaders,
+            metadataFilename,
+            configuration,
+            resumingExistingMessage,
+            cancellationToken
+        );
 
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
-            _ = await _eventClient.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance);
         }
         catch
         {
             _logger.LogError("Shipment of instance {InstanceId} to Eformidling failed", instance.Id);
             throw;
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(
+        IInstanceDataAccessor dataAccessor,
+        ValidAltinnEFormidlingConfiguration configuration,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(_eFormidlingClient);
+        ArgumentNullException.ThrowIfNull(_platformSettings);
+
+        string instanceGuid = dataAccessor.Instance.Id.Split("/")[1];
+
+        // Only the subscription key, matching what the status query has always sent: this is a read
+        // through the platform gateway, not an operation on the instance's behalf.
+        var requestHeaders = new Dictionary<string, string>
+        {
+            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
+        };
+
+        Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
+        EFormidlingShipmentStatus status = EFormidlingStatusReader.Classify(statuses);
+
+        _logger.LogInformation(
+            "eFormidling message {MessageId} is {State} (status '{Status}'). Reported statuses: {ReportedStatuses}.",
+            instanceGuid,
+            status.State,
+            status.Status,
+            string.Join(",", statuses?.Content?.Select(s => s.Status) ?? [])
+        );
+
+        return status;
     }
 
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
@@ -205,7 +261,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             Type = "ConversationId",
             ScopeInformation = new List<ScopeInformation>
             {
-                new ScopeInformation { ExpectedResponseDateTime = completedTime.AddHours(2) },
+                new ScopeInformation { ExpectedResponseDateTime = completedTime.Add(_shipmentLifetime) },
             },
         };
 
@@ -276,30 +332,13 @@ public class DefaultEFormidlingService : IEFormidlingService
         return message.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// True when the message has been sent from the integrasjonspunkt's outbox (any status beyond
-    /// creation - the exact terminal state is the status-check event handler's concern).
-    /// </summary>
-    private static bool HasMessageLeftOutbox(Statuses statuses) =>
-        statuses.Content?.Exists(s =>
-            string.Equals(s.Status, "sendt", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "mottatt", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "levert", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "lest", StringComparison.OrdinalIgnoreCase)
-        )
-            is true;
-
     private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
     {
-        var failedStatus = statuses.Content?.Find(s =>
-            string.Equals(s.Status, "feil", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(s.Status, "levetid_utlopt", StringComparison.OrdinalIgnoreCase)
-        );
-        if (failedStatus is not null)
+        if (EFormidlingStatusReader.Classify(statuses) is { State: EFormidlingDeliveryState.Failed } failed)
         {
             throw new EformidlingDeliveryException(
-                $"The existing eFormidling message {messageId} has failed with status '{failedStatus.Status}' "
-                    + $"({failedStatus.Description}) and its message id cannot be reused. Manual follow-up is required."
+                $"The existing eFormidling message {messageId} has failed with status '{failed.Status}' "
+                    + $"({failed.Description}) and its message id cannot be reused. Manual follow-up is required."
             );
         }
     }
@@ -315,12 +354,14 @@ public class DefaultEFormidlingService : IEFormidlingService
     /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behaviour is
     /// unverified. Hence the loud warning per skipped attachment rather than silence.
     /// </param>
+    /// <param name="cancellationToken">Checked before each attachment; see the caller's remarks on why abandoning here is safe.</param>
     private async Task SendInstanceData(
         IInstanceDataAccessor dataAccessor,
         Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
         ValidAltinnEFormidlingConfiguration config,
-        bool tolerateUploadFailures = false
+        bool tolerateUploadFailures = false,
+        CancellationToken cancellationToken = default
     )
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -335,6 +376,10 @@ public class DefaultEFormidlingService : IEFormidlingService
 
         foreach (DataElement dataElement in instance.Data.OrderBy(x => x.Created))
         {
+            // The loop worth cancelling: a shipment with many attachments can outlive the step's
+            // execution deadline, and each upload is another call the engine is no longer waiting for.
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!config.DataTypes.Contains(dataElement.DataType))
             {
                 continue;
