@@ -1,4 +1,14 @@
+.page-break-marker {
+  display: none;
+}
+
 @media print {
+  .page-break-marker {
+    display: block;
+    flex: 0 0 100%;
+    height: 0;
+  }
+
   .break-before-auto {
     break-before: auto;
   }
@@ -17,27 +27,4 @@
   .break-after-avoid {
     break-after: avoid-page;
   }
-
-  .page-break-boundary.break-before-auto > :first-child:not(.break-before-always, .break-before-avoid) {
-    break-before: auto;
-  }
-  .page-break-boundary.break-before-always > :first-child {
-    break-before: page;
-  }
-  .page-break-boundary.break-before-avoid > :first-child:not(.break-before-always) {
-    break-before: avoid-page;
-  }
-  .page-break-boundary.break-after-auto > :last-child:not(.break-after-always, .break-after-avoid) {
-    break-after: auto;
-  }
-  .page-break-boundary.break-after-always > :last-child {
-    break-after: page;
-  }
-  .page-break-boundary.break-after-avoid > :last-child:not(.break-after-always) {
-    break-after: avoid-page;
-  }
-}
-
-.page-break-boundary {
-  display: contents;
 }
