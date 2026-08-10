@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Repository;
 
 namespace Altinn.Platform.Storage.Services;
 
@@ -57,24 +58,39 @@ public interface IDataService
     /// <param name="dataElement">The data element to insert.</param>
     /// <param name="instanceInternalId">The internal id of the data element to insert.</param>
     /// <param name="storageAccountNumber">Storage container number for when a Storage account has more than one container.</param>
-    Task UploadDataAndCreateDataElement(
+    Task<DataUploadResult> UploadDataAndCreateDataElement(
         string org,
         Stream stream,
         DataElement dataElement,
         long instanceInternalId,
-        int? storageAccountNumber
+        int? storageAccountNumber,
+        int? expectedInstanceVersion = null,
+        int? expectedProcessStateVersion = null
     );
 
     /// <summary>
-    /// Delete a data element and it's blob data immediately.
+    /// Deletes metadata and persists the deleted event together, then cleans detached blob versions best-effort.
     /// </summary>
     /// <param name="instance">The instance</param>
     /// <param name="dataElement">The data element</param>
     /// <param name="storageAccountNumber">Storage container number for when a Storage account has more than one container.</param>
     /// <returns></returns>
-    Task<DataElement> DeleteImmediately(
+    Task<DataElementWriteResult<DataElement>> DeleteImmediately(
         Instance instance,
         DataElement dataElement,
-        int? storageAccountNumber
+        int? storageAccountNumber,
+        int? expectedInstanceVersion = null,
+        int? expectedProcessStateVersion = null
+    );
+
+    /// <summary>
+    /// Cleans up blobs for a data element whose metadata has already been deleted.
+    /// Detached blob-version metadata is removed only after the physical blob has been deleted.
+    /// </summary>
+    Task CleanupDeletedDataElementBlobs(
+        Instance instance,
+        DataElement dataElement,
+        int? storageAccountNumber,
+        CancellationToken cancellationToken = default
     );
 }

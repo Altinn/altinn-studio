@@ -3,14 +3,11 @@ using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,7 +28,6 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IInstanceClient _instanceClient;
     private readonly IEFormidlingService? _eFormidlingService;
 
     /// <summary>
@@ -41,14 +37,12 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         ILogger<EFormidlingServiceTask> logger,
         IProcessReader processReader,
         IHostEnvironment hostEnvironment,
-        IInstanceClient instanceClient,
         IEFormidlingService? eFormidlingService = null
     )
     {
         _logger = logger;
         _processReader = processReader;
         _hostEnvironment = hostEnvironment;
-        _instanceClient = instanceClient;
         _eFormidlingService = eFormidlingService;
     }
 
@@ -180,18 +174,14 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         switch (status.State)
         {
             case EFormidlingDeliveryState.Delivered:
-                await RecordShipmentStatus(instance, status, context.CancellationToken);
+                RecordShipmentStatus(context, status);
 
-                // The service owner has what it needed from this instance. Idempotent per
-                // stakeholder, and done before concluding: the conclusion may end the process, and an
-                // ended process can take the instance with it.
-                InstanceIdentifier instanceIdentifier = new(instance);
-                await _instanceClient.AddCompleteConfirmation(
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    StorageAuthenticationMethod.ServiceOwner(),
-                    context.CancellationToken
-                );
+                // The service owner has what it needed from this instance. Staged on the unit of work
+                // so it commits with this callback's version-fenced save, ahead of the conclusion: the
+                // conclusion may end the process, and an ended process can take the instance with it.
+                // Storage keeps this idempotent per stakeholder, so a retried conclusion cannot
+                // confirm twice.
+                ConfirmComplete(context);
 
                 _logger.LogInformation(
                     "eFormidling shipment for task {TaskId} confirmed delivered with status '{Status}'.",
@@ -201,7 +191,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                 return ServiceTaskResult.Success();
 
             case EFormidlingDeliveryState.Failed:
-                await RecordShipmentStatus(instance, status, context.CancellationToken);
+                RecordShipmentStatus(context, status);
                 return ServiceTaskResult.FailedPermanent(
                     $"The eFormidling shipment for this instance failed with status '{status.Status}' "
                         + $"({status.Description}). eFormidling message ids are bound to the instance id, so the "
@@ -213,7 +203,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                 {
                     // Ending the wait ourselves, so the failure says what never arrived instead of
                     // the engine's generic wait-expiry.
-                    await RecordShipmentStatus(instance, status, context.CancellationToken);
+                    RecordShipmentStatus(context, status);
                     return ServiceTaskResult.FailedPermanent(
                         $"eFormidling did not confirm delivery of this instance's shipment. The wait began at "
                             + $"{context.Wait.StartedAt:u} and its allowance is now spent. The last status reported "
@@ -254,31 +244,47 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// Records the shipment's last known status on the instance, so what became of a delivery is
     /// still legible after the process has moved on.
     /// </summary>
-    private Task RecordShipmentStatus(
-        Instance instance,
-        EFormidlingShipmentStatus status,
-        CancellationToken cancellationToken
-    ) =>
-        UpdateDataValue(
-            instance,
+    /// <remarks>
+    /// The value is staged on the unit of work, so it only reaches Storage when the callback concludes
+    /// successfully — the controller saves in the successful-result branch alone. The two failing
+    /// conclusions in <see cref="AwaitDelivery"/> (a reported delivery failure, and the final check
+    /// giving up) stage a status that is then dropped, so a failed shipment leaves no status on the
+    /// instance. Writing it straight to Storage instead is not the fix: that bumps the instance
+    /// version behind the unit of work's back and breaks the next callback's version fence. Making
+    /// the failure status durable needs the save path to cover it, not a write outside the unit of
+    /// work.
+    /// </remarks>
+    private static void RecordShipmentStatus(ServiceTaskContext context, EFormidlingShipmentStatus status)
+    {
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to record the shipment status."
+            );
+        }
+
+        unitOfWork.UpdateInstanceDataValue(
             EformidlingConstants.ShipmentStatusDataValueKey,
-            status.Status ?? status.State.ToString(),
-            cancellationToken
+            status.Status ?? status.State.ToString()
         );
+    }
 
     /// <summary>
-    /// Writes an instance data value directly to Storage. The deliberate exception to reading and
-    /// writing through the unit of work: this is cross-workflow, cross-visit bookkeeping, and a
-    /// per-transition state blob cannot carry it.
+    /// Stages the service owner's complete confirmation, which commits with this callback's
+    /// version-fenced save. Writing it straight to Storage instead bumps the instance version behind
+    /// the unit of work's back and breaks that save's version fence.
     /// </summary>
-    private Task UpdateDataValue(Instance instance, string key, string value, CancellationToken cancellationToken) =>
-        _instanceClient.UpdateDataValue(
-            instance,
-            key,
-            value,
-            StorageAuthenticationMethod.ServiceOwner(),
-            cancellationToken
-        );
+    private static void ConfirmComplete(ServiceTaskContext context)
+    {
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            throw new ProcessException(
+                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to confirm completion."
+            );
+        }
+
+        unitOfWork.AddCompleteConfirmation();
+    }
 
     private IEFormidlingService RequireEFormidlingService() =>
         _eFormidlingService
