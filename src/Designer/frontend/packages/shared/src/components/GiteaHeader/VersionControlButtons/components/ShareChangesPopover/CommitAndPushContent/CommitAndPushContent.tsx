@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import classes from './CommitAndPushContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useVersionControlButtonsContext } from '../../../context';
-import { Heading } from '@digdir/designsystemet-react';
-import { StudioButton, StudioTextarea, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioHeading, StudioParagraph, StudioTextarea } from '@studio/components';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
 
@@ -32,9 +31,9 @@ export const CommitAndPushContent = ({
 
   return (
     <>
-      <Heading size='xxsmall' className={classes.heading} level={3}>
+      <StudioHeading data-size='xs' spacing level={3}>
         {t('sync_header.describe_and_validate')}
-      </Heading>
+      </StudioHeading>
       <StudioParagraph spacing>
         {t('sync_header.describe_and_validate_sub_message')}
       </StudioParagraph>

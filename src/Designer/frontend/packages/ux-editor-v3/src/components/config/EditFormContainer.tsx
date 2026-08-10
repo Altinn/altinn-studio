@@ -5,7 +5,7 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
-import { Alert, Switch, Checkbox, Paragraph } from '@digdir/designsystemet-react';
+import { Alert, Switch, Checkbox } from '@digdir/designsystemet-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
@@ -21,7 +21,7 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioParagraph, StudioProperty, StudioTextfield } from '@studio/components';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -242,7 +242,7 @@ export const EditFormContainer = ({
     </StudioProperty.Group>
   ) : (
     <Alert severity='info'>
-      <Paragraph size='small'>{t('ux_editor.container_not_editable_info')}</Paragraph>
+      <StudioParagraph data-size='sm'>{t('ux_editor.container_not_editable_info')}</StudioParagraph>
     </Alert>
   );
 };
