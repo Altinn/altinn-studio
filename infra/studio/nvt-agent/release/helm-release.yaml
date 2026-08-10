@@ -116,6 +116,15 @@ spec:
             command: codex
             proxy:
               provider: codex-mirkoSekulic
+            resume:
+              command: codex
+              args:
+                - resume
+                - --last
+                - --sandbox
+                - danger-full-access
+                - --ask-for-approval
+                - never
           broker:
             grants:
               - egressHosts:
@@ -132,22 +141,12 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  contents: write
-                  workflows: write
-                provider: github-fork
-                repositories:
-                  - mirkoSekulic/altinn-studio
-              - egressHosts:
-                  - github.com:443
-                  - api.github.com:443
-                git: true
-                materialization: header-inject
-                permissions:
                   checks: read
-                  contents: read
-                  issues: read
+                  contents: write
+                  issues: write
                   pull_requests: write
-                provider: github-altinn
+                  workflows: write
+                provider: github-main
                 repositories:
                   - Altinn/altinn-studio
           egress: mediated
@@ -174,6 +173,11 @@ spec:
             command: claude
             proxy:
               provider: claude-jondyr
+            resume:
+              command: claude
+              args:
+                - --continue
+                - --dangerously-skip-permissions
           broker:
             grants:
               - egressHosts:
@@ -189,22 +193,12 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  contents: write
-                  workflows: write
-                provider: github-fork
-                repositories:
-                  - mirkoSekulic/altinn-studio
-              - egressHosts:
-                  - github.com:443
-                  - api.github.com:443
-                git: true
-                materialization: header-inject
-                permissions:
                   checks: read
-                  contents: read
-                  issues: read
+                  contents: write
+                  issues: write
                   pull_requests: write
-                provider: github-altinn
+                  workflows: write
+                provider: github-main
                 repositories:
                   - Altinn/altinn-studio
           egress: mediated
@@ -227,6 +221,11 @@ spec:
             command: claude
             proxy:
               provider: claude-nkylstad
+            resume:
+              command: claude
+              args:
+                - --continue
+                - --dangerously-skip-permissions
           broker:
             grants:
               - egressHosts:
@@ -242,22 +241,12 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  contents: write
-                  workflows: write
-                provider: github-fork
-                repositories:
-                  - mirkoSekulic/altinn-studio
-              - egressHosts:
-                  - github.com:443
-                  - api.github.com:443
-                git: true
-                materialization: header-inject
-                permissions:
                   checks: read
-                  contents: read
-                  issues: read
+                  contents: write
+                  issues: write
                   pull_requests: write
-                provider: github-altinn
+                  workflows: write
+                provider: github-main
                 repositories:
                   - Altinn/altinn-studio
           egress: mediated
@@ -280,6 +269,11 @@ spec:
             command: claude
             proxy:
               provider: claude-erlinghauan
+            resume:
+              command: claude
+              args:
+                - --continue
+                - --dangerously-skip-permissions
           broker:
             grants:
               - egressHosts:
@@ -295,22 +289,12 @@ spec:
                 git: true
                 materialization: header-inject
                 permissions:
-                  contents: write
-                  workflows: write
-                provider: github-fork
-                repositories:
-                  - mirkoSekulic/altinn-studio
-              - egressHosts:
-                  - github.com:443
-                  - api.github.com:443
-                git: true
-                materialization: header-inject
-                permissions:
                   checks: read
-                  contents: read
-                  issues: read
+                  contents: write
+                  issues: write
                   pull_requests: write
-                provider: github-altinn
+                  workflows: write
+                provider: github-main
                 repositories:
                   - Altinn/altinn-studio
           egress: mediated
@@ -333,8 +317,8 @@ spec:
         - name: implement-pr
           workspaceInstructions: |
             - Install any tool needed for the task. For system packages, use `nvt-as-root <command>`; it runs directly as root or through passwordless sudo for non-root agents.
-            - Push branches only to the fork `mirkoSekulic/altinn-studio`; never push directly to upstream.
-            - Create and update PRs in `Altinn/altinn-studio` with `gh-auth --provider github-altinn --repo Altinn/altinn-studio`.
+            - Work directly in the `Altinn/altinn-studio` checkout and push task branches to its `origin`; do not use a fork.
+            - Create and update pull requests with `gh-auth --provider github-main --repo Altinn/altinn-studio`.
             - Use a Conventional Commits prefix in PR titles, such as `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, or `chore:`.
       suspend: false
       template:
@@ -379,19 +363,13 @@ spec:
                     trust_level = "trusted"
             plugins:
               - config:
-                  default-provider: github-fork
+                  default-provider: github-main
                   providers:
-                    - broker-provider: github-fork
-                      credential-kind: mediated
-                      match:
-                        - github.com/mirkoSekulic/altinn-studio
-                      name: github-fork
-                      type: broker
-                    - broker-provider: github-altinn
+                    - broker-provider: github-main
                       credential-kind: mediated
                       match:
                         - github.com/Altinn/altinn-studio
-                      name: github-altinn
+                      name: github-main
                       type: broker
                 name: git-host-credentials
                 source: builtin
@@ -401,15 +379,8 @@ spec:
                         mode: explicit
                         name: "nvt-agent[bot]"
                         email: "289161147+nvt-agent[bot]@users.noreply.github.com"
-                      match: https://github.com/mirkoSekulic/altinn-studio
-                      provider: github-fork
-                      username: x-access-token
-                    - identity:
-                        mode: explicit
-                        name: "nvt-agent-altinn[bot]"
-                        email: "289165276+nvt-agent-altinn[bot]@users.noreply.github.com"
                       match: https://github.com/Altinn/altinn-studio
-                      provider: github-altinn
+                      provider: github-main
                       username: x-access-token
                 name: git-credentials
                 source: builtin
@@ -417,8 +388,7 @@ spec:
               - config:
                   repos:
                     - path: altinn-studio
-                      upstream: https://github.com/Altinn/altinn-studio.git
-                      url: https://github.com/mirkoSekulic/altinn-studio.git
+                      url: https://github.com/Altinn/altinn-studio.git
                 name: checkout-repos
                 restart: never
                 source: builtin
@@ -426,7 +396,7 @@ spec:
               - config:
                   poll-seconds: 60
                 egress:
-                  provider: github-altinn
+                  provider: github-main
                 name: github-watcher
                 restart: always
                 source: builtin
@@ -533,42 +503,22 @@ spec:
                 - PATCH
                 - PUT
               permissions:
-                contents: write
-                workflows: write
-              repositories:
-                - mirkoSekulic/altinn-studio
-            config:
-              api-url: https://api.github.com
-              app-id-env: NVT_FORK_GITHUB_APP_ID
-              injection-hosts:
-                - github.com
-                - api.github.com
-              installation-id-env: NVT_FORK_GITHUB_APP_INSTALLATION_ID
-              private-key-base64-env: NVT_FORK_GITHUB_APP_PRIVATE_KEY_BASE64
-            name: github-fork
-            plugin: github-app
-          - allow:
-              methods:
-                - GET
-                - POST
-                - PATCH
-                - PUT
-              permissions:
                 checks: read
-                contents: read
-                issues: read
+                contents: write
+                issues: write
                 pull_requests: write
+                workflows: write
               repositories:
                 - Altinn/altinn-studio
             config:
               api-url: https://api.github.com
-              app-id-env: NVT_ALTINN_GITHUB_APP_ID
+              app-id-env: NVT_GITHUB_APP_ID
               injection-hosts:
                 - github.com
                 - api.github.com
-              installation-id-env: NVT_ALTINN_GITHUB_APP_INSTALLATION_ID
-              private-key-base64-env: NVT_ALTINN_GITHUB_APP_PRIVATE_KEY_BASE64
-            name: github-altinn
+              installation-id-env: NVT_GITHUB_APP_INSTALLATION_ID
+              private-key-base64-env: NVT_GITHUB_APP_PRIVATE_KEY_BASE64
+            name: github-main
             plugin: github-app
       envSecretName: nvt-broker-env
       persistence:
@@ -658,9 +608,9 @@ spec:
         - ErlingHauan
       enabled: true
       githubApp:
-        appID: ${NVT_ALTINN_GITHUB_APP_ID}
+        appID: ${NVT_GITHUB_APP_ID}
         existingSecret: nvt-github-app
-        installationID: ${NVT_ALTINN_GITHUB_APP_INSTALLATION_ID}
+        installationID: ${NVT_GITHUB_APP_INSTALLATION_ID}
         privateKeyKey: private-key.pem
       idempotency:
         scope: comment

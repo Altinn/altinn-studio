@@ -9,11 +9,11 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.50` (verified OCI digest
-`sha256:886933fa504f90d14e4e0d2a7629610a7818fdc86130c5446f3aad3301a92860`),
+The public chart is pinned to `0.8.52` (verified OCI digest
+`sha256:107cc2e97cb2b680bf521ab8fd9f46aee4f48f20cb91aa3efafa853f4f9ec480`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.50-485eb99` production images without
-component overrides. Both execution profiles explicitly select the built-in
+tag. It resolves the coordinated `0.8.52-72ae864` production images without
+component overrides. All execution profiles explicitly select the built-in
 Kubernetes Pod driver. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
@@ -23,11 +23,12 @@ The `mirkoSekulic` execution profile explicitly adds `SYS_PTRACE` to its agent
 container for approved debugging and profiling; no other profile or container
 inherits that capability.
 The producer requests the `implement-pr` workflow, which permits task-required
-tool installation, confines branch pushes to the fork, and directs upstream PR
-operations through the `github-altinn` broker provider.
+tool installation and directs branch pushes and pull-request operations through
+the single `github-main` broker provider for `Altinn/altinn-studio`.
+Codex and Claude profiles configure their native continuation commands, so a
+recreated Pod resumes the durable session instead of replaying the initial task.
 Each Kata AgentRun requests and is limited to 2 CPU and 8 GiB memory. Git
-commit attribution is explicitly pinned to the corresponding fork/upstream
-GitHub App bot until mediated provider identity resolution is available.
+commit attribution is explicitly pinned to the `nvt-agent` GitHub App bot.
 The shared non-secret bootstrap preseed suppresses Claude first-run prompts and
 trusts the agent's `/workspace` startup directory. Codex ignores these Claude
 configuration files.
@@ -39,20 +40,19 @@ repository:
 
 - `nvt-codex-mirkosekulic-credentials`
 - `nvt-claude-jondyr-credentials`
+- `nvt-claude-nkylstad-credentials`
+- `nvt-claude-erlinghauan-credentials`
 - `nvt-agent-private-key-pem`
-- `nvt-agent-altinn-private-key-pem`
 - `nvt-agent-gateway-oauth-client-secret`
 - `nvt-gateway-session-secret`
 
 The verified App, installation, and OAuth client IDs are explicit non-secret
 values in `bootstrap/deployment-metadata.yaml`:
 
-- `nvt-agent` is installed only on `mirkoSekulic/altinn-studio`. Its broker
-  provider handles fork clone/fetch, branch pushes, and workflow-file writes.
-- `nvt-agent-altinn` is installed only on `Altinn/altinn-studio`. The producer
-  uses its raw PEM to poll upstream comments. A separate broker provider,
-  projected from the same Key Vault PEM, handles upstream PRs, reviews,
-  comments, and checks. Do not duplicate the PEM in Key Vault.
+- `nvt-agent` is installed on `Altinn/altinn-studio`. The producer and the
+  `github-main` broker provider share its Key Vault PEM and exact Altinn
+  installation ID. The provider handles clone/fetch, branch pushes, workflow
+  files, pull requests, comments, reviews, and check reads.
 - `nvt-agent-gateway` is OAuth-only. It has no App private key, App ID,
   installation ID, webhook secret, repository permission, organization
   permission, or account permission. It is owned by `mirkoSekulic` and is not
@@ -64,10 +64,9 @@ secrets must exist, the AKS RuntimeClass and NET_ADMIN admission policy must be
 valid, and the staged health and OAuth checks must pass before exercising the
 active producer.
 
-The working checkout is `mirkoSekulic/altinn-studio`, with
-`Altinn/altinn-studio` configured as the `upstream` remote. Both broker
-providers are granted to every run, while provider-scoped mediated proxies
-keep fork and upstream operations deterministic.
+The working checkout is `Altinn/altinn-studio` with a single `origin` remote.
+Every run receives only the repository-scoped `github-main` grant; there is no
+fork checkout or second GitHub App provider.
 
 The existing Studio load balancer exposes the gateway below
 `https://staging.altinn.studio/agents`. It preserves the `/agents` prefix for

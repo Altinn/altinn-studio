@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.50
-chart_digest=sha256:886933fa504f90d14e4e0d2a7629610a7818fdc86130c5446f3aad3301a92860
+chart_version=0.8.52
+chart_digest=sha256:107cc2e97cb2b680bf521ab8fd9f46aee4f48f20cb91aa3efafa853f4f9ec480
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -29,6 +29,32 @@ if [[ "$rendered_digest" != "$chart_digest" || -n "$rendered_tag" ]]; then
   exit 1
 fi
 
+yq -e '
+  select(.kind == "ConfigMap" and .metadata.name == "nvt-deployment-metadata") |
+  (.data | length) == 3 and
+  .data.NVT_GITHUB_APP_ID == "3912708" and
+  .data.NVT_GITHUB_APP_INSTALLATION_ID == "151954485" and
+  .data.NVT_GATEWAY_GITHUB_CLIENT_ID == "Iv23ligyS0OMFL81xK0R"
+' "$temp_dir/bootstrap.yaml" >/dev/null
+
+yq -e '
+  select(.kind == "ExternalSecret" and .metadata.name == "nvt-github-app") |
+  (.spec.data | length) == 1 and
+  .spec.data[0].remoteRef.key == "nvt-agent-private-key-pem" and
+  .spec.data[0].secretKey == "private-key.pem"
+' "$temp_dir/secrets.yaml" >/dev/null
+
+yq -e '
+  select(.kind == "ExternalSecret" and .metadata.name == "nvt-broker-env") |
+  (.spec.data | length) == 1 and
+  .spec.data[0].remoteRef.key == "nvt-agent-private-key-pem" and
+  .spec.data[0].secretKey == "privateKeyPem" and
+  (.spec.target.template.data | keys | length) == 3 and
+  (.spec.target.template.data | has("NVT_GITHUB_APP_ID")) and
+  (.spec.target.template.data | has("NVT_GITHUB_APP_INSTALLATION_ID")) and
+  (.spec.target.template.data | has("NVT_GITHUB_APP_PRIVATE_KEY_BASE64"))
+' "$temp_dir/secrets.yaml" >/dev/null
+
 yq '.spec.values |
   .producer.githubApp.appID = 12345 |
   .producer.githubApp.installationID = 67890' "$helm_release" |
@@ -48,8 +74,9 @@ yq -e '
   .spec.values.agentSchedule.workflowProfiles[0].name == "implement-pr" and
   (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("nvt-as-root <command>")) and
   (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("passwordless sudo")) and
-  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("mirkoSekulic/altinn-studio")) and
-  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("gh-auth --provider github-altinn --repo Altinn/altinn-studio")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("push task branches to its `origin`; do not use a fork")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("gh-auth --provider github-main --repo Altinn/altinn-studio")) and
+  (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("github-altinn") | not) and
   (.spec.values.agentSchedule.workflowProfiles[0].workspaceInstructions | contains("Conventional Commits")) and
   (.spec.values.agentSchedule.producerPolicies | length) == 1 and
   .spec.values.agentSchedule.producerPolicies[0].identity == "system:serviceaccount:nvt:nvt-github-comments-producer" and
@@ -91,20 +118,32 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[0].execution.kind == "pod" and
   .spec.values.agentSchedule.profiles[0].execution.driver == "kubernetes" and
+  .spec.values.agentSchedule.profiles[0].agentRuntimeConfig.resume.command == "codex" and
+  (.spec.values.agentSchedule.profiles[0].agentRuntimeConfig.resume.args | join("\u0000")) == "resume\u0000--last\u0000--sandbox\u0000danger-full-access\u0000--ask-for-approval\u0000never" and
   (.spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add | length) == 1 and
   .spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add[0] == "SYS_PTRACE" and
-  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.checks == "read" and
-  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.issues == "read" and
-  .spec.values.agentSchedule.profiles[0].broker.grants[2].permissions.pull_requests == "write" and
+  (.spec.values.agentSchedule.profiles[0].broker.grants | length) == 2 and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].provider == "github-main" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.contents == "write" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.issues == "write" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.workflows == "write" and
   .spec.values.agentSchedule.profiles[1].name == "jondyr" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[1].execution.kind == "pod" and
   .spec.values.agentSchedule.profiles[1].execution.driver == "kubernetes" and
-  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.checks == "read" and
-  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.issues == "read" and
-  .spec.values.agentSchedule.profiles[1].broker.grants[2].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[1].agentRuntimeConfig.resume.command == "claude" and
+  (.spec.values.agentSchedule.profiles[1].agentRuntimeConfig.resume.args | join("\u0000")) == "--continue\u0000--dangerously-skip-permissions" and
+  (.spec.values.agentSchedule.profiles[1].broker.grants | length) == 2 and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].provider == "github-main" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.contents == "write" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.issues == "write" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.workflows == "write" and
   .spec.values.agentSchedule.profiles[2].name == "nkylstad" and
   .spec.values.agentSchedule.profiles[2].agentRuntimeConfig.proxy.provider == "claude-nkylstad" and
   .spec.values.agentSchedule.profiles[2].egress == "mediated" and
@@ -112,10 +151,16 @@ yq -e '
   .spec.values.agentSchedule.profiles[2].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[2].execution.kind == "pod" and
   .spec.values.agentSchedule.profiles[2].execution.driver == "kubernetes" and
+  .spec.values.agentSchedule.profiles[2].agentRuntimeConfig.resume.command == "claude" and
+  (.spec.values.agentSchedule.profiles[2].agentRuntimeConfig.resume.args | join("\u0000")) == "--continue\u0000--dangerously-skip-permissions" and
   .spec.values.agentSchedule.profiles[2].broker.grants[0].provider == "claude-nkylstad" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[2].permissions.checks == "read" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[2].permissions.issues == "read" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[2].permissions.pull_requests == "write" and
+  (.spec.values.agentSchedule.profiles[2].broker.grants | length) == 2 and
+  .spec.values.agentSchedule.profiles[2].broker.grants[1].provider == "github-main" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.contents == "write" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.issues == "write" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.workflows == "write" and
   .spec.values.agentSchedule.profiles[3].name == "ErlingHauan" and
   .spec.values.agentSchedule.profiles[3].agentRuntimeConfig.proxy.provider == "claude-erlinghauan" and
   .spec.values.agentSchedule.profiles[3].egress == "mediated" and
@@ -123,31 +168,51 @@ yq -e '
   .spec.values.agentSchedule.profiles[3].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[3].execution.kind == "pod" and
   .spec.values.agentSchedule.profiles[3].execution.driver == "kubernetes" and
+  .spec.values.agentSchedule.profiles[3].agentRuntimeConfig.resume.command == "claude" and
+  (.spec.values.agentSchedule.profiles[3].agentRuntimeConfig.resume.args | join("\u0000")) == "--continue\u0000--dangerously-skip-permissions" and
   .spec.values.agentSchedule.profiles[3].broker.grants[0].provider == "claude-erlinghauan" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[2].permissions.checks == "read" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[2].permissions.issues == "read" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[2].permissions.pull_requests == "write" and
+  (.spec.values.agentSchedule.profiles[3].broker.grants | length) == 2 and
+  .spec.values.agentSchedule.profiles[3].broker.grants[1].provider == "github-main" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.checks == "read" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.contents == "write" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.issues == "write" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.pull_requests == "write" and
+  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.workflows == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
+  .spec.values.agentSchedule.template.agent.config.plugins[0].config.default-provider == "github-main" and
+  (.spec.values.agentSchedule.template.agent.config.plugins[0].config.providers | length) == 1 and
+  .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].name == "github-main" and
+  .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].broker-provider == "github-main" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[0].credential-kind == "mediated" and
-  .spec.values.agentSchedule.template.agent.config.plugins[0].config.providers[1].credential-kind == "mediated" and
   .spec.values.broker.config.providers[2].name == "claude-nkylstad" and
   .spec.values.broker.config.providers[2].config.credentials-file == "/state/auth/claude-nkylstad.json" and
   .spec.values.broker.config.providers[3].name == "claude-erlinghauan" and
   .spec.values.broker.config.providers[3].config.credentials-file == "/state/auth/claude-erlinghauan.json" and
-  .spec.values.broker.config.providers[5].name == "github-altinn" and
-  .spec.values.broker.config.providers[5].allow.permissions.checks == "read" and
-  .spec.values.broker.config.providers[5].allow.permissions.issues == "read" and
-  .spec.values.broker.config.providers[5].allow.permissions.pull_requests == "write" and
+  (.spec.values.broker.config.providers | length) == 5 and
+  .spec.values.broker.config.providers[4].name == "github-main" and
+  .spec.values.broker.config.providers[4].allow.permissions.checks == "read" and
+  .spec.values.broker.config.providers[4].allow.permissions.contents == "write" and
+  .spec.values.broker.config.providers[4].allow.permissions.issues == "write" and
+  .spec.values.broker.config.providers[4].allow.permissions.pull_requests == "write" and
+  .spec.values.broker.config.providers[4].allow.permissions.workflows == "write" and
+  .spec.values.broker.config.providers[4].config.app-id-env == "NVT_GITHUB_APP_ID" and
+  .spec.values.broker.config.providers[4].config.installation-id-env == "NVT_GITHUB_APP_INSTALLATION_ID" and
+  .spec.values.broker.config.providers[4].config.private-key-base64-env == "NVT_GITHUB_APP_PRIVATE_KEY_BASE64" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].name == "git-credentials" and
+  (.spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials | length) == 1 and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.mode == "explicit" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.name == "nvt-agent[bot]" and
   .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].identity.email == "289161147+nvt-agent[bot]@users.noreply.github.com" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.mode == "explicit" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.name == "nvt-agent-altinn[bot]" and
-  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[1].identity.email == "289165276+nvt-agent-altinn[bot]@users.noreply.github.com" and
+  .spec.values.agentSchedule.template.agent.config.plugins[1].config.credentials[0].provider == "github-main" and
+  (.spec.values.agentSchedule.template.agent.config.plugins[2].config.repos | length) == 1 and
+  .spec.values.agentSchedule.template.agent.config.plugins[2].config.repos[0].url == "https://github.com/Altinn/altinn-studio.git" and
+  (.spec.values.agentSchedule.template.agent.config.plugins[2].config.repos[0] | has("upstream") | not) and
+  .spec.values.agentSchedule.template.agent.config.plugins[3].egress.provider == "github-main" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
   .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and
+  .spec.values.producer.githubApp.appID == "${NVT_GITHUB_APP_ID}" and
+  .spec.values.producer.githubApp.installationID == "${NVT_GITHUB_APP_INSTALLATION_ID}" and
   .spec.values.gateway.auth.oauth2.credentials.existingSecret == "nvt-gateway-github" and
   .spec.values.gateway.auth.session.existingSecret == "nvt-gateway-session" and
   .spec.values.egress.defaultMode == "mediated" and
