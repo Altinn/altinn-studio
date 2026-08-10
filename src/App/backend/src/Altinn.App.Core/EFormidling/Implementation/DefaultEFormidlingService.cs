@@ -24,7 +24,7 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 
 /// <summary>
 /// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingService"/>,
-/// registered by <c>AddEFormidlingServices2</c>. An app replaces it by implementing the interface,
+/// registered by <c>AddEFormidling()</c>. An app replaces it by implementing the interface,
 /// not by deriving from or wrapping this class — which is why it is internal.
 /// </summary>
 internal sealed class DefaultEFormidlingService : IEFormidlingService

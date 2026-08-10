@@ -117,6 +117,21 @@ namespace Altinn.App.Core.Constants
         public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
     }
 }
+namespace Altinn.App.Core.EFormidling.Configuration
+{
+    public interface IEFormidlingBuilder
+    {
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(System.Action<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings> configure);
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(string configSectionPath);
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithReceivers<TReceivers>()
+            where TReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers;
+    }
+    public interface IEFormidlingMetadataStage
+    {
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithMetadata<TMetadata>()
+            where TMetadata : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata;
+    }
+}
 namespace Altinn.App.Core.EFormidling
 {
     public static class EformidlingConstants
@@ -129,11 +144,7 @@ namespace Altinn.App.Core.EFormidling.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddEFormidlingServices<TM>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
-            where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata { }
-        public static void AddEFormidlingServices2<TM, TR>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
-            where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata
-            where TR : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers { }
+        public static Altinn.App.Core.EFormidling.Configuration.IEFormidlingMetadataStage AddEFormidling(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
     }
 }
 namespace Altinn.App.Core.EFormidling.Implementation
