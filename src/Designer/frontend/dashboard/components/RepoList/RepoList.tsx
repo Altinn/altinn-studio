@@ -47,7 +47,6 @@ export const RepoList = ({
   sortColumn,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
-  const tableSize = 'small';
 
   const columns: Columns = [
     {
