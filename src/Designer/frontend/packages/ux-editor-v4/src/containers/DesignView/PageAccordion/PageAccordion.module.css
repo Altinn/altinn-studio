@@ -1,4 +1,4 @@
-.accordionItem {
+.detailsWrapper {
   display: grid;
   grid-template-columns: 1fr auto;
 }
@@ -9,13 +9,13 @@
   border-top: none;
 }
 
-.accordionHeaderWarning {
+.detailsWarning {
   --dsc-details-summary-background: var(--ds-color-danger-surface-tinted);
   --dsc-details-summary-background--hover: var(--ds-color-danger-surface-tinted);
   --dsc-details-summary-background--open: var(--ds-color-danger-surface-tinted);
 }
 
-.accordionContent {
+.detailsContent {
   margin: 0;
 }
 
@@ -30,5 +30,5 @@
 }
 
 .pdfIcon {
-  font-size: var(--fds-sizing-6);
+  font-size: var(--ds-size-7);
 }

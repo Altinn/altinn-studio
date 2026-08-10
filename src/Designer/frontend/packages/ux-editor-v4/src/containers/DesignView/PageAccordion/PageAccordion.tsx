@@ -84,19 +84,20 @@ export const PageAccordion = ({
       deletePage(pageId);
     }
   };
+
   return (
-    <div className={classes.accordionItem}>
+    <div className={classes.detailsWrapper}>
       <StudioDetails open={isOpen} onToggle={onClick} className={classes.details}>
         <StudioDetails.Summary
           data-testid={accordionHeaderId(pageId)}
           onClick={handleSummaryClick}
-          className={isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : undefined}
+          className={isInvalid || hasDuplicatedIds ? classes.detailsWarning : undefined}
         >
           {pageName || pageId}
         </StudioDetails.Summary>
         <StudioDetails.Content
           data-testid={pageAccordionContentId(pageId)}
-          className={classes.accordionContent}
+          className={classes.detailsContent}
         >
           {children}
         </StudioDetails.Content>
