@@ -35,6 +35,7 @@ docker run -d --name "$mock_container" \
   --network "$network" \
   --network-alias mock \
   --network-alias nvt-agent-gateway.nvt.svc.cluster.local \
+  --network-alias nvt-credential-portal.nvt.svc.cluster.local \
   -v "$test_dir/nvt-cookie-upstream.conf:/etc/nginx/nginx.conf:ro" \
   "$nginx_image" >/dev/null
 
@@ -61,6 +62,7 @@ docker run -d --name "$load_balancer_container" \
 
 staging_headers="$temp_dir/staging-headers"
 designer_headers="$temp_dir/designer-headers"
+portal_headers="$temp_dir/portal-headers"
 
 ready=false
 for _ in $(seq 1 30); do
@@ -95,6 +97,23 @@ docker run --rm --user 0:0 \
   -v "$temp_dir:/output" \
   "$curl_image" \
   --fail --silent --show-error --insecure --noproxy '*' \
+  --header 'Host: staging.altinn.studio' \
+  --dump-header /output/portal-headers \
+  --output /dev/null \
+  "https://$load_balancer_container/agents/credentials/"
+
+grep -Fqi 'X-NVT-Upstream: credential-portal' "$portal_headers"
+grep -Fqi 'Set-Cookie: portal=session; Path=/agents/credentials/; Secure; HttpOnly' "$portal_headers"
+if grep -Fqi 'X-NVT-Upstream: gateway' "$portal_headers"; then
+  echo "Credential portal traffic was incorrectly routed to the gateway" >&2
+  exit 1
+fi
+
+docker run --rm --user 0:0 \
+  --network "$network" \
+  -v "$temp_dir:/output" \
+  "$curl_image" \
+  --fail --silent --show-error --insecure --noproxy '*' \
   --header 'Host: dev.altinn.studio' \
   --dump-header /output/designer-headers \
   --output /dev/null \
@@ -103,4 +122,4 @@ docker run --rm --user 0:0 \
 grep -Fqi 'X-NVT-Upstream: designer' "$designer_headers"
 grep -Fqi 'Set-Cookie: designer=session; Path=/; Secure; HttpOnly' "$designer_headers"
 
-echo "NVT and per-agent cookie paths were preserved; Designer fallback cookie rewriting was unchanged."
+echo "NVT gateway, credential portal, and per-agent cookie paths were preserved; Designer fallback was unchanged."

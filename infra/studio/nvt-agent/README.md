@@ -9,10 +9,10 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.52` (verified OCI digest
-`sha256:107cc2e97cb2b680bf521ab8fd9f46aee4f48f20cb91aa3efafa853f4f9ec480`),
+The public chart is pinned to `0.8.53` (verified OCI digest
+`sha256:1a9e9c7be9b4ae0fe0ac24f0b20ff2b09a8205ce67106c029bcc5fc2ca13f05c`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.52-72ae864` production images without
+tag. It resolves the coordinated `0.8.53-9220b83` production images without
 component overrides. All execution profiles explicitly select the built-in
 Kubernetes Pod driver. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
@@ -45,6 +45,7 @@ repository:
 - `nvt-agent-private-key-pem`
 - `nvt-agent-gateway-oauth-client-secret`
 - `nvt-gateway-session-secret`
+- `nvt-credential-portal-session-secret`
 
 The verified App, installation, and OAuth client IDs are explicit non-secret
 values in `bootstrap/deployment-metadata.yaml`:
@@ -56,8 +57,9 @@ values in `bootstrap/deployment-metadata.yaml`:
 - `nvt-agent-gateway` is OAuth-only. It has no App private key, App ID,
   installation ID, webhook secret, repository permission, organization
   permission, or account permission. It is owned by `mirkoSekulic` and is not
-  installed in the Altinn organization. Register
-  `https://staging.altinn.studio/agents/oauth2/callback`.
+  installed in the Altinn organization. Register both callback URLs on the
+  OAuth app: `https://staging.altinn.studio/agents/oauth2/callback` and
+  `https://staging.altinn.studio/agents/credentials/oauth2/callback`.
 
 The remaining runtime prerequisites are external: the documented Key Vault
 secrets must exist, the AKS RuntimeClass and NET_ADMIN admission policy must be
@@ -72,6 +74,12 @@ The existing Studio load balancer exposes the gateway below
 `https://staging.altinn.studio/agents`. It preserves the `/agents` prefix for
 the gateway's native base-path routing and forwards WebSocket upgrades without
 requiring a separate DNS record or origin.
+
+The standalone credential portal is available at
+`https://staging.altinn.studio/agents/credentials`. It reuses GitHub OAuth for
+identity but has an independent session cookie. Each GitHub subject can modify
+only its configured Codex or Claude slot. The gateway links to the portal but
+does not proxy it or share its session.
 
 Profile selection uses the verified immutable GitHub subjects `23359247`
 (`mirkoSekulic`) and `1525466` (`Jondyr`). The second profile remains named
@@ -102,13 +110,13 @@ PVs and backing Azure disks. There is no intentionally retained NVT disk.
 The AgentRun workspace is 30 GiB. DinD's `/var/lib/docker` remains disposable
 node-local data and uses the NVT pool's separately configured 256 GiB OS disk.
 
-Broker refresh rotation is written only to its PVC. Key Vault contains recovery
-seeds, not a continuously exported copy. Deleting the broker PVC after an
-upstream refresh-token rotation can require a new trusted login and Key Vault
-seed update. Replacing either recovery value in Key Vault updates
-`nvt-broker-seed`; the chart's supported seed reconciliation imports the
-changed key and restarts the broker child without exporting rotated broker
-state back to Key Vault.
+Broker refresh rotation is written only to its PVC. The portal patches the
+pre-created `nvt-portal-seed` Secret, and the broker's seed supervisor imports
+accepted replacements atomically. `nvt-broker-seed` remains an External
+Secrets-managed recovery source during rollout, but it is no longer consumed
+by the release and cannot overwrite portal enrollment. Deleting the namespace
+or both broker storage and `nvt-portal-seed` loses the current credentials, so
+retain a separate recovery procedure until portal enrollment is proven.
 
 ## Rollback and kill switch
 

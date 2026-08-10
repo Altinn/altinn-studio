@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.52
-chart_digest=sha256:107cc2e97cb2b680bf521ab8fd9f46aee4f48f20cb91aa3efafa853f4f9ec480
+chart_version=0.8.53
+chart_digest=sha256:1a9e9c7be9b4ae0fe0ac24f0b20ff2b09a8205ce67106c029bcc5fc2ca13f05c
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -53,6 +53,14 @@ yq -e '
   (.spec.target.template.data | has("NVT_GITHUB_APP_ID")) and
   (.spec.target.template.data | has("NVT_GITHUB_APP_INSTALLATION_ID")) and
   (.spec.target.template.data | has("NVT_GITHUB_APP_PRIVATE_KEY_BASE64"))
+' "$temp_dir/secrets.yaml" >/dev/null
+
+yq -e '
+  select(.kind == "ExternalSecret" and .metadata.name == "nvt-credential-portal-session") |
+  (.spec.data | length) == 1 and
+  .spec.data[0].remoteRef.key == "nvt-credential-portal-session-secret" and
+  .spec.data[0].secretKey == "session-secret" and
+  .spec.target.name == "nvt-credential-portal-session"
 ' "$temp_dir/secrets.yaml" >/dev/null
 
 yq '.spec.values |
@@ -209,12 +217,33 @@ yq -e '
   (.spec.values.agentSchedule.template.agent.config.plugins[2].config.repos[0] | has("upstream") | not) and
   .spec.values.agentSchedule.template.agent.config.plugins[3].egress.provider == "github-main" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
-  .spec.values.broker.persistence.seedSecretName == "nvt-broker-seed" and
+  .spec.values.broker.persistence.seedSecretName == "nvt-portal-seed" and
+  .spec.values.credentialPortal.enabled == true and
+  .spec.values.credentialPortal.publicURL == "https://staging.altinn.studio/agents/credentials" and
+  .spec.values.credentialPortal.enrollment.experimentalCodexDeviceAuth == true and
+  .spec.values.credentialPortal.recoveryUpload.enabled == true and
+  .spec.values.credentialPortal.auth.mode == "oauth2" and
+  .spec.values.credentialPortal.auth.session.existingSecret == "nvt-credential-portal-session" and
+  .spec.values.credentialPortal.auth.oauth2.credentials.existingSecret == "nvt-gateway-github" and
+  .spec.values.credentialPortal.auth.oauth2.issuer == "https://github.com" and
+  .spec.values.credentialPortal.auth.oauth2.identity.subjectPath == "id" and
+  (.spec.values.credentialPortal.slots | length) == 4 and
+  .spec.values.credentialPortal.slots[0].owner.subject == "23359247" and
+  .spec.values.credentialPortal.slots[0].brokerProvider == "codex-mirkoSekulic" and
+  .spec.values.credentialPortal.slots[0].secretName == "nvt-portal-seed" and
+  .spec.values.credentialPortal.slots[0].dataKey == "codex-mirkosekulic.json" and
+  .spec.values.credentialPortal.slots[1].owner.subject == "1525466" and
+  .spec.values.credentialPortal.slots[1].brokerProvider == "claude-jondyr" and
+  .spec.values.credentialPortal.slots[2].owner.subject == "1636323" and
+  .spec.values.credentialPortal.slots[2].brokerProvider == "claude-nkylstad" and
+  .spec.values.credentialPortal.slots[3].owner.subject == "148075168" and
+  .spec.values.credentialPortal.slots[3].brokerProvider == "claude-erlinghauan" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and
   .spec.values.producer.githubApp.appID == "${NVT_GITHUB_APP_ID}" and
   .spec.values.producer.githubApp.installationID == "${NVT_GITHUB_APP_INSTALLATION_ID}" and
   .spec.values.gateway.auth.oauth2.credentials.existingSecret == "nvt-gateway-github" and
   .spec.values.gateway.auth.session.existingSecret == "nvt-gateway-session" and
+  .spec.values.gateway.credentialPortal.url == "/agents/credentials" and
   .spec.values.egress.defaultMode == "mediated" and
   .spec.values.egress.allowInsecureUpstreams == false and
   .spec.values.egress.networkPolicyCapable == true
@@ -235,12 +264,17 @@ yq -o=json '.' "$temp_dir/load-balancer.yaml" | jq -s -e '
       .namespaceSelector.matchLabels["kubernetes.io/metadata.name"] == "nvt"
     ))
   ] as $nvtRules |
-  ($nvtRules | length) == 1 and
+  ($nvtRules | length) == 2 and
   ($nvtRules[0].to | length) == 1 and
   $nvtRules[0].to[0].namespaceSelector.matchLabels["kubernetes.io/metadata.name"] == "nvt" and
   $nvtRules[0].to[0].podSelector.matchLabels["app.kubernetes.io/name"] == "nvt-agent-gateway" and
   $nvtRules[0].to[0].podSelector.matchLabels["app.kubernetes.io/component"] == "gateway" and
-  $nvtRules[0].ports == [{"port": 8080, "protocol": "TCP"}]
+  $nvtRules[0].ports == [{"port": 8080, "protocol": "TCP"}] and
+  ($nvtRules[1].to | length) == 1 and
+  $nvtRules[1].to[0].namespaceSelector.matchLabels["kubernetes.io/metadata.name"] == "nvt" and
+  $nvtRules[1].to[0].podSelector.matchLabels["app.kubernetes.io/instance"] == "nvt" and
+  $nvtRules[1].to[0].podSelector.matchLabels["app.kubernetes.io/component"] == "credential-portal" and
+  $nvtRules[1].ports == [{"port": 8080, "protocol": "TCP"}]
 ' >/dev/null
 
-echo "NVT Kustomize/Helm renders, digest pin, and gateway-only egress policy validated."
+echo "NVT Kustomize/Helm renders, digest pin, and gateway/credential-portal egress policy validated."

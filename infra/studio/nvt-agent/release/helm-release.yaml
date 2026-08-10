@@ -19,7 +19,7 @@ spec:
           - target:
               group: apps
               kind: Deployment
-              name: nvt-(broker|operator|agent-gateway|github-comments-producer)
+              name: nvt-(broker|operator|agent-gateway|credential-portal|github-comments-producer)
               version: v1
             patch: |-
               - op: add
@@ -523,12 +523,78 @@ spec:
       envSecretName: nvt-broker-env
       persistence:
         enabled: true
-        seedSecretName: nvt-broker-seed
+        seedSecretName: nvt-portal-seed
         seedTargetDir: auth
         size: 10Gi
         storageClassName: nvt-managed-csi
       tls:
         enabled: true
+    credentialPortal:
+      enabled: true
+      publicURL: https://staging.altinn.studio/agents/credentials
+      enrollment:
+        experimentalCodexDeviceAuth: true
+      recoveryUpload:
+        enabled: true
+      auth:
+        mode: oauth2
+        session:
+          existingSecret: nvt-credential-portal-session
+          cookieName: nvt_credential_portal
+          maxAgeSeconds: 3600
+          secure: true
+        oauth2:
+          authorizationURL: https://github.com/login/oauth/authorize
+          callbackPath: /oauth2/callback
+          clientAuthMethod: client_secret_post
+          credentials:
+            existingSecret: nvt-gateway-github
+          identity:
+            allowedHosts:
+              - api.github.com
+            displayNamePath: login
+            endpoint: https://api.github.com/user
+            subjectPath: id
+          issuer: https://github.com
+          scopes: []
+          tokenURL: https://github.com/login/oauth/access_token
+      slots:
+        - name: mirko-codex
+          label: Mirko Codex
+          owner:
+            issuer: https://github.com
+            subject: "23359247"
+          adapter: codex-oauth-file
+          brokerProvider: codex-mirkoSekulic
+          secretName: nvt-portal-seed
+          dataKey: codex-mirkosekulic.json
+        - name: jondyr-claude
+          label: Jondyr Claude
+          owner:
+            issuer: https://github.com
+            subject: "1525466"
+          adapter: claude-oauth-file
+          brokerProvider: claude-jondyr
+          secretName: nvt-portal-seed
+          dataKey: claude-jondyr.json
+        - name: nkylstad-claude
+          label: Nina Claude
+          owner:
+            issuer: https://github.com
+            subject: "1636323"
+          adapter: claude-oauth-file
+          brokerProvider: claude-nkylstad
+          secretName: nvt-portal-seed
+          dataKey: claude-nkylstad.json
+        - name: erlinghauan-claude
+          label: Erling Claude
+          owner:
+            issuer: https://github.com
+            subject: "148075168"
+          adapter: claude-oauth-file
+          brokerProvider: claude-erlinghauan
+          secretName: nvt-portal-seed
+          dataKey: claude-erlinghauan.json
     egress:
       allowInsecureUpstreams: false
       defaultMode: mediated
@@ -592,6 +658,9 @@ spec:
           maxAgeSeconds: 3600
           secure: true
       baseDomain: ""
+      credentialPortal:
+        url: /agents/credentials
+        label: Manage credentials
       enabled: true
       publicURL: https://staging.altinn.studio/agents
       replicas: 1

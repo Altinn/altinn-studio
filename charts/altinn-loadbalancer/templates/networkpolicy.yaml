@@ -37,6 +37,17 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
+          kubernetes.io/metadata.name: "nvt"
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: nvt
+          app.kubernetes.io/component: credential-portal
+    ports:
+    - port: 8080
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
           kubernetes.io/metadata.name: "kube-system"
     ports:
     - port: 53
