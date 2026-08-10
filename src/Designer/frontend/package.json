@@ -70,7 +70,7 @@
   "resolutions": {
     "@testing-library/dom": "10.4.1",
     "@babel/traverse": "7.29.8",
-    "caniuse-lite": "1.0.30001806"
+    "caniuse-lite": "1.0.30001809"
   },
   "packageManager": "yarn@4.16.0",
   "private": true,
