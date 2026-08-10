@@ -63,8 +63,6 @@ export const PageAccordion = ({
     }
   }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
 
-  // The open state is driven entirely by isOpen, so the native toggle is prevented to stop
-  // Details from opening and closing the panel on its own before React updates.
   const handleSummaryClick = (event: MouseEvent<HTMLElement>): void => {
     event.preventDefault();
     onClick();
@@ -72,7 +70,7 @@ export const PageAccordion = ({
 
   return (
     <div className={cn(classes.accordionItem, pageIsReceipt && classes.receiptItem)}>
-      <StudioDetails open={isOpen} onToggle={onClick} className={classes.details}>
+      <StudioDetails open={isOpen} className={classes.details}>
         <StudioDetails.Summary onClick={handleSummaryClick} className={classes.accordionHeader}>
           {pageName}
         </StudioDetails.Summary>
