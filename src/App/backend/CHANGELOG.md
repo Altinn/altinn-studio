@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.4] - 2026-08-10
+
 ### Added
 
 - Add durable yield for service tasks: `ServiceTaskResult.Defer(delay, reason)` parks the process on the task — no error recorded, worker released — and re-runs it after `delay`, bounded by `ProcessStepOptions.WaitBudget`. A deferral is stateless: nothing is saved, and a deferring attempt that modified instance data is rejected — work that records something durable belongs in its own pipeline stage (see pipeline service tasks below), completed rather than deferred. `ServiceTaskContext` groups the two engine clocks as `Attempt` (`RetryCount`, `Deadline`) and `Wait` (`DeferCount`, `StartedAt`, `Deadline`, and the derived `Remaining`/`IsFinalCheck`), and carries `StepId`, a stable per-step idempotency key for outbound calls a send-then-poll task must not repeat. The deferral's `reason` surfaces on engine status reads and as `workflow.waitingReason` on the app's process reads.
