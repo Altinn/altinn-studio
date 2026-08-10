@@ -68,13 +68,21 @@ RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
-# Prepare app template
+# Prepare app templates, one release tree per selectable template.
+# The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
+# at the repository folder without a second path convention. rsync will not create intermediate
+# directories, hence the mkdir.
 FROM alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS app-template-release
 RUN apk add --no-cache rsync
+RUN mkdir -p /app-template-release/v8 /app-template-release/v9
 
-COPY ./src/App/template/src /app-template-dotnet-src
-WORKDIR /app-template-dotnet-src
-RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
+COPY ./src/App/template/v8/src /app-template-dotnet-src/v8
+WORKDIR /app-template-dotnet-src/v8
+RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v8/src
+
+COPY ./src/App/template/v9/src /app-template-dotnet-src/v9
+WORKDIR /app-template-dotnet-src/v9
+RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v9/src
 
 # Building the final image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:1bd70a86abe101145238b07e7462e5f9e5ab0fa50c6fdeff3c3ac6941da56939 AS final
@@ -96,7 +104,7 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist 
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
-## Copying app template
+## Copying app templates. GeneralSettings decides which one new applications default to.
 COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

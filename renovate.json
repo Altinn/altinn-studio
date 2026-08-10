@@ -90,13 +90,24 @@
       "commitMessageSuffix": " (app)"
     },
     {
-      "description": "Automerge non-major Altinn app template package updates",
+      "description": "Automerge non-major Altinn app template package updates (v8)",
       "matchManagers": ["nuget"],
-      "matchFileNames": ["src/App/template/src/App/App.csproj"],
+      "matchFileNames": ["src/App/template/v8/src/App/App.csproj"],
       "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Altinn app template NuGet packages",
-      "groupSlug": "app-template-nuget",
+      "groupName": "Altinn app template NuGet packages (v8)",
+      "groupSlug": "app-template-nuget-v8",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major Altinn app template package updates (v9). Separate from v8 so the two templates never share a PR.",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v9/src/App/App.csproj"],
+      "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Altinn app template NuGet packages (v9)",
+      "groupSlug": "app-template-nuget-v9",
       "addLabels": ["approve"],
       "automerge": true
     },

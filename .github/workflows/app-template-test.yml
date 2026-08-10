@@ -18,9 +18,11 @@ jobs:
   analyze:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
+      fail-fast: false  # one template failing must not mask the state of the other
       matrix:
         os: [macos-latest,windows-latest,ubuntu-latest]
-    name: Run dotnet build and test
+        template: [v8, v9]
+    name: Run dotnet build and test (${{ matrix.template }})
     runs-on: ${{ matrix.os}}
     timeout-minutes: 30
     env:
@@ -35,15 +37,16 @@ jobs:
         with:
           dotnet-version: |
             8.0.x
+            10.0.x
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
         run: |
            dotnet build src/App.sln -v m
-        working-directory: src/App/template
+        working-directory: src/App/template/${{ matrix.template }}
 
       - name: Test
         run: |
            dotnet test src/App.sln -v m --no-restore --no-build
-        working-directory: src/App/template
+        working-directory: src/App/template/${{ matrix.template }}

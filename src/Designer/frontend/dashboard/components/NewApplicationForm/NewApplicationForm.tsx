@@ -1,6 +1,9 @@
 import React, { type FormEvent, type ChangeEvent, useState } from 'react';
 import { CreateFromTemplate } from '../CreateFromTemplate/CreateFromTemplate';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
+import type { AppTemplate } from 'app-shared/types/AppTemplate';
+import { AppTemplateSelector } from '../AppTemplateSelector/AppTemplateSelector';
+import { useAppTemplatesQuery } from '../../hooks/queries/useAppTemplatesQuery';
 import classes from './NewApplicationForm.module.css';
 import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -54,6 +57,7 @@ export const NewApplicationForm = ({
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const isCustomTemplatesEnabled = useFeatureFlag(FeatureFlag.CustomTemplates);
+  const isAppTemplatesEnabled = useFeatureFlag(FeatureFlag.AppTemplates);
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
@@ -61,6 +65,13 @@ export const NewApplicationForm = ({
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
   const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
+  const [selectedAppTemplate, setSelectedAppTemplate] = useState<AppTemplate>();
+  const { data: appTemplates } = useAppTemplatesQuery({ enabled: isAppTemplatesEnabled });
+  // Without the flag no choice is offered, and the backend applies its configured default.
+  // The backend lists usable templates first, so the head is the sensible default.
+  const effectiveAppTemplate: AppTemplate | undefined = isAppTemplatesEnabled
+    ? (selectedAppTemplate ?? appTemplates?.[0])
+    : undefined;
   const { data: userOrgPermissions, isFetching } = useUserOrgPermissionsQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
@@ -84,6 +95,7 @@ export const NewApplicationForm = ({
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
       template: selectedTemplate || undefined,
+      appTemplate: effectiveAppTemplate || undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);
@@ -134,6 +146,13 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
+      {isAppTemplatesEnabled && appTemplates?.length > 0 && (
+        <AppTemplateSelector
+          appTemplates={appTemplates}
+          selectedAppTemplate={effectiveAppTemplate}
+          onChange={setSelectedAppTemplate}
+        />
+      )}
       {isCustomTemplatesEnabled && shouldUseCustomTemplate && (
         <CreateFromTemplate
           selectedTemplate={selectedTemplate}

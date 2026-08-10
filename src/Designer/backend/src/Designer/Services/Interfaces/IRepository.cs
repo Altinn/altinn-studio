@@ -29,11 +29,13 @@ public interface IRepository
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="serviceConfig">The ServiceConfiguration to save</param>
     /// <param name="templates">List of templates to use in the service creation</param>
+    /// <param name="appTemplate">The app scaffold the new application is created from</param>
     /// <returns>The repository created in gitea</returns>
     Task<RepositoryClient.Model.Repository> CreateService(
         string org,
         ServiceConfiguration serviceConfig,
-        List<CustomTemplateReference> templates
+        List<CustomTemplateReference> templates,
+        AppTemplate appTemplate
     );
 
     /// <summary>

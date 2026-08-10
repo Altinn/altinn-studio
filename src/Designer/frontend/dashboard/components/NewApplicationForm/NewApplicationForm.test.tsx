@@ -12,6 +12,7 @@ import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { FeatureFlag } from '@studio/feature-flags';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
+import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockOnSubmit = jest.fn();
@@ -124,6 +125,60 @@ describe('NewApplicationForm', () => {
       screen.queryByText(textMock('dashboard.missing_service_owner_rights_error_message')),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeEnabled();
+  });
+
+  it('should show app template selector when feature is enabled', () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
+
+    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplates], queryClient });
+
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('dashboard.new_application_form.select_app_template'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not show app template selector when feature is disabled', () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
+
+    renderNewApplicationForm({}, { featureFlags: [], queryClient });
+
+    expect(
+      screen.queryByRole('combobox', {
+        name: textMock('dashboard.new_application_form.select_app_template'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should submit the selected app template when the feature is enabled', async () => {
+    const user = userEvent.setup();
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
+
+    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplates], queryClient });
+
+    await user.selectOptions(
+      screen.getByRole('combobox', {
+        name: textMock('dashboard.new_application_form.select_app_template'),
+      }),
+      'v9',
+    );
+
+    await user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') }));
+    await user.click(screen.getByRole('option', { name: mockUser.full_name }));
+
+    await user.type(
+      screen.getByRole('textbox', { name: textMock('general.service_name') }),
+      'repo-with-app-template',
+    );
+    await user.click(screen.getByRole('button', { name: mockSubmitbuttonText }));
+
+    expect(mockOnSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ appTemplate: mockAppTemplates[1] }),
+    );
   });
 
   it('should show custom template selector when feature is enabled', () => {
@@ -242,6 +297,23 @@ describe('NewApplicationForm', () => {
     });
   });
 });
+
+const mockAppTemplates: AppTemplate[] = [
+  {
+    id: 'v8',
+    displayName: 'Altinn App v8',
+    description: 'Stabil versjon.',
+    deprecated: false,
+    appLibVersion: '8.12.7',
+  },
+  {
+    id: 'v9',
+    displayName: 'Altinn App v9 (preview)',
+    description: 'Under utvikling.',
+    deprecated: false,
+    appLibVersion: '9.0.0-preview.3',
+  },
+];
 
 function renderNewApplicationForm(
   newApplicationFormProps?: Partial<NewApplicationFormProps>,
