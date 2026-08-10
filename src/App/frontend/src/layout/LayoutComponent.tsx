@@ -258,7 +258,4 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
 }
 
 export type LayoutComponent<Type extends CompTypes = CompTypes> =
-  | PresentationComponent<Type>
-  | FormComponent<Type>
-  | ActionComponent<Type>
-  | ContainerComponent<Type>;
+  PresentationComponent<Type> | FormComponent<Type> | ActionComponent<Type> | ContainerComponent<Type>;
