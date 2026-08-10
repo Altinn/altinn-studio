@@ -29,8 +29,6 @@ src/Designer/frontend/**/package.json                                     @altin
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
 # AI
-.github/workflows/deploy-studio-mcp-server.yaml                           @ErlingHauan
-.github/workflows/mcp-build-test.yaml                                     @ErlingHauan
 src/AI/agents/**/docker-compose.*.yml                                     @ErlingHauan
 src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
 src/AI/agents/**/dockerfile*                                              @ErlingHauan
@@ -41,11 +39,6 @@ src/AI/agents/**/uv.lock                                                  @Erlin
 src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
 src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
 src/AI/augmenter-agent/**/dockerfile*                                     @ErlingHauan
-src/AI/mcp/**/docker-compose.yaml                                         @ErlingHauan
-src/AI/mcp/**/dockerfile*                                                 @ErlingHauan
-src/AI/mcp/**/pyproject.toml                                              @ErlingHauan
-src/AI/mcp/**/requirements.txt                                            @ErlingHauan
-src/AI/mcp/**/uv.lock                                                     @ErlingHauan
 
 # Squad Kjøring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring
