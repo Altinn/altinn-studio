@@ -73,7 +73,7 @@ services:
       - workflow-engine-network
 
   lgtm:
-    image: grafana/otel-lgtm:0.30.0
+    image: grafana/otel-lgtm:0.30.1
     container_name: workflow-engine-lgtm
     restart: unless-stopped
     extra_hosts:
