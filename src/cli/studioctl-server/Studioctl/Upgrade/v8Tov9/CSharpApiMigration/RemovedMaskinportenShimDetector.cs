@@ -7,7 +7,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <c>AddMaskinportenJwkTokenProvider</c> registration, the <c>IX509CertificateProvider</c> abstraction,
 /// and the <c>EformidlingStatusCheckEventHandler</c> that consumed them. All of these are gone in v9.
 /// The Maskinporten types are replaced by the built-in <c>IMaskinportenClient</c>; the eFormidling handler
-/// is not, so it is reported separately and pointed at <c>AddEFormidlingServices2</c>.
+/// has no replacement at all - the v9 eFormidling service task waits for the delivery confirmation itself -
+/// so it is reported separately with its own guidance.
 /// <para>
 /// Unlike <see cref="ExternalMaskinportenPackageDetector"/>, no NuGet reference can bring these back -
 /// they were app-lib types, not package types - so this is always a hard break requiring a port. The
@@ -37,9 +38,9 @@ internal sealed class RemovedMaskinportenShimDetector
     };
 
     // The eFormidling status check handlers. Both fell out of the app-facing surface with the Maskinporten
-    // shim they consumed, but their replacement is an eFormidling one, so they are reported separately with
-    // their own guidance. The `2` suffixed handler was public in v8 and is internal in v9, so an app naming
-    // it fails to compile (CS0122) just as surely as one naming the deleted v1 handler.
+    // shim they consumed, but the guidance they need is an eFormidling one, so they are reported separately.
+    // Both are deleted in v9, along with the IEventHandler abstraction they were registered against, so an
+    // app naming either one fails to compile - the `2` suffixed handler included, public though it was in v8.
     private static readonly IReadOnlySet<string> _removedEformidlingTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "EformidlingStatusCheckEventHandler",
@@ -59,11 +60,13 @@ internal sealed class RemovedMaskinportenShimDetector
         + "Maskinporten before porting. Usages found:";
 
     private const string EformidlingSummary =
-        "The eFormidling status check handlers are no longer app-facing in v9: EformidlingStatusCheckEventHandler "
-        + "is removed, and EformidlingStatusCheckEventHandler2 is now internal, so naming either one fails to "
-        + "compile. They are not replaced by the Maskinporten client - register eFormidling with "
-        + "AddEFormidlingServices2<TM, TR>(configuration), which sets up the status check for you. Remove these "
-        + "references and any DI registration of the handlers. Usages found:";
+        "The eFormidling status check handlers are removed in v9: naming either "
+        + "EformidlingStatusCheckEventHandler or EformidlingStatusCheckEventHandler2 fails to compile. Nothing "
+        + "needs to take their place - the v9 eFormidling service task waits for the delivery confirmation "
+        + "itself, polling the integration point and advancing the process only once delivery is confirmed, so "
+        + "there is no status check left to register. They are not replaced by the Maskinporten client either. "
+        + "Remove these references and any DI registration of the handlers; eFormidling itself is registered "
+        + "with services.AddEFormidling().WithMetadata<T>(). Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
 
