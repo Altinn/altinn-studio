@@ -10,12 +10,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import classes from './Table.module.css';
 
 export type TableCellValue =
-  | string
-  | number
-  | boolean
-  | null
-  | TableCellValue[]
-  | { [key: string]: TableCellValue };
+  string | number | boolean | null | TableCellValue[] | { [key: string]: TableCellValue };
 
 export interface Column<T> {
   header: React.ReactNode;

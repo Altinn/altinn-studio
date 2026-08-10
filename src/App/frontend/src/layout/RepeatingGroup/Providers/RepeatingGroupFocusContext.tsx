@@ -17,11 +17,7 @@ import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseRow } from 'src/utils/layout/types';
 
 type FocusableHTMLElement =
-  | HTMLButtonElement
-  | HTMLInputElement
-  | HTMLSelectElement
-  | HTMLTextAreaElement
-  | HTMLAnchorElement;
+  HTMLButtonElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLAnchorElement;
 
 export type RefSetter = (rowIndex: number, key: string, div: HTMLElement | null) => void;
 export type FocusTrigger = (rowIndex: number) => void;
