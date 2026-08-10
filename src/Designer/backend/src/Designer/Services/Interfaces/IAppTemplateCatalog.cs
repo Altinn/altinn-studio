@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IAppTemplateCatalog
 {
     /// <summary>
-    /// All available templates, usable ones first and then by id.
+    /// All available templates, ordered by id.
     /// </summary>
     IReadOnlyList<AppTemplate> GetAppTemplates();
 

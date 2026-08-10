@@ -6,7 +6,4 @@ export interface AppTemplate {
   id: string;
   displayName: string;
   description: string;
-  deprecated: boolean;
-  /** Altinn.App library version the scaffold references, e.g. "8.12.7". Null when it could not be read. */
-  appLibVersion?: string | null;
 }

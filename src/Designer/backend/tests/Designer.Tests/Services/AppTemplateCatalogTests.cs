@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Versioning;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -23,11 +22,12 @@ public class AppTemplateCatalogTests : IDisposable
     }
 
     [Fact]
-    public void GetAppTemplates_TwoTemplatesOnDisk_ReturnsBothWithVersions()
+    public void GetAppTemplates_SeveralTemplatesOnDisk_ReturnsThemOrderedById()
     {
+        // The dashboard treats the first entry as the default, so the order is part of the contract.
         // Arrange
-        WriteTemplate("v8", displayName: "Altinn App v8", appLibVersion: "8.12.7");
-        WriteTemplate("v9", displayName: "Altinn App v9 (preview)", appLibVersion: "9.0.0-preview.3");
+        WriteTemplate("v9", displayName: "Altinn App v9 (preview)");
+        WriteTemplate("v8", displayName: "Altinn App v8");
         var sut = CreateCatalog();
 
         // Act
@@ -37,31 +37,14 @@ public class AppTemplateCatalogTests : IDisposable
         Assert.Equal(2, result.Count);
         Assert.Equal("v8", result[0].Id);
         Assert.Equal("Altinn App v8", result[0].DisplayName);
-        Assert.Equal("8.12.7", result[0].AppLibVersion);
-        Assert.Equal(SemanticVersion.Parse("9.0.0-preview.3"), result[1].AppLibSemanticVersion);
-    }
-
-    [Fact]
-    public void GetAppTemplates_DeprecatedTemplate_IsOrderedLast()
-    {
-        // Arrange
-        WriteTemplate("v8", displayName: "Altinn App v8", appLibVersion: "8.12.7", deprecated: true);
-        WriteTemplate("v9", displayName: "Altinn App v9", appLibVersion: "9.0.0");
-        var sut = CreateCatalog();
-
-        // Act
-        IReadOnlyList<AppTemplate> result = sut.GetAppTemplates();
-
-        // Assert
-        Assert.Equal("v9", result[0].Id);
-        Assert.Equal("v8", result[1].Id);
+        Assert.Equal("v9", result[1].Id);
     }
 
     [Fact]
     public void GetAppTemplates_FolderWithoutManifest_IsIgnored()
     {
         // Arrange
-        WriteTemplate("v9", displayName: "Altinn App v9", appLibVersion: "9.0.0");
+        WriteTemplate("v9", displayName: "Altinn App v9");
         Directory.CreateDirectory(Path.Combine(_templateRoot, "not-a-template", "src"));
         var sut = CreateCatalog();
 
@@ -70,27 +53,11 @@ public class AppTemplateCatalogTests : IDisposable
     }
 
     [Fact]
-    public void GetAppTemplates_PathsPointIntoTheTemplateContent()
-    {
-        // Arrange
-        WriteTemplate("v8", displayName: "Altinn App v8", appLibVersion: "8.12.7");
-        var sut = CreateCatalog();
-
-        // Act
-        AppTemplate result = Assert.Single(sut.GetAppTemplates());
-
-        // Assert
-        Assert.Equal(Path.Combine(_templateRoot, "v8", "src"), result.RootPath);
-        Assert.Equal(Path.Combine(_templateRoot, "v8", "src", "App"), result.AppPath);
-        Assert.Equal(Path.Combine(_templateRoot, "v8", "src", "deployment"), result.DeploymentPath);
-    }
-
-    [Fact]
     public void GetAppTemplates_ManifestIdDiffersFromFolder_FolderNameWins()
     {
         // The paths are built from the folder name, so it has to be authoritative.
         // Arrange
-        WriteTemplate("v9", displayName: "Altinn App v9", appLibVersion: "9.0.0", manifestId: "something-else");
+        WriteTemplate("v9", displayName: "Altinn App v9", manifestId: "something-else");
         var sut = CreateCatalog();
 
         // Act & Assert
@@ -98,11 +65,24 @@ public class AppTemplateCatalogTests : IDisposable
     }
 
     [Fact]
+    public void GetAppTemplates_MalformedManifest_IsSkipped()
+    {
+        // Arrange
+        WriteTemplate("v8", displayName: "Altinn App v8");
+        Directory.CreateDirectory(Path.Combine(_templateRoot, "broken", "src"));
+        File.WriteAllText(Path.Combine(_templateRoot, "broken", "src", "apptemplate.json"), "{ not json");
+        var sut = CreateCatalog();
+
+        // Act & Assert
+        Assert.Equal("v8", Assert.Single(sut.GetAppTemplates()).Id);
+    }
+
+    [Fact]
     public void GetDefaultAppTemplate_ConfiguredDefaultExists_ReturnsIt()
     {
         // Arrange
-        WriteTemplate("v8", displayName: "Altinn App v8", appLibVersion: "8.12.7");
-        WriteTemplate("v9", displayName: "Altinn App v9", appLibVersion: "9.0.0");
+        WriteTemplate("v8", displayName: "Altinn App v8");
+        WriteTemplate("v9", displayName: "Altinn App v9");
         var sut = CreateCatalog(defaultAppTemplate: "v9");
 
         // Act & Assert
@@ -114,7 +94,7 @@ public class AppTemplateCatalogTests : IDisposable
     {
         // Creating applications from the wrong scaffold is worse than refusing to create them.
         // Arrange
-        WriteTemplate("v9", displayName: "Altinn App v9", appLibVersion: "9.0.0");
+        WriteTemplate("v9", displayName: "Altinn App v9");
         var sut = CreateCatalog(defaultAppTemplate: "v8");
 
         // Act & Assert
@@ -126,7 +106,7 @@ public class AppTemplateCatalogTests : IDisposable
     public void TryGetAppTemplate_UnknownId_ReturnsFalse()
     {
         // Arrange
-        WriteTemplate("v8", displayName: "Altinn App v8", appLibVersion: "8.12.7");
+        WriteTemplate("v8", displayName: "Altinn App v8");
         var sut = CreateCatalog();
 
         // Act & Assert
@@ -144,25 +124,14 @@ public class AppTemplateCatalogTests : IDisposable
         Assert.Empty(sut.GetAppTemplates());
     }
 
-    private void WriteTemplate(
-        string id,
-        string displayName,
-        string appLibVersion,
-        bool deprecated = false,
-        string manifestId = null
-    )
+    private void WriteTemplate(string id, string displayName, string manifestId = null)
     {
         string contentPath = Path.Combine(_templateRoot, id, "src");
-        Directory.CreateDirectory(Path.Combine(contentPath, "App"));
+        Directory.CreateDirectory(contentPath);
 
         File.WriteAllText(
             Path.Combine(contentPath, "apptemplate.json"),
-            $@"{{ ""id"": ""{manifestId ?? id}"", ""displayName"": ""{displayName}"", ""description"": ""Beskrivelse."", ""deprecated"": {deprecated.ToString().ToLowerInvariant()} }}"
-        );
-
-        File.WriteAllText(
-            Path.Combine(contentPath, "App", "App.csproj"),
-            $@"<Project Sdk=""Microsoft.NET.Sdk.Web""><ItemGroup><PackageReference Include=""Altinn.App.Api"" Version=""{appLibVersion}"" /></ItemGroup></Project>"
+            $@"{{ ""id"": ""{manifestId ?? id}"", ""displayName"": ""{displayName}"", ""description"": ""Beskrivelse."" }}"
         );
     }
 

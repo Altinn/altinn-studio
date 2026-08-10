@@ -299,20 +299,8 @@ describe('NewApplicationForm', () => {
 });
 
 const mockAppTemplates: AppTemplate[] = [
-  {
-    id: 'v8',
-    displayName: 'Altinn App v8',
-    description: 'Stabil versjon.',
-    deprecated: false,
-    appLibVersion: '8.12.7',
-  },
-  {
-    id: 'v9',
-    displayName: 'Altinn App v9 (preview)',
-    description: 'Under utvikling.',
-    deprecated: false,
-    appLibVersion: '9.0.0-preview.3',
-  },
+  { id: 'v8', displayName: 'Altinn App v8', description: 'Stabil versjon.' },
+  { id: 'v9', displayName: 'Altinn App v9 (preview)', description: 'Under utvikling.' },
 ];
 
 function renderNewApplicationForm(

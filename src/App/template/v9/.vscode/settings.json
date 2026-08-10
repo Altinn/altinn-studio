@@ -1,6 +1,0 @@
-{
-    "dotnet-test-explorer.testProjectPath": "**/*Tests*.csproj",
-    "json.schemaDownload.trustedDomains": {
-        "https://altinncdn.no/": true
-    }
-}

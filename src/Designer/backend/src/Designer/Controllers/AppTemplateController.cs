@@ -23,7 +23,7 @@ public class AppTemplateController : ControllerBase
     }
 
     /// <summary>
-    /// Lists the available app scaffolds, usable ones first.
+    /// Lists the available app scaffolds.
     /// </summary>
     [HttpGet]
     public ActionResult<IReadOnlyList<AppTemplate>> GetAppTemplates()

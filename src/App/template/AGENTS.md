@@ -15,42 +15,43 @@ template-generated app still builds.
 
 ## Selectable templates
 
-There is one complete, independently buildable template per selectable version. They are full copies on
-purpose — they will keep diverging, and each must build and be validated on its own. Do not factor shared
-parts out into a base/overlay.
+One complete, independently buildable template per selectable version, in `<id>/src`. The scaffolds are
+full copies on purpose — they will keep diverging, and each must build and be validated on its own. Do
+not factor shared *scaffold* parts out into a base/overlay.
 
-| Folder | Altinn.App | TFM       | Notes                                                     |
-| ------ | ---------- | --------- | --------------------------------------------------------- |
-| `v8`   | 8.x        | `net8.0`  | **Configured default** for new applications.              |
-| `v9`   | 9.x        | `net10.0` | Produced by `studioctl app upgrade v9`, not by hand.      |
+Build tooling (`Directory.Build.props`, CSharpier config, `.config`, `.vscode`) is shared at this level
+instead. MSBuild and CSharpier search upwards, and none of it is inside `src/`, so it never reaches a
+generated app. Move a file into `<id>/` only when the versions genuinely need different tooling.
 
-Each carries an `src/apptemplate.json` manifest that names it for the dashboard picker:
+| Folder | Altinn.App | TFM       |
+| ------ | ---------- | --------- |
+| `v8`   | 8.x        | `net8.0`  |
+| `v9`   | 9.x        | `net10.0` |
+
+Each carries an `src/apptemplate.json` naming it for the dashboard picker. The folder name is the id; a
+differing `id` in the manifest is logged and ignored.
 
 ```json
-{ "id": "v8", "displayName": "Altinn App v8", "description": "…", "deprecated": false }
+{ "id": "v8", "displayName": "Altinn App v8", "description": "…" }
 ```
 
+**v9 is generated, not hand-written.** It started as a copy of `v8` and was migrated with
+`studioctl app upgrade v9 -p src/App/template/v9/src`. Redo it that way when the `v8` baseline changes.
+
 **Adding a version is a folder drop.** Copy a folder, edit its manifest and `App.csproj`, add the id to
-the CI matrices and Renovate rules — no backend change. The folder name is the id; a differing `id` in
-the manifest is logged and ignored.
+the CI matrices and Renovate rules. No backend change — the Designer discovers them.
 
 Users pick the template when creating an application (`appTemplate` on the create-app request, listed by
-`GET designer/api/apptemplates`). Without a choice the Designer uses
-`GeneralSettings.DefaultAppTemplate`. `GeneralSettings.TemplateLocation` points at the folder *holding*
-the templates and per-template paths are derived, so there are no `AppLocation` / `DeploymentLocation`
-settings any more. Configured in `src/Designer/compose.yaml`, `charts/altinn-designer/values.yaml` and
-`appsettings.Development.json`.
+`GET designer/api/apptemplates`, behind the `appTemplates` feature flag). Without a choice the Designer
+uses `GeneralSettings.DefaultAppTemplate`. `GeneralSettings.TemplateLocation` points at the folder
+*holding* the templates and per-template paths are derived from it.
 
-The Designer image ships every template: `src/Designer/Dockerfile` runs one release-rsync stage per
-folder into `Templates/AspNet/<id>/src`. The `<id>/src` shape is deliberate — the image mirrors this
-folder exactly, so a locally run Designer can point straight at `src/App/template`.
+`src/Designer/Dockerfile` runs one release-rsync stage per folder into `Templates/AspNet/<id>/src`. The
+`<id>/src` shape makes the image mirror this folder exactly, so a locally run Designer can point straight
+at `src/App/template`.
 
-> **v9 is generated, not hand-written.** It started as a byte-for-byte copy of `v8` and was then
-> migrated with `studioctl app upgrade v9 -p src/App/template/v9/src`. Redo it that way when the `v8`
-> baseline changes, so the template stays in step with what the tool does to real apps.
-
-> **v8 needs a sunset date.** A frozen duplicate still has to be security-patched (base images, CVE
-> bumps) and doubles the CI matrix. Once new applications default to `v9`, delete `v8`.
+> **v8 needs a sunset date.** A frozen duplicate still has to be security-patched and doubles the CI
+> matrix. Once new applications default to `v9`, delete `v8`.
 
 ## What a template contains
 

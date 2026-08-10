@@ -5,14 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Xml;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -27,8 +24,6 @@ public class AppTemplateCatalog : IAppTemplateCatalog
     /// </summary>
     private const string ContentFolderName = "src";
 
-    private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
-
     private readonly GeneralSettings _generalSettings;
     private readonly ILogger<AppTemplateCatalog> _logger;
     private readonly Lazy<IReadOnlyList<AppTemplate>> _appTemplates;
@@ -41,7 +36,6 @@ public class AppTemplateCatalog : IAppTemplateCatalog
         _generalSettings = generalSettings.Value;
         _logger = logger;
 
-        // The templates ship inside the Designer image, so they cannot change while the process runs.
         _appTemplates = new Lazy<IReadOnlyList<AppTemplate>>(DiscoverAppTemplates);
     }
 
@@ -88,31 +82,22 @@ public class AppTemplateCatalog : IAppTemplateCatalog
             return [];
         }
 
-        List<AppTemplate> appTemplates = [];
-
-        foreach (string templateFolder in Directory.EnumerateDirectories(templateRoot))
-        {
-            AppTemplate? appTemplate = ReadAppTemplate(templateFolder);
-            if (appTemplate is not null)
-            {
-                appTemplates.Add(appTemplate);
-            }
-        }
-
-        AppTemplate[] ordered =
+        AppTemplate[] appTemplates =
         [
-            .. appTemplates
-                .OrderBy(template => template.Deprecated)
-                .ThenBy(template => template.Id, StringComparer.Ordinal),
+            .. Directory
+                .EnumerateDirectories(templateRoot)
+                .Select(ReadAppTemplate)
+                .OfType<AppTemplate>()
+                .OrderBy(template => template.Id, StringComparer.Ordinal),
         ];
 
         _logger.LogInformation(
             "Discovered {AppTemplateCount} app templates: {AppTemplateIds}",
-            ordered.Length,
-            string.Join(", ", ordered.Select(template => template.Id))
+            appTemplates.Length,
+            string.Join(", ", appTemplates.Select(template => template.Id))
         );
 
-        return ordered;
+        return appTemplates;
     }
 
     private AppTemplate? ReadAppTemplate(string templateFolder)
@@ -156,9 +141,7 @@ public class AppTemplateCatalog : IAppTemplateCatalog
                 Id = folderName,
                 DisplayName = string.IsNullOrWhiteSpace(manifest.DisplayName) ? folderName : manifest.DisplayName,
                 Description = manifest.Description ?? string.Empty,
-                Deprecated = manifest.Deprecated,
                 RootPath = contentPath,
-                AppLibSemanticVersion = ReadAppLibVersion(contentPath),
             };
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
@@ -166,33 +149,6 @@ public class AppTemplateCatalog : IAppTemplateCatalog
             _logger.LogError(e, "Failed to read app template manifest {ManifestPath}. Skipping.", manifestPath);
             return null;
         }
-    }
-
-    private SemanticVersion? ReadAppLibVersion(string contentPath)
-    {
-        string appProjectPath = Path.Combine(contentPath, "App", "App.csproj");
-
-        try
-        {
-            if (
-                PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
-                    appProjectPath,
-                    s_appLibPackageNames,
-                    out SemanticVersion version
-                )
-            )
-            {
-                return version;
-            }
-
-            _logger.LogWarning("No Altinn.App package reference found in {AppProjectPath}.", appProjectPath);
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or XmlException)
-        {
-            _logger.LogWarning(e, "Failed to read {AppProjectPath}.", appProjectPath);
-        }
-
-        return null;
     }
 
     private sealed class AppTemplateManifest
@@ -205,8 +161,5 @@ public class AppTemplateCatalog : IAppTemplateCatalog
 
         [JsonPropertyName("description")]
         public string? Description { get; set; }
-
-        [JsonPropertyName("deprecated")]
-        public bool Deprecated { get; set; }
     }
 }
