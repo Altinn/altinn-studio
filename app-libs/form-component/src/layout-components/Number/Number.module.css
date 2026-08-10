@@ -1,0 +1,37 @@
+.numberComponent {
+  display: flex;
+  flex-grow: 0;
+  max-width: 100%;
+  flex-basis: 100%;
+  /* Label.fieldWrapper supplied this gap before the move */
+  gap: var(--ds-size-2);
+}
+
+.label span {
+  font-size: 16px;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.labelWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+  align-items: flex-start;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.labelContent {
+  word-break: break-word;
+}

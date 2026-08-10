@@ -14,6 +14,7 @@ export * from './ImageUpload';
 export * from './Image';
 export * from './InstanceInformation';
 export * from './Link';
+export * from './Number';
 export * from './Paragraph';
 export * from './PDFPreviewButton';
 export * from './PrintButton';
