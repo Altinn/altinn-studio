@@ -52,6 +52,8 @@ func TestRunWorkflow_InvalidBaseBranch(t *testing.T) {
 
 			err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
 				Component:  "studioctl",
+				Version:    "v1.2.3-preview.1",
+				Commit:     "0123456789abcdef",
 				BaseBranch: tt.baseBranch,
 				DryRun:     true,
 			}, internal.NopLogger{})
@@ -64,6 +66,66 @@ func TestRunWorkflow_InvalidBaseBranch(t *testing.T) {
 		})
 	}
 }
+
+func TestRunWorkflow_RejectsMismatchedCommit(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, triggerPlanChangelog)
+	t.Chdir(repo)
+	git := internal.NewGitCLI()
+
+	err := internal.RunWorkflowWithDeps(t.Context(), internal.WorkflowRequest{
+		Component:  "studioctl",
+		Version:    "v1.2.3-preview.1",
+		Commit:     "unexpected",
+		BaseBranch: "main",
+	}, git, &fakeGH{}, &fakeBuilder{}, internal.NopLogger{})
+	if err == nil || !strings.Contains(err.Error(), "current HEAD does not match release commit") {
+		t.Fatalf("RunWorkflowWithDeps() error = %v, want commit mismatch", err)
+	}
+}
+
+func TestRunWorkflow_UsesPlannedBranchFromDetachedCommit(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, triggerPlanChangelog)
+	runGitCmd(t, repo, "checkout", "--detach")
+	t.Chdir(repo)
+
+	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
+		Component:  "studioctl",
+		Version:    "v1.2.3-preview.1",
+		BaseBranch: "main",
+		DryRun:     true,
+		Draft:      true,
+	})
+	if err != nil {
+		t.Fatalf("RunWorkflowWithDeps() error = %v", err)
+	}
+}
+
+func TestRunWorkflow_RejectsVersionFromWrongBranch(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, triggerPlanChangelog)
+	t.Chdir(repo)
+	git := internal.NewGitCLI()
+
+	err := internal.RunWorkflowWithDeps(t.Context(), internal.WorkflowRequest{
+		Component:  "studioctl",
+		Version:    "v1.2.3",
+		Commit:     revParseRef(t, repo, "HEAD"),
+		BaseBranch: "main",
+	}, git, &fakeGH{}, &fakeBuilder{}, internal.NopLogger{})
+	if err == nil || !strings.Contains(err.Error(), "must release from release/studioctl/v1.2") {
+		t.Fatalf("RunWorkflowWithDeps() error = %v, want branch mismatch", err)
+	}
+}
+
+const triggerPlanChangelog = `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.1] - 2025-01-01
+
+### Added
+
+- Test release
+`
 
 func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, `# Changelog
@@ -83,9 +145,14 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 - Old preview notes
 `)
 	t.Chdir(repo)
+	resolved, err := internal.ResolveWorkflowVersion("studioctl", "main", repo)
+	if err != nil {
+		t.Fatalf("ResolveWorkflowVersion() error = %v", err)
+	}
 
-	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
+	err = runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
 		Component:             "studioctl",
+		Version:               resolved,
 		BaseBranch:            "main",
 		DryRun:                true,
 		Draft:                 true,
@@ -145,9 +212,14 @@ func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
 `)
 	createReleaseBranch(t, repo, "release/studioctl/v1.0")
 	t.Chdir(repo)
+	resolved, err := internal.ResolveWorkflowVersion("studioctl", "release/studioctl/v1.0", repo)
+	if err != nil {
+		t.Fatalf("ResolveWorkflowVersion() error = %v", err)
+	}
 
-	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
+	err = runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
 		Component:             "studioctl",
+		Version:               resolved,
 		BaseBranch:            "release/studioctl/v1.0",
 		DryRun:                true,
 		Draft:                 true,
@@ -186,6 +258,7 @@ func TestRunWorkflow_NonDraftReleaseNotesExcludeFullChangelog(t *testing.T) {
 
 	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
 		Component:             "studioctl",
+		Version:               "v1.2.0-preview.1",
 		BaseBranch:            "main",
 		DryRun:                true,
 		Draft:                 false,
@@ -216,12 +289,7 @@ func TestRunWorkflow_NoReleasedVersions(t *testing.T) {
 `)
 	t.Chdir(repo)
 
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
-		Component:             "studioctl",
-		BaseBranch:            "main",
-		DryRun:                true,
-		UnsafeSkipBranchCheck: true,
-	}, internal.NopLogger{})
+	_, err := internal.ResolveWorkflowVersion("studioctl", "main", repo)
 	if err == nil {
 		t.Fatal("RunWorkflow() expected error, got nil")
 	}
@@ -244,12 +312,7 @@ func TestRunWorkflow_NoMatchingReleaseLine(t *testing.T) {
 	createReleaseBranch(t, repo, "release/studioctl/v2.0")
 	t.Chdir(repo)
 
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
-		Component:             "studioctl",
-		BaseBranch:            "release/studioctl/v2.0",
-		DryRun:                true,
-		UnsafeSkipBranchCheck: true,
-	}, internal.NopLogger{})
+	_, err := internal.ResolveWorkflowVersion("studioctl", "release/studioctl/v2.0", repo)
 	if err == nil {
 		t.Fatal("RunWorkflow() expected error, got nil")
 	}
@@ -449,6 +512,13 @@ func runWorkflowWithFakeBuilder(t *testing.T, req internal.WorkflowRequest) erro
 		internal.WithDryRun(req.DryRun),
 		internal.WithLogger(internal.NopLogger{}),
 	)
+	if req.Commit == "" {
+		commit, err := git.HeadCommit(t.Context())
+		if err != nil {
+			t.Fatalf("resolve test HEAD: %v", err)
+		}
+		req.Commit = commit
+	}
 
 	if err := internal.RunWorkflowWithDeps(
 		t.Context(),

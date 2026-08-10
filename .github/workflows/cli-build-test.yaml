@@ -41,7 +41,14 @@ jobs:
       - name: Build release artifacts via releaser dry-run
         working-directory: src/tools/releaser
         run: |
-          go run . workflow --component studioctl --base-branch main --dry-run --skip-branch-check
+          release_version="$(go run . resolve-version --component studioctl --base-branch main)"
+          release_commit="$(git rev-parse HEAD)"
+          go run . workflow \
+            --component studioctl \
+            --version "$release_version" \
+            --commit "$release_commit" \
+            --base-branch main \
+            --dry-run
 
       - name: Upload release artifacts
         if: always()

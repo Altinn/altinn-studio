@@ -6,6 +6,8 @@ var (
 	errContextRequired        = errors.New("context is required")
 	errComponentRequired      = errors.New("component is required")
 	errBaseBranchRequired     = errors.New("base branch is required")
+	errCommitRequired         = errors.New("commit SHA is required")
+	errCommitMismatch         = errors.New("current HEAD does not match release commit")
 	errRepoRootRequired       = errors.New("repo root is required")
 	errGitRequired            = errors.New("git client is required")
 	errGitHubRequired         = errors.New("github client is required")

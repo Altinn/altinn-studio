@@ -13,7 +13,7 @@ import (
 	semver "altinn.studio/releaser/internal/version"
 )
 
-var releaseBaseBranchPattern = regexp.MustCompile(`^release/([a-z0-9-]+)/v(\d+)\.(\d+)$`)
+var releaseBaseBranchPattern = regexp.MustCompile(`^release/([a-z0-9-]+)/v(0|[1-9]\d*)\.(0|[1-9]\d*)$`)
 
 var (
 	errBaseBranchFormat          = errors.New("base branch must be main or release/<component>/vX.Y")
@@ -56,7 +56,20 @@ func resolveWorkflowVersion(component *Component, baseBranch, repoRoot string) (
 	if err != nil {
 		return "", fmt.Errorf("parse changelog: %w", err)
 	}
+	return resolveWorkflowVersionFromChangelog(component, baseBranch, cl)
+}
 
+func resolveWorkflowVersionFromChangelog(
+	component *Component,
+	baseBranch string,
+	cl *changelog.Changelog,
+) (string, error) {
+	if component == nil {
+		return "", errComponentRequired
+	}
+	if cl == nil {
+		return "", errChangelogNil
+	}
 	selector, err := parseBaseBranchSelector(component.Name, baseBranch)
 	if err != nil {
 		return "", err
@@ -79,6 +92,34 @@ func resolveWorkflowVersion(component *Component, baseBranch, repoRoot string) (
 	}
 
 	return version.String(), nil
+}
+
+func validateWorkflowReleasePlan(component *Component, baseBranch, releaseVersion string) error {
+	if component == nil {
+		return errComponentRequired
+	}
+	if _, err := parseBaseBranchSelector(component.Name, baseBranch); err != nil {
+		return err
+	}
+	parsedVersion, err := semver.Parse(normalizeVersionPrefix(releaseVersion))
+	if err != nil {
+		return fmt.Errorf("parse release version: %w", err)
+	}
+
+	expectedBranch := mainBranch
+	if !parsedVersion.IsPrerelease {
+		expectedBranch = component.ReleaseBranch(parsedVersion.Major, parsedVersion.Minor)
+	}
+	if baseBranch != expectedBranch {
+		return fmt.Errorf(
+			"%w: version %s must release from %s, got %s",
+			errBaseBranchMismatch,
+			parsedVersion.String(),
+			expectedBranch,
+			baseBranch,
+		)
+	}
+	return nil
 }
 
 func parseBaseBranchSelector(component, baseBranch string) (baseBranchSelector, error) {

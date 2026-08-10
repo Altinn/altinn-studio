@@ -8,26 +8,22 @@ import (
 // WorkflowRequest describes the inputs for the release workflow.
 type WorkflowRequest struct {
 	Component             string // Component name (e.g., "studioctl")
-	BaseBranch            string // Derive version from changelog for this base branch
+	Version               string // Exact promoted version (e.g., "v1.2.3-preview.1")
+	Commit                string // Exact release commit expected at HEAD
+	BaseBranch            string // Canonical branch containing Commit
 	DryRun                bool
 	Draft                 bool
 	UnsafeSkipBranchCheck bool
 }
 
 type workflowRunDeps struct {
-	component *Component
-	git       GitRunner
-	gh        GitHubRunner
-	repoRoot  string
+	git GitRunner
+	gh  GitHubRunner
 }
 
 // RunWorkflow executes the release workflow.
 func RunWorkflow(ctx context.Context, req WorkflowRequest, log Logger) error {
-	deps, err := buildWorkflowRunDeps(ctx, req, log)
-	if err != nil {
-		return err
-	}
-
+	deps := buildWorkflowRunDeps(req, log)
 	return RunWorkflowWithDeps(ctx, req, deps.git, deps.gh, nil, log)
 }
 
@@ -52,30 +48,43 @@ func RunWorkflowWithDeps(
 	if req.BaseBranch == "" {
 		return errBaseBranchRequired
 	}
+	if req.Version == "" {
+		return errReleaseVersionRequired
+	}
+	if req.Commit == "" {
+		return errCommitRequired
+	}
 	if git == nil {
 		return errGitRequired
 	}
 	if gh == nil {
 		return errGitHubRequired
 	}
-
 	component, err := GetComponent(req.Component)
 	if err != nil {
 		return fmt.Errorf("get component: %w", err)
 	}
+	if planErr := validateWorkflowReleasePlan(component, req.BaseBranch, req.Version); planErr != nil {
+		return fmt.Errorf("validate release plan: %w", planErr)
+	}
+
 	repoRoot, err := git.RepoRoot(ctx)
 	if err != nil {
 		return fmt.Errorf("get repo root: %w", err)
 	}
 
-	version, err := resolveWorkflowVersion(component, req.BaseBranch, repoRoot)
+	head, err := git.HeadCommit(ctx)
 	if err != nil {
-		return fmt.Errorf("resolve version: %w", err)
+		return fmt.Errorf("resolve current HEAD: %w", err)
+	}
+	if head != req.Commit {
+		return fmt.Errorf("%w: got %s, want %s", errCommitMismatch, head, req.Commit)
 	}
 
 	cfg := WorkflowConfig{
 		Component:             req.Component,
-		Version:               version,
+		Version:               req.Version,
+		BaseBranch:            req.BaseBranch,
 		ChangelogPath:         "",
 		OutputDir:             "",
 		RepoRoot:              repoRoot,
@@ -93,12 +102,7 @@ func RunWorkflowWithDeps(
 	return nil
 }
 
-func buildWorkflowRunDeps(ctx context.Context, req WorkflowRequest, log Logger) (workflowRunDeps, error) {
-	component, err := GetComponent(req.Component)
-	if err != nil {
-		return workflowRunDeps{}, fmt.Errorf("get component: %w", err)
-	}
-
+func buildWorkflowRunDeps(req WorkflowRequest, log Logger) workflowRunDeps {
 	git := NewGitCLI(
 		WithDryRun(req.DryRun),
 		WithLogger(log),
@@ -108,15 +112,8 @@ func buildWorkflowRunDeps(ctx context.Context, req WorkflowRequest, log Logger) 
 		WithGHLogger(log),
 	)
 
-	repoRoot, err := git.RepoRoot(ctx)
-	if err != nil {
-		return workflowRunDeps{}, fmt.Errorf("get repo root: %w", err)
-	}
-
 	return workflowRunDeps{
-		component: component,
-		git:       git,
-		gh:        gh,
-		repoRoot:  repoRoot,
-	}, nil
+		git: git,
+		gh:  gh,
+	}
 }
