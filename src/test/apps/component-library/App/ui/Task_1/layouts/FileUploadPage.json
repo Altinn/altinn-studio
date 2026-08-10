@@ -102,7 +102,6 @@
       },
       {
         "id": "NavigationButtons-L67e32",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

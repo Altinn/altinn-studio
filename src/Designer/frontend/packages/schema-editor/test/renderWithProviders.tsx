@@ -26,6 +26,8 @@ export const renderWithProviders =
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
       name,
+      prefillConfig: {},
+      savePrefillConfig: jest.fn(),
       ...appContextProps,
     };
 
@@ -48,6 +50,8 @@ export const renderWithProviders =
         selectedTypePointer: null,
         setSelectedTypePointer: jest.fn(),
         name,
+        prefillConfig: {},
+        savePrefillConfig: jest.fn(),
         ...rerenderAppContextProps,
       };
 

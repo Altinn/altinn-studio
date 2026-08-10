@@ -114,6 +114,45 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingPredecessor_WarnsThatRemovalIsRequired()
+    {
+        // Not a "may be redundant" case: the v9 eFormidling service task waits for the delivery
+        // confirmation itself, and the Altinn Events reminder that used to move the process past the
+        // feedback task is gone - so a trailing feedback task strands the instance.
+        var eFormidling = Analyze(
+            Process(
+                ServiceTask("Task_Send", "eFormidling"),
+                Task("Task_Wait", "feedback"),
+                Flow("f1", "Task_Send", "Task_Wait")
+            )
+        );
+
+        var warning = Assert.Single(eFormidling.Warnings);
+        Assert.Contains("must be removed", warning, StringComparison.Ordinal);
+        Assert.Contains("indefinitely", warning, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OtherServiceTaskPredecessor_WarnsThatReviewIsNeeded()
+    {
+        using var app = new TempAppFolder();
+        app.Write(
+            "config/process/process.bpmn",
+            Process(
+                ServiceTask("Task_Archive", "fiksArkiv"),
+                Task("Task_Wait", "feedback"),
+                Flow("f1", "Task_Archive", "Task_Wait")
+            )
+        );
+
+        var result = new FeedbackAfterServiceTaskAdvisor(app.Root).Analyze();
+
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("may be a redundant", warning, StringComparison.Ordinal);
+        Assert.DoesNotContain("must be removed", warning, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MultipleFeedbackTasks_WarnPerPair()
     {
         var result = Analyze(

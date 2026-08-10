@@ -66,7 +66,6 @@
       {
         "id": "Table-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

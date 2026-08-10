@@ -350,7 +350,6 @@ describe('formLayoutUtils', () => {
         'id',
         'itemType',
         'onClickAction',
-        'showBackButton',
         'textResourceBindings',
         'type',
         'pageIndex',
@@ -392,15 +391,17 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
-      'Adds a new component to the layout when the given type is %s',
-      (componentType) => {
-        const id = 'newItemId';
-        const layout = addItemOfType(mockInternal, componentType, id);
-        expect(layout.components[id].itemType).toEqual('COMPONENT');
-        expect(layout.components[id].type).toEqual(componentType);
-      },
-    );
+    // The shared enum includes the pre-v9 OrganisationLookup name used by ux-editor-v4.
+    it.each(
+      Object.values(ComponentType).filter(
+        (v) => v !== ComponentType.OrganisationLookup && !containerComponentTypes.includes(v),
+      ),
+    )('Adds a new component to the layout when the given type is %s', (componentType) => {
+      const id = 'newItemId';
+      const layout = addItemOfType(mockInternal, componentType, id);
+      expect(layout.components[id].itemType).toEqual('COMPONENT');
+      expect(layout.components[id].type).toEqual(componentType);
+    });
 
     it.each(containerComponentTypes)(
       'Adds a new container to the layout when the given type is %s',

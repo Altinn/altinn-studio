@@ -141,7 +141,7 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetArchiveDocumentMetadata(Mock.Of<Instance>());
+        var result = await fixture.FiksArkivConfigResolver.GetArchiveDocumentMetadata(Mock.Of<IInstanceDataAccessor>());
 
         // Assert
         Assert.Null(result);
@@ -183,7 +183,7 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetArchiveDocumentMetadata(Mock.Of<Instance>());
+        var result = await fixture.FiksArkivConfigResolver.GetArchiveDocumentMetadata(Mock.Of<IInstanceDataAccessor>());
 
         // Assert
         Assert.Equal(systemId, result?.SystemId);
@@ -250,7 +250,7 @@ public class FiksArkivConfigResolverTest
             );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetArchiveDocumentMetadata(instance);
+        var result = await fixture.FiksArkivConfigResolver.GetArchiveDocumentMetadata(instanceDataAccessorMock.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -271,7 +271,9 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var ex = await Record.ExceptionAsync(() => fixture.FiksArkivConfigResolver.GetRecipient(Mock.Of<Instance>()));
+        var ex = await Record.ExceptionAsync(() =>
+            fixture.FiksArkivConfigResolver.GetRecipient(Mock.Of<IInstanceDataAccessor>())
+        );
 
         // Assert
         Assert.IsType<FiksArkivConfigurationException>(ex);
@@ -307,7 +309,7 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetRecipient(Mock.Of<Instance>());
+        var result = await fixture.FiksArkivConfigResolver.GetRecipient(Mock.Of<IInstanceDataAccessor>());
 
         // Assert
         Assert.NotNull(result);
@@ -318,18 +320,17 @@ public class FiksArkivConfigResolverTest
     }
 
     [Fact]
-    public async Task GetRecipient_ResolvesCorrectly_BoundValues()
+    public async Task GetRecipient_WithDataAccessor_ResolvesBoundValuesFromAccessor()
     {
-        // Arrange
         var account = Guid.NewGuid();
         var model = new
         {
             recipient = new
             {
                 accountId = account.ToString(),
-                identifier = "fancy-identifier-123",
-                name = "The name of the recipient",
-                orgNumber = "001122334455",
+                identifier = "accessor-identifier",
+                name = "Accessor Recipient",
+                orgNumber = "998877665",
             },
         };
         var modelDataType = new DataType { Id = "model" };
@@ -365,7 +366,7 @@ public class FiksArkivConfigResolverTest
 
         fixture
             .LayoutStateInitializerMock.Setup(x =>
-                x.Init(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
+                x.Init(instanceDataAccessorMock.Object, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>())
             )
             .ReturnsAsync(
                 new LayoutEvaluatorState(
@@ -376,10 +377,10 @@ public class FiksArkivConfigResolverTest
                 )
             );
 
-        // Act
-        var result = await fixture.FiksArkivConfigResolver.GetRecipient(instance);
+        var resolver = Assert.IsType<FiksArkivConfigResolver>(fixture.FiksArkivConfigResolver);
 
-        // Assert
+        var result = await resolver.GetRecipient(instanceDataAccessorMock.Object);
+
         Assert.NotNull(result);
         Assert.Equal(account, result.AccountId);
         Assert.Equal(model.recipient.identifier, result.Identifier);

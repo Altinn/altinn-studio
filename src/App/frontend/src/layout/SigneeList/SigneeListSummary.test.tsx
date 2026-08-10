@@ -14,21 +14,21 @@ import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 
-jest.mock('src/layout/SigneeList/api');
-jest.mock('react-router');
-jest.mock('src/utils/layout/useNodeItem');
-jest.mock('src/features/language/Lang');
-jest.mock('src/features/formBootstrap/FormBootstrap');
-jest.mock('src/utils/layout/hidden');
-jest.mock('src/core/contexts/TaskOverrides');
+vi.mock('src/layout/SigneeList/api');
+vi.mock('react-router');
+vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/features/language/Lang');
+vi.mock('src/features/formBootstrap/FormBootstrap');
+vi.mock('src/utils/layout/hidden');
+vi.mock('src/core/contexts/TaskOverrides');
 
 describe('SigneeListSummary', () => {
-  const mockedUseSigneeList = jest.mocked(useSigneeList);
-  const mockedUseLayoutLookups = jest.mocked(FormStore.bootstrap.useLayoutLookups);
-  const mockedUseTaskOverrides = jest.mocked(useTaskOverrides);
-  const mockedUseItemWhenType = jest.mocked(useItemWhenType);
-  const mockedUseItemFor = jest.mocked(useItemFor);
-  const mockedUseIsHidden = jest.mocked(useIsHidden);
+  const mockedUseSigneeList = vi.mocked(useSigneeList);
+  const mockedUseLayoutLookups = vi.mocked(FormStore.bootstrap.useLayoutLookups);
+  const mockedUseTaskOverrides = vi.mocked(useTaskOverrides);
+  const mockedUseItemWhenType = vi.mocked(useItemWhenType);
+  const mockedUseItemFor = vi.mocked(useItemFor);
+  const mockedUseIsHidden = vi.mocked(useIsHidden);
   const mockedItem: CompInternal<'SigneeList'> = {
     id: 'mock-id',
     type: 'SigneeList',
@@ -70,16 +70,16 @@ describe('SigneeListSummary', () => {
   }
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
-    jest.mocked(useParams).mockReturnValue({
+    vi.mocked(useParams).mockReturnValue({
       instanceOwnerPartyId: 'instanceOwnerPartyId',
       instanceGuid: 'instanceGuid',
       taskId: 'taskId',
     });
     mockNodeItem();
-    jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
-    jest.mocked(mockedUseIsHidden).mockReturnValue(false);
+    vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    vi.mocked(mockedUseIsHidden).mockReturnValue(false);
     mockedUseTaskOverrides.mockReturnValue({});
   });
 

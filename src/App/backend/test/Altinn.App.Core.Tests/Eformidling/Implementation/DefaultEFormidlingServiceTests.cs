@@ -4,11 +4,10 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -46,8 +45,12 @@ public class DefaultEFormidlingServiceTests
         [ModelDataType, FileAttachmentsDataType]
     );
 
-    private readonly record struct Fixture(IServiceProvider ServiceProvider, Instance Instance, Guid InstanceGuid)
-        : IAsyncDisposable
+    private readonly record struct Fixture(
+        IServiceProvider ServiceProvider,
+        Instance Instance,
+        Guid InstanceGuid,
+        Mock<IInstanceDataAccessor> DataAccessor
+    ) : IAsyncDisposable
     {
         public Mock<T> Mock<T>()
             where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
@@ -78,10 +81,8 @@ public class DefaultEFormidlingServiceTests
 
         var userTokenProvider = new Mock<IUserTokenProvider>(MockBehavior.Strict);
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
-        var dataClient = new Mock<IDataClient>(MockBehavior.Strict);
         var eFormidlingMetadata = new Mock<IEFormidlingMetadata>(MockBehavior.Strict);
         var eFormidlingReceivers = new Mock<IEFormidlingReceivers>(MockBehavior.Strict);
-        var eventClient = new Mock<IEventsClient>(MockBehavior.Loose);
         var appSettings = Options.Create(
             new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456" }
         );
@@ -142,6 +143,12 @@ public class DefaultEFormidlingServiceTests
                 ],
         };
 
+        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessor.Setup(a => a.Instance).Returns(instance);
+        dataAccessor
+            .Setup(a => a.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync(ReadOnlyMemory<byte>.Empty);
+
         appMetadata
             .Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(
@@ -162,34 +169,21 @@ public class DefaultEFormidlingServiceTests
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
         userTokenProvider.Setup(u => u.GetUserToken()).Returns("authz-token");
         eFormidlingReceivers
-            .Setup(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()))
+            .Setup(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()))
             .ReturnsAsync(new List<Receiver>());
         eFormidlingMetadata
-            .Setup(em => em.GenerateEFormidlingMetadata(instance))
+            .Setup(em => em.GenerateEFormidlingMetadata(dataAccessor.Object))
             .ReturnsAsync(() =>
             {
                 return (EFormidlingMetadataFilename, Stream.Null);
             });
-        dataClient
-            .Setup(x =>
-                x.GetBinaryData(
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(Stream.Null);
 
         setupEFormidlingClient?.Invoke(eFormidlingClient);
 
         services.TryAddTransient(_ => userTokenProvider.Object);
         services.TryAddTransient(_ => appMetadata.Object);
-        services.TryAddTransient(_ => dataClient.Object);
         services.TryAddTransient(_ => eFormidlingReceivers.Object);
         services.TryAddTransient(_ => eFormidlingMetadata.Object);
-        services.TryAddTransient(_ => eventClient.Object);
         services.TryAddTransient(_ => appSettings);
         services.TryAddTransient(_ => platformSettings);
         services.TryAddTransient(_ => eFormidlingClient.Object);
@@ -199,7 +193,7 @@ public class DefaultEFormidlingServiceTests
         services.TryAddTransient<IEFormidlingService, DefaultEFormidlingService>();
 
         var serviceProvider = services.BuildStrictServiceProvider();
-        return new(serviceProvider, instance, instanceGuid);
+        return new(serviceProvider, instance, instanceGuid, dataAccessor);
     }
 
     [Fact]
@@ -207,11 +201,11 @@ public class DefaultEFormidlingServiceTests
     {
         // Arrange
         await using var fixture = CreateFixture();
-        var (sp, instance, instanceGuid) = fixture;
+        var (sp, instance, instanceGuid, dataAccessor) = fixture;
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act
-        var result = defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
+        var result = defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert
         var expectedReqHeaders = new Dictionary<string, string>
@@ -224,31 +218,42 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
         fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
-        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()));
-        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance));
+        fixture
+            .Mock<IEFormidlingReceivers>()
+            .Verify(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()));
+        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(dataAccessor.Object));
+        dataAccessor.Verify(
+            a => a.GetBinaryData(It.IsAny<DataElementIdentifier>()),
+            Times.Exactly(instance.Data.Count)
+        );
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec =>
             ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), EFormidlingMetadataFilename, expectedReqHeaders)
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), $"{ModelDataType}.xml", expectedReqHeaders)
+            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), $"{ModelDataType}.xml", expectedReqHeaders)
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), "attachment.txt", expectedReqHeaders)
+            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), "attachment.txt", expectedReqHeaders)
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), "attachment-1.txt", expectedReqHeaders)
+            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), "attachment-1.txt", expectedReqHeaders)
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), "no-extension", expectedReqHeaders)
-        );
-        eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), FileAttachmentsDataType, expectedReqHeaders)
+            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), "no-extension", expectedReqHeaders)
         );
         eFormidlingClient.Verify(ec =>
             ec.UploadAttachment(
-                Stream.Null,
+                It.IsAny<Stream>(),
+                instanceGuid.ToString(),
+                FileAttachmentsDataType,
+                expectedReqHeaders
+            )
+        );
+        eFormidlingClient.Verify(ec =>
+            ec.UploadAttachment(
+                It.IsAny<Stream>(),
                 instanceGuid.ToString(),
                 $"{Path.GetFileNameWithoutExtension(EFormidlingMetadataFilename)}-1.xml",
                 expectedReqHeaders
@@ -256,7 +261,7 @@ public class DefaultEFormidlingServiceTests
         );
         eFormidlingClient.Verify(ec =>
             ec.UploadAttachment(
-                Stream.Null,
+                It.IsAny<Stream>(),
                 instanceGuid.ToString(),
                 $"{FileAttachmentsDataType}-{ModelDataType}.xml",
                 expectedReqHeaders
@@ -264,12 +269,8 @@ public class DefaultEFormidlingServiceTests
         );
 
         eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
-        fixture
-            .Mock<IEventsClient>()
-            .Verify(e => e.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance, null));
 
         eFormidlingClient.VerifyNoOtherCalls();
-        fixture.Mock<IEventsClient>().VerifyNoOtherCalls();
         fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
         fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
         fixture.Mock<IEFormidlingReceivers>().VerifyNoOtherCalls();
@@ -342,11 +343,11 @@ public class DefaultEFormidlingServiceTests
                     .ThrowsAsync(new Exception("XUnit expected exception"));
             }
         );
-        var (sp, instance, instanceGuid) = fixture;
+        var (sp, _, instanceGuid, dataAccessor) = fixture;
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act
-        var result = defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
+        var result = defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert
         var expectedReqHeaders = new Dictionary<string, string>
@@ -359,8 +360,10 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
         fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
-        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()));
-        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance));
+        fixture
+            .Mock<IEFormidlingReceivers>()
+            .Verify(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()));
+        fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(dataAccessor.Object));
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec =>
@@ -369,7 +372,6 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
 
         eFormidlingClient.VerifyNoOtherCalls();
-        fixture.Mock<IEventsClient>().VerifyNoOtherCalls();
         fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
         fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
         fixture.Mock<IEFormidlingReceivers>().VerifyNoOtherCalls();
@@ -416,11 +418,11 @@ public class DefaultEFormidlingServiceTests
             data: [],
             setupEFormidlingClient: static c => SetupDuplicateCreate(c, "opprettet")
         );
-        var (sp, instance, instanceGuid) = fixture;
+        var (sp, _, instanceGuid, dataAccessor) = fixture;
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act
-        await defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
+        await defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert - the existing unsent message is completed rather than left stuck
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
@@ -443,11 +445,11 @@ public class DefaultEFormidlingServiceTests
             data: [],
             setupEFormidlingClient: static c => SetupDuplicateCreate(c, "opprettet", "sendt", "levert")
         );
-        var (sp, instance, instanceGuid) = fixture;
+        var (sp, _, instanceGuid, dataAccessor) = fixture;
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act
-        await defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration);
+        await defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert - idempotent no-op: nothing is uploaded and nothing is re-sent
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
@@ -475,12 +477,12 @@ public class DefaultEFormidlingServiceTests
             data: [],
             setupEFormidlingClient: static c => SetupDuplicateCreate(c, "opprettet", "levetid_utlopt")
         );
-        var (sp, instance, _) = fixture;
+        var (sp, _, _, dataAccessor) = fixture;
         var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EformidlingDeliveryException>(() =>
-            defaultEformidlingService.SendEFormidlingShipment(instance, TestConfiguration)
+            defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration)
         );
         Assert.Contains("levetid_utlopt", exception.Message);
     }
@@ -496,6 +498,73 @@ public class DefaultEFormidlingServiceTests
     public void IsMessageAlreadyExistsError_matches_only_duplicate_errors(string message, bool expected)
     {
         Assert.Equal(expected, DefaultEFormidlingService.IsMessageAlreadyExistsError(new WebException(message)));
+    }
+
+    [Fact]
+    public async Task GetEFormidlingShipmentStatus_classifies_the_reported_statuses()
+    {
+        // Arrange
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: static c =>
+                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                    .ReturnsAsync(
+                        new Statuses
+                        {
+                            Content =
+                            [
+                                new Content { Status = "sendt" },
+                                new Content { Status = "levert", Description = "Levert til mottaker" },
+                            ],
+                        }
+                    )
+        );
+        var (sp, _, instanceGuid, dataAccessor) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act
+        var status = await defaultEformidlingService.GetEFormidlingShipmentStatus(
+            dataAccessor.Object,
+            TestConfiguration
+        );
+
+        // Assert - queried by the instance guid, which is the shipment id
+        Assert.Equal(EFormidlingDeliveryState.Delivered, status.State);
+        Assert.Equal("levert", status.Status);
+        Assert.Equal("Levert til mottaker", status.Description);
+        fixture
+            .Mock<IEFormidlingClient>()
+            .Verify(ec => ec.GetMessageStatusById(instanceGuid.ToString(), It.IsAny<Dictionary<string, string>>()));
+    }
+
+    [Fact]
+    public async Task GetEFormidlingShipmentStatus_sends_only_the_subscription_key()
+    {
+        // Arrange - the status read is a gateway read, not an operation on the instance's behalf, so
+        // it mints none of the tokens the send path needs. That matters: the poll runs from a
+        // workflow-engine callback, where there is no end user to borrow a token from.
+        Dictionary<string, string>? capturedHeaders = null;
+        await using var fixture = CreateFixture(
+            data: [],
+            setupEFormidlingClient: c =>
+                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                    .ReturnsAsync(new Statuses())
+                    .Callback<string, Dictionary<string, string>>((_, headers) => capturedHeaders = headers)
+        );
+        var (sp, _, _, dataAccessor) = fixture;
+        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
+
+        // Act
+        await defaultEformidlingService.GetEFormidlingShipmentStatus(dataAccessor.Object, TestConfiguration);
+
+        // Assert
+        Assert.NotNull(capturedHeaders);
+        Assert.Equal(
+            new Dictionary<string, string> { [General.SubscriptionKeyHeaderName] = "subscription-key" },
+            capturedHeaders
+        );
+        fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
+        fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
     }
 
     [Theory]

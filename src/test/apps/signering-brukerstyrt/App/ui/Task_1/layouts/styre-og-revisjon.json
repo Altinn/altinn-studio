@@ -77,7 +77,6 @@
       },
       {
         "id": "NavigationButtons-uebNGK",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       },
@@ -134,11 +133,11 @@
       },
       {
         "id": "org-nr-revisor",
-        "type": "OrganisationLookup",
+        "type": "OrganizationLookup",
         "hidden": ["equals", ["dataModel", "Revisor.HarRevisor"], "nei"],
         "dataModelBindings": {
-          "organisation_lookup_orgnr": "Revisor.Organisasjonsnummer",
-          "organisation_lookup_name": "Revisor.Navn"
+          "organization_lookup_orgnr": "Revisor.Organisasjonsnummer",
+          "organization_lookup_name": "Revisor.Navn"
         },
         "textResourceBindings": {
           "title": "styre-og-revisjon.Input-X4c6ij.title",

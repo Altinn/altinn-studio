@@ -10,10 +10,10 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-jest.mock('src/queries/queries', () => ({
-  ...jest.requireActual<typeof import('src/queries/queries')>('src/queries/queries'),
-  doProcessNext: jest.fn(),
-  doProcessResume: jest.fn(),
+vi.mock('src/queries/queries', async () => ({
+  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
+  doProcessNext: vi.fn(),
+  doProcessResume: vi.fn(),
 }));
 
 function getServiceTaskInstance(workflow?: IProcessWorkflow): IInstanceWithProcess {
@@ -49,8 +49,8 @@ async function renderServiceTask(workflow?: IProcessWorkflow, after?: IInstanceW
 
 describe('ServiceTaskFailed retry button', () => {
   beforeEach(() => {
-    jest.mocked(doProcessNext).mockReset();
-    jest.mocked(doProcessResume).mockReset();
+    vi.mocked(doProcessNext).mockReset();
+    vi.mocked(doProcessResume).mockReset();
   });
 
   it('retries a workflow failure owned by this service task via process/resume, not process/next', async () => {
@@ -70,7 +70,7 @@ describe('ServiceTaskFailed retry button', () => {
       { status: 'failed', targetTask: 'Task_Service', failure: { kind: 'stepFailed' } },
       settled,
     );
-    jest.mocked(doProcessResume).mockImplementation(async () => {
+    vi.mocked(doProcessResume).mockImplementation(async () => {
       markMutated();
       return { data: settled.process } as Awaited<ReturnType<typeof doProcessResume>>;
     });
@@ -91,9 +91,9 @@ describe('ServiceTaskFailed retry button', () => {
       targetTask: 'Task_Service',
       failure: { kind: 'stepFailed' },
     });
-    jest
-      .mocked(doProcessResume)
-      .mockImplementation(async () => ({ data: instance.process }) as Awaited<ReturnType<typeof doProcessResume>>);
+    vi.mocked(doProcessResume).mockImplementation(
+      async () => ({ data: instance.process }) as Awaited<ReturnType<typeof doProcessResume>>,
+    );
 
     await renderServiceTask({ status: 'failed', targetTask: 'Task_Service', failure: { kind: 'stepFailed' } });
 
@@ -108,7 +108,7 @@ describe('ServiceTaskFailed retry button', () => {
     // is NOT taken: the workflowFailure body is consumed by the state machine (refetch), the view
     // stays on the recoverable service task screen, and no raw backend detail reaches the citizen.
     const user = userEvent.setup();
-    jest.mocked(doProcessResume).mockImplementation(async () => {
+    vi.mocked(doProcessResume).mockImplementation(async () => {
       throw Object.assign(new Error('Request failed with status code 500'), {
         response: {
           status: 500,

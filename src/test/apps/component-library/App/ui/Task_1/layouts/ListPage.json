@@ -196,7 +196,6 @@
         },
         {
           "id": "ListPage-NavigationButtons",
-          "showBackButton": true,
           "textResourceBindings": {},
           "type": "NavigationButtons",
           "validateOnNext": {

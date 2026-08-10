@@ -105,6 +105,7 @@ function logIncludesComma(option: IOptionInternal) {
   );
 }
 
+// TODO: Remove when both dropdown and multiple select are migrated to app-libs/form-component, since this method has been ported there when moving dropdown.
 export function optionFilter(
   args: {
     label?: string;

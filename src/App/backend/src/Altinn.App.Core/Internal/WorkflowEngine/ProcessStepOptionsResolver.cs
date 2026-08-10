@@ -43,25 +43,42 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="operationId">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    public ProcessStepOptions? Resolve(string operationId, string? taskId, string? serviceTaskType)
+    /// <param name="serviceTaskStageName">
+    /// For a service-task pipeline stage: the stage's name. Null for the pipeline's conclusion.
+    /// Either way tier 3 is that one step's own options over the task's, field-wise — a stage's from
+    /// the builder's <c>Stage</c>, the conclusion's from its <c>Finally</c>.
+    /// </param>
+    public ProcessStepOptions? Resolve(
+        string operationId,
+        string? taskId,
+        string? serviceTaskType,
+        string? serviceTaskStageName = null
+    )
     {
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(operationId);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
             operationId,
             taskId,
-            serviceTaskType
+            serviceTaskType,
+            serviceTaskStageName
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
         ProcessStepRetryStrategy? retryStrategy =
             implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
+        TimeSpan? waitBudget = implementationOverride?.WaitBudget ?? commandDefault?.WaitBudget;
 
-        if (maxExecutionTime is null && retryStrategy is null)
+        if (maxExecutionTime is null && retryStrategy is null && waitBudget is null)
         {
             return null;
         }
 
-        var resolved = new ProcessStepOptions { MaxExecutionTime = maxExecutionTime, RetryStrategy = retryStrategy };
+        var resolved = new ProcessStepOptions
+        {
+            MaxExecutionTime = maxExecutionTime,
+            RetryStrategy = retryStrategy,
+            WaitBudget = waitBudget,
+        };
 
         // Validate the merged result: a misconfigured handler fails fast here (at enqueue) rather than
         // producing a degenerate timeout/retry loop in the engine. Startup validation catches the common
@@ -79,15 +96,39 @@ internal sealed class ProcessStepOptionsResolver
     private ProcessStepOptions? ResolveImplementationStepOptions(
         string operationId,
         string? taskId,
-        string? serviceTaskType
+        string? serviceTaskType,
+        string? serviceTaskStageName
     )
     {
         if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
-            return _appImplementationFactory
-                .GetAll<IServiceTask>()
-                .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase))
-                ?.StepOptions;
+            IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
+            if (serviceTask is null)
+            {
+                return null;
+            }
+
+            // Options declared for one step — a stage by name, or the conclusion — win field-wise
+            // over the task's own, mirroring how the merged result then wins over the command
+            // default in Resolve. A null stage name is the conclusion by construction.
+            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            ProcessStepOptions? stepOptions = serviceTaskStageName is not null
+                ? pipeline.FindStage(serviceTaskStageName)?.StepOptions
+                : pipeline.FinalStepOptions;
+            ProcessStepOptions? taskOptions = serviceTask.StepOptions;
+            if (stepOptions is null && taskOptions is null)
+            {
+                return null;
+            }
+
+            // Every field is listed deliberately: the merge is the only thing standing between a new
+            // ProcessStepOptions field and being silently dropped for service tasks.
+            return new ProcessStepOptions
+            {
+                MaxExecutionTime = stepOptions?.MaxExecutionTime ?? taskOptions?.MaxExecutionTime,
+                RetryStrategy = stepOptions?.RetryStrategy ?? taskOptions?.RetryStrategy,
+                WaitBudget = stepOptions?.WaitBudget ?? taskOptions?.WaitBudget,
+            };
         }
 
         if (operationId == OnTaskStartingHook.Key && taskId is not null)

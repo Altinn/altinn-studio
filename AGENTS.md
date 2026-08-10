@@ -91,6 +91,9 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
 
 ## Conventions across the repo
 
+- **Changelogs:** Changelog entries are release notes for product users. Describe only user-facing
+  functionality in clear language, and omit implementation details that do not affect product use.
+  Technical language is appropriate when it helps users understand or adopt the change.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`
   exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
   Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`

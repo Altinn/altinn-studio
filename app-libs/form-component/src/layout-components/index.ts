@@ -8,6 +8,7 @@ export * from './ButtonGroup';
 export * from './Date';
 export * from './Datepicker';
 export * from './Divider';
+export * from './Dropdown';
 export * from './Header';
 export * from './IFrame';
 export * from './ImageUpload';

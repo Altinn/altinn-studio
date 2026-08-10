@@ -123,16 +123,16 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         Assert.Equal(HttpStatusCode.BadRequest, retryResponse.StatusCode);
     }
 
-    // ── POST /dashboard/skip-backoff ──────────────────────────────────
+    // ── POST /dashboard/nudge ─────────────────────────────────────────
 
     [Fact]
-    public async Task SkipBackoff_NonExistentWorkflow_Returns404()
+    public async Task Nudge_NonExistentWorkflow_Returns404()
     {
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            "/dashboard/skip-backoff",
+            "/dashboard/nudge",
             new { workflowId = Guid.NewGuid(), @namespace = "nonexistent-ns" },
             TestContext.Current.CancellationToken
         );
@@ -142,7 +142,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
     }
 
     [Fact]
-    public async Task SkipBackoff_CompletedWorkflow_Returns409()
+    public async Task Nudge_CompletedWorkflow_Returns409()
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
@@ -156,7 +156,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            "/dashboard/skip-backoff",
+            "/dashboard/nudge",
             new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
             TestContext.Current.CancellationToken
         );
@@ -166,13 +166,13 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
     }
 
     [Fact]
-    public async Task SkipBackoff_InvalidPayload_Returns400()
+    public async Task Nudge_InvalidPayload_Returns400()
     {
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            "/dashboard/skip-backoff",
+            "/dashboard/nudge",
             new { notAWorkflowId = "hello" },
             TestContext.Current.CancellationToken
         );

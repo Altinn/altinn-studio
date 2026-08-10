@@ -1,14 +1,11 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
-import mockAxios from 'jest-mock-axios';
 
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavBar } from 'src/components/presentation/NavBar';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { PresentationType, ProcessTaskType } from 'src/types';
-
-afterEach(() => mockAxios.reset());
 
 interface RenderNavBarProps {
   currentPageId?: string;
@@ -43,7 +40,7 @@ describe('NavBar', () => {
   });
 
   it('should render close button', async () => {
-    jest.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location });
+    vi.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location });
 
     await render({
       hideCloseButton: false,

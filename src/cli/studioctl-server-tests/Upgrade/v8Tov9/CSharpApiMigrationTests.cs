@@ -21,6 +21,14 @@ public sealed class CSharpApiMigrationTests : IDisposable
     private static IEnumerable<string> Locations(MigrationResult result) =>
         result.Warnings.Where(static w => w.Contains(".cs:", StringComparison.Ordinal));
 
+    /// <summary>
+    /// The guidance summaries only, excluding the <c>path:line: symbol</c> location lines. Assertions that
+    /// a summary does or does not pair two ideas must use these: a summary and its locations are separate
+    /// elements, so searching all warnings for two substrings at once can never match.
+    /// </summary>
+    private static IEnumerable<string> Summaries(MigrationResult result) =>
+        result.Warnings.Where(static w => !w.Contains(".cs:", StringComparison.Ordinal));
+
     // --- RemovedTaskEventInterfaceDetector -------------------------------------------------------
 
     [Fact]
@@ -137,6 +145,97 @@ public sealed class CSharpApiMigrationTests : IDisposable
             w => w.Contains("MyServiceTask.cs:3") && w.Contains("ServiceTaskResult.Failed")
         );
         Assert.DoesNotContain(result.Warnings, w => w.Contains("MyServiceTask.cs:5"));
+    }
+
+    // --- RemovedEventsReceiveStackDetector -------------------------------------------------------
+
+    [Fact]
+    public void EventsReceiveStackDetector_FlagsHandlerImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyEventHandler.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyEventHandler : IEventHandler
+            {
+                public string EventType => "app.my-org.something-happened";
+                public Task<bool> ProcessEvent(CloudEvent cloudEvent) => Task.FromResult(true);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IEventHandler, MyEventHandler>();
+            builder.Services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+            builder.Services.AddSingleton<IEventSecretCodeProvider, MySecretCodeProvider>();
+            """
+        );
+        _app.Write(
+            "logic/MyReceiver.cs",
+            """
+            using Altinn.App.Api.Controllers;
+            public class MyReceiver : EventsReceiverController
+            {
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyEventHandler.cs") && w.Contains("MyEventHandler : IEventHandler")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventsSubscription"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventSecretCodeProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyReceiver.cs") && w.Contains("MyReceiver : EventsReceiverController")
+        );
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_DoesNotFlagEventPublishing()
+    {
+        _app.Write(
+            "logic/MyPublisher.cs",
+            """
+            using Altinn.App.Core.Internal.Events;
+            public class MyPublisher
+            {
+                private readonly IEventsClient _eventsClient;
+                public MyPublisher(IEventsClient eventsClient) => _eventsClient = eventsClient;
+                public Task Publish() => _eventsClient.AddEvent("app.my-org.something-happened", new Instance());
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
     }
 
     // --- LegacyEFormidlingCodeDetector -----------------------------------------------------------
@@ -1396,6 +1495,479 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.DoesNotContain("RequestedSendTime", migrated);
         Assert.Contains("CustomRecipients = [_recipient]", migrated);
+    }
+
+    // --- RemovedMaskinportenShimDetector ---------------------------------------------------------
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsRemovedProviderAndRegistration()
+    {
+        _app.Write(
+            "logic/TokenLookup.cs",
+            """
+            using Altinn.App.Core.Internal.Maskinporten;
+            public class TokenLookup
+            {
+                private readonly IMaskinportenTokenProvider _provider;
+                public Task<string> Fetch() => _provider.GetToken("some:scope");
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddMaskinportenJwkTokenProvider("my-secret");
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("TokenLookup.cs") && w.Contains("IMaskinportenTokenProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("AddMaskinportenJwkTokenProvider")
+        );
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsCertificateProviderAndLegacyEformidlingHandler()
+    {
+        _app.Write(
+            "logic/Certs.cs",
+            """
+            public class Certs : IX509CertificateProvider
+            {
+                public Task<X509Certificate2> GetCertificate() => Task.FromResult(_cert);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Certs.cs") && w.Contains("Certs : IX509CertificateProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler")
+        );
+
+        // The eFormidling handler is not replaced by the Maskinporten client, so it must carry its own
+        // guidance. Warnings are emitted as a summary line followed by separate location lines, so this
+        // asserts on the two summaries rather than looking for both strings in one element.
+        var summaries = Summaries(result).ToList();
+        Assert.Contains(
+            summaries,
+            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("AddEFormidlingServices2")
+        );
+        Assert.DoesNotContain(
+            summaries,
+            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("IMaskinportenClient")
+        );
+    }
+
+    /// <summary>
+    /// <c>EformidlingStatusCheckEventHandler2</c> was public in v8 and is internal in v9, so an app naming
+    /// it fails to compile (CS0122) and must be told - it is not a surviving public API.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_FlagsTheNowInternalStatusCheckHandler()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler2>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler2")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("AddEFormidlingServices2"));
+    }
+
+    /// <summary>
+    /// The replacement client shares the <c>GetAltinnExchangedToken</c> method name with the removed
+    /// provider, and must not be flagged: it is the API apps are being migrated towards.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_IgnoresTheReplacementClient()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+                public Task<JwtToken> Fetch() => _client.GetAltinnExchangedToken(["some:scope"]);
+            }
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(Locations(result));
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write("logic/MyService.cs", "public class MyService { }");
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- ExternalMaskinportenPackageDetector -----------------------------------------------------
+
+    private string WriteProject(string packageReferences) =>
+        _app.Write(
+            "App.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api" Version="8.0.0" />
+                {packageReferences}
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+    [Fact]
+    public void ExternalPackageDetector_WithoutOwnReference_ReportsBrokenBuild()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Client.cs") && w.Contains("using Altinn.ApiClients.Maskinporten.Interfaces")
+        );
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_WithOwnReference_AdvisesWithoutBlocking()
+    {
+        var project = WriteProject(
+            """<PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />"""
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("my-client", settings);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("AddMaskinportenHttpClient"));
+    }
+
+    /// <summary>
+    /// <c>MaskinportenService</c> is the obvious name for an app's own wrapper around the v9 built-in
+    /// client. Flagging it would tell an app whose build is fine to install a package it never used.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresAnAppsOwnWrapperNamedLikeTheExternalService()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/MaskinportenService.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class MaskinportenService
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+        _app.Write("Program.cs", "services.AddScoped<MaskinportenService>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// The same ambiguous name does count once the file imports the package's namespace.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FlagsAmbiguousNamesAlongsideThePackageImport()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Client.cs") && w.Contains("IMaskinportenService"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FlagsDistinctiveClientDefinitionsWithoutAnImport()
+    {
+        var project = WriteProject("");
+        _app.Write("Program.cs", "services.AddSingleton<Pkcs12ClientDefinition>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Pkcs12ClientDefinition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FindsAReferenceInANamespacedProjectFile()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <ItemGroup>
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// The built-in client exposes an <c>AddMaskinportenHttpMessageHandler</c> of its own, so correct v9
+    /// code must not be mistaken for external-package usage.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresBuiltInClientUsage()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "Program.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            services.AddHttpClient<MyClient>().AddMaskinportenHttpMessageHandler(["some:scope"]);
+            services.AddHttpClient<Other>().UseMaskinportenAuthorization(["some:scope"]);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// A reference nested below the top-level ItemGroup is still a declaration, so it must be found - but
+    /// being gated by a condition does not make the app safe, because the code using it compiles in every
+    /// configuration. Both halves matter, so they are asserted together.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalReferenceAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When Condition="'$(Configuration)' == 'Release'">
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("behind an MSBuild condition"));
+    }
+
+    /// <summary>
+    /// The same nesting, unconditional this time: found, and genuinely sufficient.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FindsAnUnconditionalReferenceNestedBelowTheTopLevelItemGroup()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When>
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// A conditional ItemGroup at the top level is the same hazard as a nested one.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalItemGroupAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("behind an MSBuild condition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_UnreadableProject_PrefersTheLouderMessage()
+    {
+        var project = _app.Write("App.csproj", "<Project><not-closed>");
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("will not compile"));
+    }
+
+    // --- MaskinportenClientOverrideDetector ------------------------------------------------------
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsACustomSectionPath()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+            {
+                services.ConfigureMaskinportenClient("MyOwnMaskinporten");
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient"));
+        Assert.Contains(Summaries(result), s => s.Contains("process transitions fail once deployed"));
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsAConfigurationLambda()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.ConfigureMaskinportenClient(config =>
+            {
+                config.ClientId = "my-client";
+                config.Authority = "https://maskinporten.no/";
+            });
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
+    }
+
+    /// <summary>
+    /// Binding the provisioned section by name is what the default registration does anyway, so it changes
+    /// nothing and must not be reported.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_IgnoresRebindingTheProvisionedSection()
+    {
+        _app.Write("Program.cs", """services.ConfigureMaskinportenClient("MaskinportenSettings");""");
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
     }
 
     // --- Scanner ---------------------------------------------------------------------------------

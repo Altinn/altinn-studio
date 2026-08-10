@@ -1,4 +1,4 @@
-FROM nginx:1.30.4@sha256:5cf90903deda2c5981b8ad05e7617ac010e389f0dde0ac83487c02c509281de6
+FROM nginx:1.30.4@sha256:6264f29ec54a584bdda909db173d413cf796a4fa5cf59bf4a1bd9f91771fb7ba
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg2 ca-certificates \

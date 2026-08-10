@@ -15,42 +15,42 @@ const mockInputs: {
   applicationSettings: null,
 };
 const mockInstanceQueries = {
-  countDataElements: jest.fn(() => 0),
-  getCachedInstance: jest.fn(() => undefined),
+  countDataElements: vi.fn(() => 0),
+  getCachedInstance: vi.fn(() => undefined),
 };
-const mockQueryCacheObserver = { subscribe: jest.fn(() => jest.fn()) };
+const mockQueryCacheObserver = { subscribe: vi.fn(() => vi.fn()) };
 const mockExternalApiQueries = {
-  ensureLoaded: jest.fn(),
-  getCached: jest.fn(() => ({})),
-  getState: jest.fn(() => undefined),
+  ensureLoaded: vi.fn(),
+  getCached: vi.fn(() => ({})),
+  getState: vi.fn(() => undefined),
 };
 const mockTextResourceQueries = {
-  ensureLoaded: jest.fn(),
-  getCached: jest.fn(() => undefined),
+  ensureLoaded: vi.fn(),
+  getCached: vi.fn(() => undefined),
 };
 
-jest.mock('src/features/applicationSettings/ApplicationSettingsProvider', () => ({
+vi.mock('src/features/applicationSettings/ApplicationSettingsProvider', () => ({
   useApplicationSettings: () => mockInputs.applicationSettings,
 }));
-jest.mock('src/features/language/LanguageProvider', () => ({
+vi.mock('src/features/language/LanguageProvider', () => ({
   useCurrentLanguage: () => mockInputs.currentLanguage,
 }));
-jest.mock('src/hooks/navigation', () => ({
+vi.mock('src/hooks/navigation', () => ({
   useAllNavigationParams: () => ({ pageKey: mockInputs.currentPage }),
 }));
-jest.mock('src/utils/layout/DataModelLocation', () => ({
+vi.mock('src/utils/layout/DataModelLocation', () => ({
   useCurrentDataModelLocation: () => undefined,
 }));
-jest.mock('src/features/form/FormContext', () => ({
+vi.mock('src/features/form/FormContext', () => ({
   FormStore: { raw: { useLaxStore: () => ContextNotProvided } },
 }));
-jest.mock('src/core/contexts/ApiProvider', () => ({
-  useTextResourcesApi: () => jest.fn(),
+vi.mock('src/core/contexts/ApiProvider', () => ({
+  useTextResourcesApi: () => vi.fn(),
 }));
-jest.mock('src/features/formData/FormDataReaders', () => ({
+vi.mock('src/features/formData/FormDataReaders', () => ({
   useDataModelReaders: () => ({}),
 }));
-jest.mock('src/core/queries/expressionQueryReaders', () => ({
+vi.mock('src/core/queries/expressionQueryReaders', () => ({
   useExpressionQueryReaders: () => ({
     instanceQueries: mockInstanceQueries,
     queryCacheObserver: mockQueryCacheObserver,
@@ -107,7 +107,7 @@ it('updates an expression that uses application settings when the settings chang
 
 it('does not reevaluate an expression that does not use changed hook inputs', async () => {
   const expression: ['equals', number, number] = ['equals', 1, 1];
-  const onAfterFunctionCall = jest.fn();
+  const onAfterFunctionCall = vi.fn();
   const { rerender } = renderHook(() =>
     useEvalExpression(expression, {
       returnType: ExprVal.Boolean,

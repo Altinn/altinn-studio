@@ -1,16 +1,11 @@
-import { afterEach, jest } from '@jest/globals';
 import { act } from '@testing-library/react';
+import { afterEach } from 'vitest';
+import { create as actualCreate, createStore as actualCreateStore, useStore as actualUseStore } from 'zustand';
 import type * as zustand from 'zustand';
 
 /**
  * @see https://docs.pmnd.rs/zustand/guides/testing#setting-up-zustand-for-testing
  */
-
-const {
-  create: actualCreate,
-  createStore: actualCreateStore,
-  useStore: actualUseStore,
-} = jest.requireActual<typeof zustand>('zustand');
 
 // A variable to hold reset functions for all stores declared in the app
 export const storeResetFns = new Set<() => void>();
