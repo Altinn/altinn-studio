@@ -16,7 +16,7 @@
   <ItemGroup Label="Shared nuget packages">
     <PackageVersion Include="JsonSchema.Net" Version="5.5.1" />
     <PackageVersion Include="CompilerAttributes" Version="1.1.2" />
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.3.0" />
     <PackageVersion Include="ini-parser-netstandard" Version="2.5.3" />
     <PackageVersion Include="JWTCookieAuthentication" Version="4.0.4" />
     <PackageVersion Include="LibGit2Sharp" Version="0.32.0" />
