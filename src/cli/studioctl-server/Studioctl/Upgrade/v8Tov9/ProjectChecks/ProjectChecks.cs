@@ -8,6 +8,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.ProjectChecks;
 /// </summary>
 internal sealed class ProjectChecks
 {
+    private static readonly NuGetVersion _nineZero = new(9, 0, 0);
+
     private readonly XDocument _doc;
 
     /// <summary>
@@ -128,8 +130,32 @@ internal sealed class ProjectChecks
             return false;
         }
 
-        // Covers exact versions ("8.11.3"), bracket/range syntax ("[8.11.3]", "[8.0,9.0)")
-        // and floating versions ("8.*") — all resolve to a floor version we can check.
-        return range.MinVersion?.Major == 8;
+        if (range.MinVersion?.Major != 8)
+        {
+            return false;
+        }
+
+        // A floating version ("8.*") is bounded to its major version by definition.
+        if (range.IsFloating)
+        {
+            return true;
+        }
+
+        // A bare version ("8.11.3", no "[...]"/"(...)" syntax) is a pinned floor, not an
+        // open-ended range - NuGet resolves it to that specific version.
+        var isExplicitRange = version.StartsWith('[') || version.StartsWith('(');
+        if (!isExplicitRange)
+        {
+            return true;
+        }
+
+        // Explicit bracket/range syntax must not admit any version >= 9.0.0
+        // (e.g. "[8.0,9.0]", "[8.0,10.0)" and "[8.0,)" are all rejected).
+        if (range.MaxVersion is null)
+        {
+            return false;
+        }
+
+        return range.MaxVersion < _nineZero || (range.MaxVersion == _nineZero && !range.IsMaxInclusive);
     }
 }
