@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Group the output of `studioctl app upgrade v9` by migration step, and label every line with what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (extra detail), `WARN` (worth a look), `TODO` (you have to finish this by hand) and `FAIL` (the step could not complete). `TODO` and `FAIL` are the lines to act on.
+- Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labelling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
 
 ## [0.1.0-preview.20] - 2026-08-07
 
