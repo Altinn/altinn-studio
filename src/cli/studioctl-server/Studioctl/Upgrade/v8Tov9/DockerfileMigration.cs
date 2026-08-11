@@ -26,7 +26,7 @@ internal static class DockerfileMigration
         var dockerfilePath = Path.Combine(projectFolder, "Dockerfile");
         if (!File.Exists(dockerfilePath))
         {
-            UpgradeConsole.Skip("No Dockerfile found");
+            UpgradeResultWriter.Skip("No Dockerfile found");
             return;
         }
 
@@ -37,17 +37,17 @@ internal static class DockerfileMigration
         if (!lines.SequenceEqual(updated))
         {
             await File.WriteAllLinesAsync(dockerfilePath, updated);
-            UpgradeConsole.Ok($"Updated to .NET image tag '{imageTag}'");
+            UpgradeResultWriter.Ok($"Updated to .NET image tag '{imageTag}'");
             return;
         }
 
         if (lines.Any(IsDotnetBaseImage))
         {
-            UpgradeConsole.Skip($"Already targets .NET image tag '{imageTag}'");
+            UpgradeResultWriter.Skip($"Already targets .NET image tag '{imageTag}'");
             return;
         }
 
-        UpgradeConsole.Todo(
+        UpgradeResultWriter.Todo(
             "No .NET base image found in the Dockerfile. Update the .NET version by hand to match the app."
         );
     }

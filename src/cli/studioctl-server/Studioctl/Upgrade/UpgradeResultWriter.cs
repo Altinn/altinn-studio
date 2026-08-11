@@ -15,7 +15,7 @@ namespace Altinn.Studio.Cli.Upgrade;
 /// report sink <see cref="WriteLine"/> lands as <see cref="UpgradeMessageStatus.Info"/>. The error
 /// channel is a <see cref="TextWriter"/> on both sinks.
 /// </remarks>
-internal static class UpgradeConsole
+internal static class UpgradeResultWriter
 {
     private static readonly AsyncLocal<Writers?> Current = new();
 
@@ -96,7 +96,7 @@ internal static class UpgradeConsole
         var step =
             writers.Step
             ?? throw new InvalidOperationException(
-                $"No upgrade step has started; cannot report \"{text}\". Call UpgradeConsole.BeginStep(...) first."
+                $"No upgrade step has started; cannot report \"{text}\". Call UpgradeResultWriter.BeginStep(...) first."
             );
 
         step.Add(text, status);

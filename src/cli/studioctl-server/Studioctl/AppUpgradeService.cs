@@ -98,10 +98,10 @@ internal sealed class AppUpgradeService : IDisposable
     /// </summary>
     private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport? report)
     {
-        using (report is null ? UpgradeConsole.Use(output, error) : UpgradeConsole.Use(report, error))
+        using (report is null ? UpgradeResultWriter.Use(output, error) : UpgradeResultWriter.Use(report, error))
         {
             if (report is not null)
-                UpgradeConsole.BeginStep("Staging changes");
+                UpgradeResultWriter.BeginStep("Staging changes");
 
             GitOperations.StageAllChanges(projectFolder);
         }

@@ -41,7 +41,7 @@ internal static class V8Tov9Upgrade
 
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
-        using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
+        using var outputScope = UpgradeResultWriter.Use(options.Report, options.Error);
         var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
             return WriteError($"Project folder does not exist: {projectFolder}");
@@ -180,14 +180,14 @@ internal static class V8Tov9Upgrade
         var status = result.ManualActionRequired ? UpgradeMessageStatus.Todo : UpgradeMessageStatus.Warning;
         foreach (var warning in result.Warnings)
         {
-            UpgradeConsole.Message(status, warning);
+            UpgradeResultWriter.Message(status, warning);
         }
 
         if (result.ManualActionRequired)
             return ExitManualActionRequired;
 
         if (result.Warnings.Count == 0)
-            UpgradeConsole.Message(cleanStatus, cleanText);
+            UpgradeResultWriter.Message(cleanStatus, cleanText);
 
         return ExitSuccess;
     }
@@ -198,8 +198,8 @@ internal static class V8Tov9Upgrade
     /// </summary>
     private static async Task<int> FailStep(string message)
     {
-        UpgradeConsole.Failed(message);
-        await UpgradeConsole.Error.WriteLineAsync(message);
+        UpgradeResultWriter.Failed(message);
+        await UpgradeResultWriter.Error.WriteLineAsync(message);
         return ExitError;
     }
 
@@ -210,19 +210,19 @@ internal static class V8Tov9Upgrade
     /// </summary>
     private static async Task<int> ReportFailure(string description, Exception exception)
     {
-        UpgradeConsole.Failed(FileAccessDiagnostics.Describe(exception));
-        await UpgradeConsole.WriteErrorAsync(description, exception);
+        UpgradeResultWriter.Failed(FileAccessDiagnostics.Describe(exception));
+        await UpgradeResultWriter.WriteErrorAsync(description, exception);
         return ExitError;
     }
 
     static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
-        UpgradeConsole.BeginStep("Project file");
+        UpgradeResultWriter.BeginStep("Project file");
         try
         {
             var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
             await rewriter.Upgrade();
-            UpgradeConsole.Ok($"Altinn.App packages set to {targetVersion}, target framework {targetFramework}");
+            UpgradeResultWriter.Ok($"Altinn.App packages set to {targetVersion}, target framework {targetFramework}");
             return ExitSuccess;
         }
         catch (Exception ex)
@@ -233,7 +233,7 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateDockerfile(string projectFolder, string targetFramework)
     {
-        UpgradeConsole.BeginStep("Dockerfile");
+        UpgradeResultWriter.BeginStep("Dockerfile");
         try
         {
             await DockerfileMigration.Migrate(projectFolder, targetFramework);
@@ -247,17 +247,17 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
-        UpgradeConsole.BeginStep("Swashbuckle package");
+        UpgradeResultWriter.BeginStep("Swashbuckle package");
         try
         {
             var rewriter = new ProjectFileRewriter(projectFile);
             if (await rewriter.RemovePackageReference("Swashbuckle.AspNetCore"))
             {
-                UpgradeConsole.Ok("Swashbuckle.AspNetCore package reference removed");
+                UpgradeResultWriter.Ok("Swashbuckle.AspNetCore package reference removed");
             }
             else
             {
-                UpgradeConsole.Skip("No Swashbuckle.AspNetCore package reference");
+                UpgradeResultWriter.Skip("No Swashbuckle.AspNetCore package reference");
             }
 
             return ExitSuccess;
@@ -270,7 +270,7 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateOpenApiNamespace(string projectFile)
     {
-        UpgradeConsole.BeginStep("OpenAPI namespace");
+        UpgradeResultWriter.BeginStep("OpenAPI namespace");
         try
         {
             var migration = new UsingNamespaceMigration(projectFile);
@@ -293,7 +293,7 @@ internal static class V8Tov9Upgrade
         CancellationToken cancellationToken
     )
     {
-        UpgradeConsole.BeginStep("NuGet downgrades");
+        UpgradeResultWriter.BeginStep("NuGet downgrades");
         try
         {
             var resolver = new NuGetDowngradeResolver();
@@ -313,7 +313,7 @@ internal static class V8Tov9Upgrade
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
     static async Task<int> MigrateServiceTaskNamespace(string projectFile)
     {
-        UpgradeConsole.BeginStep("IServiceTask namespace");
+        UpgradeResultWriter.BeginStep("IServiceTask namespace");
         try
         {
             var migration = new UsingNamespaceMigration(projectFile);
@@ -332,7 +332,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
     {
-        UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
+        UpgradeResultWriter.BeginStep("IEFormidlingReceivers signature");
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
@@ -344,7 +344,7 @@ internal static class V8Tov9Upgrade
 
             foreach (var warning in result.Warnings)
             {
-                UpgradeConsole.Warning(warning);
+                UpgradeResultWriter.Warning(warning);
             }
 
             return ExitSuccess;
@@ -366,7 +366,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateCorrespondenceApis(string projectFile)
     {
-        UpgradeConsole.BeginStep("Correspondence APIs");
+        UpgradeResultWriter.BeginStep("Correspondence APIs");
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
@@ -389,7 +389,7 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> CheckRemovedCSharpApis(string projectFile)
     {
-        UpgradeConsole.BeginStep("Removed v9 C# APIs");
+        UpgradeResultWriter.BeginStep("Removed v9 C# APIs");
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
@@ -415,16 +415,16 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateLaunchSettings(string projectFile)
     {
-        UpgradeConsole.BeginStep("Launch settings");
+        UpgradeResultWriter.BeginStep("Launch settings");
         try
         {
             if (await LaunchSettingsMigration.Migrate(projectFile))
             {
-                UpgradeConsole.Ok("Launch settings migrated");
+                UpgradeResultWriter.Ok("Launch settings migrated");
             }
             else
             {
-                UpgradeConsole.Skip("Launch settings already up to date");
+                UpgradeResultWriter.Skip("Launch settings already up to date");
             }
 
             return ExitSuccess;
@@ -437,7 +437,7 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateOrganizationLookupLayouts(string projectFolder)
     {
-        UpgradeConsole.BeginStep("OrganisationLookup components");
+        UpgradeResultWriter.BeginStep("OrganisationLookup components");
         try
         {
             return await OrganizationLookupLayoutMigration.Migrate(projectFolder);
@@ -455,7 +455,7 @@ internal static class V8Tov9Upgrade
         string? studioRoot
     )
     {
-        UpgradeConsole.BeginStep("Project references");
+        UpgradeResultWriter.BeginStep("Project references");
         try
         {
             if (string.IsNullOrWhiteSpace(studioRoot))
@@ -472,7 +472,7 @@ internal static class V8Tov9Upgrade
 
             var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
             await rewriter.ConvertToProjectReferences(studioRoot);
-            UpgradeConsole.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
+            UpgradeResultWriter.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
             return ExitSuccess;
         }
         catch (Exception ex)
@@ -493,18 +493,18 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> ConvertConditionalRenderingRules(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Conditional rendering rules");
+        UpgradeResultWriter.BeginStep("Conditional rendering rules");
         try
         {
             var converter = new ConditionalRenderingConverter(projectFolder);
             var stats = converter.ConvertAllLayoutSets();
             if (stats.TotalRules == 0)
             {
-                UpgradeConsole.Skip("No conditional rendering rules found");
+                UpgradeResultWriter.Skip("No conditional rendering rules found");
             }
             else
             {
-                UpgradeConsole.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
+                UpgradeResultWriter.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
             }
 
             return ExitSuccess;
@@ -520,7 +520,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> GenerateDataProcessors(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Data processors");
+        UpgradeResultWriter.BeginStep("Data processors");
         try
         {
             var uiPath = Path.Combine(projectFolder, "App", "ui");
@@ -529,7 +529,7 @@ internal static class V8Tov9Upgrade
                 uiPath = Path.Combine(projectFolder, "ui");
                 if (!Directory.Exists(uiPath))
                 {
-                    UpgradeConsole.Skip("No UI directory found");
+                    UpgradeResultWriter.Skip("No UI directory found");
                     return ExitSuccess;
                 }
             }
@@ -561,7 +561,7 @@ internal static class V8Tov9Upgrade
                 var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
                 if (!File.Exists(ruleHandlerPath))
                 {
-                    UpgradeConsole.Warning(
+                    UpgradeResultWriter.Warning(
                         $"RuleHandler.js not found for layout set '{layoutSetName}'; skipped its data processor"
                     );
                     continue;
@@ -577,7 +577,7 @@ internal static class V8Tov9Upgrade
 
                 if (dataModelInfo == null)
                 {
-                    UpgradeConsole.Warning(
+                    UpgradeResultWriter.Warning(
                         $"Could not resolve the data model for layout set '{layoutSetName}'; skipped its data processor"
                     );
                     continue;
@@ -603,10 +603,12 @@ internal static class V8Tov9Upgrade
                     || generationResult.ClassName == null
                 )
                 {
-                    UpgradeConsole.Failed($"Could not generate the data processor for layout set '{layoutSetName}'");
+                    UpgradeResultWriter.Failed(
+                        $"Could not generate the data processor for layout set '{layoutSetName}'"
+                    );
                     foreach (var error in generationResult.Errors)
                     {
-                        await UpgradeConsole.Error.WriteLineAsync(
+                        await UpgradeResultWriter.Error.WriteLineAsync(
                             $"Data processor for layout set '{layoutSetName}': {error}"
                         );
                     }
@@ -619,7 +621,7 @@ internal static class V8Tov9Upgrade
                     generationResult.ClassName,
                     generationResult.GeneratedCode
                 );
-                UpgradeConsole.Ok($"Generated data processor: {filePath}");
+                UpgradeResultWriter.Ok($"Generated data processor: {filePath}");
 
                 // Register in Program.cs
                 var programUpdater = new ProgramCsUpdater(projectFolder);
@@ -627,7 +629,7 @@ internal static class V8Tov9Upgrade
 
                 if (generationResult.FailedConversions > 0)
                 {
-                    UpgradeConsole.Warning(
+                    UpgradeResultWriter.Warning(
                         $"{generationResult.FailedConversions} of {generationResult.TotalRules} rules could not be converted to C# code"
                     );
                 }
@@ -637,7 +639,7 @@ internal static class V8Tov9Upgrade
 
             if (totalProcessed == 0)
             {
-                UpgradeConsole.Skip("No data processing rules found");
+                UpgradeResultWriter.Skip("No data processing rules found");
             }
 
             return ExitSuccess;
@@ -653,7 +655,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> CleanupLegacyRuleFiles(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Legacy rule files");
+        UpgradeResultWriter.BeginStep("Legacy rule files");
         try
         {
             var cleanup = new LegacyRuleFileCleanup(projectFolder);
@@ -661,11 +663,11 @@ internal static class V8Tov9Upgrade
 
             if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
             {
-                UpgradeConsole.Skip("No legacy rule files found");
+                UpgradeResultWriter.Skip("No legacy rule files found");
                 return ExitSuccess;
             }
 
-            UpgradeConsole.Ok(
+            UpgradeResultWriter.Ok(
                 $"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json and "
                     + $"{stats.RuleHandlerFilesDeleted} RuleHandler.js file(s)"
             );
@@ -683,7 +685,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Task-folder UI settings");
+        UpgradeResultWriter.BeginStep("Task-folder UI settings");
         try
         {
             var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
@@ -691,18 +693,18 @@ internal static class V8Tov9Upgrade
 
             if (!result.LayoutSetsDeleted)
             {
-                UpgradeConsole.Skip("No layout-sets.json found");
+                UpgradeResultWriter.Skip("No layout-sets.json found");
                 return ExitSuccess;
             }
 
-            UpgradeConsole.Ok(
+            UpgradeResultWriter.Ok(
                 $"Migrated {result.MigratedFolderCount} UI folder(s) to task folders "
                     + $"({result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, "
                     + $"{result.DeletedSourceFolderCount} deleted source folder(s))"
             );
             if (result.MigratedGlobalSettings)
             {
-                UpgradeConsole.Ok("Migrated global uiSettings to App/ui/Settings.json");
+                UpgradeResultWriter.Ok("Migrated global uiSettings to App/ui/Settings.json");
             }
 
             return ExitSuccess;
@@ -718,7 +720,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateIndexCshtml(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Index.cshtml");
+        UpgradeResultWriter.BeginStep("Index.cshtml");
         try
         {
             var migrator = new IndexCshtmlMigrator(projectFolder);
@@ -735,7 +737,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigratePdfServiceTasks(string projectFolder)
     {
-        UpgradeConsole.BeginStep("PDF service tasks");
+        UpgradeResultWriter.BeginStep("PDF service tasks");
         try
         {
             var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
@@ -757,7 +759,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateServiceOwnerPolicy(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Service-owner policy");
+        UpgradeResultWriter.BeginStep("Service-owner policy");
         try
         {
             var migrator = new PolicyMigration.ServiceOwnerPolicyMigrator(projectFolder);
@@ -779,7 +781,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateEFormidlingServiceTasks(string projectFolder)
     {
-        UpgradeConsole.BeginStep("eFormidling service tasks");
+        UpgradeResultWriter.BeginStep("eFormidling service tasks");
         try
         {
             var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
@@ -800,7 +802,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Feedback tasks behind service tasks");
+        UpgradeResultWriter.BeginStep("Feedback tasks behind service tasks");
         try
         {
             var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
@@ -846,7 +848,7 @@ internal static class V8Tov9Upgrade
 
     private static int WriteError(string message, int exitCode = ExitError)
     {
-        UpgradeConsole.WriteErrorLine(message);
+        UpgradeResultWriter.WriteErrorLine(message);
         return exitCode;
     }
 }

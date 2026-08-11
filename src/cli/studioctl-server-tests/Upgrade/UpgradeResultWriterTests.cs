@@ -4,10 +4,10 @@ using Altinn.Studio.Cli.Upgrade;
 namespace Studioctl.Tests.Upgrade;
 
 /// <summary>
-/// Covers the two sinks <see cref="UpgradeConsole"/> serves while the upgrade paths are being converted:
+/// Covers the two sinks <see cref="UpgradeResultWriter"/> serves while the upgrade paths are being converted:
 /// plain text for the kinds that still emit free text, and a structured report for v9.
 /// </summary>
-public sealed class UpgradeConsoleTests
+public sealed class UpgradeResultWriterTests
 {
     private static StringWriter NewWriter() => new(CultureInfo.InvariantCulture);
 
@@ -17,12 +17,12 @@ public sealed class UpgradeConsoleTests
         var output = NewWriter();
         var error = NewWriter();
 
-        using (UpgradeConsole.Use(output, error))
+        using (UpgradeResultWriter.Use(output, error))
         {
-            UpgradeConsole.WriteLine("plain line");
+            UpgradeResultWriter.WriteLine("plain line");
             // A typed status degrades to its plain text, so shared code can report once for both sinks.
-            UpgradeConsole.Ok("typed line");
-            UpgradeConsole.WriteErrorLine("error line");
+            UpgradeResultWriter.Ok("typed line");
+            UpgradeResultWriter.WriteErrorLine("error line");
         }
 
         Assert.Equal($"plain line{Environment.NewLine}typed line{Environment.NewLine}", output.ToString());
@@ -34,10 +34,10 @@ public sealed class UpgradeConsoleTests
     {
         var report = new UpgradeReport();
 
-        using (UpgradeConsole.Use(report, TextWriter.Null))
+        using (UpgradeResultWriter.Use(report, TextWriter.Null))
         {
-            UpgradeConsole.BeginStep("Legacy call site");
-            UpgradeConsole.WriteLine("Warning: something a leaf migrator wrote");
+            UpgradeResultWriter.BeginStep("Legacy call site");
+            UpgradeResultWriter.WriteLine("Warning: something a leaf migrator wrote");
         }
 
         var message = Assert.Single(Assert.Single(report.Steps).Messages);
@@ -52,11 +52,11 @@ public sealed class UpgradeConsoleTests
         var report = new UpgradeReport();
         var error = NewWriter();
 
-        using (UpgradeConsole.Use(report, error))
+        using (UpgradeResultWriter.Use(report, error))
         {
-            UpgradeConsole.BeginStep("Failing step");
-            UpgradeConsole.Failed("the cause");
-            UpgradeConsole.WriteErrorLine("Error doing the thing: the cause");
+            UpgradeResultWriter.BeginStep("Failing step");
+            UpgradeResultWriter.Failed("the cause");
+            UpgradeResultWriter.WriteErrorLine("Error doing the thing: the cause");
         }
 
         // Failure handling is unchanged: the report carries the position, the error channel the text.
@@ -68,21 +68,21 @@ public sealed class UpgradeConsoleTests
     public void MisuseThrows()
     {
         // No sink installed.
-        Assert.Throws<InvalidOperationException>(() => UpgradeConsole.WriteLine("nope"));
-        Assert.Throws<InvalidOperationException>(() => UpgradeConsole.Ok("nope"));
+        Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.WriteLine("nope"));
+        Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("nope"));
 
-        using (UpgradeConsole.Use(NewWriter(), NewWriter()))
+        using (UpgradeResultWriter.Use(NewWriter(), NewWriter()))
         {
             // Steps are meaningless on the text sink.
-            Assert.Throws<InvalidOperationException>(() => UpgradeConsole.BeginStep("nope"));
+            Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.BeginStep("nope"));
         }
 
-        using (UpgradeConsole.Use(new UpgradeReport(), TextWriter.Null))
+        using (UpgradeResultWriter.Use(new UpgradeReport(), TextWriter.Null))
         {
             // The report sink has no output writer, and a message with no step is a bug: it surfaces
             // rather than landing in an invented step.
-            Assert.Throws<InvalidOperationException>(() => UpgradeConsole.Out.WriteLine("nope"));
-            var exception = Assert.Throws<InvalidOperationException>(() => UpgradeConsole.Ok("orphan"));
+            Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Out.WriteLine("nope"));
+            var exception = Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("orphan"));
             Assert.Contains("No upgrade step has started", exception.Message, StringComparison.Ordinal);
         }
     }
@@ -93,15 +93,15 @@ public sealed class UpgradeConsoleTests
         var outer = NewWriter();
         var report = new UpgradeReport();
 
-        using (UpgradeConsole.Use(outer, TextWriter.Null))
+        using (UpgradeResultWriter.Use(outer, TextWriter.Null))
         {
-            using (UpgradeConsole.Use(report, TextWriter.Null))
+            using (UpgradeResultWriter.Use(report, TextWriter.Null))
             {
-                UpgradeConsole.BeginStep("Inner");
-                UpgradeConsole.Ok("structured");
+                UpgradeResultWriter.BeginStep("Inner");
+                UpgradeResultWriter.Ok("structured");
             }
 
-            UpgradeConsole.WriteLine("back to text");
+            UpgradeResultWriter.WriteLine("back to text");
         }
 
         Assert.Contains("back to text", outer.ToString(), StringComparison.Ordinal);

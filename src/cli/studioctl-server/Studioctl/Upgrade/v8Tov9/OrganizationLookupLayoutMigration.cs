@@ -29,7 +29,7 @@ internal static class OrganizationLookupLayoutMigration
         var uiDirectory = ResolveUiDirectory(projectFolder);
         if (uiDirectory is null)
         {
-            UpgradeConsole.Skip("No UI directory found");
+            UpgradeResultWriter.Skip("No UI directory found");
             return 0;
         }
 
@@ -65,14 +65,14 @@ internal static class OrganizationLookupLayoutMigration
             changedFiles++;
             var bindings = occurrences.OrganizationNumberBindings + occurrences.OrganizationNameBindings;
             // One report per file actually migrated; no roll-up, since it would only restate these.
-            UpgradeConsole.Ok(
+            UpgradeResultWriter.Ok(
                 $"Migrated {occurrences.Components} component type(s) and {bindings} binding(s) in {layoutFile}"
             );
         }
 
         if (changedFiles == 0)
         {
-            UpgradeConsole.Skip("No OrganisationLookup contract tokens found");
+            UpgradeResultWriter.Skip("No OrganisationLookup contract tokens found");
         }
 
         return 0;

@@ -20,7 +20,7 @@ public sealed class ServiceTaskNamespaceMigrationTests : IDisposable
 
     private void Migrate()
     {
-        using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
+        using var outputScope = UpgradeResultWriter.Use(TextWriter.Null, TextWriter.Null);
         var projectFile = Path.Combine(_app.Root, "App", "App.csproj");
         new UsingNamespaceMigration(projectFile).Migrate(OldNamespace, NewNamespace, AllCs);
     }

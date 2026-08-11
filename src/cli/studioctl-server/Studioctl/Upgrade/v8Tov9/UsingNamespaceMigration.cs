@@ -19,7 +19,7 @@ internal sealed class UsingNamespaceMigration
         var csharpFiles = GetMatchingCSharpFiles(pathMatcher).ToArray();
         if (csharpFiles.Length == 0)
         {
-            UpgradeConsole.Skip($"No C# files matched {pathMatcher}");
+            UpgradeResultWriter.Skip($"No C# files matched {pathMatcher}");
             return false;
         }
 
@@ -31,7 +31,7 @@ internal sealed class UsingNamespaceMigration
 
         if (!migratedAnyFile)
         {
-            UpgradeConsole.Skip($"Old namespace '{oldNamespace}' not found in matching files");
+            UpgradeResultWriter.Skip($"Old namespace '{oldNamespace}' not found in matching files");
         }
 
         return migratedAnyFile;
@@ -79,7 +79,7 @@ internal sealed class UsingNamespaceMigration
         var updatedRoot = UpdateUsings(root, oldUsings, newNamespace, scopesWithNewUsing);
 
         File.WriteAllText(csharpFile, updatedRoot.ToFullString());
-        UpgradeConsole.Ok($"Namespace migrated in {csharpFile}: {oldNamespace} -> {newNamespace}");
+        UpgradeResultWriter.Ok($"Namespace migrated in {csharpFile}: {oldNamespace} -> {newNamespace}");
         return true;
 
         bool IsOldUsing(UsingDirectiveSyntax usingDirective) =>

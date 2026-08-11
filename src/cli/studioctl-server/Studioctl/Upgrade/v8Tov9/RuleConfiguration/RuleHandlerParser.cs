@@ -47,7 +47,7 @@ internal sealed class RuleHandlerParser
         {
             // Log or handle parsing errors if needed
             // For now, we'll silently fail to maintain backward compatibility
-            UpgradeConsole.WriteErrorLine($"[Error] Failed to parse {_ruleHandlerPath}: {ex.Message}");
+            UpgradeResultWriter.WriteErrorLine($"[Error] Failed to parse {_ruleHandlerPath}: {ex.Message}");
         }
     }
 

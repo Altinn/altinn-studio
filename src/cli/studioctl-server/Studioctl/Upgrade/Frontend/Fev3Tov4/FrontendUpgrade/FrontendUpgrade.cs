@@ -36,17 +36,17 @@ internal static class FrontendUpgrade
 {
     private static void PrintError(string message)
     {
-        UpgradeConsole.WriteErrorLine(message);
+        UpgradeResultWriter.WriteErrorLine(message);
     }
 
     private static void PrintWarning(string message)
     {
-        UpgradeConsole.WriteLine(message);
+        UpgradeResultWriter.WriteLine(message);
     }
 
     internal static async Task<int> RunAsync(FrontendUpgradeOptions options)
     {
-        using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
+        using var outputScope = UpgradeResultWriter.Use(options.Output, options.Error);
         var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
         {
@@ -115,7 +115,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any() ? "Index.cshtml upgraded with warnings. Review the warnings above." : "Index.cshtml upgraded"
         );
         return 0;
@@ -129,7 +129,7 @@ internal static class FrontendUpgrade
     {
         if (File.Exists(Path.Combine(uiFolder, "layout-sets.json")))
         {
-            UpgradeConsole.WriteLine("Project already using layout sets. Skipping layout set upgrade.");
+            UpgradeResultWriter.WriteLine("Project already using layout sets. Skipping layout set upgrade.");
             return 0;
         }
 
@@ -158,7 +158,7 @@ internal static class FrontendUpgrade
         {
             PrintWarning(warning);
         }
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any() ? "Layout-sets upgraded with warnings. Review the warnings above." : "Layout sets upgraded"
         );
         return 0;
@@ -182,7 +182,7 @@ internal static class FrontendUpgrade
 
         if (Directory.Exists(Path.Combine(uiFolder, receiptLayoutSetName)))
         {
-            UpgradeConsole.WriteLine(
+            UpgradeResultWriter.WriteLine(
                 $"A layout set with the name {receiptLayoutSetName} already exists. Skipping custom receipt upgrade."
             );
             return 0;
@@ -197,7 +197,7 @@ internal static class FrontendUpgrade
         {
             PrintWarning(warning);
         }
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any()
                 ? "Custom receipt upgraded with warnings. Review the warnings above."
                 : "Custom receipt upgraded"
@@ -230,7 +230,7 @@ internal static class FrontendUpgrade
         {
             PrintWarning(warning);
         }
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any()
                 ? "Layout settings upgraded with warnings. Review the warnings above."
                 : "Layout settings upgraded"
@@ -264,7 +264,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any() ? "Layout files upgraded with warnings. Review the warnings above." : "Layout files upgraded"
         );
         return 0;
@@ -290,7 +290,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any() ? "Footer upgraded with warnings. Review the warnings above." : "Footer upgraded"
         );
         return 0;
@@ -343,7 +343,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any()
                 ? "Schema references upgraded with warnings. Review the warnings above."
                 : "Schema references upgraded"
@@ -361,7 +361,7 @@ internal static class FrontendUpgrade
             return 1;
         }
 
-        UpgradeConsole.WriteLine("Running checks...");
+        UpgradeResultWriter.WriteLine("Running checks...");
         var checker = new Checker(textsFolder);
 
         checker.CheckTextDataModelReferences();
@@ -372,7 +372,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        UpgradeConsole.WriteLine(
+        UpgradeResultWriter.WriteLine(
             warnings.Any()
                 ? "Checks finished with warnings. Review the warnings above."
                 : "Checks finished without warnings"

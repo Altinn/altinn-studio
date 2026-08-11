@@ -9,13 +9,13 @@ public sealed class UpgradeReportTests
     {
         var report = new UpgradeReport();
 
-        using (UpgradeConsole.Use(report, TextWriter.Null))
+        using (UpgradeResultWriter.Use(report, TextWriter.Null))
         {
-            UpgradeConsole.BeginStep("First");
-            UpgradeConsole.Ok("belongs to first");
-            UpgradeConsole.BeginStep("Nothing to do");
-            UpgradeConsole.BeginStep("Third");
-            UpgradeConsole.Ok("belongs to third");
+            UpgradeResultWriter.BeginStep("First");
+            UpgradeResultWriter.Ok("belongs to first");
+            UpgradeResultWriter.BeginStep("Nothing to do");
+            UpgradeResultWriter.BeginStep("Third");
+            UpgradeResultWriter.Ok("belongs to third");
         }
 
         Assert.Equal(["First", "Nothing to do", "Third"], report.Steps.Select(step => step.Name));
@@ -30,15 +30,15 @@ public sealed class UpgradeReportTests
     {
         var report = new UpgradeReport();
 
-        using (UpgradeConsole.Use(report, TextWriter.Null))
+        using (UpgradeResultWriter.Use(report, TextWriter.Null))
         {
-            UpgradeConsole.BeginStep("Mixed");
-            UpgradeConsole.Ok("ok");
-            UpgradeConsole.Info("info");
-            UpgradeConsole.Skip("skip");
-            UpgradeConsole.Warning("warn");
-            UpgradeConsole.Todo("todo");
-            UpgradeConsole.Failed("failed");
+            UpgradeResultWriter.BeginStep("Mixed");
+            UpgradeResultWriter.Ok("ok");
+            UpgradeResultWriter.Info("info");
+            UpgradeResultWriter.Skip("skip");
+            UpgradeResultWriter.Warning("warn");
+            UpgradeResultWriter.Todo("todo");
+            UpgradeResultWriter.Failed("failed");
         }
 
         var step = Assert.Single(report.Steps);
