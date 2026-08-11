@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioSpinner, StudioSelect } from '@studio/components';
-import { ToggleGroup } from '@digdir/designsystemet-react';
 import {
   StudioToggleGroup,
   StudioToggleGroupItem,
