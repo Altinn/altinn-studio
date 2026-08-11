@@ -11,6 +11,42 @@ public sealed class RepositoryDirectoryCleanerTests : IDisposable
     private readonly RepositoryDirectoryCleaner _cleaner = new();
 
     [Fact]
+    public void Delete_RemovesDirectoryLinksWithoutFollowingTargets()
+    {
+        string externalDirectory = Directory.CreateDirectory(Path.Combine(_rootDirectory, "external")).FullName;
+        string externalFile = Path.Combine(externalDirectory, "keep.txt");
+        File.WriteAllText(externalFile, "must remain");
+        string repositoryPath = Directory.CreateDirectory(Path.Combine(_rootDirectory, "repository")).FullName;
+        string linkPath = Path.Combine(repositoryPath, "external-link");
+        Directory.CreateSymbolicLink(linkPath, externalDirectory);
+
+        _cleaner.Delete(repositoryPath);
+
+        Assert.False(Directory.Exists(repositoryPath));
+        Assert.True(Directory.Exists(externalDirectory));
+        Assert.True(File.Exists(externalFile));
+        Assert.Equal("must remain", File.ReadAllText(externalFile));
+    }
+
+    [Fact]
+    public void Delete_RemovesRepositoryLinkWithoutFollowingTarget()
+    {
+        string externalDirectory = Directory
+            .CreateDirectory(Path.Combine(_rootDirectory, "external-repository"))
+            .FullName;
+        string externalFile = Path.Combine(externalDirectory, "keep.txt");
+        File.WriteAllText(externalFile, "must remain");
+        string repositoryLink = Path.Combine(_rootDirectory, "repository-link");
+        Directory.CreateSymbolicLink(repositoryLink, externalDirectory);
+
+        _cleaner.Delete(repositoryLink);
+
+        Assert.False(Directory.Exists(repositoryLink));
+        Assert.True(Directory.Exists(externalDirectory));
+        Assert.True(File.Exists(externalFile));
+    }
+
+    [Fact]
     public void TryDeleteIfEmpty_DeletesEmptyDirectoryNonRecursively()
     {
         string directoryPath = Directory.CreateDirectory(Path.Combine(_rootDirectory, "empty")).FullName;

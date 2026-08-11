@@ -31,7 +31,7 @@ public class RepositoryCleanupSettings
 {
     public bool Enabled { get; set; }
     public int RetentionDays { get; set; } = 90;
-    public int MaxRepositoriesPerRun { get; set; } = 50;
+    public int MaxRepositoriesPerRun { get; set; } = 200;
     public int DeletionRetryAttempts { get; set; } = 3;
     public int DeletionRetryDelayMilliseconds { get; set; } = 1000;
     public int LockTimeoutSeconds { get; set; } = 5;

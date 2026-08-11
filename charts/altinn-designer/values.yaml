@@ -99,7 +99,7 @@ environmentVariables:
     - name: SchedulingSettings__RepositoryCleanup__RetentionDays
       value: "90"
     - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
-      value: "50"
+      value: "200"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
       value: "3"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
@@ -199,7 +199,7 @@ environmentVariables:
     - name: SchedulingSettings__RepositoryCleanup__RetentionDays
       value: "90"
     - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
-      value: "50"
+      value: "200"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
       value: "3"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
@@ -297,7 +297,7 @@ environmentVariables:
     - name: SchedulingSettings__RepositoryCleanup__RetentionDays
       value: "90"
     - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
-      value: "50"
+      value: "200"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
       value: "3"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
