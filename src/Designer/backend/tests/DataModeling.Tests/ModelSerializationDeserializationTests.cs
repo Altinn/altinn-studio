@@ -61,7 +61,7 @@ public class ModelSerializationDeserializationTests
 
         var validationResults = jsonSchema.Evaluate(
             jsonDocument.RootElement,
-            new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical }
+            new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical, ProcessCustomKeywords = true }
         );
 
         Assert.True(validationResults.IsValid);
@@ -89,7 +89,7 @@ public class ModelSerializationDeserializationTests
 
         var validationResults = jsonSchema.Evaluate(
             jsonDocument.RootElement,
-            new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical }
+            new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical, ProcessCustomKeywords = true }
         );
 
         Assert.True(validationResults.IsValid);

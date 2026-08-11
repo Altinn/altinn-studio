@@ -874,7 +874,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
                     break;
                 case PatternKeyword pattern:
                     keywords.MarkAsHandled<PatternKeyword>();
-                    facets.Add(new XmlSchemaPatternFacet { Value = pattern.Value.ToString() });
+                    facets.Add(new XmlSchemaPatternFacet { Value = pattern.Pattern.ToString() });
                     break;
                 case MaximumKeyword maximum:
                     keywords.MarkAsHandled<MaximumKeyword>();
@@ -1541,17 +1541,14 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
     private static XmlQualifiedName GetTypeNameFromReference(Uri reference)
     {
         var pointer = JsonPointer.Parse(reference.ToString());
-        if (
-            pointer.Segments.Length != 2
-            || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions")
-        )
+        if (pointer.Count != 2 || (pointer[0] != "$defs" && pointer[0] != "definitions"))
         {
             throw new JsonSchemaConvertException(
                 "Reference uri must point to a definition in $defs/definitions to be used as TypeName"
             );
         }
 
-        return new XmlQualifiedName(pointer.Segments[1].Value);
+        return new XmlQualifiedName(pointer[1]);
     }
 
     private static XmlQualifiedName GetTypeNameFromArray(JsonSchema schema, WorkList<IJsonSchemaKeyword> keywords)
