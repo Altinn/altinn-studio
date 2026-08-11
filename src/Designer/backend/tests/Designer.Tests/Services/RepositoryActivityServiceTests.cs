@@ -1,62 +1,68 @@
 using System;
-using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
-public sealed class RepositoryActivityServiceTests : IDisposable
+public class RepositoryActivityServiceTests
 {
-    private readonly string _rootDirectory = Directory.CreateTempSubdirectory().FullName;
     private readonly DateTimeOffset _now = new(2026, 8, 11, 8, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public void MarkActive_UpdatesMarkerAtConfiguredInterval()
+    public async Task MarkActiveAsync_PersistsAtConfiguredInterval()
     {
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "test-app", "test-user");
-        string repositoryPath = CreateRepository(context);
         var timeProvider = new FakeTimeProvider(_now);
-        RepositoryActivityService service = CreateService(timeProvider);
+        var repository = new Mock<IRepositoryActivityRepository>();
+        RepositoryActivityService service = CreateService(repository.Object, timeProvider);
 
-        service.MarkActive(context, repositoryPath);
-        DateTimeOffset initialActivity = service.GetLastActivity(context, repositoryPath);
-
+        await service.MarkActiveAsync(context);
         timeProvider.Advance(TimeSpan.FromMinutes(5));
-        service.MarkActive(context, repositoryPath);
-        Assert.Equal(initialActivity, service.GetLastActivity(context, repositoryPath));
-
+        await service.MarkActiveAsync(context);
         timeProvider.Advance(TimeSpan.FromMinutes(11));
-        service.MarkActive(context, repositoryPath);
-        Assert.Equal(timeProvider.GetUtcNow(), service.GetLastActivity(context, repositoryPath));
+        await service.MarkActiveAsync(context);
+
+        repository.Verify(
+            instance => instance.MarkActiveAsync(context, _now, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        repository.Verify(
+            instance => instance.MarkActiveAsync(context, _now.AddMinutes(16), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
-    public void GetLastActivity_WithoutMarker_UsesRepositoryTimestamp()
+    public async Task MarkActiveAsync_DoesNotFailRequestWhenPersistenceFails()
     {
-        var context = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "legacy-app", "test-user");
-        string repositoryPath = CreateRepository(context);
-        DateTime expectedLastActivity = _now.AddDays(-45).UtcDateTime;
-        Directory.SetLastWriteTimeUtc(repositoryPath, expectedLastActivity);
-        RepositoryActivityService service = CreateService(new FakeTimeProvider(_now));
+        var context = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "test-app", "test-user");
+        var repository = new Mock<IRepositoryActivityRepository>();
+        repository
+            .Setup(instance =>
+                instance.MarkActiveAsync(context, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new InvalidOperationException("Database unavailable."));
+        RepositoryActivityService service = CreateService(repository.Object, new FakeTimeProvider(_now));
 
-        DateTimeOffset actualLastActivity = service.GetLastActivity(context, repositoryPath);
-
-        Assert.Equal(expectedLastActivity, actualLastActivity.UtcDateTime);
+        await service.MarkActiveAsync(context);
     }
 
-    public void Dispose()
-    {
-        Directory.Delete(_rootDirectory, recursive: true);
-    }
-
-    private RepositoryActivityService CreateService(TimeProvider timeProvider)
+    private static RepositoryActivityService CreateService(
+        IRepositoryActivityRepository repository,
+        TimeProvider timeProvider
+    )
     {
         return new RepositoryActivityService(
-            new ServiceRepositorySettings { RepositoryLocation = _rootDirectory },
+            repository,
             new SchedulingSettings
             {
                 RepositoryCleanup = new RepositoryCleanupSettings
@@ -66,14 +72,8 @@ public sealed class RepositoryActivityServiceTests : IDisposable
                 },
             },
             timeProvider,
+            new MemoryCache(new MemoryCacheOptions()),
             NullLogger<RepositoryActivityService>.Instance
         );
-    }
-
-    private string CreateRepository(AltinnRepoEditingContext context)
-    {
-        string repositoryPath = Path.Combine(_rootDirectory, context.Path);
-        Directory.CreateDirectory(Path.Combine(repositoryPath, ".git"));
-        return repositoryPath;
     }
 }

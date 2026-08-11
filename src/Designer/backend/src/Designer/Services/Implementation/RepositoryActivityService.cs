@@ -1,105 +1,72 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.Models.RepositoryActivity;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class RepositoryActivityService : IRepositoryActivityService
 {
-    private const string MetadataDirectoryName = ".altinn-studio";
-    private const string ActivityDirectoryName = "repository-activity";
+    private const string CacheKeyPrefix = nameof(RepositoryActivityService);
 
-    private readonly ServiceRepositorySettings _repositorySettings;
+    private readonly IRepositoryActivityRepository _repositoryActivityRepository;
     private readonly SchedulingSettings _schedulingSettings;
     private readonly TimeProvider _timeProvider;
+    private readonly IMemoryCache _memoryCache;
     private readonly ILogger<RepositoryActivityService> _logger;
 
     public RepositoryActivityService(
-        ServiceRepositorySettings repositorySettings,
+        IRepositoryActivityRepository repositoryActivityRepository,
         SchedulingSettings schedulingSettings,
         TimeProvider timeProvider,
+        IMemoryCache memoryCache,
         ILogger<RepositoryActivityService> logger
     )
     {
-        _repositorySettings = repositorySettings;
+        _repositoryActivityRepository = repositoryActivityRepository;
         _schedulingSettings = schedulingSettings;
         _timeProvider = timeProvider;
+        _memoryCache = memoryCache;
         _logger = logger;
     }
 
-    public void MarkActive(AltinnRepoEditingContext editingContext, string repositoryPath)
+    public async Task MarkActiveAsync(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    )
     {
-        if (!_schedulingSettings.RepositoryCleanup.Enabled || !Directory.Exists(repositoryPath))
+        if (!_schedulingSettings.RepositoryCleanup.Enabled)
         {
             return;
         }
 
-        string markerPath = GetMarkerPath(editingContext);
+        string cacheKey = GetCacheKey(editingContext);
         DateTimeOffset now = _timeProvider.GetUtcNow();
-
-        try
-        {
-            if (File.Exists(markerPath))
-            {
-                DateTimeOffset lastActivity = File.GetLastWriteTimeUtc(markerPath);
-                if (now - lastActivity < _schedulingSettings.RepositoryCleanup.ActivityUpdateInterval)
-                {
-                    return;
-                }
-            }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(markerPath)!);
-            using (File.Open(markerPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite)) { }
-            File.SetLastWriteTimeUtc(markerPath, now.UtcDateTime);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            _logger.LogWarning(
-                exception,
-                "Failed to update local repository activity marker for {Developer}/{Org}/{Repository}.",
-                editingContext.Developer,
-                editingContext.Org,
-                editingContext.Repo
-            );
-        }
-    }
-
-    public DateTimeOffset GetLastActivity(AltinnRepoEditingContext editingContext, string repositoryPath)
-    {
-        string markerPath = GetMarkerPath(editingContext);
-        return File.Exists(markerPath)
-            ? File.GetLastWriteTimeUtc(markerPath)
-            : Directory.GetLastWriteTimeUtc(repositoryPath);
-    }
-
-    public bool HasMarker(AltinnRepoEditingContext editingContext) => File.Exists(GetMarkerPath(editingContext));
-
-    public void EnsureMarker(AltinnRepoEditingContext editingContext, DateTimeOffset lastActivity)
-    {
-        string markerPath = GetMarkerPath(editingContext);
-        if (File.Exists(markerPath))
+        if (
+            _memoryCache.TryGetValue(cacheKey, out DateTimeOffset lastPersistedAt)
+            && now - lastPersistedAt < _schedulingSettings.RepositoryCleanup.ActivityUpdateInterval
+        )
         {
             return;
         }
 
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(markerPath)!);
-            using (File.Open(markerPath, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite)) { }
-            File.SetLastWriteTimeUtc(markerPath, lastActivity.UtcDateTime);
+            await _repositoryActivityRepository.MarkActiveAsync(editingContext, now, cancellationToken);
+            _memoryCache.Set(cacheKey, now, _schedulingSettings.RepositoryCleanup.ActivityUpdateInterval * 2);
         }
-        catch (IOException) when (File.Exists(markerPath))
-        {
-            // Another process created the marker concurrently.
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
             _logger.LogWarning(
                 exception,
-                "Failed to preserve local repository activity marker for {Developer}/{Org}/{Repository}.",
+                "Failed to persist local repository activity for {Developer}/{Org}/{Repository}.",
                 editingContext.Developer,
                 editingContext.Org,
                 editingContext.Repo
@@ -107,34 +74,35 @@ public class RepositoryActivityService : IRepositoryActivityService
         }
     }
 
-    public void RemoveMarker(AltinnRepoEditingContext editingContext)
-    {
-        string markerPath = GetMarkerPath(editingContext);
-        try
-        {
-            File.Delete(markerPath);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            _logger.LogWarning(
-                exception,
-                "Failed to delete local repository activity marker for {Developer}/{Org}/{Repository}.",
-                editingContext.Developer,
-                editingContext.Org,
-                editingContext.Repo
-            );
-        }
-    }
+    public Task<IReadOnlyCollection<RepositoryActivityEntity>> GetAllAsync(
+        CancellationToken cancellationToken = default
+    ) => _repositoryActivityRepository.GetAllAsync(cancellationToken);
 
-    private string GetMarkerPath(AltinnRepoEditingContext editingContext)
-    {
-        return Path.Combine(
-            _repositorySettings.RepositoryLocation,
-            MetadataDirectoryName,
-            ActivityDirectoryName,
-            editingContext.Developer,
-            editingContext.Org,
-            editingContext.Repo
+    public Task<RepositoryActivityEntity?> GetAsync(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    ) => _repositoryActivityRepository.GetAsync(editingContext, cancellationToken);
+
+    public Task<bool> TryMarkCleanupPendingAsync(
+        AltinnRepoEditingContext editingContext,
+        DateTimeOffset expectedLastAccessedAt,
+        CancellationToken cancellationToken = default
+    ) =>
+        _repositoryActivityRepository.TryMarkCleanupPendingAsync(
+            editingContext,
+            expectedLastAccessedAt,
+            cancellationToken
         );
+
+    public async Task RemoveAsync(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await _repositoryActivityRepository.RemoveAsync(editingContext, cancellationToken);
+        _memoryCache.Remove(GetCacheKey(editingContext));
     }
+
+    private static string GetCacheKey(AltinnRepoEditingContext editingContext) =>
+        $"{CacheKeyPrefix}:{editingContext.Developer}:{editingContext.Org}:{editingContext.Repo}";
 }

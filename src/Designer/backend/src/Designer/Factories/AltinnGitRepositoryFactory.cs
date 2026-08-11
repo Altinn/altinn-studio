@@ -2,7 +2,6 @@ using System.IO;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Factories;
@@ -13,35 +12,21 @@ namespace Altinn.Studio.Designer.Factories;
 public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
 {
     private readonly string _repositoriesRootDirectory;
-    private readonly IRepositoryActivityService? _repositoryActivityService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AltinnGitRepositoryFactory"/> class.
     /// </summary>
     /// <param name="serviceRepositorySettings">Settings controlling where to find the repositories (using the value <see cref="ServiceRepositorySettings.RepositoryLocation"/>.</param>
     public AltinnGitRepositoryFactory(ServiceRepositorySettings serviceRepositorySettings)
-        : this(serviceRepositorySettings.RepositoryLocation, null) { }
-
-    public AltinnGitRepositoryFactory(
-        ServiceRepositorySettings serviceRepositorySettings,
-        IRepositoryActivityService repositoryActivityService
-    )
-        : this(serviceRepositorySettings.RepositoryLocation, repositoryActivityService) { }
+        : this(serviceRepositorySettings.RepositoryLocation) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AltinnGitRepositoryFactory"/> class.
     /// </summary>
     /// <param name="repositoriesRootDirectory">Full path to the root directory wher the repositories recides on-disk.</param>
     public AltinnGitRepositoryFactory(string repositoriesRootDirectory)
-        : this(repositoriesRootDirectory, null) { }
-
-    private AltinnGitRepositoryFactory(
-        string repositoriesRootDirectory,
-        IRepositoryActivityService? repositoryActivityService
-    )
     {
         _repositoriesRootDirectory = Path.GetFullPath(repositoriesRootDirectory); // We do this to normalize the path according to the OS and avoid slashes in all directions.
-        _repositoryActivityService = repositoryActivityService;
     }
 
     /// <summary>
@@ -51,7 +36,6 @@ public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
     public AltinnGitRepository GetAltinnGitRepository(string org, string repository, string developer)
     {
         var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-        MarkRepositoryAsActive(org, repository, developer, repositoryDirectory);
         return new AltinnGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
     }
 
@@ -62,7 +46,6 @@ public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
     public AltinnAppGitRepository GetAltinnAppGitRepository(string org, string repository, string developer)
     {
         var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-        MarkRepositoryAsActive(org, repository, developer, repositoryDirectory);
         return new AltinnAppGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
     }
 
@@ -92,15 +75,6 @@ public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
     public AltinnOrgGitRepository GetAltinnOrgGitRepository(string org, string repository, string developer)
     {
         var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-        MarkRepositoryAsActive(org, repository, developer, repositoryDirectory);
         return new AltinnOrgGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
-    }
-
-    private void MarkRepositoryAsActive(string org, string repository, string developer, string repositoryDirectory)
-    {
-        _repositoryActivityService?.MarkActive(
-            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer),
-            repositoryDirectory
-        );
     }
 }

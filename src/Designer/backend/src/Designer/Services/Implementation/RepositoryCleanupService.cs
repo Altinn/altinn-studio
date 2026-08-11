@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models.RepositoryActivity;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Logging;
@@ -15,8 +16,6 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class RepositoryCleanupService : IRepositoryCleanupService
 {
-    private const string MetadataDirectoryName = ".altinn-studio";
-
     private readonly ServiceRepositorySettings _repositorySettings;
     private readonly SchedulingSettings _schedulingSettings;
     private readonly TimeProvider _timeProvider;
@@ -50,7 +49,11 @@ public class RepositoryCleanupService : IRepositoryCleanupService
     {
         RepositoryCleanupSettings settings = _schedulingSettings.RepositoryCleanup;
         DateTimeOffset cutoff = _timeProvider.GetUtcNow() - settings.RetentionPeriod;
-        RepositoryCleanupCandidate[] candidates = FindCandidates(cutoff)
+        IReadOnlyCollection<RepositoryActivityEntity> repositoryActivities =
+            await _repositoryActivityService.GetAllAsync(cancellationToken);
+        IReadOnlyDictionary<AltinnRepoEditingContext, RepositoryActivityEntity> activityByRepository =
+            repositoryActivities.ToDictionary(activity => activity.EditingContext);
+        RepositoryCleanupCandidate[] candidates = FindCandidates(cutoff, activityByRepository)
             .OrderBy(candidate => candidate.LastActivity)
             .Take(settings.MaxRepositoriesPerRun)
             .ToArray();
@@ -75,15 +78,29 @@ public class RepositoryCleanupService : IRepositoryCleanupService
                 {
                     if (!Directory.Exists(candidate.RepositoryPath))
                     {
+                        await _repositoryActivityService.RemoveAsync(candidate.EditingContext, cancellationToken);
                         skipped++;
                         continue;
                     }
 
-                    DateTimeOffset refreshedLastActivity = _repositoryActivityService.GetLastActivity(
+                    RepositoryActivityEntity? refreshedActivity = await _repositoryActivityService.GetAsync(
                         candidate.EditingContext,
-                        candidate.RepositoryPath
+                        cancellationToken
                     );
+                    DateTimeOffset refreshedLastActivity =
+                        refreshedActivity?.LastAccessedAt ?? Directory.GetLastWriteTimeUtc(candidate.RepositoryPath);
                     if (refreshedLastActivity >= cutoff)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    bool cleanupPending = await _repositoryActivityService.TryMarkCleanupPendingAsync(
+                        candidate.EditingContext,
+                        refreshedLastActivity,
+                        cancellationToken
+                    );
+                    if (!cleanupPending)
                     {
                         skipped++;
                         continue;
@@ -91,7 +108,7 @@ public class RepositoryCleanupService : IRepositoryCleanupService
 
                     if (await DeleteWithRetriesAsync(candidate, cancellationToken))
                     {
-                        _repositoryActivityService.RemoveMarker(candidate.EditingContext);
+                        await _repositoryActivityService.RemoveAsync(candidate.EditingContext, cancellationToken);
                         deleted++;
                     }
                     else
@@ -126,15 +143,13 @@ public class RepositoryCleanupService : IRepositoryCleanupService
         return new RepositoryCleanupResult(candidates.Length, deleted, failed, skipped);
     }
 
-    private IEnumerable<RepositoryCleanupCandidate> FindCandidates(DateTimeOffset cutoff)
+    private IEnumerable<RepositoryCleanupCandidate> FindCandidates(
+        DateTimeOffset cutoff,
+        IReadOnlyDictionary<AltinnRepoEditingContext, RepositoryActivityEntity> activityByRepository
+    )
     {
         foreach (string developerPath in GetDirectories(_repositorySettings.RepositoryLocation))
         {
-            if (string.Equals(Path.GetFileName(developerPath), MetadataDirectoryName, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
             foreach (string orgPath in GetDirectories(developerPath))
             {
                 foreach (string repositoryPath in GetDirectories(orgPath))
@@ -149,25 +164,14 @@ public class RepositoryCleanupService : IRepositoryCleanupService
                         continue;
                     }
 
-                    if (!IsGitRepository(repositoryPath) && !_repositoryActivityService.HasMarker(editingContext))
+                    activityByRepository.TryGetValue(editingContext, out RepositoryActivityEntity? activity);
+                    if (!IsGitRepository(repositoryPath) && activity?.CleanupPending != true)
                     {
                         continue;
                     }
 
-                    DateTimeOffset lastActivity;
-                    try
-                    {
-                        lastActivity = _repositoryActivityService.GetLastActivity(editingContext, repositoryPath);
-                    }
-                    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-                    {
-                        _logger.LogWarning(
-                            exception,
-                            "Failed to read local repository activity for {RepositoryPath}.",
-                            repositoryPath
-                        );
-                        continue;
-                    }
+                    DateTimeOffset lastActivity =
+                        activity?.LastAccessedAt ?? Directory.GetLastWriteTimeUtc(repositoryPath);
 
                     if (lastActivity < cutoff)
                     {
@@ -228,7 +232,6 @@ public class RepositoryCleanupService : IRepositoryCleanupService
     )
     {
         RepositoryCleanupSettings settings = _schedulingSettings.RepositoryCleanup;
-        _repositoryActivityService.EnsureMarker(candidate.EditingContext, candidate.LastActivity);
 
         for (int attempt = 1; attempt <= settings.DeletionRetryAttempts; attempt++)
         {

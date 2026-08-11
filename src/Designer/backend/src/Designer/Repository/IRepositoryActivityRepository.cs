@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models.RepositoryActivity;
 
-namespace Altinn.Studio.Designer.Services.Interfaces;
+namespace Altinn.Studio.Designer.Repository;
 
-public interface IRepositoryActivityService
+public interface IRepositoryActivityRepository
 {
-    Task MarkActiveAsync(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default);
+    Task MarkActiveAsync(
+        AltinnRepoEditingContext editingContext,
+        DateTimeOffset lastAccessedAt,
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyCollection<RepositoryActivityEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 

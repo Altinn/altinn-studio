@@ -30,19 +30,16 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <param name="giteaClient">The gitea client.</param>
 /// <param name="authHeadersProvider">The git server auth headers provider.</param>
 /// <param name="httpContextAccessor">The HTTP context accessor.</param>
-/// <param name="repositoryActivityService">Tracks when local repository clones are used.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
     IGitServerAuthHeadersProvider authHeadersProvider,
-    IHttpContextAccessor? httpContextAccessor = null,
-    IRepositoryActivityService? repositoryActivityService = null
+    IHttpContextAccessor? httpContextAccessor = null
 ) : ISourceControl
 {
     private readonly ServiceRepositorySettings _repositorySettings = repositorySettings;
     private readonly IGiteaClient _giteaClient = giteaClient;
     private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor;
-    private readonly IRepositoryActivityService? _repositoryActivityService = repositoryActivityService;
 
     private const string DefaultBranch = General.DefaultBranch;
 
@@ -642,14 +639,11 @@ public class SourceControlService(
             activity,
             editingContext,
             static (self, editingContext) =>
-            {
-                string repositoryPath = Path.Join(
+                Path.Join(
                     Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
                         ?? self._repositorySettings.RepositoryLocation,
                     editingContext.Path
-                );
-                return repositoryPath;
-            }
+                )
         );
     }
 
@@ -1420,33 +1414,24 @@ public class SourceControlService(
 
     private static Activity? StartActivity([CallerMemberName] string methodName = "") => StartActivityCore(methodName);
 
-    private Activity? StartActivity(AltinnRepoEditingContext editingContext, [CallerMemberName] string methodName = "")
+    private static Activity? StartActivity(
+        AltinnRepoEditingContext editingContext,
+        [CallerMemberName] string methodName = ""
+    )
     {
-        MarkRepositoryAsActive(editingContext);
         var activity = StartActivityCore(methodName);
         SetCommonTags(activity, editingContext.Org, editingContext.Repo, editingContext.Developer);
         return activity;
     }
 
-    private Activity? StartActivity(
+    private static Activity? StartActivity(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         [CallerMemberName] string methodName = ""
     )
     {
-        MarkRepositoryAsActive(authenticatedContext);
         var activity = StartActivityCore(methodName);
         SetCommonTags(activity, authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer);
         return activity;
-    }
-
-    private void MarkRepositoryAsActive(AltinnRepoEditingContext editingContext)
-    {
-        string repositoryPath = Path.Join(
-            Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                ?? _repositorySettings.RepositoryLocation,
-            editingContext.Path
-        );
-        _repositoryActivityService?.MarkActive(editingContext, repositoryPath);
     }
 
     private static void SetCommonTags(Activity? activity, string org, string repository, string developer)

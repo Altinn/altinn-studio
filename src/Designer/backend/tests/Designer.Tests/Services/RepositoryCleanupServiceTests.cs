@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models.RepositoryActivity;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -26,11 +29,10 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
     {
         var timeProvider = new FakeTimeProvider(_now);
         SchedulingSettings settings = CreateSettings();
-        RepositoryActivityService activityService = CreateActivityService(settings, timeProvider);
+        var activityService = new InMemoryRepositoryActivityService();
         string staleRepository = CreateRepository("stale-app", _now.AddDays(-31), activityService);
         string activeRepository = CreateRepository("active-app", _now.AddDays(-29), activityService);
         string nonGitDirectory = CreateNonGitDirectory("old-files", _now.AddDays(-60));
-        timeProvider.SetUtcNow(_now);
         RepositoryCleanupService service = CreateCleanupService(
             settings,
             timeProvider,
@@ -47,15 +49,35 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task DeleteInactiveRepositoriesAsync_UsesDirectoryTimestampForLegacyRepository()
+    {
+        var timeProvider = new FakeTimeProvider(_now);
+        SchedulingSettings settings = CreateSettings();
+        var activityService = new InMemoryRepositoryActivityService();
+        string repositoryPath = CreateRepositoryDirectory("legacy-app");
+        Directory.SetLastWriteTimeUtc(repositoryPath, _now.AddDays(-31).UtcDateTime);
+        RepositoryCleanupService service = CreateCleanupService(
+            settings,
+            timeProvider,
+            activityService,
+            new RepositoryDirectoryCleaner()
+        );
+
+        RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
+
+        Assert.False(Directory.Exists(repositoryPath));
+        Assert.Equal(new RepositoryCleanupResult(1, 1, 0, 0), result);
+    }
+
+    [Fact]
     public async Task DeleteInactiveRepositoriesAsync_DeletesOldestRepositoriesWithinBatchLimit()
     {
         var timeProvider = new FakeTimeProvider(_now);
         SchedulingSettings settings = CreateSettings();
         settings.RepositoryCleanup.MaxRepositoriesPerRun = 1;
-        RepositoryActivityService activityService = CreateActivityService(settings, timeProvider);
+        var activityService = new InMemoryRepositoryActivityService();
         string oldestRepository = CreateRepository("oldest-app", _now.AddDays(-60), activityService);
         string newerRepository = CreateRepository("newer-app", _now.AddDays(-45), activityService);
-        timeProvider.SetUtcNow(_now);
         RepositoryCleanupService service = CreateCleanupService(
             settings,
             timeProvider,
@@ -76,7 +98,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         SchedulingSettings settings = CreateSettings();
         settings.RepositoryCleanup.DeletionRetryDelayMilliseconds = 1;
         TimeProvider timeProvider = TimeProvider.System;
-        RepositoryActivityService activityService = CreateActivityService(settings, timeProvider);
+        var activityService = new InMemoryRepositoryActivityService();
         string repositoryPath = CreateRepository("retry-app", timeProvider.GetUtcNow().AddDays(-31), activityService);
         int attempts = 0;
         var cleaner = new Mock<IRepositoryDirectoryCleaner>();
@@ -112,7 +134,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         var timeProvider = new FakeTimeProvider(_now);
         SchedulingSettings settings = CreateSettings();
         settings.RepositoryCleanup.DeletionRetryAttempts = 1;
-        RepositoryActivityService activityService = CreateActivityService(settings, timeProvider);
+        var activityService = new InMemoryRepositoryActivityService();
         string repositoryPath = CreateRepository("partial-app", _now.AddDays(-31), activityService);
         var failingCleaner = new Mock<IRepositoryDirectoryCleaner>();
         failingCleaner
@@ -153,9 +175,11 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         Directory.CreateDirectory(Path.Combine(repositoryPath, ".git"));
         var activityService = new Mock<IRepositoryActivityService>();
         activityService
-            .SetupSequence(service => service.GetLastActivity(context, repositoryPath))
-            .Returns(_now.AddDays(-31))
-            .Returns(_now);
+            .Setup(service => service.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new RepositoryActivityEntity(context, _now.AddDays(-31), false)]);
+        activityService
+            .Setup(service => service.GetAsync(context, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RepositoryActivityEntity(context, _now, false));
         var cleaner = new Mock<IRepositoryDirectoryCleaner>();
         RepositoryCleanupService service = CreateCleanupService(
             settings,
@@ -176,7 +200,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         Directory.Delete(_rootDirectory, recursive: true);
     }
 
-    private SchedulingSettings CreateSettings()
+    private static SchedulingSettings CreateSettings()
     {
         return new SchedulingSettings
         {
@@ -190,16 +214,6 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
                 LockTimeoutSeconds = 1,
             },
         };
-    }
-
-    private RepositoryActivityService CreateActivityService(SchedulingSettings settings, TimeProvider timeProvider)
-    {
-        return new RepositoryActivityService(
-            new ServiceRepositorySettings { RepositoryLocation = _rootDirectory },
-            settings,
-            timeProvider,
-            NullLogger<RepositoryActivityService>.Instance
-        );
     }
 
     private RepositoryCleanupService CreateCleanupService(
@@ -226,16 +240,19 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
     private string CreateRepository(
         string repository,
         DateTimeOffset lastActivity,
-        IRepositoryActivityService activityService
+        InMemoryRepositoryActivityService activityService
     )
     {
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", repository, "test-user");
-        string repositoryPath = Path.Combine(_rootDirectory, context.Path);
+        string repositoryPath = CreateRepositoryDirectory(repository);
+        activityService.Set(new RepositoryActivityEntity(context, lastActivity, false));
+        return repositoryPath;
+    }
+
+    private string CreateRepositoryDirectory(string repository)
+    {
+        string repositoryPath = Path.Combine(_rootDirectory, "test-user", "ttd", repository);
         Directory.CreateDirectory(Path.Combine(repositoryPath, ".git"));
-
-        activityService.MarkActive(context, repositoryPath);
-        File.SetLastWriteTimeUtc(GetActivityMarkerPath(context), lastActivity.UtcDateTime);
-
         return repositoryPath;
     }
 
@@ -247,15 +264,48 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         return directoryPath;
     }
 
-    private string GetActivityMarkerPath(AltinnRepoEditingContext context)
+    private sealed class InMemoryRepositoryActivityService : IRepositoryActivityService
     {
-        return Path.Combine(
-            _rootDirectory,
-            ".altinn-studio",
-            "repository-activity",
-            context.Developer,
-            context.Org,
-            context.Repo
-        );
+        private readonly Dictionary<AltinnRepoEditingContext, RepositoryActivityEntity> _activities = [];
+
+        public void Set(RepositoryActivityEntity activity) => _activities[activity.EditingContext] = activity;
+
+        public Task MarkActiveAsync(
+            AltinnRepoEditingContext editingContext,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<IReadOnlyCollection<RepositoryActivityEntity>> GetAllAsync(
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult<IReadOnlyCollection<RepositoryActivityEntity>>(_activities.Values.ToArray());
+
+        public Task<RepositoryActivityEntity> GetAsync(
+            AltinnRepoEditingContext editingContext,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult(_activities.GetValueOrDefault(editingContext));
+
+        public Task<bool> TryMarkCleanupPendingAsync(
+            AltinnRepoEditingContext editingContext,
+            DateTimeOffset expectedLastAccessedAt,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (
+                _activities.TryGetValue(editingContext, out RepositoryActivityEntity existing)
+                && existing.LastAccessedAt > expectedLastAccessedAt
+            )
+            {
+                return Task.FromResult(false);
+            }
+
+            _activities[editingContext] = new RepositoryActivityEntity(editingContext, expectedLastAccessedAt, true);
+            return Task.FromResult(true);
+        }
+
+        public Task RemoveAsync(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default)
+        {
+            _activities.Remove(editingContext);
+            return Task.CompletedTask;
+        }
     }
 }
