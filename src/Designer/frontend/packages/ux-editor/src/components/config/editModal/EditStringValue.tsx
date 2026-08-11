@@ -2,10 +2,14 @@ import type { ReactElement } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { Combobox } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
-import { StudioSelect, StudioTextfield } from '@studio/components';
+import {
+  StudioSelect,
+  StudioSuggestion,
+  StudioTextfield,
+  type StudioSuggestionItem,
+} from '@studio/components';
 import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';
@@ -54,20 +58,26 @@ export const EditStringValue = ({
       renderField={({ fieldProps }) =>
         enumValues ? (
           multiple ? (
-            <Combobox
-              label={fieldProps.label}
-              value={fieldProps.value?.length > 0 ? fieldProps.value : []}
-              onValueChange={(values) => fieldProps.onChange(values)}
-              id={`component-${propertyKey}-select${component.id}`}
+            <StudioSuggestion
               multiple
-              size='sm'
+              label={fieldProps.label}
+              emptyText={t('general.no_options')}
+              selected={toSuggestionItems(fieldProps.value, componentEnumValue)}
+              onSelectedChange={(items: StudioSuggestionItem[]) =>
+                fieldProps.onChange(items.map((item) => item.value))
+              }
+              id={`component-${propertyKey}-select${component.id}`}
             >
               {enumValues.map((value) => (
-                <Combobox.Option key={value} value={value}>
+                <StudioSuggestion.Option
+                  key={value}
+                  value={value}
+                  label={componentEnumValue(value)}
+                >
                   {componentEnumValue(value)}
-                </Combobox.Option>
+                </StudioSuggestion.Option>
               ))}
-            </Combobox>
+            </StudioSuggestion>
           ) : (
             <StudioSelect
               label={fieldProps.label}
@@ -97,6 +107,12 @@ export const EditStringValue = ({
     />
   );
 };
+
+const toSuggestionItems = (
+  value: unknown,
+  getLabel: (value: string) => string,
+): StudioSuggestionItem[] =>
+  Array.isArray(value) ? value.map((item) => ({ value: item, label: getLabel(item) })) : [];
 
 type NoValueSelectOptionProps = {
   disabled: boolean;

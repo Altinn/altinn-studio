@@ -94,7 +94,9 @@ describe('AttachmentListComponent', () => {
 
   it('should render AttachmentList component', async () => {
     await render();
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('ux_editor.component_properties.select_attachments')),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('checkbox', {
         name: textMock('ux_editor.component_properties.current_task'),
