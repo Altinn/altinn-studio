@@ -5,6 +5,10 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioSpinner, StudioSelect } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
+import {
+  StudioToggleGroup,
+  StudioToggleGroupItem,
+} from '@studio/components/src/components/StudioToggleGroup/StudioToggleGroup';
 
 export type PreviewControlHeaderProps = {
   viewSize: 'desktop' | 'mobile';
@@ -34,10 +38,14 @@ export const PreviewControlHeader = ({
   return (
     <div className={classes.wrapper}>
       <div className={classes.viewSizeButtons}>
-        <ToggleGroup onChange={setViewSize} value={viewSize} size='sm'>
-          <ToggleGroup.Item value='desktop'>{t('preview.view_size_desktop')}</ToggleGroup.Item>
-          <ToggleGroup.Item value='mobile'>{t('preview.view_size_mobile')}</ToggleGroup.Item>
-        </ToggleGroup>
+        <StudioToggleGroup onChange={setViewSize} value={viewSize} data-size='sm'>
+          <StudioToggleGroupItem value='desktop'>
+            {t('preview.view_size_desktop')}
+          </StudioToggleGroupItem>
+          <StudioToggleGroupItem value='mobile'>
+            {t('preview.view_size_mobile')}
+          </StudioToggleGroupItem>
+        </StudioToggleGroup>
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
