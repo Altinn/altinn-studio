@@ -7,8 +7,8 @@ import {
   StudioHeading,
   StudioSpinner,
   StudioTag,
+  StudioTable,
 } from '@studio/components';
-import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
@@ -55,18 +55,18 @@ export const FileChangesInfoModal = ({
         </StudioDialog.Block>
         <StudioDialog.Block>
           <div>
-            <Table zebra className={classes.table}>
-              <Table.Head>
-                <Table.Row>
-                  <Table.HeaderCell>
+            <StudioTable zebra className={classes.table}>
+              <StudioTable.Head>
+                <StudioTable.Row>
+                  <StudioTable.HeaderCell>
                     {t('sync_header.show_changes_modal.column_header_file_name')}
-                  </Table.HeaderCell>
-                  <Table.HeaderCell className={classes.fileStatusCell}>
+                  </StudioTable.HeaderCell>
+                  <StudioTable.HeaderCell className={classes.fileStatusCell}>
                     {t('sync_header.show_changes_modal.column_header_file_status')}
-                  </Table.HeaderCell>
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
+                  </StudioTable.HeaderCell>
+                </StudioTable.Row>
+              </StudioTable.Head>
+              <StudioTable.Body>
                 {fileChanges.map((fileChange) => (
                   <FileChangeTableRow
                     key={fileChange.filePath}
@@ -75,8 +75,8 @@ export const FileChangesInfoModal = ({
                     repoDiffStatus={repoDiffStatus}
                   />
                 ))}
-              </Table.Body>
-            </Table>
+              </StudioTable.Body>
+            </StudioTable>
           </div>
         </StudioDialog.Block>
         {renderDiffStatus(repoDiffStatus) && (
@@ -132,11 +132,11 @@ const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTabl
   );
 
   return (
-    <Table.Row key={filePath}>
-      <Table.Cell>
+    <StudioTable.Row key={filePath}>
+      <StudioTable.Cell>
         <FilePath filePath={filePath} diff={diff} repoDiffStatus={repoDiffStatus} />
-      </Table.Cell>
-      <Table.Cell className={classes.fileStatusCell}>{fileStatusTag}</Table.Cell>
-    </Table.Row>
+      </StudioTable.Cell>
+      <StudioTable.Cell className={classes.fileStatusCell}>{fileStatusTag}</StudioTable.Cell>
+    </StudioTable.Row>
   );
 };
