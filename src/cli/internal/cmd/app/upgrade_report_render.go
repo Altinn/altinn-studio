@@ -86,27 +86,18 @@ func upgradeStatusStyle(status studioctlserver.AppUpgradeStatus) (string, ui.Cel
 	}
 }
 
-// Closing advice, keyed off the upgrade's exit code.
 const (
-	upgradeVerdictSuccess = "Please verify that the application is still working as expected."
-	upgradeVerdictManual  = "Upgrade completed, but some steps need manual follow-up. " +
-		"Please review the warnings above."
-	upgradeVerdictError = "Upgrade completed with errors. Please check for errors in the log above."
-
-	// Exit codes studioctl-server reports for an upgrade. Severity does not follow numeric order: 3 means
-	// the upgrade did everything it safely could but left work for a human.
 	upgradeExitSuccess        = 0
 	upgradeExitManualRequired = 3
 )
 
-// printUpgradeVerdict writes the closing advice for a rendered report.
 func printUpgradeVerdict(out *ui.Output, exitCode int) {
 	switch exitCode {
 	case upgradeExitSuccess:
-		out.Success(upgradeVerdictSuccess)
+		out.Success("Please verify that the application is still working as expected.")
 	case upgradeExitManualRequired:
-		out.Warning(upgradeVerdictManual)
+		out.Warning("Upgrade completed, but some steps need manual follow-up. Please review the warnings above.")
 	default:
-		out.Warning(upgradeVerdictError)
+		out.Warning("Upgrade completed with errors. Please check for errors in the log above.")
 	}
 }
