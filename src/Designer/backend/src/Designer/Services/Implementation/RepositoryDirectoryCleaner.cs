@@ -39,15 +39,7 @@ public class RepositoryDirectoryCleaner : IRepositoryDirectoryCleaner
             Directory.Delete(GetContainedPath(directoryPath), recursive: false);
             return true;
         }
-        catch (DirectoryNotFoundException)
-        {
-            return false;
-        }
-        catch (IOException)
-        {
-            return false;
-        }
-        catch (UnauthorizedAccessException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             return false;
         }
