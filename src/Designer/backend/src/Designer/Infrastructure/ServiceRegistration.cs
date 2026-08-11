@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
@@ -54,7 +55,8 @@ public static class ServiceRegistration
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
         services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
-        services.AddSingleton<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
+        services.AddTransient<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
 
         services.AddTransient<ISourceControl, SourceControlService>();
 

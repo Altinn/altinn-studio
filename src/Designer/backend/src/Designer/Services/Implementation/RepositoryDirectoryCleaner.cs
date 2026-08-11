@@ -1,15 +1,29 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class RepositoryDirectoryCleaner : IRepositoryDirectoryCleaner
 {
+    private readonly string _repositoryRoot;
+
+    public RepositoryDirectoryCleaner(ServiceRepositorySettings repositorySettings)
+    {
+        _repositoryRoot = Path.GetFullPath(repositorySettings.RepositoryLocation);
+    }
+
     public void Delete(string repositoryPath)
     {
-        var repositoryDirectory = new DirectoryInfo(repositoryPath);
+        var repositoryDirectory = new DirectoryInfo(GetContainedPath(repositoryPath));
+        if (repositoryDirectory.LinkTarget is not null)
+        {
+            DeleteSymbolicLink(repositoryDirectory);
+            return;
+        }
+
         if (!repositoryDirectory.Exists)
         {
             return;
@@ -22,7 +36,7 @@ public class RepositoryDirectoryCleaner : IRepositoryDirectoryCleaner
     {
         try
         {
-            Directory.Delete(directoryPath, recursive: false);
+            Directory.Delete(GetContainedPath(directoryPath), recursive: false);
             return true;
         }
         catch (DirectoryNotFoundException)
@@ -55,7 +69,7 @@ public class RepositoryDirectoryCleaner : IRepositoryDirectoryCleaner
             DeleteEntryWithoutFollowingLinks(entry);
         }
 
-        File.SetAttributes(directory.FullName, FileAttributes.Normal);
+        ClearReadOnlyAttribute(directory);
         Directory.Delete(directory.FullName, recursive: false);
     }
 
@@ -99,15 +113,47 @@ public class RepositoryDirectoryCleaner : IRepositoryDirectoryCleaner
             return;
         }
 
-        File.SetAttributes(entry.FullName, FileAttributes.Normal);
+        ClearReadOnlyAttribute(entry);
         File.Delete(entry.FullName);
+    }
+
+    private string GetContainedPath(string path)
+    {
+        string fullPath = Path.GetFullPath(path);
+        string relativePath = Path.GetRelativePath(_repositoryRoot, fullPath);
+        if (
+            relativePath == "."
+            || relativePath == ".."
+            || relativePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+            || Path.IsPathRooted(relativePath)
+        )
+        {
+            throw new ArgumentException("The cleanup path must be inside the repository root.", nameof(path));
+        }
+
+        return fullPath;
+    }
+
+    private static void ClearReadOnlyAttribute(FileSystemInfo entry)
+    {
+        if (entry.Attributes.HasFlag(FileAttributes.ReadOnly))
+        {
+            entry.Attributes &= ~FileAttributes.ReadOnly;
+        }
     }
 
     private static void DeleteSymbolicLink(FileSystemInfo entry)
     {
         if (entry is DirectoryInfo)
         {
-            Directory.Delete(entry.FullName, recursive: false);
+            try
+            {
+                Directory.Delete(entry.FullName, recursive: false);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                File.Delete(entry.FullName);
+            }
         }
         else
         {

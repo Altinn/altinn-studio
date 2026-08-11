@@ -35,11 +35,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         File.WriteAllText(recentlyModifiedFile, "{}");
         File.SetLastWriteTimeUtc(recentlyModifiedFile, _now.AddDays(-1).UtcDateTime);
         string nonGitDirectory = CreateNonGitDirectory("old-files", _now.AddDays(-60));
-        RepositoryCleanupService service = CreateCleanupService(
-            settings,
-            timeProvider,
-            new RepositoryDirectoryCleaner()
-        );
+        RepositoryCleanupService service = CreateCleanupService(settings, timeProvider, CreateDirectoryCleaner());
 
         RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
 
@@ -60,11 +56,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         Directory.SetLastWriteTimeUtc(repositoryPath, _now.UtcDateTime);
         Directory.SetLastWriteTimeUtc(organizationPath, _now.UtcDateTime);
         Directory.SetLastWriteTimeUtc(developerPath, _now.UtcDateTime);
-        RepositoryCleanupService service = CreateCleanupService(
-            settings,
-            timeProvider,
-            new RepositoryDirectoryCleaner()
-        );
+        RepositoryCleanupService service = CreateCleanupService(settings, timeProvider, CreateDirectoryCleaner());
 
         RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
 
@@ -115,11 +107,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         string repositoryPath = CreateRepository("only-app", _now.AddDays(-31));
         string organizationPath = Directory.GetParent(repositoryPath)!.FullName;
         string developerPath = Directory.GetParent(organizationPath)!.FullName;
-        RepositoryCleanupService service = CreateCleanupService(
-            settings,
-            timeProvider,
-            new RepositoryDirectoryCleaner()
-        );
+        RepositoryCleanupService service = CreateCleanupService(settings, timeProvider, CreateDirectoryCleaner());
 
         RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
 
@@ -138,11 +126,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
         settings.RepositoryCleanup.MaxRepositoriesPerRun = 1;
         string firstRepository = CreateRepository("first-app", _now.AddDays(-60));
         string secondRepository = CreateRepository("second-app", _now.AddDays(-45));
-        RepositoryCleanupService service = CreateCleanupService(
-            settings,
-            timeProvider,
-            new RepositoryDirectoryCleaner()
-        );
+        RepositoryCleanupService service = CreateCleanupService(settings, timeProvider, CreateDirectoryCleaner());
 
         RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
 
@@ -225,6 +209,9 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
             NullLogger<RepositoryCleanupService>.Instance
         );
     }
+
+    private RepositoryDirectoryCleaner CreateDirectoryCleaner() =>
+        new(new ServiceRepositorySettings { RepositoryLocation = _rootDirectory });
 
     private string CreateRepository(string repository, DateTimeOffset lastModified)
     {
