@@ -104,6 +104,8 @@ environmentVariables:
       value: "3"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
       value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
+      value: "120"
     - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
       value: "24"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
@@ -204,6 +206,8 @@ environmentVariables:
       value: "3"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
       value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
+      value: "120"
     - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
       value: "24"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
@@ -302,6 +306,8 @@ environmentVariables:
       value: "3"
     - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
       value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
+      value: "120"
     - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
       value: "24"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression

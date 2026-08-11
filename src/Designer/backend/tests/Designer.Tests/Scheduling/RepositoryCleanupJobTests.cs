@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -12,6 +13,15 @@ namespace Designer.Tests.Scheduling;
 
 public class RepositoryCleanupJobTests
 {
+    [Fact]
+    public void RepositoryCleanupSettings_DefaultJobTimeoutIsTwoHours()
+    {
+        var settings = new RepositoryCleanupSettings();
+
+        Assert.Equal(120, settings.JobTimeoutMinutes);
+        Assert.Equal(TimeSpan.FromHours(2), settings.JobTimeout);
+    }
+
     [Fact]
     public async Task Execute_InvokesRepositoryCleanupService()
     {
