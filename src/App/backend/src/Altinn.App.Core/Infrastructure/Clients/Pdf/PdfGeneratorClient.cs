@@ -172,6 +172,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 
         // Ownership of the response moves to the returned stream — a `using` here would dispose the
         // content the caller is about to read.
-        return await ResponseWrapperStream.TakeOwnershipOf(httpResponseMessage, ct);
+        return await ResponseWrapperStream.Create(httpResponseMessage, ct);
     }
 }

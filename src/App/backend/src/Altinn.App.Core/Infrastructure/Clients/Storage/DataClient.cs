@@ -241,7 +241,7 @@ public sealed class DataClient : IDataClient
         {
             // Ownership of the response moves to the returned stream — a `using` here would dispose the
             // content the caller is about to read.
-            return await ResponseWrapperStream.TakeOwnershipOf(response, cts.Token);
+            return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
         // Nothing takes the response over on the remaining paths, so this scope owns it.
@@ -283,7 +283,7 @@ public sealed class DataClient : IDataClient
         {
             // Ownership of the response moves to the returned stream — a `using` here would dispose the
             // content the caller is about to read.
-            return await ResponseWrapperStream.TakeOwnershipOf(response, cts.Token);
+            return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
         // Nothing takes the response over on the failure path, so this scope owns it.

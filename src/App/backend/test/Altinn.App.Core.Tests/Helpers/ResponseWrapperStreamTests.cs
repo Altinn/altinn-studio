@@ -8,11 +8,11 @@ namespace Altinn.App.Core.Tests.Helpers;
 public class ResponseWrapperStreamTests
 {
     [Fact]
-    public async Task TakeOwnershipOf_returns_a_readable_stream_over_the_response_content()
+    public async Task Create_returns_a_readable_stream_over_the_response_content()
     {
         var (response, _) = DisposeTrackingContent.Response("hello worlds");
 
-        using Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
+        using Stream stream = await ResponseWrapperStream.Create(response);
 
         using StreamReader reader = new(stream);
         var content = await reader.ReadToEndAsync();
@@ -20,11 +20,11 @@ public class ResponseWrapperStreamTests
     }
 
     [Fact]
-    public async Task TakeOwnershipOf_does_not_dispose_the_response_while_the_stream_is_alive()
+    public async Task Create_does_not_dispose_the_response_while_the_stream_is_alive()
     {
         var (response, content) = DisposeTrackingContent.Response("hello worlds");
 
-        Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
+        Stream stream = await ResponseWrapperStream.Create(response);
 
         Assert.False(content.IsDisposed, "the returned stream is still the caller's to read");
         await stream.DisposeAsync();
@@ -35,7 +35,7 @@ public class ResponseWrapperStreamTests
     {
         var (response, content) = DisposeTrackingContent.Response("hello worlds");
 
-        Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
+        Stream stream = await ResponseWrapperStream.Create(response);
         stream.Dispose();
 
         Assert.True(content.IsDisposed);
@@ -46,7 +46,7 @@ public class ResponseWrapperStreamTests
     {
         var (response, content) = DisposeTrackingContent.Response("hello worlds");
 
-        Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
+        Stream stream = await ResponseWrapperStream.Create(response);
         await stream.DisposeAsync();
 
         Assert.True(
@@ -57,14 +57,14 @@ public class ResponseWrapperStreamTests
     }
 
     [Fact]
-    public async Task TakeOwnershipOf_disposes_the_response_when_the_content_stream_cannot_be_read()
+    public async Task Create_disposes_the_response_when_the_content_stream_cannot_be_read()
     {
         ThrowingContent content = new();
         using HttpResponseMessage response = new() { Content = content };
 
         // HttpContent wraps a content-read failure, so the caller sees HttpRequestException over the IOException.
         var thrown = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-            await ResponseWrapperStream.TakeOwnershipOf(response)
+            await ResponseWrapperStream.Create(response)
         );
         var inner = Assert.IsType<IOException>(thrown.InnerException);
         Assert.Equal("cannot read this content", inner.Message);
@@ -76,9 +76,9 @@ public class ResponseWrapperStreamTests
     }
 
     [Fact]
-    public async Task TakeOwnershipOf_rejects_a_null_response()
+    public async Task Create_rejects_a_null_response()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await ResponseWrapperStream.TakeOwnershipOf(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await ResponseWrapperStream.Create(null!));
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class ResponseWrapperStreamTests
     {
         var (response, _) = DisposeTrackingContent.Response("hello worlds");
 
-        using Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
+        using Stream stream = await ResponseWrapperStream.Create(response);
 
         // A buffered response hands out a seekable stream, and ASP.NET reads CanSeek/Length off the stream
         // returned from these clients to set Content-Length on a file result.
@@ -106,13 +106,15 @@ public class ResponseWrapperStreamTests
     // implementation — a buffered response hands out a MemoryStream, whose copy is a single block copy.
     // Stream's base implementations would produce identical bytes by looping over Read, so only asserting
     // on the bytes cannot tell the two apart. These assert on the delegation itself, which is the point.
+    // Create is the only way to construct the wrapper, so the RecordingStream is planted behind it as the
+    // response's content stream.
 
     [Fact]
-    public void CopyTo_is_delegated_to_the_content_stream()
+    public async Task CopyTo_is_delegated_to_the_content_stream()
     {
-        using HttpResponseMessage response = new();
         RecordingStream inner = new("hello worlds");
-        using ResponseWrapperStream stream = new(response, inner);
+        using HttpResponseMessage response = new() { Content = new StreamHandoutContent(inner) };
+        using Stream stream = await ResponseWrapperStream.Create(response);
 
         using MemoryStream destination = new();
         stream.CopyTo(destination);
@@ -124,9 +126,9 @@ public class ResponseWrapperStreamTests
     [Fact]
     public async Task CopyToAsync_is_delegated_to_the_content_stream()
     {
-        using HttpResponseMessage response = new();
         RecordingStream inner = new("hello worlds");
-        using ResponseWrapperStream stream = new(response, inner);
+        using HttpResponseMessage response = new() { Content = new StreamHandoutContent(inner) };
+        using Stream stream = await ResponseWrapperStream.Create(response);
 
         using MemoryStream destination = new();
         await stream.CopyToAsync(destination);
@@ -136,18 +138,18 @@ public class ResponseWrapperStreamTests
     }
 
     [Fact]
-    public void Read_span_is_delegated_to_the_content_stream()
+    public async Task Read_span_is_delegated_to_the_content_stream()
     {
-        using HttpResponseMessage response = new();
         RecordingStream inner = new("hello worlds");
-        using ResponseWrapperStream stream = new(response, inner);
+        using HttpResponseMessage response = new() { Content = new StreamHandoutContent(inner) };
+        using Stream stream = await ResponseWrapperStream.Create(response);
 
-        Span<byte> buffer = new byte[5];
-        var read = stream.Read(buffer);
+        var buffer = new byte[5];
+        var read = stream.Read(buffer.AsSpan());
 
         Assert.Equal(5, read);
         Assert.Equal(1, inner.ReadSpanCalls);
-        Assert.Equal("hello"u8.ToArray(), buffer.ToArray());
+        Assert.Equal("hello"u8.ToArray(), buffer);
     }
 
     /// <summary>
@@ -176,6 +178,25 @@ public class ResponseWrapperStreamTests
         {
             ReadSpanCalls++;
             return base.Read(buffer);
+        }
+    }
+
+    /// <summary>
+    /// Content that hands out a caller-supplied stream as its content stream, so a test can plant a
+    /// <see cref="RecordingStream"/> behind <see cref="ResponseWrapperStream.Create"/> — the only way
+    /// to construct the wrapper.
+    /// </summary>
+    private sealed class StreamHandoutContent(Stream stream) : HttpContent
+    {
+        protected override Task<Stream> CreateContentReadStreamAsync() => Task.FromResult(stream);
+
+        protected override Task SerializeToStreamAsync(Stream target, TransportContext? context) =>
+            stream.CopyToAsync(target);
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
         }
     }
 

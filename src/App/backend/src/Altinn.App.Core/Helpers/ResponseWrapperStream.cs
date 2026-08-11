@@ -8,12 +8,7 @@ internal sealed class ResponseWrapperStream : Stream
     private readonly HttpResponseMessage _response;
     private readonly Stream _innerStream;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ResponseWrapperStream"/> class.
-    /// </summary>
-    /// <param name="response">The HTTP response message to be disposed when the stream is disposed.</param>
-    /// <param name="innerStream">The inner stream to wrap and delegate operations to.</param>
-    public ResponseWrapperStream(HttpResponseMessage response, Stream innerStream)
+    private ResponseWrapperStream(HttpResponseMessage response, Stream innerStream)
     {
         ArgumentNullException.ThrowIfNull(response);
         ArgumentNullException.ThrowIfNull(innerStream);
@@ -24,7 +19,8 @@ internal sealed class ResponseWrapperStream : Stream
 
     /// <summary>
     /// Reads <paramref name="response"/>'s content as a stream and wraps the pair, handing ownership of
-    /// the response to the stream returned: disposing that stream disposes the response.
+    /// the response to the stream returned: disposing that stream disposes the response. This is the only
+    /// way to create a <see cref="ResponseWrapperStream"/>, so the ownership transfer cannot be skipped.
     /// </summary>
     /// <remarks>
     /// For a method that returns a stream taken from a response, this is the alternative to a
@@ -36,10 +32,7 @@ internal sealed class ResponseWrapperStream : Stream
     /// <param name="response">The response to take over. Owned by the returned stream once this succeeds.</param>
     /// <param name="cancellationToken">Cancels reading the content stream.</param>
     /// <returns>A stream over the response content that disposes the response when disposed.</returns>
-    public static async Task<Stream> TakeOwnershipOf(
-        HttpResponseMessage response,
-        CancellationToken cancellationToken = default
-    )
+    public static async Task<Stream> Create(HttpResponseMessage response, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(response);
 
