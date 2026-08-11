@@ -301,6 +301,138 @@ public sealed class InstanceMutationRepositoryTests
         Assert.DoesNotContain(result.Instance.Data ?? [], element => element.Id == dataElement.Id);
     }
 
+    [Fact]
+    public async Task Apply_WhenUpdateOnlyChangesMetadata_PreservesTheContentAuthorStamp()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.InstanceRepository.Create(
+            CreateInstance(
+                lastChanged: new DateTime(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc),
+                lastChangedBy: "seed-actor"
+            ),
+            CancellationToken.None
+        );
+        Guid instanceGuid = GetInstanceGuid(instance);
+        DataElement dataElement = (
+            await storage.DataRepository.Create(
+                CreateDataElement(instanceGuid, locked: false),
+                cancellationToken: CancellationToken.None
+            )
+        ).DataElement;
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
+            instanceGuid
+        );
+
+        InstanceMutationApplyResult result = await storage.MutationRepository.Apply(
+            instanceGuid,
+            instanceInternalId: 0,
+            new InstanceMutationCommit(
+                CreateDataElements: [],
+                UpdateDataElements:
+                [
+                    new InstanceMutationDataElementUpdate(
+                        Guid.Parse(dataElement.Id),
+                        new Dictionary<string, object> { ["/locked"] = true },
+                        null,
+                        EnforceLockCheck: false
+                    ),
+                ],
+                DeleteDataElements: [],
+                InstanceUpdates: CreateMutationInstance(
+                    instance,
+                    new DateTime(2026, 1, 5, 3, 4, 5, DateTimeKind.Utc),
+                    lastChangedBy: "workflow-service-owner"
+                ),
+                InstanceUpdateProperties: [],
+                ExpectedInstanceVersion: versions.InstanceVersion,
+                ExpectedProcessStateVersion: versions.ProcessStateVersion,
+                LastChanged: new DateTime(2026, 1, 5, 3, 4, 5, DateTimeKind.Utc),
+                LastChangedBy: "workflow-service-owner"
+            ),
+            CancellationToken.None
+        );
+
+        DataElement lockedElement = Assert.Single(result.Instance.Data);
+        Assert.True(lockedElement.Locked);
+        Assert.Equal(dataElement.LastChanged, lockedElement.LastChanged);
+        Assert.Equal("creator", lockedElement.LastChangedBy);
+        Assert.Equal("workflow-service-owner", result.Instance.LastChangedBy);
+    }
+
+    [Fact]
+    public async Task Apply_WhenUpdateChangesContent_StampsTheMutationActor()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.InstanceRepository.Create(
+            CreateInstance(
+                lastChanged: new DateTime(2026, 1, 1, 3, 4, 5, DateTimeKind.Utc),
+                lastChangedBy: "seed-actor"
+            ),
+            CancellationToken.None
+        );
+        Guid instanceGuid = GetInstanceGuid(instance);
+        DataElement dataElement = (
+            await storage.DataRepository.Create(
+                CreateDataElement(instanceGuid, locked: false),
+                cancellationToken: CancellationToken.None
+            )
+        ).DataElement;
+        Guid dataElementId = Guid.Parse(dataElement.Id);
+        string newBlobVersion = await storage.DataRepository.CreateBlobVersionId(
+            instanceGuid,
+            dataElementId,
+            instance.AppId,
+            instance.Org,
+            storageAccountNumber: null
+        );
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
+            instanceGuid
+        );
+        DateTime mutationLastChanged = new(2026, 1, 5, 3, 4, 5, DateTimeKind.Utc);
+
+        InstanceMutationApplyResult result = await storage.MutationRepository.Apply(
+            instanceGuid,
+            instanceInternalId: 0,
+            new InstanceMutationCommit(
+                CreateDataElements: [],
+                UpdateDataElements:
+                [
+                    new InstanceMutationDataElementUpdate(
+                        dataElementId,
+                        new Dictionary<string, object>
+                        {
+                            ["/blobStoragePath"] = BlobRepository.GetVersionedBlobPath(
+                                instance.AppId,
+                                instanceGuid.ToString(),
+                                newBlobVersion
+                            ),
+                            ["/currentBlobVersion"] = newBlobVersion,
+                        },
+                        null,
+                        EnforceLockCheck: true
+                    ),
+                ],
+                DeleteDataElements: [],
+                InstanceUpdates: CreateMutationInstance(
+                    instance,
+                    mutationLastChanged,
+                    lastChangedBy: "patching-party"
+                ),
+                InstanceUpdateProperties: [],
+                ExpectedInstanceVersion: versions.InstanceVersion,
+                ExpectedProcessStateVersion: versions.ProcessStateVersion,
+                LastChanged: mutationLastChanged,
+                LastChangedBy: "patching-party"
+            ),
+            CancellationToken.None
+        );
+
+        DataElement updatedElement = Assert.Single(result.Instance.Data);
+        Assert.Equal(newBlobVersion, updatedElement.BlobVersionId);
+        Assert.Equal(mutationLastChanged, updatedElement.LastChanged);
+        Assert.Equal("patching-party", updatedElement.LastChangedBy);
+    }
+
     private static Instance CreateInstance(
         DateTime lastChanged,
         string? lastChangedBy,
