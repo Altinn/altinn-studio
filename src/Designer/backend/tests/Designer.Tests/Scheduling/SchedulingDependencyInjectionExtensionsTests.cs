@@ -1,6 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Scheduling;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Quartz;
 using Xunit;
 
 namespace Designer.Tests.Scheduling;
@@ -30,7 +36,6 @@ public class SchedulingDependencyInjectionExtensionsTests
                 DeletionRetryDelayMilliseconds = int.MaxValue,
                 LockTimeoutSeconds = SchedulingDependencyInjectionExtensions.MaximumTimerDelaySeconds,
                 JobTimeoutMinutes = SchedulingDependencyInjectionExtensions.MaximumTimerDelayMinutes,
-                InitialDelayHours = SchedulingDependencyInjectionExtensions.MaximumInitialDelayHours,
             },
         };
 
@@ -45,7 +50,6 @@ public class SchedulingDependencyInjectionExtensionsTests
     [InlineData("RepositoryRetentionDays")]
     [InlineData("LockTimeoutSeconds")]
     [InlineData("JobTimeoutMinutes")]
-    [InlineData("InitialDelayHours")]
     public void ValidateSchedulingSettings_RejectsFirstValueAboveUpperBound(string settingName)
     {
         var settings = new SchedulingSettings();
@@ -54,6 +58,33 @@ public class SchedulingDependencyInjectionExtensionsTests
         Assert.Throws<InvalidOperationException>(() =>
             SchedulingDependencyInjectionExtensions.ValidateSchedulingSettings(settings)
         );
+    }
+
+    [Fact]
+    public void AddQuartzJobScheduling_RepositoryCleanupTriggerHasNoStartupDelay()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string>
+                {
+                    [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.UsePersistentScheduling)}"] = "false",
+                    [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.AddHostedService)}"] = "false",
+                    [
+                        $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.RepositoryCleanup)}:{nameof(RepositoryCleanupSettings.Enabled)}"
+                    ] = "true",
+                }
+            )
+            .Build();
+        var services = new ServiceCollection();
+        services.AddQuartzJobScheduling(configuration);
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        DateTimeOffset earliestExpectedStart = DateTimeOffset.UtcNow.AddSeconds(-1);
+
+        ITrigger trigger = serviceProvider
+            .GetRequiredService<IOptions<QuartzOptions>>()
+            .Value.Triggers.Single(trigger => trigger.Key.Name == RepositoryCleanupJobConstants.TriggerName);
+
+        Assert.InRange(trigger.StartTimeUtc, earliestExpectedStart, DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -98,10 +129,6 @@ public class SchedulingDependencyInjectionExtensionsTests
             case "JobTimeoutMinutes":
                 settings.RepositoryCleanup.JobTimeoutMinutes =
                     SchedulingDependencyInjectionExtensions.MaximumTimerDelayMinutes + 1;
-                break;
-            case "InitialDelayHours":
-                settings.RepositoryCleanup.InitialDelayHours =
-                    SchedulingDependencyInjectionExtensions.MaximumInitialDelayHours + 1;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(settingName), settingName, null);

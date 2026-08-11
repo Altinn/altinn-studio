@@ -11,7 +11,6 @@ public static class SchedulingDependencyInjectionExtensions
 {
     // These policy limits stay well within the date arithmetic range while exceeding operational needs.
     internal const int MaximumRetentionDays = 365 * 100;
-    internal const int MaximumInitialDelayHours = 24 * 365 * 100;
 
     // CancellationTokenSource uses the underlying timer's maximum delay.
     internal const int MaximumTimerDelayMinutes = 71_582;
@@ -79,12 +78,6 @@ public static class SchedulingDependencyInjectionExtensions
                     options
                         .ForJob(RepositoryCleanupJobConstants.JobName)
                         .WithIdentity(RepositoryCleanupJobConstants.TriggerName)
-                        .StartAt(
-                            DateBuilder.FutureDate(
-                                schedulingSettings.RepositoryCleanup.InitialDelayHours,
-                                IntervalUnit.Hour
-                            )
-                        )
                         .WithCronSchedule(
                             schedulingSettings.RepositoryCleanup.CronExpression,
                             schedule => schedule.WithMisfireHandlingInstructionDoNothing()
@@ -168,11 +161,6 @@ public static class SchedulingDependencyInjectionExtensions
             settings.JobTimeoutMinutes,
             MaximumTimerDelayMinutes,
             $"{sectionPath}:{nameof(settings.JobTimeoutMinutes)}"
-        );
-        ValidateRange(
-            settings.InitialDelayHours,
-            MaximumInitialDelayHours,
-            $"{sectionPath}:{nameof(settings.InitialDelayHours)}"
         );
         if (!CronExpression.IsValidExpression(settings.CronExpression))
         {

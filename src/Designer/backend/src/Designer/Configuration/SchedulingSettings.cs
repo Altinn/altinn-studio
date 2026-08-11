@@ -36,7 +36,6 @@ public class RepositoryCleanupSettings
     public int DeletionRetryDelayMilliseconds { get; set; } = 1000;
     public int LockTimeoutSeconds { get; set; } = 5;
     public int JobTimeoutMinutes { get; set; } = 120;
-    public int InitialDelayHours { get; set; } = 24;
     public string CronExpression { get; set; } = "0 0 0 * * ?";
 
     public TimeSpan RetentionPeriod => TimeSpan.FromDays(RetentionDays);

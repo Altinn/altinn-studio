@@ -106,8 +106,6 @@ environmentVariables:
       value: "1000"
     - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
       value: "120"
-    - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
-      value: "24"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
@@ -208,8 +206,6 @@ environmentVariables:
       value: "1000"
     - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
       value: "120"
-    - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
-      value: "24"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
@@ -308,8 +304,6 @@ environmentVariables:
       value: "1000"
     - name: SchedulingSettings__RepositoryCleanup__JobTimeoutMinutes
       value: "120"
-    - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
-      value: "24"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
