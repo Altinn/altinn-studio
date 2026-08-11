@@ -18,7 +18,7 @@ describe('AddItemContent', () => {
       { type: ComponentType.Input, label: 'Lite tekstfelt', icon: MockIcon },
       { type: ComponentType.Datepicker, label: 'Dato', icon: MockIcon },
     ],
-    Tekst: [{ type: ComponentType.Header, label: 'Tittel', icon: MockIcon }],
+    Tekst: [{ type: ComponentType.Heading, label: 'Tittel', icon: MockIcon }],
   };
 
   it('should render the search field label', () => {

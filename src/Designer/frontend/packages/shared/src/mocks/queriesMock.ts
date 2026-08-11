@@ -12,6 +12,7 @@ import type {
 } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -127,6 +128,7 @@ export const queriesMock: ServicesContextProps = {
   getDataModelsJson: jest
     .fn()
     .mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
+  getDataModelPrefill: jest.fn().mockImplementation(() => Promise.resolve<PrefillConfig>(null)),
   getDataModelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
   getDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -350,6 +352,7 @@ export const queriesMock: ServicesContextProps = {
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveDataModelPrefill: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),

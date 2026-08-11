@@ -76,7 +76,7 @@ describe('AppNavigation', () => {
                     layout: [
                       {
                         id: `page-title-${page}`,
-                        type: 'Header',
+                        type: 'Heading',
                         textResourceBindings: {
                           title: `Title for ${page}`,
                         },
@@ -337,7 +337,7 @@ describe('AppNavigation', () => {
   });
 
   it('should show page as completed (if not active)', async () => {
-    jest.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second'], jest.fn()]);
+    vi.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second'], vi.fn()]);
 
     await render({
       initialPage: 'second',
@@ -357,7 +357,7 @@ describe('AppNavigation', () => {
   });
 
   it('should show page as error (if not active)', async () => {
-    jest.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second'], jest.fn()]);
+    vi.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second'], vi.fn()]);
 
     await render({
       pagesWithError: ['first', 'second'],
@@ -374,7 +374,7 @@ describe('AppNavigation', () => {
   });
 
   it('should show group as completed if all pages are completed (if not active)', async () => {
-    jest.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second', 'third'], jest.fn()]);
+    vi.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second', 'third'], vi.fn()]);
 
     await render({
       initialPage: 'third',
@@ -391,7 +391,7 @@ describe('AppNavigation', () => {
   });
 
   it('should not show group as completed if only one page is completed', async () => {
-    jest.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first'], jest.fn()]);
+    vi.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first'], vi.fn()]);
 
     await render({
       initialPage: 'third',
@@ -407,7 +407,7 @@ describe('AppNavigation', () => {
   });
 
   it('should show group as error if one page has error (if not active)', async () => {
-    jest.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second'], jest.fn()]);
+    vi.spyOn(UseNavigatePage, 'useVisitedPages').mockReturnValue([['first', 'second'], vi.fn()]);
 
     await render({
       pagesWithError: ['first', 'third'],

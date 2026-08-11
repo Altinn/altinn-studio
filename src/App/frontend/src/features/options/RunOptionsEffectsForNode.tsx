@@ -44,8 +44,7 @@ function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
   >;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const groupBindings = item.dataModelBindings as
-    | IDataModelBindingsForGroupCheckbox
-    | IDataModelBindingsForGroupMultiselect;
+    IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
   const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ item });
   const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, item });
 

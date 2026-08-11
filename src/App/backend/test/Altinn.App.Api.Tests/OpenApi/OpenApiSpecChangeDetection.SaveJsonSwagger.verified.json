@@ -2171,82 +2171,6 @@
         }
       }
     },
-    "/{org}/{app}/api/v1/eventsreceiver": {
-      "post": {
-        "tags": [
-          "EventsReceiver"
-        ],
-        "summary": "Create a new inbound event for the app to process.",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "org",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CloudEvent"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CloudEvent"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CloudEvent"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "425": {
-            "description": "Too Early"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/api/external/{externalApiId}": {
       "get": {
         "tags": [
@@ -8120,6 +8044,7 @@
         "required": [
           "actor",
           "commandKey",
+          "executionReferenceTime",
           "lockToken",
           "workflowId"
         ],
@@ -8144,8 +8069,39 @@
             "type": "string",
             "format": "uuid"
           },
+          "stepId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "executionReferenceTime": {
+            "type": "string",
+            "format": "date-time"
+          },
           "state": {
             "type": "string",
+            "nullable": true
+          },
+          "retryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "executionDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deferCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstDeferredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "waitDeadline": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
@@ -8394,6 +8350,10 @@
           },
           "retrying": {
             "type": "boolean",
+            "nullable": true
+          },
+          "waitingReason": {
+            "type": "string",
             "nullable": true
           },
           "progress": {
@@ -8790,52 +8750,6 @@
         },
         "additionalProperties": false
       },
-      "CloudEvent": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "nullable": true
-          },
-          "source": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true
-          },
-          "specversion": {
-            "type": "string",
-            "nullable": true
-          },
-          "type": {
-            "type": "string",
-            "nullable": true
-          },
-          "subject": {
-            "type": "string",
-            "nullable": true
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "alternativesubject": {
-            "type": "string",
-            "nullable": true
-          },
-          "data": {
-            "nullable": true
-          },
-          "dataschema": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true
-          },
-          "contenttype": {
-            "$ref": "#/components/schemas/ContentType"
-          }
-        },
-        "additionalProperties": false
-      },
       "CompleteConfirmation": {
         "type": "object",
         "properties": {
@@ -8846,34 +8760,6 @@
           "confirmedOn": {
             "type": "string",
             "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ContentType": {
-        "type": "object",
-        "properties": {
-          "boundary": {
-            "type": "string",
-            "nullable": true
-          },
-          "charSet": {
-            "type": "string",
-            "nullable": true
-          },
-          "mediaType": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "parameters": {
-            "type": "array",
-            "items": {},
-            "nullable": true,
-            "readOnly": true
           }
         },
         "additionalProperties": false
@@ -12165,9 +12051,6 @@
     },
     {
       "name": "DataTags"
-    },
-    {
-      "name": "EventsReceiver"
     },
     {
       "name": "ExternalApi"

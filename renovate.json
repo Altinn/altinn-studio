@@ -71,6 +71,12 @@
       "matchPackageNames": ["gitea/gitea"]
     },
     {
+      "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["nginx"],
+      "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
+    },
+    {
       "matchFileNames": ["frontend/testing/cypress/**"],
       "ignoreDeps": ["yarn"]
     },
@@ -80,14 +86,16 @@
       "groupName": "Design system in Designer"
     },
     {
-      "matchFileNames": ["src/App/**"],
-      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
-      "groupName": "Design system in App"
-    },
-    {
       "matchFileNames": ["src/App/**", "app-libs/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
+    },
+    {
+      "description": "Keep App Designsystemet updates together and separate from other dependency updates",
+      "matchManagers": ["npm"],
+      "matchFileNames": ["src/App/frontend/**", "app-libs/**"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
+      "groupName": "Design system in App"
     },
     {
       "description": "Automerge non-major Altinn app template package updates (v8)",
@@ -120,6 +128,12 @@
       "matchFileNames": ["src/Runtime/pdf3/**"],
       "additionalBranchPrefix": "pdf3/",
       "commitMessageSuffix": " (pdf3)"
+    },
+    {
+      "description": "Keep Go module updates in repository-wide groups",
+      "matchManagers": ["gomod"],
+      "additionalBranchPrefix": "",
+      "commitMessageSuffix": ""
     },
     {
       "matchFileNames": ["src/App/**"],
@@ -177,7 +191,9 @@
         "@types/react-dom"
       ],
       "groupName": "React ecosystem",
-      "groupSlug": "react-ecosystem"
+      "groupSlug": "react-ecosystem",
+      "additionalBranchPrefix": "",
+      "commitMessageSuffix": ""
     }
   ],
   "schedule": []

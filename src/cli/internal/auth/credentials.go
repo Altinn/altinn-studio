@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -161,6 +162,17 @@ func (c *Credentials) EnvNames() []string {
 func HostForEnv(env string) string {
 	if host, ok := knownEnvHosts[env]; ok {
 		return host
+	}
+	return ""
+}
+
+// EnvForHost returns the known environment for a Studio host.
+// Returns an empty string if the host is unknown.
+func EnvForHost(host string) string {
+	for env, knownHost := range knownEnvHosts {
+		if strings.EqualFold(host, knownHost) {
+			return env
+		}
 	}
 	return ""
 }

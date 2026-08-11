@@ -72,6 +72,7 @@ The frontend consists of several React packages in the following directories:
 
 - `yarn lint` - Run ESLint
 - `yarn typecheck` - Run TypeScript compiler check
+- `yarn codestyle:fix` - Format the code with Prettier. CI runs `yarn codestyle:check` alongside the two commands above, so run this before pushing.
 
 ## API Integration
 

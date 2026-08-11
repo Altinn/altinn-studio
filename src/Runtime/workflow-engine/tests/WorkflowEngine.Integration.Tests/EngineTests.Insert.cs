@@ -504,7 +504,7 @@ public partial class EngineTests
         {
             var persisted = await _client.GetWorkflow(workflow.DatabaseId);
             Assert.NotNull(persisted);
-            Assert.Equal($"op-{workflow.Ref}", persisted!.OperationId);
+            Assert.Equal($"op-{workflow.Ref}", persisted.OperationId);
         }
     }
 

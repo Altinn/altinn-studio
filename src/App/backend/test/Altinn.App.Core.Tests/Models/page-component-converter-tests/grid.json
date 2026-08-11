@@ -670,7 +670,7 @@
         },
         {
           "id": "grid-example-header",
-          "type": "Header",
+          "type": "Heading",
           "textResourceBindings": {
             "title": "Header example"
           },

@@ -92,7 +92,7 @@
           { "$ref": "#/definitions/SubformSummaryOverrideProps" },
           { "$ref": "#/definitions/LikertSummaryOverrideProps" },
           { "$ref": "#/definitions/PaymentSummaryOverrideProps" },
-          { "$ref": "#/definitions/HeaderSummaryOverrideProps" },
+          { "$ref": "#/definitions/HeadingSummaryOverrideProps" },
           { "$ref": "#/definitions/ParagraphSummaryOverrideProps" },
           { "$ref": "#/definitions/TextSummaryOverrideProps" },
           { "$ref": "#/definitions/NumberSummaryOverrideProps" },

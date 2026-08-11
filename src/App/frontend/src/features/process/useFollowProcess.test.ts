@@ -4,22 +4,22 @@ import { useBackoff } from 'src/features/process/useFollowProcess';
 
 describe('useBackoff', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   function advance(ms: number) {
     act(() => {
-      jest.advanceTimersByTime(ms);
+      vi.advanceTimersByTime(ms);
     });
   }
 
   // Drives the poll through the fast phase (10 ticks at 1s) and three slowing ticks (1s, 2s, 3s),
   // leaving the next tick 4s out. Returns the total number of calls made (13).
-  function pushPastFastPhase(callback: jest.Mock) {
+  function pushPastFastPhase(callback: Mock) {
     advance(10_000);
     expect(callback).toHaveBeenCalledTimes(10);
     advance(1_000);
@@ -29,7 +29,7 @@ describe('useBackoff', () => {
   }
 
   it('polls once a second at first, then slows down', () => {
-    const callback = jest.fn().mockResolvedValue(undefined);
+    const callback = vi.fn().mockResolvedValue(undefined);
     renderHook(() => useBackoff(callback));
 
     pushPastFastPhase(callback);
@@ -42,7 +42,7 @@ describe('useBackoff', () => {
   });
 
   it('stops polling entirely while disabled', () => {
-    const callback = jest.fn().mockResolvedValue(undefined);
+    const callback = vi.fn().mockResolvedValue(undefined);
     const { rerender } = renderHook(({ enabled }) => useBackoff(callback, enabled), {
       initialProps: { enabled: true },
     });
@@ -59,7 +59,7 @@ describe('useBackoff', () => {
     // The hook can outlive a single waiting episode (ProcessWrapper mounts it for the whole
     // instance session and toggles `enabled` per parked service task), so a new episode must not
     // inherit the slowed-down cadence from an earlier long wait.
-    const callback = jest.fn().mockResolvedValue(undefined);
+    const callback = vi.fn().mockResolvedValue(undefined);
     const { rerender } = renderHook(({ enabled }) => useBackoff(callback, enabled), {
       initialProps: { enabled: true },
     });
@@ -83,8 +83,8 @@ describe('useBackoff', () => {
     // The effect re-runs whenever the callback changes (fresh process data produces a new
     // useCallback identity in useFollowProcess) - resetting there would pin the poll at the
     // fastest cadence forever. Only the disabled->enabled transition resets.
-    const firstCallback = jest.fn().mockResolvedValue(undefined);
-    const secondCallback = jest.fn().mockResolvedValue(undefined);
+    const firstCallback = vi.fn().mockResolvedValue(undefined);
+    const secondCallback = vi.fn().mockResolvedValue(undefined);
     const { rerender } = renderHook(({ cb }) => useBackoff(cb, true), {
       initialProps: { cb: firstCallback },
     });
@@ -100,3 +100,4 @@ describe('useBackoff', () => {
     expect(secondCallback).toHaveBeenCalledTimes(1);
   });
 });
+import type { Mock } from 'vitest';

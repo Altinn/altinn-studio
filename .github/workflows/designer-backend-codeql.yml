@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
@@ -57,7 +57,7 @@ jobs:
           language: csharp
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/init@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3.37.6
         with:
           languages: csharp
           build-mode: manual
@@ -70,6 +70,6 @@ jobs:
         working-directory: src/Designer/
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/analyze@c4dd10e44af883a891fe31ced449bcb4a6728b9b # v3.37.6
         with:
           category: "/codeql/designer/backend/csharp"

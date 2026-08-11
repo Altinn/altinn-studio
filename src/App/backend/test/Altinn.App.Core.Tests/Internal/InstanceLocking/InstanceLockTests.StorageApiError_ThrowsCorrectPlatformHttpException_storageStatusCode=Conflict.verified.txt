@@ -1,24 +1,15 @@
 ﻿{
   Exception: {
-    $type: PlatformHttpResponseSnapshotException,
-    Type: PlatformHttpResponseSnapshotException,
-    StatusCode: 409,
-    ReasonPhrase: Conflict,
-    HttpVersion: 1.1,
-    Content: ,
-    ContentTruncated: false,
+    $type: PlatformHttpException,
+    Type: PlatformHttpException,
     Response: {
-      Status: 409 Conflict,
-      Headers: {
-        Date: DateTime_1,
-        Server: Kestrel
-      },
-      Content: {
-        Headers: {},
-        Value: 
-      }
+      StatusCode: Conflict 409,
+      ReasonPhrase: Conflict,
+      Content: ,
+      ContentTruncated: false
     },
-    Message: 409 Conflict,
+    StatusCode: Conflict 409,
+    Message: 409 - Conflict - ,
     StackTrace:
 at Altinn.App.Core.Infrastructure.Clients.Storage.InstanceLockClient.AcquireInstanceLock(Guid instanceGuid, Int32 instanceOwnerPartyId, TimeSpan ttl, StorageAuthenticationMethod authenticationMethod, CancellationToken cancellationToken)
 at Altinn.App.Core.Internal.InstanceLocking.InstanceLocker.InstanceLockHandle.Lock(Nullable`1 ttl)

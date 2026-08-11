@@ -9,7 +9,7 @@
       },
       {
         "id": "TextPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Text"
@@ -124,7 +124,6 @@
       {
         "id": "Text-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

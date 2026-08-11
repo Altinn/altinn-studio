@@ -194,7 +194,7 @@ public class InstancesController_CopyInstanceTests
         using var fixture = InstancesControllerFixture.Create(auth);
 
         // Storage returns Forbidden if the given instance id is wrong.
-        PlatformHttpException platformHttpException = await PlatformHttpException.CreateAsync(
+        PlatformHttpException platformHttpException = await PlatformHttpException.Create(
             new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden)
         );
 
@@ -251,7 +251,7 @@ public class InstancesController_CopyInstanceTests
         using var fixture = InstancesControllerFixture.Create(auth);
 
         // Simulate a BadGateway respons from Platform
-        PlatformHttpException platformHttpException = await PlatformHttpException.CreateAsync(
+        PlatformHttpException platformHttpException = await PlatformHttpException.Create(
             new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway)
         );
 

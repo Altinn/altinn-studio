@@ -15,10 +15,10 @@ function TestSubject() {
 
 describe('Lang', () => {
   beforeAll(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should work properly', async () => {

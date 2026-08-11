@@ -56,7 +56,7 @@ const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = t
 
 describe('GenericComponent', () => {
   it('should show an error in the logs when rendering an unknown component type', async () => {
-    const spy = jest
+    const spy = vi
       .spyOn(window, 'logError')
       .mockImplementation(() => {})
       .mockName('window.logError');

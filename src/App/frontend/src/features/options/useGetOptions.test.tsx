@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { vi } from 'vitest';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -27,7 +27,7 @@ interface RenderProps {
   queryParameters?: IQueryParameters;
   selected?: string;
   preselectedOptionIndex?: number;
-  fetchOptions?: jest.Mock<typeof fetchOptions>;
+  fetchOptions?: Mock<typeof fetchOptions>;
   extraLayout?: ILayout;
   staticOptions?: Record<string, StaticOptionSet>;
 }
@@ -154,14 +154,13 @@ describe('useGetOptions', () => {
   ];
 
   beforeEach(() => {
-    jest
-      .spyOn(window, 'logWarnOnce')
+    vi.spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
       .mockName(`window.logWarnOnce`);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it.each(permutations)('options should be cast to strings for $type + $via', async (props) => {
@@ -193,7 +192,7 @@ describe('useGetOptions', () => {
         reference: { field: 'result', dataType: defaultDataTypeMock },
         newValue: option.value.toString(),
       });
-      (formDataMethods.setLeafValue as jest.Mock).mockClear();
+      (formDataMethods.setLeafValue as Mock).mockClear();
 
       const currentStringy = JSON.parse(screen.getByTestId('currentStringy').textContent as string);
       expect(currentStringy).toEqual([option.value.toString()]);
@@ -201,7 +200,7 @@ describe('useGetOptions', () => {
   });
 
   it('should include the mapping in the api request', async () => {
-    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockImplementation(
+    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockImplementation(
       async (_url: string) =>
         ({
           data: [] as IRawOption[],
@@ -222,7 +221,7 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options and does not fetch options', async () => {
-    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
     } as AxiosResponse<IRawOption[]>);
@@ -243,7 +242,7 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when mapping is configured', async () => {
-    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
     } as AxiosResponse<IRawOption[]>);
@@ -265,7 +264,7 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are dynamic', async () => {
-    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
     } as AxiosResponse<IRawOption[]>);
@@ -287,7 +286,7 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are static but non-empty', async () => {
-    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
     } as AxiosResponse<IRawOption[]>);
@@ -309,7 +308,7 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options when mapping and query parameters are empty', async () => {
-    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
     } as AxiosResponse<IRawOption[]>);
@@ -415,7 +414,7 @@ describe('useGetOptions', () => {
         },
         {
           id: 'FirstInside',
-          type: 'Header',
+          type: 'Heading',
           textResourceBindings: {
             title: 'This title is not important',
           },
@@ -442,3 +441,4 @@ describe('useGetOptions', () => {
     );
   });
 });
+import type { Mock } from 'vitest';

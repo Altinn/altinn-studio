@@ -1,5 +1,4 @@
 using Altinn.App.Core.Features;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.EFormidling.Interface;
 
@@ -16,7 +15,9 @@ public interface IEFormidlingMetadata
     /// <remarks>
     /// The metadata file should be parsed to XML before assigning it to the stream.
     /// </remarks>
-    /// <param name="instance">Instance data</param>
+    /// <param name="dataAccessor">The active instance data accessor for the instance being shipped.</param>
     /// <returns>A touple containing the metadata file name and the metadata in a stream.</returns>
-    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance);
+    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(
+        IInstanceDataAccessor dataAccessor
+    );
 }
