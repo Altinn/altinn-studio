@@ -1,8 +1,14 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioError, StudioDialog, StudioHeading, StudioSpinner } from '@studio/components';
-import { Table, Tag } from '@digdir/designsystemet-react';
+import {
+  StudioError,
+  StudioDialog,
+  StudioHeading,
+  StudioSpinner,
+  StudioTag,
+} from '@studio/components';
+import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
@@ -120,9 +126,9 @@ const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTabl
   const { t } = useTranslation();
 
   const fileStatusTag: React.ReactElement = (
-    <Tag size='small' color={fileStatusToTagColorMapping[fileStatus]}>
+    <StudioTag data-size='sm' color={fileStatusToTagColorMapping[fileStatus]}>
       {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
-    </Tag>
+    </StudioTag>
   );
 
   return (

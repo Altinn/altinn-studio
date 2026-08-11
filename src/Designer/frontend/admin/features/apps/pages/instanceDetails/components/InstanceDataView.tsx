@@ -7,6 +7,7 @@ import {
   StudioError,
   StudioCard,
   StudioHeading,
+  StudioTag,
 } from '@studio/components';
 import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -312,9 +313,9 @@ const DataElementGroup = ({
             {label}
           </div>
           {taskName && (
-            <Tag size='sm' color='first'>
+            <StudioTag data-size='sm' color='first'>
               {taskName}
-            </Tag>
+            </StudioTag>
           )}
         </span>
       </StudioLabel>
