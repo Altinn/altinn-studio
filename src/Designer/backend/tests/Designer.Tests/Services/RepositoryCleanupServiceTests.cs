@@ -70,6 +70,31 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task DeleteInactiveRepositoriesAsync_DeletesEmptyOrganizationAndDeveloperDirectories()
+    {
+        var timeProvider = new FakeTimeProvider(_now);
+        SchedulingSettings settings = CreateSettings();
+        var activityService = new InMemoryRepositoryActivityService();
+        string repositoryPath = CreateRepository("only-app", _now.AddDays(-31), activityService);
+        string organizationPath = Directory.GetParent(repositoryPath)!.FullName;
+        string developerPath = Directory.GetParent(organizationPath)!.FullName;
+        RepositoryCleanupService service = CreateCleanupService(
+            settings,
+            timeProvider,
+            activityService,
+            new RepositoryDirectoryCleaner()
+        );
+
+        RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
+
+        Assert.False(Directory.Exists(repositoryPath));
+        Assert.False(Directory.Exists(organizationPath));
+        Assert.False(Directory.Exists(developerPath));
+        Assert.True(Directory.Exists(_rootDirectory));
+        Assert.Equal(new RepositoryCleanupResult(1, 1, 0, 0), result);
+    }
+
+    [Fact]
     public async Task DeleteInactiveRepositoriesAsync_DeletesOldestRepositoriesWithinBatchLimit()
     {
         var timeProvider = new FakeTimeProvider(_now);

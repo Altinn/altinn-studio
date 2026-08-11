@@ -109,6 +109,8 @@ public class RepositoryCleanupService : IRepositoryCleanupService
                     if (await DeleteWithRetriesAsync(candidate, cancellationToken))
                     {
                         await _repositoryActivityService.RemoveAsync(candidate.EditingContext, cancellationToken);
+                        _repositoryDirectoryCleaner.TryDeleteIfEmpty(candidate.OrganizationPath);
+                        _repositoryDirectoryCleaner.TryDeleteIfEmpty(candidate.DeveloperPath);
                         deleted++;
                     }
                     else
@@ -175,7 +177,13 @@ public class RepositoryCleanupService : IRepositoryCleanupService
 
                     if (lastActivity < cutoff)
                     {
-                        yield return new RepositoryCleanupCandidate(editingContext, repositoryPath, lastActivity);
+                        yield return new RepositoryCleanupCandidate(
+                            editingContext,
+                            developerPath,
+                            orgPath,
+                            repositoryPath,
+                            lastActivity
+                        );
                     }
                 }
             }
@@ -279,6 +287,8 @@ public class RepositoryCleanupService : IRepositoryCleanupService
 
     private sealed record RepositoryCleanupCandidate(
         AltinnRepoEditingContext EditingContext,
+        string DeveloperPath,
+        string OrganizationPath,
         string RepositoryPath,
         DateTimeOffset LastActivity
     );
