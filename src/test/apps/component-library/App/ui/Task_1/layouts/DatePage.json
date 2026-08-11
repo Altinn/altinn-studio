@@ -9,7 +9,7 @@
       },
       {
         "id": "DatePage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Date"
@@ -90,7 +90,6 @@
       {
         "id": "Date-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

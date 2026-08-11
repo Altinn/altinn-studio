@@ -41,7 +41,9 @@ internal sealed class EngineDbContext : DbContext
 
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
-                .HasFilter($"status IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued})")
+                .HasFilter(
+                    $"status IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued}, {(int)PersistentItemStatus.Waiting})"
+                )
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
             entity.HasIndex(e => e.HeartbeatAt).HasFilter($"status = {(int)PersistentItemStatus.Processing}");

@@ -11,6 +11,7 @@ import {
   currentBranchPath,
   dataModelMetadataPath,
   dataModelPath,
+  dataModelPrefillPath,
   dataModelsJsonPath,
   dataModelsXsdPath,
   deployPermissionsPath,
@@ -144,6 +145,7 @@ import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -158,6 +160,7 @@ export const getAvailableResourcesFromOrg = (owner: string, contentType?: Librar
 export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
+export const getDataModelPrefill = (owner: string, app: string, modelPath: string) => get<PrefillConfig>(dataModelPrefillPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
 export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsJsonPath(owner, app));
 export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));

@@ -52,4 +52,13 @@ public enum PersistentItemStatus
     /// May be resumed like any other unsuccessful terminal state.
     /// </summary>
     Abandoned = 7,
+
+    /// <summary>
+    /// The item executed successfully but the outcome it is waiting for is not available yet
+    /// (<see cref="ExecutionStatus.Deferred"/>). Non-terminal and not a failure: the item is
+    /// re-fetched once the workflow's <see cref="Workflow.BackoffUntil"/> elapses and the step is
+    /// executed again. Unlike <see cref="Requeued"/>, waiting records no error history and does not
+    /// count against the retry budget.
+    /// </summary>
+    Waiting = 8,
 }

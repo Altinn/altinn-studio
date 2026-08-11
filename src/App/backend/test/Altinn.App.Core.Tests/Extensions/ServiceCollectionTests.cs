@@ -2,7 +2,6 @@
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.Events;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.PlatformServices.Tests.Extensions;
@@ -13,9 +12,9 @@ public class ServiceCollectionTests
     public void IsAdded_Added_ShouldReturnTrue()
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+        services.AddHttpClient<IEventsClient, EventsClient>();
 
-        services.IsAdded(typeof(IEventsSubscription)).Should().BeTrue();
+        Assert.True(services.IsAdded(typeof(IEventsClient)));
     }
 
     [Fact]
@@ -23,6 +22,6 @@ public class ServiceCollectionTests
     {
         IServiceCollection services = new ServiceCollection();
 
-        services.IsAdded(typeof(IEventsSubscription)).Should().BeFalse();
+        Assert.False(services.IsAdded(typeof(IEventsClient)));
     }
 }

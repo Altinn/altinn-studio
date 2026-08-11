@@ -1023,6 +1023,11 @@ body {
     border: 1px solid var(--orange);
     background: rgba(var(--orange-rgb), 0.08);
 }
+.status-pill.Waiting {
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    background: rgba(var(--cyan-rgb), 0.08);
+}
 .status-pill.Failed {
     color: var(--red);
     border: 1px solid var(--red);
@@ -1097,6 +1102,11 @@ body {
     border-color: var(--orange);
     color: var(--orange);
     animation: bounce 1s ease infinite;
+}
+.step-circle.Waiting {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    animation: pulse-glow 3s ease-in-out infinite;
 }
 .step-circle.Failed {
     border-color: var(--red);
@@ -1307,7 +1317,7 @@ body {
     word-break: break-word;
 }
 
-/* ── Retry / skip-backoff action badges (inline in status row) */
+/* ── Retry / nudge action badges (inline in status row) */
 .step-retry-badge {
     font-size: 11px;
     font-weight: 700;
@@ -1383,7 +1393,7 @@ body {
 }
 
 /* ── Skip backoff button (on step pipeline) ─────────────── */
-.skip-backoff-btn {
+.nudge-btn {
     background: none;
     color: var(--orange);
     border: 1px solid rgba(var(--orange-rgb), 0.3);
@@ -1398,19 +1408,19 @@ body {
     letter-spacing: 0.3px;
     margin-top: 4px;
 }
-.skip-backoff-btn:hover {
+.nudge-btn:hover {
     background: rgba(var(--orange-rgb), 0.1);
     border-color: var(--orange);
 }
-.skip-backoff-btn:disabled {
+.nudge-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
-.skip-backoff-btn.skip-success {
+.nudge-btn.skip-success {
     color: var(--green);
     border-color: var(--green);
 }
-.skip-backoff-btn.skip-failed {
+.nudge-btn.skip-failed {
     color: var(--red);
     border-color: var(--red);
 }
@@ -2422,6 +2432,10 @@ pre.diff-remove {
 .compact-dot.Requeued {
     border-color: var(--orange);
     background: rgba(var(--orange-rgb), 0.4);
+}
+.compact-dot.Waiting {
+    border-color: var(--cyan);
+    background: rgba(var(--cyan-rgb), 0.4);
 }
 .compact-dot.Failed {
     border-color: var(--red);

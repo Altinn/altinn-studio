@@ -54,15 +54,18 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains the v9 OrganizationLookup name used by ux-editor.
+// ComponentType also contains the v9 names (OrganizationLookup, Heading) used by ux-editor.
 export type FormItemConfigs = {
-  [T in Exclude<
-    ComponentType | CustomComponentType,
-    ComponentType.OrganizationLookup
-  >]: FormItemConfig<T>;
-} & Partial<
-  Record<ComponentType.OrganizationLookup, FormItemConfig<ComponentType.OrganizationLookup>>
->;
+  [
+    T in Exclude<
+      ComponentType | CustomComponentType,
+      ComponentType.OrganizationLookup | ComponentType.Heading
+    >
+  ]: FormItemConfig<T>;
+} & Partial<{
+  [ComponentType.OrganizationLookup]: FormItemConfig<ComponentType.OrganizationLookup>;
+  [ComponentType.Heading]: FormItemConfig<ComponentType.Heading>;
+}>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -169,8 +172,7 @@ export const formItemConfigs: FormItemConfigs = {
     getDisplayName: ({
       actions,
     }: ComponentSpecificConfig<ComponentType.CustomButton>):
-      | ComponentType
-      | CustomComponentType => {
+      ComponentType | CustomComponentType => {
       const isCloseSubformAction =
         actions?.length === 1 &&
         actions[0]?.id === 'closeSubform' &&

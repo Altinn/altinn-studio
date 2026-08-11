@@ -337,6 +337,19 @@ public sealed class EngineApiClient : IDisposable
         _client.GetAsync(GetCollectionsBasePath(ns), CancellationToken.None);
 
     /// <summary>
+    /// Gets a single workflow collection by key, including head statuses. Returns <see langword="null"/> on 404.
+    /// </summary>
+    public async Task<WorkflowCollectionDetailResponse?> GetCollection(string key, string? ns = null)
+    {
+        using var response = await _client.GetAsync($"{GetCollectionsBasePath(ns)}/{Uri.EscapeDataString(key)}");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        return await AssertSuccessAndDeserialize<WorkflowCollectionDetailResponse>(response);
+    }
+
+    /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches
     /// <paramref name="expectedStatus"/> or the <paramref name="timeout"/> expires.
     /// </summary>

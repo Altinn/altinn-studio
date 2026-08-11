@@ -179,6 +179,36 @@ public class PdfService : IPdfService
         return await GeneratePdf(instance, taskId, false, ct: ct);
     }
 
+    async Task<Stream> IPdfService.GeneratePdf(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        bool isPreview,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken ct
+    )
+    {
+        Instance instance = dataAccessor.Instance;
+        using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
+
+        HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        var queries = httpContext?.Request.Query;
+        var auth = _authenticationContext.Current;
+
+        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+
+        return await GeneratePdfContent(
+            instance,
+            taskId,
+            language,
+            isPreview,
+            null,
+            null,
+            authenticationMethod,
+            dataAccessor,
+            ct
+        );
+    }
+
     private async Task<BinaryDataChange> GenerateAndStorePdfInternal(
         IInstanceDataMutator instanceDataMutator,
         string taskId,
@@ -461,7 +491,7 @@ public class PdfService : IPdfService
                 return expression.ValueUnion.Bool;
 
             // Reuse the in-flight unit of work when the caller already has one (mutator path), and only
-            // initialize a standalone one for callers without a mutator (e.g. preview/signing/payment).
+            // initialize a standalone one for callers using an Instance overload (e.g. preview).
             if (dataAccessor is null)
             {
                 if (_instanceDataUnitOfWorkInitializer is null)

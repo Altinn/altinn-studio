@@ -4,7 +4,7 @@
     "layout": [
       {
         "id": "header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Dette er den statefulle appen, her ser du igjen data som har blitt brukt som prefill fra det tilstandsløse steget."

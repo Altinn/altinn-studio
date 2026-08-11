@@ -72,7 +72,9 @@ static void RegisterServices(IServiceCollection services, IConfiguration configu
     {
         options.AddDefaultPolicy(builder =>
         {
+#pragma warning disable S5122 // Read-only API is consumed by apps hosted on arbitrary service-owner origins.
             builder.AllowAnyOrigin();
+#pragma warning restore S5122
             builder.WithMethods("GET");
             builder.AllowAnyHeader();
         });

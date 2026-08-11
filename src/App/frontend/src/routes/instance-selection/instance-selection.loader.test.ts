@@ -11,7 +11,7 @@ import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
-import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
+import { clientLoader } from 'src/routes/instance-selection/instance-selection.loader';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 import type { InstanceSelectionLoaderResult } from 'src/routes/instance-selection/instance-selection.loader';
 
@@ -48,7 +48,7 @@ function createLoaderArgs(): LoaderFunctionArgs {
   return createLoaderFunctionArgs({ context });
 }
 
-describe('instanceSelectionLoader', () => {
+describe('instance-selection clientLoader', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     GlobalData.setSelectedParty(mockParty);
@@ -65,7 +65,7 @@ describe('instanceSelectionLoader', () => {
     ];
     vi.mocked(instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
 
-    const result = await instanceSelectionLoader(createLoaderArgs());
+    const result = await clientLoader(createLoaderArgs());
 
     expect(result).toBeNull();
     expect(instanceApi.create).not.toHaveBeenCalled();
@@ -75,7 +75,7 @@ describe('instanceSelectionLoader', () => {
     vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     vi.mocked(instanceApi.create).mockResolvedValue(mockInstance);
 
-    await instanceSelectionLoader(createLoaderArgs());
+    await clientLoader(createLoaderArgs());
 
     expect(instanceApi.create).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
     expect(redirect).toHaveBeenCalledWith(expect.stringContaining('some-instance-guid'));
@@ -95,7 +95,7 @@ describe('instanceSelectionLoader', () => {
     vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     vi.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const result = (await instanceSelectionLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
+    const result = (await clientLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'forbidden-validation');
@@ -113,7 +113,7 @@ describe('instanceSelectionLoader', () => {
     vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     vi.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const result = await instanceSelectionLoader(createLoaderArgs());
+    const result = await clientLoader(createLoaderArgs());
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'forbidden');
@@ -125,7 +125,7 @@ describe('instanceSelectionLoader', () => {
     vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     vi.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const result = await instanceSelectionLoader(createLoaderArgs());
+    const result = await clientLoader(createLoaderArgs());
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'instantiation-failed');
@@ -139,7 +139,7 @@ describe('instanceSelectionLoader', () => {
     const originalSelectedParty = window.altinnAppGlobalData.selectedParty;
     window.altinnAppGlobalData.selectedParty = undefined;
 
-    await instanceSelectionLoader(createLoaderArgs());
+    await clientLoader(createLoaderArgs());
 
     window.altinnAppGlobalData.selectedParty = originalSelectedParty;
 

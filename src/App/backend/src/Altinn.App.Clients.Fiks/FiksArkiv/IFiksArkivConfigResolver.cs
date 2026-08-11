@@ -1,4 +1,5 @@
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
@@ -26,17 +27,20 @@ public interface IFiksArkivConfigResolver
     Task<string> GetApplicationTitle(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the archive document metadata (title, etc).
+    /// Gets the archive document metadata (title, etc) using the active instance data accessor.
     /// </summary>
     Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Gets the recipient information for the shipment.
+    /// Gets the recipient information for the shipment using the active instance data accessor.
     /// </summary>
-    Task<FiksArkivRecipient> GetRecipient(Instance instance, CancellationToken cancellationToken = default);
+    Task<FiksArkivRecipient> GetRecipient(
+        IInstanceDataAccessor dataAccessor,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets the correlation ID for the shipment.

@@ -8,12 +8,7 @@ import classes from './ImageLayout.module.css';
 
 /** Justification/alignment of the image within its row. Mirrors the Studio `image.align` option. */
 export type ImageAlign =
-  | 'flex-start'
-  | 'center'
-  | 'flex-end'
-  | 'space-between'
-  | 'space-around'
-  | 'space-evenly';
+  'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
 
 export interface ImageLayoutProps {
   /** The indexed component ID; drives the image DOM id and the form-content wrapper. */

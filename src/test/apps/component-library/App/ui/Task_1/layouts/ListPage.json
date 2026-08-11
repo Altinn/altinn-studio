@@ -9,7 +9,7 @@
         },
         {
           "id": "ListPage-Header",
-          "type": "Header",
+          "type": "Heading",
           "size": "h2",
           "textResourceBindings": {
             "title": "ListPage"
@@ -17,7 +17,7 @@
         },
         {
           "id": "ListPage-Header-Component1",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Komponent med radioknapper"
@@ -50,7 +50,7 @@
         },
         {
           "id": "ListPage-Header-Summary",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Summary"
@@ -63,7 +63,7 @@
         },
         {
           "id": "ListPage-Header-Summary2",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Summary2"
@@ -79,7 +79,7 @@
         },
         {
           "id": "ListPage-Header-Component2",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Komponent med sjekkbokser"
@@ -166,7 +166,7 @@
         },
         {
           "id": "ListPage-Header-Summary-Component2",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Summary"
@@ -179,7 +179,7 @@
         },
         {
           "id": "ListPage-Header-Summary2-Component2",
-          "type": "Header",
+          "type": "Heading",
           "size": "h3",
           "textResourceBindings": {
             "title": "Header.Summary2"
@@ -196,7 +196,6 @@
         },
         {
           "id": "ListPage-NavigationButtons",
-          "showBackButton": true,
           "textResourceBindings": {},
           "type": "NavigationButtons",
           "validateOnNext": {

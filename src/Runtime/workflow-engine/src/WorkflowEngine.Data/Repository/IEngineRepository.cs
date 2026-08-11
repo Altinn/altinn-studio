@@ -74,6 +74,14 @@ internal interface IEngineRepository
     Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the number of workflows the fetch gate could claim right now — active workflows minus
+    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c>. Unlike
+    /// <see cref="CountActiveWorkflows"/> this reaching zero means the engine is quiescent: a parked
+    /// workflow holds no lease and no transaction, and will not wake on its own before its timer.
+    /// </summary>
+    Task<int> CountRunnableWorkflows(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the number of scheduled workflows.
     /// </summary>
     Task<int> CountScheduledWorkflows(CancellationToken cancellationToken = default);
@@ -255,10 +263,12 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Clears BackoffUntil on a requeued workflow so it resumes retrying immediately.
-    /// Returns true if the workflow was found, is Requeued, and had a non-null BackoffUntil.
+    /// Clears BackoffUntil on a parked workflow so it becomes claimable by the fetch gate at once —
+    /// resuming retries for <c>Requeued</c>, or re-checking the awaited outcome for <c>Waiting</c>.
+    /// Returns true only if the workflow was found, is in one of those two states, and had a non-null
+    /// BackoffUntil; false is a no-op, not an error.
     /// </summary>
-    Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+    Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all workflow collections in a namespace.
