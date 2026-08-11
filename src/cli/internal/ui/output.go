@@ -27,9 +27,6 @@ func warningStyle() Style { return ColorStyle(ColorYellow) }
 func successStyle() Style { return ColorStyle(ColorGreen) }
 func infoStyle() Style    { return ColorStyle(ColorBlue) }
 func dimStyle() Style     { return ColorStyle(ColorGray) }
-
-// actionStyle marks something the user has to act on. Magenta: not another flavour of info, and still
-// distinct from a yellow warning for users who cannot separate green and yellow.
 func actionStyle() Style { return ColorStyle(ColorMagenta) }
 
 // containerColors returns colors for log output prefixes.
