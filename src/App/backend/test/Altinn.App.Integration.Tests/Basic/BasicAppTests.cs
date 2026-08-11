@@ -97,7 +97,13 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
             }
         );
         using var readPatchResponse = await patchResponse.Read<DataPatchResponseMultiple>();
-        await verifier.Verify(readPatchResponse, snapshotName: "PatchFormData", scrubbers: scrubbers);
+        // The patch mints a new blob version, so the instantiation-time scrubber cannot scrub it.
+        var patchedInstance = readPatchResponse.Data.Model?.Instance ?? instance;
+        await verifier.Verify(
+            readPatchResponse,
+            snapshotName: "PatchFormData",
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(patchedInstance))
+        );
 
         using var processNextResponse = await fixture.Instances.ProcessNext(token, readInstantiationResponse);
         using var readProcessNextResponse = await processNextResponse.Read<AppProcessState>();
