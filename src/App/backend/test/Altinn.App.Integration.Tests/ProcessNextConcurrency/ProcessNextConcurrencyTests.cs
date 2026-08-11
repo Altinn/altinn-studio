@@ -14,7 +14,7 @@ public sealed class ProcessNextConcurrencyTests(ITestOutputHelper _output, AppFi
     : IClassFixture<AppFixtureClassFixture>
 {
     [Fact]
-    public async Task ProcessNext_WhileAuthoritativeStatusIsProcessing_ReturnsGuardConflictWithoutSecondTransition()
+    public async Task ProcessNext_WhileTransitionInFlight_ReturnsRetryingConflictWithoutSecondTransition()
     {
         await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic, "process-next-concurrency");
         var fixture = fixtureScope.Fixture;
@@ -50,9 +50,10 @@ public sealed class ProcessNextConcurrencyTests(ITestOutputHelper _output, AppFi
 
             using JsonDocument problem = JsonDocument.Parse(conflict.Data.Body!);
             JsonElement root = problem.RootElement;
-            Assert.Equal("instance-processing", root.GetProperty("type").GetString());
             Assert.Equal((int)HttpStatusCode.Conflict, root.GetProperty("status").GetInt32());
-            Assert.Equal("processing", root.GetProperty("processStatus").GetString());
+            Assert.Equal("retrying", root.GetProperty("processNextState").GetString());
+            Assert.Equal("Task is still being processed.", root.GetProperty("title").GetString());
+            Assert.False(root.TryGetProperty("type", out _));
             Assert.Equal(1, await GetTaskEndInvocations(client));
         }
         finally
