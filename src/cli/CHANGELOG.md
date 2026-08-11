@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- When upgrading to v9, set `timeStamp: true` on `Datepicker` components that do not already set the property. In v9 the Datepicker default is date-only (`timeStamp: false`); this keeps existing apps saving a full timestamp the way they did before the upgrade.
+- `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
 
 ## [0.1.0-preview.21] - 2026-08-11
 
