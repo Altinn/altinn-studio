@@ -660,7 +660,7 @@ public class AppDevelopmentService : IAppDevelopmentService
                         {
                             ["size"] = "L",
                             ["id"] = "service-task-title",
-                            ["type"] = "Header",
+                            ["type"] = "Heading",
                             ["textResourceBindings"] = new JsonObject
                             {
                                 ["title"] = "service_task_custom_pdf_default.title",

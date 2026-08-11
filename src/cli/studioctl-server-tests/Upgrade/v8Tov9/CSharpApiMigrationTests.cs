@@ -1565,8 +1565,12 @@ public sealed class CSharpApiMigrationTests : IDisposable
         var summaries = Summaries(result).ToList();
         Assert.Contains(
             summaries,
-            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("AddEFormidlingServices2")
+            s =>
+                s.Contains("EformidlingStatusCheckEventHandler")
+                && s.Contains("services.AddEFormidling().WithMetadata<T>()")
         );
+        // The v8 registration methods are gone in v9, so the guidance must never name one.
+        Assert.DoesNotContain(summaries, s => s.Contains("AddEFormidlingServices"));
         Assert.DoesNotContain(
             summaries,
             s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("IMaskinportenClient")
@@ -1574,11 +1578,11 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     /// <summary>
-    /// <c>EformidlingStatusCheckEventHandler2</c> was public in v8 and is internal in v9, so an app naming
-    /// it fails to compile (CS0122) and must be told - it is not a surviving public API.
+    /// <c>EformidlingStatusCheckEventHandler2</c> was public in v8 and is deleted in v9, so an app naming it
+    /// fails to compile and must be told - it is not a surviving public API.
     /// </summary>
     [Fact]
-    public void MaskinportenShimDetector_FlagsTheNowInternalStatusCheckHandler()
+    public void MaskinportenShimDetector_FlagsTheRemovedSecondStatusCheckHandler()
     {
         _app.Write(
             "Program.cs",
@@ -1594,7 +1598,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             result.Warnings,
             w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler2")
         );
-        Assert.Contains(Summaries(result), s => s.Contains("AddEFormidlingServices2"));
+        Assert.Contains(Summaries(result), s => s.Contains("services.AddEFormidling().WithMetadata<T>()"));
     }
 
     /// <summary>

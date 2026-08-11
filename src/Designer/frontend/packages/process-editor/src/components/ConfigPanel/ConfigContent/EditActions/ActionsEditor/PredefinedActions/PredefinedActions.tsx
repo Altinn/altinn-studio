@@ -39,13 +39,11 @@ export const PredefinedActions = ({
       defaultValue={isPredefinedAction(actionElement.action) ? actionElement.action : ' '}
     >
       <option disabled value=' ' />
-      {availablePredefinedActions.map(
-        (action: string): React.ReactElement => (
-          <StudioSelect.Option key={action} value={action} disabled={shouldDisableAction(action)}>
-            {action}
-          </StudioSelect.Option>
-        ),
-      )}
+      {availablePredefinedActions.map((action: string): React.ReactElement => (
+        <StudioSelect.Option key={action} value={action} disabled={shouldDisableAction(action)}>
+          {action}
+        </StudioSelect.Option>
+      ))}
     </StudioSelect>
   );
 };

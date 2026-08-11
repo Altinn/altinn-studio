@@ -13,7 +13,7 @@
         "layout": [
           {
             "id": "topLevel",
-            "type": "Header",
+            "type": "Heading",
             "textResourceBindings": {
               "title": "Top level component"
             },

@@ -52,11 +52,7 @@ export type ResourceTypeOption =
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
 export type ResourceAvailableForTypeOption =
-  | 'PrivatePerson'
-  | 'LegalEntityEnterprise'
-  | 'Company'
-  | 'BankruptcyEstate'
-  | 'SelfRegisteredUser';
+  'PrivatePerson' | 'LegalEntityEnterprise' | 'Company' | 'BankruptcyEstate' | 'SelfRegisteredUser';
 
 export interface ResourceKeyword {
   language: ValidLanguage;

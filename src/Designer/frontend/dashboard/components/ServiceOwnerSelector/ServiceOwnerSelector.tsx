@@ -56,12 +56,10 @@ type SelectableItem = {
   label: string;
 };
 const mapOrganizationToSelectableItems = (organizations: Organization[]): SelectableItem[] => {
-  return organizations.map(
-    ({ username, full_name }): SelectableItem => ({
-      value: username,
-      label: full_name || username,
-    }),
-  );
+  return organizations.map(({ username, full_name }): SelectableItem => ({
+    value: username,
+    label: full_name || username,
+  }));
 };
 
 const mapUserToSelectableItem = (user: User): SelectableItem => {

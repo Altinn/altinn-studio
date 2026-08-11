@@ -5,7 +5,7 @@
       {
         "size": "L",
         "id": "Header-fwRDii",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "aksjekapital.Header-fwRDii.title"
         }

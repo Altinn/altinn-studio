@@ -1,10 +1,10 @@
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Header } from './Header';
-import type { HeaderProps } from './Header';
+import { Heading } from './Heading';
+import type { HeadingProps } from './Heading';
 
-export const HEADER_PROP_CATEGORIES = {
+export const HEADING_PROP_CATEGORIES = {
   // Text resources — Studio "Tekst" section
   title: 'text',
   help: 'text',
@@ -12,12 +12,12 @@ export const HEADER_PROP_CATEGORIES = {
   componentId: 'content',
   size: 'content',
   innerGrid: 'content',
-} satisfies PropCategories<HeaderProps>;
+} satisfies PropCategories<HeadingProps>;
 
 const meta = {
-  title: 'LayoutComponents/Header',
-  component: Header,
-  excludeStories: ['HEADER_PROP_CATEGORIES'],
+  title: 'LayoutComponents/Heading',
+  component: Heading,
+  excludeStories: ['HEADING_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
   },
@@ -28,11 +28,11 @@ const meta = {
     },
   },
   args: {
-    componentId: 'header-preview',
+    componentId: 'heading-preview',
     title: 'Personopplysninger',
     size: 'L',
   },
-} satisfies Meta<typeof Header>;
+} satisfies Meta<typeof Heading>;
 
 export default meta;
 

@@ -9,7 +9,7 @@
       },
       {
         "id": "DropdownPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "RadioButtonsPage"
@@ -17,7 +17,7 @@
       },
       {
         "id": "DropdownPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -54,7 +54,7 @@
       },
       {
         "id": "DropdownPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -68,7 +68,7 @@
       },
       {
         "id": "DropdownPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary2"
