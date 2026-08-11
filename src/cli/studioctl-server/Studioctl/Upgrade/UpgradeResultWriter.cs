@@ -7,13 +7,11 @@ namespace Altinn.Studio.Cli.Upgrade;
 /// or a reporter through its constructor.
 /// </summary>
 /// <remarks>
-/// Two sinks exist while the upgrade paths are being converted to structured output: a
-/// <see cref="TextWriter"/> sink (<c>frontend-v4</c>, <c>backend-v8</c>) whose text the CLI prints
-/// verbatim, and an <see cref="UpgradeReport"/> sink (<c>v9</c>) where <see cref="Ok"/> and friends
-/// record a status the CLI renders itself. Statuses degrade across sinks, so shared code reports once
-/// for both: on the text sink a typed status is dropped and its text written as a plain line, and on the
-/// report sink <see cref="WriteLine"/> lands as <see cref="UpgradeMessageStatus.Info"/>. The error
-/// channel is a <see cref="TextWriter"/> on both sinks.
+/// There are two ways to use it. <see cref="Use(UpgradeReport, TextWriter)"/> collects structured data -
+/// steps and typed messages the CLI renders itself - and is what <c>v9</c> uses.
+/// <see cref="Use(TextWriter, TextWriter)"/> writes free text the CLI prints verbatim; it exists to leave
+/// the <c>backend-v8</c> and <c>frontend-v4</c> upgrades as they are. Whether to move those to the
+/// structured format too is something we can consider later.
 /// </remarks>
 internal static class UpgradeResultWriter
 {
@@ -26,7 +24,7 @@ internal static class UpgradeResultWriter
     public static TextWriter Error =>
         Current.Value?.StandardError ?? throw new InvalidOperationException("Upgrade error writer is not configured.");
 
-    /// <summary>Installs a plain text sink, for the upgrade paths that still emit free text.</summary>
+    /// <summary>Writes this run as free text, for the upgrade paths that do not report typed messages.</summary>
     public static IDisposable Use(TextWriter output, TextWriter error)
     {
         var previous = Current.Value;
@@ -34,7 +32,7 @@ internal static class UpgradeResultWriter
         return new Scope(previous);
     }
 
-    /// <summary>Installs a structured sink, collecting into <paramref name="report"/>.</summary>
+    /// <summary>Collects this run into <paramref name="report"/>, as steps and typed messages.</summary>
     public static IDisposable Use(UpgradeReport report, TextWriter error)
     {
         var previous = Current.Value;
@@ -54,7 +52,7 @@ internal static class UpgradeResultWriter
         var writers = Current.Value;
         var report =
             writers?.Report
-            ?? throw new InvalidOperationException("Upgrade steps require a report sink. Use(UpgradeReport, ...).");
+            ?? throw new InvalidOperationException("Upgrade steps require a report. Use(UpgradeReport, ...).");
 
         writers.Step = report.BeginStep(name);
     }
@@ -81,8 +79,8 @@ internal static class UpgradeResultWriter
     public static void Failed(string text) => Message(UpgradeMessageStatus.Failed, text);
 
     /// <summary>
-    /// Reports <paramref name="text"/> on the current step, with <paramref name="status"/>. On the text
-    /// sink the status is dropped and the text written as a plain line.
+    /// Reports <paramref name="text"/> on the current step, with <paramref name="status"/>. A run writing
+    /// free text has nowhere to put the status, so it drops it and writes the text as a line.
     /// </summary>
     public static void Message(UpgradeMessageStatus status, string text)
     {
@@ -103,8 +101,8 @@ internal static class UpgradeResultWriter
     }
 
     /// <summary>
-    /// Writes one line: verbatim on the text sink, an <see cref="UpgradeMessageStatus.Info"/> message on
-    /// the report sink - how call sites that do not carry a real status yet keep working.
+    /// Writes one line: verbatim as free text, an <see cref="UpgradeMessageStatus.Info"/> message in a
+    /// report - how call sites that do not carry a real status yet keep working.
     /// </summary>
     public static void WriteLine(string message) => Message(UpgradeMessageStatus.Info, message);
 
@@ -120,9 +118,9 @@ internal static class UpgradeResultWriter
         Error.WriteLineAsync($"{description}: {FileAccessDiagnostics.Describe(exception)}");
 
     /// <summary>
-    /// The ambient destination of one upgrade run: exactly one of <paramref name="StandardOutput"/> (text
-    /// sink) and <paramref name="Report"/> (structured sink) is set. <see cref="Step"/> is the report
-    /// sink's current step; steps are sequential (see <see cref="BeginStep"/>), so parallel migrators may
+    /// The ambient destination of one upgrade run: exactly one of <paramref name="StandardOutput"/> (free
+    /// text) and <paramref name="Report"/> (steps and typed messages) is set. <see cref="Step"/> is the
+    /// report's current step; steps are sequential (see <see cref="BeginStep"/>), so parallel migrators may
     /// report to the current step - <see cref="UpgradeReport"/> locks - but must not begin one.
     /// </summary>
     private sealed record Writers(TextWriter? StandardOutput, TextWriter StandardError, UpgradeReport? Report)

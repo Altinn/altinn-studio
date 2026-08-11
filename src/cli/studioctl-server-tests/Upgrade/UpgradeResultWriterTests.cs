@@ -4,15 +4,15 @@ using Altinn.Studio.Cli.Upgrade;
 namespace Studioctl.Tests.Upgrade;
 
 /// <summary>
-/// Covers the two sinks <see cref="UpgradeResultWriter"/> serves while the upgrade paths are being converted:
-/// plain text for the kinds that still emit free text, and a structured report for v9.
+/// Covers both destinations <see cref="UpgradeResultWriter"/> serves while the upgrade paths are being
+/// converted: free text for the kinds that do not report typed messages, and a report for v9.
 /// </summary>
 public sealed class UpgradeResultWriterTests
 {
     private static StringWriter NewWriter() => new(CultureInfo.InvariantCulture);
 
     [Fact]
-    public void TextWriterSink_WritesPlainText()
+    public void FreeText_WritesPlainText()
     {
         var output = NewWriter();
         var error = NewWriter();
@@ -20,7 +20,7 @@ public sealed class UpgradeResultWriterTests
         using (UpgradeResultWriter.Use(output, error))
         {
             UpgradeResultWriter.WriteLine("plain line");
-            // A typed status degrades to its plain text, so shared code can report once for both sinks.
+            // A typed status degrades to its plain text, so shared code can report once for both destinations.
             UpgradeResultWriter.Ok("typed line");
             UpgradeResultWriter.WriteErrorLine("error line");
         }
@@ -30,7 +30,7 @@ public sealed class UpgradeResultWriterTests
     }
 
     [Fact]
-    public void ReportSink_WriteLine_BecomesAnInfoMessageOnTheCurrentStep()
+    public void Report_WriteLine_BecomesAnInfoMessageOnTheCurrentStep()
     {
         var report = new UpgradeReport();
 
@@ -47,7 +47,7 @@ public sealed class UpgradeResultWriterTests
     }
 
     [Fact]
-    public void ReportSink_ErrorChannel_IsStillATextWriter()
+    public void Report_ErrorChannel_IsStillATextWriter()
     {
         var report = new UpgradeReport();
         var error = NewWriter();
@@ -67,19 +67,19 @@ public sealed class UpgradeResultWriterTests
     [Fact]
     public void MisuseThrows()
     {
-        // No sink installed.
+        // No destination installed.
         Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.WriteLine("nope"));
         Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("nope"));
 
         using (UpgradeResultWriter.Use(NewWriter(), NewWriter()))
         {
-            // Steps are meaningless on the text sink.
+            // Steps are meaningless when the run writes free text.
             Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.BeginStep("nope"));
         }
 
         using (UpgradeResultWriter.Use(new UpgradeReport(), TextWriter.Null))
         {
-            // The report sink has no output writer, and a message with no step is a bug: it surfaces
+            // A report has no output writer, and a message with no step is a bug: it surfaces
             // rather than landing in an invented step.
             Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Out.WriteLine("nope"));
             var exception = Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("orphan"));
@@ -88,7 +88,7 @@ public sealed class UpgradeResultWriterTests
     }
 
     [Fact]
-    public void Scope_RestoresThePreviousSinkOnDispose()
+    public void Scope_RestoresThePreviousDestinationOnDispose()
     {
         var outer = NewWriter();
         var report = new UpgradeReport();
