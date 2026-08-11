@@ -195,27 +195,41 @@ internal sealed class SigningReceiptService(
         List<CorrespondenceAttachment> attachments = [];
         IEnumerable<DataElement> signedElements = context.Instance.Data.Where(IsSignedDataElement);
 
-        foreach (DataElement element in signedElements)
+        try
         {
-            string filename = GetDataElementFilename(element, appMetadata);
+            foreach (DataElement element in signedElements)
+            {
+                string filename = GetDataElementFilename(element, appMetadata);
 
-            attachments.Add(
-                CorrespondenceAttachmentBuilder
-                    .Create()
-                    .WithFilename(filename)
-                    .WithSendersReference(element.Id)
-                    .WithData(
-                        await dataClient.GetBinaryDataStream(
-                            instanceIdentifier.InstanceOwnerPartyId,
-                            instanceIdentifier.InstanceGuid,
-                            Guid.Parse(element.Id),
-                            authenticationMethod: null,
-                            timeout: TimeSpan.FromHours(1),
-                            cancellationToken
+                attachments.Add(
+                    CorrespondenceAttachmentBuilder
+                        .Create()
+                        .WithFilename(filename)
+                        .WithSendersReference(element.Id)
+                        .WithData(
+                            await dataClient.GetBinaryDataStream(
+                                instanceIdentifier.InstanceOwnerPartyId,
+                                instanceIdentifier.InstanceGuid,
+                                Guid.Parse(element.Id),
+                                authenticationMethod: null,
+                                timeout: TimeSpan.FromHours(1),
+                                cancellationToken
+                            )
                         )
-                    )
-                    .Build()
-            );
+                        .Build()
+                );
+            }
+        }
+        catch
+        {
+            // Each stream acquired so far holds an open, unbuffered HTTP response. Nothing downstream
+            // will receive them now, so this scope must release them before propagating.
+            foreach (CorrespondenceAttachment attachment in attachments)
+            {
+                await attachment.Data.DisposeAsync();
+            }
+
+            throw;
         }
 
         return attachments;
