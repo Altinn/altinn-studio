@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
@@ -101,6 +102,83 @@ public class ResponseWrapperStreamTests
 
         stream.Seek(0, SeekOrigin.Begin);
         stream.Position.Should().Be(0);
+    }
+
+    // The bulk-transfer members are overridden so a copy goes straight to the content stream's own
+    // implementation — a buffered response hands out a MemoryStream, whose copy is a single block copy.
+    // Stream's base implementations would produce identical bytes by looping over Read, so only asserting
+    // on the bytes cannot tell the two apart. These assert on the delegation itself, which is the point.
+
+    [Fact]
+    public void CopyTo_is_delegated_to_the_content_stream()
+    {
+        using HttpResponseMessage response = new();
+        RecordingStream inner = new("hello worlds");
+        using ResponseWrapperStream stream = new(response, inner);
+
+        using MemoryStream destination = new();
+        stream.CopyTo(destination);
+
+        inner.CopyToCalls.Should().Be(1, "the override must hand the copy to the content stream");
+        destination.ToArray().Should().Equal("hello worlds"u8.ToArray());
+    }
+
+    [Fact]
+    public async Task CopyToAsync_is_delegated_to_the_content_stream()
+    {
+        using HttpResponseMessage response = new();
+        RecordingStream inner = new("hello worlds");
+        using ResponseWrapperStream stream = new(response, inner);
+
+        using MemoryStream destination = new();
+        await stream.CopyToAsync(destination);
+
+        inner.CopyToAsyncCalls.Should().Be(1, "the override must hand the copy to the content stream");
+        destination.ToArray().Should().Equal("hello worlds"u8.ToArray());
+    }
+
+    [Fact]
+    public void Read_span_is_delegated_to_the_content_stream()
+    {
+        using HttpResponseMessage response = new();
+        RecordingStream inner = new("hello worlds");
+        using ResponseWrapperStream stream = new(response, inner);
+
+        Span<byte> buffer = new byte[5];
+        var read = stream.Read(buffer);
+
+        read.Should().Be(5);
+        inner.ReadSpanCalls.Should().Be(1, "the override must avoid the base implementation's array rental");
+        buffer.ToArray().Should().Equal("hello"u8.ToArray());
+    }
+
+    /// <summary>
+    /// A stream that records which bulk-transfer members were invoked on it, so a test can tell delegation
+    /// from the base <see cref="Stream"/> implementations looping over <c>Read</c>.
+    /// </summary>
+    private sealed class RecordingStream(string payload) : MemoryStream(Encoding.UTF8.GetBytes(payload))
+    {
+        public int CopyToCalls { get; private set; }
+        public int CopyToAsyncCalls { get; private set; }
+        public int ReadSpanCalls { get; private set; }
+
+        public override void CopyTo(Stream destination, int bufferSize)
+        {
+            CopyToCalls++;
+            base.CopyTo(destination, bufferSize);
+        }
+
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            CopyToAsyncCalls++;
+            return base.CopyToAsync(destination, bufferSize, cancellationToken);
+        }
+
+        public override int Read(Span<byte> buffer)
+        {
+            ReadSpanCalls++;
+            return base.Read(buffer);
+        }
     }
 
     private sealed class ThrowingContent : HttpContent

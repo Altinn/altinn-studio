@@ -43,7 +43,7 @@ internal class NetsClient : INetsClient
     /// </summary>
     public async Task<HttpApiResult<NetsCreatePaymentSuccess>> CreatePayment(NetsCreatePayment payment)
     {
-        HttpResponseMessage? response = await _httpClient.PostAsJsonAsync("/v1/payments", payment);
+        using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/v1/payments", payment);
         return await HttpApiResult<NetsCreatePaymentSuccess>.FromHttpResponse(response);
     }
 
