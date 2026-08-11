@@ -156,8 +156,6 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
-        // No closing verdict here: the CLI writes it, keyed off this return code, so that the sentence
-        // sits below the rendered report rather than inside it.
         return returnCode;
     }
 
