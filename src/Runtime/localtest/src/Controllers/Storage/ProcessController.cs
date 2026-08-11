@@ -108,7 +108,7 @@ public class ProcessController : ControllerBase
             return Forbid();
         }
 
-        (VersionPreconditions preconditions, ActionResult versionError) =
+        (VersionPreconditions preconditions, ActionResult? versionError) =
             VersionPreconditionHelper.TryParse(Request);
         if (versionError is not null)
         {
@@ -226,7 +226,7 @@ public class ProcessController : ControllerBase
             return Forbid();
         }
 
-        (VersionPreconditions preconditions, ActionResult versionError) =
+        (VersionPreconditions preconditions, ActionResult? versionError) =
             VersionPreconditionHelper.TryParse(Request);
         if (versionError is not null)
         {
