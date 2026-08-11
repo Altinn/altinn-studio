@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.ProjectChecks;
 
@@ -20,11 +21,13 @@ internal sealed class ProjectChecks
     }
 
     /// <summary>
-    /// Verifies that the project is using supported versions of Altinn.App.Api and Altinn.App.Core
-    /// for the 'v8Tov9' upgrade. Accepts versions &gt;= 8.0.0 and &lt; 9.0.0.
+    /// Verifies that the project is using a supported version of Altinn.App.Api (and, if explicitly
+    /// declared, Altinn.App.Core) for the 'v8Tov9' upgrade. Accepts versions &gt;= 8.0.0 and &lt; 9.0.0,
+    /// including NuGet range/bracket syntax (e.g. "[8.11.3]", "[8.0,9.0)", "8.*").
     /// Also allows projects using ProjectReference instead of PackageReference (e.g., local development).
     /// </summary>
-    /// <returns>True if both packages are present and in the supported version range, or if using project references</returns>
+    /// <returns>True if Altinn.App.Api is present and in the supported version range (and Altinn.App.Core,
+    /// if present, is too), or if using project references</returns>
     public bool SupportedSourceVersion()
     {
         // Check if using project references instead of package references
@@ -33,17 +36,9 @@ internal sealed class ProjectChecks
             return true;
         }
 
-        var altinnAppCoreElements = GetAltinnAppCoreElement();
+        // Altinn.App.Api is required; it pulls in a compatible Altinn.App.Core transitively.
         var altinnAppApiElements = GetAltinnAppApiElement();
-
-        // Both packages must be present
-        if (altinnAppCoreElements is null || altinnAppApiElements is null)
-        {
-            return false;
-        }
-
-        // If no elements found for either package, fail
-        if (altinnAppCoreElements.Count == 0 || altinnAppApiElements.Count == 0)
+        if (altinnAppApiElements is null || altinnAppApiElements.Count == 0)
         {
             return false;
         }
@@ -58,7 +53,14 @@ internal sealed class ProjectChecks
             return false;
         }
 
-        // Check all Altinn.App.Core versions
+        // Altinn.App.Core is only validated if explicitly declared; otherwise it's obtained
+        // transitively via Altinn.App.Api and there's nothing explicit to check.
+        var altinnAppCoreElements = GetAltinnAppCoreElement();
+        if (altinnAppCoreElements is null || altinnAppCoreElements.Count == 0)
+        {
+            return true;
+        }
+
         return altinnAppCoreElements
             .Select(coreElement => coreElement.Attribute("Version")?.Value)
             .All(altinnAppCoreVersion => SupportedSourceVersion(altinnAppCoreVersion));
@@ -121,18 +123,13 @@ internal sealed class ProjectChecks
             return false;
         }
 
-        var versionParts = version.Split('.');
-        if (versionParts.Length < 3)
+        if (!VersionRange.TryParse(version, out var range))
         {
             return false;
         }
 
-        if (!int.TryParse(versionParts[0], out int major))
-        {
-            return false;
-        }
-
-        // Must be version 8.x.x (>= 8.0.0 and < 9.0.0)
-        return major == 8;
+        // Covers exact versions ("8.11.3"), bracket/range syntax ("[8.11.3]", "[8.0,9.0)")
+        // and floating versions ("8.*") — all resolve to a floor version we can check.
+        return range.MinVersion?.Major == 8;
     }
 }
