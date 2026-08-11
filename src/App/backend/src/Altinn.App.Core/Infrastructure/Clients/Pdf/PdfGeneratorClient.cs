@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Pdf;
@@ -147,19 +148,30 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
         using StringContent stringContent = new(requestContent, Encoding.UTF8, "application/json");
-        var httpResponseMessage = await _httpClient.PostAsync(_platformSettings.ApiPdf2Endpoint, stringContent, ct);
+        HttpResponseMessage httpResponseMessage = await _httpClient.PostAsync(
+            _platformSettings.ApiPdf2Endpoint,
+            stringContent,
+            ct
+        );
 
         if (!httpResponseMessage.IsSuccessStatusCode)
         {
-            var content = await httpResponseMessage.Content.ReadAsStringAsync(ct);
-            var ex = new PdfGenerationException("Pdf generation failed");
-            ex.Data.Add("responseContent", content);
-            ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
-            ex.Data.Add("responseReasonPhrase", httpResponseMessage.ReasonPhrase);
+            // Nothing takes the response over on the failure path, so this scope owns it. The diagnostic
+            // content is copied onto the exception, which outlives the response.
+            using (httpResponseMessage)
+            {
+                var content = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+                var ex = new PdfGenerationException("Pdf generation failed");
+                ex.Data.Add("responseContent", content);
+                ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
+                ex.Data.Add("responseReasonPhrase", httpResponseMessage.ReasonPhrase);
 
-            throw ex;
+                throw ex;
+            }
         }
 
-        return await httpResponseMessage.Content.ReadAsStreamAsync(ct);
+        // Ownership of the response moves to the returned stream — a `using` here would dispose the
+        // content the caller is about to read.
+        return await ResponseWrapperStream.TakeOwnershipOf(httpResponseMessage, ct);
     }
 }

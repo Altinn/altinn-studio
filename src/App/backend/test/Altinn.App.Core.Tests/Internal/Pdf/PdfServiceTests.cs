@@ -135,6 +135,98 @@ public class PdfServiceTests
         await func.Should().ThrowAsync<PdfGenerationException>();
     }
 
+    // The stream GeneratePdf returns owns the HTTP response behind it. These two tests pin both halves of
+    // that contract: the response survives until the caller disposes the stream, and it is not leaked when
+    // generation fails and no stream is returned at all.
+
+    [Fact]
+    public async Task GeneratePdf_stream_is_readable_after_the_call_returned_and_owns_the_response()
+    {
+        DisposeTrackingContent? content = null;
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response("a pdf, honest");
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var httpClient = new HttpClient(delegatingHandler);
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authenticationTokenResolver.Object
+        );
+
+        // Deliberately read after GeneratePdf has returned: this is the case a `using` on the response
+        // inside GeneratePdf would break, and it would break here rather than there.
+        Stream pdf = await pdfGeneratorClient.GeneratePdf(
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
+            CancellationToken.None
+        );
+
+        content.Should().NotBeNull();
+        content!.IsDisposed.Should().BeFalse("the caller has not disposed the stream yet");
+
+        using (StreamReader reader = new(pdf, leaveOpen: true))
+        {
+            var read = await reader.ReadToEndAsync();
+            read.Should().Be("a pdf, honest");
+        }
+
+        await pdf.DisposeAsync();
+        content!.IsDisposed.Should().BeTrue("the returned stream owns the response");
+    }
+
+    [Fact]
+    public async Task GeneratePdf_disposes_the_response_when_generation_fails()
+    {
+        DisposeTrackingContent? content = null;
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response(
+                    "pdf generator exploded",
+                    HttpStatusCode.RequestTimeout
+                );
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var httpClient = new HttpClient(delegatingHandler);
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authenticationTokenResolver.Object
+        );
+
+        var thrown = await Assert.ThrowsAsync<PdfGenerationException>(async () =>
+            await pdfGeneratorClient.GeneratePdf(
+                new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
+                CancellationToken.None
+            )
+        );
+
+        content.Should().NotBeNull();
+        content!.IsDisposed.Should().BeTrue("no stream is returned, so nothing else can release the response");
+
+        // The diagnostic content is copied onto the exception, so disposing the response does not empty it.
+        thrown.Data["responseContent"].Should().Be("pdf generator exploded");
+        thrown.Data["responseStatusCode"].Should().Be(nameof(HttpStatusCode.RequestTimeout));
+    }
+
     [Fact]
     public async Task GeneratePdf_WithServiceOwnerAuthentication_UsesServiceOwnerToken()
     {
