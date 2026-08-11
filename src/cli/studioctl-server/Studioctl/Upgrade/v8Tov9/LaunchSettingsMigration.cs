@@ -12,7 +12,9 @@ internal static class LaunchSettingsMigration
     private static readonly string _applicationUrl = $"http://{LocalAltinnHost}:{LocalAltinnPort}";
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
 
-    internal static async Task Migrate(string projectFile)
+    /// <summary>Brings <c>Properties/launchSettings.json</c> in line with what a v9 app needs.</summary>
+    /// <returns>Whether the file changed, so the caller can report accurately.</returns>
+    internal static async Task<bool> Migrate(string projectFile)
     {
         var appDirectory = Path.GetDirectoryName(projectFile);
         if (string.IsNullOrWhiteSpace(appDirectory))
@@ -22,16 +24,17 @@ internal static class LaunchSettingsMigration
         Directory.CreateDirectory(propertiesDirectory);
 
         var launchSettingsFile = Path.Combine(propertiesDirectory, "launchSettings.json");
-        var root = File.Exists(launchSettingsFile)
-            ? ParseLaunchSettings(await File.ReadAllTextAsync(launchSettingsFile), launchSettingsFile)
-            : new JsonObject();
+        var original = File.Exists(launchSettingsFile) ? await File.ReadAllTextAsync(launchSettingsFile) : null;
+        var root = original is null ? new JsonObject() : ParseLaunchSettings(original, launchSettingsFile);
 
         Migrate(root);
 
-        await File.WriteAllTextAsync(
-            launchSettingsFile,
-            root.ToJsonString(_jsonSerializerOptions) + Environment.NewLine
-        );
+        var migrated = root.ToJsonString(_jsonSerializerOptions) + Environment.NewLine;
+        if (string.Equals(original, migrated, StringComparison.Ordinal))
+            return false;
+
+        await File.WriteAllTextAsync(launchSettingsFile, migrated);
+        return true;
     }
 
     private static JsonObject ParseLaunchSettings(string content, string launchSettingsFile)

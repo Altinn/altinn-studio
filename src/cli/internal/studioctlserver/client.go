@@ -150,12 +150,46 @@ type AppUpgrade struct {
 	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
 }
 
+// AppUpgradeStatus says why an upgrade message is being shown, so the CLI can render it.
+type AppUpgradeStatus string
+
+const (
+	// AppUpgradeStatusOK marks an applied migration, or a check that passed clean.
+	AppUpgradeStatusOK AppUpgradeStatus = "OK"
+	// AppUpgradeStatusInfo marks neutral information.
+	AppUpgradeStatusInfo AppUpgradeStatus = "INFO"
+	// AppUpgradeStatusSkip marks a migration that was not needed.
+	AppUpgradeStatusSkip AppUpgradeStatus = "SKIP"
+	// AppUpgradeStatusWarn marks something the user should look at.
+	AppUpgradeStatusWarn AppUpgradeStatus = "WARN"
+	// AppUpgradeStatusTodo marks a migration the user has to finish by hand.
+	AppUpgradeStatusTodo AppUpgradeStatus = "TODO"
+	// AppUpgradeStatusFail marks a step that tried and failed.
+	AppUpgradeStatusFail AppUpgradeStatus = "FAIL"
+)
+
+// AppUpgradeMessage is one line an upgrade step reported, plus why.
+type AppUpgradeMessage struct {
+	Text   string           `json:"text"`
+	Status AppUpgradeStatus `json:"status"`
+}
+
+// AppUpgradeStep groups everything one migration step reported, in emission order.
+type AppUpgradeStep struct {
+	Name     string              `json:"name"`
+	Messages []AppUpgradeMessage `json:"messages"`
+}
+
 // AppUpgradeResult describes a studioctl-server upgrade result.
+//
+// Steps carries the structured report the CLI renders itself. It is empty for the upgrade kinds that
+// still emit free text, and for an older studioctl-server; Output covers those.
 type AppUpgradeResult struct {
-	Message  string `json:"message"`
-	Output   string `json:"output"`
-	Error    string `json:"error"`
-	ExitCode int    `json:"exitCode"`
+	Message  string           `json:"message"`
+	Output   string           `json:"output"`
+	Error    string           `json:"error"`
+	Steps    []AppUpgradeStep `json:"steps"`
+	ExitCode int              `json:"exitCode"`
 }
 
 // NewClient constructs a studioctl-server control-plane client.

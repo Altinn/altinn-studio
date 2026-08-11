@@ -46,6 +46,9 @@ internal sealed class AppUpgradeService : IDisposable
         {
             var output = new StringWriter(CultureInfo.InvariantCulture);
             var error = new StringWriter(CultureInfo.InvariantCulture);
+            // The v9 path reports structured steps the CLI renders itself; the older paths still emit free
+            // text that the CLI prints verbatim. Only one of the two is populated for any given run.
+            var report = request.Kind == UpgradeKinds.V9 ? new UpgradeReport() : null;
             try
             {
                 // We want to enforce a clean directory, so git diff will only show what the update did. An
@@ -64,20 +67,21 @@ internal sealed class AppUpgradeService : IDisposable
                     },
                     output,
                     error,
+                    report,
                     cancellationToken
                 );
 
                 if (!V8Tov9Upgrade.IsError(exitCode))
                 {
-                    GitOperations.StageAllChanges(projectFolder, output);
+                    StageChanges(projectFolder, output, error, report);
                 }
 
-                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString());
+                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString(), Steps(report));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 await error.WriteLineAsync(FileAccessDiagnostics.Describe(ex));
-                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString());
+                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString(), Steps(report));
             }
         }
         finally
@@ -86,10 +90,28 @@ internal sealed class AppUpgradeService : IDisposable
         }
     }
 
+    private static IReadOnlyList<UpgradeStep> Steps(UpgradeReport? report) => report?.Steps ?? [];
+
+    /// <summary>
+    /// Stages the upgrade's changes, attributing the result to a step of its own when the run is
+    /// reporting structured steps. This runs after the upgrade returned, so it needs its own scope.
+    /// </summary>
+    private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport? report)
+    {
+        using (report is null ? UpgradeConsole.Use(output, error) : UpgradeConsole.Use(report, error))
+        {
+            if (report is not null)
+                UpgradeConsole.BeginStep("Staging changes");
+
+            GitOperations.StageAllChanges(projectFolder);
+        }
+    }
+
     private static Task<int> RunUpgradeAsync(
         AppUpgradeRequest request,
         TextWriter output,
         TextWriter error,
+        UpgradeReport? report,
         CancellationToken cancellationToken
     )
     {
@@ -146,7 +168,7 @@ internal sealed class AppUpgradeService : IDisposable
                     SkipCsprojUpgrade: false,
                     ConvertPackageReferences: request.ConvertPackageReferences,
                     StudioRoot: request.StudioRoot,
-                    Output: output,
+                    Report: report ?? throw new InvalidOperationException("The v9 upgrade requires a report."),
                     Error: error,
                     CancellationToken: cancellationToken
                 )
@@ -177,10 +199,21 @@ internal sealed record AppUpgradeRequest(
     bool ConvertPackageReferences
 );
 
-internal sealed record AppUpgradeResult(bool IsValid, int ExitCode, string Message, string Output, string Error)
+internal sealed record AppUpgradeResult(
+    bool IsValid,
+    int ExitCode,
+    string Message,
+    string Output,
+    string Error,
+    IReadOnlyList<UpgradeStep> Steps
+)
 {
-    public static AppUpgradeResult Invalid(string message) => new(false, 1, message, "", "");
+    public static AppUpgradeResult Invalid(string message) => new(false, 1, message, "", "", []);
 
-    public static AppUpgradeResult Completed(int exitCode, string output, string error) =>
-        new(true, exitCode, exitCode == 0 ? "upgrade completed" : "upgrade failed", output, error);
+    public static AppUpgradeResult Completed(
+        int exitCode,
+        string output,
+        string error,
+        IReadOnlyList<UpgradeStep> steps
+    ) => new(true, exitCode, exitCode == 0 ? "upgrade completed" : "upgrade failed", output, error, steps);
 }
