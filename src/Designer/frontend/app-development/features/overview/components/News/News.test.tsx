@@ -1,16 +1,21 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
+import { News } from './News';
 
-const mockNewsData = (newsList: NewsList) => {
-  jest.mock('./NewsContent/news.nb.json', () => ({
-    __esModule: true,
-    default: newsList,
-  }));
-};
+let mockNewsList: NewsList = { news: [] };
 
-const formatDate = (date) => {
+jest.mock('./NewsContent/news.nb.json', () => ({
+  __esModule: true,
+  default: {
+    get news() {
+      return mockNewsList.news;
+    },
+  },
+}));
+
+const formatDate = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -23,58 +28,42 @@ const formatDateToVisualText = (date: string) => {
   return `${day}.${month}.${year}`;
 };
 
+const newsListWithSingleNews = (date: Date, content: string = 'News content'): NewsList => ({
+  news: [
+    {
+      title: 'title',
+      content,
+      date: formatDate(date),
+    },
+  ],
+});
+
 describe('News', () => {
-  afterEach(() => {
-    jest.resetModules();
+  it('section title is always rendered', () => {
+    renderNews(newsListWithSingleNews(new Date()));
+
+    expect(
+      screen.getByRole('heading', { name: textMock('overview.news_title'), level: 2 }),
+    ).toBeInTheDocument();
   });
-  it('section title is always rendered', async () => {
+
+  it('content is rendered when available', () => {
     const publishDate = new Date();
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'content',
-          date: formatDate(publishDate),
-        },
-      ],
-    };
-    await renderNews(newsList);
+    renderNews(newsListWithSingleNews(publishDate));
 
-    await screen.findByText('title');
-  });
-  it('content is rendered when available', async () => {
-    const publishDate = new Date();
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'News content',
-          date: formatDate(publishDate),
-        },
-      ],
-    };
-    await renderNews(newsList);
-
-    await screen.findByText('title');
-    await screen.findByText(/News content/);
-    await screen.findByText(
-      textMock('overview.news_date', { date: formatDateToVisualText(formatDate(publishDate)) }),
-    );
+    expect(screen.getByRole('heading', { name: 'title', level: 3 })).toBeInTheDocument();
+    expect(screen.getByText(/News content/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('overview.news_date', { date: formatDateToVisualText(formatDate(publishDate)) }),
+      ),
+    ).toBeInTheDocument();
   });
 
-  it('placeholder is rendered when no relevant news are available', async () => {
+  it('placeholder is rendered when no relevant news are available', () => {
     const publishDate = new Date();
     publishDate.setDate(publishDate.getDate() - NEWS_EXPIRATION_TIME_IN_DAYS);
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'News content',
-          date: formatDate(publishDate),
-        },
-      ],
-    };
-    await renderNews(newsList);
+    renderNews(newsListWithSingleNews(publishDate));
 
     const noNewsTitle = screen.getByText(textMock('overview.no_news_title'));
     expect(noNewsTitle).toBeInTheDocument();
@@ -82,53 +71,26 @@ describe('News', () => {
     expect(noNewsContent).toBeInTheDocument();
   });
 
-  it('does not list a news if the date in the news is in the future', async () => {
+  it('does not list a news if the date in the news is in the future', () => {
     const publishDate = new Date();
     publishDate.setDate(publishDate.getDate() + 1);
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'News content',
-          date: formatDate(publishDate),
-        },
-      ],
-    };
-    await renderNews(newsList);
-
-    await waitFor(() => {
-      screen.queryByText('News content');
-    });
+    renderNews(newsListWithSingleNews(publishDate));
 
     const news = screen.queryByText('News content');
     expect(news).not.toBeInTheDocument();
   });
 
-  it('does not list a news if the publishDate is more than the expiration time in days ago', async () => {
+  it('does not list a news if the publishDate is more than the expiration time in days ago', () => {
     const publishDate = new Date();
     publishDate.setDate(publishDate.getDate() - NEWS_EXPIRATION_TIME_IN_DAYS);
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'News content',
-          date: formatDate(publishDate),
-        },
-      ],
-    };
-    await renderNews(newsList);
-
-    await waitFor(() => {
-      screen.queryByText('News content');
-    });
+    renderNews(newsListWithSingleNews(publishDate));
 
     const news = screen.queryByText('News content');
     expect(news).not.toBeInTheDocument();
   });
 });
 
-const renderNews = async (newsList: NewsList) => {
-  mockNewsData(newsList);
-  const { News } = await import('./News');
+const renderNews = (newsList: NewsList) => {
+  mockNewsList = newsList;
   return render(<News />);
 };
