@@ -44,15 +44,17 @@ internal static class UpgradeResultWriter
     /// Starts a step. Everything reported until the next <see cref="BeginStep"/> or the end of the scope
     /// belongs to it - steps run one after another, so there is nothing to close and no nesting.
     /// </summary>
-    /// <remarks>
-    /// Every step appears in the report, even one that reports nothing - the bare name shows it ran.
-    /// </remarks>
     public static void BeginStep(string name)
     {
-        var writers = Current.Value;
+        var writers = Current.Value ?? throw new InvalidOperationException("Upgrade output writer is not configured.");
+        if (writers.StandardOutput is { } writer)
+        {
+            writer.WriteLine(name);
+            return;
+        }
+
         var report =
-            writers?.Report
-            ?? throw new InvalidOperationException("Upgrade steps require a report. Use(UpgradeReport, ...).");
+            writers.Report ?? throw new InvalidOperationException("Upgrade output has neither a report nor a writer.");
 
         writers.Step = report.BeginStep(name);
     }

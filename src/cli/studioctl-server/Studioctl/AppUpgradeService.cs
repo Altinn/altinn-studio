@@ -92,16 +92,14 @@ internal sealed class AppUpgradeService : IDisposable
     private static IReadOnlyList<UpgradeStep> Steps(UpgradeReport? report) => report?.Steps ?? [];
 
     /// <summary>
-    /// Stages the upgrade's changes, attributing the result to a step of its own when the run is
-    /// reporting structured steps. This runs after the upgrade returned, so it needs its own scope.
+    /// Stages the upgrade's changes, attributing the result to a step of its own. This runs after the
+    /// upgrade returned, so it needs its own scope.
     /// </summary>
     private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport? report)
     {
         using (report is null ? UpgradeResultWriter.Use(output, error) : UpgradeResultWriter.Use(report, error))
         {
-            if (report is not null)
-                UpgradeResultWriter.BeginStep("Staging changes");
-
+            UpgradeResultWriter.BeginStep("Staging changes");
             GitOperations.StageAllChanges(projectFolder);
         }
     }

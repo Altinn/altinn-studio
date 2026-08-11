@@ -19,13 +19,19 @@ public sealed class UpgradeResultWriterTests
 
         using (UpgradeResultWriter.Use(output, error))
         {
+            // There are no steps to collect into, so the name becomes a line of its own. Shared code can
+            // therefore start steps without caring which destination the run is writing to.
+            UpgradeResultWriter.BeginStep("A step");
             UpgradeResultWriter.WriteLine("plain line");
             // A typed status degrades to its plain text, so shared code can report once for both destinations.
             UpgradeResultWriter.Ok("typed line");
             UpgradeResultWriter.WriteErrorLine("error line");
         }
 
-        Assert.Equal($"plain line{Environment.NewLine}typed line{Environment.NewLine}", output.ToString());
+        Assert.Equal(
+            $"A step{Environment.NewLine}plain line{Environment.NewLine}typed line{Environment.NewLine}",
+            output.ToString()
+        );
         Assert.Contains("error line", error.ToString(), StringComparison.Ordinal);
     }
 
@@ -70,12 +76,6 @@ public sealed class UpgradeResultWriterTests
         // No destination installed.
         Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.WriteLine("nope"));
         Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("nope"));
-
-        using (UpgradeResultWriter.Use(NewWriter(), NewWriter()))
-        {
-            // Steps are meaningless when the run writes free text.
-            Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.BeginStep("nope"));
-        }
 
         using (UpgradeResultWriter.Use(new UpgradeReport(), TextWriter.Null))
         {
