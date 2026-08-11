@@ -53,7 +53,6 @@ public static class ServiceRegistration
         services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
-        services.AddTransient<IRepositoryActivityService, RepositoryActivityService>();
         services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
         services.AddSingleton<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
 
@@ -78,7 +77,6 @@ public static class ServiceRegistration
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
         services.AddScoped<IContactPointsRepository, ContactPointRepository>();
-        services.AddScoped<IRepositoryActivityRepository, RepositoryActivityRepository>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
         services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Repository.Models.RepositoryActivity;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Logging;
@@ -19,7 +18,6 @@ public class RepositoryCleanupService : IRepositoryCleanupService
     private readonly ServiceRepositorySettings _repositorySettings;
     private readonly SchedulingSettings _schedulingSettings;
     private readonly TimeProvider _timeProvider;
-    private readonly IRepositoryActivityService _repositoryActivityService;
     private readonly IRepositoryDirectoryCleaner _repositoryDirectoryCleaner;
     private readonly ILockService _lockService;
     private readonly ILogger<RepositoryCleanupService> _logger;
@@ -28,7 +26,6 @@ public class RepositoryCleanupService : IRepositoryCleanupService
         ServiceRepositorySettings repositorySettings,
         SchedulingSettings schedulingSettings,
         TimeProvider timeProvider,
-        IRepositoryActivityService repositoryActivityService,
         IRepositoryDirectoryCleaner repositoryDirectoryCleaner,
         ILockService lockService,
         ILogger<RepositoryCleanupService> logger
@@ -37,7 +34,6 @@ public class RepositoryCleanupService : IRepositoryCleanupService
         _repositorySettings = repositorySettings;
         _schedulingSettings = schedulingSettings;
         _timeProvider = timeProvider;
-        _repositoryActivityService = repositoryActivityService;
         _repositoryDirectoryCleaner = repositoryDirectoryCleaner;
         _lockService = lockService;
         _logger = logger;
@@ -49,12 +45,8 @@ public class RepositoryCleanupService : IRepositoryCleanupService
     {
         RepositoryCleanupSettings settings = _schedulingSettings.RepositoryCleanup;
         DateTimeOffset cutoff = _timeProvider.GetUtcNow() - settings.RetentionPeriod;
-        IReadOnlyCollection<RepositoryActivityEntity> repositoryActivities =
-            await _repositoryActivityService.GetAllAsync(cancellationToken);
-        IReadOnlyDictionary<AltinnRepoEditingContext, RepositoryActivityEntity> activityByRepository =
-            repositoryActivities.ToDictionary(activity => activity.EditingContext);
-        RepositoryCleanupCandidate[] candidates = FindCandidates(cutoff, activityByRepository)
-            .OrderBy(candidate => candidate.LastActivity)
+        RepositoryCleanupCandidate[] candidates = FindCandidates(cutoff, cancellationToken)
+            .OrderBy(candidate => candidate.LastModified)
             .Take(settings.MaxRepositoriesPerRun)
             .ToArray();
 
@@ -78,29 +70,23 @@ public class RepositoryCleanupService : IRepositoryCleanupService
                 {
                     if (!Directory.Exists(candidate.RepositoryPath))
                     {
-                        await _repositoryActivityService.RemoveAsync(candidate.EditingContext, cancellationToken);
                         skipped++;
                         continue;
                     }
 
-                    RepositoryActivityEntity? refreshedActivity = await _repositoryActivityService.GetAsync(
-                        candidate.EditingContext,
-                        cancellationToken
-                    );
-                    DateTimeOffset refreshedLastActivity =
-                        refreshedActivity?.LastAccessedAt ?? Directory.GetLastWriteTimeUtc(candidate.RepositoryPath);
-                    if (refreshedLastActivity >= cutoff)
+                    if (
+                        !TryGetLatestFileModification(
+                            candidate.RepositoryPath,
+                            cancellationToken,
+                            out DateTimeOffset latestFileModification
+                        )
+                    )
                     {
-                        skipped++;
+                        failed++;
                         continue;
                     }
 
-                    bool cleanupPending = await _repositoryActivityService.TryMarkCleanupPendingAsync(
-                        candidate.EditingContext,
-                        refreshedLastActivity,
-                        cancellationToken
-                    );
-                    if (!cleanupPending)
+                    if (latestFileModification >= cutoff)
                     {
                         skipped++;
                         continue;
@@ -108,7 +94,6 @@ public class RepositoryCleanupService : IRepositoryCleanupService
 
                     if (await DeleteWithRetriesAsync(candidate, cancellationToken))
                     {
-                        await _repositoryActivityService.RemoveAsync(candidate.EditingContext, cancellationToken);
                         _repositoryDirectoryCleaner.TryDeleteIfEmpty(candidate.OrganizationPath);
                         _repositoryDirectoryCleaner.TryDeleteIfEmpty(candidate.DeveloperPath);
                         deleted++;
@@ -147,7 +132,7 @@ public class RepositoryCleanupService : IRepositoryCleanupService
 
     private IEnumerable<RepositoryCleanupCandidate> FindCandidates(
         DateTimeOffset cutoff,
-        IReadOnlyDictionary<AltinnRepoEditingContext, RepositoryActivityEntity> activityByRepository
+        CancellationToken cancellationToken
     )
     {
         foreach (string developerPath in GetDirectories(_repositorySettings.RepositoryLocation))
@@ -166,23 +151,26 @@ public class RepositoryCleanupService : IRepositoryCleanupService
                         continue;
                     }
 
-                    activityByRepository.TryGetValue(editingContext, out RepositoryActivityEntity? activity);
-                    if (!IsGitRepository(repositoryPath) && activity?.CleanupPending != true)
+                    if (!IsGitRepository(repositoryPath))
                     {
                         continue;
                     }
 
-                    DateTimeOffset lastActivity =
-                        activity?.LastAccessedAt ?? Directory.GetLastWriteTimeUtc(repositoryPath);
-
-                    if (lastActivity < cutoff)
+                    if (
+                        TryGetLatestFileModification(
+                            repositoryPath,
+                            cancellationToken,
+                            out DateTimeOffset latestFileModification
+                        )
+                        && latestFileModification < cutoff
+                    )
                     {
                         yield return new RepositoryCleanupCandidate(
                             editingContext,
                             developerPath,
                             orgPath,
                             repositoryPath,
-                            lastActivity
+                            latestFileModification
                         );
                     }
                 }
@@ -207,6 +195,44 @@ public class RepositoryCleanupService : IRepositoryCleanupService
     {
         string gitPath = Path.Combine(repositoryPath, ".git");
         return Directory.Exists(gitPath) || File.Exists(gitPath);
+    }
+
+    private bool TryGetLatestFileModification(
+        string repositoryPath,
+        CancellationToken cancellationToken,
+        out DateTimeOffset latestFileModification
+    )
+    {
+        latestFileModification = DateTimeOffset.MinValue;
+        try
+        {
+            var enumerationOptions = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = false,
+                AttributesToSkip = FileAttributes.ReparsePoint,
+                ReturnSpecialDirectories = false,
+            };
+            foreach (string filePath in Directory.EnumerateFiles(repositoryPath, "*", enumerationOptions))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                DateTimeOffset lastModified = File.GetLastWriteTimeUtc(filePath);
+                if (lastModified > latestFileModification)
+                {
+                    latestFileModification = lastModified;
+                }
+            }
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _logger.LogWarning(
+                exception,
+                "Failed to inspect files in local repository {RepositoryPath}.",
+                repositoryPath
+            );
+            return false;
+        }
     }
 
     private AltinnRepoEditingContext? TryCreateEditingContext(
@@ -290,6 +316,6 @@ public class RepositoryCleanupService : IRepositoryCleanupService
         string DeveloperPath,
         string OrganizationPath,
         string RepositoryPath,
-        DateTimeOffset LastActivity
+        DateTimeOffset LastModified
     );
 }

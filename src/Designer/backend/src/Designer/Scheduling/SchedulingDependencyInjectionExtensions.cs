@@ -141,10 +141,6 @@ public static class SchedulingDependencyInjectionExtensions
         ValidatePositive(settings.LockTimeoutSeconds, $"{sectionPath}:{nameof(settings.LockTimeoutSeconds)}");
         ValidatePositive(settings.JobTimeoutMinutes, $"{sectionPath}:{nameof(settings.JobTimeoutMinutes)}");
         ValidatePositive(settings.InitialDelayHours, $"{sectionPath}:{nameof(settings.InitialDelayHours)}");
-        ValidatePositive(
-            settings.ActivityUpdateIntervalMinutes,
-            $"{sectionPath}:{nameof(settings.ActivityUpdateIntervalMinutes)}"
-        );
         if (!CronExpression.IsValidExpression(settings.CronExpression))
         {
             throw new InvalidOperationException(

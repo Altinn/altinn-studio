@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.18")
+                .HasAnnotation("ProductVersion", "9.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
@@ -575,36 +575,6 @@ namespace Altinn.Studio.Designer.Migrations
                     b.HasIndex(new[] { "Org", "App" }, "idx_releases_org_app");
 
                     b.ToTable("releases", "designer");
-                });
-
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.RepositoryActivityDbModel", b =>
-                {
-                    b.Property<string>("Developer")
-                        .HasColumnType("character varying")
-                        .HasColumnName("developer");
-
-                    b.Property<string>("Org")
-                        .HasColumnType("character varying")
-                        .HasColumnName("org");
-
-                    b.Property<string>("Repository")
-                        .HasColumnType("character varying")
-                        .HasColumnName("repository");
-
-                    b.Property<bool>("CleanupPending")
-                        .HasColumnType("boolean")
-                        .HasColumnName("cleanup_pending");
-
-                    b.Property<DateTimeOffset>("LastAccessedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("last_accessed_at");
-
-                    b.HasKey("Developer", "Org", "Repository")
-                        .HasName("repository_activity_pkey");
-
-                    b.HasIndex(new[] { "LastAccessedAt" }, "idx_repository_activity_last_accessed_at");
-
-                    b.ToTable("repository_activity", "designer");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", b =>

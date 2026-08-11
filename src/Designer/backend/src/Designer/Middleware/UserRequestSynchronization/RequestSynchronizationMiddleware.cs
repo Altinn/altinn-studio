@@ -3,7 +3,6 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
@@ -25,16 +24,9 @@ public class RequestSynchronizationMiddleware
         HttpContext httpContext,
         IRequestSyncEvaluator<AltinnRepoEditingContext> repoUserWideRequestSyncEvaluator,
         IRequestSyncEvaluator<AltinnOrgContext> orgWideRequestSyncEvaluator,
-        IRequestContextResolver<AltinnRepoEditingContext> repositoryContextResolver,
-        ILockService synchronizationLockService,
-        IRepositoryActivityService repositoryActivityService
+        ILockService synchronizationLockService
     )
     {
-        if (repositoryContextResolver.TryResolveContext(httpContext, out AltinnRepoEditingContext repositoryContext))
-        {
-            await repositoryActivityService.MarkActiveAsync(repositoryContext, httpContext.RequestAborted);
-        }
-
         if (orgWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnOrgContext orgContext))
         {
             await using (
