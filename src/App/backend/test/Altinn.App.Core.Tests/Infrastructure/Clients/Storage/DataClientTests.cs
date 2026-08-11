@@ -513,12 +513,12 @@ public class DataClientTests
             dataGuid
         );
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeFalse("the caller has not disposed the stream yet");
+        Assert.NotNull(content);
+        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
 
         using StreamReader reader = new(stream);
         var read = await reader.ReadToEndAsync();
-        read.Should().Be("hello worlds");
+        Assert.Equal("hello worlds", read);
     }
 
     [Fact]
@@ -545,8 +545,8 @@ public class DataClientTests
         );
         await stream.DisposeAsync();
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeTrue("the returned stream owns the response");
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "the returned stream owns the response");
     }
 
     [Fact]
@@ -572,9 +572,9 @@ public class DataClientTests
             dataGuid
         );
 
-        stream.Should().BeNull();
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeTrue("no stream is returned, so nothing else can release the response");
+        Assert.Null(stream);
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
     }
 
     [Fact]
@@ -605,12 +605,12 @@ public class DataClientTests
             )
         );
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeTrue("no stream is returned, so nothing else can release the response");
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
 
         // The exception is built from a snapshot, so disposing the response does not empty it.
-        actual.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-        actual.Response.Content.Should().Contain("storage exploded");
+        Assert.Equal(HttpStatusCode.InternalServerError, actual.Response.StatusCode);
+        Assert.Contains("storage exploded", actual.Response.Content);
     }
 
     [Fact]
@@ -641,9 +641,9 @@ public class DataClientTests
             )
         );
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeTrue("no stream is returned, so nothing else can release the response");
-        actual.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
+        Assert.Equal(HttpStatusCode.InternalServerError, actual.Response.StatusCode);
     }
 
     [Fact]
@@ -669,11 +669,11 @@ public class DataClientTests
             dataGuid
         );
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeFalse("the caller has not disposed the stream yet");
+        Assert.NotNull(content);
+        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
 
         await stream.DisposeAsync();
-        content!.IsDisposed.Should().BeTrue("the returned stream owns the response");
+        Assert.True(content.IsDisposed, "the returned stream owns the response");
     }
 
     [Theory]

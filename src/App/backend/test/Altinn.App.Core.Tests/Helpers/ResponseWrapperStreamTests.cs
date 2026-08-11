@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Tests.TestUtils;
-using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Helpers;
 
@@ -17,7 +16,7 @@ public class ResponseWrapperStreamTests
 
         using StreamReader reader = new(stream);
         var content = await reader.ReadToEndAsync();
-        content.Should().Be("hello worlds");
+        Assert.Equal("hello worlds", content);
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public class ResponseWrapperStreamTests
 
         Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
 
-        content.IsDisposed.Should().BeFalse("the returned stream is still the caller's to read");
+        Assert.False(content.IsDisposed, "the returned stream is still the caller's to read");
         await stream.DisposeAsync();
     }
 
@@ -39,7 +38,7 @@ public class ResponseWrapperStreamTests
         Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
         stream.Dispose();
 
-        content.IsDisposed.Should().BeTrue();
+        Assert.True(content.IsDisposed);
     }
 
     [Fact]
@@ -50,12 +49,11 @@ public class ResponseWrapperStreamTests
         Stream stream = await ResponseWrapperStream.TakeOwnershipOf(response);
         await stream.DisposeAsync();
 
-        content
-            .IsDisposed.Should()
-            .BeTrue(
-                $"{nameof(ResponseWrapperStream)} has no DisposeAsync override, so it relies on Stream's "
-                    + "default implementation routing through Dispose()"
-            );
+        Assert.True(
+            content.IsDisposed,
+            $"{nameof(ResponseWrapperStream)} has no DisposeAsync override, so it relies on Stream's "
+                + "default implementation routing through Dispose()"
+        );
     }
 
     [Fact]
@@ -68,13 +66,13 @@ public class ResponseWrapperStreamTests
         var thrown = await Assert.ThrowsAsync<HttpRequestException>(async () =>
             await ResponseWrapperStream.TakeOwnershipOf(response)
         );
-        thrown.InnerException.Should().BeOfType<IOException>().Which.Message.Should().Be("cannot read this content");
+        var inner = Assert.IsType<IOException>(thrown.InnerException);
+        Assert.Equal("cannot read this content", inner.Message);
 
-        content
-            .IsDisposed.Should()
-            .BeTrue(
-                "ownership transfer is atomic — a failed call must not leave the response for the caller to clean up"
-            );
+        Assert.True(
+            content.IsDisposed,
+            "ownership transfer is atomic — a failed call must not leave the response for the caller to clean up"
+        );
     }
 
     [Fact]
@@ -92,16 +90,16 @@ public class ResponseWrapperStreamTests
 
         // A buffered response hands out a seekable stream, and ASP.NET reads CanSeek/Length off the stream
         // returned from these clients to set Content-Length on a file result.
-        stream.CanRead.Should().BeTrue();
-        stream.CanSeek.Should().BeTrue();
-        stream.Length.Should().Be("hello worlds".Length);
+        Assert.True(stream.CanRead);
+        Assert.True(stream.CanSeek);
+        Assert.Equal("hello worlds".Length, stream.Length);
 
         using MemoryStream destination = new();
         await stream.CopyToAsync(destination);
-        destination.ToArray().Should().Equal("hello worlds"u8.ToArray());
+        Assert.Equal("hello worlds"u8.ToArray(), destination.ToArray());
 
         stream.Seek(0, SeekOrigin.Begin);
-        stream.Position.Should().Be(0);
+        Assert.Equal(0, stream.Position);
     }
 
     // The bulk-transfer members are overridden so a copy goes straight to the content stream's own
@@ -119,8 +117,8 @@ public class ResponseWrapperStreamTests
         using MemoryStream destination = new();
         stream.CopyTo(destination);
 
-        inner.CopyToCalls.Should().Be(1, "the override must hand the copy to the content stream");
-        destination.ToArray().Should().Equal("hello worlds"u8.ToArray());
+        Assert.Equal(1, inner.CopyToCalls);
+        Assert.Equal("hello worlds"u8.ToArray(), destination.ToArray());
     }
 
     [Fact]
@@ -133,8 +131,8 @@ public class ResponseWrapperStreamTests
         using MemoryStream destination = new();
         await stream.CopyToAsync(destination);
 
-        inner.CopyToAsyncCalls.Should().Be(1, "the override must hand the copy to the content stream");
-        destination.ToArray().Should().Equal("hello worlds"u8.ToArray());
+        Assert.Equal(1, inner.CopyToAsyncCalls);
+        Assert.Equal("hello worlds"u8.ToArray(), destination.ToArray());
     }
 
     [Fact]
@@ -147,9 +145,9 @@ public class ResponseWrapperStreamTests
         Span<byte> buffer = new byte[5];
         var read = stream.Read(buffer);
 
-        read.Should().Be(5);
-        inner.ReadSpanCalls.Should().Be(1, "the override must avoid the base implementation's array rental");
-        buffer.ToArray().Should().Equal("hello"u8.ToArray());
+        Assert.Equal(5, read);
+        Assert.Equal(1, inner.ReadSpanCalls);
+        Assert.Equal("hello"u8.ToArray(), buffer.ToArray());
     }
 
     /// <summary>

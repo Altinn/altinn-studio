@@ -320,8 +320,13 @@ public interface IDataClient
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>
-    /// A stream over the data, or <c>null</c> if the data element does not exist. The caller owns the
-    /// stream and should dispose it: it holds the underlying HTTP response, which is released with it.
+    /// A stream over the data. The caller owns the stream and should dispose it: it holds the underlying
+    /// HTTP response, which is released with it.
+    /// <para>
+    /// Despite the non-nullable signature this returns <c>null</c> when the data element does not exist,
+    /// so callers null-check it. That is long-standing behaviour due to be replaced by an exception in the
+    /// next major version, not something to depend on.
+    /// </para>
     /// </returns>
     Task<Stream> GetBinaryData(
         int instanceOwnerPartyId,
@@ -338,8 +343,13 @@ public interface IDataClient
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
     /// <returns>
-    /// A stream over the data, or <c>null</c> if the data element does not exist. The caller owns the
-    /// stream and should dispose it: it holds the underlying HTTP response, which is released with it.
+    /// A stream over the data. The caller owns the stream and should dispose it: it holds the underlying
+    /// HTTP response, which is released with it.
+    /// <para>
+    /// Despite the non-nullable signature this returns <c>null</c> when the data element does not exist,
+    /// so callers null-check it. That is long-standing behaviour due to be replaced by an exception in the
+    /// next major version, not something to depend on.
+    /// </para>
     /// </returns>
     Task<Stream> GetBinaryData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId) =>
         GetBinaryData(instanceOwnerPartyId, instanceGuid, dataId, null, default);

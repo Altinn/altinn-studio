@@ -171,17 +171,17 @@ public class PdfServiceTests
             CancellationToken.None
         );
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeFalse("the caller has not disposed the stream yet");
+        Assert.NotNull(content);
+        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
 
         using (StreamReader reader = new(pdf, leaveOpen: true))
         {
             var read = await reader.ReadToEndAsync();
-            read.Should().Be("a pdf, honest");
+            Assert.Equal("a pdf, honest", read);
         }
 
         await pdf.DisposeAsync();
-        content!.IsDisposed.Should().BeTrue("the returned stream owns the response");
+        Assert.True(content.IsDisposed, "the returned stream owns the response");
     }
 
     [Fact]
@@ -219,12 +219,12 @@ public class PdfServiceTests
             )
         );
 
-        content.Should().NotBeNull();
-        content!.IsDisposed.Should().BeTrue("no stream is returned, so nothing else can release the response");
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
 
         // The diagnostic content is copied onto the exception, so disposing the response does not empty it.
-        thrown.Data["responseContent"].Should().Be("pdf generator exploded");
-        thrown.Data["responseStatusCode"].Should().Be(nameof(HttpStatusCode.RequestTimeout));
+        Assert.Equal("pdf generator exploded", thrown.Data["responseContent"]);
+        Assert.Equal(nameof(HttpStatusCode.RequestTimeout), thrown.Data["responseStatusCode"]);
     }
 
     [Fact]
