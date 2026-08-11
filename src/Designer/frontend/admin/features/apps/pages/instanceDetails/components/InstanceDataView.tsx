@@ -20,7 +20,6 @@ import { InstanceStatus } from 'admin/features/apps/pages/instances/components/I
 import { useAppMetadataQuery } from 'admin/features/apps/hooks/queries/useAppMetadataQuery';
 import { useReduceQueries } from 'admin/features/apps/hooks/useReduceQueries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { Tag } from '@digdir/designsystemet-react';
 import {
   FileTextIcon,
   PaperclipIcon,
