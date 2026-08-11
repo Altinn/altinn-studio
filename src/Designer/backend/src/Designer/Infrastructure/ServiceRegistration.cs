@@ -1,5 +1,4 @@
 #nullable disable
-using System;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
@@ -59,7 +58,6 @@ public static class ServiceRegistration
         services.AddTransient<RepositoryCleanupCandidateProcessor>();
         services.AddTransient<RepositoryFileTimestampScanner>();
         services.AddTransient<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
-        services.AddSingleton<TimeProvider>(TimeProvider.System);
 
         services.AddTransient<ISourceControl, SourceControlService>();
 
