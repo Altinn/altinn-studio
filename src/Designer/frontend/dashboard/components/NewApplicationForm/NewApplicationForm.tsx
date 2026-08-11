@@ -68,7 +68,6 @@ export const NewApplicationForm = ({
   const [selectedAppTemplate, setSelectedAppTemplate] = useState<AppTemplate>();
   const { data: appTemplates } = useAppTemplatesQuery({ enabled: isAppTemplatesEnabled });
   // Without the flag no choice is offered, and the backend applies its configured default.
-  // The backend lists usable templates first, so the head is the sensible default.
   const effectiveAppTemplate: AppTemplate | undefined = isAppTemplatesEnabled
     ? (selectedAppTemplate ?? appTemplates?.[0])
     : undefined;

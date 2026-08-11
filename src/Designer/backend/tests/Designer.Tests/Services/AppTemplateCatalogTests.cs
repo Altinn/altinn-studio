@@ -24,7 +24,6 @@ public class AppTemplateCatalogTests : IDisposable
     [Fact]
     public void GetAppTemplates_SeveralTemplatesOnDisk_ReturnsThemOrderedById()
     {
-        // The dashboard treats the first entry as the default, so the order is part of the contract.
         // Arrange
         WriteTemplate("v9", displayName: "Altinn App v9 (preview)");
         WriteTemplate("v8", displayName: "Altinn App v8");
@@ -55,7 +54,6 @@ public class AppTemplateCatalogTests : IDisposable
     [Fact]
     public void GetAppTemplates_ManifestIdDiffersFromFolder_FolderNameWins()
     {
-        // The paths are built from the folder name, so it has to be authoritative.
         // Arrange
         WriteTemplate("v9", displayName: "Altinn App v9", manifestId: "something-else");
         var sut = CreateCatalog();
@@ -92,7 +90,6 @@ public class AppTemplateCatalogTests : IDisposable
     [Fact]
     public void GetDefaultAppTemplate_ConfiguredDefaultMissing_Throws()
     {
-        // Creating applications from the wrong scaffold is worse than refusing to create them.
         // Arrange
         WriteTemplate("v9", displayName: "Altinn App v9");
         var sut = CreateCatalog(defaultAppTemplate: "v8");

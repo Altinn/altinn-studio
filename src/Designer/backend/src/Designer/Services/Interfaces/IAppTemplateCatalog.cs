@@ -11,13 +11,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IAppTemplateCatalog
 {
     /// <summary>
-    /// All available templates, ordered by id.
+    /// All available templates, ordered by id. The dashboard offers the first one as the default.
     /// </summary>
     IReadOnlyList<AppTemplate> GetAppTemplates();
 
-    /// <summary>
-    /// Looks up a template by id. Returns false for an unknown id.
-    /// </summary>
     bool TryGetAppTemplate(string id, [NotNullWhen(true)] out AppTemplate? appTemplate);
 
     /// <summary>

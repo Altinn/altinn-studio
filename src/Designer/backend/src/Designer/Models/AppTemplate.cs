@@ -19,9 +19,6 @@ public class AppTemplate
     [JsonPropertyName("id")]
     public required string Id { get; init; }
 
-    /// <summary>
-    /// Name shown in the dashboard picker.
-    /// </summary>
     [JsonPropertyName("displayName")]
     public required string DisplayName { get; init; }
 

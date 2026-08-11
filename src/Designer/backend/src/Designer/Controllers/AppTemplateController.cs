@@ -22,9 +22,6 @@ public class AppTemplateController : ControllerBase
         _appTemplateCatalog = appTemplateCatalog;
     }
 
-    /// <summary>
-    /// Lists the available app scaffolds.
-    /// </summary>
     [HttpGet]
     public ActionResult<IReadOnlyList<AppTemplate>> GetAppTemplates()
     {
