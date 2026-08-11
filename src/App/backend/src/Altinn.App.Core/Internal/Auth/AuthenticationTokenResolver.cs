@@ -103,7 +103,6 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
             throw await PlatformHttpException.Create(response, cancellationToken);
 
         string token = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.Dispose(); // Disposing manually because PlatformHttpException pathway requires the response to be retained
 
         return JwtToken.Parse(token);
     }
