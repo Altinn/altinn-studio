@@ -33,31 +33,29 @@ func printUpgradeResult(out *ui.Output, result studioctlserver.AppUpgradeResult)
 // renderUpgradeReport prints the structured report from studioctl-server: one bold header per migration
 // step, and one status-labelled line per message. For example:
 //
-//	Project file
-//	  OK    Altinn.App packages set to 9.0.1
-//	  WARN  Verify that the project restores
-//
-//	Dockerfile
-//	  SKIP  Already targets net10.0
+// OK   **Project file**  Altinn.App packages set to 9.0.1
+// SKIP **Dockerfile**    Already targets net10.0
 func renderUpgradeReport(out *ui.Output, steps []studioctlserver.AppUpgradeStep) {
 	table := ui.NewTable(
 		ui.NewColumn("").WithWidth(appUpgradeStatusWidth),
+        ui.NewColumn(""),
 		ui.NewColumn(""),
-	).Indent(2).Gaps(2)
+	).Indent(1).Gaps(2)
 
 	for _, step := range steps {
-		table.Section(step.Name)
 		for _, message := range step.Messages {
 			label, labelStyle, textStyle := appUpgradeStatusStyle(message.Status)
 			for i, line := range splitByNewlines(message.Text) {
 				labelCell := ui.Empty()
+                stepNameCell := ui.Empty()
 				if i == 0 {
 					labelCell = ui.Cell{Text: label, Style: labelStyle}
+                    stepNameCell = ui.Cell{Text: step.Name, Style: ui.CellStyleBold}
 				}
-				table.Row(labelCell, ui.Cell{Text: line, Style: textStyle})
+				table.Row(labelCell, stepNameCell, ui.Cell{Text: line, Style: textStyle})
 			}
 		}
-		table.Spacer()
+
 	}
 
 	out.RenderTable(table)
