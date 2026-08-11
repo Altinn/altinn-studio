@@ -305,11 +305,14 @@ public sealed class InstanceMutationRepository(
 
             foreach (InstanceMutationDataElementUpdate update in mutation.UpdateDataElements ?? [])
             {
-                StampDataElementUpdate(
-                    update.Properties,
-                    mutationLastChanged,
-                    mutationLastChangedBy
-                );
+                if (update.Properties.ContainsKey("/currentBlobVersion"))
+                {
+                    StampDataElementUpdate(
+                        update.Properties,
+                        mutationLastChanged,
+                        mutationLastChangedBy
+                    );
+                }
                 await _localDataRepository.UpdateWithoutVersionBump(
                     instanceGuid,
                     update.DataElementId,
