@@ -8713,9 +8713,7 @@
           },
           "changedFields": {
             "type": "object",
-            "additionalProperties": {
-              "nullable": true
-            },
+            "additionalProperties": {},
             "nullable": true
           }
         },
@@ -8993,19 +8991,13 @@
         ],
         "type": "object",
         "properties": {
-          "schema": {
-            "nullable": true
-          },
-          "initialData": {
-            "nullable": true
-          },
+          "schema": {},
+          "initialData": {},
           "dataElementId": {
             "type": "string",
             "nullable": true
           },
-          "expressionValidationConfig": {
-            "nullable": true
-          },
+          "expressionValidationConfig": {},
           "initialValidationIssues": {
             "type": "array",
             "items": {
@@ -9101,8 +9093,7 @@
             "nullable": true
           },
           "newDataModel": {
-            "description": "The current data model after the patch operation.",
-            "nullable": true
+            "description": "The current data model after the patch operation."
           },
           "instance": {
             "$ref": "#/components/schemas/Instance"
@@ -9518,9 +9509,7 @@
         ],
         "type": "object",
         "properties": {
-          "layouts": {
-            "nullable": true
-          },
+          "layouts": {},
           "dataModels": {
             "type": "object",
             "additionalProperties": {
