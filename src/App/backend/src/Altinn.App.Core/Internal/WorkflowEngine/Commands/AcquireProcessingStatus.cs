@@ -1,6 +1,5 @@
 using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Enums;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
