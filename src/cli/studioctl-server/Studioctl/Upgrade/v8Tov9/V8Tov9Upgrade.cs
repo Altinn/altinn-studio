@@ -142,6 +142,8 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -530,7 +532,7 @@ internal static class V8Tov9Upgrade
         }
     }
 
-        static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
+    static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
     {
         try
         {
