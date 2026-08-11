@@ -30,14 +30,14 @@ public class ChatInactivityCleanupSettings
 public class RepositoryCleanupSettings
 {
     public bool Enabled { get; set; }
-    public int RetentionDays { get; set; } = 30;
+    public int RetentionDays { get; set; } = 90;
     public int MaxRepositoriesPerRun { get; set; } = 50;
     public int DeletionRetryAttempts { get; set; } = 3;
     public int DeletionRetryDelayMilliseconds { get; set; } = 1000;
     public int LockTimeoutSeconds { get; set; } = 5;
     public int JobTimeoutMinutes { get; set; } = 30;
     public int InitialDelayHours { get; set; } = 24;
-    public string CronExpression { get; set; } = "0 45 * * * ?";
+    public string CronExpression { get; set; } = "0 0 0 * * ?";
 
     public TimeSpan RetentionPeriod => TimeSpan.FromDays(RetentionDays);
     public TimeSpan LockTimeout => TimeSpan.FromSeconds(LockTimeoutSeconds);
