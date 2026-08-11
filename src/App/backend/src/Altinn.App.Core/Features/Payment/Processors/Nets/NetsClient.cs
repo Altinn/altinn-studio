@@ -50,14 +50,14 @@ internal class NetsClient : INetsClient
     /// <inheritdoc/>
     public async Task<HttpApiResult<NetsPaymentFull>> RetrievePayment(string paymentId)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"/v1/payments/{paymentId}");
+        using HttpResponseMessage response = await _httpClient.GetAsync($"/v1/payments/{paymentId}");
         return await HttpApiResult<NetsPaymentFull>.FromHttpResponse(response);
     }
 
     /// <inheritdoc/>
     public async Task<bool> TerminatePayment(string paymentId)
     {
-        HttpResponseMessage response = await _httpClient.PutAsync($"v1/payments/{paymentId}/terminate", null);
+        using HttpResponseMessage response = await _httpClient.PutAsync($"v1/payments/{paymentId}/terminate", null);
         return response.IsSuccessStatusCode;
     }
 }
