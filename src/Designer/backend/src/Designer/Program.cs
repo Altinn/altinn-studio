@@ -29,6 +29,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
@@ -262,7 +263,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
-    app.UseExceptionHandler();
+    app.UseExceptionHandler(new ExceptionHandlerOptions { SuppressDiagnosticsCallback = _ => false });
 
     app.UseDefaultFiles();
     app.UseStaticFiles(
