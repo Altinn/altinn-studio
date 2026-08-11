@@ -1,5 +1,5 @@
+using System;
 using System.Linq;
-using System.Net;
 using Json.Pointer;
 
 namespace Altinn.Studio.DataModeling.Utils;
@@ -15,6 +15,6 @@ public static class JsonPointerExtensions
     public static string ToUriEncodedString(this JsonPointer pointer) =>
         "#"
         + string.Concat(
-            pointer.Select(segment => "/" + WebUtility.UrlEncode(segment.Replace("~", "~0").Replace("/", "~1")))
+            pointer.Select(segment => "/" + Uri.EscapeDataString(segment.Replace("~", "~0").Replace("/", "~1")))
         );
 }
