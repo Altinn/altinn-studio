@@ -2125,7 +2125,7 @@
   "ux_editor.component_properties.target_unit_layout_set": "3. Oppgave",
   "ux_editor.component_properties.target_unit_page": "3. Side",
   "ux_editor.component_properties.taskId": "Oppgave-ID",
-  "ux_editor.component_properties.timeStamp": "Inkluder tidsstempel i dato (på som standard)",
+  "ux_editor.component_properties.timeStamp": "Inkluder tidsstempel i dato (av som standard)",
   "ux_editor.component_properties.triggers": "Feltet skal utløse:",
   "ux_editor.component_properties.true": "Sann",
   "ux_editor.component_properties.type": "Type",

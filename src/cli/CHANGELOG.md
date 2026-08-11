@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- When upgrading to v9, set `timeStamp: true` on `Datepicker` components that do not already set the property. In v9 the Datepicker default is date-only (`timeStamp: false`); this keeps existing apps saving a full timestamp the way they did before the upgrade.
+
 ### Added
 
 - Warn in `studioctl app upgrade v9` about uses of the Altinn Events receive stack removed in v9: `IEventHandler` implementations, `IEventsSubscription`, and `IEventSecretCodeProvider`. Apps no longer expose the `/api/v1/eventsreceiver` endpoint, so these are never invoked; the warning explains what to move to instead (a workflow-engine service task for self-addressed reminder events, or a purpose-built endpoint for genuine inbound events). Publishing app events through `IEventsClient` is unaffected and not reported.
