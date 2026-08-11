@@ -150,31 +150,26 @@ type AppUpgrade struct {
 	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
 }
 
-// AppUpgradeStatus says why an upgrade message is being shown, so the CLI can render it.
+// AppUpgradeStatus, one of "OK", "INFO", "SKIP", "WARN", "TODO", or "FAIL", describes what a migration step did.
 type AppUpgradeStatus string
 
+// The statuses studioctl-server reports, and what each one means.
 const (
-	// AppUpgradeStatusOK marks an applied migration, or a check that passed clean.
-	AppUpgradeStatusOK AppUpgradeStatus = "OK"
-	// AppUpgradeStatusInfo marks neutral information.
-	AppUpgradeStatusInfo AppUpgradeStatus = "INFO"
-	// AppUpgradeStatusSkip marks a migration that was not needed.
-	AppUpgradeStatusSkip AppUpgradeStatus = "SKIP"
-	// AppUpgradeStatusWarn marks something the user should look at.
-	AppUpgradeStatusWarn AppUpgradeStatus = "WARN"
-	// AppUpgradeStatusTodo marks a migration the user has to finish by hand.
-	AppUpgradeStatusTodo AppUpgradeStatus = "TODO"
-	// AppUpgradeStatusFail marks a step that tried and failed.
-	AppUpgradeStatusFail AppUpgradeStatus = "FAIL"
+	AppUpgradeStatusOK   AppUpgradeStatus = "OK"   // An applied migration, or a check that passed clean.
+	AppUpgradeStatusInfo AppUpgradeStatus = "INFO" // Neutral information.
+	AppUpgradeStatusSkip AppUpgradeStatus = "SKIP" // A migration that was not needed.
+	AppUpgradeStatusWarn AppUpgradeStatus = "WARN" // Something the user should look at.
+	AppUpgradeStatusTodo AppUpgradeStatus = "TODO" // A migration the user has to finish by hand.
+	AppUpgradeStatusFail AppUpgradeStatus = "FAIL" // A step that tried and failed.
 )
 
-// AppUpgradeMessage is one line an upgrade step reported, plus why.
+// Text and status to describe one migration step message
 type AppUpgradeMessage struct {
 	Text   string           `json:"text"`
 	Status AppUpgradeStatus `json:"status"`
 }
 
-// AppUpgradeStep groups everything one migration step reported, in emission order.
+// AppUpgradeStep groups everything one migration step reported.
 type AppUpgradeStep struct {
 	Name     string              `json:"name"`
 	Messages []AppUpgradeMessage `json:"messages"`
@@ -182,8 +177,7 @@ type AppUpgradeStep struct {
 
 // AppUpgradeResult describes a studioctl-server upgrade result.
 //
-// Steps carries the structured report the CLI renders itself. It is empty for the upgrade kinds that
-// still emit free text, and for an older studioctl-server; Output covers those.
+// Steps carries the structured report the CLI renders itself and is only used for newer migrations (v9). Output is used for older migrations (v4, v8) and is printed verbatim by the CLI.
 type AppUpgradeResult struct {
 	Message  string           `json:"message"`
 	Output   string           `json:"output"`
