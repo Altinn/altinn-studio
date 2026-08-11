@@ -53,6 +53,9 @@ public static class ServiceRegistration
         services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+        services.AddTransient<IRepositoryActivityService, RepositoryActivityService>();
+        services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
+        services.AddSingleton<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
 
         services.AddTransient<ISourceControl, SourceControlService>();
 

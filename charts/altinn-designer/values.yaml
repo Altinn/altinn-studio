@@ -94,6 +94,20 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__Enabled
+      value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__RetentionDays
+      value: "30"
+    - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
+      value: "50"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
+      value: "3"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
+      value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
+      value: "24"
+    - name: SchedulingSettings__RepositoryCleanup__CronExpression
+      value: "0 45 * * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -180,6 +194,20 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__Enabled
+      value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__RetentionDays
+      value: "30"
+    - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
+      value: "50"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
+      value: "3"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
+      value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
+      value: "24"
+    - name: SchedulingSettings__RepositoryCleanup__CronExpression
+      value: "0 45 * * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -264,6 +292,20 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__Enabled
+      value: "true"
+    - name: SchedulingSettings__RepositoryCleanup__RetentionDays
+      value: "30"
+    - name: SchedulingSettings__RepositoryCleanup__MaxRepositoriesPerRun
+      value: "50"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryAttempts
+      value: "3"
+    - name: SchedulingSettings__RepositoryCleanup__DeletionRetryDelayMilliseconds
+      value: "1000"
+    - name: SchedulingSettings__RepositoryCleanup__InitialDelayHours
+      value: "24"
+    - name: SchedulingSettings__RepositoryCleanup__CronExpression
+      value: "0 45 * * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING

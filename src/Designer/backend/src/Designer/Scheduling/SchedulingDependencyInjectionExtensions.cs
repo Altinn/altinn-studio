@@ -61,6 +61,29 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(LangfuseTraceCleanupJobConstants.CronScheduleNightly)
             );
 
+            if (schedulingSettings.RepositoryCleanup.Enabled)
+            {
+                configure.AddJob<RepositoryCleanupJob>(options =>
+                    options.WithIdentity(RepositoryCleanupJobConstants.JobName)
+                );
+
+                configure.AddTrigger(options =>
+                    options
+                        .ForJob(RepositoryCleanupJobConstants.JobName)
+                        .WithIdentity(RepositoryCleanupJobConstants.TriggerName)
+                        .StartAt(
+                            DateBuilder.FutureDate(
+                                schedulingSettings.RepositoryCleanup.InitialDelayHours,
+                                IntervalUnit.Hour
+                            )
+                        )
+                        .WithCronSchedule(
+                            schedulingSettings.RepositoryCleanup.CronExpression,
+                            schedule => schedule.WithMisfireHandlingInstructionDoNothing()
+                        )
+                );
+            }
+
             if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings = configuration
@@ -85,6 +108,7 @@ public static class SchedulingDependencyInjectionExtensions
     {
         ValidateInactivityUndeployJobTimeouts(schedulingSettings.InactivityUndeployJobTimeouts);
         ValidateChatInactivityCleanup(schedulingSettings.ChatInactivityCleanup);
+        ValidateRepositoryCleanup(schedulingSettings.RepositoryCleanup);
     }
 
     private static void ValidateInactivityUndeployJobTimeouts(InactivityUndeployJobTimeoutSettings settings)
@@ -102,6 +126,31 @@ public static class SchedulingDependencyInjectionExtensions
             settings.RetentionDays,
             $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.ChatInactivityCleanup)}:{nameof(settings.RetentionDays)}"
         );
+    }
+
+    private static void ValidateRepositoryCleanup(RepositoryCleanupSettings settings)
+    {
+        string sectionPath = $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.RepositoryCleanup)}";
+        ValidatePositive(settings.RetentionDays, $"{sectionPath}:{nameof(settings.RetentionDays)}");
+        ValidatePositive(settings.MaxRepositoriesPerRun, $"{sectionPath}:{nameof(settings.MaxRepositoriesPerRun)}");
+        ValidatePositive(settings.DeletionRetryAttempts, $"{sectionPath}:{nameof(settings.DeletionRetryAttempts)}");
+        ValidatePositive(
+            settings.DeletionRetryDelayMilliseconds,
+            $"{sectionPath}:{nameof(settings.DeletionRetryDelayMilliseconds)}"
+        );
+        ValidatePositive(settings.LockTimeoutSeconds, $"{sectionPath}:{nameof(settings.LockTimeoutSeconds)}");
+        ValidatePositive(settings.JobTimeoutMinutes, $"{sectionPath}:{nameof(settings.JobTimeoutMinutes)}");
+        ValidatePositive(settings.InitialDelayHours, $"{sectionPath}:{nameof(settings.InitialDelayHours)}");
+        ValidatePositive(
+            settings.ActivityUpdateIntervalMinutes,
+            $"{sectionPath}:{nameof(settings.ActivityUpdateIntervalMinutes)}"
+        );
+        if (!CronExpression.IsValidExpression(settings.CronExpression))
+        {
+            throw new InvalidOperationException(
+                $"{sectionPath}:{nameof(settings.CronExpression)} must be a valid Quartz cron expression."
+            );
+        }
     }
 
     private static void ValidatePositive(int value, string settingPath)

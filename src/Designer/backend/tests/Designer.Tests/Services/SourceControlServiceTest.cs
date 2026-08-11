@@ -22,6 +22,7 @@ public class SourceControlServiceTest : IDisposable
 {
     private Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private Mock<IGiteaClient> _giteaClientMock;
+    private Mock<IRepositoryActivityService> _repositoryActivityServiceMock;
     private ServiceRepositorySettings _settings;
     private Mock<HttpContext> _httpContextMock;
     private SourceControlService _sourceControlService;
@@ -35,6 +36,7 @@ public class SourceControlServiceTest : IDisposable
         // Setup mocks
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _giteaClientMock = new Mock<IGiteaClient>();
+        _repositoryActivityServiceMock = new Mock<IRepositoryActivityService>();
         _httpContextMock = new Mock<HttpContext>();
         _httpContextMock
             .Setup(x => x.User)
@@ -54,8 +56,19 @@ public class SourceControlServiceTest : IDisposable
         _sourceControlService = new SourceControlService(
             _settings,
             _giteaClientMock.Object,
-            new Mock<IGitServerAuthHeadersProvider>().Object
+            new Mock<IGitServerAuthHeadersProvider>().Object,
+            repositoryActivityService: _repositoryActivityServiceMock.Object
         );
+    }
+
+    [Fact]
+    public void FindLocalRepoLocation_MarksRepositoryActive()
+    {
+        AltinnRepoEditingContext context = CreateTestRepository(TestDataHelper.GenerateTestRepoName());
+
+        string repositoryPath = _sourceControlService.FindLocalRepoLocation(context);
+
+        _repositoryActivityServiceMock.Verify(service => service.MarkActive(context, repositoryPath), Times.Once);
     }
 
     [Fact]
