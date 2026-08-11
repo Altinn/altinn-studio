@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- The app's HTTP clients now release each response as soon as they are done with it, rather than leaving it for the garbage collector. This was never severe — the responses are read in full, so connections went back to the pool either way — but it removes needless cleanup work from a running app. Two of these clients hand you a stream instead: `IDataClient.GetBinaryData`/`GetBinaryDataStream` and `IPdfGeneratorClient.GeneratePdf`. Those streams hold the response open, so dispose them when you are done reading — the interfaces now say so. Nothing changes for code that already disposed them, and code that never did keeps working exactly as before.
+
 ## [9.0.0-preview.4] - 2026-08-11
 
 ### Added
