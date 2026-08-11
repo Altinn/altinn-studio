@@ -156,7 +156,10 @@ internal sealed class ResponseWrapperStream : Stream
 
     // CopyTo/CopyToAsync are delegated rather than left to the base implementation, which would read
     // through this wrapper in chunks. A buffered response hands out a MemoryStream, whose own copy is a
-    // single block copy, and these streams are copied wholesale on the file-download and PDF paths.
+    // single block copy, and the PDF and signing paths copy these streams wholesale (PdfService,
+    // SigningProcessTask and PaymentProcessTask all call CopyToAsync on the stream they are handed).
+    // Note that MVC's FileStreamResult does not come through here — it runs its own pooled-buffer loop
+    // over ReadAsync(Memory<byte>), which is delegated above.
 
     /// <summary>
     /// Reads the bytes from the current stream and writes them to another stream.
