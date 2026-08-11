@@ -1,4 +1,4 @@
-package cmd
+package app
 
 import (
 	"strings"
@@ -7,12 +7,12 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-// appUpgradeStatusWidth is the display width of the status column: every label fits in four cells.
-const appUpgradeStatusWidth = 4
+// upgradeStatusWidth is the display width of the status column: every label fits in four cells.
+const upgradeStatusWidth = 4
 
-// printUpgradeResult prints an upgrade result: the structured report with errors and a closing verdict,
+// PrintUpgradeResult prints an upgrade result: the structured report with errors and a closing verdict,
 // or the raw output for results that do not use the structured format.
-func printUpgradeResult(out *ui.Output, result studioctlserver.AppUpgradeResult) {
+func PrintUpgradeResult(out *ui.Output, result studioctlserver.AppUpgradeResult) {
 	if len(result.Steps) == 0 {
 		if result.Output != "" {
 			out.Print(result.Output)
@@ -30,32 +30,32 @@ func printUpgradeResult(out *ui.Output, result studioctlserver.AppUpgradeResult)
 	printUpgradeVerdict(out, result.ExitCode)
 }
 
-// renderUpgradeReport prints the structured report from studioctl-server: one bold header per migration
-// step, and one status-labelled line per message. For example:
+// renderUpgradeReport prints the structured report from studioctl-server: one line per message, with its
+// status label and the migration step it belongs to. For example:
 //
-// OK   **Project file**  Altinn.App packages set to 9.0.1
-// SKIP **Dockerfile**    Already targets net10.0
+//	OK    Project file  Altinn.App packages set to 9.0.1
+//	WARN  Project file  Verify that the project restores
+//	SKIP  Dockerfile    Already targets net10.0
 func renderUpgradeReport(out *ui.Output, steps []studioctlserver.AppUpgradeStep) {
 	table := ui.NewTable(
-		ui.NewColumn("").WithWidth(appUpgradeStatusWidth),
-        ui.NewColumn(""),
+		ui.NewColumn("").WithWidth(upgradeStatusWidth),
+		ui.NewColumn(""),
 		ui.NewColumn(""),
 	).Indent(1).Gaps(2)
 
 	for _, step := range steps {
 		for _, message := range step.Messages {
-			label, labelStyle, textStyle := appUpgradeStatusStyle(message.Status)
+			label, labelStyle, textStyle := upgradeStatusStyle(message.Status)
 			for i, line := range splitByNewlines(message.Text) {
 				labelCell := ui.Empty()
-                stepNameCell := ui.Empty()
+				stepNameCell := ui.Empty()
 				if i == 0 {
 					labelCell = ui.Cell{Text: label, Style: labelStyle}
-                    stepNameCell = ui.Cell{Text: step.Name, Style: ui.CellStyleBold}
+					stepNameCell = ui.Cell{Text: step.Name, Style: ui.CellStyleBold}
 				}
 				table.Row(labelCell, stepNameCell, ui.Cell{Text: line, Style: textStyle})
 			}
 		}
-
 	}
 
 	out.RenderTable(table)
@@ -66,7 +66,7 @@ func splitByNewlines(text string) []string {
 }
 
 // maps status to a label and two styles: one for the label itself, and one for the message text.
-func appUpgradeStatusStyle(status studioctlserver.AppUpgradeStatus) (string, ui.CellStyle, ui.CellStyle) {
+func upgradeStatusStyle(status studioctlserver.AppUpgradeStatus) (string, ui.CellStyle, ui.CellStyle) {
 	switch studioctlserver.AppUpgradeStatus(strings.ToUpper(strings.TrimSpace(string(status)))) {
 	case studioctlserver.AppUpgradeStatusOK:
 		return "OK", ui.CellStyleSuccess, ui.CellStyleDefault
@@ -88,25 +88,25 @@ func appUpgradeStatusStyle(status studioctlserver.AppUpgradeStatus) (string, ui.
 
 // Closing advice, keyed off the upgrade's exit code.
 const (
-	appUpgradeVerdictSuccess = "Please verify that the application is still working as expected."
-	appUpgradeVerdictManual  = "Upgrade completed, but some steps need manual follow-up. " +
+	upgradeVerdictSuccess = "Please verify that the application is still working as expected."
+	upgradeVerdictManual  = "Upgrade completed, but some steps need manual follow-up. " +
 		"Please review the warnings above."
-	appUpgradeVerdictError = "Upgrade completed with errors. Please check for errors in the log above."
+	upgradeVerdictError = "Upgrade completed with errors. Please check for errors in the log above."
 
 	// Exit codes studioctl-server reports for an upgrade. Severity does not follow numeric order: 3 means
 	// the upgrade did everything it safely could but left work for a human.
-	appUpgradeExitSuccess        = 0
-	appUpgradeExitManualRequired = 3
+	upgradeExitSuccess        = 0
+	upgradeExitManualRequired = 3
 )
 
 // printUpgradeVerdict writes the closing advice for a rendered report.
 func printUpgradeVerdict(out *ui.Output, exitCode int) {
 	switch exitCode {
-	case appUpgradeExitSuccess:
-		out.Success(appUpgradeVerdictSuccess)
-	case appUpgradeExitManualRequired:
-		out.Warning(appUpgradeVerdictManual)
+	case upgradeExitSuccess:
+		out.Success(upgradeVerdictSuccess)
+	case upgradeExitManualRequired:
+		out.Warning(upgradeVerdictManual)
 	default:
-		out.Warning(appUpgradeVerdictError)
+		out.Warning(upgradeVerdictError)
 	}
 }

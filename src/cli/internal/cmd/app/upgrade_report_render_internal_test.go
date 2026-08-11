@@ -1,4 +1,4 @@
-package cmd
+package app
 
 import (
 	"bytes"
@@ -49,22 +49,16 @@ func TestRenderUpgradeReportRendersStepsAndStatusLabels(t *testing.T) {
 	var stdout bytes.Buffer
 	renderUpgradeReport(ui.NewOutput(&stdout, io.Discard, false), upgradeReportFixture())
 
+	// The step name is a column of its own, repeated on every message the step reported, so each line
+	// stands on its own and the statuses line up down the left edge.
 	want := []string{
-		"Project file",
-		"  OK    Altinn.App packages set to 9.0.1",
-		"",
-		"Dockerfile",
-		"  SKIP  Already targets net10.0",
-		"",
-		"Removed v9 C# APIs",
-		"  OK    Migrated 3 file(s)",
-		"  INFO  Folder operations: 2 renamed",
-		"  WARN  SqlClient stays pinned at 5.1.0",
-		"  TODO  Validator.cs:42 implements IInstanceValidator",
-		"",
-		"Data processors",
-		"  FAIL  Unexpected character at line 12",
-		"",
+		" OK    Project file        Altinn.App packages set to 9.0.1",
+		" SKIP  Dockerfile          Already targets net10.0",
+		" OK    Removed v9 C# APIs  Migrated 3 file(s)",
+		" INFO  Removed v9 C# APIs  Folder operations: 2 renamed",
+		" WARN  Removed v9 C# APIs  SqlClient stays pinned at 5.1.0",
+		" TODO  Removed v9 C# APIs  Validator.cs:42 implements IInstanceValidator",
+		" FAIL  Data processors     Unexpected character at line 12",
 	}
 
 	got := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
@@ -92,12 +86,10 @@ func TestRenderUpgradeReportKeepsMultilineTextAligned(t *testing.T) {
 	})
 
 	// Exception text can be multi-line: the breaks are kept, and continuation lines align under the
-	// first with the label only on the first row.
+	// first, with the label and the step name only on the first row.
 	want := []string{
-		"Project file",
-		"  TODO  first line",
-		"        second line",
-		"",
+		" TODO  Project file  first line",
+		"                     second line",
 	}
 	got := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
 	if !slices.Equal(got, want) {
