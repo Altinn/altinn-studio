@@ -46,8 +46,7 @@ internal sealed class AppUpgradeService : IDisposable
         {
             var output = new StringWriter(CultureInfo.InvariantCulture);
             var error = new StringWriter(CultureInfo.InvariantCulture);
-            // For v9 we use the new structured report format, which improves the CLI output format. For older upgrade kinds we still see the free-text output.
-            var report = request.Kind == UpgradeKinds.V9 ? new UpgradeReport() : null;
+            var report = new UpgradeReport();
             try
             {
                 // We want to enforce a clean directory, so git diff will only show what the update did. An
@@ -75,12 +74,12 @@ internal sealed class AppUpgradeService : IDisposable
                     StageChanges(projectFolder, output, error, report);
                 }
 
-                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString(), Steps(report));
+                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString(), report.Steps);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 await error.WriteLineAsync(FileAccessDiagnostics.Describe(ex));
-                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString(), Steps(report));
+                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString(), report.Steps);
             }
         }
         finally
@@ -89,15 +88,13 @@ internal sealed class AppUpgradeService : IDisposable
         }
     }
 
-    private static IReadOnlyList<UpgradeStep> Steps(UpgradeReport? report) => report?.Steps ?? [];
-
     /// <summary>
-    /// Stages the upgrade's changes, attributing the result to a step of its own. This runs after the
-    /// upgrade returned, so it needs its own scope.
+    /// Stages the upgrade's changes, if it was run in a git repository.
     /// </summary>
-    private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport? report)
+    private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport report)
     {
-        using (report is null ? UpgradeResultWriter.Use(output, error) : UpgradeResultWriter.Use(report, error))
+        // keep reporting status to report if has already been used, otherwise report to output.
+        using (report.HasSteps ? UpgradeResultWriter.Use(report, error) : UpgradeResultWriter.Use(output, error))
         {
             UpgradeResultWriter.BeginStep("Staging changes");
             GitOperations.StageAllChanges(projectFolder);
@@ -108,7 +105,7 @@ internal sealed class AppUpgradeService : IDisposable
         AppUpgradeRequest request,
         TextWriter output,
         TextWriter error,
-        UpgradeReport? report,
+        UpgradeReport report,
         CancellationToken cancellationToken
     )
     {
@@ -165,7 +162,7 @@ internal sealed class AppUpgradeService : IDisposable
                     SkipCsprojUpgrade: false,
                     ConvertPackageReferences: request.ConvertPackageReferences,
                     StudioRoot: request.StudioRoot,
-                    Report: report ?? throw new InvalidOperationException("The v9 upgrade requires a report."),
+                    Report: report,
                     Error: error,
                     CancellationToken: cancellationToken
                 )

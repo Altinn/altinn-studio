@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- End every `studioctl app upgrade` with the same closing advice, whichever migration you run. The v4 upgrade previously ended without any, and the v8 upgrade worded its own differently.
 - Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labelling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
 
 ## [0.1.0-preview.20] - 2026-08-07

@@ -10,33 +10,29 @@ import (
 // upgradeStatusWidth is the display width of the status column: every label fits in four cells.
 const upgradeStatusWidth = 4
 
-// PrintUpgradeResult prints an upgrade result: the structured report with errors and a closing verdict,
-// or the raw output for results that do not use the structured format.
+// PrintUpgradeResult prints everything an upgrade reported, in turn: the reported steps, any free text,
+// any error, and the closing verdict. An upgrade kind reports steps or free text, so in practice only one
+// of the first two prints anything - but neither can swallow the other.
 func PrintUpgradeResult(out *ui.Output, result studioctlserver.AppUpgradeResult) {
-	if len(result.Steps) == 0 {
-		if result.Output != "" {
-			out.Print(result.Output)
-		}
-		if result.Error != "" {
-			out.Error(result.Error)
-		}
-		return
+	if len(result.Steps) > 0 {
+		renderUpgradeSteps(out, result.Steps)
 	}
-
-	renderUpgradeReport(out, result.Steps)
+	if result.Output != "" {
+		out.Print(result.Output)
+	}
 	if result.Error != "" {
 		out.Error(result.Error)
 	}
 	printUpgradeVerdict(out, result.ExitCode)
 }
 
-// renderUpgradeReport prints the structured report from studioctl-server: one line per message, with its
-// status label and the migration step it belongs to. For example:
+// renderUpgradeSteps prints the steps studioctl-server reported: one line per message, with its status
+// label and the migration step it belongs to. For example:
 //
 //	OK    Project file  Altinn.App packages set to 9.0.1
 //	WARN  Project file  Verify that the project restores
 //	SKIP  Dockerfile    Already targets net10.0
-func renderUpgradeReport(out *ui.Output, steps []studioctlserver.AppUpgradeStep) {
+func renderUpgradeSteps(out *ui.Output, steps []studioctlserver.AppUpgradeStep) {
 	table := ui.NewTable(
 		ui.NewColumn("").WithWidth(upgradeStatusWidth),
 		ui.NewColumn(""),
@@ -91,6 +87,8 @@ const (
 	upgradeExitManualRequired = 3
 )
 
+// printUpgradeVerdict closes every upgrade with what its exit code means for the reader. This is the one
+// place any upgrade kind says how it went, so they all end the same way.
 func printUpgradeVerdict(out *ui.Output, exitCode int) {
 	switch exitCode {
 	case upgradeExitSuccess:

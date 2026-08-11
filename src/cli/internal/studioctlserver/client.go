@@ -150,7 +150,7 @@ type AppUpgrade struct {
 	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
 }
 
-// AppUpgradeStatus, one of "OK", "INFO", "SKIP", "WARN", "TODO", or "FAIL", describes what a migration step did.
+// AppUpgradeStatus describes what a migration step did: "OK", "INFO", "SKIP", "WARN", "TODO" or "FAIL".
 type AppUpgradeStatus string
 
 // The statuses studioctl-server reports, and what each one means.
@@ -163,7 +163,7 @@ const (
 	AppUpgradeStatusFail AppUpgradeStatus = "FAIL" // A step that tried and failed.
 )
 
-// Text and status to describe one migration step message
+// AppUpgradeMessage is the text and status of one message a migration step reported.
 type AppUpgradeMessage struct {
 	Text   string           `json:"text"`
 	Status AppUpgradeStatus `json:"status"`

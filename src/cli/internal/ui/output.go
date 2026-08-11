@@ -27,7 +27,7 @@ func warningStyle() Style { return ColorStyle(ColorYellow) }
 func successStyle() Style { return ColorStyle(ColorGreen) }
 func infoStyle() Style    { return ColorStyle(ColorBlue) }
 func dimStyle() Style     { return ColorStyle(ColorGray) }
-func actionStyle() Style { return ColorStyle(ColorMagenta) }
+func actionStyle() Style  { return ColorStyle(ColorMagenta) }
 
 // containerColors returns colors for log output prefixes.
 func containerColors() []Color {

@@ -47,6 +47,9 @@ internal sealed class UpgradeReport
     public IReadOnlyList<UpgradeStep> Steps =>
         [.. _steps.Select(step => new UpgradeStep(step.Name, [.. step.Messages]))];
 
+    /// <summary>Whether any step has begun, and so whether this run is reporting into the report at all.</summary>
+    public bool HasSteps => _steps.Count > 0;
+
     /// <summary>Starts a step and adds it to the report.</summary>
     internal StepState BeginStep(string name)
     {

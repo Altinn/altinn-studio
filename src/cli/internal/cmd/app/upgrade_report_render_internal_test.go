@@ -43,11 +43,11 @@ func upgradeReportFixture() []studioctlserver.AppUpgradeStep {
 	}
 }
 
-func TestRenderUpgradeReportRendersStepsAndStatusLabels(t *testing.T) {
+func TestRenderUpgradeStepsRendersStatusLabels(t *testing.T) {
 	t.Setenv("NO_COLOR", "1")
 
 	var stdout bytes.Buffer
-	renderUpgradeReport(ui.NewOutput(&stdout, io.Discard, false), upgradeReportFixture())
+	renderUpgradeSteps(ui.NewOutput(&stdout, io.Discard, false), upgradeReportFixture())
 
 	// The step name is a column of its own, repeated on every message the step reported, so each line
 	// stands on its own and the statuses line up down the left edge.
@@ -72,11 +72,11 @@ func TestRenderUpgradeReportRendersStepsAndStatusLabels(t *testing.T) {
 	}
 }
 
-func TestRenderUpgradeReportKeepsMultilineTextAligned(t *testing.T) {
+func TestRenderUpgradeStepsKeepsMultilineTextAligned(t *testing.T) {
 	t.Setenv("NO_COLOR", "1")
 
 	var stdout bytes.Buffer
-	renderUpgradeReport(ui.NewOutput(&stdout, io.Discard, false), []studioctlserver.AppUpgradeStep{
+	renderUpgradeSteps(ui.NewOutput(&stdout, io.Discard, false), []studioctlserver.AppUpgradeStep{
 		{
 			Name: "Project file",
 			Messages: []studioctlserver.AppUpgradeMessage{
@@ -94,5 +94,31 @@ func TestRenderUpgradeReportKeepsMultilineTextAligned(t *testing.T) {
 	got := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
 	if !slices.Equal(got, want) {
 		t.Errorf("lines = %q, want %q", got, want)
+	}
+}
+
+func TestPrintUpgradeResultKeepsBothReportAndFreeText(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var stdout bytes.Buffer
+	// An upgrade kind reports steps or free text, never both - but if one ever arrives with both, neither
+	// may be dropped, so a stray step cannot hide what the upgrade wrote.
+	PrintUpgradeResult(ui.NewOutput(&stdout, io.Discard, false), studioctlserver.AppUpgradeResult{
+		Steps: []studioctlserver.AppUpgradeStep{
+			{
+				Name: "Staging changes",
+				Messages: []studioctlserver.AppUpgradeMessage{
+					{Text: "Staged 3 file(s)", Status: studioctlserver.AppUpgradeStatusOK},
+				},
+			},
+		},
+		Output: "free text from an older upgrade kind",
+	})
+
+	got := stdout.String()
+	for _, want := range []string{"Staged 3 file(s)", "free text from an older upgrade kind"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("output %q does not contain %q", got, want)
+		}
 	}
 }
