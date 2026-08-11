@@ -154,7 +154,7 @@ __metadata:
     classnames: "npm:2.5.1"
     date-fns: "npm:4.4.0"
     dompurify: "npm:3.4.13"
-    eslint: "npm:10.8.0"
+    eslint: "npm:10.8.1"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-jsx-a11y: "npm:6.10.2"
@@ -206,7 +206,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
     "@vitejs/plugin-react": "npm:6.0.5"
-    eslint: "npm:10.8.0"
+    eslint: "npm:10.8.1"
     globals: "npm:17.9.0"
     jsdom: "npm:^26.1.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
@@ -225,7 +225,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.0"
+    eslint: "npm:10.8.1"
     globals: "npm:17.9.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vitest: "npm:4.1.10"
@@ -4419,14 +4419,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@percy/cypress@npm:3.1.8":
-  version: 3.1.8
-  resolution: "@percy/cypress@npm:3.1.8"
+"@percy/cypress@npm:3.1.9":
+  version: 3.1.9
+  resolution: "@percy/cypress@npm:3.1.9"
   dependencies:
-    "@percy/sdk-utils": "npm:^1.31.10"
+    "@percy/sdk-utils": "npm:1.32.3-beta.1"
   peerDependencies:
     cypress: ">=3"
-  checksum: 10/a424c9c793da0a18c29ba9bbdd8889afb1e1e9345897fe8357fa455adf646d93795b0a21bc18c6b9d3e341255977f150917eda84fbf0a576a292722a481d5c64
+  checksum: 10/86ceb402092fb14e1bd1857d8ed5b90fdbeaaa2711eb4ee09aa2a5dd8dda98cab9f06ffb6dd2b9a6185f70807fec38ba4855d90ab1a0556143d6241bbb72644c
   languageName: node
   linkType: hard
 
@@ -4465,21 +4465,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@percy/sdk-utils@npm:1.32.3-beta.1":
+  version: 1.32.3-beta.1
+  resolution: "@percy/sdk-utils@npm:1.32.3-beta.1"
+  dependencies:
+    pac-proxy-agent: "npm:^7.0.2"
+  checksum: 10/ff2582ea87b364ea41b1677595f591f096550fbb54b037eb20fe2758ad3af8aa0f0ccb0881f1aa93fae7fcb4b79290b2bca3b3aec6071cfbb6e06605c8377b24
+  languageName: node
+  linkType: hard
+
 "@percy/sdk-utils@npm:1.32.6":
   version: 1.32.6
   resolution: "@percy/sdk-utils@npm:1.32.6"
   dependencies:
     pac-proxy-agent: "npm:^7.0.2"
   checksum: 10/57f84516ce75f79b708b99d1bc09a8e67dd7b153391037bfa9ff1fbd124a7cbd8fafce3352db84bcf7869f9cffb016bdda7734f33f2c6c6d499885d8b21f46c0
-  languageName: node
-  linkType: hard
-
-"@percy/sdk-utils@npm:^1.31.10":
-  version: 1.32.5
-  resolution: "@percy/sdk-utils@npm:1.32.5"
-  dependencies:
-    pac-proxy-agent: "npm:^7.0.2"
-  checksum: 10/870234341e0cb1b1567faf58735497415a596ad78151ff68d3b30a920acd32ef80ef015f5c901d0540bf2f63a833708f7bc284997b28a3247f6035f52f7ac080
   languageName: node
   linkType: hard
 
@@ -7454,7 +7454,7 @@ __metadata:
     "@lhci/cli": "npm:^0.15.1"
     "@navikt/aksel-icons": "npm:8.16.1"
     "@percy/cli": "npm:1.32.6"
-    "@percy/cypress": "npm:3.1.8"
+    "@percy/cypress": "npm:3.1.9"
     "@rolldown/plugin-babel": "npm:0.2.3"
     "@tanstack/react-query": "npm:5.101.4"
     "@tanstack/react-query-devtools": "npm:5.101.4"
@@ -7502,9 +7502,9 @@ __metadata:
     decimal.js: "npm:10.6.0"
     dot-object: "npm:2.1.5"
     dotenv: "npm:17.4.2"
-    eslint: "npm:10.8.0"
+    eslint: "npm:10.8.1"
     eslint-config-prettier: "npm:10.1.8"
-    eslint-plugin-cypress: "npm:6.4.3"
+    eslint-plugin-cypress: "npm:6.4.4"
     eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-jsx-a11y: "npm:6.10.2"
     eslint-plugin-no-relative-import-paths: "npm:1.6.1"
@@ -7523,7 +7523,7 @@ __metadata:
     html-react-parser: "npm:6.1.5"
     http-server: "npm:14.1.1"
     identity-obj-proxy: "npm:3.0.0"
-    immer: "npm:11.1.15"
+    immer: "npm:11.1.16"
     jmespath: "npm:0.16.0"
     js-levenshtein: "npm:1.1.6"
     jsdom: "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"
@@ -10742,18 +10742,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-cypress@npm:6.4.3":
-  version: 6.4.3
-  resolution: "eslint-plugin-cypress@npm:6.4.3"
+"eslint-plugin-cypress@npm:6.4.4":
+  version: 6.4.4
+  resolution: "eslint-plugin-cypress@npm:6.4.4"
   dependencies:
-    globals: "npm:^17.7.0"
+    globals: "npm:^17.8.0"
   peerDependencies:
     "@typescript-eslint/parser": ">=8"
     eslint: ">=9"
   peerDependenciesMeta:
     "@typescript-eslint/parser":
       optional: true
-  checksum: 10/0342a3848ffd9d9286bd308b74b94d94d05d31365f5f727bf575fb8de8d774e32a8e408413b689266d0d950263fe127c1cad20c5b704d0ae46e6ef25dc3a02ea
+  checksum: 10/b667d51bc87dbd572166c0763a1a276caaa2a4d6d8239707c6c42da50e649250e7688f7916842fd6f0fb76e452c8c8c37ce6897a7ebaefe8ba326659f925367f
   languageName: node
   linkType: hard
 
@@ -11004,51 +11004,6 @@ __metadata:
   version: 5.0.1
   resolution: "eslint-visitor-keys@npm:5.0.1"
   checksum: 10/f9cc1a57b75e0ef949545cac33d01e8367e302de4c1483266ed4d8646ee5c306376660196bbb38b004e767b7043d1e661cb4336b49eff634a1bbe75c1db709ec
-  languageName: node
-  linkType: hard
-
-"eslint@npm:10.8.0":
-  version: 10.8.0
-  resolution: "eslint@npm:10.8.0"
-  dependencies:
-    "@eslint-community/eslint-utils": "npm:^4.8.0"
-    "@eslint-community/regexpp": "npm:^4.12.2"
-    "@eslint/config-array": "npm:^0.23.5"
-    "@eslint/config-helpers": "npm:^0.7.0"
-    "@eslint/core": "npm:^1.2.1"
-    "@eslint/plugin-kit": "npm:^0.7.2"
-    "@humanfs/node": "npm:^0.16.6"
-    "@humanwhocodes/module-importer": "npm:^1.0.1"
-    "@humanwhocodes/retry": "npm:^0.4.2"
-    "@types/estree": "npm:^1.0.6"
-    ajv: "npm:^6.14.0"
-    cross-spawn: "npm:^7.0.6"
-    debug: "npm:^4.3.2"
-    escape-string-regexp: "npm:^4.0.0"
-    eslint-scope: "npm:^9.1.2"
-    eslint-visitor-keys: "npm:^5.0.1"
-    espree: "npm:^11.2.0"
-    esquery: "npm:^1.7.0"
-    esutils: "npm:^2.0.2"
-    fast-deep-equal: "npm:^3.1.3"
-    file-entry-cache: "npm:^8.0.0"
-    find-up: "npm:^5.0.0"
-    glob-parent: "npm:^6.0.2"
-    ignore: "npm:^5.2.0"
-    imurmurhash: "npm:^0.1.4"
-    is-glob: "npm:^4.0.0"
-    json-stable-stringify-without-jsonify: "npm:^1.0.1"
-    minimatch: "npm:^10.2.5"
-    natural-compare: "npm:^1.4.0"
-    optionator: "npm:^0.9.3"
-  peerDependencies:
-    jiti: "*"
-  peerDependenciesMeta:
-    jiti:
-      optional: true
-  bin:
-    eslint: bin/eslint.js
-  checksum: 10/6128174fffd198e2d10ac211fabdc7292e3214c62a5aede66d2397a0628cf4f704f85a2efb1d5733584a005a6edcf5ca70436894c8befe4ac9e374609c721687
   languageName: node
   linkType: hard
 
@@ -12096,7 +12051,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:17.9.0":
+"globals@npm:17.9.0, globals@npm:^17.8.0":
   version: 17.9.0
   resolution: "globals@npm:17.9.0"
   checksum: 10/8619386d449e8cbb81e242eced8bca0a42e5c3633a3a35996b8b1618beb17ff9fb33bfe703d60d83d4b7f6f8a996dede4faf02f9e966e50ff895e0cf6122ae15
@@ -12664,10 +12619,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:11.1.15":
-  version: 11.1.15
-  resolution: "immer@npm:11.1.15"
-  checksum: 10/c108961db7ad3a1d23d5fa57fa28c6f5fd424f497cf454c9e6898700f7fe31eb951777e0eb91a4615dfc5e8cb50268d9e309651c482c7be48c1baf98acf53f2e
+"immer@npm:11.1.16":
+  version: 11.1.16
+  resolution: "immer@npm:11.1.16"
+  checksum: 10/ae33169318d1a78099dadc747105709506886387b72bf3468dd81c5c854140719d633da94bbefe4f8167311ad685ea0d069e0dfff5804fe9801777131f515f9a
   languageName: node
   linkType: hard
 
