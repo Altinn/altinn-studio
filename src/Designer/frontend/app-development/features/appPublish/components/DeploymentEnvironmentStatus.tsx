@@ -1,6 +1,7 @@
 import React, { type JSX } from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
-import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet-react';
+import { Alert, Heading, Link } from '@digdir/designsystemet-react';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
@@ -52,10 +53,8 @@ export const DeploymentEnvironmentStatus = ({
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
-        <Paragraph size='small' spacing={!!footer} className={classes.content}>
-          {content}
-        </Paragraph>
-        {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}
+        {content}
+        {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
       </Alert>
     );
   };
@@ -66,7 +65,7 @@ export const DeploymentEnvironmentStatus = ({
         severity='info'
         content={
           <span className={classes.loadingSpinner}>
-            <Spinner variant='interaction' title='' size='xsmall' />
+            <StudioSpinner aria-hidden data-size='xs' />
             {t('app_deployment.status.inProgress')}
           </span>
         }
@@ -75,12 +74,28 @@ export const DeploymentEnvironmentStatus = ({
   }
 
   if (!kubernetesDeployment) {
-    return <DeploymentStatusAlert severity='info' content={t('app_deployment.status.none')} />;
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.none')}
+          </StudioParagraph>
+        }
+      />
+    );
   }
 
   if (!kubernetesDeployment?.version) {
     return (
-      <DeploymentStatusAlert severity='warning' content={t('app_deployment.status.unavailable')} />
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.unavailable')}
+          </StudioParagraph>
+        }
+      />
     );
   }
 
@@ -88,20 +103,22 @@ export const DeploymentEnvironmentStatus = ({
     <DeploymentStatusAlert
       severity='success'
       content={
-        <Trans
-          i18nKey={'app_deployment.status.succeeded'}
-          values={{
-            version: kubernetesDeployment.version,
-          }}
-          components={{
-            a: (
-              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
-                {' '}
-              </Link>
-            ),
-            ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
-          }}
-        />
+        <StudioParagraph className={classes.content} spacing data-size='sm'>
+          <Trans
+            i18nKey={'app_deployment.status.succeeded'}
+            values={{
+              version: kubernetesDeployment.version,
+            }}
+            components={{
+              a: (
+                <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                  {' '}
+                </Link>
+              ),
+              ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
+            }}
+          />
+        </StudioParagraph>
       }
       footer={
         lastPublishedDate &&
