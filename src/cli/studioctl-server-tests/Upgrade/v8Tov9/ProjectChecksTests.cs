@@ -89,6 +89,9 @@ public sealed class ProjectChecksTests : IDisposable
     [InlineData("7.5.0")]
     [InlineData("9.0.0")]
     [InlineData("[7.0,8.0)")]
+    [InlineData("[8.0,9.0]")]
+    [InlineData("[8.0,10.0)")]
+    [InlineData("[8.0,)")]
     public void SupportedSourceVersion_Rejects_WhenApiIsOutsideThe8xRange(string apiVersion)
     {
         var path = CreateTempProject(apiVersion);
