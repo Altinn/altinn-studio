@@ -200,14 +200,21 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
             lockService = new LockService(lockProvider);
         }
 
-        return new RepositoryCleanupService(
+        var timestampScanner = new RepositoryFileTimestampScanner(NullLogger<RepositoryFileTimestampScanner>.Instance);
+        var candidateSource = new RepositoryCleanupCandidateSource(
             new ServiceRepositorySettings { RepositoryLocation = _rootDirectory },
+            timestampScanner,
+            NullLogger<RepositoryCleanupCandidateSource>.Instance
+        );
+        var candidateProcessor = new RepositoryCleanupCandidateProcessor(
             settings,
             timeProvider,
+            timestampScanner,
             cleaner,
             lockService,
-            NullLogger<RepositoryCleanupService>.Instance
+            NullLogger<RepositoryCleanupCandidateProcessor>.Instance
         );
+        return new RepositoryCleanupService(settings, timeProvider, candidateSource, candidateProcessor);
     }
 
     private RepositoryDirectoryCleaner CreateDirectoryCleaner() =>
