@@ -142,6 +142,7 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
@@ -529,7 +530,7 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
+        static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
     {
         try
         {
@@ -545,6 +546,20 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.WriteErrorAsync("Error migrating Datepicker timeStamp defaults", ex);
+            return ExitError;
+        }
+    }
+
+    static async Task<int> MigrateHeadingLayouts(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating Header layout components to Heading...");
+            return await HeadingLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Header components to Heading: {ex.Message}");
             return ExitError;
         }
     }

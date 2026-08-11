@@ -53,8 +53,8 @@ const inputComponent: FormComponent<ComponentType.Input> = {
   ...commonProps(ComponentType.Input),
   dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
 };
-const headerComponent: FormComponent<ComponentType.Header> = {
-  ...commonProps(ComponentType.Header),
+const headingComponent: FormComponent<ComponentType.Heading> = {
+  ...commonProps(ComponentType.Heading),
   size: 'medium',
 };
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
@@ -229,7 +229,7 @@ export const componentMocks = {
   [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
   [ComponentType.FileUpload]: fileUploadComponent,
   [ComponentType.Group]: groupContainer,
-  [ComponentType.Header]: headerComponent,
+  [ComponentType.Heading]: headingComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
   [ComponentType.Link]: linkComponent,

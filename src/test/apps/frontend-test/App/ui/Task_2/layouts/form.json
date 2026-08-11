@@ -104,7 +104,7 @@
       },
       {
         "id": "yourChanges",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "DineEndringer"
         },
@@ -1071,7 +1071,7 @@
       },
       {
         "id": "pageSummary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Oppsummering"
         },
