@@ -46,8 +46,7 @@ internal sealed class AppUpgradeService : IDisposable
         {
             var output = new StringWriter(CultureInfo.InvariantCulture);
             var error = new StringWriter(CultureInfo.InvariantCulture);
-            // The v9 path reports structured steps the CLI renders itself; the older paths still emit free
-            // text that the CLI prints verbatim. Only one of the two is populated for any given run.
+            // For v9 we use the new structured report format, which improves the CLI output format. For older upgrade kinds we still see the free-text output.
             var report = request.Kind == UpgradeKinds.V9 ? new UpgradeReport() : null;
             try
             {
