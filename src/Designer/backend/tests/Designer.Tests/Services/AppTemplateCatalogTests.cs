@@ -52,17 +52,6 @@ public class AppTemplateCatalogTests : IDisposable
     }
 
     [Fact]
-    public void GetAppTemplates_ManifestIdDiffersFromFolder_FolderNameWins()
-    {
-        // Arrange
-        WriteTemplate("v9", displayName: "Altinn App v9", manifestId: "something-else");
-        var sut = CreateCatalog();
-
-        // Act & Assert
-        Assert.Equal("v9", Assert.Single(sut.GetAppTemplates()).Id);
-    }
-
-    [Fact]
     public void GetAppTemplates_MalformedManifest_IsSkipped()
     {
         // Arrange
@@ -121,14 +110,14 @@ public class AppTemplateCatalogTests : IDisposable
         Assert.Empty(sut.GetAppTemplates());
     }
 
-    private void WriteTemplate(string id, string displayName, string manifestId = null)
+    private void WriteTemplate(string id, string displayName)
     {
         string contentPath = Path.Combine(_templateRoot, id, "src");
         Directory.CreateDirectory(contentPath);
 
         File.WriteAllText(
             Path.Combine(contentPath, "apptemplate.json"),
-            $@"{{ ""id"": ""{manifestId ?? id}"", ""displayName"": ""{displayName}"", ""description"": ""Beskrivelse."" }}"
+            $@"{{ ""displayName"": ""{displayName}"", ""description"": ""Beskrivelse."" }}"
         );
     }
 

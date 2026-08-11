@@ -28,11 +28,11 @@ generated app. Move a file into `<id>/` only when the versions genuinely need di
 | `v8`   | 8.x        | `net8.0`  |
 | `v9`   | 9.x        | `net10.0` |
 
-Each carries an `src/apptemplate.json` naming it for the dashboard picker. The folder name is the id; a
-differing `id` in the manifest is logged and ignored.
+The folder name is the template id. Each folder carries an `src/apptemplate.json` naming it for the
+dashboard picker:
 
 ```json
-{ "id": "v8", "displayName": "Altinn App v8", "description": "…" }
+{ "displayName": "Altinn App v8", "description": "…" }
 ```
 
 **v9 is generated, not hand-written.** It started as a copy of `v8` and was migrated with

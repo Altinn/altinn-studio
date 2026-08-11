@@ -124,18 +124,6 @@ public class AppTemplateCatalog : IAppTemplateCatalog
                 return null;
             }
 
-            if (!string.IsNullOrWhiteSpace(manifest.Id) && manifest.Id != folderName)
-            {
-                // The folder name is what the paths are built from, so it wins.
-                _logger.LogWarning(
-                    "App template manifest {ManifestPath} declares id {ManifestId} but lives in folder "
-                        + "{FolderName}. Using the folder name.",
-                    manifestPath,
-                    manifest.Id,
-                    folderName
-                );
-            }
-
             return new AppTemplate
             {
                 Id = folderName,
@@ -151,11 +139,11 @@ public class AppTemplateCatalog : IAppTemplateCatalog
         }
     }
 
+    /// <summary>
+    /// Presentation only. The id comes from the folder name, which is what the paths are built from.
+    /// </summary>
     private sealed class AppTemplateManifest
     {
-        [JsonPropertyName("id")]
-        public string? Id { get; set; }
-
         [JsonPropertyName("displayName")]
         public string? DisplayName { get; set; }
 
