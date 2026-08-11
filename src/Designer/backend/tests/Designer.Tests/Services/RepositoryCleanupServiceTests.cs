@@ -131,13 +131,13 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteInactiveRepositoriesAsync_DeletesOldestRepositoriesWithinBatchLimit()
+    public async Task DeleteInactiveRepositoriesAsync_StopsAfterConfiguredCandidateLimit()
     {
         var timeProvider = new FakeTimeProvider(_now);
         SchedulingSettings settings = CreateSettings();
         settings.RepositoryCleanup.MaxRepositoriesPerRun = 1;
-        string oldestRepository = CreateRepository("oldest-app", _now.AddDays(-60));
-        string newerRepository = CreateRepository("newer-app", _now.AddDays(-45));
+        string firstRepository = CreateRepository("first-app", _now.AddDays(-60));
+        string secondRepository = CreateRepository("second-app", _now.AddDays(-45));
         RepositoryCleanupService service = CreateCleanupService(
             settings,
             timeProvider,
@@ -146,8 +146,7 @@ public sealed class RepositoryCleanupServiceTests : IDisposable
 
         RepositoryCleanupResult result = await service.DeleteInactiveRepositoriesAsync();
 
-        Assert.False(Directory.Exists(oldestRepository));
-        Assert.True(Directory.Exists(newerRepository));
+        Assert.NotEqual(Directory.Exists(firstRepository), Directory.Exists(secondRepository));
         Assert.Equal(new RepositoryCleanupResult(1, 1, 0, 0), result);
     }
 

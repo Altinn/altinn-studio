@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Altinn.Studio.Designer.Services.Implementation;
 using Xunit;
 
@@ -44,6 +45,22 @@ public sealed class RepositoryDirectoryCleanerTests : IDisposable
         Assert.False(Directory.Exists(repositoryLink));
         Assert.True(Directory.Exists(externalDirectory));
         Assert.True(File.Exists(externalFile));
+    }
+
+    [Fact]
+    public void EnumerateEntriesForDeletion_ReturnsGitMetadataLast()
+    {
+        var repositoryDirectory = Directory.CreateDirectory(Path.Combine(_rootDirectory, "repository"));
+        Directory.CreateDirectory(Path.Combine(repositoryDirectory.FullName, ".git"));
+        File.WriteAllText(Path.Combine(repositoryDirectory.FullName, "content.txt"), "content");
+
+        string[] entryNames = RepositoryDirectoryCleaner
+            .EnumerateEntriesForDeletion(repositoryDirectory, deleteGitMetadataLast: true)
+            .Select(entry => entry.Name)
+            .ToArray();
+
+        Assert.Equal(2, entryNames.Length);
+        Assert.Equal(".git", entryNames[^1]);
     }
 
     [Fact]

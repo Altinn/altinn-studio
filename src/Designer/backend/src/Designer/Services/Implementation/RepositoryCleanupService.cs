@@ -45,18 +45,18 @@ public class RepositoryCleanupService : IRepositoryCleanupService
     {
         RepositoryCleanupSettings settings = _schedulingSettings.RepositoryCleanup;
         DateTimeOffset cutoff = _timeProvider.GetUtcNow() - settings.RetentionPeriod;
-        RepositoryCleanupCandidate[] candidates = FindCandidates(cutoff, cancellationToken)
-            .OrderBy(candidate => candidate.LastModified)
-            .Take(settings.MaxRepositoriesPerRun)
-            .ToArray();
-
+        int candidates = 0;
         int deleted = 0;
         int failed = 0;
         int skipped = 0;
 
-        foreach (RepositoryCleanupCandidate candidate in candidates)
+        foreach (
+            RepositoryCleanupCandidate candidate in FindCandidates(cutoff, cancellationToken)
+                .Take(settings.MaxRepositoriesPerRun)
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
+            candidates++;
 
             try
             {
@@ -127,7 +127,7 @@ public class RepositoryCleanupService : IRepositoryCleanupService
             }
         }
 
-        return new RepositoryCleanupResult(candidates.Length, deleted, failed, skipped);
+        return new RepositoryCleanupResult(candidates, deleted, failed, skipped);
     }
 
     private IEnumerable<RepositoryCleanupCandidate> FindCandidates(
