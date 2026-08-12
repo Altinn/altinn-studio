@@ -61,6 +61,9 @@ public sealed class SemanticDetectionTests : IDisposable
                 {
                     public CorrespondenceBuilder WithData(System.ReadOnlyMemory<byte> data) => this;
                     public CorrespondenceBuilder WithData(System.IO.Stream data) => this;
+                    public CorrespondenceBuilder WithResourceId(string id) => this;
+                    public CorrespondenceBuilder WithSender(string sender) => this;
+                    public CorrespondenceBuilder WithSendersReference(string reference) => this;
                 }
             }
 
@@ -380,11 +383,12 @@ public sealed class SemanticDetectionTests : IDisposable
     // --- Detection binds against the pristine pre-rewrite snapshot -------------------------------
 
     [Fact]
-    public void Detection_AfterTheNamespaceRewrite_MustUseThePristineSnapshot()
+    public void Detection_AfterTheNamespaceRewrite_MustUseThePristineView()
     {
         // The production flow: the IServiceTask namespace rewrite (step 6) runs before detection
         // (step 11). After the rewrite the v8 compilation cannot bind the removed names any more, so
-        // detection on the live scanner goes blind - the pristine snapshot is what keeps it exact.
+        // detection on the live scanner goes blind - the pristine view (frozen automatically by the
+        // first Update) is what keeps it exact.
         _app.Write(
             "logic/MyTask.cs",
             """
@@ -399,7 +403,6 @@ public sealed class SemanticDetectionTests : IDisposable
 
         using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
         var scanner = SemanticScanner();
-        var snapshot = scanner.Snapshot();
 
         new UsingNamespaceMigration(scanner).Migrate(
             "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks",
@@ -407,13 +410,73 @@ public sealed class SemanticDetectionTests : IDisposable
             new System.Text.RegularExpressions.Regex(@"\.cs$")
         );
 
-        // The live view demonstrates the blindness the snapshot exists to prevent.
+        // The live view demonstrates the blindness the pristine view exists to prevent.
         var onLiveScanner = new ServiceTaskResultApiDetector(scanner).Detect();
         Assert.Empty(onLiveScanner.Warnings);
 
-        var onSnapshot = new ServiceTaskResultApiDetector(snapshot).Detect();
-        Assert.Contains(onSnapshot.Warnings, static w => w.Contains("MyTask.cs:5: FailedAbortProcessNext"));
-        Assert.True(onSnapshot.ManualActionRequired);
+        var pristine = scanner.PristineView;
+        Assert.NotSame(scanner, pristine);
+        var onPristine = new ServiceTaskResultApiDetector(pristine).Detect();
+        Assert.Contains(onPristine.Warnings, static w => w.Contains("MyTask.cs:5: FailedAbortProcessNext"));
+        Assert.True(onPristine.ManualActionRequired);
+
+        // The frozen view is read-only: writing through it would revert the rewriters' output.
+        var file = pristine.Files[0];
+        Assert.Throws<InvalidOperationException>(() => pristine.Update(file, file.Root));
+    }
+
+    [Fact]
+    public async Task CheckRemovedCSharpApis_SplitsTheViews_SemanticPristine_SyntaxLive()
+    {
+        // The wiring inside CheckRemovedCSharpApis carries two invariants at once: the semantic-aware
+        // detectors must see the pristine view (or they go blind after the namespace rewrite - the
+        // critical bug), and the syntax-only detectors must see the live view (or they re-report what
+        // a rewriter just fixed - "a usage is either fixed here or warned about there, never both").
+        _app.Write(
+            "logic/MyTask.cs",
+            """
+            using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+
+            public class MyTask
+            {
+                public object Run() => ServiceTaskResult.FailedAbortProcessNext();
+            }
+            """
+        );
+        _app.Write(
+            "logic/Sender.cs",
+            """
+            using Altinn.App.Core.Features.Correspondence.Builder;
+
+            public class Sender
+            {
+                public object Send(CorrespondenceBuilder builder) =>
+                    builder.WithResourceId("x").WithSender("y").WithSendersReference("z");
+            }
+            """
+        );
+        WriteProjectWithoutExternalPackage();
+
+        var output = new StringWriter();
+        using var outputScope = UpgradeConsole.Use(output, output);
+        var scanner = SemanticScanner();
+
+        new UsingNamespaceMigration(scanner).Migrate(
+            "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks",
+            "Altinn.App.Core.Features.Process",
+            new System.Text.RegularExpressions.Regex(@"\.cs$")
+        );
+        var correspondence = new CorrespondenceApiMigration(scanner).Migrate();
+        Assert.Contains(correspondence.Warnings, static w => w.Contains("WithSender"));
+
+        var exitCode = await V8Tov9Upgrade.CheckRemovedCSharpApis(scanner, ProjectFile());
+
+        var text = output.ToString();
+        // Semantic detector on the pristine view: still reports the removed factory.
+        Assert.Contains("MyTask.cs:5: FailedAbortProcessNext", text);
+        // Syntax detector on the live view: does not re-report the no-op call the rewriter removed.
+        Assert.DoesNotContain(": WithSender", text);
+        Assert.Equal(3, exitCode);
     }
 
     // --- ReferencesToAssembly must not report namespace segments ---------------------------------

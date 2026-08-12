@@ -158,7 +158,8 @@ internal static class V8CompilationLoader
             var first = errors[0];
             return SemanticAnalysis.Unavailable(
                 $"the app does not compile before the upgrade ({errors.Count} error(s), first: "
-                    + $"{first.Id} {first.GetMessage()}); fix the build or proceed with syntax-based detection"
+                    + $"{first.Id} {first.GetMessage(System.Globalization.CultureInfo.InvariantCulture)}); "
+                    + "fix the build or proceed with syntax-based detection"
             );
         }
 

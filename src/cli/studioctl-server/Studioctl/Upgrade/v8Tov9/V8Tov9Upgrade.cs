@@ -72,15 +72,6 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         var scanner = await CreateSourceScanner(projectFolder, projectFile, options);
 
-        // Semantic *detection* binds against this pristine pre-rewrite snapshot instead: the rewriters
-        // move code toward v9 (the IServiceTask namespace rewrite above all), after which the v8
-        // compilation can no longer bind the removed names and the detectors would go silently blind
-        // on exactly the code they exist to report. Without semantic models the live view is used,
-        // preserving the previous behaviour (detection reads the rewritten source). The trade-off is
-        // that a semantic report's line numbers refer to the pre-rewrite file when a rewriter changed
-        // lines above a finding.
-        var detectionView = scanner.HasSemanticModels ? scanner.Snapshot() : scanner;
-
         var returnCode = 0;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
@@ -145,7 +136,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(detectionView, projectFile));
+        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsCollision(projectFolder));
@@ -482,16 +473,27 @@ internal static class V8Tov9Upgrade
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>
-    static async Task<int> CheckRemovedCSharpApis(CSharpSourceScanner scanner, string projectFile)
+    /// <remarks>
+    /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
+    /// silent-blindness bug (semantic detectors on the rewritten live view) or self-contradicting
+    /// output (syntax detectors on the pristine view re-reporting what a rewriter just fixed).
+    /// </remarks>
+    internal static async Task<int> CheckRemovedCSharpApis(CSharpSourceScanner scanner, string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
         try
         {
+            // The semantic-aware detectors bind against the pristine pre-rewrite view - the v8
+            // compilation cannot bind names the rewriters already moved toward v9. The syntax-only
+            // detectors read the live (rewritten) view, preserving their contract with the rewriters:
+            // a usage is either fixed there or reported here, never both.
+            var pristineView = scanner.PristineView;
+
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
-                new ServiceTaskResultApiDetector(scanner).Detect(),
-                new LegacyEFormidlingCodeDetector(scanner).Detect(),
+                new ServiceTaskResultApiDetector(pristineView).Detect(),
+                new LegacyEFormidlingCodeDetector(pristineView).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
                 new LegacyCorrespondenceCodeDetector(scanner).Detect(),
                 new PlatformHttpExceptionApiDetector(scanner).Detect(),

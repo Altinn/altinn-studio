@@ -59,6 +59,8 @@ internal sealed class CSharpSourceScanner
     private readonly Lazy<List<ScannedCSharpFile>> _files;
     private readonly Dictionary<ScannedCSharpFile, SyntaxTree> _trees = new();
     private readonly Dictionary<ScannedCSharpFile, SemanticModel> _semanticModels = new();
+    private readonly bool _isPristineView;
+    private CSharpSourceScanner? _pristine;
     private Compilation? _compilation;
 
     /// <param name="sourceDirectory">
@@ -88,13 +90,17 @@ internal sealed class CSharpSourceScanner
     public bool HasSemanticModels => _compilation is not null;
 
     /// <summary>
-    /// A frozen copy of the scanner's current state, unaffected by later <see cref="Update"/> calls.
-    /// Semantic <em>detection</em> must bind against the pristine pre-rewrite source: the rewriters
-    /// move code toward v9 (for example the IServiceTask namespace rewrite), after which the v8
+    /// The view semantic <em>detection</em> must bind against: the pre-rewrite state, frozen
+    /// automatically the moment the first rewriter goes through <see cref="Update"/>. The rewriters
+    /// move code toward v9 (the IServiceTask namespace rewrite above all), after which the v8
     /// compilation can no longer bind the very names the detectors look for — keeping the models
-    /// "current" would make detection silently blind exactly where it matters.
+    /// "current" would make detection silently blind exactly where it matters. While nothing has been
+    /// rewritten — or without semantic models, where syntax detection deliberately reads the rewritten
+    /// source — this is the scanner itself.
     /// </summary>
-    public CSharpSourceScanner Snapshot()
+    public CSharpSourceScanner PristineView => _pristine ?? this;
+
+    private CSharpSourceScanner Snapshot()
     {
         var files = new List<ScannedCSharpFile>(Files.Count);
         var snapshot = new CSharpSourceScanner(_sourceDirectory, _compilation, files);
@@ -116,6 +122,7 @@ internal sealed class CSharpSourceScanner
         _sourceDirectory = sourceDirectory;
         _compilation = compilation;
         _files = new Lazy<List<ScannedCSharpFile>>(() => files);
+        _isPristineView = true;
     }
 
     /// <summary>
@@ -125,11 +132,25 @@ internal sealed class CSharpSourceScanner
     /// </summary>
     public ScannedCSharpFile Update(ScannedCSharpFile file, CompilationUnitSyntax newRoot)
     {
+        if (_isPristineView)
+        {
+            // Writing through the frozen view would put pre-rewrite content back on disk over the
+            // rewriters' output. The view exists for read-only detection.
+            throw new InvalidOperationException("The pristine detection view cannot be written through.");
+        }
+
         var files = _files.Value;
         var index = files.IndexOf(file);
         if (index < 0)
         {
             throw new ArgumentException($"File is not part of this scanner: {file.Path}", nameof(file));
+        }
+
+        // Freeze the pristine view before the first rewrite lands. Only meaningful with semantic
+        // models — without them detection reads the live (rewritten) source, as it always has.
+        if (_compilation is not null)
+        {
+            _pristine ??= Snapshot();
         }
 
         File.WriteAllText(file.Path, newRoot.ToFullString());
