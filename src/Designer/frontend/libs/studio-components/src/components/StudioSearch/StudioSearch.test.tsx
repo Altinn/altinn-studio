@@ -53,6 +53,18 @@ describe('StudioSearch', () => {
     expect(getSearchBox()).toHaveAccessibleDescription(error);
   });
 
+  it('should keep a description given through props when error is set', () => {
+    const error = 'Invalid search term';
+    const description = 'Search by name';
+    render(
+      <>
+        <span id='description'>{description}</span>
+        <StudioSearch {...defaultProps} error={error} aria-describedby='description' />
+      </>,
+    );
+    expect(getSearchBox()).toHaveAccessibleDescription(`${description} ${error}`);
+  });
+
   it('should not render a search button when onSearchClick is not set', () => {
     renderStudioSearch({ searchButtonLabel: 'Search' });
     expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument();

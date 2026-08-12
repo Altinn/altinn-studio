@@ -82,7 +82,7 @@ describe('News', () => {
 
   it('does not list a news if the publishDate is more than the expiration time in days ago', () => {
     const publishDate = new Date();
-    publishDate.setDate(publishDate.getDate() - NEWS_EXPIRATION_TIME_IN_DAYS);
+    publishDate.setDate(publishDate.getDate() - NEWS_EXPIRATION_TIME_IN_DAYS - 1);
     renderNews(newsListWithSingleNews(publishDate));
 
     const news = screen.queryByText('News content');

@@ -27,6 +27,8 @@ export const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
       searchButtonLabel,
       onSearchClick,
       'data-size': dataSize = 'md',
+      'aria-describedby': ariaDescribedBy,
+      'aria-invalid': ariaInvalid,
       ...rest
     },
     ref,
@@ -34,6 +36,7 @@ export const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
     const generatedId = useId();
     const searchId = id ?? generatedId;
     const errorId = `${searchId}-error`;
+    const describedBy = [ariaDescribedBy, error && errorId].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className={className}>
@@ -46,9 +49,9 @@ export const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
             id={searchId}
             value={value}
             data-size={dataSize}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
             {...rest}
+            aria-invalid={error ? true : ariaInvalid}
+            aria-describedby={describedBy}
           />
           <Search.Clear aria-label={clearButtonLabel} title={clearButtonLabel} />
           {onSearchClick && (
