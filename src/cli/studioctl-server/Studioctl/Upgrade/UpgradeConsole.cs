@@ -38,6 +38,10 @@ internal static class UpgradeConsole
     }
 
     public static void WriteLine(string message) => Message(UpgradeMessageStatus.Info, message);
+    public static void WriteErrorLine(string message)
+    {
+        Error.WriteLine(message);
+    }
 
     /// <summary>
     /// Starts a step. Everything reported until the next <see cref="BeginStep"/> or the end of the scope
@@ -96,11 +100,6 @@ internal static class UpgradeConsole
             );
 
         step.Add(text, status);
-    }
-
-    public static void WriteErrorLine(string message)
-    {
-        Error.WriteLine(message);
     }
 
     private sealed record Writers(TextWriter? StandardOutput, TextWriter StandardError, UpgradeReport? Report);
