@@ -343,19 +343,16 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateEFormidlingRegistration(string projectFile)
     {
+        UpgradeConsole.BeginStep("eFormidling registration");
         try
         {
-            await UpgradeConsole.Out.WriteLineAsync("Migrating the eFormidling registration...");
-
             var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = new EFormidlingRegistrationMigration(scanner).Migrate();
-
-            foreach (var warning in result.Warnings)
-            {
-                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
-            }
-
-            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+            return ReportMigrationResult(
+                result,
+                cleanText: "No v8 eFormidling registration in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
         }
         catch (Exception ex)
         {
@@ -428,24 +425,20 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigratePlatformHttpExceptionApis(string projectFile)
     {
+        UpgradeConsole.BeginStep("PlatformHttpException APIs");
         try
         {
-            await UpgradeConsole.Out.WriteLineAsync("Migrating changed PlatformHttpException APIs...");
-
             var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = new PlatformHttpExceptionApiMigration(scanner).Migrate();
-
-            foreach (var warning in result.Warnings)
-            {
-                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
-            }
-
-            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+            return ReportMigrationResult(
+                result,
+                cleanText: "No changed PlatformHttpException APIs in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating PlatformHttpException APIs: {ex.Message}");
-            return ExitError;
+            return Fail("Error migrating PlatformHttpException APIs", ex);
         }
     }
 
@@ -542,15 +535,14 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateHeadingLayouts(string projectFolder)
     {
+        UpgradeConsole.BeginStep("Header components");
         try
         {
-            await UpgradeConsole.Out.WriteLineAsync("Migrating Header layout components to Heading...");
             return await HeadingLayoutMigration.Migrate(projectFolder);
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Header components to Heading: {ex.Message}");
-            return ExitError;
+            return Fail("Error migrating Header components to Heading", ex);
         }
     }
 
@@ -817,21 +809,26 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateNavigationButtons(string projectFolder)
     {
+        UpgradeConsole.BeginStep("NavigationButtons showBackButton");
         try
         {
-            await UpgradeConsole.Out.WriteLineAsync("Removing redundant NavigationButtons showBackButton flags...");
             var result = await new ShowBackButtonMigrator(projectFolder).Migrate();
-            await UpgradeConsole.Out.WriteLineAsync(
-                $"Removed {result.PropertiesRemoved} showBackButton flag(s) from {result.FilesChanged} layout file(s)"
-            );
+            if (result.PropertiesRemoved == 0)
+            {
+                UpgradeConsole.Skip("No redundant showBackButton flags found");
+            }
+            else
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.PropertiesRemoved} showBackButton flag(s) from {result.FilesChanged} layout file(s)"
+                );
+            }
+
             return ExitSuccess;
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.Error.WriteLineAsync(
-                $"Error migrating NavigationButtons showBackButton flags: {ex.Message}"
-            );
-            return ExitError;
+            return Fail("Error migrating NavigationButtons showBackButton flags", ex);
         }
     }
 
