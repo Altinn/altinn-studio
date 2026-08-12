@@ -153,11 +153,10 @@ export function stripNonProse(value) {
 
 /**
  * Signals that a text is Norwegian: a Nordic letter, or a function word that
- * does not occur in English prose. This replaces the extend-ignore-re
- * patterns typos.toml used to hold — policy in the engine config had no hit
- * counting, no self-test reach and no rot detection, and two of its five
- * patterns were found dead within days of a scope change. Here the word list
- * is code: reviewed, unit-tested, and its work counted by the caller.
+ * does not occur in English prose. The list lives here rather than in the
+ * engine config so it is unit-tested by the self-test and its work is
+ * counted by the caller — an engine-side pattern can rot silently, this
+ * cannot.
  */
 const NORWEGIAN_SIGNAL_WORDS = new Set([
   'ikke',
@@ -216,13 +215,11 @@ export function isNorwegianText(text) {
  * The string-literal spans of one source line, as byte ranges into `buf`
  * (typos reports byte offsets — see surroundingIdentifier). A span opens at
  * a quote (', ", or `), a backslash escapes exactly one character, and the
- * span closes only at the SAME quote — proper delimiter pairing, which the
- * engine-side regexes could never do (typos embeds Rust's regex crate: no
- * backreferences, hence the four near-identical patterns this replaced).
- * An unterminated quote (an apostrophe in prose) opens no span. Multi-line
- * literals are the deliberate, documented gap: everything here is scoped to
- * one line, because a span that crosses lines can swallow code between two
- * strings.
+ * span closes only at the SAME quote, so two different strings on one line
+ * can never be bridged into one span. An unterminated quote (an apostrophe
+ * in prose) opens no span. Multi-line literals are the deliberate,
+ * documented gap: everything here is scoped to one line, because a span
+ * that crosses lines can swallow code between two strings.
  */
 export function stringSpans(buf) {
   const spans = [];
@@ -253,9 +250,9 @@ export function stringSpans(buf) {
  *   norwegian  inside a string literal that reads as Norwegian — a string
  *              containing Norwegian IS Norwegian, not misspelled English. A
  *              Norwegian word in an identifier, in markup text or in prose
- *              is NOT classified and stays a finding. The deliberate cost,
- *              unchanged from the engine-side rule this replaced: an English
- *              typo inside a string that also reads as Norwegian is missed.
+ *              is NOT classified and stays a finding. The deliberate cost:
+ *              an English typo inside a string that also reads as Norwegian
+ *              is missed.
  *   data       inside a contiguous run of 30+ base64ish characters (JWKs,
  *              tokens, hashes) — data is not words, wherever it occurs.
  *   kept       everything else; a finding.
@@ -612,9 +609,9 @@ function scopeMatches(entry, f, path, readLine) {
 /**
  * The identifier around a finding. typos reports a BYTE offset into the
  * line, so the expansion works in byte space — identifier characters are
- * ASCII, which makes the expansion exact even on lines with non-ASCII text
- * (the previous harness's UTF-16-index bug class). A file-name finding has
- * no line; its identifier is the basename stem.
+ * ASCII, which keeps the expansion exact even on lines with non-ASCII text
+ * (a UTF-16 string index would drift past the first Nordic letter). A
+ * file-name finding has no line; its identifier is the basename stem.
  */
 function surroundingIdentifier(f, path, readLine) {
   if (f.line_num === undefined) {

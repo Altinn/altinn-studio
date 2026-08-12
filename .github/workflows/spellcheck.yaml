@@ -29,9 +29,9 @@ jobs:
     timeout-minutes: 15
     # ADVISORY until the backlog of existing findings is fixed: the job runs
     # everything and annotates, but cannot block a merge. The stacked
-    # corrections PR removes this line. Unlike the previous harness, the
-    # advisory phase changes nothing else — every check still runs on every
-    # PR because of the `if: always()` on each step below.
+    # corrections PR removes this line. The advisory phase changes nothing
+    # else — every check still runs on every PR because of the `if: always()`
+    # on each step below.
     continue-on-error: true
     steps:
       - name: Checkout repository

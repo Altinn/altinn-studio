@@ -64,10 +64,8 @@ export const rawUrl = (file) =>
  * basic Norwegian, the check also accepts any word in Norsk Ordbank's
  * full-form tables (Språkrådet / University of Bergen, CC-BY 4.0; the 2022
  * update), fetched from a pinned commit of Ondkloss/norwegian-wordlist
- * (WTFPL packaging) and SHA-256-verified like everything else. Measured
- * effect: absorbs 51 of the 550 bokmål words hunspell flags in this repo —
- * exactly the dictionary-gap class — while still rejecting the planted
- * typos.
+ * (WTFPL packaging) and SHA-256-verified like everything else. This absorbs
+ * exactly the dictionary-gap class while still rejecting misspellings.
  */
 export const ORDBANK_SOURCE = {
   repository: 'https://github.com/Ondkloss/norwegian-wordlist',

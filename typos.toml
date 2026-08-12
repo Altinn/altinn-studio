@@ -3,13 +3,16 @@
 #
 # This file decides what typos scans and how words parse. It deliberately
 # contains NO named exceptions: no extend-identifiers, no extend-words, no
-# per-project excludes. Every accepted misspelling lives in
-# .github/spellcheck/suppressions.mjs instead, scoped to the paths and
-# identifiers where it is load-bearing and enforced by the runner — a
-# suppressed token outside its scope is still reported, and a suppression
-# that matches nothing is itself a finding. (typos' own mechanisms are
-# repo-wide, which measurably over-suppressed: a bare `organisation`
-# allowlist entry hid 1,132 findings, mostly prose.)
+# per-project excludes, no extend-ignore-re. typos' own exception mechanisms
+# are repo-wide and uncounted, so they over-suppress and rot silently.
+# Instead, every accepted misspelling lives in
+# .github/spellcheck/suppressions.mjs, scoped to the paths and identifiers
+# where it is load-bearing and enforced by the runner — a suppressed token
+# outside its scope is still reported, and a suppression that matches nothing
+# is itself a finding. Norwegian copy inside string literals and tokens
+# inside base64/JWT data runs are classified by the runner (classifyFindings
+# in .github/spellcheck/lib.mjs), where the logic is unit-tested and its work
+# counted on every run.
 #
 # Because policy lives in the runner, `typos` invoked directly reports
 # suppressed contract tokens too — use `yarn spell:quick` (changed files) or
@@ -64,10 +67,9 @@ extend-exclude = [
 
     # Test-only surface ships nowhere: test projects, colocated test files,
     # test data, mocks, e2e suites and Storybook stories. A typo there costs
-    # nothing a user ever sees, so the whole class is out of scope — one rule
-    # instead of the dozen surgical excludes and suppressions it replaces.
-    # (Deliberate trade-off: typos in test names can propagate by copy-paste,
-    # and the e2e specs did hide a dozen real ones. Non-shipping, accepted.)
+    # nothing a user ever sees, so the whole class is out of scope.
+    # (Deliberate trade-off: typos in test names can propagate by copy-paste.
+    # Non-shipping, accepted.)
     "**/test/**", "**/tests/**", "**/testing/**",
     "**/[Tt]est[Dd]ata/**", "**/test-data/**", "**/__mocks__/**",
     "*.test.*", "*.spec.*", "*_test.go", "*.stories.tsx", "*.pretest",
@@ -86,9 +88,9 @@ extend-exclude = [
 ]
 
 # Data formats hold fixtures, schemas, code lists and wire payloads, not
-# prose. Deliberately NOT here, although the previous harness classified them
-# as data: .cshtml/.html (server-rendered pages users read), .yaml/.yml
-# (workflow and config comments are prose), .txt and .tmpl. Those are checked.
+# prose. Deliberately NOT listed here, and therefore checked: .cshtml/.html
+# (server-rendered pages users read), .yaml/.yml (workflow and config
+# comments are prose), .txt and .tmpl.
 [type.data]
 extend-glob = [
     "*.json", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
@@ -98,12 +100,3 @@ check-file = false
 
 [default]
 locale = "en-us"
-
-# There are deliberately no extend-ignore-re patterns. Norwegian product copy
-# inside string literals, and typo-shaped tokens inside base64/JWT data runs,
-# are recognized and classified by the RUNNER (classifyFindings in
-# .github/spellcheck/lib.mjs), not exempted here: an engine-side regex has no
-# hit counting, no self-test reach and no rot detection — two of the five
-# patterns this replaced were found dead within days of a scope change,
-# silently. The classifier's work is counted on every run and its behavior is
-# asserted by the self-test.

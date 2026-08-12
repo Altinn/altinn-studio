@@ -3,12 +3,10 @@
  * typos flags but this repository accepts, each scoped to where it is
  * actually load-bearing and carrying the reason why.
  *
- * This replaces typos.toml's global `extend-identifiers`/`extend-words` and
- * most of its per-directory excludes. Those mechanisms are repo-wide: a bare
- * `organisation` entry also licensed the word in every ADR, comment and
- * future file (measured: 1,132 suppressed findings, ~80% of the old
- * allowlist's effect), and a whole-directory exclude hid real typos as
- * collateral (`decryped` in Fiks, `chekcbox` in e2e). Here, the same
+ * This exists because typos' own mechanisms (`extend-identifiers`,
+ * `extend-words`, excludes) are repo-wide: a bare `organisation` entry would
+ * also license the word in every ADR, comment and future file, and a
+ * whole-directory exclude hides real typos as collateral. Here, the same
  * misspelling OUTSIDE an entry's scope is still reported — and an entry that
  * no longer matches anything is itself reported as stale, so the registry
  * cannot quietly rot.
@@ -38,8 +36,7 @@ export const SUPPRESSIONS = [
     // identifiers and growing. Enumerating them would churn on every PR, so
     // the whole family is allowed inside identifiers in the contract-adjacent
     // trees. The bare word is NOT suppressed anywhere: prose, comments, docs
-    // and any standalone `organisation` variable are enforced, which the old
-    // config's bare-word allowlist silently was not (1,132 findings).
+    // and any standalone `organisation` variable are enforced.
     token: 'Organisation',
     identifierPart: true,
     paths: [
@@ -261,9 +258,8 @@ export const SUPPRESSIONS = [
   },
 
   // ------------------------- foreign-language content in otherwise-English code
-  // These directories were previously excluded wholesale, which also hid real
-  // typos (decryped, chekcbox, becuase, inernal, …). Now only the measured
-  // foreign tokens are accepted, and only there.
+  // Only the specific foreign tokens are accepted, and only where they occur
+  // — a whole-directory exclude would hide real English typos as collateral.
   {
     token: 'Registrering',
     paths: ['src/App/backend/**/Altinn.App.Clients.Fiks*/**'],
@@ -337,9 +333,6 @@ export const SUPPRESSIONS = [
     kind: 'foreign-language',
     reason: 'Norwegian in Tenor test-person data',
   },
-  // Cypress e2e specs assert against the Norwegian UI the test apps render.
-  // Only the Norwegian words are accepted — the twelve English typos this
-  // exclude used to hide (chekcbox, becuase, …) are now reported.
   {
     token: 'som',
     paths: ['**/MergeConflictWarning/**'],

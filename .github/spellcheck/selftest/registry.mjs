@@ -80,13 +80,12 @@ export const DRIFT_REGISTRY = {
 };
 
 /**
- * applyValueFix scenarios, asserted byte for byte on throwaway copies. They
- * include the two failure modes an adversarial review found in the first
- * version of the fix path: a value that merely MENTIONS another key must not
- * be edited in its place, and a value ending in an escaped backslash must
- * not derail the quote scan. The scenario text lives here, inside the
- * excluded selftest directory, so the planted British spellings are not
- * themselves reported by the code pass.
+ * applyValueFix scenarios, asserted byte for byte on throwaway copies. Two
+ * easy-to-regress failure modes are pinned: a value that merely MENTIONS
+ * another key must not be edited in its place, and a value ending in an
+ * escaped backslash must not derail the quote scan. The scenario text lives
+ * here, inside the excluded selftest directory, so the planted British
+ * spellings are not themselves reported by the code pass.
  */
 export const FIX_SCENARIOS = [
   {
