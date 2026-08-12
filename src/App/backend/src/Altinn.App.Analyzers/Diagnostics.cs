@@ -1,3 +1,5 @@
+using Altinn.Studio.MaskinportenRules;
+
 namespace Altinn.App.Analyzers;
 
 public static class Diagnostics
@@ -53,6 +55,42 @@ public static class Diagnostics
         );
     }
 
+    internal static class Configuration
+    {
+        public static readonly DiagnosticDescriptor ExternalMaskinportenSectionCollision = Warning(
+            "ALTINNAPP0800",
+            Category.Configuration,
+            "External Maskinporten client bound to the provisioned section",
+            "The '{0}' configuration section configures an external Maskinporten client, but that name belongs to "
+                + "the platform-provisioned client - in deployed environments the provisioned clientId replaces yours "
+                + "while your own key is still used, and Maskinporten rejects the token request. Rename the section "
+                + "(for example to MaskinportenSettingsLegacy) and bind it explicitly where you register the external client.",
+            MaskinportenInvariants.ExternalShapeGuidance
+        );
+
+        public static readonly DiagnosticDescriptor MaskinportenCredentialsCollision = Warning(
+            "ALTINNAPP0801",
+            Category.Configuration,
+            "Maskinporten credentials collide with the platform-provisioned credentials",
+            "The '{0}' configuration section supplies '{1}', which the platform also provisions at deploy time - the "
+                + "provisioned settings file is applied after appsettings.json and configuration merges key by key, "
+                + "combining the two sets into credentials that belong to neither client. Remove it and let the app "
+                + "use the provisioned credentials.",
+            MaskinportenInvariants.ProvisionedOverlapGuidance
+        );
+
+        public static readonly DiagnosticDescriptor MaskinportenClientOverride = Warning(
+            "ALTINNAPP0802",
+            Category.Configuration,
+            "Default Maskinporten client redirected",
+            "'{0}' redirects the default Maskinporten client away from the credentials the platform provisions at "
+                + "deploy time - the workflow engine mints the app's service owner tokens through that client, so "
+                + "process transitions fail once deployed. Give your own integration its own settings type and "
+                + "HttpClient registration instead, and leave the default client alone.",
+            MaskinportenInvariants.ClientOverrideGuidance
+        );
+    }
+
     internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
@@ -73,8 +111,13 @@ public static class Diagnostics
     private const string DocsRoot = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/";
     private const string RulesRoot = DocsRoot + "rules/";
 
-    private static DiagnosticDescriptor Warning(string id, string category, string title, string messageFormat) =>
-        Create(id, title, messageFormat, category, DiagnosticSeverity.Warning);
+    private static DiagnosticDescriptor Warning(
+        string id,
+        string category,
+        string title,
+        string messageFormat,
+        string? description = null
+    ) => Create(id, title, messageFormat, category, DiagnosticSeverity.Warning, description);
 
     private static DiagnosticDescriptor Error(string id, string category, string title, string messageFormat) =>
         Create(id, title, messageFormat, category, DiagnosticSeverity.Error);
@@ -84,8 +127,19 @@ public static class Diagnostics
         string title,
         string messageFormat,
         string category,
-        DiagnosticSeverity severity
-    ) => new(id, title, messageFormat, category, severity, true, helpLinkUri: RulesRoot + id.ToLowerInvariant());
+        DiagnosticSeverity severity,
+        string? description = null
+    ) =>
+        new(
+            id,
+            title,
+            messageFormat,
+            category,
+            severity,
+            true,
+            description: description,
+            helpLinkUri: RulesRoot + id.ToLowerInvariant()
+        );
 
     private static class Category
     {
@@ -94,5 +148,6 @@ public static class Diagnostics
         public const string CodeSmells = nameof(CodeSmells);
         public const string Deprecation = nameof(Deprecation);
         public const string Contracts = nameof(Contracts);
+        public const string Configuration = nameof(Configuration);
     }
 }

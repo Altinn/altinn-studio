@@ -34,6 +34,8 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
 
     public IDisposable WithDiscardedEFormidlingBuilder() => WithAddedDocument(Content.DiscardedEFormidlingBuilder);
 
+    public IDisposable WithMaskinportenClientOverride() => WithAddedDocument(Content.MaskinportenClientOverride);
+
     /// <summary>
     /// Adds a source file to the project for the duration of the modification. Restoring the
     /// fixture's captured snapshots alone is not enough on dispose: the workspace's *current*
@@ -60,9 +62,13 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
             }
         );
 
+        // The explicit filePath matters: a document added with only a name has a null FilePath, which
+        // would make the dispose action's FilePath lookup a silent no-op and leak the document into
+        // every subsequent test's compilation.
         var doc = Project.AddDocument(
             content.FilePath,
-            SourceText.From(File.ReadAllText(content.FilePath, Encoding.UTF8), Encoding.UTF8)
+            SourceText.From(File.ReadAllText(content.FilePath, Encoding.UTF8), Encoding.UTF8),
+            filePath: content.FilePath
         );
         Project = doc.Project;
         Assert.True(Workspace.TryApplyChanges(Project.Solution));
@@ -72,10 +78,11 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
 
     public async Task<(CompilationWithAnalyzers Compilation, IReadOnlyList<Diagnostic>)> GetCompilation(
         DiagnosticAnalyzer analyzer,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        AnalyzerOptions? analyzerOptions = null
     )
     {
-        var (compilation, diagnostics) = await base.CompileWithAnalyzer(analyzer, cancellationToken);
+        var (compilation, diagnostics) = await base.CompileWithAnalyzer(analyzer, cancellationToken, analyzerOptions);
         var errorDiagnostics = diagnostics
             .Where(d =>
                 d.Severity == DiagnosticSeverity.Error

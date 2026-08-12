@@ -23,5 +23,6 @@
     -->
     <AdditionalFiles Include="config/**" />
     <AdditionalFiles Include="ui/**/*.json" />
+    <AdditionalFiles Include="appsettings*.json" />
   </ItemGroup>
 </Project>

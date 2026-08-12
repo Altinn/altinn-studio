@@ -291,6 +291,12 @@ public class JsonValue
         public string Key => _key.GetString();
         public JsonValue Value { get; }
 
+        /// <summary>Start index of the key (including its opening quote) in the full JSON text.</summary>
+        public int KeyStart => _key.Start;
+
+        /// <summary>End index of the key (just past its closing quote) in the full JSON text.</summary>
+        public int KeyEnd => _key.End;
+
         public JsonProperty(JsonValue key, JsonValue value)
         {
             Debug.Assert(key.Type == JsonType.String);

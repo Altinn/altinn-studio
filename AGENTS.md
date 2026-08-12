@@ -69,7 +69,7 @@ Early agent-platform architecture with a reusable sandbox SDK and a separate age
 
 | Area                                                 | What it is                                                                                                                             |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
+| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common`, `Altinn.Studio.MaskinportenRules`, and shared TypeScript libraries. |
 | [`src/Runtime/common`](src/Runtime/common/AGENTS.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
 
 ### Testing — [`src/test`](src/test/AGENTS.md)

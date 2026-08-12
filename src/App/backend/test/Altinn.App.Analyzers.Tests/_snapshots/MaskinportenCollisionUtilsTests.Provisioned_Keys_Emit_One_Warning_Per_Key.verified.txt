@@ -1,0 +1,26 @@
+﻿[
+  {
+    Id: ALTINNAPP0801,
+    Title: Maskinporten credentials collide with the platform-provisioned credentials,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/appsettings.json(4,5),
+    Description: This app supplies Maskinporten credentials under keys the platform also provisions (MaskinportenSettings.clientId/jwk/jwkBase64). Studio provides these automatically at deploy time, and its settings file is applied after appsettings.json, merging key by key - so the two sets are combined rather than one replacing the other. A checked-in jwkBase64 takes precedence over the provisioned key while clientId does not, leaving the app signing with its own key under the provisioned client id, which Maskinporten rejects. Remove these keys and let the app use the provisioned credentials. A private key in the repository is worth removing on its own merits.,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0801,
+    MessageFormat: The '{0}' configuration section supplies '{1}', which the platform also provisions at deploy time - the provisioned settings file is applied after appsettings.json and configuration merges key by key, combining the two sets into credentials that belong to neither client. Remove it and let the app use the provisioned credentials.,
+    Message: The 'MaskinportenSettings' configuration section supplies 'clientId', which the platform also provisions at deploy time - the provisioned settings file is applied after appsettings.json and configuration merges key by key, combining the two sets into credentials that belong to neither client. Remove it and let the app use the provisioned credentials.,
+    Category: Configuration
+  },
+  {
+    Id: ALTINNAPP0801,
+    Title: Maskinporten credentials collide with the platform-provisioned credentials,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/appsettings.json(5,5),
+    Description: This app supplies Maskinporten credentials under keys the platform also provisions (MaskinportenSettings.clientId/jwk/jwkBase64). Studio provides these automatically at deploy time, and its settings file is applied after appsettings.json, merging key by key - so the two sets are combined rather than one replacing the other. A checked-in jwkBase64 takes precedence over the provisioned key while clientId does not, leaving the app signing with its own key under the provisioned client id, which Maskinporten rejects. Remove these keys and let the app use the provisioned credentials. A private key in the repository is worth removing on its own merits.,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0801,
+    MessageFormat: The '{0}' configuration section supplies '{1}', which the platform also provisions at deploy time - the provisioned settings file is applied after appsettings.json and configuration merges key by key, combining the two sets into credentials that belong to neither client. Remove it and let the app use the provisioned credentials.,
+    Message: The 'MaskinportenSettings' configuration section supplies 'jwkBase64', which the platform also provisions at deploy time - the provisioned settings file is applied after appsettings.json and configuration merges key by key, combining the two sets into credentials that belong to neither client. Remove it and let the app use the provisioned credentials.,
+    Category: Configuration
+  }
+]

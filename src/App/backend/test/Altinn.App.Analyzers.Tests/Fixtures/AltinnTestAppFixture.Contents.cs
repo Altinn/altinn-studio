@@ -36,5 +36,10 @@ partial class AltinnTestAppFixture
             "additional",
             "DiscardedEFormidlingBuilder.cs"
         );
+
+        public static readonly DocumentSelector MaskinportenClientOverride = new DocumentSelector(
+            "additional",
+            "MaskinportenClientOverride.cs"
+        );
     }
 }

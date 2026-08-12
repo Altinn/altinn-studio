@@ -6,6 +6,8 @@ on:
     paths:
       - "src/cli/**"
       - "src/Runtime/common/dotnet/**"
+      # studioctl-server source-links the Maskinporten rule data from src/common/dotnet
+      - "src/common/dotnet/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
       - "!**/*.md"

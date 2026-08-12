@@ -13,3 +13,6 @@ ALTINNAPP0600 | Deprecation | Error | enablePdfCreation is not supported
 ALTINNAPP0601 | Deprecation | Error | Legacy eFormidling config is not supported
 ALTINNAPP0700 | Contracts | Error | Sealed default implementation replaced
 ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded
+ALTINNAPP0800 | Configuration | Warning | External Maskinporten client bound to the provisioned section
+ALTINNAPP0801 | Configuration | Warning | Maskinporten credentials collide with the provisioned credentials
+ALTINNAPP0802 | Configuration | Warning | Default Maskinporten client redirected

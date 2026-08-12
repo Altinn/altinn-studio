@@ -25,6 +25,15 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      Shared Maskinporten rule data (key sets, guidance text, verdicts), compiled into both this analyzer
+      and studioctl-server's v8->v9 upgrade detectors so the two cannot drift. The sources must stay pure
+      (netstandard2.0, C# 12, no IO) - see the doc comment in the linked file.
+    -->
+    <Compile Include="../../../../common/dotnet/Altinn.Studio.MaskinportenRules/src/**/*.cs" LinkBase="MaskinportenRules" />
+  </ItemGroup>
+
   <!--
     NOTE:
     Unlike Altinn.App.Internal.Analyzers, this project does not use PolySharp (it polyfills init-only/records

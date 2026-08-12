@@ -1,0 +1,14 @@
+﻿[
+  {
+    Id: ALTINNAPP0800,
+    Title: External Maskinporten client bound to the provisioned section,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/appsettings.json(2,3),
+    Description: This app configures the external Maskinporten client in a section named MaskinportenSettings, which in v9 is the section the platform-provisioned Maskinporten client reads. Studio provisions those credentials as a settings file that is applied after appsettings.json, and configuration merges key by key - so in deployed environments the provisioned clientId replaces yours while your own key is still used, and Maskinporten rejects the token request. Rename your own section (for example to MaskinportenSettingsLegacy) and bind it explicitly where you register the external client; leave MaskinportenSettings to the built-in client.,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0800,
+    MessageFormat: The '{0}' configuration section configures an external Maskinporten client, but that name belongs to the platform-provisioned client - in deployed environments the provisioned clientId replaces yours while your own key is still used, and Maskinporten rejects the token request. Rename the section (for example to MaskinportenSettingsLegacy) and bind it explicitly where you register the external client.,
+    Message: The 'MaskinportenSettings' configuration section configures an external Maskinporten client, but that name belongs to the platform-provisioned client - in deployed environments the provisioned clientId replaces yours while your own key is still used, and Maskinporten rejects the token request. Rename the section (for example to MaskinportenSettingsLegacy) and bind it explicitly where you register the external client.,
+    Category: Configuration
+  }
+]

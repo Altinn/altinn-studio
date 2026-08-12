@@ -1,0 +1,46 @@
+﻿[
+  {
+    Id: ALTINNAPP0802,
+    Title: Default Maskinporten client redirected,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/MaskinportenClientOverride.cs(13,9),
+    Code: services.ConfigureMaskinportenClient("MyOwnMaskinporten"),
+    Description: This app calls ConfigureMaskinportenClient, which takes over the default Maskinporten client. In v9 that client is shared infrastructure: Studio provisions its credentials at deploy time, and the workflow engine mints the app's service owner tokens through it, so redirecting it to another configuration section or a custom lambda means the provisioned credentials are never read and process transitions fail once deployed - silently, and only in a deployed environment. If this configures a Maskinporten client for the app's own integration, give that integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0802,
+    MessageFormat: '{0}' redirects the default Maskinporten client away from the credentials the platform provisions at deploy time - the workflow engine mints the app's service owner tokens through that client, so process transitions fail once deployed. Give your own integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    Message: 'ConfigureMaskinportenClient' redirects the default Maskinporten client away from the credentials the platform provisions at deploy time - the workflow engine mints the app's service owner tokens through that client, so process transitions fail once deployed. Give your own integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    Category: Configuration
+  },
+  {
+    Id: ALTINNAPP0802,
+    Title: Default Maskinporten client redirected,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/MaskinportenClientOverride.cs(16,9),
+    Code:
+services.ConfigureMaskinportenClient(settings =>
+        {
+            settings.ClientId = "my-client";
+            settings.Authority = "https://test.maskinporten.no/";
+        }),
+    Description: This app calls ConfigureMaskinportenClient, which takes over the default Maskinporten client. In v9 that client is shared infrastructure: Studio provisions its credentials at deploy time, and the workflow engine mints the app's service owner tokens through it, so redirecting it to another configuration section or a custom lambda means the provisioned credentials are never read and process transitions fail once deployed - silently, and only in a deployed environment. If this configures a Maskinporten client for the app's own integration, give that integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0802,
+    MessageFormat: '{0}' redirects the default Maskinporten client away from the credentials the platform provisions at deploy time - the workflow engine mints the app's service owner tokens through that client, so process transitions fail once deployed. Give your own integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    Message: 'ConfigureMaskinportenClient' redirects the default Maskinporten client away from the credentials the platform provisions at deploy time - the workflow engine mints the app's service owner tokens through that client, so process transitions fail once deployed. Give your own integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    Category: Configuration
+  },
+  {
+    Id: ALTINNAPP0802,
+    Title: Default Maskinporten client redirected,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/MaskinportenClientOverride.cs(24,9),
+    Code: services.ConfigureMaskinportenClient(GetSectionName()),
+    Description: This app calls ConfigureMaskinportenClient, which takes over the default Maskinporten client. In v9 that client is shared infrastructure: Studio provisions its credentials at deploy time, and the workflow engine mints the app's service owner tokens through it, so redirecting it to another configuration section or a custom lambda means the provisioned credentials are never read and process transitions fail once deployed - silently, and only in a deployed environment. If this configures a Maskinporten client for the app's own integration, give that integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0802,
+    MessageFormat: '{0}' redirects the default Maskinporten client away from the credentials the platform provisions at deploy time - the workflow engine mints the app's service owner tokens through that client, so process transitions fail once deployed. Give your own integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    Message: 'ConfigureMaskinportenClient' redirects the default Maskinporten client away from the credentials the platform provisions at deploy time - the workflow engine mints the app's service owner tokens through that client, so process transitions fail once deployed. Give your own integration its own settings type and HttpClient registration instead, and leave the default client alone.,
+    Category: Configuration
+  }
+]
