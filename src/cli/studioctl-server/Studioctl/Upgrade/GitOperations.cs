@@ -45,20 +45,20 @@ internal static class GitOperations
             using var repo = TryOpenRepository(path);
             if (repo is null)
             {
-                UpgradeResultWriter.Skip("Not a git repository - leaving changes unstaged");
+                UpgradeConsole.Skip("Not a git repository - leaving changes unstaged");
                 return;
             }
 
             Commands.Stage(repo, "*");
 
             using var stagedChanges = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index);
-            UpgradeResultWriter.Ok(
+            UpgradeConsole.Ok(
                 $"Staged the {stagedChanges.Count} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them"
             );
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            UpgradeResultWriter.Warning($"Failed to stage changes: {ex.Message}");
+            UpgradeConsole.Warning($"Failed to stage changes: {ex.Message}");
         }
     }
 

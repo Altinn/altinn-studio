@@ -41,7 +41,7 @@ internal static class V8Tov9Upgrade
 
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
-        using var outputScope = UpgradeResultWriter.Use(options.Report, options.Error);
+        using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
         var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
             return WriteError($"Project folder does not exist: {projectFolder}");
@@ -174,14 +174,14 @@ internal static class V8Tov9Upgrade
         var status = result.ManualActionRequired ? UpgradeMessageStatus.Todo : UpgradeMessageStatus.Warning;
         foreach (var warning in result.Warnings)
         {
-            UpgradeResultWriter.Message(status, warning);
+            UpgradeConsole.Message(status, warning);
         }
 
         if (result.ManualActionRequired)
             return ExitManualActionRequired;
 
         if (result.Warnings.Count == 0)
-            UpgradeResultWriter.Message(cleanStatus, cleanText);
+            UpgradeConsole.Message(cleanStatus, cleanText);
 
         return ExitSuccess;
     }
@@ -192,7 +192,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     private static int Fail(string message)
     {
-        UpgradeResultWriter.Failed(message);
+        UpgradeConsole.Failed(message);
         return ExitError;
     }
 
@@ -202,12 +202,12 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
-        UpgradeResultWriter.BeginStep("Project file");
+        UpgradeConsole.BeginStep("Project file");
         try
         {
             var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
             await rewriter.Upgrade();
-            UpgradeResultWriter.Ok($"Altinn.App packages set to {targetVersion}, target framework {targetFramework}");
+            UpgradeConsole.Ok($"Altinn.App packages set to {targetVersion}, target framework {targetFramework}");
             return ExitSuccess;
         }
         catch (Exception ex)
@@ -218,7 +218,7 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateDockerfile(string projectFolder, string targetFramework)
     {
-        UpgradeResultWriter.BeginStep("Dockerfile");
+        UpgradeConsole.BeginStep("Dockerfile");
         try
         {
             await DockerfileMigration.Migrate(projectFolder, targetFramework);
@@ -232,17 +232,17 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("Swashbuckle package");
+        UpgradeConsole.BeginStep("Swashbuckle package");
         try
         {
             var rewriter = new ProjectFileRewriter(projectFile);
             if (await rewriter.RemovePackageReference("Swashbuckle.AspNetCore"))
             {
-                UpgradeResultWriter.Ok("Swashbuckle.AspNetCore package reference removed");
+                UpgradeConsole.Ok("Swashbuckle.AspNetCore package reference removed");
             }
             else
             {
-                UpgradeResultWriter.Skip("No Swashbuckle.AspNetCore package reference");
+                UpgradeConsole.Skip("No Swashbuckle.AspNetCore package reference");
             }
 
             return ExitSuccess;
@@ -255,7 +255,7 @@ internal static class V8Tov9Upgrade
 
     static int MigrateOpenApiNamespace(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("OpenAPI namespace");
+        UpgradeConsole.BeginStep("OpenAPI namespace");
         try
         {
             var migration = new UsingNamespaceMigration(projectFile);
@@ -278,7 +278,7 @@ internal static class V8Tov9Upgrade
         CancellationToken cancellationToken
     )
     {
-        UpgradeResultWriter.BeginStep("NuGet downgrades");
+        UpgradeConsole.BeginStep("NuGet downgrades");
         try
         {
             var resolver = new NuGetDowngradeResolver();
@@ -298,7 +298,7 @@ internal static class V8Tov9Upgrade
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
     static int MigrateServiceTaskNamespace(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("IServiceTask namespace");
+        UpgradeConsole.BeginStep("IServiceTask namespace");
         try
         {
             var migration = new UsingNamespaceMigration(projectFile);
@@ -317,7 +317,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int MigrateEFormidlingReceiversSignature(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("IEFormidlingReceivers signature");
+        UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
@@ -349,7 +349,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int MigrateCorrespondenceApis(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("Correspondence APIs");
+        UpgradeConsole.BeginStep("Correspondence APIs");
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
@@ -372,7 +372,7 @@ internal static class V8Tov9Upgrade
 
     static int CheckRemovedCSharpApis(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("Removed v9 C# APIs");
+        UpgradeConsole.BeginStep("Removed v9 C# APIs");
         try
         {
             var scanner = CSharpSourceScanner.ForProject(projectFile);
@@ -398,16 +398,16 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateLaunchSettings(string projectFile)
     {
-        UpgradeResultWriter.BeginStep("Launch settings");
+        UpgradeConsole.BeginStep("Launch settings");
         try
         {
             if (await LaunchSettingsMigration.Migrate(projectFile))
             {
-                UpgradeResultWriter.Ok("Launch settings migrated");
+                UpgradeConsole.Ok("Launch settings migrated");
             }
             else
             {
-                UpgradeResultWriter.Skip("Launch settings already up to date");
+                UpgradeConsole.Skip("Launch settings already up to date");
             }
 
             return ExitSuccess;
@@ -420,7 +420,7 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateOrganizationLookupLayouts(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("OrganisationLookup components");
+        UpgradeConsole.BeginStep("OrganisationLookup components");
         try
         {
             return await OrganizationLookupLayoutMigration.Migrate(projectFolder);
@@ -438,7 +438,7 @@ internal static class V8Tov9Upgrade
         string? studioRoot
     )
     {
-        UpgradeResultWriter.BeginStep("Project references");
+        UpgradeConsole.BeginStep("Project references");
         try
         {
             if (string.IsNullOrWhiteSpace(studioRoot))
@@ -453,7 +453,7 @@ internal static class V8Tov9Upgrade
 
             var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
             await rewriter.ConvertToProjectReferences(studioRoot);
-            UpgradeResultWriter.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
+            UpgradeConsole.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
             return ExitSuccess;
         }
         catch (Exception ex)
@@ -474,18 +474,18 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int ConvertConditionalRenderingRules(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Conditional rendering rules");
+        UpgradeConsole.BeginStep("Conditional rendering rules");
         try
         {
             var converter = new ConditionalRenderingConverter(projectFolder);
             var stats = converter.ConvertAllLayoutSets();
             if (stats.TotalRules == 0)
             {
-                UpgradeResultWriter.Skip("No conditional rendering rules found");
+                UpgradeConsole.Skip("No conditional rendering rules found");
             }
             else
             {
-                UpgradeResultWriter.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
+                UpgradeConsole.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
             }
 
             return ExitSuccess;
@@ -501,7 +501,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int GenerateDataProcessors(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Data processors");
+        UpgradeConsole.BeginStep("Data processors");
         try
         {
             var uiPath = Path.Combine(projectFolder, "App", "ui");
@@ -510,7 +510,7 @@ internal static class V8Tov9Upgrade
                 uiPath = Path.Combine(projectFolder, "ui");
                 if (!Directory.Exists(uiPath))
                 {
-                    UpgradeResultWriter.Skip("No UI directory found");
+                    UpgradeConsole.Skip("No UI directory found");
                     return ExitSuccess;
                 }
             }
@@ -542,7 +542,7 @@ internal static class V8Tov9Upgrade
                 var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
                 if (!File.Exists(ruleHandlerPath))
                 {
-                    UpgradeResultWriter.Warning(
+                    UpgradeConsole.Warning(
                         $"RuleHandler.js not found for layout set '{layoutSetName}'; skipped its data processor"
                     );
                     continue;
@@ -558,7 +558,7 @@ internal static class V8Tov9Upgrade
 
                 if (dataModelInfo == null)
                 {
-                    UpgradeResultWriter.Warning(
+                    UpgradeConsole.Warning(
                         $"Could not resolve the data model for layout set '{layoutSetName}'; skipped its data processor"
                     );
                     continue;
@@ -584,7 +584,7 @@ internal static class V8Tov9Upgrade
                     || generationResult.ClassName == null
                 )
                 {
-                    UpgradeResultWriter.Failed(
+                    UpgradeConsole.Failed(
                         $"Could not generate the data processor for layout set '{layoutSetName}': "
                             + string.Join("; ", generationResult.Errors)
                     );
@@ -597,7 +597,7 @@ internal static class V8Tov9Upgrade
                     generationResult.ClassName,
                     generationResult.GeneratedCode
                 );
-                UpgradeResultWriter.Ok($"Generated data processor: {filePath}");
+                UpgradeConsole.Ok($"Generated data processor: {filePath}");
 
                 // Register in Program.cs
                 var programUpdater = new ProgramCsUpdater(projectFolder);
@@ -605,7 +605,7 @@ internal static class V8Tov9Upgrade
 
                 if (generationResult.FailedConversions > 0)
                 {
-                    UpgradeResultWriter.Warning(
+                    UpgradeConsole.Warning(
                         $"{generationResult.FailedConversions} of {generationResult.TotalRules} rules could not be converted to C# code"
                     );
                 }
@@ -615,7 +615,7 @@ internal static class V8Tov9Upgrade
 
             if (totalProcessed == 0)
             {
-                UpgradeResultWriter.Skip("No data processing rules found");
+                UpgradeConsole.Skip("No data processing rules found");
             }
 
             return ExitSuccess;
@@ -631,7 +631,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int CleanupLegacyRuleFiles(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Legacy rule files");
+        UpgradeConsole.BeginStep("Legacy rule files");
         try
         {
             var cleanup = new LegacyRuleFileCleanup(projectFolder);
@@ -639,11 +639,11 @@ internal static class V8Tov9Upgrade
 
             if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
             {
-                UpgradeResultWriter.Skip("No legacy rule files found");
+                UpgradeConsole.Skip("No legacy rule files found");
                 return ExitSuccess;
             }
 
-            UpgradeResultWriter.Ok(
+            UpgradeConsole.Ok(
                 $"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json and "
                     + $"{stats.RuleHandlerFilesDeleted} RuleHandler.js file(s)"
             );
@@ -661,7 +661,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int MigrateLayoutSetsToTaskUi(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Task-folder UI settings");
+        UpgradeConsole.BeginStep("Task-folder UI settings");
         try
         {
             var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
@@ -669,18 +669,18 @@ internal static class V8Tov9Upgrade
 
             if (!result.LayoutSetsDeleted)
             {
-                UpgradeResultWriter.Skip("No layout-sets.json found");
+                UpgradeConsole.Skip("No layout-sets.json found");
                 return ExitSuccess;
             }
 
-            UpgradeResultWriter.Ok(
+            UpgradeConsole.Ok(
                 $"Migrated {result.MigratedFolderCount} UI folder(s) to task folders "
                     + $"({result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, "
                     + $"{result.DeletedSourceFolderCount} deleted source folder(s))"
             );
             if (result.MigratedGlobalSettings)
             {
-                UpgradeResultWriter.Ok("Migrated global uiSettings to App/ui/Settings.json");
+                UpgradeConsole.Ok("Migrated global uiSettings to App/ui/Settings.json");
             }
 
             return ExitSuccess;
@@ -696,7 +696,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateIndexCshtml(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Index.cshtml");
+        UpgradeConsole.BeginStep("Index.cshtml");
         try
         {
             var migrator = new IndexCshtmlMigrator(projectFolder);
@@ -713,7 +713,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigratePdfServiceTasks(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("PDF service tasks");
+        UpgradeConsole.BeginStep("PDF service tasks");
         try
         {
             var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
@@ -735,7 +735,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateServiceOwnerPolicy(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Service-owner policy");
+        UpgradeConsole.BeginStep("Service-owner policy");
         try
         {
             var migrator = new PolicyMigration.ServiceOwnerPolicyMigrator(projectFolder);
@@ -757,7 +757,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> MigrateEFormidlingServiceTasks(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("eFormidling service tasks");
+        UpgradeConsole.BeginStep("eFormidling service tasks");
         try
         {
             var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
@@ -777,7 +777,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int WarnFeedbackTasksBehindServiceTasks(string projectFolder)
     {
-        UpgradeResultWriter.BeginStep("Feedback tasks behind service tasks");
+        UpgradeConsole.BeginStep("Feedback tasks behind service tasks");
         try
         {
             var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
@@ -823,7 +823,7 @@ internal static class V8Tov9Upgrade
 
     private static int WriteError(string message, int exitCode = ExitError)
     {
-        UpgradeResultWriter.WriteErrorLine(message);
+        UpgradeConsole.WriteErrorLine(message);
         return exitCode;
     }
 }

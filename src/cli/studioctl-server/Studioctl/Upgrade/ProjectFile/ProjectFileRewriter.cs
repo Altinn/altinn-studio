@@ -173,7 +173,7 @@ internal sealed class ProjectFileRewriter
                 // Check if the project file actually exists
                 if (!File.Exists(projectPath))
                 {
-                    UpgradeResultWriter.WriteLine(
+                    UpgradeConsole.WriteLine(
                         $"Warning: Project file not found: {projectPath}. Skipping {packageName}."
                     );
                     continue;
@@ -190,7 +190,7 @@ internal sealed class ProjectFileRewriter
                 itemGroup.Add(projectReference);
                 addedAnyProjectReferences = true;
 
-                UpgradeResultWriter.WriteLine($"Converted {packageName} from package reference to project reference");
+                UpgradeConsole.WriteLine($"Converted {packageName} from package reference to project reference");
             }
         }
 

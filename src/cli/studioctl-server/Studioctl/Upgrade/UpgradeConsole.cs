@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace Altinn.Studio.Cli.Upgrade;
 
 /// <summary>
@@ -11,7 +9,7 @@ namespace Altinn.Studio.Cli.Upgrade;
 /// itself, and is what <c>v9</c> uses. <see cref="Use(TextWriter, TextWriter)"/> writes free text the CLI
 /// prints verbatim, which is what <c>backend-v8</c> and <c>frontend-v4</c> still do.
 /// </remarks>
-internal static class UpgradeResultWriter
+internal static class UpgradeConsole
 {
     private static readonly AsyncLocal<Writers?> Current = new();
 
@@ -94,7 +92,7 @@ internal static class UpgradeResultWriter
         var step =
             writers.Step
             ?? throw new InvalidOperationException(
-                $"No upgrade step has started; cannot report \"{text}\". Call UpgradeResultWriter.BeginStep(...) first."
+                $"No upgrade step has started; cannot report \"{text}\". Call UpgradeConsole.BeginStep(...) first."
             );
 
         step.Add(text, status);

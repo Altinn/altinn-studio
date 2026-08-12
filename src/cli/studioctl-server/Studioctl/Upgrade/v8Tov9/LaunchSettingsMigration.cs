@@ -48,14 +48,14 @@ internal static class LaunchSettingsMigration
             if (root is not null)
                 return root;
 
-            UpgradeResultWriter.WriteLine(
+            UpgradeConsole.WriteLine(
                 $"Warning: {launchSettingsFile} does not contain a JSON object. Writing standard launch settings."
             );
             return new JsonObject();
         }
         catch (JsonException)
         {
-            UpgradeResultWriter.WriteLine(
+            UpgradeConsole.WriteLine(
                 $"Warning: Could not parse {launchSettingsFile}. Writing standard launch settings."
             );
             return new JsonObject();

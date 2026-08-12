@@ -29,7 +29,7 @@ internal static class OrganizationLookupLayoutMigration
         var uiDirectory = ResolveUiDirectory(projectFolder);
         if (uiDirectory is null)
         {
-            UpgradeResultWriter.Skip("No UI directory found");
+            UpgradeConsole.Skip("No UI directory found");
             return 0;
         }
 
@@ -64,14 +64,14 @@ internal static class OrganizationLookupLayoutMigration
             await Utf8TextFile.Write(layoutFile, migrated, decoded.HadBom);
             changedFiles++;
             var bindings = occurrences.OrganizationNumberBindings + occurrences.OrganizationNameBindings;
-            UpgradeResultWriter.Ok(
+            UpgradeConsole.Ok(
                 $"Migrated {occurrences.Components} component type(s) and {bindings} binding(s) in {layoutFile}"
             );
         }
 
         if (changedFiles == 0)
         {
-            UpgradeResultWriter.Skip("No OrganisationLookup contract tokens found");
+            UpgradeConsole.Skip("No OrganisationLookup contract tokens found");
         }
 
         return 0;

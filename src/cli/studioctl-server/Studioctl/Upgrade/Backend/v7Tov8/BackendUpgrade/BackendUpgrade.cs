@@ -31,7 +31,7 @@ internal static class BackendUpgrade
 {
     internal static async Task<int> RunAsync(BackendUpgradeOptions options)
     {
-        using var outputScope = UpgradeResultWriter.Use(options.Output, options.Error);
+        using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
         var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
             return WriteError($"Project folder does not exist: {projectFolder}");
@@ -80,10 +80,10 @@ internal static class BackendUpgrade
 
     static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
-        await UpgradeResultWriter.Out.WriteLineAsync("Trying to upgrade nuget versions in project file");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade nuget versions in project file");
         var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
         await rewriter.Upgrade();
-        await UpgradeResultWriter.Out.WriteLineAsync("Nuget versions upgraded");
+        await UpgradeConsole.Out.WriteLineAsync("Nuget versions upgraded");
         return 0;
     }
 
@@ -91,19 +91,19 @@ internal static class BackendUpgrade
     {
         if (!File.Exists(dockerFile))
         {
-            await UpgradeResultWriter.Error.WriteLineAsync($"Dockerfile does not exist: {dockerFile}");
+            await UpgradeConsole.Error.WriteLineAsync($"Dockerfile does not exist: {dockerFile}");
             return 1;
         }
-        await UpgradeResultWriter.Out.WriteLineAsync("Trying to upgrade dockerfile");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade dockerfile");
         var rewriter = new DockerfileRewriter(dockerFile, targetFramework);
         await rewriter.Upgrade();
-        await UpgradeResultWriter.Out.WriteLineAsync("Dockerfile upgraded");
+        await UpgradeConsole.Out.WriteLineAsync("Dockerfile upgraded");
         return 0;
     }
 
     static async Task<int> UpgradeCode(string projectFile)
     {
-        await UpgradeResultWriter.Out.WriteLineAsync("Trying to upgrade references and using in code");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade references and using in code");
 
         if (!MSBuildLocator.IsRegistered)
             MSBuildLocator.RegisterDefaults();
@@ -112,7 +112,7 @@ internal static class BackendUpgrade
         var comp = await project.GetCompilationAsync();
         if (comp is null)
         {
-            await UpgradeResultWriter.Error.WriteLineAsync("Could not get compilation");
+            await UpgradeConsole.Error.WriteLineAsync("Could not get compilation");
             return 1;
         }
         foreach (var sourceTree in comp.SyntaxTrees)
@@ -167,7 +167,7 @@ internal static class BackendUpgrade
             }
         }
 
-        await UpgradeResultWriter.Out.WriteLineAsync("References and using upgraded");
+        await UpgradeConsole.Out.WriteLineAsync("References and using upgraded");
         return 0;
     }
 
@@ -175,21 +175,21 @@ internal static class BackendUpgrade
     {
         if (!File.Exists(processFile))
         {
-            await UpgradeResultWriter.Error.WriteLineAsync($"Process file does not exist: {processFile}");
+            await UpgradeConsole.Error.WriteLineAsync($"Process file does not exist: {processFile}");
             return 1;
         }
 
-        await UpgradeResultWriter.Out.WriteLineAsync("Trying to upgrade process file");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade process file");
         ProcessUpgrader parser = new(processFile);
         parser.Upgrade();
         await parser.Write();
         var warnings = parser.GetWarnings();
         foreach (var warning in warnings)
         {
-            await UpgradeResultWriter.Out.WriteLineAsync(warning);
+            await UpgradeConsole.Out.WriteLineAsync(warning);
         }
 
-        await UpgradeResultWriter.Out.WriteLineAsync(
+        await UpgradeConsole.Out.WriteLineAsync(
             warnings.Any()
                 ? "Process file upgraded with warnings. Review the warnings above and make sure that the process file is still valid."
                 : "Process file upgraded"
@@ -202,7 +202,7 @@ internal static class BackendUpgrade
     {
         if (!Directory.Exists(appSettingsFolder))
         {
-            await UpgradeResultWriter.Error.WriteLineAsync($"App settings folder does not exist: {appSettingsFolder}");
+            await UpgradeConsole.Error.WriteLineAsync($"App settings folder does not exist: {appSettingsFolder}");
             return 1;
         }
 
@@ -211,21 +211,21 @@ internal static class BackendUpgrade
             == 0
         )
         {
-            await UpgradeResultWriter.Error.WriteLineAsync($"No appsettings*.json files found in {appSettingsFolder}");
+            await UpgradeConsole.Error.WriteLineAsync($"No appsettings*.json files found in {appSettingsFolder}");
             return 1;
         }
 
-        await UpgradeResultWriter.Out.WriteLineAsync("Trying to upgrade appsettings*.json files");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade appsettings*.json files");
         AppSettingsRewriter.AppSettingsRewriter rewriter = new(appSettingsFolder);
         rewriter.Upgrade();
         await rewriter.Write();
         var warnings = rewriter.GetWarnings();
         foreach (var warning in warnings)
         {
-            await UpgradeResultWriter.Out.WriteLineAsync(warning);
+            await UpgradeConsole.Out.WriteLineAsync(warning);
         }
 
-        await UpgradeResultWriter.Out.WriteLineAsync(
+        await UpgradeConsole.Out.WriteLineAsync(
             warnings.Any()
                 ? "AppSettings files upgraded with warnings. Review the warnings above and make sure that the appsettings files are still valid."
                 : "AppSettings files upgraded"
@@ -236,7 +236,7 @@ internal static class BackendUpgrade
 
     private static int WriteError(string message, int exitCode = 1)
     {
-        UpgradeResultWriter.WriteErrorLine(message);
+        UpgradeConsole.WriteErrorLine(message);
         return exitCode;
     }
 }

@@ -94,9 +94,9 @@ internal sealed class AppUpgradeService : IDisposable
     private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport report)
     {
         // keep reporting status to report if has already been used, otherwise report to output.
-        using (report.HasSteps ? UpgradeResultWriter.Use(report, error) : UpgradeResultWriter.Use(output, error))
+        using (report.HasSteps ? UpgradeConsole.Use(report, error) : UpgradeConsole.Use(output, error))
         {
-            UpgradeResultWriter.BeginStep("Staging changes");
+            UpgradeConsole.BeginStep("Staging changes");
             GitOperations.StageAllChanges(projectFolder);
         }
     }
