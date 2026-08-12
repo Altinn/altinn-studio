@@ -13,6 +13,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Rewrite legacy Datepicker `format` values (`DD.MM.YYYY`, `DD/MM/YYYY`, `YYYY-MM-DD`) to their supported equivalents (`dd.MM.yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`) in layout files when running `studioctl app upgrade v9`.
 
+### Fixed
+- Relax rules for validating Altinn.App.Api and Altinn.App.Core nuget versions to allow missing Core reference and range versions `8.*`, `[8.11.3]` and `[8.0,9.0)`
+
 ## [0.1.0-preview.21] - 2026-08-11
 
 ### Added
