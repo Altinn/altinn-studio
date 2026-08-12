@@ -132,8 +132,8 @@ __metadata:
   dependencies:
     "@app/language": "workspace:0.1.0"
     "@chromatic-com/storybook": "npm:5.3.0"
-    "@digdir/designsystemet-css": "npm:1.11.1"
-    "@digdir/designsystemet-react": "npm:1.11.1"
+    "@digdir/designsystemet-css": "npm:1.18.0"
+    "@digdir/designsystemet-react": "npm:1.18.0"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:10.0.1"
     "@navikt/aksel-icons": "npm:8.16.1"
@@ -1981,15 +1981,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:1.11.1":
-  version: 1.11.1
-  resolution: "@digdir/designsystemet-css@npm:1.11.1"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:^1.11.1"
-  checksum: 10/3ce8c01682e6d036c93ec9629b4d5daeff40059271a8750bd1edb1154e1da6d5e820a9d12d3ddfa420d4fc402662a82125b9fa8b7edbf6fd478ec25a80a5c783
-  languageName: node
-  linkType: hard
-
 "@digdir/designsystemet-css@npm:1.13.3":
   version: 1.13.3
   resolution: "@digdir/designsystemet-css@npm:1.13.3"
@@ -2020,27 +2011,6 @@ __metadata:
     react: ">=18.3.1"
     react-dom: ">=18.3.1"
   checksum: 10/535114f51dac1328efd4b721edd73cad6a9c268f249b23aa1c6db011d6c68ff2c33a6b7a60616aa4ee0a08931f5b1ab5a1b4ba207fe03f0124fc27ebd74828e0
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-react@npm:1.11.1":
-  version: 1.11.1
-  resolution: "@digdir/designsystemet-react@npm:1.11.1"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:^1.11.1"
-    "@floating-ui/dom": "npm:^1.7.5"
-    "@floating-ui/react": "npm:0.26.23"
-    "@navikt/aksel-icons": "npm:^8.2.0"
-    "@radix-ui/react-slot": "npm:^1.2.4"
-    "@tanstack/react-virtual": "npm:^3.13.18"
-    "@u-elements/u-combobox": "npm:^1.0.7"
-    "@u-elements/u-datalist": "npm:^1.1.0"
-    "@u-elements/u-details": "npm:^0.1.5"
-    clsx: "npm:^2.1.1"
-  peerDependencies:
-    react: ">=18.3.1 || ^19.0.0"
-    react-dom: ">=18.3.1 || ^19.0.0"
-  checksum: 10/4432989fef7acc6f02006e2c5f9cdacf6b08aa3432e51e1f4896a5048811a3ce3a0fbef34631cd29151af9109d5388e4749bdce8443e73354ebf8b186a3934df
   languageName: node
   linkType: hard
 
@@ -2112,7 +2082,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-types@npm:^1.11.0, @digdir/designsystemet-types@npm:^1.11.1":
+"@digdir/designsystemet-types@npm:^1.11.0":
   version: 1.13.2
   resolution: "@digdir/designsystemet-types@npm:1.13.2"
   checksum: 10/9277d3d84bb146aa79ffa6eeab8388b389c9cdb5a896702033ad42eb3065a1370fa2c7f884186fdb513b26a62060250c4e8f13bc3daf3fd89cc71910599ba997
@@ -2854,7 +2824,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.7.4, @floating-ui/dom@npm:^1.7.5, @floating-ui/dom@npm:^1.7.6":
+"@floating-ui/dom@npm:^1.7.4, @floating-ui/dom@npm:^1.7.6":
   version: 1.7.6
   resolution: "@floating-ui/dom@npm:1.7.6"
   dependencies:
@@ -3740,7 +3710,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:^8.2.0, @navikt/aksel-icons@npm:^8.9.0":
+"@navikt/aksel-icons@npm:^8.9.0":
   version: 8.10.5
   resolution: "@navikt/aksel-icons@npm:8.10.5"
   checksum: 10/6a7b005e664c326e840111bba62845c8106d140030ceca2d400fca75aadd5e7e0fdf3e7f959cd233f0c93ff22ebeca78941b8a7f83d0e2cca0e47b5d75583261
@@ -5948,7 +5918,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.13.18, @tanstack/react-virtual@npm:^3.13.23, @tanstack/react-virtual@npm:^3.2.0":
+"@tanstack/react-virtual@npm:^3.13.23, @tanstack/react-virtual@npm:^3.2.0":
   version: 3.13.23
   resolution: "@tanstack/react-virtual@npm:3.13.23"
   dependencies:
@@ -6979,13 +6949,6 @@ __metadata:
   version: 2.0.3
   resolution: "@u-elements/u-datalist@npm:2.0.3"
   checksum: 10/d14255d9b899cb60b5b2d0ddbd7b43d71f3c8856672695d9c19c5b78edb807ec7058f3acdb4a429b7f82e9a0de2e5e53535e8c8f222e1abf3fe9577ea03cd679
-  languageName: node
-  linkType: hard
-
-"@u-elements/u-details@npm:^0.1.5":
-  version: 0.1.5
-  resolution: "@u-elements/u-details@npm:0.1.5"
-  checksum: 10/b001fda29f63f69fe7c55f812e5077a371447678a4e56c59d99479229de17894e0c1ae04b66ed273dbc35d5fbea48324ecb92537d03dbc0aa2fc5dbdc643ac78
   languageName: node
   linkType: hard
 
