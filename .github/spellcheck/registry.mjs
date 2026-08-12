@@ -164,6 +164,34 @@ export const OUT_OF_SCOPE = [
 ];
 
 /**
+ * typos.toml extend-exclude globs that are ALLOWED to match no tracked file.
+ * The coverage check fails any dead exclude glob unless it is declared here,
+ * and fails a declaration whose glob is live again or gone from the config —
+ * so neither the engine excludes nor this list can rot silently. Tracked
+ * files are a proxy for what typos actually walks: a glob for gitignored
+ * build output matches nothing tracked, yet still does real work in an
+ * unclean working tree.
+ */
+export const PRECAUTIONARY_EXCLUDES = [
+  {
+    glob: '.git/**',
+    reason: 'the git database is never tracked, but typos walks it (ignore-hidden is off)',
+  },
+  {
+    glob: '**/bin/**',
+    reason: 'gitignored .NET build output, present in real working trees',
+  },
+  {
+    glob: '**/obj/**',
+    reason: 'gitignored .NET build output, present in real working trees',
+  },
+  {
+    glob: '**/node_modules/**',
+    reason: 'gitignored dependencies, present in real working trees',
+  },
+];
+
+/**
  * Where language files live, by shape. The coverage check runs these over
  * `git ls-files`; anything matched must be registered or in OUT_OF_SCOPE.
  * Inline triplets (constants.js, applicationmetadata.json outside these

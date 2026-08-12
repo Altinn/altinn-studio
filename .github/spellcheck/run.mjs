@@ -16,9 +16,10 @@
  *   structure  every language defines the same keys, interpolates the same
  *              parameters, and has no empty values
  *   coverage   every language-file-shaped path in the repo is registered or
- *              explicitly out of scope, and every registered file is
- *              excluded from the code pass (no drift between the registry
- *              and typos.toml)
+ *              explicitly out of scope, every registered file is excluded
+ *              from the code pass (no drift between the registry and
+ *              typos.toml), and every typos.toml exclude still matches
+ *              something or is declared precautionary (no dead engine rules)
  *   en         British English over English UI text values; US English over
  *              translation keys (typos over extracted copies — fixes are
  *              applied to the real files by key, never by byte offset)
@@ -51,6 +52,7 @@ import {
   compileSuppressions,
   ensureDictionaries,
   ensureOrdbank,
+  excludeLiveness,
   fileLineReader,
   findKeyLine,
   globToRegExp,
@@ -65,6 +67,7 @@ import {
   toolAvailable,
   trackedFiles,
   typosFileList,
+  typosTomlExcludes,
 } from './lib.mjs';
 import * as realRegistry from './registry.mjs';
 import { SUPPRESSIONS } from './suppressions.mjs';
@@ -332,9 +335,19 @@ function checkCoverage({ registry, root }) {
     );
   }
 
+  // Engine-config liveness: typos.toml's excludes rot exactly the way scan
+  // patterns do (a directory rename kills a glob silently), so every glob
+  // must match a tracked file or carry a precautionary declaration.
+  const excludes = typosTomlExcludes(join(root, 'typos.toml'));
+  for (const problem of excludeLiveness(excludes, registry.PRECAUTIONARY_EXCLUDES ?? [], tracked)) {
+    findings.push(finding('typos.toml', undefined, problem));
+  }
+
   return {
     findings,
-    counts: `${matched} matched paths, ${registered.size} registered, ${oos.length} out-of-scope rules`,
+    counts:
+      `${matched} matched paths, ${registered.size} registered, ` +
+      `${oos.length} out-of-scope rules, ${excludes.length} engine excludes checked`,
   };
 }
 
@@ -596,7 +609,11 @@ async function checkSelfTest({ ci }) {
     FIX_SCENARIOS,
     CLASSIFIER_SCENARIOS,
   } = await import('./selftest/registry.mjs');
-  const registry = { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS };
+  // The engine-exclude declarations are production policy, not fixture data
+  // — they ride along so the liveness arm of the coverage check proves the
+  // REAL typos.toml clean, while its defect arms run as unit scenarios.
+  const { PRECAUTIONARY_EXCLUDES } = realRegistry;
+  const registry = { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS, PRECAUTIONARY_EXCLUDES };
   const failures = [];
   let assertions = 0;
 
@@ -684,8 +701,20 @@ async function checkSelfTest({ ci }) {
   // the code pass would still visit (drift), a registered path that does not
   // exist (untracked), and an out-of-scope rule that exempts nothing
   // (stale). DRIFT_REGISTRY plants one of each.
-  const drift = checkCoverage({ registry: DRIFT_REGISTRY, root: REPO_ROOT });
+  const drift = checkCoverage({
+    registry: { ...DRIFT_REGISTRY, PRECAUTIONARY_EXCLUDES },
+    root: REPO_ROOT,
+  });
   assertFindings('coverage-drift', drift.findings, 'coverageDrift');
+
+  // The engine-exclude liveness logic, on synthetic globs: every defect arm
+  // (dead rule, unnecessary declaration, stale declaration) plus the two
+  // legal states, without planting dead rules in the production config.
+  for (const failure of excludeLivenessFailures()) {
+    failures.push(finding('(self-test)', undefined, `exclude liveness: ${failure}`));
+    assertions += 1;
+  }
+  assertions += 5;
 
   // The fix path — the only code that writes to product files — asserted on
   // throwaway copies, byte for byte.
@@ -731,6 +760,41 @@ function classifierFailures({ lines, cases }) {
     const { norwegian, data } = classifyFindings([find], readLine);
     const got = norwegian === 1 ? 'norwegian' : data === 1 ? 'data' : 'finding';
     if (got !== want) failures.push(`expected ${want} but got ${got} for ${what}`);
+  }
+  return failures;
+}
+
+/**
+ * The liveness contract on typos.toml's excludes: a dead glob is a finding
+ * unless declared precautionary; a declaration is itself a finding when its
+ * glob is live (unnecessary) or absent from the config (stale); and a
+ * declaration without a reason breaks the harness rather than passing.
+ */
+function excludeLivenessFailures() {
+  const failures = [];
+  const problems = excludeLiveness(
+    ['src/**', '*.dead', 'gen/**'],
+    [
+      { glob: 'gen/**', reason: 'planted: allowed to be silent' },
+      { glob: 'src/**', reason: 'planted: unnecessary — the glob is live' },
+      { glob: 'ghost/**', reason: 'planted: stale — no such rule' },
+    ],
+    ['src/a.cs', 'docs/readme.md'],
+  );
+  const expect = (fragment, why) => {
+    if (!problems.some((p) => p.includes(fragment))) failures.push(`did not flag ${why}`);
+  };
+  expect(`'*.dead' matches no tracked file`, 'a dead undeclared glob');
+  expect(`'src/**' is declared precautionary but matches`, 'an unnecessary declaration');
+  expect(`declaration for 'ghost/**' matches no rule`, 'a stale declaration');
+  if (problems.length !== 3) {
+    failures.push(`expected exactly 3 problems, got ${problems.length}: ${problems.join(' | ')}`);
+  }
+  try {
+    excludeLiveness(['a/**'], [{ glob: 'a/**' }], []);
+    failures.push('a declaration without a reason was accepted');
+  } catch (err) {
+    if (!(err instanceof HarnessError)) throw err;
   }
   return failures;
 }

@@ -330,6 +330,63 @@ export function globToRegExp(glob) {
   return new RegExp(`^${pattern}$`);
 }
 
+/**
+ * The extend-exclude globs of a typos config. A deliberately minimal parser
+ * — the file is ours and hand-formatted; comments are stripped before the
+ * strings are read so a quoted word in prose cannot become a phantom rule.
+ * Zero globs means the parse broke, never a clean config.
+ */
+export function typosTomlExcludes(configPath) {
+  const m = /^extend-exclude\s*=\s*\[([\s\S]*?)^\]/m.exec(readFileSync(configPath, 'utf8'));
+  if (!m) throw new HarnessError(`${configPath}: no extend-exclude block found`);
+  const globs = [...m[1].replace(/#[^\n]*/g, '').matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+  if (globs.length === 0) {
+    throw new HarnessError(`${configPath}: extend-exclude parsed to zero globs`);
+  }
+  return globs;
+}
+
+/**
+ * Engine-config rot detection: every extend-exclude glob must match at least
+ * one tracked file, or be declared precautionary (with a reason) in
+ * registry.mjs. Tracked files are a proxy for what typos walks — a glob for
+ * gitignored build output matches nothing tracked yet still does real work
+ * in an unclean working tree, which is exactly what a precautionary
+ * declaration records. Declarations rot-check in both directions: one whose
+ * glob is live is unnecessary, one whose glob left typos.toml is stale.
+ */
+export function excludeLiveness(globs, declarations, tracked) {
+  const problems = [];
+  const declared = new Map();
+  for (const d of declarations) {
+    if (!d.reason) throw new HarnessError(`precautionary exclude '${d.glob}' has no reason`);
+    declared.set(d.glob, d);
+  }
+  for (const glob of globs) {
+    // A slashless glob matches basenames at any depth (gitignore-style).
+    const re = globToRegExp(glob.includes('/') ? glob : `**/${glob}`);
+    const alive = tracked.some((p) => re.test(p));
+    if (declared.has(glob)) {
+      declared.delete(glob);
+      if (alive) {
+        problems.push(
+          `'${glob}' is declared precautionary but matches tracked files — drop the declaration`,
+        );
+      }
+    } else if (!alive) {
+      problems.push(
+        `extend-exclude '${glob}' matches no tracked file — dead rule; remove it or declare it precautionary in registry.mjs`,
+      );
+    }
+  }
+  for (const d of declared.values()) {
+    problems.push(
+      `precautionary declaration for '${d.glob}' matches no rule in typos.toml — stale, remove it`,
+    );
+  }
+  return problems;
+}
+
 export function trackedFiles(root = REPO_ROOT) {
   const res = spawnSync('git', ['ls-files', '-z'], {
     cwd: root,

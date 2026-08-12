@@ -110,7 +110,9 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   self-test plants one of every defect class and asserts the production configuration catches
   each one, and every check runs independently so a failure in one cannot hide another.
 
-  `typos.toml` is **engine configuration only** and holds no named exceptions. Every accepted
+  `typos.toml` is **engine configuration only** and holds no named exceptions, and its excludes
+  cannot rot: a glob that matches no tracked file fails the coverage check unless declared
+  precautionary (with a reason) in `registry.mjs`. Every accepted
   spelling lives in `.github/spellcheck/suppressions.mjs`, scoped to the paths — and where
   possible the exact identifiers — where it is load-bearing, with a reason. The same token outside
   its scope is still reported, and an entry that matches nothing is reported as stale. For this

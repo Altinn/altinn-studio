@@ -88,7 +88,7 @@ jobs:
         if: always()
         run: node .github/spellcheck/run.mjs structure
 
-      - name: Registry coverage (nothing unchecked, no drift)
+      - name: Registry coverage (nothing unchecked, no drift, no dead excludes)
         id: coverage
         if: always()
         run: node .github/spellcheck/run.mjs coverage
