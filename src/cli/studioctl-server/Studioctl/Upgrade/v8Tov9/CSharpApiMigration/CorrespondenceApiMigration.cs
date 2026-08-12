@@ -95,7 +95,8 @@ internal sealed class CorrespondenceApiMigration
     {
         var warnings = new List<string>();
         var unresolved = new List<string>();
-        var files = _scanner.Files;
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        var files = _scanner.Files.ToArray();
 
         foreach (var file in files)
         {
@@ -112,7 +113,7 @@ internal sealed class CorrespondenceApiMigration
                 updated = AddUsingIfMissing(unit, AuthenticationMethodNamespace);
             }
 
-            File.WriteAllText(file.Path, updated.ToFullString());
+            _scanner.Update(file, (CompilationUnitSyntax)updated);
             warnings.AddRange(rewriter.Changes);
         }
 

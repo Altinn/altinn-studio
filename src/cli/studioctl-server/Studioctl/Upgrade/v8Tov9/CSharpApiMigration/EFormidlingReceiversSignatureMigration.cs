@@ -84,7 +84,8 @@ internal sealed class EFormidlingReceiversSignatureMigration
     {
         var warnings = new List<string>();
 
-        foreach (var file in _scanner.Files)
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        foreach (var file in _scanner.Files.ToArray())
         {
             var methods = FindMethodsToMigrate(file.Root).ToArray();
             if (methods.Length == 0)
@@ -101,7 +102,7 @@ internal sealed class EFormidlingReceiversSignatureMigration
                         nullable: NullableAnnotationsActiveAt(file.Root, original, _projectNullableAnnotationsEnabled)
                     )
             );
-            File.WriteAllText(file.Path, updatedRoot.ToFullString());
+            _scanner.Update(file, updatedRoot);
 
             foreach (var line in lines)
             {
