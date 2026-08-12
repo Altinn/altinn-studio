@@ -87,7 +87,7 @@ public class ProcessClient : IProcessClient
             authenticationMethod ?? _defaultAuthenticationMethod
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
         if (response.IsSuccessStatusCode)
         {

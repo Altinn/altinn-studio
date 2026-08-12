@@ -1,8 +1,7 @@
 import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
-import { Accordion } from '@digdir/designsystemet-react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioDetails } from '@studio/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
@@ -61,75 +60,75 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   return (
     <>
       <ComponentConfigHeader />
-      <Accordion>
-        {formItem.type === ComponentType.Summary2 && (
-          <Accordion.Item
-            open={openList.includes('summary2overrides')}
-            key={`${formItemId}-summary2overrides`}
-          >
-            <Accordion.Header onHeaderClick={() => toggleOpen('summary2overrides')}>
-              {t('ux_editor.component_properties.summary.override.title')}
-            </Accordion.Header>
-            <Accordion.Content>
-              <Summary2Override component={formItem} onChange={handleUpdate} />
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
-        {hasTextProperties && (
-          <Accordion.Item
-            open={openList.includes('text')}
-            key={`${formItemId}-textResourceBindings`}
-          >
-            <Accordion.Header
-              aria-label={t('right_menu.text_label')}
-              onHeaderClick={() => toggleOpen('text')}
-            >
-              {t(formItem.type === 'Image' ? 'right_menu.text_and_image' : 'right_menu.text')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordionContent}>
-              <Text />
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
-        {hasDataModelBindingProperties && (
-          <Accordion.Item
-            open={openList.includes('dataModel')}
-            key={`${formItemId}-dataModelBindings`}
-          >
-            <Accordion.Header onHeaderClick={() => toggleOpen('dataModel')}>
-              {t('right_menu.data_model_bindings')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordionContent}>
-              <DataModelBindings />
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
-        {hasOtherProperties && (
-          <Accordion.Item open={openList.includes('content')} key={`${formItemId}-content`}>
-            <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
-              {t('right_menu.content')}
-            </Accordion.Header>
-            <Accordion.Content className={classes.accordionContent}>
-              <EditFormComponent
-                editFormId={formItemId}
-                component={formItem}
-                handleComponentUpdate={async (updatedComponent, mutateOptions) => {
-                  handleUpdate(updatedComponent);
-                  debounceSave(formItemId, updatedComponent, mutateOptions);
-                }}
-              />
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
-        <Accordion.Item open={openList.includes('dynamics')} key={`${formItemId}-dynamics`}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
-            {t('right_menu.dynamics')}
-          </Accordion.Header>
-          <Accordion.Content>
-            <Expressions />
-          </Accordion.Content>
-        </Accordion.Item>
-      </Accordion>
+      {formItem.type === ComponentType.Summary2 && (
+        <StudioDetails
+          onToggle={() => toggleOpen('summary2overrides')}
+          open={openList.includes('summary2overrides')}
+          key={`${formItemId}-summary2overrides`}
+        >
+          <StudioDetails.Summary>
+            {t('ux_editor.component_properties.summary.override.title')}
+          </StudioDetails.Summary>
+          <StudioDetails.Content className={classes.accordionContent}>
+            <Summary2Override component={formItem} onChange={handleUpdate} />
+          </StudioDetails.Content>
+        </StudioDetails>
+      )}
+      {hasTextProperties && (
+        <StudioDetails
+          onToggle={() => toggleOpen('text')}
+          open={openList.includes('text')}
+          key={`${formItemId}-textResourceBindings`}
+        >
+          <StudioDetails.Summary aria-label={t('right_menu.text_label')}>
+            {t(formItem.type === 'Image' ? 'right_menu.text_and_image' : 'right_menu.text')}
+          </StudioDetails.Summary>
+          <StudioDetails.Content className={classes.accordionContent}>
+            <Text />
+          </StudioDetails.Content>
+        </StudioDetails>
+      )}
+      {hasDataModelBindingProperties && (
+        <StudioDetails
+          onToggle={() => toggleOpen('dataModel')}
+          open={openList.includes('dataModel')}
+          key={`${formItemId}-dataModelBindings`}
+        >
+          <StudioDetails.Summary>{t('right_menu.data_model_bindings')}</StudioDetails.Summary>
+          <StudioDetails.Content className={classes.accordionContent}>
+            <DataModelBindings />
+          </StudioDetails.Content>
+        </StudioDetails>
+      )}
+      {hasOtherProperties && (
+        <StudioDetails
+          onToggle={() => toggleOpen('content')}
+          open={openList.includes('content')}
+          key={`${formItemId}-content`}
+        >
+          <StudioDetails.Summary>{t('right_menu.content')}</StudioDetails.Summary>
+          <StudioDetails.Content className={classes.accordionContent}>
+            <EditFormComponent
+              editFormId={formItemId}
+              component={formItem}
+              handleComponentUpdate={async (updatedComponent, mutateOptions) => {
+                handleUpdate(updatedComponent);
+                debounceSave(formItemId, updatedComponent, mutateOptions);
+              }}
+            />
+          </StudioDetails.Content>
+        </StudioDetails>
+      )}
+      <StudioDetails
+        onToggle={() => toggleOpen('dynamics')}
+        open={openList.includes('dynamics')}
+        key={`${formItemId}-dynamics`}
+      >
+        <StudioDetails.Summary>{t('right_menu.dynamics')}</StudioDetails.Summary>
+        <StudioDetails.Content>
+          <Expressions />
+        </StudioDetails.Content>
+      </StudioDetails>
     </>
   );
 };

@@ -57,7 +57,7 @@ describe('PageAccordion', () => {
     const user = userEvent.setup();
     await render();
 
-    const accordionButton = screen.getByRole('button', { name: mockPageName1 });
+    const accordionButton = screen.getByText(mockPageName1);
     await user.click(accordionButton);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
