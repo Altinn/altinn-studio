@@ -1954,6 +1954,21 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    /// <summary>
+    /// Configuration section names are case-insensitive, so rebinding the provisioned section with a
+    /// different casing is the same no-op as the exact spelling.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_IgnoresRebindingTheProvisionedSectionWithDifferentCasing()
+    {
+        _app.Write("Program.cs", """services.ConfigureMaskinportenClient("MaskinPortenSettings");""");
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
     [Fact]
     public void ClientOverrideDetector_CleanApp_ReportsNothing()
     {

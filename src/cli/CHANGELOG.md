@@ -24,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Relax rules for validating Altinn.App.Api and Altinn.App.Core nuget versions to allow missing Core reference and range versions `8.*`, `[8.11.3]` and `[8.0,9.0)`
+- `studioctl app upgrade v9` no longer warns about a `ConfigureMaskinportenClient` call that binds the standard `MaskinportenSettings` section with a different casing (for example `"MaskinPortenSettings"`). Configuration section names are case-insensitive, so such a call binds the same provisioned section and changes nothing.
 
 ## [0.1.0-preview.21] - 2026-08-11
 

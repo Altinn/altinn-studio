@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Include="../../Runtime/common/dotnet/Altinn.Studio.Runtime.Common/HostBridge/**/*.cs" LinkBase="HostBridge" />
     <Compile Include="../../Runtime/common/dotnet/Altinn.Studio.Runtime.Common/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
+    <Compile Include="../../common/dotnet/Altinn.Studio.MaskinportenRules/src/**/*.cs" LinkBase="MaskinportenRules" />
   </ItemGroup>
 
   <ItemGroup>

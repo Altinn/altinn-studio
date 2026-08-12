@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.Studio.MaskinportenRules;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -34,44 +35,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// </summary>
 internal sealed class MaskinportenSettingsCollisionDetector
 {
-    private const string SectionName = "MaskinportenSettings";
-
-    /// <summary>
-    /// Keys that only ever belong to the external package's settings shape. Their presence is what
-    /// distinguishes "this app configured the external client" from "this app pinned the built-in one".
-    /// </summary>
-    private static readonly IReadOnlySet<string> _externalOnlyKeys = new HashSet<string>(
-        StringComparer.OrdinalIgnoreCase
-    )
-    {
-        "Environment",
-        "EncodedJwk",
-        "EncodedX509",
-        "CertificatePkcs12Path",
-        "CertificatePkcs12Password",
-        "CertificateStoreThumbprint",
-        "ExhangeToAltinnToken",
-        "Scope",
-        "ConsumerOrgNo",
-        "EnterpriseUserName",
-        "EnterpriseUserPassword",
-        "EnableDebugLogging",
-        "ClientKey",
-    };
-
-    /// <summary>
-    /// Keys the platform-provisioned settings file also supplies, so an app-supplied value is replaced or
-    /// merged at deploy time. <c>authority</c> is deliberately absent: it carries no identity, and the
-    /// provisioned value overriding it is the correct outcome rather than a hazard.
-    /// </summary>
-    private static readonly IReadOnlySet<string> _provisionedKeys = new HashSet<string>(
-        StringComparer.OrdinalIgnoreCase
-    )
-    {
-        "clientId",
-        "jwk",
-        "jwkBase64",
-    };
+    // The key sets, section classification and guidance live in the shared rule data
+    // (src/common/dotnet/Altinn.Studio.MaskinportenRules), which the app Roslyn analyzer compiles as well.
+    private const string SectionName = MaskinportenInvariants.ProvisionedSectionName;
 
     private readonly string _projectFolder;
 
@@ -102,21 +68,26 @@ internal sealed class MaskinportenSettingsCollisionDetector
             }
 
             var relativePath = Path.GetRelativePath(_projectFolder, file);
-            var localOnly = IsDevelopmentSettingsFile(file);
+            var localOnly = MaskinportenInvariants.IsDevelopmentSettingsFileName(Path.GetFileName(file));
 
-            var externalKeys = section.Where(_externalOnlyKeys.Contains).Order(StringComparer.Ordinal).ToList();
-            if (externalKeys.Count > 0)
+            switch (MaskinportenInvariants.ClassifySection(section))
             {
-                externalShaped.Add(new SectionFinding($"{relativePath}: {string.Join(", ", externalKeys)}", localOnly));
-                continue;
-            }
-
-            var provisioned = section.Where(_provisionedKeys.Contains).Order(StringComparer.Ordinal).ToList();
-            if (provisioned.Count > 0)
-            {
-                provisionedOverlap.Add(
-                    new SectionFinding($"{relativePath}: {string.Join(", ", provisioned)}", localOnly)
-                );
+                case MaskinportenSectionShape.ExternalClient:
+                    var externalKeys = section
+                        .Where(MaskinportenInvariants.IsExternalOnlyKey)
+                        .Order(StringComparer.Ordinal);
+                    externalShaped.Add(
+                        new SectionFinding($"{relativePath}: {string.Join(", ", externalKeys)}", localOnly)
+                    );
+                    break;
+                case MaskinportenSectionShape.ProvisionedOverlap:
+                    var provisioned = section
+                        .Where(MaskinportenInvariants.IsProvisionedKey)
+                        .Order(StringComparer.Ordinal);
+                    provisionedOverlap.Add(
+                        new SectionFinding($"{relativePath}: {string.Join(", ", provisioned)}", localOnly)
+                    );
+                    break;
             }
         }
 
@@ -144,33 +115,10 @@ internal sealed class MaskinportenSettingsCollisionDetector
         );
     }
 
-    private const string ExternalShapeSummary =
-        "This app configures the external Maskinporten client in a section named "
-        + SectionName
-        + ", which in v9 is the section the platform-provisioned Maskinporten client reads. Studio provisions "
-        + "those credentials as a settings file that is applied after appsettings.json, and configuration merges "
-        + "key by key - so in deployed environments the provisioned clientId replaces yours while your own key is "
-        + "still used, and Maskinporten rejects the token request. Rename your own section (for example to "
-        + "MaskinportenSettingsLegacy) and bind it explicitly where you register the external client; leave "
-        + SectionName
-        + " to the built-in client. Sections found:";
+    private const string ExternalShapeSummary = MaskinportenInvariants.ExternalShapeGuidance + " Sections found:";
 
     private const string ProvisionedOverlapSummary =
-        "This app supplies Maskinporten credentials under keys the platform also provisions ("
-        + SectionName
-        + ".clientId/jwk/jwkBase64). Studio provides these automatically at deploy time, and its settings file is "
-        + "applied after appsettings.json, merging key by key - so the two sets are combined rather than one "
-        + "replacing the other. A checked-in jwkBase64 takes precedence over the provisioned key while clientId "
-        + "does not, leaving the app signing with its own key under the provisioned client id, which Maskinporten "
-        + "rejects. Remove these keys and let the app use the provisioned credentials. (A private key in the "
-        + "repository is worth removing on its own merits.) Sections found:";
-
-    /// <summary>
-    /// Whether the file is the conventional local-development settings file. Deployed environments never
-    /// load it, so credentials there are a local concern rather than a deployment break.
-    /// </summary>
-    private static bool IsDevelopmentSettingsFile(string file) =>
-        Path.GetFileName(file).Equals("appsettings.Development.json", StringComparison.OrdinalIgnoreCase);
+        MaskinportenInvariants.ProvisionedOverlapGuidance + " Sections found:";
 
     private IEnumerable<string> EnumerateAppSettingsFiles()
     {

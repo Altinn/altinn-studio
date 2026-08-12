@@ -1,3 +1,4 @@
+using Altinn.Studio.MaskinportenRules;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
@@ -26,19 +27,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </summary>
 internal sealed class MaskinportenClientOverrideDetector
 {
-    private const string ConfigureMethod = "ConfigureMaskinportenClient";
+    // The method name, no-op predicate and guidance live in the shared rule data
+    // (src/common/dotnet/Altinn.Studio.MaskinportenRules), which the app Roslyn analyzer compiles as well.
+    private const string ConfigureMethod = MaskinportenInvariants.ConfigureClientMethodName;
 
-    /// <summary>The section the platform provisions - rebinding to it changes nothing.</summary>
-    private const string ProvisionedSectionName = "MaskinportenSettings";
-
-    private const string Summary =
-        "This app calls ConfigureMaskinportenClient, which takes over the default Maskinporten client. In v9 "
-        + "that client is shared infrastructure: Studio provisions its credentials at deploy time, and the "
-        + "workflow engine mints the app's service owner tokens through it, so redirecting it to another configuration "
-        + "section or a custom lambda means the provisioned credentials are never read and process transitions "
-        + "fail once deployed - silently, and only in a deployed environment. If this configures a Maskinporten "
-        + "client for the app's own integration, give that integration its own settings type and HttpClient "
-        + "registration instead, and leave the default client alone. Call sites found:";
+    private const string Summary = MaskinportenInvariants.ClientOverrideGuidance + " Call sites found:";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -76,7 +69,8 @@ internal sealed class MaskinportenClientOverrideDetector
 
     /// <summary>
     /// Whether the call just re-binds the provisioned section by name, which is what the default
-    /// registration would have done anyway and therefore changes nothing.
+    /// registration would have done anyway and therefore changes nothing. Configuration keys are
+    /// case-insensitive, so any casing of the section name is the same no-op.
     /// </summary>
     private static bool RebindsTheProvisionedSection(InvocationExpressionSyntax invocation)
     {
@@ -88,6 +82,7 @@ internal sealed class MaskinportenClientOverrideDetector
         // A string literal's token carries the string as its value, so matching the constant covers both
         // "is a string literal" and "is the provisioned section name".
         return invocation.ArgumentList.Arguments[0].Expression
-            is LiteralExpressionSyntax { Token.Value: ProvisionedSectionName };
+                is LiteralExpressionSyntax { Token.Value: string sectionPath }
+            && MaskinportenInvariants.RebindsProvisionedSection(sectionPath);
     }
 }
