@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="studioctl-server/studioctl-server.csproj" />
+  <Folder Name="/studioctl-server-tests/">
+    <Project Path="studioctl-server-tests/Studioctl.Tests.csproj" />
+  </Folder>
 </Solution>

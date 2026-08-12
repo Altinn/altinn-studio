@@ -54,7 +54,7 @@ public class SignClient : ISignClient
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod
         );
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             BuildSignRequest(signatureContext),
