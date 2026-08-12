@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
+using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -13,6 +13,8 @@ internal static class DatepickerFormatMigration
 {
     private const string ComponentType = "Datepicker";
 
+    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+
     private static readonly IReadOnlyDictionary<string, string> _legacyFormats = new Dictionary<string, string>(
         StringComparer.Ordinal
     )
@@ -21,15 +23,6 @@ internal static class DatepickerFormatMigration
         ["DD/MM/YYYY"] = "dd/MM/yyyy",
         ["YYYY-MM-DD"] = "yyyy-MM-dd",
     };
-
-    private static readonly IReadOnlyDictionary<string, Regex> _formatPatterns = _legacyFormats.Keys.ToDictionary(
-        legacyFormat => legacyFormat,
-        legacyFormat => new Regex(
-            $"(\"format\"\\s*:\\s*)\"{Regex.Escape(legacyFormat)}\"",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant
-        ),
-        StringComparer.Ordinal
-    );
 
     public static async Task<int> Migrate(string projectFolder)
     {
@@ -40,7 +33,7 @@ internal static class DatepickerFormatMigration
             return 0;
         }
 
-        var changedFiles = 0;
+        var changedFiles = new List<string>();
         var changedFormats = 0;
         foreach (var layoutFile in FindLayoutFiles(uiDirectory))
         {
@@ -53,30 +46,39 @@ internal static class DatepickerFormatMigration
             if (root is null)
                 throw new JsonException($"Layout file does not contain JSON: {layoutFile}");
 
-            var occurrences = CountLegacyFormats(root);
-            if (occurrences.Values.Sum() == 0)
+            var replacedInFile = ReplaceLegacyFormats(root);
+            if (replacedInFile == 0)
                 continue;
 
-            EnsureExpectedOccurrences(layoutFile, decoded.Text, occurrences);
-            var migrated = decoded.Text;
-            foreach (var (legacyFormat, newFormat) in _legacyFormats)
-            {
-                migrated = _formatPatterns[legacyFormat]
-                    .Replace(migrated, match => match.Groups[1].Value + $"\"{newFormat}\"");
-            }
+            var hadTrailingNewline = decoded.Text.EndsWith('\n');
+            var updated = root.ToJsonString(_jsonOptions);
+            if (hadTrailingNewline)
+                updated += Environment.NewLine;
 
-            await Utf8TextFile.Write(layoutFile, migrated, decoded.HadBom);
-            changedFiles++;
-            changedFormats += occurrences.Values.Sum();
+            await Utf8TextFile.Write(layoutFile, updated, decoded.HadBom);
+            changedFiles.Add(layoutFile);
+            changedFormats += replacedInFile;
             await UpgradeConsole.Out.WriteLineAsync(
-                $"Migrated {occurrences.Values.Sum()} legacy Datepicker format value(s) in {layoutFile}"
+                $"Migrated {replacedInFile} legacy Datepicker format value(s) in {layoutFile}"
             );
         }
 
+        if (changedFiles.Count > 0)
+        {
+            try
+            {
+                new WhitespaceRestorationProcessor(uiDirectory).RestoreWhitespaceOnlyChanges(changedFiles);
+            }
+            catch
+            {
+                // Formatting restoration is best-effort, for example when upgrading outside a Git repository.
+            }
+        }
+
         await UpgradeConsole.Out.WriteLineAsync(
-            changedFiles == 0
+            changedFiles.Count == 0
                 ? "No legacy Datepicker format values found to migrate"
-                : $"Migrated {changedFormats} legacy Datepicker format value(s) across {changedFiles} layout file(s)"
+                : $"Migrated {changedFormats} legacy Datepicker format value(s) across {changedFiles.Count} layout file(s)"
         );
         return 0;
     }
@@ -98,61 +100,34 @@ internal static class DatepickerFormatMigration
                 string.Equals(Path.GetFileName(Path.GetDirectoryName(path)), "layouts", StringComparison.Ordinal)
             );
 
-    private static Dictionary<string, int> CountLegacyFormats(JsonNode node)
+    private static int ReplaceLegacyFormats(JsonNode node)
     {
-        var occurrences = _legacyFormats.Keys.ToDictionary(
-            legacyFormat => legacyFormat,
-            _ => 0,
-            StringComparer.Ordinal
-        );
-        CountLegacyFormats(node, occurrences);
-        return occurrences;
+        var replaced = 0;
+        if (
+            node is JsonObject obj
+            && obj["type"] is JsonValue typeValue
+            && typeValue.TryGetValue<string>(out var type)
+            && type == ComponentType
+            && obj["format"] is JsonValue formatValue
+            && formatValue.TryGetValue<string>(out var format)
+            && _legacyFormats.TryGetValue(format, out var newFormat)
+        )
+        {
+            obj["format"] = newFormat;
+            replaced++;
+        }
+
+        foreach (var child in GetChildren(node))
+            replaced += ReplaceLegacyFormats(child);
+
+        return replaced;
     }
 
-    private static void CountLegacyFormats(JsonNode node, Dictionary<string, int> occurrences)
-    {
-        if (node is JsonObject obj)
+    private static IEnumerable<JsonNode> GetChildren(JsonNode node) =>
+        node switch
         {
-            if (
-                obj["type"] is JsonValue type
-                && type.TryGetValue<string>(out var componentType)
-                && componentType == ComponentType
-                && obj["format"] is JsonValue format
-                && format.TryGetValue<string>(out var formatValue)
-                && _legacyFormats.ContainsKey(formatValue)
-            )
-            {
-                occurrences[formatValue]++;
-            }
-
-            foreach (var child in obj.Select(property => property.Value).ToList())
-            {
-                if (child is not null)
-                    CountLegacyFormats(child, occurrences);
-            }
-        }
-        else if (node is JsonArray array)
-        {
-            foreach (var child in array.ToList())
-            {
-                if (child is not null)
-                    CountLegacyFormats(child, occurrences);
-            }
-        }
-    }
-
-    private static void EnsureExpectedOccurrences(string layoutFile, string content, Dictionary<string, int> expected)
-    {
-        foreach (var (legacyFormat, expectedCount) in expected)
-        {
-            var textCount = _formatPatterns[legacyFormat].Count(content);
-            if (textCount != expectedCount)
-            {
-                throw new InvalidOperationException(
-                    $"Could not safely migrate {layoutFile}: the legacy format \"{legacyFormat}\" occurs outside "
-                        + $"Datepicker format properties ({textCount} text vs {expectedCount} structural)"
-                );
-            }
-        }
-    }
+            JsonObject obj => obj.Select(property => property.Value).OfType<JsonNode>(),
+            JsonArray array => array.OfType<JsonNode>(),
+            _ => [],
+        };
 }

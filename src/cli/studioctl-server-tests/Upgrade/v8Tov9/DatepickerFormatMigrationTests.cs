@@ -130,6 +130,60 @@ public sealed class DatepickerFormatMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task MigratesDespiteJsonCommentsContainingLegacyFormats()
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            """
+            {
+              "data": {
+                "layout": [
+                  // The old value was "format": "DD.MM.YYYY"
+                  {
+                    "id": "date",
+                    "type": "Datepicker",
+                    /* previously "format": "DD.MM.YYYY" */
+                    "format": "DD.MM.YYYY"
+                  }
+                ]
+              }
+            }
+            """
+        );
+
+        await Migrate();
+
+        var after = _app.Read("ui/Task_1/layouts/Side1.json");
+        Assert.Contains("\"format\": \"dd.MM.yyyy\"", after, StringComparison.Ordinal);
+        Assert.DoesNotContain("DD.MM.YYYY", after, StringComparison.Ordinal);
+        using var _ = JsonDocument.Parse(after);
+    }
+
+    [Fact]
+    public async Task LeavesFileUntouchedWhenLegacyFormatOnlyAppearsInComments()
+    {
+        var before = """
+            {
+              "data": {
+                "layout": [
+                  // "format": "DD/MM/YYYY"
+                  {
+                    "id": "date",
+                    "type": "Datepicker",
+                    "format": "dd/MM/yyyy"
+                  }
+                ]
+              }
+            }
+            """;
+        _app.Write("ui/Task_1/layouts/Side1.json", before);
+
+        await Migrate();
+
+        Assert.Equal(before, _app.Read("ui/Task_1/layouts/Side1.json"));
+    }
+
+    [Fact]
     public async Task IgnoresJsonOutsideLayoutsFolders()
     {
         _app.Write(
