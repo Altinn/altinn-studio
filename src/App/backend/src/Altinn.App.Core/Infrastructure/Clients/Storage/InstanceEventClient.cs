@@ -82,7 +82,7 @@ public class InstanceEventClient : IInstanceEventClient
             apiUrl += $"{paramSeparator}from={from}&to={to}";
         }
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
         if (response.IsSuccessStatusCode)
         {
@@ -112,7 +112,7 @@ public class InstanceEventClient : IInstanceEventClient
             authenticationMethod ?? _defaultAuthenticationMethod
         );
 
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"),
