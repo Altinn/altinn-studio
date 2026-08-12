@@ -68,7 +68,7 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
         </StudioDetails>
         <StudioDetails>
           <StudioDetails.Summary>{t('right_menu.dynamics')}</StudioDetails.Summary>
-          <StudioDetails.Content className={classes.dynamics}>
+          <StudioDetails.Content>
             <HiddenExpressionOnLayout />
           </StudioDetails.Content>
         </StudioDetails>
