@@ -58,6 +58,7 @@ internal sealed class CSharpSourceScanner
     private readonly string _sourceDirectory;
     private readonly Lazy<List<ScannedCSharpFile>> _files;
     private readonly Dictionary<ScannedCSharpFile, SyntaxTree> _trees = new();
+    private readonly Dictionary<ScannedCSharpFile, SemanticModel> _semanticModels = new();
     private Compilation? _compilation;
 
     /// <param name="sourceDirectory">
@@ -85,6 +86,37 @@ internal sealed class CSharpSourceScanner
 
     /// <summary>Whether files carry semantic models (see <see cref="ScannedCSharpFile.SemanticModel"/>).</summary>
     public bool HasSemanticModels => _compilation is not null;
+
+    /// <summary>
+    /// A frozen copy of the scanner's current state, unaffected by later <see cref="Update"/> calls.
+    /// Semantic <em>detection</em> must bind against the pristine pre-rewrite source: the rewriters
+    /// move code toward v9 (for example the IServiceTask namespace rewrite), after which the v8
+    /// compilation can no longer bind the very names the detectors look for — keeping the models
+    /// "current" would make detection silently blind exactly where it matters.
+    /// </summary>
+    public CSharpSourceScanner Snapshot()
+    {
+        var files = new List<ScannedCSharpFile>(Files.Count);
+        var snapshot = new CSharpSourceScanner(_sourceDirectory, _compilation, files);
+        foreach (var file in Files)
+        {
+            var copy = new ScannedCSharpFile(snapshot, file.Path, file.RelativePath, file.Root);
+            files.Add(copy);
+            if (_trees.TryGetValue(file, out var tree))
+            {
+                snapshot._trees[copy] = tree;
+            }
+        }
+
+        return snapshot;
+    }
+
+    private CSharpSourceScanner(string sourceDirectory, Compilation? compilation, List<ScannedCSharpFile> files)
+    {
+        _sourceDirectory = sourceDirectory;
+        _compilation = compilation;
+        _files = new Lazy<List<ScannedCSharpFile>>(() => files);
+    }
 
     /// <summary>
     /// Writes a rewritten root back to disk and updates the scanner's view of the file — including the
@@ -123,8 +155,24 @@ internal sealed class CSharpSourceScanner
         return updated;
     }
 
-    internal SemanticModel? GetSemanticModel(ScannedCSharpFile file) =>
-        _compilation is not null && _trees.TryGetValue(file, out var tree) ? _compilation.GetSemanticModel(tree) : null;
+    internal SemanticModel? GetSemanticModel(ScannedCSharpFile file)
+    {
+        // Cached per file: a fresh model per access would re-bind from scratch every time. Update
+        // replaces the file instance, so entries never go stale — they just stop being reachable.
+        if (_semanticModels.TryGetValue(file, out var cached))
+        {
+            return cached;
+        }
+
+        if (_compilation is null || !_trees.TryGetValue(file, out var tree))
+        {
+            return null;
+        }
+
+        var model = _compilation.GetSemanticModel(tree);
+        _semanticModels[file] = model;
+        return model;
+    }
 
     private List<ScannedCSharpFile> Load()
     {

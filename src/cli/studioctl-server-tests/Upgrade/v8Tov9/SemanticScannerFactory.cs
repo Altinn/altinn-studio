@@ -14,7 +14,10 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 internal static class SemanticScannerFactory
 {
     private static readonly Lazy<IReadOnlyList<MetadataReference>> _runtimeReferences = new(static () =>
-        ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+        (
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string
+            ?? throw new InvalidOperationException("TRUSTED_PLATFORM_ASSEMBLIES not available")
+        )
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             .Select(static path => (MetadataReference)MetadataReference.CreateFromFile(path))
             .ToList()

@@ -113,8 +113,22 @@ internal static class V8CompilationLoader
         var project = await workspace.OpenProjectAsync(projectFile, cancellationToken: cancellationToken);
         var compilation = await project.GetCompilationAsync(cancellationToken);
 
-        // OpenProjectAsync does not throw on a degraded load; a compilation can come back non-null but
-        // missing every metadata reference. The probe type decides usability instead.
+        return EvaluateCompilation(compilation, loadFailures, restoreError, cancellationToken);
+    }
+
+    /// <summary>
+    /// Decides whether the compilation is usable for exact detection. Factored out of the load so the
+    /// gates are testable without a restore: <c>OpenProjectAsync</c> does not throw on a degraded load,
+    /// so a compilation can come back non-null but missing every metadata reference — the probe type
+    /// decides usability, and any compile error falls back rather than binding against half-broken code.
+    /// </summary>
+    internal static SemanticAnalysis EvaluateCompilation(
+        Compilation? compilation,
+        IReadOnlyList<string> loadFailures,
+        string? restoreError,
+        CancellationToken cancellationToken
+    )
+    {
         if (compilation is null)
         {
             return SemanticAnalysis.Unavailable("the project produced no compilation");
@@ -136,11 +150,15 @@ internal static class V8CompilationLoader
 
         var errors = compilation
             .GetDiagnostics(cancellationToken)
-            .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        if (errors > 0)
+            .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+            .ToList();
+        if (errors.Count > 0)
         {
+            // The first error makes the reason actionable; the count says whether it is the only one.
+            var first = errors[0];
             return SemanticAnalysis.Unavailable(
-                $"the app does not compile before the upgrade ({errors} error(s)); fix the build or proceed with syntax-based detection"
+                $"the app does not compile before the upgrade ({errors.Count} error(s), first: "
+                    + $"{first.Id} {first.GetMessage()}); fix the build or proceed with syntax-based detection"
             );
         }
 
@@ -187,13 +205,13 @@ internal static class V8CompilationLoader
             throw;
         }
 
+        var error = (await standardError).Trim();
+        var output = (await standardOutput).Trim();
+
         if (process.ExitCode == 0)
         {
             return null;
         }
-
-        var error = (await standardError).Trim();
-        var output = (await standardOutput).Trim();
         var detail = error.Length > 0 ? error : output;
         // Keep it to one line: restore output is verbose, and this only serves as fallback context.
         var firstLine = detail.Split('\n', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()?.Trim();

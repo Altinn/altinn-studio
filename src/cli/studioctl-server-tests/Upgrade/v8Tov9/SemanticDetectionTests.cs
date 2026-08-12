@@ -1,4 +1,5 @@
 using Altinn.Studio.Cli.Upgrade;
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
 
@@ -343,9 +344,12 @@ public sealed class SemanticDetectionTests : IDisposable
 
         var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
 
-        // `new MemoryStream(readOnlyMemory)` would not compile, so this must stay a report.
+        // `new MemoryStream(readOnlyMemory)` would not compile, so this must stay a report - and the
+        // report must say the type IS known and give advice that compiles.
         Assert.True(semantic.ManualActionRequired);
         Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.Contains(semantic.Warnings, static w => w.Contains("cannot be wrapped in a MemoryStream directly"));
+        Assert.DoesNotContain(semantic.Warnings, static w => w.Contains("could not be determined"));
     }
 
     [Fact]
@@ -371,6 +375,76 @@ public sealed class SemanticDetectionTests : IDisposable
 
         Assert.False(semantic.ManualActionRequired);
         Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+    }
+
+    // --- Detection binds against the pristine pre-rewrite snapshot -------------------------------
+
+    [Fact]
+    public void Detection_AfterTheNamespaceRewrite_MustUseThePristineSnapshot()
+    {
+        // The production flow: the IServiceTask namespace rewrite (step 6) runs before detection
+        // (step 11). After the rewrite the v8 compilation cannot bind the removed names any more, so
+        // detection on the live scanner goes blind - the pristine snapshot is what keeps it exact.
+        _app.Write(
+            "logic/MyTask.cs",
+            """
+            using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+
+            public class MyTask
+            {
+                public object Run() => ServiceTaskResult.FailedAbortProcessNext();
+            }
+            """
+        );
+
+        using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
+        var scanner = SemanticScanner();
+        var snapshot = scanner.Snapshot();
+
+        new UsingNamespaceMigration(scanner).Migrate(
+            "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks",
+            "Altinn.App.Core.Features.Process",
+            new System.Text.RegularExpressions.Regex(@"\.cs$")
+        );
+
+        // The live view demonstrates the blindness the snapshot exists to prevent.
+        var onLiveScanner = new ServiceTaskResultApiDetector(scanner).Detect();
+        Assert.Empty(onLiveScanner.Warnings);
+
+        var onSnapshot = new ServiceTaskResultApiDetector(snapshot).Detect();
+        Assert.Contains(onSnapshot.Warnings, static w => w.Contains("MyTask.cs:5: FailedAbortProcessNext"));
+        Assert.True(onSnapshot.ManualActionRequired);
+    }
+
+    // --- ReferencesToAssembly must not report namespace segments ---------------------------------
+
+    [Fact]
+    public void ExternalMaskinporten_UsingDirective_IsReportedOnceWithoutNamespaceSegmentNoise()
+    {
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Services;
+
+            public class Client
+            {
+                public IMaskinportenService? Service { get; set; }
+            }
+            """
+        );
+        WriteProjectWithoutExternalPackage();
+
+        var semantic = new ExternalMaskinportenPackageDetector(SemanticScanner(), ProjectFile()).Detect();
+
+        // Namespace segments bind to the package's assembly too (merged namespaces collapse to their
+        // single constituent), but reporting `ApiClients`/`Services` per using directive would bury
+        // the real usages. One line for the directive, one for the actual type use.
+        var locationLines = semantic.Warnings.Where(static w => w.Contains("Client.cs:")).ToList();
+        Assert.Equal(2, locationLines.Count);
+        Assert.Contains(locationLines, static w => w.Contains("using Altinn.ApiClients.Maskinporten.Services"));
+        Assert.Contains(locationLines, static w => w.Contains("Client.cs:5: IMaskinportenService"));
+        Assert.DoesNotContain(semantic.Warnings, static w => w.EndsWith(": ApiClients", StringComparison.Ordinal));
+        Assert.DoesNotContain(semantic.Warnings, static w => w.EndsWith(": Services", StringComparison.Ordinal));
     }
 
     // --- Scanner.Update keeps semantic models current --------------------------------------------

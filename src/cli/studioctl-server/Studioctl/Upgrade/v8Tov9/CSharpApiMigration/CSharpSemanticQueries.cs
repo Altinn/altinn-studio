@@ -11,8 +11,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// member reached through an alias, variable or fully-qualified spelling no longer escapes.
 /// <para>
 /// Every query takes the file's <see cref="SemanticModel"/> and is only valid for nodes reached from
-/// that file's <see cref="ScannedCSharpFile.Root"/>. Names are still pre-filtered syntactically before
-/// binding, so the semantic lookups stay proportional to candidate matches, not to the whole app.
+/// that file's <see cref="ScannedCSharpFile.Root"/>. The name-set queries pre-filter syntactically
+/// before binding; <see cref="ReferencesToAssembly"/> necessarily binds every name in the file, which
+/// is fine at app scale (tens of files, models cached per file).
 /// </para>
 /// </summary>
 internal static class CSharpSemanticQueries
@@ -116,7 +117,17 @@ internal static class CSharpSemanticQueries
         {
             var symbol = semanticModel.GetSymbolInfo(name).Symbol;
             var unreduced = symbol is IMethodSymbol { ReducedFrom: { } reducedFrom } ? reducedFrom : symbol;
-            if (unreduced is not null && !unreduced.IsImplicitlyDeclared && IsDeclaredBy(unreduced, assemblyName))
+
+            // Namespace segments are excluded even though they do carry the assembly (Roslyn's merged
+            // namespace collapses to its single constituent when only one assembly declares it):
+            // reporting `ApiClients`/`Services` for every using directive would bury the real usages,
+            // and the syntactic using-directive query already reports the directive itself.
+            if (unreduced is null or INamespaceSymbol || unreduced.IsImplicitlyDeclared)
+            {
+                continue;
+            }
+
+            if (IsDeclaredBy(unreduced, assemblyName))
             {
                 yield return new CSharpApiMatch(file.RelativePath, file.GetLine(name), name.Identifier.Text);
             }

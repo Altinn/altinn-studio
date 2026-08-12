@@ -72,6 +72,15 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         var scanner = await CreateSourceScanner(projectFolder, projectFile, options);
 
+        // Semantic *detection* binds against this pristine pre-rewrite snapshot instead: the rewriters
+        // move code toward v9 (the IServiceTask namespace rewrite above all), after which the v8
+        // compilation can no longer bind the removed names and the detectors would go silently blind
+        // on exactly the code they exist to report. Without semantic models the live view is used,
+        // preserving the previous behaviour (detection reads the rewritten source). The trade-off is
+        // that a semantic report's line numbers refer to the pre-rewrite file when a rewriter changed
+        // lines above a finding.
+        var detectionView = scanner.HasSemanticModels ? scanner.Snapshot() : scanner;
+
         var returnCode = 0;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
@@ -136,7 +145,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
+        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(detectionView, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsCollision(projectFolder));

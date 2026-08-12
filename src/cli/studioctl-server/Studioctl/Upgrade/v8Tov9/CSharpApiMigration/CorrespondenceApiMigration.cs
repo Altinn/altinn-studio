@@ -129,9 +129,9 @@ internal sealed class CorrespondenceApiMigration
         if (unresolved.Count > 0)
         {
             warnings.Add(
-                "These `WithData` call sites could not be classified from syntax alone - the removed "
+                "These `WithData` call sites could not be rewritten automatically - the removed "
                     + "ReadOnlyMemory<byte> overload and the surviving Stream overload share a name and an arity, "
-                    + "so wrapping blindly could break working code:"
+                    + "so rewriting blindly could break working code:"
             );
             warnings.AddRange(unresolved);
         }
@@ -300,9 +300,23 @@ internal sealed class CorrespondenceApiMigration
                         )
                     );
 
-                default:
+                case DataKind.ProvenMemory:
+                    // The semantic model settled the type; only the fix needs a human, because the
+                    // MemoryStream constructor takes an array, not a ReadOnlyMemory/Memory value.
                     Unresolved.Add(
-                        $"{_file.RelativePath}:{_file.GetLine(name)}: `WithData({argument.Expression})` - "
+                        $"{_file.RelativePath}:{_file.GetLine(original)}: `WithData({argument.Expression})` - "
+                            + "WithData(ReadOnlyMemory<byte>) is removed and this argument is a "
+                            + "ReadOnlyMemory/Memory value, which cannot be wrapped in a MemoryStream directly. "
+                            + "Pass a Stream instead, or wrap as `new MemoryStream(x.ToArray())` (copies the payload)."
+                    );
+                    return null;
+
+                default:
+                    // `original` for the location: `name` comes off `visited`, which is detached from
+                    // the file's tree when an inner rewrite happened in the same chain, and measuring
+                    // a detached node reports a line number relative to the fragment.
+                    Unresolved.Add(
+                        $"{_file.RelativePath}:{_file.GetLine(original)}: `WithData({argument.Expression})` - "
                             + "WithData(ReadOnlyMemory<byte>) is removed. If this argument is a byte payload, wrap it "
                             + "as `new MemoryStream(..)`; if it is already a Stream, nothing needs to change. Its type "
                             + "could not be determined here."
@@ -316,6 +330,12 @@ internal sealed class CorrespondenceApiMigration
             Unknown,
             Bytes,
             Stream,
+
+            /// <summary>
+            /// Semantically proven <c>ReadOnlyMemory&lt;byte&gt;</c>/<c>Memory&lt;byte&gt;</c>: the type
+            /// is known, but no mechanical rewrite compiles.
+            /// </summary>
+            ProvenMemory,
         }
 
         /// <summary>
@@ -324,9 +344,8 @@ internal sealed class CorrespondenceApiMigration
         /// <c>WithData</c>, letting the syntax classification take over. A call bound to the removed
         /// <c>ReadOnlyMemory&lt;byte&gt;</c> overload only classifies as bytes when the argument itself
         /// is a byte array: a genuine <c>ReadOnlyMemory</c>/<c>Memory</c> value cannot be wrapped in a
-        /// <c>MemoryStream</c> mechanically (the constructor takes an array), so it is reported
-        /// (<see cref="DataKind.Unknown"/>, authoritatively) instead of rewritten into code that does
-        /// not compile.
+        /// <c>MemoryStream</c> mechanically (the constructor takes an array), so it is reported as
+        /// <see cref="DataKind.ProvenMemory"/> instead of rewritten into code that does not compile.
         /// </summary>
         private DataKind? ClassifyBoundWithData(InvocationExpressionSyntax original, ExpressionSyntax originalArgument)
         {
@@ -350,7 +369,7 @@ internal sealed class CorrespondenceApiMigration
                     var argumentType = _semanticModel.GetTypeInfo(originalArgument).Type;
                     return argumentType is IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte }
                         ? DataKind.Bytes
-                        : DataKind.Unknown;
+                        : DataKind.ProvenMemory;
 
                 default:
                     return null;
