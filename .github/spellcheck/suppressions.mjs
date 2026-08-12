@@ -120,13 +120,6 @@ export const SUPPRESSIONS = [
     reason: 'file-analyzer id that deployed apps reference by name',
   },
   {
-    token: 'Unvalidate',
-    identifiers: ['GetDecisionForUnvalidateRequest'],
-    paths: ['src/App/backend/**'],
-    kind: 'contract',
-    reason: 'Altinn.Common.PEP method name (external package)',
-  },
-  {
     token: 'Behaviour',
     identifiers: ['autoSaveBehaviour'],
     kind: 'contract',
@@ -138,15 +131,6 @@ export const SUPPRESSIONS = [
     kind: 'contract',
     reason: 'MaskinportenSettings member name apps configure by key',
   },
-  {
-    token: 'periode',
-    identifiers: ['periodeFritekst'],
-    paths: ['src/App/frontend/**'],
-    kind: 'test-fixture',
-    reason: 'Norwegian data-model field path used as a binding in tests',
-  },
-
-  // ------------------------------------------------------- external names
   {
     token: 'Elipsis',
     identifiers: ['MenuElipsisVerticalIcon', 'MenuElipsisHorizontalIcon'],
@@ -180,20 +164,20 @@ export const SUPPRESSIONS = [
   {
     token: 'axe',
     identifiers: ['injectAxe', 'axeCorePath'],
-    paths: ['**/cypress.config.js', '**/testing/cypress/**'],
+    paths: ['**/cypress.config.js'],
     kind: 'external-name',
     reason: 'axe-core accessibility tooling (cypress-axe)',
   },
   {
     token: 'axe',
-    paths: ['**/cypress.config.js', '**/testing/cypress/**'],
+    paths: ['**/cypress.config.js'],
     kind: 'external-name',
     reason: 'bare axe-core references in cypress support files',
   },
   {
     token: 'Axe',
     identifiers: ['injectAxe'],
-    paths: ['**/cypress.config.js', '**/testing/cypress/**'],
+    paths: ['**/cypress.config.js'],
     kind: 'external-name',
     reason: 'cypress-axe export',
   },
@@ -204,23 +188,10 @@ export const SUPPRESSIONS = [
     paths: [
       'src/App/azure-pipelines/**',
       'src/Designer/backend/src/Designer/Configuration/**',
-      'src/Designer/backend/tests/**',
       'src/Designer/development/setup.js',
     ],
     kind: 'code-slug',
     reason: 'Altinn service-owner org slug used as config/test values',
-  },
-  {
-    token: 'Als',
-    paths: ['src/Designer/backend/tests/**'],
-    kind: 'code-slug',
-    reason: 'the als org slug in test method names (OnlyAlsTemplates…)',
-  },
-  {
-    token: 'acn',
-    paths: ['src/runner-org-sync/**'],
-    kind: 'code-slug',
-    reason: 'Altinn org slug in runner-org-sync test fixtures',
   },
   {
     token: 'ACN',
@@ -284,12 +255,7 @@ export const SUPPRESSIONS = [
   },
   {
     token: 'ba',
-    paths: [
-      'src/App/backend/Makefile',
-      '**/BotAccounts/**',
-      '**/FilePath/FilePathUtils.test.ts',
-      '**/AttachmentWithTagSummaryComponent.test.tsx',
-    ],
+    paths: ['src/App/backend/Makefile', '**/BotAccounts/**'],
     kind: 'code-slug',
     reason: 'botAccount shorthand, and ba inside git SHAs in test fixtures',
   },
@@ -301,60 +267,9 @@ export const SUPPRESSIONS = [
   },
   {
     token: 'BA',
-    paths: ['**/test-data/textResourcesMock.ts', 'src/AI/mcp/**'],
+    paths: ['src/AI/mcp/**'],
     kind: 'code-slug',
     reason: 'ISO 3166 country code (Bosnia and Herzegovina) in mock data and docs dumps',
-  },
-  {
-    token: 'OCE',
-    paths: ['src/Runtime/workflow-engine/tests/**'],
-    kind: 'code-slug',
-    reason: 'OperationCanceledException shorthand in test method names',
-  },
-
-  // -------------------------------------------------- deliberate test input
-  {
-    token: 'tru',
-    paths: ['**/StudioExpression/StudioExpression.test.tsx'],
-    kind: 'test-fixture',
-    reason: 'a deliberately invalid expression under test',
-  },
-  {
-    token: 'abd',
-    paths: ['src/cli/internal/ui/**'],
-    kind: 'test-fixture',
-    reason: 'expected output of backspace handling on "abc\\bd"',
-  },
-  {
-    token: 'ue',
-    paths: ['src/App/frontend/src/features/formData/useDataModelBindings.test.tsx'],
-    kind: 'test-fixture',
-    reason: 'second half of typing "true" into an input, asserted mid-keystroke',
-  },
-  {
-    token: 'erro',
-    paths: ['src/App/backend/test/Altinn.App.Tests.Common/**'],
-    kind: 'test-fixture',
-    reason: '4-char log-level column: trac/debu/info/warn/erro',
-  },
-  {
-    token: 'Adedd',
-    paths: ['src/tools/releaser/**'],
-    kind: 'test-fixture',
-    reason: 'fixture for a changelog test named "typo in category"',
-  },
-  {
-    token: 'Maake',
-    paths: ['src/Designer/backend/tests/**'],
-    kind: 'test-fixture',
-    reason: 'expected å→aa transliteration output',
-  },
-  {
-    token: 'Selv',
-    identifiers: ['SelvRegistrert'],
-    paths: ['src/App/backend/test/**'],
-    kind: 'test-fixture',
-    reason: 'real self-identified username in the Altinn test environment',
   },
   {
     token: 'Statistisk',
@@ -392,18 +307,6 @@ export const SUPPRESSIONS = [
     reason: 'KS.Fiks SvarPaaForespoersel/Som* Norwegian member names',
   },
   {
-    token: 'Passord',
-    paths: ['src/App/backend/**/Altinn.App.Clients.Fiks*/**', '**/testing/playwright/pages/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian for password: Fiks integration points and Gitea UI selectors',
-  },
-  {
-    token: 'passord',
-    paths: ['src/App/backend/**/Altinn.App.Clients.Fiks*/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian for password in Fiks model members',
-  },
-  {
     token: 'Authorisation',
     paths: ['src/cli/**/Upgrade/**', '**/CHANGELOG.md'],
     kind: 'contract',
@@ -429,24 +332,6 @@ export const SUPPRESSIONS = [
     reason: 'official English name of a Norwegian ministry, used as sample table data',
   },
   {
-    token: 'ist',
-    paths: ['**/Altinn3LibraryProvider/**'],
-    kind: 'foreign-language',
-    reason: 'German fixture content',
-  },
-  {
-    token: 'ein',
-    paths: ['**/Altinn3LibraryProvider/**'],
-    kind: 'foreign-language',
-    reason: 'German fixture content',
-  },
-  {
-    token: 'Sie',
-    paths: ['**/Altinn3LibraryProvider/**'],
-    kind: 'foreign-language',
-    reason: 'German fixture content',
-  },
-  {
     token: 'Adresse',
     paths: ['**/Services/Tenor/**'],
     kind: 'foreign-language',
@@ -454,7 +339,7 @@ export const SUPPRESSIONS = [
   },
   {
     token: 'adresse',
-    paths: ['**/Services/Tenor/**', '**/test/e2e/**'],
+    paths: ['**/Services/Tenor/**'],
     kind: 'foreign-language',
     reason: 'Norwegian field names in Tenor data and e2e selectors',
   },
@@ -474,94 +359,10 @@ export const SUPPRESSIONS = [
   // Only the Norwegian words are accepted — the twelve English typos this
   // exclude used to hide (chekcbox, becuase, …) are now reported.
   {
-    token: 'modell',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian UI text asserted by e2e specs',
-  },
-  {
-    token: 'Generell',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian UI text asserted by e2e specs',
-  },
-  {
-    token: 'juli',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian month name in e2e date assertions',
-  },
-  {
-    token: 'Gitar',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian sample data (guitar) in e2e specs',
-  },
-  {
-    token: 'Filtype',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian UI text asserted by e2e specs',
-  },
-  {
-    token: 'Virtuell',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian UI text asserted by e2e specs',
-  },
-  {
-    token: 'Maks',
-    paths: ['**/test/e2e/**'],
-    kind: 'foreign-language',
-    reason: 'Norwegian UI text asserted by e2e specs',
-  },
-  {
-    token: 'Organisation',
-    paths: ['**/test/e2e/**'],
-    kind: 'contract',
-    reason: 'test-app data mirroring the Storage DTO spelling',
-  },
-  {
-    token: 'organisation',
-    paths: ['**/test/e2e/**'],
-    kind: 'contract',
-    reason: 'test-app data mirroring the Storage DTO spelling',
-  },
-  {
-    token: 'Favourite',
-    paths: ['**/testing/playwright/pages/**'],
-    kind: 'external-name',
-    reason: 'selector against Gitea UI text',
-  },
-  {
-    token: 'favourite',
-    paths: ['**/testing/playwright/pages/**'],
-    kind: 'external-name',
-    reason: 'selector against Gitea UI text',
-  },
-  {
-    token: 'modelling',
-    paths: ['**/testing/playwright/pages/**'],
-    kind: 'external-name',
-    reason: 'selector against Studio UI route names (data modelling pages)',
-  },
-  {
     token: 'som',
-    paths: ['**/*.stories.tsx', '**/MergeConflictWarning/**'],
+    paths: ['**/MergeConflictWarning/**'],
     kind: 'foreign-language',
     reason: 'Norwegian sample content in Storybook stories and JSX text nodes',
-  },
-  {
-    token: 'tekst',
-    paths: ['**/*.stories.tsx'],
-    kind: 'foreign-language',
-    reason: 'Norwegian sample content in Storybook stories',
-  },
-  {
-    token: 'dokument',
-    paths: ['**/*.stories.tsx'],
-    kind: 'foreign-language',
-    reason: 'Norwegian sample content in Storybook stories',
   },
   {
     token: 'designet',

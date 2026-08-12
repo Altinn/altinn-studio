@@ -45,8 +45,10 @@ extend-exclude = [
 
     # The spell-check harness itself: fixtures with deliberately planted
     # errors (the self-test copies them elsewhere and checks them with THIS
-    # config), and the Norwegian glossaries.
+    # config), the Norwegian glossaries, and the suppression registry — which
+    # necessarily quotes the misspellings it governs.
     ".github/spellcheck/selftest/**", ".github/spellcheck/glossary.*.txt",
+    ".github/spellcheck/suppressions.mjs",
 
     # The registered language files (see .github/spellcheck/registry.mjs).
     # Their values are Norwegian or British and are checked by the runner;
@@ -60,14 +62,19 @@ extend-exclude = [
     "src/App/template/src/App/config/texts/resource.nb.json",
     "src/gitea/files/locale/**",
 
-    # Norwegian test data and fixtures, where the field names are the
-    # contract under test rather than prose. Sample apps are fixtures in
-    # their entirety. Maskinporten tests embed JWT/base64 blobs whose random
-    # fragments trip the checker and change with every regeneration.
-    "**/[Tt]estdata/**", "**/*SourceGenerator*/**", "src/test/apps/**",
-    "*.pretest", "**/Altinn.App.Core.Tests/Data/SkjemaWithNamespace.cs",
+    # Test-only surface ships nowhere: test projects, colocated test files,
+    # test data, mocks, e2e suites and Storybook stories. A typo there costs
+    # nothing a user ever sees, so the whole class is out of scope — one rule
+    # instead of the dozen surgical excludes and suppressions it replaces.
+    # (Deliberate trade-off: typos in test names can propagate by copy-paste,
+    # and the e2e specs did hide a dozen real ones. Non-shipping, accepted.)
+    "**/test/**", "**/tests/**", "**/testing/**",
+    "**/[Tt]est[Dd]ata/**", "**/test-data/**", "**/__mocks__/**",
+    "*.test.*", "*.spec.*", "*_test.go", "*.stories.tsx", "*.pretest",
+    "**/*SourceGenerator*/**",
+
+    # Data embedded in source: an Altinn 2 code list.
     "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
-    "**/Maskinporten/**/*Test*.cs",
 
     # Whole files in another language: Norwegian in markup text nodes and JSX
     # that the string rule below cannot see, and a Norwegian-only internal
