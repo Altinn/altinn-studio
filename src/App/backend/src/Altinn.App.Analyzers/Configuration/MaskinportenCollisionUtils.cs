@@ -41,7 +41,11 @@ internal static class MaskinportenCollisionUtils
             }
 
             // Configuration keys are case-insensitive, so a section spelled "maskinportensettings"
-            // binds just the same and collides just the same. Every matching spelling is reported.
+            // binds just the same and collides just the same — and several spellings in one file merge
+            // into a single bound section at runtime. Classification therefore happens once, over the
+            // merged keys, so the verdict (and its remediation) cannot contradict itself between
+            // spellings; diagnostics still point at each section/key individually.
+            var sections = new List<(JsonValue.JsonProperty Section, List<JsonValue.JsonProperty> Properties)>();
             foreach (var section in root.GetObjectValues())
             {
                 if (
@@ -56,8 +60,17 @@ internal static class MaskinportenCollisionUtils
                     continue;
                 }
 
-                CollectSectionDiagnostics(text, section, localOnly, diagnostics);
+                sections.Add((section, section.Value.GetObjectValues().ToList()));
             }
+
+            var mergedKeys = sections.SelectMany(s => s.Properties).Select(property => property.Key);
+            CollectVerdictDiagnostics(
+                text,
+                MaskinportenInvariants.ClassifySection(mergedKeys),
+                sections,
+                localOnly,
+                diagnostics
+            );
         }
         catch (NanoJsonException)
         {
@@ -66,45 +79,50 @@ internal static class MaskinportenCollisionUtils
         }
     }
 
-    private static void CollectSectionDiagnostics(
+    private static void CollectVerdictDiagnostics(
         AdditionalText text,
-        JsonValue.JsonProperty section,
+        MaskinportenSectionShape verdict,
+        List<(JsonValue.JsonProperty Section, List<JsonValue.JsonProperty> Properties)> sections,
         bool localOnly,
         List<Diagnostic> diagnostics
     )
     {
-        var properties = section.Value.GetObjectValues().ToList();
-
-        switch (MaskinportenInvariants.ClassifySection(properties.Select(property => property.Key)))
+        switch (verdict)
         {
             case MaskinportenSectionShape.ExternalClient:
-                diagnostics.Add(
-                    Create(
-                        Diagnostics.Configuration.ExternalMaskinportenSectionCollision,
-                        FileLocationHelper.GetLocation(text, section.KeyStart, section.KeyEnd),
-                        localOnly,
-                        section.Key
-                    )
-                );
+                foreach (var (section, _) in sections)
+                {
+                    diagnostics.Add(
+                        Create(
+                            Diagnostics.Configuration.ExternalMaskinportenSectionCollision,
+                            FileLocationHelper.GetLocation(text, section.KeyStart, section.KeyEnd),
+                            localOnly,
+                            section.Key
+                        )
+                    );
+                }
                 break;
 
             case MaskinportenSectionShape.ProvisionedOverlap:
-                foreach (var property in properties)
+                foreach (var (section, properties) in sections)
                 {
-                    if (!MaskinportenInvariants.IsProvisionedKey(property.Key))
+                    foreach (var property in properties)
                     {
-                        continue;
-                    }
+                        if (!MaskinportenInvariants.IsProvisionedKey(property.Key))
+                        {
+                            continue;
+                        }
 
-                    diagnostics.Add(
-                        Create(
-                            Diagnostics.Configuration.MaskinportenCredentialsCollision,
-                            FileLocationHelper.GetLocation(text, property.KeyStart, property.Value.End),
-                            localOnly,
-                            section.Key,
-                            property.Key
-                        )
-                    );
+                        diagnostics.Add(
+                            Create(
+                                Diagnostics.Configuration.MaskinportenCredentialsCollision,
+                                FileLocationHelper.GetLocation(text, property.KeyStart, property.Value.End),
+                                localOnly,
+                                section.Key,
+                                property.Key
+                            )
+                        );
+                    }
                 }
                 break;
         }

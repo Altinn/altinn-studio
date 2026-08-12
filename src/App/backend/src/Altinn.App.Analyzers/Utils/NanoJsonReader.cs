@@ -359,17 +359,24 @@ public static class JsonReader
     {
         int start = index;
         index++; // skip opening "
-        while (fullJson[index] != '"')
+        while (true)
         {
+            // Bounds check first: a truncated document can end right after the opening quote
+            // (or inside an escape), and indexing past the end would escape as an
+            // IndexOutOfRangeException instead of a catchable NanoJsonException.
+            if (index >= fullJson.Length)
+            {
+                throw new NanoJsonException("Unterminated string", fullJson, start, index);
+            }
+            if (fullJson[index] == '"')
+            {
+                break;
+            }
             // naive skip escape to ensure that we don't end the string at \"
             // (we use a better algorithm in WriteStringToBuffer that actually translate escape sequences to the proper characters)
             if (fullJson[index] == '\\')
                 index++;
             index++;
-            if (index >= fullJson.Length)
-            {
-                throw new NanoJsonException("Unterminated string", fullJson, start, index);
-            }
         }
         return new JsonValue(JsonType.String, fullJson, start, index + 1);
     }

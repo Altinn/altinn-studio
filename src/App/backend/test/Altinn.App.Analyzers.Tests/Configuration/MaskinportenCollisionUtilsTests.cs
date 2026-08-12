@@ -211,6 +211,75 @@ public class MaskinportenCollisionUtilsTests
     }
 
     [Fact]
+    public void Truncated_Json_Does_Not_Throw_And_Emits_Nothing()
+    {
+        // A truncated document can end inside a string — even right after its opening quote. That must
+        // surface as a skipped file, not as an analyzer crash (AD0001).
+        Assert.Empty(Collect("\""));
+        Assert.Empty(Collect("{\"a\":\""));
+        Assert.Empty(Collect("{\"MaskinportenSettings\": {\"clientId\": \"e23f"));
+        Assert.Empty(Collect("{\"MaskinportenSettings\": {\"clientId\": \"e23f\\"));
+    }
+
+    [Fact]
+    public void Case_Variant_Duplicate_Sections_Are_Classified_On_Merged_Keys()
+    {
+        // Several spellings merge into one bound section at runtime, so the verdict must be computed
+        // once over all of them — otherwise an external-client app would also get per-key "remove it"
+        // advice that would break its own integration.
+        var diagnostics = Collect(
+            """
+            {
+              "MaskinportenSettings": { "Environment": "test" },
+              "maskinportensettings": { "clientId": "e23f-..." }
+            }
+            """
+        );
+
+        Assert.Equal(2, diagnostics.Count);
+        Assert.All(
+            diagnostics,
+            d => Assert.Equal(Diagnostics.Configuration.ExternalMaskinportenSectionCollision.Id, d.Id)
+        );
+    }
+
+    [Fact]
+    public void Diagnostic_Spans_Cover_The_Offending_Key_And_Value()
+    {
+        var json = """
+            {
+              "MaskinportenSettings": {
+                "authority": "https://test.maskinporten.no/",
+                "jwkBase64": "eyJwIjo...",
+                "jwk": { "p": "...", "kty": "RSA" }
+              }
+            }
+            """;
+
+        var diagnostics = Collect(json);
+
+        Assert.Equal(2, diagnostics.Count);
+        var spans = diagnostics
+            .Select(d => json.Substring(d.Location.SourceSpan.Start, d.Location.SourceSpan.Length))
+            .ToList();
+        Assert.Contains("\"jwkBase64\": \"eyJwIjo...\"", spans);
+        Assert.Contains("\"jwk\": { \"p\": \"...\", \"kty\": \"RSA\" }", spans);
+    }
+
+    [Fact]
+    public void External_Shape_Diagnostic_Span_Covers_The_Section_Key()
+    {
+        var json = """
+            { "MaskinportenSettings": { "Environment": "test" } }
+            """;
+
+        var diagnostic = Assert.Single(Collect(json));
+
+        var span = json.Substring(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.Length);
+        Assert.Equal("\"MaskinportenSettings\"", span);
+    }
+
+    [Fact]
     public void Section_With_Non_Object_Value_Emits_Nothing()
     {
         Assert.Empty(Collect("""{ "MaskinportenSettings": "not-an-object" }"""));
