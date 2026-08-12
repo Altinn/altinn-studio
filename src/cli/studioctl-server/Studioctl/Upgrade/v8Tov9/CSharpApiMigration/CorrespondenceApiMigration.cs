@@ -273,13 +273,13 @@ internal sealed class CorrespondenceApiMigration
 
             // With the v8 compilation, overload resolution already answered the question: the call
             // bound to either WithData(ReadOnlyMemory<byte>) or WithData(Stream), and the chosen
-            // parameter type says which. Classification runs on `original` - the pristine tree node
-            // the semantic model knows; `visited` may contain rewritten descendants it does not.
-            var kind = ClassifyBoundWithData(original);
-            if (kind == DataKind.Unknown)
-            {
-                kind = ClassifyDataArgument(argument.Expression);
-            }
+            // parameter type says which. A semantic verdict is authoritative - falling through to the
+            // syntax heuristics could wrap an argument the semantic model proved unwrappable.
+            // Classification runs on `original` - the pristine tree node the semantic model knows;
+            // `visited` may contain rewritten descendants it does not.
+            var kind =
+                ClassifyBoundWithData(original, original.ArgumentList.Arguments[0].Expression)
+                ?? ClassifyDataArgument(argument.Expression);
 
             switch (kind)
             {
@@ -319,29 +319,42 @@ internal sealed class CorrespondenceApiMigration
         }
 
         /// <summary>
-        /// The kind implied by which v8 <c>WithData</c> overload the call bound to, or
-        /// <see cref="DataKind.Unknown"/> without a semantic model (or when binding fails), in which
-        /// case the syntax classification below takes over.
+        /// The kind implied by which v8 <c>WithData</c> overload the call bound to. Returns
+        /// <c>null</c> when there is no semantic model or the call did not bind to the SDK's
+        /// <c>WithData</c>, letting the syntax classification take over. A call bound to the removed
+        /// <c>ReadOnlyMemory&lt;byte&gt;</c> overload only classifies as bytes when the argument itself
+        /// is a byte array: a genuine <c>ReadOnlyMemory</c>/<c>Memory</c> value cannot be wrapped in a
+        /// <c>MemoryStream</c> mechanically (the constructor takes an array), so it is reported
+        /// (<see cref="DataKind.Unknown"/>, authoritatively) instead of rewritten into code that does
+        /// not compile.
         /// </summary>
-        private DataKind ClassifyBoundWithData(InvocationExpressionSyntax original)
+        private DataKind? ClassifyBoundWithData(InvocationExpressionSyntax original, ExpressionSyntax originalArgument)
         {
             if (_semanticModel?.GetSymbolInfo(original).Symbol is not IMethodSymbol method)
             {
-                return DataKind.Unknown;
+                return null;
             }
 
             var unreduced = method.ReducedFrom ?? method;
             if (!CSharpSemanticQueries.IsAltinnAppSymbol(unreduced) || unreduced.Parameters.Length == 0)
             {
-                return DataKind.Unknown;
+                return null;
             }
 
-            return unreduced.Parameters[^1].Type switch
+            switch (unreduced.Parameters[^1].Type)
             {
-                INamedTypeSymbol { Name: "ReadOnlyMemory" } => DataKind.Bytes,
-                INamedTypeSymbol { Name: "Stream", ContainingNamespace.Name: "IO" } => DataKind.Stream,
-                _ => DataKind.Unknown,
-            };
+                case INamedTypeSymbol { Name: "Stream", ContainingNamespace.Name: "IO" }:
+                    return DataKind.Stream;
+
+                case INamedTypeSymbol { Name: "ReadOnlyMemory" }:
+                    var argumentType = _semanticModel.GetTypeInfo(originalArgument).Type;
+                    return argumentType is IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte }
+                        ? DataKind.Bytes
+                        : DataKind.Unknown;
+
+                default:
+                    return null;
+            }
         }
 
         private DataKind ClassifyDataArgument(ExpressionSyntax expression) => ClassifyDataArgument(expression, 0);
