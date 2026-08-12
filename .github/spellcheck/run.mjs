@@ -373,8 +373,13 @@ async function checkEnglish({ registry, root, fix }) {
       }
     }
     if (group.checkKeys !== false) {
+      // A key is one code contract however many languages define it — check
+      // it once, reported against the first language that has it.
+      const seen = new Set();
       for (const [lang, entries] of Object.entries(langs)) {
         for (const key of entries.keys()) {
+          if (seen.has(key)) continue;
+          seen.add(key);
           batches['en-us'].push({
             group,
             kind: 'key',
@@ -441,6 +446,14 @@ async function checkNorwegian({ registry, root, offline = false }) {
 
   const findings = [];
   const countsParts = [];
+  // A language the registry declares must produce values: without this, a
+  // registry change that empties one language would skip its pass silently
+  // while the other keeps the check green — work must be proven per language.
+  const declared = new Set(
+    registry.GROUPS.filter((g) => !g.mayBeEmpty)
+      .flatMap((g) => Object.keys(g.files ?? {}))
+      .filter((l) => l === 'nb' || l === 'nn'),
+  );
   for (const lang of ['nb', 'nn']) {
     const items = [];
     for (const group of registry.GROUPS) {
@@ -450,7 +463,12 @@ async function checkNorwegian({ registry, root, offline = false }) {
         if (text !== '') items.push({ sourceFile: sourcePath(group, lang), key, text });
       }
     }
-    if (items.length === 0) continue;
+    if (items.length === 0) {
+      if (declared.has(lang)) {
+        throw new HarnessError(`${lang}: the registry declares files but no values were extracted`);
+      }
+      continue;
+    }
 
     const glossary = readGlossary(join(HERE, `glossary.${lang}.txt`));
     const fullforms = await ensureOrdbank(lang, { offline });
@@ -876,6 +894,9 @@ const CHECKS = {
   no: (ctx) => checkNorwegian(ctx),
 };
 
+// process.exitCode (never process.exit) everywhere below: a forced exit can
+// end the process while piped stdout still has pending writes, truncating
+// the very summary that explains the failure.
 async function main() {
   // Native TS type stripping and import.meta.dirname both need this floor;
   // without the guard the failure is a cryptic ERR_UNKNOWN_FILE_EXTENSION.
@@ -884,7 +905,8 @@ async function main() {
     console.error(
       `Node ${process.versions.node} is too old for the spell-check runner (need ≥ 22.18).`,
     );
-    process.exit(64);
+    process.exitCode = 64;
+    return;
   }
 
   const args = process.argv.slice(2);
@@ -900,18 +922,20 @@ async function main() {
     try {
       const res = await checkQuick(ctx, names.slice(1));
       report('quick', res, ci);
-      process.exit(res.findings.length > 0 ? 1 : 0);
+      process.exitCode = res.findings.length > 0 ? 1 : 0;
     } catch (err) {
       if (!(err instanceof HarnessError)) throw err;
       console.log(`  ✗ HARNESS ERROR: ${err.message}`);
-      process.exit(1);
+      process.exitCode = 1;
     }
+    return;
   }
 
   for (const name of names) {
     if (!CHECKS[name]) {
       console.error(`unknown check '${name}' — one of: quick, ${Object.keys(CHECKS).join(', ')}`);
-      process.exit(64);
+      process.exitCode = 64;
+      return;
     }
   }
   const toRun = names.length > 0 ? names : Object.keys(CHECKS);
@@ -945,7 +969,7 @@ async function main() {
       `  ${r.error || r.findings.length || (r.skipped && ci) ? '✗' : r.skipped ? '⚠' : '✓'} ${r.name.padEnd(10)} ${status}${r.counts ? `  [${r.counts}]` : ''}`,
     );
   }
-  process.exit(exitCode);
+  process.exitCode = exitCode;
 }
 
 function report(name, res, ci) {
