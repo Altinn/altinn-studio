@@ -253,18 +253,18 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static Task<int> MigrateOpenApiNamespace(string projectFile)
+    static async Task<int> MigrateOpenApiNamespace(string projectFile)
     {
         UpgradeConsole.BeginStep("OpenAPI namespace");
         try
         {
             var migration = new UsingNamespaceMigration(projectFile);
             migration.Migrate("Microsoft.OpenApi.Models", "Microsoft.OpenApi", _programCsPathMatcher);
-            return Task.FromResult(ExitSuccess);
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error migrating OpenAPI namespace in Program.cs", ex));
+            return Fail("Error migrating OpenAPI namespace in Program.cs", ex);
         }
     }
 
@@ -315,7 +315,7 @@ internal static class V8Tov9Upgrade
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
     /// </summary>
-    static Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
+    static async Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
     {
         UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
         try
@@ -326,17 +326,15 @@ internal static class V8Tov9Upgrade
                 EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
             );
             var result = migration.Migrate();
-            return Task.FromResult(
-                ReportMigrationResult(
-                    result,
-                    cleanText: "No IEFormidlingReceivers implementations to update",
-                    cleanStatus: UpgradeMessageStatus.Skip
-                )
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IEFormidlingReceivers implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error migrating IEFormidlingReceivers signature", ex));
+            return Fail("Error migrating IEFormidlingReceivers signature", ex);
         }
     }
 
@@ -349,7 +347,7 @@ internal static class V8Tov9Upgrade
     /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
     /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
     /// </summary>
-    static Task<int> MigrateCorrespondenceApis(string projectFile)
+    static async Task<int> MigrateCorrespondenceApis(string projectFile)
     {
         UpgradeConsole.BeginStep("Correspondence APIs");
         try
@@ -360,21 +358,19 @@ internal static class V8Tov9Upgrade
             // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
             // cannot be determined from syntax is reported rather than rewritten, and the app will not
             // build until it is resolved.
-            return Task.FromResult(
-                ReportMigrationResult(
-                    result,
-                    cleanText: "No removed Correspondence APIs in use",
-                    cleanStatus: UpgradeMessageStatus.Skip
-                )
+            return ReportMigrationResult(
+                result,
+                cleanText: "No removed Correspondence APIs in use",
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error migrating Correspondence APIs", ex));
+            return Fail("Error migrating Correspondence APIs", ex);
         }
     }
 
-    static Task<int> CheckRemovedCSharpApis(string projectFile)
+    static async Task<int> CheckRemovedCSharpApis(string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
         try
@@ -388,17 +384,15 @@ internal static class V8Tov9Upgrade
                 new LegacyCorrespondenceCodeDetector(scanner).Detect()
             );
 
-            return Task.FromResult(
-                ReportMigrationResult(
-                    result,
-                    cleanText: "No removed or changed v9 C# APIs in use",
-                    cleanStatus: UpgradeMessageStatus.Skip
-                )
+            return ReportMigrationResult(
+                result,
+                cleanText: "No removed or changed v9 C# APIs in use",
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error checking for removed C# APIs", ex));
+            return Fail("Error checking for removed C# APIs", ex);
         }
     }
 
@@ -480,7 +474,7 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Job 3: Convert conditional rendering rules to layout hidden expressions
     /// </summary>
-    static Task<int> ConvertConditionalRenderingRules(string projectFolder)
+    static async Task<int> ConvertConditionalRenderingRules(string projectFolder)
     {
         UpgradeConsole.BeginStep("Conditional rendering rules");
         try
@@ -496,18 +490,18 @@ internal static class V8Tov9Upgrade
                 UpgradeConsole.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
             }
 
-            return Task.FromResult(ExitSuccess);
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error converting conditional rendering rules", ex));
+            return Fail("Error converting conditional rendering rules", ex);
         }
     }
 
     /// <summary>
     /// Job 4: Generate data processors for data processing rules
     /// </summary>
-    static Task<int> GenerateDataProcessors(string projectFolder)
+    static async Task<int> GenerateDataProcessors(string projectFolder)
     {
         UpgradeConsole.BeginStep("Data processors");
         try
@@ -519,7 +513,7 @@ internal static class V8Tov9Upgrade
                 if (!Directory.Exists(uiPath))
                 {
                     UpgradeConsole.Skip("No UI directory found, skipping data processor generation");
-                    return Task.FromResult(ExitSuccess);
+                    return ExitSuccess;
                 }
             }
 
@@ -628,18 +622,18 @@ internal static class V8Tov9Upgrade
                 UpgradeConsole.Skip("No data processing rules found to convert");
             }
 
-            return Task.FromResult(ExitSuccess);
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error generating data processors", ex));
+            return Fail("Error generating data processors", ex);
         }
     }
 
     /// <summary>
     /// Job 5: Cleanup legacy rule files after conversion
     /// </summary>
-    static Task<int> CleanupLegacyRuleFiles(string projectFolder)
+    static async Task<int> CleanupLegacyRuleFiles(string projectFolder)
     {
         UpgradeConsole.BeginStep("Legacy rule files");
         try
@@ -650,24 +644,24 @@ internal static class V8Tov9Upgrade
             if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
             {
                 UpgradeConsole.Skip("No legacy rule files found to cleanup");
-                return Task.FromResult(ExitSuccess);
+                return ExitSuccess;
             }
 
             UpgradeConsole.Ok($"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json files");
             UpgradeConsole.Ok($"Deleted {stats.RuleHandlerFilesDeleted} RuleHandler.js files");
 
-            return Task.FromResult(ExitSuccess);
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error cleaning up legacy rule files", ex));
+            return Fail("Error cleaning up legacy rule files", ex);
         }
     }
 
     /// <summary>
     /// Job 6: Migrate layout-sets.json to task-folder based UI settings
     /// </summary>
-    static Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
+    static async Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
     {
         UpgradeConsole.BeginStep("Task-folder UI settings");
         try
@@ -678,7 +672,7 @@ internal static class V8Tov9Upgrade
             if (!result.LayoutSetsDeleted)
             {
                 UpgradeConsole.Skip("No layout-sets.json found, skipping migration");
-                return Task.FromResult(ExitSuccess);
+                return ExitSuccess;
             }
 
             UpgradeConsole.Ok($"Migrated {result.MigratedFolderCount} UI folder(s)");
@@ -690,11 +684,11 @@ internal static class V8Tov9Upgrade
                 UpgradeConsole.Ok("Migrated global uiSettings to App/ui/Settings.json");
             }
 
-            return Task.FromResult(ExitSuccess);
+            return ExitSuccess;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error migrating layout-sets.json", ex));
+            return Fail("Error migrating layout-sets.json", ex);
         }
     }
 
@@ -782,24 +776,22 @@ internal static class V8Tov9Upgrade
     /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
-    static Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
+    static async Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
     {
         UpgradeConsole.BeginStep("Feedback tasks behind service tasks");
         try
         {
             var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
             var result = advisor.Analyze();
-            return Task.FromResult(
-                ReportMigrationResult(
-                    result,
-                    cleanText: "No feedback tasks behind service tasks found",
-                    cleanStatus: UpgradeMessageStatus.Skip
-                )
+            return ReportMigrationResult(
+                result,
+                cleanText: "No feedback tasks behind service tasks found",
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Fail("Error checking for feedback tasks behind service tasks", ex));
+            return Fail("Error checking for feedback tasks behind service tasks", ex);
         }
     }
 
