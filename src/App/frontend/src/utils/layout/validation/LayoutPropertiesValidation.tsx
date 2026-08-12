@@ -78,7 +78,10 @@ function ComponentLayoutValidators({ bootstrap }: { bootstrap: FormBootstrapCont
       {Object.values(bootstrap.layoutLookups.allComponents)
         .filter((component): component is CompExternal => component !== undefined)
         .map((component) => {
-          const def = getComponentDef(component.type) as unknown as AnyComponent<CompTypes>;
+          const def = getComponentDef(component.type) as unknown as AnyComponent<CompTypes> | undefined;
+          if (!def) {
+            return null;
+          }
           const Component = def.renderLayoutValidators;
           return (
             <Component
@@ -104,6 +107,16 @@ export function validateLayoutProperties({
     }
 
     const def = getComponentDef(component.type);
+    if (!def) {
+      addNodeError(
+        errors,
+        component.id,
+        `No component definition found for type '${component.type}'`,
+        `Unknown component type for component '/${component.id}'`,
+      );
+      continue;
+    }
+
     if (implementsDataModelBindingValidation(def, component) && window.forceLayoutPropertiesValidation !== 'off') {
       const validateDataModelBindings = def.validateDataModelBindings as DataModelBindingsValidator;
       for (const error of validateDataModelBindings(component.id, component.dataModelBindings, context)) {
