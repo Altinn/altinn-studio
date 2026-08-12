@@ -518,8 +518,7 @@ internal static class V8Tov9Upgrade
                 result,
                 cleanText: "No conflicting MaskinportenSettings configuration found",
                 cleanStatus: UpgradeMessageStatus.Skip,
-                manualActionText:
-                    "The Maskinporten configuration section needs manual follow-up. Review the messages above."
+                manualActionText: "The Maskinporten configuration section needs manual follow-up. Review the messages above."
             );
         }
         catch (Exception ex)
@@ -892,8 +891,7 @@ internal static class V8Tov9Upgrade
             return ReportMigrationResult(
                 result,
                 cleanText: "policy.xml already grants the service owner the required process-transition rights",
-                manualActionText:
-                    "Service-owner policy migration needs manual follow-up. Review the warnings above."
+                manualActionText: "Service-owner policy migration needs manual follow-up. Review the warnings above."
             );
         }
         catch (Exception ex)
@@ -916,8 +914,7 @@ internal static class V8Tov9Upgrade
             return ReportMigrationResult(
                 result,
                 cleanText: "No legacy eFormidling configuration remains",
-                manualActionText:
-                    "eFormidling service task migration needs manual follow-up. Review the warnings above."
+                manualActionText: "eFormidling service task migration needs manual follow-up. Review the warnings above."
             );
         }
         catch (Exception ex)
