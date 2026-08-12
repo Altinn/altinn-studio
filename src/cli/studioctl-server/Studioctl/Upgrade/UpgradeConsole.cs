@@ -55,7 +55,7 @@ internal static class UpgradeConsole
         var report =
             writers.Report ?? throw new InvalidOperationException("Upgrade output has neither a report nor a writer.");
 
-        writers.Step = report.BeginStep(name);
+        report.BeginStep(name);
     }
 
     /// <summary>A migration operation was applied, or a check ran and found nothing wrong.</summary>
@@ -90,7 +90,7 @@ internal static class UpgradeConsole
         }
 
         var step =
-            writers.Step
+            writers.Report?.CurrentStep
             ?? throw new InvalidOperationException(
                 $"No upgrade step has started; cannot report \"{text}\". Call UpgradeConsole.BeginStep(...) first."
             );
@@ -103,15 +103,7 @@ internal static class UpgradeConsole
         Error.WriteLine(message);
     }
 
-    /// <summary>
-    /// The ambient destination of one upgrade run: exactly one of <paramref name="StandardOutput"/> (free
-    /// text) and <paramref name="Report"/> (steps and typed messages) is set. <see cref="Step"/> is the
-    /// report's current step.
-    /// </summary>
-    private sealed record Writers(TextWriter? StandardOutput, TextWriter StandardError, UpgradeReport? Report)
-    {
-        public UpgradeReport.StepState? Step { get; set; }
-    }
+    private sealed record Writers(TextWriter? StandardOutput, TextWriter StandardError, UpgradeReport? Report);
 
     private sealed class Scope(Writers? previous) : IDisposable
     {

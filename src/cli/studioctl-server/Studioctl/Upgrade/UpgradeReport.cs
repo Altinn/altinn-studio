@@ -50,13 +50,14 @@ internal sealed class UpgradeReport
     /// <summary>Whether any step has begun, and so whether this run is reporting into the report at all.</summary>
     public bool HasSteps => _steps.Count > 0;
 
-    /// <summary>Starts a step and adds it to the report.</summary>
-    internal StepState BeginStep(string name)
-    {
-        var step = new StepState(name);
-        _steps.Add(step);
-        return step;
-    }
+    /// <summary>
+    /// The step messages are being collected on - the one begun last - or <c>null</c> before the first
+    /// <see cref="BeginStep"/>. Steps run one after another, so the newest is always the open one.
+    /// </summary>
+    internal StepState? CurrentStep => _steps.Count > 0 ? _steps[^1] : null;
+
+    /// <summary>Starts a step and adds it to the report, making it the <see cref="CurrentStep"/>.</summary>
+    internal void BeginStep(string name) => _steps.Add(new StepState(name));
 
     /// <summary>The mutable backing of one step.</summary>
     internal sealed class StepState(string name)
