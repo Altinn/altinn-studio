@@ -1,8 +1,9 @@
+using System.Threading;
+
 namespace Altinn.Studio.Cli.Upgrade;
 
 /// <summary>
-/// Ambient output for an upgrade run, so migrators can report without every one of them taking a writer
-/// or a reporter through its constructor.
+/// Keeps track of the progress of the upgrade run
 /// </summary>
 /// <remarks>
 /// <see cref="Use(UpgradeReport, TextWriter)"/> collects steps and typed messages that the CLI renders
@@ -35,6 +36,8 @@ internal static class UpgradeConsole
         Current.Value = new Writers(StandardOutput: null, error, report);
         return new Scope(previous);
     }
+
+    public static void WriteLine(string message) => Message(UpgradeMessageStatus.Info, message);
 
     /// <summary>
     /// Starts a step. Everything reported until the next <see cref="BeginStep"/> or the end of the scope
@@ -70,10 +73,7 @@ internal static class UpgradeConsole
     /// <summary>The upgrade could not do this automatically; the user has to finish it by hand.</summary>
     public static void Todo(string text) => Message(UpgradeMessageStatus.Todo, text);
 
-    /// <summary>
-    /// Records that the current step failed. Display only: the caller still decides and returns the exit
-    /// code, and the verbatim message still goes to <see cref="Error"/> for stderr.
-    /// </summary>
+    /// <summary>A migration failed failed.</summary>
     public static void Failed(string text) => Message(UpgradeMessageStatus.Failed, text);
 
     /// <summary>
@@ -97,12 +97,6 @@ internal static class UpgradeConsole
 
         step.Add(text, status);
     }
-
-    /// <summary>
-    /// Writes one line: verbatim as free text, an <see cref="UpgradeMessageStatus.Info"/> message in a
-    /// report - how call sites that do not carry a real status yet keep working.
-    /// </summary>
-    public static void WriteLine(string message) => Message(UpgradeMessageStatus.Info, message);
 
     public static void WriteErrorLine(string message)
     {
