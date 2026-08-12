@@ -98,7 +98,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, MigrateOpenApiNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(projectFile));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
         // fails to restore (NU1605). Only relevant when we actually bumped the csproj to v9 packages.
@@ -112,16 +112,16 @@ internal static class V8Tov9Upgrade
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, MigrateServiceTaskNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, MigrateEFormidlingReceiversSignature(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, MigrateCorrespondenceApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, CheckRemovedCSharpApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -130,16 +130,16 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, ConvertConditionalRenderingRules(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, GenerateDataProcessors(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await GenerateDataProcessors(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, CleanupLegacyRuleFiles(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, MigrateLayoutSetsToTaskUi(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -154,7 +154,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, WarnFeedbackTasksBehindServiceTasks(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         return returnCode;
     }
@@ -253,18 +253,18 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static int MigrateOpenApiNamespace(string projectFile)
+    static Task<int> MigrateOpenApiNamespace(string projectFile)
     {
         UpgradeConsole.BeginStep("OpenAPI namespace");
         try
         {
             var migration = new UsingNamespaceMigration(projectFile);
             migration.Migrate("Microsoft.OpenApi.Models", "Microsoft.OpenApi", _programCsPathMatcher);
-            return ExitSuccess;
+            return Task.FromResult(ExitSuccess);
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating OpenAPI namespace in Program.cs", ex);
+            return Task.FromResult(Fail("Error migrating OpenAPI namespace in Program.cs", ex));
         }
     }
 
@@ -296,7 +296,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
-    static int MigrateServiceTaskNamespace(string projectFile)
+    static async Task<int> MigrateServiceTaskNamespace(string projectFile)
     {
         UpgradeConsole.BeginStep("IServiceTask namespace");
         try
@@ -315,7 +315,7 @@ internal static class V8Tov9Upgrade
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
     /// </summary>
-    static int MigrateEFormidlingReceiversSignature(string projectFile)
+    static Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
     {
         UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
         try
@@ -326,15 +326,17 @@ internal static class V8Tov9Upgrade
                 EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
             );
             var result = migration.Migrate();
-            return ReportMigrationResult(
-                result,
-                cleanText: "No IEFormidlingReceivers implementations to update",
-                cleanStatus: UpgradeMessageStatus.Skip
+            return Task.FromResult(
+                ReportMigrationResult(
+                    result,
+                    cleanText: "No IEFormidlingReceivers implementations to update",
+                    cleanStatus: UpgradeMessageStatus.Skip
+                )
             );
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating IEFormidlingReceivers signature", ex);
+            return Task.FromResult(Fail("Error migrating IEFormidlingReceivers signature", ex));
         }
     }
 
@@ -347,7 +349,7 @@ internal static class V8Tov9Upgrade
     /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
     /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
     /// </summary>
-    static int MigrateCorrespondenceApis(string projectFile)
+    static Task<int> MigrateCorrespondenceApis(string projectFile)
     {
         UpgradeConsole.BeginStep("Correspondence APIs");
         try
@@ -358,19 +360,21 @@ internal static class V8Tov9Upgrade
             // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
             // cannot be determined from syntax is reported rather than rewritten, and the app will not
             // build until it is resolved.
-            return ReportMigrationResult(
-                result,
-                cleanText: "No removed Correspondence APIs in use",
-                cleanStatus: UpgradeMessageStatus.Skip
+            return Task.FromResult(
+                ReportMigrationResult(
+                    result,
+                    cleanText: "No removed Correspondence APIs in use",
+                    cleanStatus: UpgradeMessageStatus.Skip
+                )
             );
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating Correspondence APIs", ex);
+            return Task.FromResult(Fail("Error migrating Correspondence APIs", ex));
         }
     }
 
-    static int CheckRemovedCSharpApis(string projectFile)
+    static Task<int> CheckRemovedCSharpApis(string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
         try
@@ -384,15 +388,17 @@ internal static class V8Tov9Upgrade
                 new LegacyCorrespondenceCodeDetector(scanner).Detect()
             );
 
-            return ReportMigrationResult(
-                result,
-                cleanText: "No removed or changed v9 C# APIs in use",
-                cleanStatus: UpgradeMessageStatus.Skip
+            return Task.FromResult(
+                ReportMigrationResult(
+                    result,
+                    cleanText: "No removed or changed v9 C# APIs in use",
+                    cleanStatus: UpgradeMessageStatus.Skip
+                )
             );
         }
         catch (Exception ex)
         {
-            return Fail("Error checking for removed C# APIs", ex);
+            return Task.FromResult(Fail("Error checking for removed C# APIs", ex));
         }
     }
 
@@ -448,13 +454,15 @@ internal static class V8Tov9Upgrade
             if (!Directory.Exists(Path.Combine(studioRoot, "src", "App")))
                 return Fail($"studioRoot does not contain src/App: {studioRoot}");
 
-            if (!IsSubPathOf(studioRoot, projectFolder))
-                return Fail("convertPackageReferences is only valid for apps inside the Altinn Studio repo root");
+            if (IsSubPathOf(studioRoot, projectFolder))
+            {
+                var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
+                await rewriter.ConvertToProjectReferences(studioRoot);
+                UpgradeConsole.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
+                return ExitSuccess;
+            }
 
-            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-            await rewriter.ConvertToProjectReferences(studioRoot);
-            UpgradeConsole.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
-            return ExitSuccess;
+            return Fail("convertPackageReferences is only valid for apps inside the Altinn Studio repo root");
         }
         catch (Exception ex)
         {
@@ -472,7 +480,7 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Job 3: Convert conditional rendering rules to layout hidden expressions
     /// </summary>
-    static int ConvertConditionalRenderingRules(string projectFolder)
+    static Task<int> ConvertConditionalRenderingRules(string projectFolder)
     {
         UpgradeConsole.BeginStep("Conditional rendering rules");
         try
@@ -481,25 +489,25 @@ internal static class V8Tov9Upgrade
             var stats = converter.ConvertAllLayoutSets();
             if (stats.TotalRules == 0)
             {
-                UpgradeConsole.Skip("No conditional rendering rules found");
+                UpgradeConsole.Skip("No conditional rendering rules found to convert");
             }
             else
             {
                 UpgradeConsole.Ok($"Converted {stats.TotalRules} rule(s) to layout hidden expressions");
             }
 
-            return ExitSuccess;
+            return Task.FromResult(ExitSuccess);
         }
         catch (Exception ex)
         {
-            return Fail("Error converting conditional rendering rules", ex);
+            return Task.FromResult(Fail("Error converting conditional rendering rules", ex));
         }
     }
 
     /// <summary>
     /// Job 4: Generate data processors for data processing rules
     /// </summary>
-    static int GenerateDataProcessors(string projectFolder)
+    static Task<int> GenerateDataProcessors(string projectFolder)
     {
         UpgradeConsole.BeginStep("Data processors");
         try
@@ -510,8 +518,8 @@ internal static class V8Tov9Upgrade
                 uiPath = Path.Combine(projectFolder, "ui");
                 if (!Directory.Exists(uiPath))
                 {
-                    UpgradeConsole.Skip("No UI directory found");
-                    return ExitSuccess;
+                    UpgradeConsole.Skip("No UI directory found, skipping data processor generation");
+                    return Task.FromResult(ExitSuccess);
                 }
             }
 
@@ -543,7 +551,7 @@ internal static class V8Tov9Upgrade
                 if (!File.Exists(ruleHandlerPath))
                 {
                     UpgradeConsole.Warning(
-                        $"RuleHandler.js not found for layout set '{layoutSetName}'; skipped its data processor"
+                        $"RuleHandler.js not found for layout set '{layoutSetName}', skipping data processor generation"
                     );
                     continue;
                 }
@@ -559,7 +567,7 @@ internal static class V8Tov9Upgrade
                 if (dataModelInfo == null)
                 {
                     UpgradeConsole.Warning(
-                        $"Could not resolve the data model for layout set '{layoutSetName}'; skipped its data processor"
+                        $"Could not resolve data model for layout set '{layoutSetName}', skipping data processor generation"
                     );
                     continue;
                 }
@@ -584,10 +592,12 @@ internal static class V8Tov9Upgrade
                     || generationResult.ClassName == null
                 )
                 {
-                    UpgradeConsole.Failed(
-                        $"Could not generate the data processor for layout set '{layoutSetName}': "
-                            + string.Join("; ", generationResult.Errors)
-                    );
+                    UpgradeConsole.Failed($"Failed to generate data processor for layout set '{layoutSetName}'");
+                    foreach (var error in generationResult.Errors)
+                    {
+                        UpgradeConsole.Failed(error);
+                    }
+
                     continue;
                 }
 
@@ -606,7 +616,7 @@ internal static class V8Tov9Upgrade
                 if (generationResult.FailedConversions > 0)
                 {
                     UpgradeConsole.Warning(
-                        $"{generationResult.FailedConversions} of {generationResult.TotalRules} rules could not be converted to C# code"
+                        $"{generationResult.FailedConversions} of {generationResult.TotalRules} rules failed to convert to C# code"
                     );
                 }
 
@@ -615,21 +625,21 @@ internal static class V8Tov9Upgrade
 
             if (totalProcessed == 0)
             {
-                UpgradeConsole.Skip("No data processing rules found");
+                UpgradeConsole.Skip("No data processing rules found to convert");
             }
 
-            return ExitSuccess;
+            return Task.FromResult(ExitSuccess);
         }
         catch (Exception ex)
         {
-            return Fail("Error generating data processors", ex);
+            return Task.FromResult(Fail("Error generating data processors", ex));
         }
     }
 
     /// <summary>
     /// Job 5: Cleanup legacy rule files after conversion
     /// </summary>
-    static int CleanupLegacyRuleFiles(string projectFolder)
+    static Task<int> CleanupLegacyRuleFiles(string projectFolder)
     {
         UpgradeConsole.BeginStep("Legacy rule files");
         try
@@ -639,27 +649,25 @@ internal static class V8Tov9Upgrade
 
             if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
             {
-                UpgradeConsole.Skip("No legacy rule files found");
-                return ExitSuccess;
+                UpgradeConsole.Skip("No legacy rule files found to cleanup");
+                return Task.FromResult(ExitSuccess);
             }
 
-            UpgradeConsole.Ok(
-                $"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json and "
-                    + $"{stats.RuleHandlerFilesDeleted} RuleHandler.js file(s)"
-            );
+            UpgradeConsole.Ok($"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json files");
+            UpgradeConsole.Ok($"Deleted {stats.RuleHandlerFilesDeleted} RuleHandler.js files");
 
-            return ExitSuccess;
+            return Task.FromResult(ExitSuccess);
         }
         catch (Exception ex)
         {
-            return Fail("Error cleaning up legacy rule files", ex);
+            return Task.FromResult(Fail("Error cleaning up legacy rule files", ex));
         }
     }
 
     /// <summary>
     /// Job 6: Migrate layout-sets.json to task-folder based UI settings
     /// </summary>
-    static int MigrateLayoutSetsToTaskUi(string projectFolder)
+    static Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
     {
         UpgradeConsole.BeginStep("Task-folder UI settings");
         try
@@ -669,25 +677,24 @@ internal static class V8Tov9Upgrade
 
             if (!result.LayoutSetsDeleted)
             {
-                UpgradeConsole.Skip("No layout-sets.json found");
-                return ExitSuccess;
+                UpgradeConsole.Skip("No layout-sets.json found, skipping migration");
+                return Task.FromResult(ExitSuccess);
             }
 
+            UpgradeConsole.Ok($"Migrated {result.MigratedFolderCount} UI folder(s)");
             UpgradeConsole.Ok(
-                $"Migrated {result.MigratedFolderCount} UI folder(s) to task folders "
-                    + $"({result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, "
-                    + $"{result.DeletedSourceFolderCount} deleted source folder(s))"
+                $"Folder operations: {result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, {result.DeletedSourceFolderCount} deleted source folder(s)"
             );
             if (result.MigratedGlobalSettings)
             {
                 UpgradeConsole.Ok("Migrated global uiSettings to App/ui/Settings.json");
             }
 
-            return ExitSuccess;
+            return Task.FromResult(ExitSuccess);
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating layout-sets.json", ex);
+            return Task.FromResult(Fail("Error migrating layout-sets.json", ex));
         }
     }
 
@@ -775,22 +782,24 @@ internal static class V8Tov9Upgrade
     /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
-    static int WarnFeedbackTasksBehindServiceTasks(string projectFolder)
+    static Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
     {
         UpgradeConsole.BeginStep("Feedback tasks behind service tasks");
         try
         {
             var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
             var result = advisor.Analyze();
-            return ReportMigrationResult(
-                result,
-                cleanText: "No feedback tasks behind service tasks found",
-                cleanStatus: UpgradeMessageStatus.Skip
+            return Task.FromResult(
+                ReportMigrationResult(
+                    result,
+                    cleanText: "No feedback tasks behind service tasks found",
+                    cleanStatus: UpgradeMessageStatus.Skip
+                )
             );
         }
         catch (Exception ex)
         {
-            return Fail("Error checking for feedback tasks behind service tasks", ex);
+            return Task.FromResult(Fail("Error checking for feedback tasks behind service tasks", ex));
         }
     }
 

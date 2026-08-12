@@ -38,6 +38,7 @@ internal static class UpgradeConsole
     }
 
     public static void WriteLine(string message) => Message(UpgradeMessageStatus.Info, message);
+
     public static void WriteErrorLine(string message)
     {
         Error.WriteLine(message);
