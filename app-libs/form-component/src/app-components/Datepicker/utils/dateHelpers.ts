@@ -32,26 +32,9 @@ export const DatepickerMaxDateDefault = '2100-01-01T23:59:59Z';
 export const DatepickerFormatDefault = 'dd.MM.yyyy';
 export const PrettyDateAndTime = 'dd.MM.yyyy / HH:mm';
 
-/**
- * Moment used a non-standard format for dates, this is a work-around to prevent breaking changes
- * @deprecated
- */
-function convertLegacyFormat(format: string): string {
-  if (format === 'DD.MM.YYYY') {
-    return 'dd.MM.yyyy';
-  }
-  if (format === 'DD/MM/YYYY') {
-    return 'dd/MM/yyyy';
-  }
-  if (format === 'YYYY-MM-DD') {
-    return 'yyyy-MM-dd';
-  }
-  return format;
-}
-
 export function getDateFormat(format?: string, selectedLanguage = 'nb'): string {
   if (format) {
-    return convertLegacyFormat(format);
+    return format;
   }
   return (
     getLocale(selectedLanguage).formatLong?.date({ width: 'short' }) || DatepickerFormatDefault
