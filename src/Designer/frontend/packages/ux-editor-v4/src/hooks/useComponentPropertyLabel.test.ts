@@ -9,7 +9,7 @@ describe('useComponentPropertyLabel', () => {
     expect(propertyLabel).toEqual(textMock('ux_editor.component_properties.testProperty'));
   });
 
-  it('uses the v4-specific label for timeStamp (on by default)', () => {
+  it('maps timeStamp to the v4-specific translation key', () => {
     const result = renderHook(() => useComponentPropertyLabel()).result.current;
     expect(result('timeStamp')).toEqual(textMock('ux_editor.component_properties.timeStamp_v4'));
   });
