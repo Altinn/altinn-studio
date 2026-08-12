@@ -137,11 +137,6 @@ evaluator in the Langfuse UI.
 | `llm-as-a-judge/faithful_summary.md`        | `faithful_summary`        |
 | `llm-as-a-judge/no_irrelevant_responses.md` | `no_irrelevant_responses` |
 
-`implementation_match` is retired: its inputs (implementation plan, patch
-data) no longer exist in the agentic-loop architecture. Implementation
-quality is covered by `verify_changes` at runtime and the benchmark
-`rubric_match` evaluator.
-
 ### Required Environment Variables
 
 ```bash
