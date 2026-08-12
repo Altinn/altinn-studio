@@ -248,11 +248,14 @@ export function runHunspell(text, dictBases) {
  * SHA-256-verifying any that are missing. Returns the cache directory.
  * See dictionaries.mjs for why these are fetched rather than vendored.
  */
-export async function ensureDictionaries() {
+export async function ensureDictionaries({ offline = false } = {}) {
   mkdirSync(CACHE_DIR, { recursive: true });
   for (const [name, { sha256 }] of Object.entries(DICTIONARY_FILES)) {
     const target = join(CACHE_DIR, name);
     if (existsSync(target) && sha256Of(readFileSync(target)) === sha256) continue;
+    if (offline) {
+      throw new HarnessError(`${name} is not cached — run \`yarn spell:check\` once to fetch it`);
+    }
     const url = rawUrl(name);
     const res = await fetch(url);
     if (!res.ok) throw new HarnessError(`fetching ${url} failed: HTTP ${res.status}`);
@@ -278,7 +281,7 @@ const sha256Of = (buf) => createHash('sha256').update(buf).digest('hex');
  * extracted once, and the processed word list is kept next to the
  * dictionaries. See dictionaries.mjs for why this supplements hunspell.
  */
-export async function ensureOrdbank(lang) {
+export async function ensureOrdbank(lang, { offline = false } = {}) {
   mkdirSync(CACHE_DIR, { recursive: true });
   const { path, sha256, fullformFile } = ORDBANK_FILES[lang];
   const processed = join(CACHE_DIR, `fullforms.${lang}.txt`);
@@ -286,6 +289,9 @@ export async function ensureOrdbank(lang) {
 
   if (!existsSync(processed)) {
     if (!existsSync(tarball) || sha256Of(readFileSync(tarball)) !== sha256) {
+      if (offline) {
+        throw new HarnessError(`${path} is not cached — run \`yarn spell:check\` once to fetch it`);
+      }
       const url = ordbankUrl(lang);
       const res = await fetch(url);
       if (!res.ok) throw new HarnessError(`fetching ${url} failed: HTTP ${res.status}`);
@@ -323,6 +329,103 @@ export async function ensureOrdbank(lang) {
     throw new HarnessError(`${processed} holds only ${forms.size} forms — delete it and re-run`);
   }
   return forms;
+}
+
+// ------------------------------------------------------------ suppressions ---
+
+/**
+ * Validates suppression entries and compiles their globs. Each entry must
+ * carry token, kind and reason, plus exactly one scope style:
+ * `identifiers` (optionally narrowed by paths), `identifierPart` (requires
+ * paths), or bare `paths`.
+ */
+export function compileSuppressions(entries) {
+  return entries.map((e, i) => {
+    const where = `suppression #${i} ('${e.token ?? '?'}')`;
+    if (!e.token || !e.kind || !e.reason) {
+      throw new HarnessError(`${where} needs token, kind and reason`);
+    }
+    if (e.identifiers && e.identifierPart) {
+      throw new HarnessError(`${where} cannot combine identifiers and identifierPart`);
+    }
+    if (e.identifierPart && !e.paths) {
+      throw new HarnessError(`${where} uses identifierPart and must declare paths`);
+    }
+    if (!e.identifiers && !e.identifierPart && !e.paths) {
+      throw new HarnessError(`${where} declares no scope at all`);
+    }
+    return { ...e, res: (e.paths ?? ['**']).map(globToRegExp), hits: 0 };
+  });
+}
+
+/**
+ * Splits typos findings into kept and suppressed, and reports which entries
+ * did no work. A suppression only ever narrows: a token outside its declared
+ * scope, or inside an identifier it does not name, stays a finding.
+ * `readLine(path, lineNum)` supplies source lines for identifier scoping.
+ */
+export function partitionFindings(findings, compiled, readLine, { staleCheck = true } = {}) {
+  const kept = [];
+  for (const f of findings) {
+    const path = f.path.replace(/^\.\//, '');
+    const entry = compiled.find(
+      (e) =>
+        e.token === f.typo && e.res.some((r) => r.test(path)) && scopeMatches(e, f, path, readLine),
+    );
+    if (entry) entry.hits += 1;
+    else kept.push(f);
+  }
+  const stale = staleCheck ? compiled.filter((e) => e.hits === 0) : [];
+  return { kept, suppressedCount: findings.length - kept.length, stale };
+}
+
+function scopeMatches(entry, f, path, readLine) {
+  if (!entry.identifiers && !entry.identifierPart) return true;
+  const ident = surroundingIdentifier(f, path, readLine);
+  if (ident === undefined) return false; // can't prove scope — keep the finding
+  if (entry.identifiers) return entry.identifiers.includes(ident);
+  return ident.length > f.typo.length;
+}
+
+/**
+ * The identifier around a finding. typos reports a BYTE offset into the
+ * line, so the expansion works in byte space — identifier characters are
+ * ASCII, which makes the expansion exact even on lines with non-ASCII text
+ * (the previous harness's UTF-16-index bug class). A file-name finding has
+ * no line; its identifier is the basename stem.
+ */
+function surroundingIdentifier(f, path, readLine) {
+  if (f.line_num === undefined) {
+    return (path.split('/').pop() ?? '').split('.')[0];
+  }
+  const line = readLine(path, f.line_num);
+  if (line === undefined) return undefined;
+  const buf = Buffer.from(line, 'utf8');
+  const tok = Buffer.from(f.typo, 'utf8');
+  const off = f.byte_offset;
+  if (!buf.subarray(off, off + tok.length).equals(tok)) return undefined;
+  const isIdent = (b) =>
+    (b >= 0x30 && b <= 0x39) || (b >= 0x41 && b <= 0x5a) || (b >= 0x61 && b <= 0x7a) || b === 0x5f;
+  let s = off;
+  let e = off + tok.length;
+  while (s > 0 && isIdent(buf[s - 1])) s -= 1;
+  while (e < buf.length && isIdent(buf[e])) e += 1;
+  return buf.subarray(s, e).toString('utf8');
+}
+
+/** A cached line reader over real files, for partitionFindings. */
+export function fileLineReader(root) {
+  const cache = new Map();
+  return (path, lineNum) => {
+    if (!cache.has(path)) {
+      try {
+        cache.set(path, readFileSync(join(root, path), 'utf8').split('\n'));
+      } catch {
+        cache.set(path, null);
+      }
+    }
+    return cache.get(path)?.[lineNum - 1];
+  };
 }
 
 // -------------------------------------------------------- fix application ---

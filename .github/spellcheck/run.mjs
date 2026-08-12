@@ -26,14 +26,19 @@
  *              LibreOffice dictionaries, glossary.*.txt)
  *
  * Usage:
- *   node .github/spellcheck/run.mjs [check ...]   default: self-test + all
- *   --fix   apply unambiguous en-US and en-GB corrections. NOTE: the code
- *           pass renames misspelled identifiers too — a semantic change.
+ *   node .github/spellcheck/run.mjs [check ...]     default: self-test + all
+ *   node .github/spellcheck/run.mjs quick [files…]  changed files only, for
+ *           the inner dev loop and the pre-commit hook; never fetches
+ *           dictionaries. `yarn spell:quick`.
+ *   --fix   apply unambiguous corrections through the suppression registry
+ *           (never `typos --write-changes`, which cannot see it). The code
+ *           pass edits misspelled identifiers too — a semantic change.
  *           Always review the diff before committing.
  *   --ci    a skipped check fails the run (implied by $CI)
  */
 
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -42,11 +47,14 @@ import {
   HarnessError,
   REPO_ROOT,
   applyValueFix,
+  compileSuppressions,
   ensureDictionaries,
   ensureOrdbank,
+  fileLineReader,
   findKeyLine,
   globToRegExp,
   paramsOf,
+  partitionFindings,
   readGlossary,
   readGroup,
   runHunspell,
@@ -58,6 +66,7 @@ import {
   typosFileList,
 } from './lib.mjs';
 import * as realRegistry from './registry.mjs';
+import { SUPPRESSIONS } from './suppressions.mjs';
 
 const HERE = import.meta.dirname;
 const EN_GB_CONFIG = join(HERE, 'typos.values.en-gb.toml');
@@ -71,7 +80,7 @@ const finding = (file, key, message, line) => ({ file, key, message, line });
 
 // ------------------------------------------------------------ code check ---
 
-function checkCode({ fix }) {
+function checkCode({ fix, root }) {
   if (!toolAvailable('typos')) {
     throw new HarnessError('typos is not installed. `brew install typos-cli`');
   }
@@ -81,16 +90,69 @@ function checkCode({ fix }) {
       `the code pass would only visit ${fileCount} files — typos.toml is broken, not the repo clean`,
     );
   }
-  if (fix) runTypos(['--write-changes']);
-  const findings = runTypos([]).map((f) =>
+  const compiled = compileSuppressions(SUPPRESSIONS);
+  const { kept, suppressedCount, stale } = partitionFindings(
+    runTypos([]),
+    compiled,
+    fileLineReader(root),
+  );
+
+  const findings = stale.map((e) =>
     finding(
-      f.path,
+      '.github/spellcheck/suppressions.mjs',
       undefined,
-      `\`${f.typo}\` should be \`${(f.corrections ?? []).join('` or `')}\``,
-      f.line_num,
+      `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
     ),
   );
-  return { findings, counts: `${fileCount} files visited` };
+  const applied = fix ? applyCodeFixes(root, kept) : 0;
+  for (const f of kept) {
+    findings.push(
+      finding(
+        f.path,
+        undefined,
+        `\`${f.typo}\` should be \`${(f.corrections ?? []).join('` or `')}\`` +
+          (f.line_num === undefined ? ' (in the file name)' : ''),
+        f.line_num,
+      ),
+    );
+  }
+  if (applied > 0) console.log(`  applied ${applied} fix(es) — re-run to verify`);
+  return {
+    findings,
+    counts: `${fileCount} files visited, ${suppressedCount} finding(s) suppressed by ${compiled.length} scoped rules`,
+  };
+}
+
+/**
+ * Applies unambiguous corrections directly — `typos --write-changes` is
+ * never used, because it cannot see the suppression registry and would
+ * "fix" wire-contract spellings. A fix is applied only when the typo has a
+ * single correction and occurs exactly once on its line; file-name findings
+ * are never auto-renamed.
+ */
+function applyCodeFixes(root, kept) {
+  let applied = 0;
+  const byFile = new Map();
+  for (const f of kept) {
+    if (f.line_num === undefined || (f.corrections ?? []).length !== 1) continue;
+    const path = f.path.replace(/^\.\//, '');
+    if (!byFile.has(path)) byFile.set(path, []);
+    byFile.get(path).push(f);
+  }
+  for (const [path, fixes] of byFile) {
+    const abs = join(root, path);
+    const lines = readFileSync(abs, 'utf8').split('\n');
+    let touched = false;
+    for (const f of fixes) {
+      const line = lines[f.line_num - 1];
+      if (line === undefined || line.split(f.typo).length - 1 !== 1) continue;
+      lines[f.line_num - 1] = line.replace(f.typo, f.corrections[0]);
+      touched = true;
+      applied += 1;
+    }
+    if (touched) writeFileSync(abs, lines.join('\n'));
+  }
+  return applied;
 }
 
 // ------------------------------------------------------- structure check ---
@@ -355,11 +417,11 @@ async function checkEnglish({ registry, root, fix }) {
 
 // -------------------------------------------------------- norwegian check ---
 
-async function checkNorwegian({ registry, root }) {
+async function checkNorwegian({ registry, root, offline = false }) {
   if (!toolAvailable('hunspell')) {
     return skip('hunspell is not installed (`brew install hunspell` / `apt install hunspell`)');
   }
-  const cacheDir = await ensureDictionaries();
+  const cacheDir = await ensureDictionaries({ offline });
 
   const findings = [];
   const countsParts = [];
@@ -375,7 +437,7 @@ async function checkNorwegian({ registry, root }) {
     if (items.length === 0) continue;
 
     const glossary = readGlossary(join(HERE, `glossary.${lang}.txt`));
-    const fullforms = await ensureOrdbank(lang);
+    const fullforms = await ensureOrdbank(lang, { offline });
     const doc = items.map((i) => i.text).join('\n');
     const wordCount = doc.split(/\s+/).filter(Boolean).length;
     if (wordCount === 0) throw new HarnessError(`${lang}: extracted zero words`);
@@ -420,6 +482,93 @@ async function checkNorwegian({ registry, root }) {
   }
   if (countsParts.length === 0) throw new HarnessError('no Norwegian values were extracted');
   return { findings, counts: countsParts.join('; ') };
+}
+
+// ------------------------------------------------------------ quick check ---
+
+/**
+ * Fast feedback for the inner dev loop and the pre-commit hook: only the
+ * given files (default: everything changed relative to HEAD, plus staged and
+ * untracked), only the checks that can run instantly. The Norwegian pass
+ * runs offline-only — it never fetches dictionaries here.
+ */
+async function checkQuick(ctx, fileArgs) {
+  const root = ctx.root;
+  const files = (fileArgs.length > 0 ? fileArgs : gitChangedFiles(root))
+    .map((f) => f.replace(/^\.\//, ''))
+    .filter((f) => existsSync(join(root, f)));
+  if (files.length === 0) {
+    return { findings: [], counts: 'no changed files to check' };
+  }
+
+  // The code pass, scoped. --force-exclude keeps typos.toml's excludes
+  // authoritative even for explicitly named files.
+  const compiled = compileSuppressions(SUPPRESSIONS);
+  const { kept, suppressedCount } = partitionFindings(
+    runTypos(['--force-exclude', ...files], { cwd: root }),
+    compiled,
+    fileLineReader(root),
+    { staleCheck: false }, // a scoped run proves nothing about unrelated entries
+  );
+  const findings = kept.map((f) =>
+    finding(
+      f.path,
+      undefined,
+      `\`${f.typo}\` should be \`${(f.corrections ?? []).join('` or `')}\``,
+      f.line_num,
+    ),
+  );
+
+  // Language-file checks, only for the groups the changed files belong to.
+  const fileSet = new Set(files);
+  const affected = ctx.registry.GROUPS.filter((g) =>
+    (g.file ? [g.file] : Object.values(g.files)).some((p) => fileSet.has(p)),
+  );
+  const notes = [];
+  if (affected.length > 0) {
+    const subset = { GROUPS: affected };
+    const structure = await checkStructure({ registry: subset, root });
+    findings.push(...structure.findings);
+    if (affected.some((g) => g.english || g.checkKeys !== false)) {
+      const english = await checkEnglish({ registry: subset, root, fix: false });
+      findings.push(...english.findings);
+    }
+    if (affected.some((g) => Object.keys(g.files ?? {}).some((l) => l === 'nb' || l === 'nn'))) {
+      try {
+        const norwegian = await checkNorwegian({ registry: subset, root, offline: true });
+        if (norwegian.skipped) notes.push(`norwegian skipped: ${norwegian.skipped}`);
+        else findings.push(...norwegian.findings);
+      } catch (err) {
+        if (!(err instanceof HarnessError)) throw err;
+        notes.push(`norwegian skipped: ${err.message}`);
+      }
+    }
+  }
+  for (const note of notes) console.log(`  ⚠ ${note}`);
+
+  return {
+    findings,
+    counts:
+      `${files.length} file(s), ${suppressedCount} suppressed` +
+      (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
+  };
+}
+
+function gitChangedFiles(root) {
+  const out = new Set();
+  for (const args of [
+    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'],
+    ['ls-files', '-o', '--exclude-standard'],
+  ]) {
+    const res = spawnSync('git', args, {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+    });
+    if (res.status !== 0) throw new HarnessError(`git ${args[0]} failed: ${res.stderr}`);
+    for (const f of res.stdout.split('\n').filter(Boolean)) out.add(f);
+  }
+  return [...out];
 }
 
 // -------------------------------------------------------------- self-test ---
@@ -509,7 +658,60 @@ async function checkSelfTest({ ci }) {
   }
   assertions += FIX_SCENARIOS.length;
 
+  // The suppression logic, on synthetic findings: path scoping, identifier
+  // scoping (both directions), and stale detection.
+  for (const failure of suppressionFailures()) {
+    failures.push(finding('(self-test)', undefined, `suppressions: ${failure}`));
+    assertions += 1;
+  }
+  assertions += 5;
+
   return { findings: failures, counts: `${assertions} assertions over planted fixtures` };
+}
+
+/**
+ * The suppression matcher must narrow, never widen: a token outside its
+ * declared paths or inside an unlisted identifier stays a finding, and an
+ * entry that matches nothing is reported as stale.
+ */
+function suppressionFailures() {
+  const failures = [];
+  const entries = compileSuppressions([
+    { token: 'Suppressme', paths: ['docs/allowed/**'], kind: 'test-fixture', reason: 'planted' },
+    { token: 'Contracted', identifiers: ['ContractedField'], kind: 'contract', reason: 'planted' },
+    { token: 'Phantom', paths: ['**'], kind: 'test-fixture', reason: 'planted stale entry' },
+  ]);
+  const lines = {
+    'docs/allowed/a.md': 'the Suppressme word',
+    'docs/other/b.md': 'the Suppressme word',
+    'src/c.cs': 'var ContractedField = 1;',
+    'src/d.md': 'the Contracted value',
+  };
+  const f = (path, byte_offset, typo) => ({ path, line_num: 1, byte_offset, typo });
+  const { kept, suppressedCount, stale } = partitionFindings(
+    [
+      f('docs/allowed/a.md', 4, 'Suppressme'), // in scope → suppressed
+      f('docs/other/b.md', 4, 'Suppressme'), // outside paths → kept
+      f('src/c.cs', 4, 'Contracted'), // inside listed identifier → suppressed
+      f('src/d.md', 4, 'Contracted'), // bare word → kept
+    ],
+    entries,
+    (path) => lines[path],
+  );
+  if (suppressedCount !== 2) failures.push(`expected 2 suppressed, got ${suppressedCount}`);
+  if (kept.some((k) => k.path === 'docs/allowed/a.md' || k.path === 'src/c.cs')) {
+    failures.push('suppressed a finding it should not have kept, or vice versa');
+  }
+  if (!kept.some((k) => k.path === 'docs/other/b.md')) {
+    failures.push('a token outside its declared paths was not kept');
+  }
+  if (!kept.some((k) => k.path === 'src/d.md')) {
+    failures.push('a bare word outside its identifier scope was not kept');
+  }
+  if (stale.length !== 1 || stale[0].token !== 'Phantom') {
+    failures.push('the planted stale entry was not detected');
+  }
+  return failures;
 }
 
 function fixPathFailures(scenarios) {
@@ -559,14 +761,30 @@ async function main() {
   const fix = args.includes('--fix');
   const ci = args.includes('--ci') || process.env.CI === 'true';
   const names = args.filter((a) => !a.startsWith('--'));
+  const ctx = { registry: realRegistry, root: REPO_ROOT, fix, ci };
+
+  // `quick <files…>` is its own fast path: everything after the command is a
+  // file list (the pre-commit hook passes staged files), not check names.
+  if (names[0] === 'quick') {
+    console.log('▶ quick');
+    try {
+      const res = await checkQuick(ctx, names.slice(1));
+      report('quick', res, ci);
+      process.exit(res.findings.length > 0 ? 1 : 0);
+    } catch (err) {
+      if (!(err instanceof HarnessError)) throw err;
+      console.log(`  ✗ HARNESS ERROR: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
   for (const name of names) {
     if (!CHECKS[name]) {
-      console.error(`unknown check '${name}' — one of: ${Object.keys(CHECKS).join(', ')}`);
+      console.error(`unknown check '${name}' — one of: quick, ${Object.keys(CHECKS).join(', ')}`);
       process.exit(64);
     }
   }
   const toRun = names.length > 0 ? names : Object.keys(CHECKS);
-  const ctx = { registry: realRegistry, root: REPO_ROOT, fix, ci };
 
   const results = [];
   for (const name of toRun) {

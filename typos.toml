@@ -1,19 +1,27 @@
 # Spell check for Altinn Studio — code, identifiers, comments and docs, in
-# US English.
+# US English. ENGINE configuration only.
 #
-# This file is one of five checks; the runner and the policy live in
-# .github/spellcheck/ (see AGENTS.md "Spelling and language"). Customer-facing
-# UI text is NOT checked here: the language files are named in
-# .github/spellcheck/registry.mjs, excluded below, and checked by the runner
-# instead — British English for the English values, hunspell for the
-# Norwegian ones, US English for the keys. The coverage check fails if this
-# exclude list and the registry drift apart.
+# This file decides what typos scans and how words parse. It deliberately
+# contains NO named exceptions: no extend-identifiers, no extend-words, no
+# per-project excludes. Every accepted misspelling lives in
+# .github/spellcheck/suppressions.mjs instead, scoped to the paths and
+# identifiers where it is load-bearing and enforced by the runner — a
+# suppressed token outside its scope is still reported, and a suppression
+# that matches nothing is itself a finding. (typos' own mechanisms are
+# repo-wide, which measurably over-suppressed: a bare `organisation`
+# allowlist entry hid 1,132 findings, mostly prose.)
 #
-# The rule this config encodes: spellcheck prose and code, never data.
-# Fixtures, schemas, code lists and wire payloads are data — they are full of
-# Norwegian and of names we do not own, and checking them buys nothing.
+# Because policy lives in the runner, `typos` invoked directly reports
+# suppressed contract tokens too — use `yarn spell:quick` (changed files) or
+# `yarn spell:check` (everything) instead. For the same reason
+# `typos --write-changes` must never be used: it would "fix" wire contracts.
 #
-# Run:  yarn spell:check     Fix:  yarn spell:fix
+# The excludes below are ENGINE decisions, three kinds only: generated or
+# vendored output nobody can fix by hand, pure fixture/wire data ("spellcheck
+# prose and code, never data"), and whole files written in another language
+# where per-token suppression is meaningless.
+#
+# Run:  yarn spell:check     Fix:  yarn spell:fix     Fast: yarn spell:quick
 
 [files]
 # typos skips hidden paths by default, which would exempt everything under
@@ -28,10 +36,12 @@ extend-exclude = [
     # .claude/worktrees may hold entire nested checkouts of this repository.
     ".claude/**",
 
-    # Build output and generated code. Kept even when currently silent: a typo a
-    # generator emits cannot be fixed by hand, so it must never block CI.
+    # Build output, generated and vendored code. Kept even when currently
+    # silent: a typo a generator emits cannot be fixed by hand, so it must
+    # never block CI. The presentation HTML embeds minified reveal.js.
     "**/bin/**", "**/obj/**", "**/dist/**", "**/node_modules/**", "**/.yarn/**",
     "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
+    "src/Runtime/workflow-engine/docs/presentation/**",
 
     # The spell-check harness itself: fixtures with deliberately planted
     # errors (the self-test copies them elsewhere and checks them with THIS
@@ -50,42 +60,21 @@ extend-exclude = [
     "src/App/template/src/App/config/texts/resource.nb.json",
     "src/gitea/files/locale/**",
 
-    # Norwegian test data and fixtures, where the field names are the contract
-    # under test rather than prose.
+    # Norwegian test data and fixtures, where the field names are the
+    # contract under test rather than prose. Sample apps are fixtures in
+    # their entirety. Maskinporten tests embed JWT/base64 blobs whose random
+    # fragments trip the checker and change with every regeneration.
     "**/[Tt]estdata/**", "**/*SourceGenerator*/**", "src/test/apps/**",
     "*.pretest", "**/Altinn.App.Core.Tests/Data/SkjemaWithNamespace.cs",
-    "**/Altinn3LibraryProvider/**", "**/Services/Tenor/**",
+    "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
     "**/Maskinporten/**/*Test*.cs",
 
-    # Norwegian throughout, rather than in places the string rule below can
-    # spot (JSX text nodes, HTML markup, whole Norwegian UIs).
-    "src/tools/altinn-fleet-stats/**", "**/policy_tool/**",
+    # Whole files in another language: Norwegian in markup text nodes and JSX
+    # that the string rule below cannot see, and a Norwegian-only internal
+    # dashboard. Candidates for the extraction pipeline later.
+    "src/tools/altinn-fleet-stats/**",
     "src/Designer/backend/src/Designer/Views/Home/StartPage.cshtml",
     "src/gitea/files/custom/templates/**",
-
-    # Written to name the OLD spellings: release notes describe what an API used
-    # to be called, and the upgrade tooling matches v8 names in order to rewrite
-    # them.
-    "**/CHANGELOG.md",
-    "src/cli/studioctl-server/Studioctl/Upgrade/**",
-    "src/cli/studioctl-server-tests/Upgrade/**",
-
-    # Assertions and selectors against the Norwegian UI that the test apps and
-    # Gitea render.
-    "**/test/e2e/**", "**/testing/playwright/pages/**",
-
-    # Data embedded in source: an Altinn 2 code list, and the Norwegian
-    # KS.Fiks.Arkiv / KS.Fiks.IO models.
-    "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
-    "src/App/backend/src/Altinn.App.Clients.Fiks/**",
-    "src/App/backend/test/Altinn.App.Clients.Fiks.Tests/**",
-
-    # Norwegian in JSX children and Storybook sample content, which the string
-    # rule below cannot see.
-    "**/MergeConflictWarning/MergeConflictWarning.tsx",
-    "**/AddItem/ToggleAddComponentPoc.tsx",
-    "**/DownloadXMLButton/DownloadXMLButton.tsx",
-    "**/*.stories.tsx", "**/StudioTable*Pagination/**",
 ]
 
 # Data formats hold fixtures, schemas, code lists and wire payloads, not
@@ -123,90 +112,3 @@ extend-ignore-re = [
   '''/[^/\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^/\n]*/''',
   '''["']n[bn]["']\s*[,:]\s*["'][^"'\n]*["']''',
 ]
-
-[default.extend-identifiers]
-# Names we do not own. Matched as whole identifiers, so the spelling stays enforced
-# everywhere else — prefer this over extend-words: a shape-based regex or a bare
-# word would also admit brand-new misspellings, which is what this check exists
-# to stop.
-
-# Altinn Platform (Storage / Register) DTO members and the wire fields named after
-# them. Renaming any of these breaks the build or the contract.
-Organisation = "Organisation"
-organisation = "organisation"
-OrganisationNumber = "OrganisationNumber"
-organisationNumber = "organisationNumber"
-AllowedContributers = "AllowedContributers"
-allowedContributers = "allowedContributers"
-EnabledFileAnalysers = "EnabledFileAnalysers"
-enabledFileAnalysers = "enabledFileAnalysers"
-Submited = "Submited"
-submited = "submited"
-Occured = "Occured"
-occured = "occured"
-GetDecisionForUnvalidateRequest = "GetDecisionForUnvalidateRequest"
-Unvalidate = "Unvalidate"
-
-# Kept deliberately, each with a comment at the definition explaining why.
-OrganisationLookup = "OrganisationLookup"              # frozen ux-editor-v4 contract
-organisation_lookup_orgnr = "organisation_lookup_orgnr"
-organisation_lookup_name = "organisation_lookup_name"
-DataModelBindingsOrganisationLookup = "DataModelBindingsOrganisationLookup"
-OrganisationLookupSchema = "OrganisationLookupSchema"
-autoSaveBehaviour = "autoSaveBehaviour"                # deprecated alias, still read
-AutoSaveBehaviorLegacy = "AutoSaveBehaviorLegacy"
-OrganisationRepositoryLocation = "OrganisationRepositoryLocation"
-GeneralSettings__OrganisationRepositoryLocation = "GeneralSettings__OrganisationRepositoryLocation"
-OrganisationLogin = "OrganisationLogin"                # LocalTest ClaimsIdentity type
-mimeTypeAnalyser = "mimeTypeAnalyser"                  # analyzer id apps reference
-ExhangeToAltinnToken = "ExhangeToAltinnToken"          # MaskinportenSettings member
-
-# W3C ARIA — these mirror the aria-labelledby attribute.
-ariaLabelledBy = "ariaLabelledBy"
-AriaLabelledBy = "AriaLabelledBy"
-hasAriaLabelledBy = "hasAriaLabelledBy"
-labelledById = "labelledById"
-
-# Third-party exports and API shapes
-MenuElipsisVerticalIcon = "MenuElipsisVerticalIcon"    # @navikt/aksel-icons
-MenuElipsisHorizontalIcon = "MenuElipsisHorizontalIcon"
-Vertexes = "Vertexes"                                  # BuildKit SolveStatus
-vertexes = "vertexes"
-didi = "didi"                                          # npm package used by bpmn-js
-
-# Codes, slugs and acronyms
-acn = "acn"                          # Altinn org slug
-ACN = "ACN"
-AKS = "AKS"                          # Azure Kubernetes Service
-aks = "aks"
-OCE = "OCE"                          # OperationCanceledException
-JOD = "JOD"                          # ISO 4217 (Jordanian dinar)
-sme = "sme"                          # ISO 639-3 (Northern Sami)
-fpr = "fpr"                          # gpg --with-colons field
-caf = "caf"                          # file extensions in MimeTypeMap
-itms = "itms"
-mak = "mak"
-odf = "odf"
-thn = "thn"
-
-# Deliberate test inputs — changing these breaks what the test proves
-tru = "tru"                          # a deliberately invalid expression
-abd = "abd"                          # expected output of backspace on "abc\x08d"
-varius = "varius"                    # lorem ipsum
-erro = "erro"                        # 4-char log-level column: trac/debu/info/warn/erro
-SelvRegistrert = "SelvRegistrert"    # real self-identified username in Altinn test env
-Statistisk = "Statistisk"            # "Statistisk Sentralbyrå"
-periodeFritekst = "periodeFritekst"  # Norwegian data-model field path
-Adedd = "Adedd"                      # fixture for a test named "typo in category"
-Maake = "Maake"                      # expected å->aa transliteration output
-ue = "ue"                            # second half of typing "true" into an input
-BA = "BA"                            # ISO 3166 (Bosnia and Herzegovina)
-
-[default.extend-words]
-# Only for a name that appears *inside* larger identifiers, where extend-identifiers
-# cannot match it.
-axe = "axe"                          # axe-core: injectAxe, axeCorePath, AxeOptions
-OCE = "OCE"                          # OperationCanceledException, in test names
-als = "als"                          # test organization slug, e.g. OnlyAlsTemplates
-Als = "Als"
-ba = "ba"                            # botAccount shorthand; also inside git SHAs

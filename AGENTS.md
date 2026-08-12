@@ -97,15 +97,26 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
 - **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
   the product is **British English** for the English values and checked **Norwegian** (bokmål and
-  nynorsk, via hunspell) for the `nb`/`nn` values. Run `yarn spell:check` locally and
-  `yarn spell:fix` to apply unambiguous corrections — note that the fix mode also renames
-  misspelled _identifiers_, which is a semantic change, so always review the diff. CI runs the
-  same five checks in `.github/workflows/spellcheck.yaml`.
+  nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
+  feedback on your changed files, `yarn spell:check` for everything, and `yarn spell:fix` to apply
+  unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which is a
+  semantic change, so always review the diff. CI runs the same checks in
+  `.github/workflows/spellcheck.yaml`; the pre-commit hook runs `spell:quick` on staged files. The
+  check is deliberately **not** wired into `dotnet build`/`tsc` — a spelling finding should never
+  slow or break a compile, and CI is the gate.
 
   The harness lives in `.github/spellcheck/`. Its one hard rule: **no check may pass without
   proving it ran** — every check counts its work, tool exit codes are inspected, a committed
   self-test plants one of every defect class and asserts the production configuration catches
   each one, and every check runs independently so a failure in one cannot hide another.
+
+  `typos.toml` is **engine configuration only** and holds no named exceptions. Every accepted
+  spelling lives in `.github/spellcheck/suppressions.mjs`, scoped to the paths — and where
+  possible the exact identifiers — where it is load-bearing, with a reason. The same token outside
+  its scope is still reported, and an entry that matches nothing is reported as stale. For this
+  reason never run bare `typos` (it reports accepted contract spellings) and never run
+  `typos --write-changes` (it would "fix" them); `spell:quick`/`spell:check`/`spell:fix` apply the
+  registry.
 
   Every file holding user-facing translation text is declared once, in
   `.github/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a
@@ -115,10 +126,9 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
   correct, add it to `.github/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
   full-form, so inflections need their own lines). If an English spelling genuinely cannot change
-  (a wire contract, someone else's API), allow-list it in `typos.toml` as a whole _identifier_,
-  never as a bare word, so the spelling stays enforced everywhere else. Note that `typos` does
-  **not** look inside path-shaped string literals, so after renaming a directory you must also
-  `git grep` the old segment.
+  (a wire contract, someone else's API), add a scoped entry to `suppressions.mjs`. Note that
+  `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
+  must also `git grep` the old segment.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`
   exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
   Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`

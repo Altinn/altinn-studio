@@ -20,6 +20,7 @@
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "spell:check": "node .github/spellcheck/run.mjs",
     "spell:fix": "node .github/spellcheck/run.mjs --fix",
+    "spell:quick": "node .github/spellcheck/run.mjs quick",
     "start-app-development": "yarn workspace app-development start",
     "prepare": "lefthook install"
   },
