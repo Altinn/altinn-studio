@@ -91,7 +91,7 @@ public class ProfileClient : IProfileClient
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-        HttpResponseMessage response = await _client.GetAsync(
+        using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
             _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App)
@@ -129,7 +129,7 @@ public class ProfileClient : IProfileClient
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         StringContent content = new(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             endpointUrl,
             content,

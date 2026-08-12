@@ -5,7 +5,7 @@ import classes from './DefaultToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { Accordion } from '@digdir/designsystemet-react';
+import { StudioDetails } from '@studio/components';
 import {
   getCollapsableMenuTitleByType,
   getComponentTitleByComponentType,
@@ -39,26 +39,23 @@ export function DefaultToolbar() {
     <>
       {Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
         return (
-          <Accordion key={key} color='subtle'>
-            <Accordion.Item
-              defaultOpen={key === CollapsableMenus.Components}
-              className={classes.accordionItem}
-            >
-              <Accordion.Header className={classes.accordionHeader}>
-                {getCollapsableMenuTitleByType(key, t)}
-              </Accordion.Header>
-              <Accordion.Content className={classes.accordionContent}>
-                {allComponentLists[key].map((component: IToolbarElement) => (
-                  <ToolbarItem
-                    text={getComponentTitleByComponentType(component.type, t) || component.label}
-                    icon={component.icon}
-                    componentType={component.type}
-                    key={component.type}
-                  />
-                ))}
-              </Accordion.Content>
-            </Accordion.Item>
-          </Accordion>
+          <StudioDetails
+            key={key}
+            defaultOpen={key === CollapsableMenus.Components}
+            className={classes.detailsElement}
+          >
+            <StudioDetails.Summary>{getCollapsableMenuTitleByType(key, t)}</StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
+              {allComponentLists[key].map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={getComponentTitleByComponentType(component.type, t) || component.label}
+                  icon={component.icon}
+                  componentType={component.type}
+                  key={component.type}
+                />
+              ))}
+            </StudioDetails.Content>
+          </StudioDetails>
         );
       })}
     </>
