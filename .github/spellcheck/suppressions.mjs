@@ -144,12 +144,6 @@ export const SUPPRESSIONS = [
     reason: 'mirrors the W3C aria-labelledby attribute',
   },
   {
-    token: 'labelled',
-    identifiers: ['labelledById', 'labelledby', 'ariaLabelledBy'],
-    kind: 'external-name',
-    reason: 'mirrors the W3C aria-labelledby attribute',
-  },
-  {
     token: 'Vertexes',
     paths: ['src/Runtime/devenv/pkg/container/dockerapi/**'],
     kind: 'external-name',
@@ -258,18 +252,6 @@ export const SUPPRESSIONS = [
     paths: ['src/App/backend/Makefile', '**/BotAccounts/**'],
     kind: 'code-slug',
     reason: 'botAccount shorthand, and ba inside git SHAs in test fixtures',
-  },
-  {
-    token: 'Ba',
-    paths: ['src/Runtime/operator/config/**'],
-    kind: 'code-slug',
-    reason: 'part of a base64 value in local operator config',
-  },
-  {
-    token: 'BA',
-    paths: ['src/AI/mcp/**'],
-    kind: 'code-slug',
-    reason: 'ISO 3166 country code (Bosnia and Herzegovina) in mock data and docs dumps',
   },
   {
     token: 'Statistisk',

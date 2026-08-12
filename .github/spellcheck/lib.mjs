@@ -149,16 +149,181 @@ export function stripNonProse(value) {
     .trim();
 }
 
+// -------------------------------------------- Norwegian string classifier ---
+
+/**
+ * Signals that a text is Norwegian: a Nordic letter, or a function word that
+ * does not occur in English prose. This replaces the extend-ignore-re
+ * patterns typos.toml used to hold — policy in the engine config had no hit
+ * counting, no self-test reach and no rot detection, and two of its five
+ * patterns were found dead within days of a scope change. Here the word list
+ * is code: reviewed, unit-tested, and its work counted by the caller.
+ */
+const NORWEGIAN_SIGNAL_WORDS = new Set([
+  'ikke',
+  'som',
+  'og',
+  'til',
+  'av',
+  'med',
+  'kan',
+  'skal',
+  'du',
+  'deg',
+  'din',
+  'ditt',
+  'dine',
+  'har',
+  'eller',
+  'dette',
+  'denne',
+  'alle',
+  'ingen',
+  'hvis',
+  'noen',
+  'skjema',
+  'tekst',
+  'modell',
+  'adresse',
+  'periode',
+  'respons',
+  'signatur',
+  'parallell',
+  'designet',
+  'aktive',
+  'sist',
+  'appen',
+  'selv',
+  'ned',
+  'noe',
+  'lik',
+]);
+
+export function isNorwegianText(text) {
+  if (/[æøåÆØÅ]/.test(text)) return true;
+  // A long unbroken run means data (base64, JWKs, tokens), not prose — and
+  // data trivially contains two-letter "words" like og/av between digits.
+  // Norwegian prose without a single Nordic letter AND with such a run does
+  // not happen; a blob must never count as Norwegian.
+  if (/[A-Za-z0-9+/=_-]{30,}/.test(text)) return false;
+  return text
+    .toLowerCase()
+    .split(/[^a-zæøå]+/)
+    .some((word) => NORWEGIAN_SIGNAL_WORDS.has(word));
+}
+
+/**
+ * The string-literal spans of one source line, as byte ranges into `buf`
+ * (typos reports byte offsets — see surroundingIdentifier). A span opens at
+ * a quote (', ", or `), a backslash escapes exactly one character, and the
+ * span closes only at the SAME quote — proper delimiter pairing, which the
+ * engine-side regexes could never do (typos embeds Rust's regex crate: no
+ * backreferences, hence the four near-identical patterns this replaced).
+ * An unterminated quote (an apostrophe in prose) opens no span. Multi-line
+ * literals are the deliberate, documented gap: everything here is scoped to
+ * one line, because a span that crosses lines can swallow code between two
+ * strings.
+ */
+export function stringSpans(buf) {
+  const spans = [];
+  const isQuote = (b) => b === 0x22 || b === 0x27 || b === 0x60;
+  let i = 0;
+  while (i < buf.length) {
+    if (!isQuote(buf[i])) {
+      i += 1;
+      continue;
+    }
+    const quote = buf[i];
+    let j = i + 1;
+    while (j < buf.length && buf[j] !== quote) j += buf[j] === 0x5c ? 2 : 1;
+    if (j >= buf.length) {
+      i += 1; // unterminated — plain text, not a string
+      continue;
+    }
+    spans.push({ start: i + 1, end: j });
+    i = j + 1;
+  }
+  return spans;
+}
+
+/**
+ * Splits typos findings into three piles by CONTEXT, before any policy is
+ * applied:
+ *
+ *   norwegian  inside a string literal that reads as Norwegian — a string
+ *              containing Norwegian IS Norwegian, not misspelled English. A
+ *              Norwegian word in an identifier, in markup text or in prose
+ *              is NOT classified and stays a finding. The deliberate cost,
+ *              unchanged from the engine-side rule this replaced: an English
+ *              typo inside a string that also reads as Norwegian is missed.
+ *   data       inside a contiguous run of 30+ base64ish characters (JWKs,
+ *              tokens, hashes) — data is not words, wherever it occurs.
+ *   kept       everything else; a finding.
+ *
+ * Both classified piles are counted so their work is visible on every run.
+ */
+export function classifyFindings(findings, readLine) {
+  const kept = [];
+  let norwegian = 0;
+  let data = 0;
+  for (const f of findings) {
+    const cls = classify(f, readLine);
+    if (cls === 'norwegian') norwegian += 1;
+    else if (cls === 'data') data += 1;
+    else kept.push(f);
+  }
+  return { kept, norwegian, data };
+}
+
+function classify(f, readLine) {
+  if (f.line_num === undefined) return 'finding'; // a file-name finding
+  const line = readLine(f.path.replace(/^\.\//, ''), f.line_num);
+  if (line === undefined) return 'finding';
+  const buf = Buffer.from(line, 'utf8');
+  const tok = Buffer.from(f.typo, 'utf8');
+  if (!buf.subarray(f.byte_offset, f.byte_offset + tok.length).equals(tok)) return 'finding';
+
+  // The contiguous data-shaped run around the token. No natural word — in
+  // either language — reaches 30 characters unbroken by spaces or
+  // punctuation outside this set.
+  const isData = (b) =>
+    (b >= 0x30 && b <= 0x39) ||
+    (b >= 0x41 && b <= 0x5a) ||
+    (b >= 0x61 && b <= 0x7a) ||
+    b === 0x2b || // +
+    b === 0x2f || // /
+    b === 0x3d || // =
+    b === 0x5f || // _
+    b === 0x2d; // -
+  let s = f.byte_offset;
+  let e = f.byte_offset + tok.length;
+  while (s > 0 && isData(buf[s - 1])) s -= 1;
+  while (e < buf.length && isData(buf[e])) e += 1;
+  if (e - s >= 30) return 'data';
+
+  const span = stringSpans(buf).find(
+    (sp) => f.byte_offset >= sp.start && f.byte_offset + tok.length <= sp.end,
+  );
+  if (span && isNorwegianText(buf.subarray(span.start, span.end).toString('utf8'))) {
+    return 'norwegian';
+  }
+  return 'finding';
+}
+
 // ------------------------------------------------------- glob matching ---
 
-/** Converts the registry's limited glob dialect (** and *) to a RegExp. */
+/**
+ * Converts the registry's limited glob dialect to a RegExp: `**`, `*`, and
+ * `[…]` character classes (typos.toml uses `[Tt]est[Dd]ata`).
+ */
 export function globToRegExp(glob) {
   const pattern = glob
-    .split(/(\*\*\/|\*\*|\*)/)
+    .split(/(\*\*\/|\*\*|\*|\[[A-Za-z0-9_-]+\])/)
     .map((part) => {
       if (part === '**/') return '(?:.*/)?';
       if (part === '**') return '.*';
       if (part === '*') return '[^/]*';
+      if (/^\[[A-Za-z0-9_-]+\]$/.test(part)) return part;
       return part.replace(/[.+^${}()|[\]\\]/g, '\\$&');
     })
     .join('');

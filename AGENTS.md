@@ -118,7 +118,9 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   `typos --write-changes` (it would "fix" them); `spell:quick`/`spell:check`/`spell:fix` apply the
   registry. Test-only surface (test projects, colocated `*.test.*`/`*.spec.*` files, test data,
   mocks, e2e suites, Storybook stories) is out of scope wholesale — never add a suppression for a
-  test file.
+  test file. Norwegian text inside a string literal in code is recognized and skipped by the
+  runner's classifier, as are tokens inside base64/JWT data runs — a Norwegian word in an
+  identifier or in markup text is still reported and must be fixed or suppressed.
 
   Every file holding user-facing translation text is declared once, in
   `.github/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a

@@ -155,15 +155,50 @@ export const FIX_SCENARIOS = [
   },
 ];
 
+/**
+ * Classifier scenarios, run as unit cases against synthetic lines (the
+ * table quotes flaggable tokens, so it must live in this excluded path).
+ * `cases` rows are [path, typo, expected classification, description];
+ * offsets are derived by indexOf, so the lines must be ASCII and contain
+ * each referenced typo exactly once at its intended position.
+ */
+export const CLASSIFIER_SCENARIOS = {
+  lines: {
+    'a.ts': `const t = 'Velg adresse her';`, // Norwegian string
+    'b.ts': `const p = ['Dette er ikke alt', "the colour token"];`, // pairing
+    'c.ts': `const adresseFelt = 'Skriv inn tekst';`, // identifier vs string
+    'd.md': `don't classify adresse after an unpaired apostrophe`,
+    'e.ts': `const s = 'han sa \\'adresse\\' til alle'; colour();`, // escapes
+    'f.yaml': `n: uCI86gU5og9MxiTN7qKUvZmAgXBaEfGhIjKlMnOpQrStUv`, // blob
+  },
+  cases: [
+    ['a.ts', 'adresse', 'norwegian', 'a typo inside a Norwegian string'],
+    ['b.ts', 'colour', 'finding', 'an English string next to a Norwegian one'],
+    ['c.ts', 'adresse', 'finding', 'an identifier on a line with a Norwegian string'],
+    ['d.md', 'adresse', 'finding', 'prose after an unpaired apostrophe'],
+    ['e.ts', 'colour', 'finding', 'code after a string with escaped quotes'],
+    ['e.ts', 'adresse', 'norwegian', 'a token inside escaped quotes within the string'],
+    ['f.yaml', 'Ba', 'data', 'a token inside a bare base64 blob'],
+  ],
+};
+
 export const EXPECTED = {
   // Production typos.toml over copies of fixtures/code/ placed outside the
-  // excluded selftest path.
+  // excluded selftest path, findings run through the Norwegian-string
+  // classifier exactly as in checkCode.
   code: [
     '`recieve` should be `receive`',
     '`colour` should be `color`',
     '`behaviour` should be `behavior`',
     '`recieved` should be `received`',
+    '`accomodate` should be `accommodate`', // in an English string beside a Norwegian one
   ],
+  // The plants the classifier must remove (they must NOT appear above), but
+  // count — proving typos flagged them and the classifier, not an exclude,
+  // removed them. Norwegian: `flavour` plus the Norwegian words `som` and
+  // `alle`, which typos itself flags as English typos — the exact class the
+  // classifier exists for. Data: `recieve` embedded in a 30+ character run.
+  codeClassified: { norwegian: 3, data: 1 },
   structure: [
     "missing key 'planted.missing_in_nn'",
     "'planted.empty_in_nb' is empty",

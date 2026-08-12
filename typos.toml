@@ -77,8 +77,9 @@ extend-exclude = [
     "**/Options/Altinn2Provider/Altinn2CodeListProvider.cs",
 
     # Whole files in another language: Norwegian in markup text nodes and JSX
-    # that the string rule below cannot see, and a Norwegian-only internal
-    # dashboard. Candidates for the extraction pipeline later.
+    # that the runner's string classifier cannot see (it reads string
+    # literals, not markup text), and a Norwegian-only internal dashboard.
+    # Candidates for the extraction pipeline later.
     "src/tools/altinn-fleet-stats/**",
     "src/Designer/backend/src/Designer/Views/Home/StartPage.cshtml",
     "src/gitea/files/custom/templates/**",
@@ -98,24 +99,11 @@ check-file = false
 [default]
 locale = "en-us"
 
-# A string containing Norwegian is Norwegian, not misspelled English. Stated
-# once here rather than by listing every file that holds Norwegian product
-# copy — a path list rots silently when files move, this does not.
-#
-# The signal is a Nordic letter or one of the function words below, which do
-# not occur in English prose. It matches string literals only, so a Norwegian
-# word in an *identifier* is still reported and must still be fixed.
-#
-# Two costs, deliberately accepted: an English typo inside a string that also
-# contains a Norwegian word is missed (such strings are Norwegian in
-# practice), and a multi-line template literal is NOT exempted — every
-# pattern is bounded to one line, because an unbounded backtick pattern can
-# match from the end of one code span to the start of the next and exempt
-# everything in between. Files where that bites are excluded by name above.
-extend-ignore-re = [
-  '''['][^'\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^'\n]*[']''',
-  '''["][^"\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^"\n]*["]''',
-  '''[`][^`\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^`\n]*[`]''',
-  '''/[^/\n]*(?:[æøåÆØÅ]|(?i:\b(?:ikke|som|og|til|av|med|kan|skal|du|deg|din|ditt|dine|har|eller|dette|denne|alle|ingen|hvis|noen|skjema|tekst|modell|adresse|periode|respons|signatur|parallell|designet|aktive|sist|appen|selv|ned|noe|lik)\b))[^/\n]*/''',
-  '''["']n[bn]["']\s*[,:]\s*["'][^"'\n]*["']''',
-]
+# There are deliberately no extend-ignore-re patterns. Norwegian product copy
+# inside string literals, and typo-shaped tokens inside base64/JWT data runs,
+# are recognized and classified by the RUNNER (classifyFindings in
+# .github/spellcheck/lib.mjs), not exempted here: an engine-side regex has no
+# hit counting, no self-test reach and no rot detection — two of the five
+# patterns this replaced were found dead within days of a scope change,
+# silently. The classifier's work is counted on every run and its behavior is
+# asserted by the self-test.

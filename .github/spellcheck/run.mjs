@@ -47,6 +47,7 @@ import {
   HarnessError,
   REPO_ROOT,
   applyValueFix,
+  classifyFindings,
   compileSuppressions,
   ensureDictionaries,
   ensureOrdbank,
@@ -91,11 +92,11 @@ function checkCode({ fix, root }) {
     );
   }
   const compiled = compileSuppressions(SUPPRESSIONS);
-  const { kept, suppressedCount, stale } = partitionFindings(
-    runTypos([]),
-    compiled,
-    fileLineReader(root),
-  );
+  const readLine = fileLineReader(root);
+  // Context first (a Norwegian string is not English at all), policy second
+  // (a suppression is an accepted English-context spelling).
+  const { kept: unclassified, norwegian, data } = classifyFindings(runTypos([]), readLine);
+  const { kept, suppressedCount, stale } = partitionFindings(unclassified, compiled, readLine);
 
   const findings = stale.map((e) =>
     finding(
@@ -119,7 +120,9 @@ function checkCode({ fix, root }) {
   if (applied > 0) console.log(`  applied ${applied} fix(es) — re-run to verify`);
   return {
     findings,
-    counts: `${fileCount} files visited, ${suppressedCount} finding(s) suppressed by ${compiled.length} scoped rules`,
+    counts:
+      `${fileCount} files visited, ${norwegian} in Norwegian strings, ${data} in data runs, ` +
+      `${suppressedCount} finding(s) suppressed by ${compiled.length} scoped rules`,
   };
 }
 
@@ -504,12 +507,15 @@ async function checkQuick(ctx, fileArgs) {
   // The code pass, scoped. --force-exclude keeps typos.toml's excludes
   // authoritative even for explicitly named files.
   const compiled = compileSuppressions(SUPPRESSIONS);
-  const { kept, suppressedCount } = partitionFindings(
-    runTypos(['--force-exclude', ...files], { cwd: root }),
-    compiled,
-    fileLineReader(root),
-    { staleCheck: false }, // a scoped run proves nothing about unrelated entries
-  );
+  const readLine = fileLineReader(root);
+  const {
+    kept: unclassified,
+    norwegian,
+    data,
+  } = classifyFindings(runTypos(['--force-exclude', ...files], { cwd: root }), readLine);
+  const { kept, suppressedCount } = partitionFindings(unclassified, compiled, readLine, {
+    staleCheck: false, // a scoped run proves nothing about unrelated entries
+  });
   const findings = kept.map((f) =>
     finding(
       f.path,
@@ -549,7 +555,7 @@ async function checkQuick(ctx, fileArgs) {
   return {
     findings,
     counts:
-      `${files.length} file(s), ${suppressedCount} suppressed` +
+      `${files.length} file(s), ${norwegian + data} classified, ${suppressedCount} suppressed` +
       (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
   };
 }
@@ -581,8 +587,15 @@ function gitChangedFiles(root) {
  * be named somewhere. A failure here means the harness itself is broken.
  */
 async function checkSelfTest({ ci }) {
-  const { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS, EXPECTED, DRIFT_REGISTRY, FIX_SCENARIOS } =
-    await import('./selftest/registry.mjs');
+  const {
+    GROUPS,
+    OUT_OF_SCOPE,
+    SCAN_PATTERNS,
+    EXPECTED,
+    DRIFT_REGISTRY,
+    FIX_SCENARIOS,
+    CLASSIFIER_SCENARIOS,
+  } = await import('./selftest/registry.mjs');
   const registry = { GROUPS, OUT_OF_SCOPE, SCAN_PATTERNS };
   const failures = [];
   let assertions = 0;
@@ -610,11 +623,35 @@ async function checkSelfTest({ ci }) {
   const tmp = mkdtempSync(join(tmpdir(), 'spellcheck-selftest-'));
   try {
     cpSync(join(HERE, 'selftest/fixtures/code'), tmp, { recursive: true });
-    const visited = typosFileList(['--config', ROOT_CONFIG, tmp], { cwd: tmp });
+    const visited = typosFileList(['--config', ROOT_CONFIG, '.'], { cwd: tmp });
     if (visited.length === 0) {
       failures.push(finding('(self-test)', undefined, 'the code pass visited no fixture files'));
     }
-    const codeFindings = runTypos(['--config', ROOT_CONFIG, tmp], { cwd: tmp }).map((f) =>
+    // The classifier runs here exactly as in checkCode: the fixture plants
+    // typos inside a Norwegian string and inside a data run (must be
+    // classified away, and the counts prove typos saw them at all) next to
+    // one in an English string on a line that also holds a Norwegian string
+    // (must survive).
+    const {
+      kept: codeKept,
+      norwegian,
+      data,
+    } = classifyFindings(
+      runTypos(['--config', ROOT_CONFIG, '.'], { cwd: tmp }),
+      fileLineReader(tmp),
+    );
+    assertions += 2;
+    if (norwegian !== EXPECTED.codeClassified.norwegian || data !== EXPECTED.codeClassified.data) {
+      failures.push(
+        finding(
+          '(self-test)',
+          undefined,
+          `code: expected ${EXPECTED.codeClassified.norwegian} Norwegian / ` +
+            `${EXPECTED.codeClassified.data} data classification(s), got ${norwegian} / ${data}`,
+        ),
+      );
+    }
+    const codeFindings = codeKept.map((f) =>
       finding(
         f.path,
         undefined,
@@ -658,6 +695,14 @@ async function checkSelfTest({ ci }) {
   }
   assertions += FIX_SCENARIOS.length;
 
+  // The classifier, on synthetic lines: delimiter pairing, escapes, data
+  // runs, and the spans it must never invent.
+  for (const failure of classifierFailures(CLASSIFIER_SCENARIOS)) {
+    failures.push(finding('(self-test)', undefined, `classifier: ${failure}`));
+    assertions += 1;
+  }
+  assertions += CLASSIFIER_SCENARIOS.cases.length;
+
   // The suppression logic, on synthetic findings: path scoping, identifier
   // scoping (both directions), and stale detection.
   for (const failure of suppressionFailures()) {
@@ -667,6 +712,27 @@ async function checkSelfTest({ ci }) {
   assertions += 5;
 
   return { findings: failures, counts: `${assertions} assertions over planted fixtures` };
+}
+
+/**
+ * The classifier must only ever drop a finding that provably sits inside a
+ * properly paired, same-line string literal reading as Norwegian, or inside
+ * a data run — never one in an identifier, in an English string, or in a
+ * pseudo-span opened by a prose apostrophe. The scenario table lives in
+ * selftest/registry.mjs — it necessarily quotes flaggable tokens, and the
+ * selftest path is excluded from the code pass.
+ */
+function classifierFailures({ lines, cases }) {
+  const failures = [];
+  const readLine = (path) => lines[path];
+  for (const [path, typo, want, what] of cases) {
+    // The fixture lines are ASCII, so indexOf is the byte offset.
+    const find = { path, line_num: 1, byte_offset: lines[path].indexOf(typo), typo };
+    const { norwegian, data } = classifyFindings([find], readLine);
+    const got = norwegian === 1 ? 'norwegian' : data === 1 ? 'data' : 'finding';
+    if (got !== want) failures.push(`expected ${want} but got ${got} for ${what}`);
+  }
+  return failures;
 }
 
 /**
