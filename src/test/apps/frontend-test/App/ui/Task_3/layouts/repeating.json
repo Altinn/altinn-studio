@@ -703,7 +703,6 @@
           "next": "Neste",
           "back": "Forrige"
         },
-        "showBackButton": true,
         "validateOnNext": {
           "page": "current",
           "show": ["All"]

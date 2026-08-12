@@ -250,6 +250,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     maxCount?: number;
   };
   [ComponentType.Header]: { size: string };
+  [ComponentType.Heading]: { size: string };
   [ComponentType.IFrame]: {
     sandbox?: {
       allowPopups?: boolean;

@@ -1,9 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
@@ -115,19 +115,31 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsCollision(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
@@ -140,6 +152,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -312,6 +327,31 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Rewrites the v8 eFormidling registration call to the v9 staged builder.
+    /// </summary>
+    static async Task<int> MigrateEFormidlingRegistration(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating the eFormidling registration...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = new EFormidlingRegistrationMigration(scanner).Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the eFormidling registration", ex);
+        }
+    }
+
+    /// <summary>
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
     /// </summary>
@@ -370,6 +410,33 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Rewrites the mechanical PlatformHttpException breaks. Runs before <see cref="CheckRemovedCSharpApis"/>
+    /// so the uses it cannot rewrite are reported there instead.
+    /// </summary>
+    static async Task<int> MigratePlatformHttpExceptionApis(string projectFile)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating changed PlatformHttpException APIs...");
+
+            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            var result = new PlatformHttpExceptionApiMigration(scanner).Migrate();
+
+            foreach (var warning in result.Warnings)
+            {
+                await UpgradeConsole.Out.WriteLineAsync($"  {warning}");
+            }
+
+            return result.ManualActionRequired ? ExitManualActionRequired : ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating PlatformHttpException APIs: {ex.Message}");
+            return ExitError;
+        }
+    }
+
     static async Task<int> CheckRemovedCSharpApis(string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
@@ -378,10 +445,15 @@ internal static class V8Tov9Upgrade
             var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(scanner).Detect(),
                 new LegacyEFormidlingCodeDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
-                new LegacyCorrespondenceCodeDetector(scanner).Detect()
+                new LegacyCorrespondenceCodeDetector(scanner).Detect(),
+                new PlatformHttpExceptionApiDetector(scanner).Detect(),
+                new RemovedMaskinportenShimDetector(scanner).Detect(),
+                new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
+                new MaskinportenClientOverrideDetector(scanner).Detect()
             );
 
             return ReportMigrationResult(
@@ -418,6 +490,29 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Reports (never rewrites) an app-owned <c>MaskinportenSettings</c> configuration section clashing
+    /// with the one Studio provisions for the built-in client. Reads configuration rather than C#, so it
+    /// runs separately from <see cref="CheckRemovedCSharpApis"/>.
+    /// </summary>
+    static async Task<int> CheckMaskinportenSettingsCollision(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Maskinporten settings");
+        try
+        {
+            var result = new MaskinportenSettingsCollisionDetector(projectFolder).Detect();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No conflicting MaskinportenSettings configuration found",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the Maskinporten configuration", ex);
+        }
+    }
+
     static async Task<int> MigrateOrganizationLookupLayouts(string projectFolder)
     {
         UpgradeConsole.BeginStep("OrganisationLookup components");
@@ -428,6 +523,20 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating OrganisationLookup components", ex);
+        }
+    }
+
+    static async Task<int> MigrateHeadingLayouts(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating Header layout components to Heading...");
+            return await HeadingLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Header components to Heading: {ex.Message}");
+            return ExitError;
         }
     }
 
@@ -689,6 +798,26 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout-sets.json", ex);
+        }
+    }
+
+    static async Task<int> MigrateNavigationButtons(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Removing redundant NavigationButtons showBackButton flags...");
+            var result = await new ShowBackButtonMigrator(projectFolder).Migrate();
+            await UpgradeConsole.Out.WriteLineAsync(
+                $"Removed {result.PropertiesRemoved} showBackButton flag(s) from {result.FilesChanged} layout file(s)"
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync(
+                $"Error migrating NavigationButtons showBackButton flags: {ex.Message}"
+            );
+            return ExitError;
         }
     }
 

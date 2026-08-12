@@ -19,6 +19,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Data;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -483,6 +484,198 @@ public class DataClientTests
         actual.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
+    // The stream GetBinaryData returns owns the HTTP response behind it. These tests pin both halves of
+    // that contract: the response survives until the caller disposes the stream, and it is not leaked on
+    // any path that returns no stream at all.
+
+    [Fact]
+    public async Task GetBinaryData_stream_is_readable_after_the_client_call_has_returned()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        DisposeTrackingContent? content = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response("hello worlds");
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        // Deliberately not read inside a scope that still holds the response: this is the case a `using` on
+        // the response inside GetBinaryData would break, and it would break here rather than there.
+        using Stream stream = await fixture.DataClient.GetBinaryData(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid
+        );
+
+        Assert.NotNull(content);
+        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
+
+        using StreamReader reader = new(stream);
+        var read = await reader.ReadToEndAsync();
+        Assert.Equal("hello worlds", read);
+    }
+
+    [Fact]
+    public async Task GetBinaryData_disposing_the_returned_stream_disposes_the_response()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        DisposeTrackingContent? content = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response("hello worlds");
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        Stream stream = await fixture.DataClient.GetBinaryData(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid
+        );
+        await stream.DisposeAsync();
+
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "the returned stream owns the response");
+    }
+
+    [Fact]
+    public async Task GetBinaryData_disposes_the_response_when_storage_returns_notfound()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        DisposeTrackingContent? content = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response(statusCode: HttpStatusCode.NotFound);
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var stream = await fixture.DataClient.GetBinaryData(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid
+        );
+
+        Assert.Null(stream);
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
+    }
+
+    [Fact]
+    public async Task GetBinaryData_disposes_the_response_when_storage_returns_an_error()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        DisposeTrackingContent? content = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response(
+                    "storage exploded",
+                    HttpStatusCode.InternalServerError
+                );
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await fixture.DataClient.GetBinaryData(
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                dataGuid
+            )
+        );
+
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
+
+        // The exception is built from a snapshot, so disposing the response does not empty it.
+        Assert.Equal(HttpStatusCode.InternalServerError, actual.Response.StatusCode);
+        Assert.Contains("storage exploded", actual.Response.Content);
+    }
+
+    [Fact]
+    public async Task GetBinaryDataStream_disposes_the_response_when_storage_returns_an_error()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        DisposeTrackingContent? content = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response(
+                    "storage exploded",
+                    HttpStatusCode.InternalServerError
+                );
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await fixture.DataClient.GetBinaryDataStream(
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                dataGuid
+            )
+        );
+
+        Assert.NotNull(content);
+        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
+        Assert.Equal(HttpStatusCode.InternalServerError, actual.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetBinaryDataStream_disposing_the_returned_stream_disposes_the_response()
+    {
+        var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+        var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+        DisposeTrackingContent? content = null;
+
+        await using var fixture = Fixture.Create(
+            async (request, ct) =>
+            {
+                await Task.CompletedTask;
+                var (response, trackedContent) = DisposeTrackingContent.Response("hello worlds");
+                content = trackedContent;
+                return response;
+            }
+        );
+
+        Stream stream = await fixture.DataClient.GetBinaryDataStream(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid
+        );
+
+        Assert.NotNull(content);
+        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
+
+        await stream.DisposeAsync();
+        Assert.True(content.IsDisposed, "the returned stream owns the response");
+    }
+
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
     public async Task GetBinaryDataStream_returns_stream_of_binary_data_with_unbuffered_response(
@@ -553,7 +746,7 @@ public class DataClientTests
             UriKind.RelativeOrAbsolute
         );
 
-        var actual = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(async () =>
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
             await fixture.DataClient.GetBinaryDataStream(
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
@@ -586,7 +779,7 @@ public class DataClientTests
             }
         );
 
-        var actual = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(async () =>
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
             await fixture.DataClient.GetBinaryDataStream(
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,

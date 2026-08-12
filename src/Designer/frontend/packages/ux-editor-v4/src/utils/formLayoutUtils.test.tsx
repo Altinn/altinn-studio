@@ -395,10 +395,13 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    // The shared enum includes the v9 OrganizationLookup name used by ux-editor.
+    // The shared enum includes the v9 names (OrganizationLookup, Heading) used by ux-editor.
     it.each(
       Object.values(ComponentType).filter(
-        (v) => v !== ComponentType.OrganizationLookup && !containerComponentTypes.includes(v),
+        (v) =>
+          v !== ComponentType.OrganizationLookup &&
+          v !== ComponentType.Heading &&
+          !containerComponentTypes.includes(v),
       ),
     )('Adds a new component to the layout when the given type is %s', (componentType) => {
       const id = 'newItemId';

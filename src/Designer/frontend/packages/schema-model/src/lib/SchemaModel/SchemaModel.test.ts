@@ -438,8 +438,7 @@ describe('SchemaModel', () => {
             setup();
             const updatedChildren = model.getChildNodes(parentPointer);
             const updatedParent = model.getNodeBySchemaPointer(parentPointer) as
-              | FieldNode
-              | CombinationNode;
+              FieldNode | CombinationNode;
             const childAtExpectedIndex = updatedChildren[index];
             const childPointerAtExpectedIndex = updatedParent.children[index];
             expect(childAtExpectedIndex).toEqual({

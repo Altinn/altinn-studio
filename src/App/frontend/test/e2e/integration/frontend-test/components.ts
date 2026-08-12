@@ -539,7 +539,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.focus');
   });
 
-  it.only('should display alert unchecking checkbox in checkbox group', () => {
+  it('should display alert unchecking checkbox in checkbox group', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
         component.alertOnChange = true;

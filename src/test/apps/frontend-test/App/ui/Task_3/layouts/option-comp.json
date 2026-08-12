@@ -9,7 +9,7 @@
       },
       {
         "id": "header-collection1",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Option-kommponenter i horisontal visning (3x)"
         },
@@ -49,7 +49,7 @@
       },
       {
         "id": "header-collection2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Option-kommponenter i vertikal visning (2 + 2)"
         },
@@ -110,7 +110,6 @@
           "next": "Neste",
           "back": "Forrige"
         },
-        "showBackButton": true
       }
     ]
   }

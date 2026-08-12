@@ -11,8 +11,7 @@ import classes from './PDFPreviewControls.module.css';
 export type PDFPreviewButtonStyle = 'primary' | 'secondary';
 
 export type PDFPreviewGenerateResult =
-  | { type: 'success'; blob: Blob }
-  | { type: 'error'; message: string };
+  { type: 'success'; blob: Blob } | { type: 'error'; message: string };
 
 const buttonStyles: {
   [style in PDFPreviewButtonStyle]: { color: ButtonColor; variant: ButtonVariant };

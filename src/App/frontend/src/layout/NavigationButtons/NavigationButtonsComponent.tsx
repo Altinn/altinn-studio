@@ -226,7 +226,7 @@ function NavigationButtonsComponentInner({
             <Lang id={nextTextKey} />
           </Button>
         )}
-        {hasPrevious && showBackButton && (
+        {hasPrevious && showBackButton !== false && (
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'previous'}

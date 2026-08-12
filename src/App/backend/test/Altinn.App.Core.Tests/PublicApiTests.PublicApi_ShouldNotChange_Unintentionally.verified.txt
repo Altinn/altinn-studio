@@ -117,29 +117,34 @@ namespace Altinn.App.Core.Constants
         public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
     }
 }
+namespace Altinn.App.Core.EFormidling.Configuration
+{
+    public interface IEFormidlingBuilder
+    {
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(System.Action<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings> configure);
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithConfig(string configSectionPath);
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithReceivers<TReceivers>()
+            where TReceivers : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers;
+    }
+    public interface IEFormidlingMetadataStage
+    {
+        Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder WithMetadata<TMetadata>()
+            where TMetadata : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata;
+    }
+}
 namespace Altinn.App.Core.EFormidling
 {
     public static class EformidlingConstants
     {
-        public const string CheckInstanceStatusEventType = "app.eformidling.reminder.checkinstancestatus";
         public const string ShipmentOwnerWorkflowIdDataValueKey = "eFormidlingShipmentWorkflowId";
-    }
-    public class EformidlingStartup : Microsoft.Extensions.Hosting.IHostedService
-    {
-        public EformidlingStartup(Altinn.App.Core.Models.AppIdentifier appId, Altinn.App.Core.Internal.Events.IEventsSubscription eventsSubscriptionClient, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.EformidlingStartup> logger) { }
-        public System.Threading.Tasks.Task StartAsync(System.Threading.CancellationToken cancellationToken) { }
-        public System.Threading.Tasks.Task StopAsync(System.Threading.CancellationToken cancellationToken) { }
+        public const string ShipmentStatusDataValueKey = "eFormidlingShipmentStatus";
     }
 }
 namespace Altinn.App.Core.EFormidling.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddEFormidlingServices<TM>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
-            where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata { }
-        public static void AddEFormidlingServices2<TM, TR>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
-            where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata
-            where TR : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers { }
+        public static Altinn.App.Core.EFormidling.Configuration.IEFormidlingMetadataStage AddEFormidling(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
     }
 }
 namespace Altinn.App.Core.EFormidling.Implementation
@@ -148,11 +153,6 @@ namespace Altinn.App.Core.EFormidling.Implementation
     {
         public DefaultEFormidlingReceivers() { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? receiverFromConfig) { }
-    }
-    public class DefaultEFormidlingService : Altinn.App.Core.EFormidling.Interface.IEFormidlingService
-    {
-        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
-        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
     }
     public class EformidlingDeliveryException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -176,7 +176,24 @@ namespace Altinn.App.Core.EFormidling.Interface
     }
     public interface IEFormidlingService
     {
-        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
+        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration, System.Threading.CancellationToken cancellationToken = default);
+    }
+}
+namespace Altinn.App.Core.EFormidling.Models
+{
+    public enum EFormidlingDeliveryState
+    {
+        Pending = 0,
+        Delivered = 1,
+        Failed = 2,
+    }
+    public sealed class EFormidlingShipmentStatus : System.IEquatable<Altinn.App.Core.EFormidling.Models.EFormidlingShipmentStatus>
+    {
+        public EFormidlingShipmentStatus() { }
+        public string? Description { get; init; }
+        public required Altinn.App.Core.EFormidling.Models.EFormidlingDeliveryState State { get; init; }
+        public string? Status { get; init; }
     }
 }
 namespace Altinn.App.Core.Exceptions
@@ -1134,11 +1151,6 @@ namespace Altinn.App.Core.Features
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Notifications.Email.EmailOrderResponse> Order(Altinn.App.Core.Models.Notifications.Email.EmailNotification emailNotification, System.Threading.CancellationToken ct);
     }
-    public interface IEventHandler
-    {
-        string EventType { get; }
-        System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent);
-    }
     public interface IFormDataValidator
     {
         string DataType { get; }
@@ -2076,7 +2088,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class ServiceTaskPipelineBuilder
     {
         public ServiceTaskPipelineBuilder() { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(string name, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
     public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
@@ -2414,9 +2426,21 @@ namespace Altinn.App.Core.Helpers
     }
     public class PlatformHttpException : Altinn.App.Core.Exceptions.AltinnException
     {
-        public PlatformHttpException(System.Net.Http.HttpResponseMessage response, string message) { }
-        public System.Net.Http.HttpResponseMessage Response { get; }
-        public static System.Threading.Tasks.Task<Altinn.App.Core.Helpers.PlatformHttpException> CreateAsync(System.Net.Http.HttpResponseMessage response) { }
+        public PlatformHttpException(System.Net.HttpStatusCode statusCode, string message, System.Exception? innerException = null) { }
+        public Altinn.App.Core.Helpers.PlatformHttpResponse Response { get; }
+        public System.Net.HttpStatusCode StatusCode { get; }
+        public static System.Threading.Tasks.Task<Altinn.App.Core.Helpers.PlatformHttpException> Create(System.Net.Http.HttpResponseMessage response, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<Altinn.App.Core.Helpers.PlatformHttpException> Create(System.Net.Http.HttpResponseMessage response, string message, System.Exception? innerException = null, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class PlatformHttpResponse : System.IEquatable<Altinn.App.Core.Helpers.PlatformHttpResponse>
+    {
+        public const int MaxCapturedContentLength = 16384;
+        public string Content { get; }
+        public bool ContentTruncated { get; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>> Headers { get; }
+        public string? ReasonPhrase { get; }
+        public System.Net.HttpStatusCode StatusCode { get; }
+        public override string ToString() { }
     }
     public class ProcessError
     {
@@ -2610,31 +2634,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     {
         public EventsClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
         public System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null) { }
-    }
-    public class EventsSubscriptionClient : Altinn.App.Core.Internal.Events.IEventsSubscription
-    {
-        public EventsSubscriptionClient(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, System.Net.Http.HttpClient httpClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Infrastructure.Clients.Events.EventsSubscriptionClient> logger) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Infrastructure.Clients.Events.Subscription> AddSubscription(string org, string app, string eventType) { }
-    }
-    public class Subscription
-    {
-        public Subscription() { }
-        public string? AlternativeSubjectFilter { get; set; }
-        public string? Consumer { get; set; }
-        public System.DateTime Created { get; set; }
-        public string? CreatedBy { get; set; }
-        public System.Uri? EndPoint { get; set; }
-        public int Id { get; set; }
-        public System.Uri? SourceFilter { get; set; }
-        public string? SubjectFilter { get; set; }
-        public string? TypeFilter { get; set; }
-    }
-    public class SubscriptionRequest
-    {
-        public SubscriptionRequest() { }
-        public System.Uri? EndPoint { get; set; }
-        public System.Uri? SourceFilter { get; set; }
-        public string? TypeFilter { get; set; }
     }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
@@ -3277,43 +3276,9 @@ namespace Altinn.App.Core.Internal.Data
 }
 namespace Altinn.App.Core.Internal.Events
 {
-    public class EventHandlerResolver : Altinn.App.Core.Internal.Events.IEventHandlerResolver
-    {
-        public EventHandlerResolver(System.IServiceProvider serviceProvider) { }
-        public Altinn.App.Core.Features.IEventHandler ResolveEventHandler(string eventType) { }
-    }
-    public interface IEventHandlerResolver
-    {
-        Altinn.App.Core.Features.IEventHandler ResolveEventHandler(string eventType);
-    }
-    public interface IEventSecretCodeProvider
-    {
-        System.Threading.Tasks.Task<string> GetSecretCode();
-    }
     public interface IEventsClient
     {
         System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null);
-    }
-    public interface IEventsSubscription
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Infrastructure.Clients.Events.Subscription> AddSubscription(string org, string app, string eventType);
-    }
-    public class KeyVaultEventSecretCodeProvider : Altinn.App.Core.Internal.Events.IEventSecretCodeProvider
-    {
-        public KeyVaultEventSecretCodeProvider(Altinn.App.Core.Internal.Secrets.ISecretsClient keyVaultClient) { }
-        public System.Threading.Tasks.Task<string> GetSecretCode() { }
-    }
-    public class SubscriptionValidationHandler : Altinn.App.Core.Features.IEventHandler
-    {
-        public SubscriptionValidationHandler() { }
-        public string EventType { get; }
-        public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
-    }
-    public class UnhandledEventHandler : Altinn.App.Core.Features.IEventHandler
-    {
-        public UnhandledEventHandler() { }
-        public string EventType { get; }
-        public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
     }
 }
 namespace Altinn.App.Core.Internal.Expressions

@@ -10,7 +10,6 @@ Altinn Studio Designer's backend is built using the following technologies:
 - Entity Framework Core with PostgreSQL
 - SignalR for real-time communication
 - MediatR for CQRS/mediator pattern
-- Kafka for event streaming and integration
 - Redis for caching and SignalR backplane
 - Quartz for background job scheduling
 - LibGit2Sharp for Git repository operations

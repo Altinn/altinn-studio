@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
@@ -57,7 +57,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
@@ -72,7 +72,7 @@ jobs:
       app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build app run targets
         id: app-run-targets
@@ -154,7 +154,7 @@ jobs:
         containers: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download app process outputs
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -209,10 +209,7 @@ jobs:
             --browser "${CHROME_PATH:-chrome}"
             --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
             --spec test/e2e/integration
-            # CYPRESS_LOGS_COLLECTOR prints the browser logs of failed tests to the CI log
-            # (cypress-terminal-report) - without it the assertion failures only exist on
-            # Cypress Cloud.
-            --env environment=localtest,CYPRESS_LOGS_COLLECTOR=true
+            --env environment=localtest
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
@@ -250,7 +247,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download app process outputs
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0

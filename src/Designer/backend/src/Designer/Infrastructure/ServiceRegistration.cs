@@ -50,8 +50,14 @@ public static class ServiceRegistration
     {
         services.AddTransient<IRepository, RepositoryService>();
         services.AddTransient<ISchemaModelService, SchemaModelService>();
+        services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+        services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
+        services.AddTransient<RepositoryCleanupCandidateSource>();
+        services.AddTransient<RepositoryCleanupCandidateProcessor>();
+        services.AddTransient<RepositoryFileTimestampScanner>();
+        services.AddTransient<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
 
         services.AddTransient<ISourceControl, SourceControlService>();
 
@@ -122,8 +128,6 @@ public static class ServiceRegistration
         services.AddTransient<IOrgTextsService, OrgTextsService>();
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
         services.RegisterDatamodeling(configuration);
-        services.RegisterSettingsSingleton<KafkaSettings>(configuration);
-        services.AddTransient<IKafkaProducer, KafkaProducer>();
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
         services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();

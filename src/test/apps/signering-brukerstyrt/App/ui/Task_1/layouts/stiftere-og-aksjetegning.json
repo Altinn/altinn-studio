@@ -5,7 +5,7 @@
       {
         "size": "L",
         "id": "Header-LSgLyT",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Header-LSgLyT.title"
         }
@@ -68,7 +68,6 @@
       },
       {
         "id": "NavigationButtons-A564Nt",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       },
@@ -181,7 +180,7 @@
       },
       {
         "id": "Aksjetegning-heading",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": { "title": "Aksjetegning" },
         "size": "S"
       },
@@ -213,7 +212,7 @@
       },
       {
         "id": "fullmektig-heading",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Fullmektig"
         },

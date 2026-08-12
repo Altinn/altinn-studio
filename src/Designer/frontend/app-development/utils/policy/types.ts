@@ -1,13 +1,5 @@
 export type Action =
-  | 'read'
-  | 'write'
-  | 'delete'
-  | 'confirm'
-  | 'sign'
-  | 'instantiate'
-  | 'reject'
-  | 'pay'
-  | 'complete';
+  'read' | 'write' | 'delete' | 'confirm' | 'sign' | 'instantiate' | 'reject' | 'pay' | 'complete';
 
 export type PolicyRule = {
   ruleId: string;

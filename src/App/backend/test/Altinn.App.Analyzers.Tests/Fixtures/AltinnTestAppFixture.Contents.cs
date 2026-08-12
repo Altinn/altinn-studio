@@ -31,5 +31,10 @@ partial class AltinnTestAppFixture
             "additional",
             "ReplacedSealedDefine.cs"
         );
+
+        public static readonly DocumentSelector DiscardedEFormidlingBuilder = new DocumentSelector(
+            "additional",
+            "DiscardedEFormidlingBuilder.cs"
+        );
     }
 }

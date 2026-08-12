@@ -54,7 +54,7 @@ public class SignClient : ISignClient
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod
         );
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             BuildSignRequest(signatureContext),
@@ -65,7 +65,7 @@ public class SignClient : ISignClient
             return;
         }
 
-        throw new PlatformHttpException(response, "Failed to sign dataelements");
+        throw await PlatformHttpException.Create(response, "Failed to sign dataelements");
     }
 
     private static JsonContent BuildSignRequest(SignatureContext signatureContext)

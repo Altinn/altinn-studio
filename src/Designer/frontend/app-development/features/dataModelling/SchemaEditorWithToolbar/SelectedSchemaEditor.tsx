@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSchemaQuery } from '../../../hooks/queries';
-import { useSchemaMutation } from '../../../hooks/mutations';
+import { useSchemaQuery, usePrefillQuery } from '../../../hooks/queries';
+import { useSchemaMutation, usePrefillMutation } from '../../../hooks/mutations';
 import { StudioCenter, StudioError, StudioPageSpinner } from '@studio/components';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import { useOnUnmount } from '../hooks/useOnUnmount';
 import type {
   DataModelMetadataJson,
@@ -55,6 +56,8 @@ interface SchemaEditorWithDebounceProps {
 const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDebounceProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate } = useSchemaMutation();
+  const { data: prefillConfig } = usePrefillQuery(modelPath);
+  const { mutate: mutatePrefill } = usePrefillMutation();
   const queryClient = useQueryClient();
   const [model, setModel] = useState<JsonSchema>(jsonSchema);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -101,11 +104,19 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
     if (doesModelExist()) saveFunction();
   });
 
+  const savePrefillConfig = useCallback(
+    (updatedPrefillConfig: PrefillConfig) =>
+      mutatePrefill({ modelPath, prefillConfig: updatedPrefillConfig }),
+    [modelPath, mutatePrefill],
+  );
+
   return (
     <SchemaEditorApp
       jsonSchema={model}
       save={saveSchema}
       name={extractModelNameFromPath(modelPath)}
+      prefillConfig={prefillConfig}
+      savePrefillConfig={savePrefillConfig}
     />
   );
 };
