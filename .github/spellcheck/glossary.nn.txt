@@ -11,3 +11,64 @@ Gitea
 GitHub
 Kubernetes
 eFormidling
+
+# Ingested from the measured backlog (triaged 2026-08-12): domain
+# compounds, language names, and product/technical terms quoted in UI
+# text. Suspected typos, untranslated English and wrong-language values
+# were deliberately NOT ingested and stay flagged. Reviewing this list
+# IS the native-speaker check — remove a line to re-flag the word.
+anbefalar
+applicationmetadata
+backend
+beskjæringsområde
+betalingskvittering
+bildefil
+bildefiler
+datoformat
+deaktivert
+deletionstrategy
+devtool
+disallowusercreate
+enhetsregisteret
+feilforsøk
+feilkonfigurert
+filas
+filopplastingskomponentar
+filstorleik
+filtypane
+filtype
+folderid
+førehandsvis
+førehandsvise
+handsamingsreferanse
+iframes
+innboks
+innboksen
+instansier
+json
+lagringsnamn
+migreringsverktøya
+nuget
+organisasjonsnamn
+personnr
+piltastane
+profilinnstillingane
+prosesstrinn
+showaddbutton
+signatarliste
+signaturdata
+signeringsstatus
+signeringssteg
+sikkerheitsnivå
+srcdoc
+søkefunksjonaliteten
+søkemoglegheita
+tidsformat
+tilgangsstyring
+tilleggsadresse
+ui
+utløpsdato
+utviklarverktøya
+validér
+vedleggstype
+versjonsfeil

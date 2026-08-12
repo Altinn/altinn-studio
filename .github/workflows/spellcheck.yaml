@@ -62,10 +62,13 @@ jobs:
           sudo apt-get install -y -q hunspell
           hunspell -v | head -1
 
-      # The Norwegian dictionaries are fetched (SHA-256-pinned) on first use;
-      # this cache just spares LibreOffice's raw endpoint on every run.
+      # The dictionaries are fetched (SHA-256-pinned) on first use; the cache
+      # just spares the upstream endpoints on every run. Restore and save are
+      # split because the combined action only saves when the whole job
+      # succeeded — and this job has failing check steps by design while the
+      # backlog exists, so the cache would never be written.
       - name: Restore dictionary cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .github/spellcheck/.cache
           key: spellcheck-dictionaries-${{ hashFiles('.github/spellcheck/dictionaries.mjs') }}
@@ -100,6 +103,13 @@ jobs:
         id: norwegian
         if: always()
         run: node .github/spellcheck/run.mjs no
+
+      - name: Save dictionary cache
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .github/spellcheck/.cache
+          key: spellcheck-dictionaries-${{ hashFiles('.github/spellcheck/dictionaries.mjs') }}
 
       - name: Every check ran and passed
         if: always()
