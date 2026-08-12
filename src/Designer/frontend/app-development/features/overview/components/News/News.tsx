@@ -1,11 +1,11 @@
 import React from 'react';
-import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
-import { StudioCard, StudioParagraph } from '@studio/components';
+import { StudioCard, StudioLink, StudioParagraph } from '@studio/components';
 
 export const News = () => {
   const { t } = useTranslation();
@@ -66,9 +66,9 @@ export const News = () => {
             </StudioCard.Block>
             <StudioCard.Block>
               <Paragraph size='small'>
-                <Link href={gitHubRoadMapUrl} rel='noopener noreferrer' target='_newTab'>
+                <StudioLink href={gitHubRoadMapUrl} rel='noopener noreferrer' target='_newTab'>
                   {t('overview.no_news_content')}
-                </Link>
+                </StudioLink>
               </Paragraph>
             </StudioCard.Block>
           </StudioCard>

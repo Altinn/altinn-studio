@@ -1,5 +1,10 @@
-import { StudioDetails, StudioSectionHeader, StudioLabelAsParagraph } from '@studio/components';
-import { Link, Paragraph } from '@digdir/designsystemet-react';
+import {
+  StudioDetails,
+  StudioSectionHeader,
+  StudioLabelAsParagraph,
+  StudioLink,
+} from '@studio/components';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
@@ -32,7 +37,7 @@ export const ConfigEndEvent = () => {
               <Paragraph size='small' className={classes.paragraph}>
                 {t('process_editor.configuration_panel_custom_receipt_default_receipt_info')}
               </Paragraph>
-              <Link
+              <StudioLink
                 href={altinnDocsUrl({
                   relativeUrl:
                     'altinn-studio/v8/reference/configuration/process/customize/#kvittering-receipt',
@@ -41,7 +46,7 @@ export const ConfigEndEvent = () => {
                 target='_newTab'
               >
                 {t('process_editor.configuration_panel_custom_receipt_default_receipt_link')}
-              </Link>
+              </StudioLink>
             </div>
             <div>
               <div className={classes.customReceiptText}>

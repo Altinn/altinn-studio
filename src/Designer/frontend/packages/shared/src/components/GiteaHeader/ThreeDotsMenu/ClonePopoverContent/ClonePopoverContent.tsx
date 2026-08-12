@@ -1,11 +1,16 @@
 import { repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './ClonePopoverContent.module.css';
-import { Link, Paragraph } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioLabelAsParagraph,
+  StudioLink,
+  StudioTextfield,
+} from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
@@ -25,14 +30,14 @@ export const ClonePopoverContent = () => {
         {t('sync_header.favourite_tool')}
       </StudioLabelAsParagraph>
       <Paragraph asChild size='small'>
-        <Link
+        <StudioLink
           className={classes.link}
           href={altinnDocsUrl({ language: 'nb' })}
           target='_blank'
           rel='noopener noreferrer'
         >
           {t('sync_header.favourite_tool_link')}
-        </Link>
+        </StudioLink>
       </Paragraph>
       {dataModel.length === 0 && (
         <>
@@ -44,12 +49,12 @@ export const ClonePopoverContent = () => {
             {t('sync_header.data_model_missing_helper')}
           </Paragraph>
           <Paragraph size='small' asChild>
-            <Link
+            <StudioLink
               className={classes.link}
               href={packagesRouter.getPackageNavigationUrl('dataModel')}
             >
               {t('sync_header.data_model_missing_link')}
-            </Link>
+            </StudioLink>
           </Paragraph>
         </>
       )}

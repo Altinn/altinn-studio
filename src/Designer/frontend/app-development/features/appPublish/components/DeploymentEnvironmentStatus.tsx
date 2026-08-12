@@ -1,7 +1,7 @@
 import React, { type JSX } from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
-import { Alert, Heading, Link } from '@digdir/designsystemet-react';
-import { StudioParagraph, StudioSpinner } from '@studio/components';
+import { Alert, Heading } from '@digdir/designsystemet-react';
+import { StudioLink, StudioParagraph, StudioSpinner } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
@@ -111,9 +111,9 @@ export const DeploymentEnvironmentStatus = ({
             }}
             components={{
               a: (
-                <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                <StudioLink href={urlToApp} rel='noopener noreferrer' target='_blank'>
                   {' '}
-                </Link>
+                </StudioLink>
               ),
               ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
             }}

@@ -1,5 +1,5 @@
-import { StudioNotFoundPage } from '@studio/components';
-import { Paragraph, Link } from '@digdir/designsystemet-react';
+import { StudioLink, StudioNotFoundPage } from '@studio/components';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';
 
 export const NotFoundPage = () => {
@@ -13,7 +13,7 @@ export const NotFoundPage = () => {
           <Trans
             i18nKey='not_found_page.text'
             components={{
-              a: <Link href='/info/contact'> </Link>,
+              a: <StudioLink href='/info/contact'> </StudioLink>,
             }}
           ></Trans>
         </Paragraph>
