@@ -36,7 +36,7 @@ internal sealed record UpgradeStep(string Name, IReadOnlyList<UpgradeMessage> Me
 
 /// <summary>
 /// Collects the structured result of an upgrade run: every step in the order it began, each with the
-/// messages it reported. A step that reported nothing still appears - its bare name shows the step ran.
+/// messages it reported.
 /// </summary>
 /// <remarks>Not thread-safe: an upgrade run reports its steps and messages sequentially.</remarks>
 internal sealed class UpgradeReport

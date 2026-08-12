@@ -98,7 +98,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, MigrateOpenApiNamespace(projectFile));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
         // fails to restore (NU1605). Only relevant when we actually bumped the csproj to v9 packages.
@@ -112,16 +112,16 @@ internal static class V8Tov9Upgrade
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, MigrateServiceTaskNamespace(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
+        returnCode = CombineExitCodes(returnCode, MigrateEFormidlingReceiversSignature(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, MigrateCorrespondenceApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, CheckRemovedCSharpApis(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -130,16 +130,16 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
+        returnCode = CombineExitCodes(returnCode, ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await GenerateDataProcessors(projectFolder));
+        returnCode = CombineExitCodes(returnCode, GenerateDataProcessors(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CleanupLegacyRuleFiles(projectFolder));
+        returnCode = CombineExitCodes(returnCode, CleanupLegacyRuleFiles(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateLayoutSetsToTaskUi(projectFolder));
+        returnCode = CombineExitCodes(returnCode, MigrateLayoutSetsToTaskUi(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -154,21 +154,17 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
+        returnCode = CombineExitCodes(returnCode, WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         return returnCode;
     }
 
     /// <summary>
-    /// Reports a migrator's result on the current step and maps it to an exit code. Warnings are reported as
-    /// manual follow-up when the migrator left work for a human, and as plain warnings otherwise; a clean
-    /// run reports a single <paramref name="cleanText"/> with <paramref name="cleanStatus"/> - Skip for a
-    /// check that found nothing to act on, Ok (the default) for a migration that applied.
+    /// Reports a migrator's result on the current step and maps it to an exit code. Warnings become
+    /// manual follow-up when the migrator left work for a human, plain warnings otherwise; a clean run
+    /// reports <paramref name="cleanText"/> with <paramref name="cleanStatus"/> - Skip for a check that
+    /// found nothing to act on, Ok (the default) for a migration that applied.
     /// </summary>
-    /// <remarks>
-    /// Consumes <see cref="MigrationResult.Warnings"/> verbatim - the migrators and their warning strings
-    /// are deliberately untouched by the structured output.
-    /// </remarks>
     private static int ReportMigrationResult(
         MigrationResult result,
         string cleanText,
@@ -191,27 +187,18 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports a failure that is not an exception - a precondition the caller cannot satisfy. Same
-    /// channels as <see cref="ReportFailure"/>.
+    /// Reports that the current step failed, and returns its exit code. The report is the only place this
+    /// goes: the rendered step already tells the reader which job failed and why.
     /// </summary>
-    private static async Task<int> FailStep(string message)
+    private static int Fail(string message)
     {
         UpgradeResultWriter.Failed(message);
-        await UpgradeResultWriter.Error.WriteLineAsync(message);
         return ExitError;
     }
 
-    /// <summary>
-    /// Reports that a job failed, and returns its exit code. The current step gets the cause so the
-    /// rendered report shows which job failed; <paramref name="description"/> still goes to the error
-    /// channel, and so to stderr, exactly as before.
-    /// </summary>
-    private static async Task<int> ReportFailure(string description, Exception exception)
-    {
-        UpgradeResultWriter.Failed(FileAccessDiagnostics.Describe(exception));
-        await UpgradeResultWriter.WriteErrorAsync(description, exception);
-        return ExitError;
-    }
+    /// <summary>Reports that the current step failed with <paramref name="exception"/>.</summary>
+    private static int Fail(string description, Exception exception) =>
+        Fail($"{description}: {FileAccessDiagnostics.Describe(exception)}");
 
     static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
@@ -225,7 +212,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error upgrading project file", ex);
+            return Fail("Error upgrading project file", ex);
         }
     }
 
@@ -239,7 +226,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating Dockerfile", ex);
+            return Fail("Error migrating Dockerfile", ex);
         }
     }
 
@@ -262,11 +249,11 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error removing Swashbuckle.AspNetCore package reference", ex);
+            return Fail("Error removing Swashbuckle.AspNetCore package reference", ex);
         }
     }
 
-    static async Task<int> MigrateOpenApiNamespace(string projectFile)
+    static int MigrateOpenApiNamespace(string projectFile)
     {
         UpgradeResultWriter.BeginStep("OpenAPI namespace");
         try
@@ -277,7 +264,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating OpenAPI namespace in Program.cs", ex);
+            return Fail("Error migrating OpenAPI namespace in Program.cs", ex);
         }
     }
 
@@ -304,12 +291,12 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error resolving package downgrades", ex);
+            return Fail("Error resolving package downgrades", ex);
         }
     }
 
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
-    static async Task<int> MigrateServiceTaskNamespace(string projectFile)
+    static int MigrateServiceTaskNamespace(string projectFile)
     {
         UpgradeResultWriter.BeginStep("IServiceTask namespace");
         try
@@ -320,7 +307,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating IServiceTask namespace", ex);
+            return Fail("Error migrating IServiceTask namespace", ex);
         }
     }
 
@@ -328,7 +315,7 @@ internal static class V8Tov9Upgrade
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
     /// </summary>
-    static async Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
+    static int MigrateEFormidlingReceiversSignature(string projectFile)
     {
         UpgradeResultWriter.BeginStep("IEFormidlingReceivers signature");
         try
@@ -339,17 +326,15 @@ internal static class V8Tov9Upgrade
                 EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
             );
             var result = migration.Migrate();
-
-            foreach (var warning in result.Warnings)
-            {
-                UpgradeResultWriter.Warning(warning);
-            }
-
-            return ExitSuccess;
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IEFormidlingReceivers implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating IEFormidlingReceivers signature", ex);
+            return Fail("Error migrating IEFormidlingReceivers signature", ex);
         }
     }
 
@@ -362,7 +347,7 @@ internal static class V8Tov9Upgrade
     /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
     /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
     /// </summary>
-    static async Task<int> MigrateCorrespondenceApis(string projectFile)
+    static int MigrateCorrespondenceApis(string projectFile)
     {
         UpgradeResultWriter.BeginStep("Correspondence APIs");
         try
@@ -381,11 +366,11 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating Correspondence APIs", ex);
+            return Fail("Error migrating Correspondence APIs", ex);
         }
     }
 
-    static async Task<int> CheckRemovedCSharpApis(string projectFile)
+    static int CheckRemovedCSharpApis(string projectFile)
     {
         UpgradeResultWriter.BeginStep("Removed v9 C# APIs");
         try
@@ -407,7 +392,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error checking for removed C# APIs", ex);
+            return Fail("Error checking for removed C# APIs", ex);
         }
     }
 
@@ -429,7 +414,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating launch settings", ex);
+            return Fail("Error migrating launch settings", ex);
         }
     }
 
@@ -442,7 +427,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating OrganisationLookup components", ex);
+            return Fail("Error migrating OrganisationLookup components", ex);
         }
     }
 
@@ -457,16 +442,14 @@ internal static class V8Tov9Upgrade
         try
         {
             if (string.IsNullOrWhiteSpace(studioRoot))
-                return await FailStep("studioRoot is required when convertPackageReferences is enabled");
+                return Fail("studioRoot is required when convertPackageReferences is enabled");
 
             studioRoot = Path.GetFullPath(studioRoot);
             if (!Directory.Exists(Path.Combine(studioRoot, "src", "App")))
-                return await FailStep($"studioRoot does not contain src/App: {studioRoot}");
+                return Fail($"studioRoot does not contain src/App: {studioRoot}");
 
             if (!IsSubPathOf(studioRoot, projectFolder))
-                return await FailStep(
-                    "convertPackageReferences is only valid for apps inside the Altinn Studio repo root"
-                );
+                return Fail("convertPackageReferences is only valid for apps inside the Altinn Studio repo root");
 
             var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
             await rewriter.ConvertToProjectReferences(studioRoot);
@@ -475,7 +458,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error converting to project references", ex);
+            return Fail("Error converting to project references", ex);
         }
     }
 
@@ -489,7 +472,7 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Job 3: Convert conditional rendering rules to layout hidden expressions
     /// </summary>
-    static async Task<int> ConvertConditionalRenderingRules(string projectFolder)
+    static int ConvertConditionalRenderingRules(string projectFolder)
     {
         UpgradeResultWriter.BeginStep("Conditional rendering rules");
         try
@@ -509,14 +492,14 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error converting conditional rendering rules", ex);
+            return Fail("Error converting conditional rendering rules", ex);
         }
     }
 
     /// <summary>
     /// Job 4: Generate data processors for data processing rules
     /// </summary>
-    static async Task<int> GenerateDataProcessors(string projectFolder)
+    static int GenerateDataProcessors(string projectFolder)
     {
         UpgradeResultWriter.BeginStep("Data processors");
         try
@@ -602,14 +585,9 @@ internal static class V8Tov9Upgrade
                 )
                 {
                     UpgradeResultWriter.Failed(
-                        $"Could not generate the data processor for layout set '{layoutSetName}'"
+                        $"Could not generate the data processor for layout set '{layoutSetName}': "
+                            + string.Join("; ", generationResult.Errors)
                     );
-                    foreach (var error in generationResult.Errors)
-                    {
-                        await UpgradeResultWriter.Error.WriteLineAsync(
-                            $"Data processor for layout set '{layoutSetName}': {error}"
-                        );
-                    }
                     continue;
                 }
 
@@ -644,14 +622,14 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error generating data processors", ex);
+            return Fail("Error generating data processors", ex);
         }
     }
 
     /// <summary>
     /// Job 5: Cleanup legacy rule files after conversion
     /// </summary>
-    static async Task<int> CleanupLegacyRuleFiles(string projectFolder)
+    static int CleanupLegacyRuleFiles(string projectFolder)
     {
         UpgradeResultWriter.BeginStep("Legacy rule files");
         try
@@ -674,14 +652,14 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error cleaning up legacy rule files", ex);
+            return Fail("Error cleaning up legacy rule files", ex);
         }
     }
 
     /// <summary>
     /// Job 6: Migrate layout-sets.json to task-folder based UI settings
     /// </summary>
-    static async Task<int> MigrateLayoutSetsToTaskUi(string projectFolder)
+    static int MigrateLayoutSetsToTaskUi(string projectFolder)
     {
         UpgradeResultWriter.BeginStep("Task-folder UI settings");
         try
@@ -709,7 +687,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating layout-sets.json", ex);
+            return Fail("Error migrating layout-sets.json", ex);
         }
     }
 
@@ -726,7 +704,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating Index.cshtml", ex);
+            return Fail("Error migrating Index.cshtml", ex);
         }
     }
 
@@ -747,7 +725,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating PDF service tasks", ex);
+            return Fail("Error migrating PDF service tasks", ex);
         }
     }
 
@@ -769,7 +747,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating service-owner policy", ex);
+            return Fail("Error migrating service-owner policy", ex);
         }
     }
 
@@ -784,12 +762,11 @@ internal static class V8Tov9Upgrade
         {
             var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
             var result = await migrator.Migrate();
-            // End state rather than action, for the same reason as the PDF migrator above.
             return ReportMigrationResult(result, cleanText: "No legacy eFormidling configuration remains");
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error migrating eFormidling service tasks", ex);
+            return Fail("Error migrating eFormidling service tasks", ex);
         }
     }
 
@@ -798,7 +775,7 @@ internal static class V8Tov9Upgrade
     /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
-    static async Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
+    static int WarnFeedbackTasksBehindServiceTasks(string projectFolder)
     {
         UpgradeResultWriter.BeginStep("Feedback tasks behind service tasks");
         try
@@ -813,7 +790,7 @@ internal static class V8Tov9Upgrade
         }
         catch (Exception ex)
         {
-            return await ReportFailure("Error checking for feedback tasks behind service tasks", ex);
+            return Fail("Error checking for feedback tasks behind service tasks", ex);
         }
     }
 

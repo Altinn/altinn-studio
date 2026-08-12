@@ -7,11 +7,9 @@ namespace Altinn.Studio.Cli.Upgrade;
 /// or a reporter through its constructor.
 /// </summary>
 /// <remarks>
-/// There are two ways to use it. <see cref="Use(UpgradeReport, TextWriter)"/> collects structured data -
-/// steps and typed messages the CLI renders itself - and is what <c>v9</c> uses.
-/// <see cref="Use(TextWriter, TextWriter)"/> writes free text the CLI prints verbatim; it exists to leave
-/// the <c>backend-v8</c> and <c>frontend-v4</c> upgrades as they are. Whether to move those to the
-/// structured format too is something we can consider later.
+/// <see cref="Use(UpgradeReport, TextWriter)"/> collects steps and typed messages that the CLI renders
+/// itself, and is what <c>v9</c> uses. <see cref="Use(TextWriter, TextWriter)"/> writes free text the CLI
+/// prints verbatim, which is what <c>backend-v8</c> and <c>frontend-v4</c> still do.
 /// </remarks>
 internal static class UpgradeResultWriter
 {
@@ -114,16 +112,9 @@ internal static class UpgradeResultWriter
     }
 
     /// <summary>
-    /// Writes description and exception to the error output, with a hint added for file-access failures.
-    /// </summary>
-    public static Task WriteErrorAsync(string description, Exception exception) =>
-        Error.WriteLineAsync($"{description}: {FileAccessDiagnostics.Describe(exception)}");
-
-    /// <summary>
     /// The ambient destination of one upgrade run: exactly one of <paramref name="StandardOutput"/> (free
     /// text) and <paramref name="Report"/> (steps and typed messages) is set. <see cref="Step"/> is the
-    /// report's current step; steps are sequential (see <see cref="BeginStep"/>), so parallel migrators may
-    /// report to the current step - <see cref="UpgradeReport"/> locks - but must not begin one.
+    /// report's current step.
     /// </summary>
     private sealed record Writers(TextWriter? StandardOutput, TextWriter StandardError, UpgradeReport? Report)
     {

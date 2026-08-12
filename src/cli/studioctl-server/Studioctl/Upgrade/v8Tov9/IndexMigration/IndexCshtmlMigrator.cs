@@ -37,13 +37,12 @@ internal sealed class IndexCshtmlMigrator
         // Check for Razor directives FIRST - these block migration
         if (parser.HasRazorDirectives)
         {
-            UpgradeResultWriter.Todo("Keeping Index.cshtml due to Razor directives:");
-            foreach (var directive in parser.DetectedRazorDirectives)
-            {
-                UpgradeResultWriter.Info($"- {directive}");
-            }
-            UpgradeResultWriter.Info(
-                "(Razor directives like @if/@else, @Html., @{ } cannot be migrated to a static config file)"
+            // One message, not one per directive: the renderer keeps the line breaks and aligns the
+            // continuation lines under the first.
+            UpgradeResultWriter.Todo(
+                "Keeping Index.cshtml due to Razor directives (@if/@else, @Html., @{ } cannot be migrated "
+                    + "to a static config file):"
+                    + string.Concat(parser.DetectedRazorDirectives.Select(directive => $"\n- {directive}"))
             );
             return 1;
         }

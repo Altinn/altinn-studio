@@ -4,108 +4,73 @@ using Altinn.Studio.Cli.Upgrade;
 namespace Studioctl.Tests.Upgrade;
 
 /// <summary>
-/// Covers both destinations <see cref="UpgradeResultWriter"/> serves while the upgrade paths are being
-/// converted: free text for the kinds that do not report typed messages, and a report for v9.
+/// Covers both destinations <see cref="UpgradeResultWriter"/> serves: a report for v9, and free text for
+/// the upgrade kinds that do not report typed messages.
 /// </summary>
 public sealed class UpgradeResultWriterTests
 {
-    private static StringWriter NewWriter() => new(CultureInfo.InvariantCulture);
-
     [Fact]
-    public void FreeText_WritesPlainText()
-    {
-        var output = NewWriter();
-        var error = NewWriter();
-
-        using (UpgradeResultWriter.Use(output, error))
-        {
-            // There are no steps to collect into, so the name becomes a line of its own. Shared code can
-            // therefore start steps without caring which destination the run is writing to.
-            UpgradeResultWriter.BeginStep("A step");
-            UpgradeResultWriter.WriteLine("plain line");
-            // A typed status degrades to its plain text, so shared code can report once for both destinations.
-            UpgradeResultWriter.Ok("typed line");
-            UpgradeResultWriter.WriteErrorLine("error line");
-        }
-
-        Assert.Equal(
-            $"A step{Environment.NewLine}plain line{Environment.NewLine}typed line{Environment.NewLine}",
-            output.ToString()
-        );
-        Assert.Contains("error line", error.ToString(), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Report_WriteLine_BecomesAnInfoMessageOnTheCurrentStep()
+    public void Report_CollectsStepsAndMessagesInEmissionOrder()
     {
         var report = new UpgradeReport();
 
         using (UpgradeResultWriter.Use(report, TextWriter.Null))
         {
-            UpgradeResultWriter.BeginStep("Legacy call site");
+            UpgradeResultWriter.BeginStep("First");
+            UpgradeResultWriter.Ok("ok");
+            UpgradeResultWriter.Skip("skip");
+            UpgradeResultWriter.BeginStep("Second");
+            UpgradeResultWriter.Todo("todo");
+            // A call site with no status of its own still lands on the current step, as neutral information.
             UpgradeResultWriter.WriteLine("Warning: something a leaf migrator wrote");
         }
 
-        var message = Assert.Single(Assert.Single(report.Steps).Messages);
-        Assert.Equal(UpgradeMessageStatus.Info, message.Status);
-        // Verbatim: the text is not reclassified or reformatted, so a leaf migrator's own wording survives.
-        Assert.Equal("Warning: something a leaf migrator wrote", message.Text);
+        Assert.Equal(["First", "Second"], report.Steps.Select(step => step.Name));
+        Assert.Equal(
+            [(UpgradeMessageStatus.Ok, "ok"), (UpgradeMessageStatus.Skip, "skip")],
+            report.Steps[0].Messages.Select(message => (message.Status, message.Text))
+        );
+        Assert.Equal(
+            [
+                (UpgradeMessageStatus.Todo, "todo"),
+                (UpgradeMessageStatus.Info, "Warning: something a leaf migrator wrote"),
+            ],
+            report.Steps[1].Messages.Select(message => (message.Status, message.Text))
+        );
     }
 
     [Fact]
-    public void Report_ErrorChannel_IsStillATextWriter()
+    public void FreeText_WritesPlainText()
     {
-        var report = new UpgradeReport();
-        var error = NewWriter();
+        var output = new StringWriter(CultureInfo.InvariantCulture);
+        var error = new StringWriter(CultureInfo.InvariantCulture);
 
-        using (UpgradeResultWriter.Use(report, error))
+        using (UpgradeResultWriter.Use(output, error))
         {
-            UpgradeResultWriter.BeginStep("Failing step");
-            UpgradeResultWriter.Failed("the cause");
-            UpgradeResultWriter.WriteErrorLine("Error doing the thing: the cause");
+            // There are no steps to collect into, so the name becomes a line of its own, and a typed status
+            // degrades to its plain text. Shared code can therefore report once for both destinations.
+            UpgradeResultWriter.BeginStep("A step");
+            UpgradeResultWriter.Ok("typed line");
+            UpgradeResultWriter.WriteErrorLine("error line");
         }
 
-        // Failure handling is unchanged: the report carries the position, the error channel the text.
-        Assert.Contains("Error doing the thing", error.ToString(), StringComparison.Ordinal);
-        Assert.Equal(UpgradeMessageStatus.Failed, Assert.Single(Assert.Single(report.Steps).Messages).Status);
+        Assert.Equal($"A step{Environment.NewLine}typed line{Environment.NewLine}", output.ToString());
+        Assert.Contains("error line", error.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
     public void MisuseThrows()
     {
         // No destination installed.
-        Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.WriteLine("nope"));
         Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("nope"));
 
         using (UpgradeResultWriter.Use(new UpgradeReport(), TextWriter.Null))
         {
-            // A report has no output writer, and a message with no step is a bug: it surfaces
-            // rather than landing in an invented step.
+            // A report has no output writer, and a message with no step is a bug: it surfaces rather than
+            // landing in an invented step.
             Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Out.WriteLine("nope"));
             var exception = Assert.Throws<InvalidOperationException>(() => UpgradeResultWriter.Ok("orphan"));
             Assert.Contains("No upgrade step has started", exception.Message, StringComparison.Ordinal);
         }
-    }
-
-    [Fact]
-    public void Scope_RestoresThePreviousDestinationOnDispose()
-    {
-        var outer = NewWriter();
-        var report = new UpgradeReport();
-
-        using (UpgradeResultWriter.Use(outer, TextWriter.Null))
-        {
-            using (UpgradeResultWriter.Use(report, TextWriter.Null))
-            {
-                UpgradeResultWriter.BeginStep("Inner");
-                UpgradeResultWriter.Ok("structured");
-            }
-
-            UpgradeResultWriter.WriteLine("back to text");
-        }
-
-        Assert.Contains("back to text", outer.ToString(), StringComparison.Ordinal);
-        Assert.DoesNotContain("structured", outer.ToString(), StringComparison.Ordinal);
-        Assert.Single(Assert.Single(report.Steps).Messages);
     }
 }

@@ -64,7 +64,6 @@ internal static class OrganizationLookupLayoutMigration
             await Utf8TextFile.Write(layoutFile, migrated, decoded.HadBom);
             changedFiles++;
             var bindings = occurrences.OrganizationNumberBindings + occurrences.OrganizationNameBindings;
-            // One report per file actually migrated; no roll-up, since it would only restate these.
             UpgradeResultWriter.Ok(
                 $"Migrated {occurrences.Components} component type(s) and {bindings} binding(s) in {layoutFile}"
             );
