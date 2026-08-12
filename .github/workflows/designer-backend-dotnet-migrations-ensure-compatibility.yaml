@@ -25,29 +25,28 @@ jobs:
       OidcLoginSettings__ClientId: 'dummyRequired'
       OidcLoginSettings__ClientSecret: 'dummyRequired'
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
-          dotnet-version: |
-            10.0.x
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          global-json-file: src/Designer/backend/global.json
 
       - name: Install dotnet ef # Version should be the same as Migrations docker file and project
         run: dotnet tool install --version 10.0.10 --global dotnet-ef
 
       - name: Build Designer backend
         run: |
-            dotnet restore backend/src/Designer/Designer.csproj
-            dotnet build backend/src/Designer/Designer.csproj --no-restore
-        working-directory: src/Designer
+            dotnet restore src/Designer/Designer.csproj
+            dotnet build src/Designer/Designer.csproj --no-restore
+        working-directory: src/Designer/backend
 
       - name: Check if migrations script can be generated
         run: |
-            dotnet ef migrations script --project backend/src/Designer --no-build
-        working-directory: src/Designer
+            dotnet ef migrations script --project src/Designer --no-build
+        working-directory: src/Designer/backend
 
       - name: Check if it's possible to add a new migration
         run: |
-            dotnet ef migrations add Test --project backend/src/Designer --no-build
-        working-directory: src/Designer
+            dotnet ef migrations add Test --project src/Designer --no-build
+        working-directory: src/Designer/backend
