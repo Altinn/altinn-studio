@@ -116,12 +116,17 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   its scope is still reported, and an entry that matches nothing is reported as stale. For this
   reason never run bare `typos` (it reports accepted contract spellings) and never run
   `typos --write-changes` (it would "fix" them); `spell:quick`/`spell:check`/`spell:fix` apply the
-  registry.
+  registry. Test-only surface (test projects, colocated `*.test.*`/`*.spec.*` files, test data,
+  mocks, e2e suites, Storybook stories) is out of scope wholesale — never add a suppression for a
+  test file.
 
   Every file holding user-facing translation text is declared once, in
   `.github/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a
   language-file-shaped path is neither registered nor explicitly out of scope, and when a
-  registered file is not excluded from the code pass in `typos.toml`.
+  registered file is not excluded from the code pass in `typos.toml`. The coverage check finds
+  files by the naming patterns in `SCAN_PATTERNS` — a language file that starts a **new naming
+  convention** is invisible to it, so add the new pattern in the same change. Translation text
+  embedded inline in a code file cannot be found by any pattern and must be registered by hand.
 
   When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
   correct, add it to `.github/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
