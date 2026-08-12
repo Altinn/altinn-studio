@@ -1062,6 +1062,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 continue;
             }
 
+            plannedDataElementIdentifiers.Add(dataElementIdentifier);
+            lockStatusDataElementIdentifiers.Add(dataElementIdentifier);
+            lockStatusDataTypeIds.Add(this.GetDataType(dataElementIdentifier).Id);
+
+            if (GetDataElement(dataElementIdentifier).Locked == locked)
+            {
+                continue;
+            }
+
             request.UpdateDataElements.Add(
                 new StorageInstanceMutationUpdateDataElement
                 {
@@ -1069,9 +1078,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     Locked = locked,
                 }
             );
-            plannedDataElementIdentifiers.Add(dataElementIdentifier);
-            lockStatusDataElementIdentifiers.Add(dataElementIdentifier);
-            lockStatusDataTypeIds.Add(this.GetDataType(dataElementIdentifier).Id);
             authenticationMethods.Add(GetAuthenticationMethod(dataElementIdentifier));
         }
 
