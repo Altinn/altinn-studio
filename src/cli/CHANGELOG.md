@@ -24,7 +24,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - `studioctl app upgrade v9` rewrites the eFormidling registration in the app's C# code: `AddEFormidlingServices<TM>(config)` and `AddEFormidlingServices<TM, TR>(config)` become `AddEFormidling().WithMetadata<TM>()`, with `.WithReceivers<TR>()` added only where the app supplies its own receivers. The `IConfiguration` argument is dropped, and the upgrade says so — eFormidling now reads its `EFormidlingClientSettings` section from the app's configuration directly. A registration written as a static call rather than `services.AddEFormidlingServices<..>(config)` is reported for you to change by hand.
-- When upgrading an app to version 9, remove existing `pageBreak` settings from `Summary2` components. These settings had no effect before version 9, but would otherwise begin changing the app's PDF layout after the upgrade.
 
 ## [0.1.0-preview.20] - 2026-08-07
 

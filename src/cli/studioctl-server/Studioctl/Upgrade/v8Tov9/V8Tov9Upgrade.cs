@@ -528,22 +528,6 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> RemoveSummary2PageBreaks(string projectFolder)
-    {
-        try
-        {
-            await UpgradeConsole.Out.WriteLineAsync(
-                "The pageBreak properties on Summary2 components had no effect earlier, but would take effect after upgrading. They are removed to avoid an unintended change in layout."
-            );
-            return await Summary2PageBreakMigration.Migrate(projectFolder);
-        }
-        catch (Exception ex)
-        {
-            await UpgradeConsole.WriteErrorAsync("Error removing pageBreak from Summary2 components", ex);
-            return ExitError;
-        }
-    }
-
     static async Task<int> ConvertToProjectReferences(
         string projectFolder,
         string projectFile,
