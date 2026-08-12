@@ -3,11 +3,7 @@ import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioSpinner, StudioSelect } from '@studio/components';
-import {
-  StudioToggleGroup,
-  StudioToggleGroupItem,
-} from '@studio/components/src/components/StudioToggleGroup/StudioToggleGroup';
+import { StudioSpinner, StudioSelect, StudioToggleGroup } from '@studio/components';
 
 export type PreviewControlHeaderProps = {
   viewSize: 'desktop' | 'mobile';
@@ -38,12 +34,12 @@ export const PreviewControlHeader = ({
     <div className={classes.wrapper}>
       <div className={classes.viewSizeButtons}>
         <StudioToggleGroup onChange={setViewSize} value={viewSize} data-size='sm'>
-          <StudioToggleGroupItem value='desktop'>
+          <StudioToggleGroup.Item value='desktop'>
             {t('preview.view_size_desktop')}
-          </StudioToggleGroupItem>
-          <StudioToggleGroupItem value='mobile'>
+          </StudioToggleGroup.Item>
+          <StudioToggleGroup.Item value='mobile'>
             {t('preview.view_size_mobile')}
-          </StudioToggleGroupItem>
+          </StudioToggleGroup.Item>
         </StudioToggleGroup>
       </div>
       {layoutSets && (
