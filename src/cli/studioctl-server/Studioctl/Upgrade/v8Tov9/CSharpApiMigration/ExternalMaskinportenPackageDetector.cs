@@ -22,6 +22,7 @@ internal sealed class ExternalMaskinportenPackageDetector
 {
     private const string PackageId = "Altinn.ApiClients.Maskinporten";
     private const string PackageNamespace = "Altinn.ApiClients.Maskinporten";
+    private const string PackageAssemblyName = "Altinn.ApiClients.Maskinporten";
 
     /// <summary>
     /// Types whose simple name belongs unambiguously to the external package, so a bare reference is
@@ -138,6 +139,18 @@ internal sealed class ExternalMaskinportenPackageDetector
     /// </summary>
     private IEnumerable<CSharpApiMatch> MatchesIn(ScannedCSharpFile file)
     {
+        // With the v8 compilation (where the package is still on the dependency graph), assembly
+        // identity answers the exact question the name split below approximates: a name that binds to
+        // a symbol declared by the package is package usage, whatever it is called — and an app's own
+        // MaskinportenService binds to the app, so it never matches. Using directives stay syntactic:
+        // they name a namespace, which no single assembly owns, and the literal prefix is exact anyway.
+        if (file.SemanticModel is { } semanticModel)
+        {
+            return CSharpSyntaxQueries
+                .UsingNamespaces(file, PackageNamespace)
+                .Concat(CSharpSemanticQueries.ReferencesToAssembly(file, semanticModel, PackageAssemblyName));
+        }
+
         var usings = CSharpSyntaxQueries.UsingNamespaces(file, PackageNamespace).ToList();
 
         var matches = usings

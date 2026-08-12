@@ -168,11 +168,13 @@ internal sealed class CorrespondenceApiMigration
     {
         private readonly ScannedCSharpFile _file;
         private readonly IReadOnlyList<ScannedCSharpFile> _allFiles;
+        private readonly SemanticModel? _semanticModel;
 
         public Rewriter(ScannedCSharpFile file, IReadOnlyList<ScannedCSharpFile> allFiles)
         {
             _file = file;
             _allFiles = allFiles;
+            _semanticModel = file.SemanticModel;
         }
 
         public List<string> Changes { get; } = [];
@@ -268,7 +270,18 @@ internal sealed class CorrespondenceApiMigration
             }
 
             var argument = visited.ArgumentList.Arguments[0];
-            switch (ClassifyDataArgument(argument.Expression))
+
+            // With the v8 compilation, overload resolution already answered the question: the call
+            // bound to either WithData(ReadOnlyMemory<byte>) or WithData(Stream), and the chosen
+            // parameter type says which. Classification runs on `original` - the pristine tree node
+            // the semantic model knows; `visited` may contain rewritten descendants it does not.
+            var kind = ClassifyBoundWithData(original);
+            if (kind == DataKind.Unknown)
+            {
+                kind = ClassifyDataArgument(argument.Expression);
+            }
+
+            switch (kind)
             {
                 case DataKind.Stream:
                     return null;
@@ -303,6 +316,32 @@ internal sealed class CorrespondenceApiMigration
             Unknown,
             Bytes,
             Stream,
+        }
+
+        /// <summary>
+        /// The kind implied by which v8 <c>WithData</c> overload the call bound to, or
+        /// <see cref="DataKind.Unknown"/> without a semantic model (or when binding fails), in which
+        /// case the syntax classification below takes over.
+        /// </summary>
+        private DataKind ClassifyBoundWithData(InvocationExpressionSyntax original)
+        {
+            if (_semanticModel?.GetSymbolInfo(original).Symbol is not IMethodSymbol method)
+            {
+                return DataKind.Unknown;
+            }
+
+            var unreduced = method.ReducedFrom ?? method;
+            if (!CSharpSemanticQueries.IsAltinnAppSymbol(unreduced) || unreduced.Parameters.Length == 0)
+            {
+                return DataKind.Unknown;
+            }
+
+            return unreduced.Parameters[^1].Type switch
+            {
+                INamedTypeSymbol { Name: "ReadOnlyMemory" } => DataKind.Bytes,
+                INamedTypeSymbol { Name: "Stream", ContainingNamespace.Name: "IO" } => DataKind.Stream,
+                _ => DataKind.Unknown,
+            };
         }
 
         private DataKind ClassifyDataArgument(ExpressionSyntax expression) => ClassifyDataArgument(expression, 0);

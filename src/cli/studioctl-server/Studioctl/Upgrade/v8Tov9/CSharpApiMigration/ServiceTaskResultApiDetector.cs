@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 /// <summary>
@@ -53,12 +55,33 @@ internal sealed class ServiceTaskResultApiDetector
     public MigrationResult Detect()
     {
         var matches = _scanner.Files.SelectMany(file =>
-            CSharpSyntaxQueries
-                .TypeReferences(file, _removedTypes)
-                .Concat(CSharpSyntaxQueries.InvokedMethods(file, _removedFactories))
-                .Concat(CSharpSyntaxQueries.InvokedMethodsOn(file, ResultTypeName, _removedQualifiedFactories))
+            file.SemanticModel is { } semanticModel ? SemanticMatches(file, semanticModel) : SyntaxMatches(file)
         );
 
         return WarnOnlyDetector.Report(Summary, matches);
     }
+
+    /// <summary>
+    /// With the v8 compilation the removed factories bind to their symbols, so even <c>Failed</c> — too
+    /// generic to match bare in syntax — is matched exactly, in whatever spelling (receiver-qualified,
+    /// aliased, <c>using static</c>).
+    /// </summary>
+    private static IEnumerable<CSharpApiMatch> SemanticMatches(ScannedCSharpFile file, SemanticModel semanticModel) =>
+        CSharpSemanticQueries
+            .AltinnTypeReferences(file, semanticModel, _removedTypes)
+            .Concat(CSharpSemanticQueries.InvokedAltinnMethods(file, semanticModel, _removedFactories))
+            .Concat(
+                CSharpSemanticQueries.InvokedAltinnMethods(
+                    file,
+                    semanticModel,
+                    _removedQualifiedFactories,
+                    containingTypeName: ResultTypeName
+                )
+            );
+
+    private static IEnumerable<CSharpApiMatch> SyntaxMatches(ScannedCSharpFile file) =>
+        CSharpSyntaxQueries
+            .TypeReferences(file, _removedTypes)
+            .Concat(CSharpSyntaxQueries.InvokedMethods(file, _removedFactories))
+            .Concat(CSharpSyntaxQueries.InvokedMethodsOn(file, ResultTypeName, _removedQualifiedFactories));
 }
