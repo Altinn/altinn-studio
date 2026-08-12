@@ -294,6 +294,20 @@ def _extract_text_references(comp: dict) -> list[tuple[str, str]]:
     return refs
 
 
+def _split_app_id(name: str, source_key: str) -> tuple[str, str, str]:
+    """(org, source_key, app) from a clone folder name."""
+    marker = f"-{source_key}-"
+    if marker in name:
+        org, app = name.split(marker, 1)
+        return org, source_key, app
+    # Fall back to the historic <org>-<env>-<app> shape for folders written
+    # before source keys existed.
+    parts = name.split("-", 2)
+    if len(parts) < 3:
+        return "", "", ""
+    return parts[0], parts[1], parts[2]
+
+
 def _delete_app(conn: sqlite3.Connection, app_id: str) -> None:
     conn.execute("DELETE FROM apps WHERE app_id = ?", (app_id,))
 
@@ -302,11 +316,14 @@ def scan_app(conn: sqlite3.Connection, app_dir: Path, env: str,
               force: bool = False) -> str:
     """Scan one app dir. Returns status: 'scanned' | 'skipped' | 'error'."""
     name = app_dir.name
-    # name pattern: <org>-<env>-<app>
-    parts = name.split("-", 2)
-    if len(parts) < 3:
+    # Folder pattern is <org>-<source_key>-<app>. Splitting on the first two
+    # hyphens breaks as soon as the source key contains one (e.g.
+    # "gitea-framitdavid"), which silently produced app names like
+    # "framitdavid-framitdavid-v8-test-app". Split on the known key instead —
+    # it is unambiguous no matter how many hyphens the org or app name has.
+    org, scanned_env, app_name = _split_app_id(name, env)
+    if not app_name:
         return "error"
-    org, scanned_env, app_name = parts[0], parts[1], parts[2]
 
     if (app_dir / "fetch-failed.txt").exists():
         return "skipped"
@@ -566,7 +583,7 @@ async def scan_all(settings: Settings, force: bool = False) -> AsyncIterator[dic
 
         for idx, app_dir in enumerate(app_dirs, 1):
             try:
-                status = scan_app(conn, app_dir, settings.env, force=force)
+                status = scan_app(conn, app_dir, settings.source_key, force=force)
                 conn.commit()
             except Exception as exc:
                 conn.rollback()

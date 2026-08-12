@@ -1,4 +1,21 @@
+# Avhengigheter installeres i imaget. Kopieres de inn fra maskinen din i
+# stedet, overskriver de containerens — og da får du platform-binærer for
+# macOS i et Linux-image. Symptomet er esbuild som klager over at
+# "Host version X does not match binary version Y".
+node_modules/
+**/node_modules/
+.venv/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+
+# Byggeartefakter — genereres i imaget
 backend/static
+frontend/dist
+**/*.tsbuildinfo
+
+# Lokale data og hemmeligheter
 data/
 .git
 .env
+**/.DS_Store

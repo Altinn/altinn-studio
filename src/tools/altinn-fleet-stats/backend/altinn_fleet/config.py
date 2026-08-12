@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Literal, Optional
+from typing import ClassVar, Literal, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,12 +11,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Fields the user can edit at runtime via the UI (persisted to runtime_config.json)
 RUNTIME_FIELDS = {
     "env",
+    "source_kind",
+    "source_owners",
     "git_username",
     "git_token",
     "dev_git_username",
     "dev_git_token",
     "fetch_concurrency",
     "scan_concurrency",
+    "allow_gitea_write",
+    "upgrade_concurrency",
+    "studioctl_auto_update",
 }
 
 # Fields whose values should be masked when read by the UI
@@ -29,7 +34,22 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="FLEET_", env_file=".env", extra="ignore")
 
-    # Which Altinn environment to scan
+    # Where apps come from.
+    #   env  — apps deployed in an Altinn runtime environment (prod/tt02),
+    #          discovered through kuberneteswrapper. The original behaviour.
+    #   gitea — every app repository owned by the selected organisations (and
+    #           optionally the signed-in user), discovered through the Gitea
+    #           API. Includes apps that were never deployed anywhere, which is
+    #           the point. Listing the user's own repositories needs `read:user`
+    #           on the token; orgs only need `read:organization`.
+    source_kind: Literal["env", "gitea"] = "env"
+
+    # Owners (organisation logins, and/or the signed-in user's login) to pull
+    # apps from when source_kind is "gitea". A list, because "everything my
+    # token can see" usually spans several organisations.
+    source_owners: list[str] = []
+
+    # Which Altinn environment to scan, when source_kind is "env"
     env: Literal["prod", "tt02"] = "prod"
 
     # Where data lives inside the container
@@ -44,6 +64,27 @@ class Settings(BaseSettings):
     dev_git_username: str = ""
     dev_git_token: str = ""
 
+    # ---- v9-upgrade ----
+    # Keep studioctl on the newest published release automatically. Turn off
+    # to pin whatever the image shipped with — an older studioctl still works,
+    # it just migrates with the rules it knows.
+    studioctl_auto_update: bool = True
+
+    # How many apps may be upgraded at once. Each job shells out to studioctl,
+    # so this is a real resource limit, not a preference.
+    upgrade_concurrency: int = 3
+
+    # Whether the upgrade may push a branch and open a pull request. Off by
+    # default, so an upgrade run is a dry run until someone deliberately turns
+    # it on. While it is off, every working tree also gets its push URL blanked
+    # and a refusing pre-push hook installed.
+    #
+    # This switch is a convenience, not the guarantee. What a token may do is
+    # enforced by Gitea: a `read:repository` token cannot open a pull request
+    # no matter what this says. Give the dev token write and leave the
+    # altinn.studio token read-only, and production repos stay untouchable.
+    allow_gitea_write: bool = False
+
     # Cache TTL for the deployments API (seconds)
     deployments_cache_ttl: int = 3600
 
@@ -56,8 +97,34 @@ class Settings(BaseSettings):
     port: int = 9091
 
     @property
+    def source_key(self) -> str:
+        """Short id for the current source. Each source keeps its own clone
+        directory and database, so switching back and forth is lossless."""
+        if self.source_kind == "gitea" and self.source_owners:
+            owners = sorted(self.source_owners)
+            if len(owners) == 1:
+                return f"gitea-{owners[0]}"
+            # Keep it readable for a couple of owners, stable for many.
+            joined = "+".join(owners)
+            if len(joined) <= 48:
+                return f"gitea-{joined}"
+            import hashlib
+            digest = hashlib.sha256(joined.encode()).hexdigest()[:8]
+            return f"gitea-{len(owners)}owners-{digest}"
+        return self.env
+
+    @property
+    def source_label(self) -> str:
+        if self.source_kind == "gitea" and self.source_owners:
+            owners = sorted(self.source_owners)
+            if len(owners) <= 3:
+                return "alle apper i " + ", ".join(owners)
+            return f"alle apper i {len(owners)} organisasjoner"
+        return f"deployet i {self.env}"
+
+    @property
     def apps_dir(self) -> Path:
-        return self.data_dir / f"apps-{self.env}"
+        return self.data_dir / f"apps-{self.source_key}"
 
     @property
     def cache_dir(self) -> Path:
@@ -65,7 +132,7 @@ class Settings(BaseSettings):
 
     @property
     def db_path(self) -> Path:
-        return self.data_dir / f"fleet-{self.env}.sqlite"
+        return self.data_dir / f"fleet-{self.source_key}.sqlite"
 
     @property
     def apps_base_url(self) -> str:
@@ -77,6 +144,17 @@ class Settings(BaseSettings):
     @property
     def orgs_url(self) -> str:
         return "https://altinncdn.no/orgs/altinn-orgs.json"
+
+    # Studio hosts, in the order the fetcher already tries them. The upgrade
+    # reuses exactly this — no separate instance setting.
+    STUDIO_HOSTS: ClassVar[tuple[str, ...]] = (
+        "https://altinn.studio", "https://dev.altinn.studio")
+
+    def studio_credentials(self, base: str) -> tuple[str, str]:
+        """(username, token) for a Studio host, from the existing config."""
+        if "dev.altinn.studio" in base:
+            return self.dev_git_username, self.dev_git_token
+        return self.git_username, self.git_token
 
     @classmethod
     def current(cls) -> "Settings":

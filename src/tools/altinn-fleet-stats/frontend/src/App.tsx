@@ -9,6 +9,8 @@ import { ProcessPage } from './pages/Process';
 import { SearchPage } from './pages/Search';
 import { SettingsConfigPage } from './pages/SettingsConfig';
 import { QueryToolsPage } from './pages/QueryTools';
+import { UpgradePage } from './pages/Upgrade';
+import { UpgradeRunPage } from './pages/UpgradeRun';
 
 const tabs = [
   { value: '/', label: 'Oversikt' },
@@ -17,6 +19,7 @@ const tabs = [
   { value: '/languages', label: 'Språk' },
   { value: '/process', label: 'Prosess' },
   { value: '/search', label: 'Søk' },
+  { value: '/upgrade', label: 'Oppdater' },
   { value: '/query', label: 'Query Tools' },
   { value: '/config', label: 'Konfigurasjon' },
 ];
@@ -26,7 +29,10 @@ export default function App() {
   const location = useLocation();
 
   // Map any path to the closest tab value
-  const current = tabs.find((t) => t.value === location.pathname)?.value ?? '/';
+  // /upgrade/<app> skal holde «Oppdater»-fanen markert
+  const current =
+    tabs.find((t) => t.value === location.pathname)?.value ??
+    (location.pathname.startsWith('/upgrade') ? '/upgrade' : '/');
 
   return (
     <div className='min-h-screen'>
@@ -60,6 +66,8 @@ export default function App() {
           <Route path='/languages' element={<LanguagesPage />} />
           <Route path='/process' element={<ProcessPage />} />
           <Route path='/search' element={<SearchPage />} />
+          <Route path='/upgrade' element={<UpgradePage />} />
+          <Route path='/upgrade/:appId' element={<UpgradeRunPage />} />
           <Route path='/query' element={<QueryToolsPage />} />
           <Route path='/config' element={<SettingsConfigPage />} />
         </Routes>

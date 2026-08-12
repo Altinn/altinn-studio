@@ -4,6 +4,7 @@ import {
   Alert,
   Button,
   Card,
+  Checkbox,
   Field,
   Heading,
   Label,
@@ -12,7 +13,7 @@ import {
   Tag,
   Textfield,
 } from '@digdir/designsystemet-react';
-import { api } from '../lib/api';
+import { api, giteaApi } from '../lib/api';
 
 type SecretField = { set: boolean; preview: string };
 type SettingsResponse = {
@@ -24,6 +25,9 @@ type SettingsResponse = {
     dev_git_token: SecretField;
     fetch_concurrency: number;
     scan_concurrency: number;
+    source_kind: 'env' | 'gitea';
+    source_owners: string[];
+    allow_gitea_write: boolean;
   };
   overlay_file: string;
   overlay_fields_set: string[];
@@ -50,6 +54,7 @@ async function postSettings(payload: Record<string, unknown>): Promise<SettingsR
 
 export function SettingsConfigPage() {
   const qc = useQueryClient();
+
   const q = useQuery({ queryKey: ['app-settings'], queryFn: fetchSettings });
   const snapshot = useQuery({
     queryKey: ['fleet-snapshot'],
@@ -66,6 +71,37 @@ export function SettingsConfigPage() {
   const [showDevToken, setShowDevToken] = useState(false);
   const [fetchConc, setFetchConc] = useState(8);
   const [scanConc, setScanConc] = useState(8);
+  const [allowWrite, setAllowWrite] = useState(false);
+  const [srcKind, setSrcKind] = useState<'env' | 'gitea'>('env');
+  const [owners, setOwners] = useState<string[]>([]);
+  const [ownerFilter, setOwnerFilter] = useState('');
+
+  // The token drives this: organisations come from read:organization, the
+  // signed-in account from read:user. Fetched once the token is saved.
+  const ownersQ = useQuery({
+    queryKey: ['gitea-owners'],
+    queryFn: giteaApi.owners,
+    enabled: srcKind === 'gitea',
+  });
+  const preview = useQuery({
+    queryKey: ['gitea-preview', owners],
+    queryFn: () => giteaApi.ownerPreview(owners),
+    enabled: srcKind === 'gitea' && owners.length > 0,
+  });
+
+  // One flat list: the signed-in account first, then organisations. Built
+  // outside the markup so no conditional ever renders an empty child.
+  const ownerOptions = [
+    ...(ownersQ.data?.user
+      ? [{ login: ownersQ.data.user.login, note: 'mine egne apper' }]
+      : []),
+    ...(ownersQ.data?.organisations ?? []).map((o) => ({
+      login: o.login,
+      note: o.full_name,
+    })),
+  ].filter((o) =>
+    o.login.toLowerCase().includes(ownerFilter.trim().toLowerCase()),
+  );
 
   const [status, setStatus] = useState<null | { ok: boolean; msg: string }>(null);
   const [saving, setSaving] = useState(false);
@@ -84,6 +120,9 @@ export function SettingsConfigPage() {
     setDevGitUser(q.data.values.dev_git_username);
     setFetchConc(q.data.values.fetch_concurrency);
     setScanConc(q.data.values.scan_concurrency);
+    setAllowWrite(Boolean(q.data.values.allow_gitea_write));
+    setSrcKind(q.data.values.source_kind ?? 'env');
+    setOwners(q.data.values.source_owners ?? []);
   }, [q.data]);
 
   async function save(e: React.FormEvent) {
@@ -97,6 +136,9 @@ export function SettingsConfigPage() {
         dev_git_username: devGitUser,
         fetch_concurrency: fetchConc,
         scan_concurrency: scanConc,
+        allow_gitea_write: allowWrite,
+        source_kind: srcKind,
+        source_owners: owners,
       };
       if (gitToken !== '') payload.git_token = gitToken;
       if (devGitToken !== '') payload.dev_git_token = devGitToken;
@@ -184,18 +226,120 @@ export function SettingsConfigPage() {
             </Paragraph>
           </Card.Block>
           <Card.Block>
-            <Field>
-              <Label>Velg miljø</Label>
-              <Select
-                value={env}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setEnv(e.target.value as 'prod' | 'tt02')
-                }
-              >
-                <Select.Option value='prod'>prod (altinn.no)</Select.Option>
-                <Select.Option value='tt02'>tt02 (tt02.altinn.no)</Select.Option>
-              </Select>
-            </Field>
+            <div className='space-y-3'>
+              <Field>
+                <Label>Hvor skal appene hentes fra?</Label>
+                <Select
+                  value={srcKind}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    setSrcKind(e.target.value as 'env' | 'gitea')
+                  }
+                >
+                  <Select.Option value='env'>Apper som er deployet i et miljø</Select.Option>
+                  <Select.Option value='gitea'>Alle apper i Altinn Studio (uavhengig av deployment)</Select.Option>
+                </Select>
+              </Field>
+
+              {srcKind === 'env' && (
+                <Field>
+                  <Label>Velg miljø</Label>
+                  <Select
+                    value={env}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setEnv(e.target.value as 'prod' | 'tt02')
+                    }
+                  >
+                    <Select.Option value='prod'>prod (altinn.no)</Select.Option>
+                    <Select.Option value='tt02'>tt02 (tt02.altinn.no)</Select.Option>
+                  </Select>
+                </Field>
+              )}
+
+              {srcKind === 'gitea' && (
+                <Field>
+                  <Label>Velg organisasjoner</Label>
+                  <Paragraph data-size='sm' style={{ color: 'var(--ds-color-neutral-text-subtle)' }}>
+                    Hentet med tokenene over
+                    {ownersQ.data?.hosts?.length
+                      ? ` fra ${ownersQ.data.hosts.join(' og ')}`
+                      : ''}
+                    . Velg så mange du vil.
+                  </Paragraph>
+                  <Textfield
+                    aria-label='Filtrer organisasjoner'
+                    placeholder='Filtrer…'
+                    value={ownerFilter}
+                    onChange={(e) => setOwnerFilter(e.target.value)}
+                  />
+
+                  {owners.length > 0 && (
+                    <div className='mt-2 flex flex-wrap gap-1'>
+                      {owners.map((o) => (
+                        <button
+                          key={o}
+                          type='button'
+                          onClick={() => setOwners(owners.filter((x) => x !== o))}
+                          className='rounded-full border border-[var(--ds-color-neutral-border-default)] px-2 py-0.5 text-xs hover:bg-[var(--ds-color-neutral-background-subtle)]'
+                          aria-label={`Fjern ${o}`}
+                        >
+                          {o} ✕
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className='mt-2 max-h-56 overflow-y-auto rounded border border-[var(--ds-color-neutral-border-subtle)]'>
+                    {ownerOptions.length === 0 && (
+                      <p className='p-3 text-sm opacity-60'>
+                        {ownersQ.isLoading ? 'Henter fra Altinn Studio…' : 'Ingen treff'}
+                      </p>
+                    )}
+                    {ownerOptions.map((o) => (
+                      <label
+                        key={o.login}
+                        className='flex cursor-pointer items-center gap-2 border-b border-[var(--ds-color-neutral-border-subtle)] px-3 py-1.5 text-sm last:border-0 hover:bg-[var(--ds-color-neutral-background-subtle)]'
+                      >
+                        <input
+                          type='checkbox'
+                          checked={owners.includes(o.login)}
+                          onChange={(e) =>
+                            setOwners(
+                              e.target.checked
+                                ? [...owners, o.login]
+                                : owners.filter((x) => x !== o.login),
+                            )
+                          }
+                        />
+                        <span>
+                          {o.login}
+                          {o.note && (
+                            <span className='opacity-60'> — {o.note}</span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {ownersQ.data?.error && (
+                    <Paragraph data-size='sm' style={{ color: 'var(--ds-color-danger-text-default)' }}>
+                      {ownersQ.data.error}
+                    </Paragraph>
+                  )}
+                  {ownersQ.data?.user_error && (
+                    <Paragraph data-size='sm' style={{ color: 'var(--ds-color-neutral-text-subtle)' }}>
+                      {ownersQ.data.user_error}
+                    </Paragraph>
+                  )}
+                  {preview.data && (
+                    <Paragraph data-size='sm' style={{ color: 'var(--ds-color-neutral-text-subtle)' }}>
+                      {preview.data.total} repoer blir hentet
+                      {preview.data.owners.some((o) => o.error) &&
+                        ` — ${preview.data.owners.filter((o) => o.error).map((o) => o.owner).join(', ')} kunne ikke leses`}
+                    </Paragraph>
+                  )}
+                </Field>
+              )}
+            </div>
           </Card.Block>
         </Card>
 
@@ -359,6 +503,30 @@ export function SettingsConfigPage() {
                 )}
               </div>
             </div>
+          </Card.Block>
+        </Card>
+
+        {/* Oppgradering til v9 */}
+        <Card>
+          <Card.Block>
+            <Heading level={2} data-size='xs'>
+              Oppgradering til v9
+            </Heading>
+            <Paragraph data-size='sm' style={{ color: 'var(--ds-color-neutral-text-subtle)' }}>
+              Appen hentes fra den Studio-instansen den finnes på, med tokenene
+              over. Uten dette valget er en oppgradering en tørrkjøring:
+              endringene blir liggende i en arbeidskopi.
+            </Paragraph>
+          </Card.Block>
+          <Card.Block>
+            <Field>
+              <Checkbox
+                label='Opprett pull requests automatisk'
+                description='Krever at tokenet for instansen har write:repository. Altinn Studio avviser uansett en PR fra et token som bare kan lese.'
+                checked={allowWrite}
+                onChange={(e) => setAllowWrite(e.target.checked)}
+              />
+            </Field>
           </Card.Block>
         </Card>
 

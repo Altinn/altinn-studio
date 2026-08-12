@@ -127,6 +127,32 @@ CREATE TABLE IF NOT EXISTS text_references (
 CREATE INDEX IF NOT EXISTS idx_textref_app ON text_references(app_id);
 CREATE INDEX IF NOT EXISTS idx_textref_key ON text_references(key_id);
 
+-- One row per attempted v9 upgrade. Survives container restarts, unlike the
+-- in-memory job registry, so the UI can show what was tried and what came out.
+CREATE TABLE IF NOT EXISTS upgrade_runs (
+    run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    app_id TEXT NOT NULL,
+    org TEXT NOT NULL,
+    app_name TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    from_version TEXT,
+    to_version TEXT,
+    outcome TEXT,                      -- clean | manual | rejected | failed
+    exit_code INTEGER,
+    files_changed INTEGER DEFAULT 0,
+    manual_items TEXT,                 -- JSON array of what must be hand-ported
+    branch TEXT,
+    pr_url TEXT,
+    build_ok INTEGER,                  -- 1 ok, 0 failed, NULL not reached
+    build_errors TEXT,                 -- JSON array of compiler errors
+    steps TEXT,                        -- JSON: step key -> {status, detail, items}
+    log TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_upgrade_app ON upgrade_runs(app_id);
+CREATE INDEX IF NOT EXISTS idx_upgrade_outcome ON upgrade_runs(outcome);
+
 CREATE TABLE IF NOT EXISTS scan_runs (
     run_id INTEGER PRIMARY KEY AUTOINCREMENT,
     started_at TEXT NOT NULL,
@@ -157,6 +183,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
         ("apps", "max_journey_length", "INTEGER DEFAULT 0"),
         ("apps", "complexity", "TEXT"),
         ("apps", "primary_journey", "TEXT"),
+        ("upgrade_runs", "build_ok", "INTEGER"),
+        ("upgrade_runs", "build_errors", "TEXT"),
+        ("upgrade_runs", "steps", "TEXT"),
     ]
     for table, column, decl in additions:
         try:

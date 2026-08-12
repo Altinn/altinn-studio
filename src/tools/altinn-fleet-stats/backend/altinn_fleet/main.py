@@ -20,9 +20,11 @@ from .config import (
     save_runtime_config,
 )
 from .db import init_db
-from .fetcher import Fetcher, FetchEvent
+from .fetcher import Fetcher, FetchEvent, list_organisations, list_owner_repos
 from .scanner import scan_all
 from .op_state import op_state
+from .jobs import Job, registry
+from .upgrade import Upgrader, can_write, preflight, token_scopes, write_capability
 from . import query as _query
 from . import stats
 
@@ -57,6 +59,10 @@ async def get_config() -> dict:
         "db_path": str(s.db_path),
         "has_git_token": bool(s.git_token),
         "has_dev_git_token": bool(s.dev_git_token),
+        # v9-upgrade
+        "studio_hosts": list(s.STUDIO_HOSTS),
+        "upgrade_concurrency": s.upgrade_concurrency,
+        "allow_gitea_write": s.allow_gitea_write,
         "fetch_concurrency": s.fetch_concurrency,
         "scan_concurrency": s.scan_concurrency,
     }
@@ -328,6 +334,257 @@ async def operation_events() -> StreamingResponse:
         "Cache-Control": "no-cache, no-transform",
     }
     return StreamingResponse(gen(), media_type="text/event-stream", headers=headers)
+
+
+@app.get("/api/gitea/owners")
+async def gitea_owners() -> dict:
+    """Everything the token may pull apps from: organisations, and the signed-in
+    user's own account.
+
+    Listing organisations needs `read:organization`; identifying the user needs
+    `read:user`. A token can have one without the other, so each half reports
+    its own error instead of failing the whole call.
+    """
+    import httpx
+    s = Settings.current()
+
+    # Ask every Studio host we hold a token for. Someone may have credentials
+    # for dev only, or for both — hardcoding altinn.studio made the picker look
+    # empty for anyone whose token was for dev.
+    hosts = [(b, *s.studio_credentials(b)) for b in s.STUDIO_HOSTS]
+    hosts = [(b, u, t) for b, u, t in hosts if t]
+    if not hosts:
+        return {"organisations": [], "user": None,
+                "error": "Mangler token. Legg inn et for altinn.studio eller "
+                         "dev.altinn.studio over.",
+                "user_error": "", "hosts": []}
+
+    seen: dict[str, dict] = {}
+    errors: list[str] = []
+    for base, user_name, token in hosts:
+        found, err = await list_organisations(base, user_name, token)
+        if err:
+            errors.append(err)
+        for o in found:
+            entry = seen.setdefault(o["login"], {**o, "studios": []})
+            entry["studios"].append(base.replace("https://", ""))
+    orgs = sorted(seen.values(), key=lambda o: o["login"])
+    # Only surface errors when nothing came back; a working host makes a
+    # failing one irrelevant noise.
+    org_err = " ".join(errors) if (errors and not orgs) else ""
+
+    user, user_err = None, ""
+    for base, _, token in hosts:
+        try:
+            async with httpx.AsyncClient(timeout=20) as c:
+                r = await c.get(f"{base}/repos/api/v1/user",
+                                headers={"Authorization": f"token {token}"})
+        except Exception as e:
+            user_err = f"Fikk ikke kontakt med {base}: {e}"
+            continue
+        if r.status_code == 200:
+            user = {"login": r.json().get("login", "")}
+            user_err = ""
+            break
+        if r.status_code == 403:
+            user_err = ("Kan ikke hente din egen bruker. Legg til scopet "
+                        "read:user på tokenet for å kunne velge dine egne apper.")
+        else:
+            user_err = f"Gitea svarte {r.status_code} på /user."
+
+    return {"organisations": orgs, "user": user,
+            "error": org_err, "user_error": user_err,
+            "hosts": [b.replace("https://", "") for b, _, _ in hosts]}
+
+
+@app.get("/api/gitea/owner-preview")
+async def gitea_owner_preview(owners: str) -> dict:
+    """How many repositories the selected owners add up to, before committing."""
+    s = Settings.current()
+    per: list[dict] = []
+    total = 0
+    for raw in [o for o in owners.split(",") if o.strip()]:
+        owner = raw.strip()
+        repos, err, host = await _repos_for_owner(s, owner)
+        per.append({"owner": owner, "count": len(repos), "error": err,
+                    "studio": host})
+        total += len(repos)
+    return {"total": total, "owners": per}
+
+
+async def _repos_for_owner(s: Settings, owner: str) -> tuple[list, str, str]:
+    """Find an owner's repos on whichever Studio host holds them.
+
+    Tries each host we have a token for, as an organisation first and then as a
+    user account, so the caller never has to say which is which.
+    """
+    last_err = "Ingen token konfigurert."
+    for base in s.STUDIO_HOSTS:
+        _, token = s.studio_credentials(base)
+        if not token:
+            continue
+        for kind in ("org", "user"):
+            repos, err = await list_owner_repos(base, owner, token, kind)
+            if not err:
+                return repos, "", base.replace("https://", "")
+            last_err = err
+    return [], last_err, ""
+
+
+# ---------- Upgrade to v9 ----------
+
+@app.get("/api/upgrade/candidates")
+async def upgrade_candidates() -> list[dict]:
+    """Apps on Altinn.App 8.x, with whether studioctl will accept them.
+
+    Eligibility is read from the scanned clone rather than guessed, so the UI
+    can grey out the ones the version check would reject anyway.
+    """
+    s = Settings.current()
+    rows = stats.upgrade_candidates(s.db_path)
+    out = []
+    for r in rows:
+        csproj = s.apps_dir / r["app_id"] / "App" / "App.csproj"
+        pre = preflight(csproj)
+        last = r.get("last_outcome")
+        out.append({
+            **r,
+            "eligible": pre.eligible,
+            "reasons": pre.reasons,
+            "warnings": pre.warnings,
+            "running": bool(registry.active_for_app(r["app_id"])),
+            "last_outcome": last,
+        })
+    return out
+
+
+async def _run_upgrade(job: Job, org: str, app: str, app_id: str) -> None:
+    result: dict = {"outcome": "failed", "summary": "Avsluttet uventet"}
+    try:
+        async with registry.slot:
+            await job.emit({"kind": "info", "message": f"Starter oppgradering av {org}/{app}"})
+            result = await Upgrader(Settings.current()).run(job, org, app, app_id)
+    except asyncio.CancelledError:
+        result = {"outcome": "failed", "summary": "Avbrutt av bruker"}
+        await job.emit({"kind": "error", "message": result["summary"]})
+    except Exception as e:
+        log.exception("upgrade failed for %s", app_id)
+        result = {"outcome": "failed", "summary": str(e)}
+        await job.emit({"kind": "error", "message": str(e)})
+    finally:
+        await job.finish(result)
+
+
+@app.post("/api/upgrade/{app_id}")
+async def start_upgrade(app_id: str) -> dict:
+    """Start a v9 upgrade for one app. Returns immediately with a job id."""
+    s = Settings.current()
+    row = stats.app_row(s.db_path, app_id)
+    if not row:
+        raise HTTPException(404, f"Ukjent app: {app_id}")
+    existing = registry.active_for_app(app_id)
+    if existing:
+        # Two runs would fight over the same working tree.
+        return {"job_id": existing.id, "already_running": True}
+
+    job = registry.create("upgrade", app_id, f"{row['org']}/{row['app_name']}")
+    task = asyncio.create_task(
+        _run_upgrade(job, row["org"], row["app_name"], app_id))
+    job.set_task(task)
+    return {"job_id": job.id, "already_running": False}
+
+
+@app.get("/api/upgrade/token-status")
+async def upgrade_token_status() -> dict:
+    """What the configured token can actually do, according to Gitea itself.
+
+    The application switches are advisory; the token scope is enforced on the
+    server. Showing both makes it obvious which one is stopping a push.
+    """
+    s = Settings.current()
+    hosts = []
+    for base in s.STUDIO_HOSTS:
+        _, token = s.studio_credentials(base)
+        scopes, err = await token_scopes(base, token) if token else ([], "Ingen token konfigurert.")
+        hosts.append({
+            "studio": base,
+            "has_token": bool(token),
+            "scopes": scopes,
+            "error": err,
+            "can_write": can_write(scopes),
+            "write_capability": write_capability(scopes),
+        })
+    return {
+        "hosts": hosts,
+        "allow_gitea_write": s.allow_gitea_write,
+        # A PR is possible where the switch is on AND some token may write.
+        "can_open_pr": bool(s.allow_gitea_write and any(h["can_write"] for h in hosts)),
+        "capability_known": all(h["write_capability"] != "unknown" for h in hosts),
+    }
+
+
+@app.get("/api/upgrade/jobs")
+async def upgrade_jobs(limit: int = 50) -> list[dict]:
+    return registry.list(limit)
+
+
+@app.get("/api/upgrade/jobs/{job_id}")
+async def upgrade_job(job_id: str) -> dict:
+    job = registry.get(job_id)
+    if not job:
+        raise HTTPException(404, "Ukjent jobb")
+    return {**job.status(), "result": job.result, "history": job.history}
+
+
+@app.post("/api/upgrade/jobs/{job_id}/cancel")
+async def cancel_upgrade(job_id: str) -> dict:
+    job = registry.get(job_id)
+    if not job:
+        raise HTTPException(404, "Ukjent jobb")
+    return {"cancelled": job.cancel()}
+
+
+@app.get("/api/upgrade/jobs/{job_id}/events")
+async def upgrade_events(job_id: str) -> StreamingResponse:
+    """SSE for one job. Replays history, then streams live, then closes when done."""
+    job = registry.get(job_id)
+    if not job:
+        raise HTTPException(404, "Ukjent jobb")
+
+    async def gen() -> AsyncIterator[str]:
+        q = job.subscribe()
+        yield ": connected\n\n"
+        try:
+            while True:
+                try:
+                    ev = await asyncio.wait_for(q.get(), timeout=25)
+                except asyncio.TimeoutError:
+                    if job.complete:
+                        break
+                    yield ": keep-alive\n\n"
+                    continue
+                yield _sse(ev)
+                if ev.get("kind") == "done":
+                    break
+        finally:
+            job.unsubscribe(q)
+
+    return StreamingResponse(
+        gen(), media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache, no-transform"})
+
+
+@app.get("/api/upgrade/runs")
+async def upgrade_runs(limit: int = 100) -> list[dict]:
+    return stats.upgrade_runs(Settings.current().db_path, limit)
+
+
+@app.get("/api/upgrade/runs/{run_id}")
+async def upgrade_run_detail(run_id: int) -> dict:
+    row = stats.upgrade_run(Settings.current().db_path, run_id)
+    if not row:
+        raise HTTPException(404, "Ukjent kjøring")
+    return row
 
 
 # ---------- Read-only stats endpoints ----------

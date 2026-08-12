@@ -736,3 +736,93 @@ def apps_by_frontend_version(db: Path, version: str) -> list[dict]:
             }
             for r in rows
         ]
+
+
+# ---------- Upgrade to v9 ----------
+
+def app_row(db: Path, app_id: str) -> dict | None:
+    with get_conn(db) as conn:
+        r = conn.execute(
+            "SELECT app_id, org, app_name, backend_version, repo_url "
+            "FROM apps WHERE app_id = ?", (app_id,)
+        ).fetchone()
+        return dict(r) if r else None
+
+
+def upgrade_candidates(db: Path) -> list[dict]:
+    """Apps on Altinn.App 8.x, newest upgrade attempt joined in.
+
+    `backend_version` may carry NuGet range syntax (`[8.11.3]`), so the LIKE
+    has to allow a leading bracket — matching on '8.%' alone silently drops
+    those apps, which is exactly the trap the fleet-wide test run fell into.
+    """
+    with get_conn(db) as conn:
+        rows = conn.execute(
+            """
+            SELECT a.app_id, a.org, a.app_name, a.backend_version,
+                   a.frontend_version, a.deployed_version, a.repo_url,
+                   a.page_count, a.component_count,
+                   u.outcome     AS last_outcome,
+                   u.finished_at AS last_run_at,
+                   u.run_id      AS last_run_id,
+                   u.pr_url      AS last_pr_url
+            FROM apps a
+            LEFT JOIN (
+                SELECT app_id, outcome, finished_at, run_id, pr_url,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY app_id ORDER BY run_id DESC) AS rn
+                FROM upgrade_runs
+            ) u ON u.app_id = a.app_id AND u.rn = 1
+            WHERE REPLACE(REPLACE(a.backend_version, '[', ''), '(', '') LIKE '8.%'
+            ORDER BY a.org, a.app_name
+            """
+        ).fetchall()
+        return [{**dict(r), "gitea_url": _gitea_web_url(r["repo_url"])} for r in rows]
+
+
+def upgrade_runs(db: Path, limit: int = 100) -> list[dict]:
+    with get_conn(db) as conn:
+        rows = conn.execute(
+            """SELECT run_id, job_id, app_id, org, app_name, started_at,
+                      finished_at, from_version, to_version, outcome,
+                      exit_code, files_changed, branch, pr_url
+               FROM upgrade_runs ORDER BY run_id DESC LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def upgrade_run(db: Path, run_id: int) -> dict | None:
+    """Full record including the log — the detail view for one run."""
+    import json as _json
+    with get_conn(db) as conn:
+        r = conn.execute(
+            "SELECT * FROM upgrade_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()
+        if not r:
+            return None
+        d = dict(r)
+        try:
+            d["manual_items"] = _json.loads(d.get("manual_items") or "[]")
+        except ValueError:
+            d["manual_items"] = []
+        return d
+
+
+def upgrade_summary(db: Path) -> dict:
+    """Counts per outcome across the newest attempt per app."""
+    with get_conn(db) as conn:
+        rows = conn.execute(
+            """SELECT outcome, COUNT(*) AS n FROM (
+                   SELECT app_id, outcome,
+                          ROW_NUMBER() OVER (
+                              PARTITION BY app_id ORDER BY run_id DESC) AS rn
+                   FROM upgrade_runs
+               ) WHERE rn = 1 GROUP BY outcome"""
+        ).fetchall()
+        counts = {r["outcome"]: r["n"] for r in rows}
+        total = conn.execute(
+            "SELECT COUNT(*) AS n FROM apps WHERE "
+            "REPLACE(REPLACE(backend_version, '[', ''), '(', '') LIKE '8.%'"
+        ).fetchone()["n"]
+        return {"total_v8": total, **counts}

@@ -347,3 +347,161 @@ export function subscribeToOperation(
   })();
   return () => controller.abort();
 }
+
+// ---------- v9-oppgradering ----------
+
+export type UpgradeOutcome = 'clean' | 'manual' | 'rejected' | 'failed';
+
+export type UpgradeCandidate = {
+  app_id: string;
+  org: string;
+  app_name: string;
+  backend_version: string;
+  frontend_version: string | null;
+  gitea_url: string;
+  eligible: boolean;
+  reasons: string[];
+  warnings: string[];
+  running: boolean;
+  last_outcome: UpgradeOutcome | null;
+  last_run_at: string | null;
+  last_run_id: number | null;
+};
+
+export type UpgradeJob = {
+  job_id: string;
+  app_id: string;
+  label: string;
+  running: boolean;
+  cancelled: boolean;
+  created_at: number;
+  finished_at: number | null;
+  last_message: string;
+  outcome: UpgradeOutcome | null;
+  run_id: number | null;
+};
+
+export type UpgradeStepStatus =
+  | 'pending' | 'running' | 'ok' | 'warn' | 'fail' | 'skipped';
+
+/** `step` events move a step between states; every other kind is log output
+ *  belonging to the step named in `step`. */
+export type UpgradeEvent = {
+  kind: 'step' | 'info' | 'log' | 'warn' | 'error' | 'done';
+  step?: string;
+  status?: UpgradeStepStatus;
+  title?: string;
+  items?: string[];
+  message: string;
+  outcome?: UpgradeOutcome;
+  job_id?: string;
+};
+
+export type UpgradeRun = {
+  run_id: number;
+  app_id: string;
+  org: string;
+  app_name: string;
+  started_at: string;
+  finished_at: string | null;
+  from_version: string;
+  to_version: string;
+  outcome: UpgradeOutcome;
+  exit_code: number | null;
+  files_changed: number;
+  branch: string;
+  pr_url: string | null;
+  manual_items?: string[];
+  log?: string;
+};
+
+export type HostTokenStatus = {
+  studio: string;
+  has_token: boolean;
+  scopes: string[];
+  error: string;
+  can_write: boolean;
+};
+
+export type TokenStatus = {
+  hosts: HostTokenStatus[];
+  allow_gitea_write: boolean;
+  can_open_pr: boolean;
+};
+
+export type GiteaOwners = {
+  organisations: Array<{ login: string; full_name: string }>;
+  user: { login: string } | null;
+  error: string;
+  /** Set when the token lacks read:user, so the account cannot be listed. */
+  user_error: string;
+  /** Studio hosts a token was configured for, and therefore queried. */
+  hosts: string[];
+};
+
+export const giteaApi = {
+  owners: () => getJSON<GiteaOwners>('/gitea/owners'),
+  ownerPreview: (owners: string[]) =>
+    getJSON<{ total: number; owners: Array<{ owner: string; count: number; error: string }> }>(
+      `/gitea/owner-preview?owners=${encodeURIComponent(owners.join(','))}`,
+    ),
+};
+
+export const upgradeApi = {
+  candidates: () => getJSON<UpgradeCandidate[]>('/upgrade/candidates'),
+  tokenStatus: () => getJSON<TokenStatus>('/upgrade/token-status'),
+  jobs: () => getJSON<UpgradeJob[]>('/upgrade/jobs'),
+  runs: (limit = 100) => getJSON<UpgradeRun[]>(`/upgrade/runs?limit=${limit}`),
+  run: (id: number) => getJSON<UpgradeRun>(`/upgrade/runs/${id}`),
+
+  async start(appId: string): Promise<{ job_id: string; already_running: boolean }> {
+    const r = await fetch(`${BASE}/upgrade/${encodeURIComponent(appId)}`, { method: 'POST' });
+    if (!r.ok) throw new Error(`Kunne ikke starte oppgradering: HTTP ${r.status}`);
+    return r.json();
+  },
+
+  async cancel(jobId: string): Promise<void> {
+    await fetch(`${BASE}/upgrade/jobs/${jobId}/cancel`, { method: 'POST' });
+  },
+};
+
+/** Stream one job's events. Returns an unsubscribe function. */
+export function subscribeToUpgrade(
+  jobId: string,
+  onEvent: (ev: UpgradeEvent) => void,
+  onError: (err: Error) => void,
+): () => void {
+  const controller = new AbortController();
+  (async () => {
+    try {
+      const r = await fetch(`${BASE}/upgrade/jobs/${jobId}/events`, {
+        signal: controller.signal,
+      });
+      if (!r.ok || !r.body) {
+        onError(new Error(`HTTP ${r.status}`));
+        return;
+      }
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf('\n\n')) >= 0) {
+          const raw = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          const line = raw.split('\n').find((l) => l.startsWith('data: '));
+          if (!line) continue;
+          try {
+            onEvent(JSON.parse(line.slice(6)));
+          } catch {}
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') onError(e);
+    }
+  })();
+  return () => controller.abort();
+}
