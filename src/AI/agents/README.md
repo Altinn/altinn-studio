@@ -155,37 +155,38 @@ LANGFUSE_ENABLED=true
 
 ## How It Works
 
-### Workflow Mode
+Every request first passes **pre-graph gates** — intent parsing and a scope check that decline anything outside Altinn app development. It then runs a small LangGraph: **intake → [spec] → agentic loop**.
 
-1. **Intake** - Validates goal safety and parses intent
-2. **Repository Scan** - Discovers project structure
-3. **Planning** - Retrieves Altinn documentation, plans tool usage
-4. **Actor** - Generates code changes using in-process Altinn tools
-5. **Verifier** - Validates changes via in-process verification tools
-6. **Reviewer** - Commits to session branch or rolls back
+### Workflow Mode (`allow_app_changes: true`)
 
-All operations are atomic - changes either fully succeed or are rolled back.
+1. **Intake** - Validates the goal and parses it into a change request.
+2. **Spec** (only when files are attached) - Extracts a structured FormSpec from the uploads.
+3. **Agentic loop** - A single model-driven loop does the work by calling tools: scan the repo, read/edit/write files, look up layout and datamodel schemas, load domain-knowledge skills, verify changes, and commit to a session branch. The model chooses the order.
 
-### Chat Mode
+Changes are atomic: the loop commits a working change to the session branch or rolls back.
 
-Answers questions using in-process tools without modifying files. Scans your repository for context and generates responses with documentation examples.
+### Chat Mode (`allow_app_changes: false`)
+
+Runs the same agentic loop **read-only** (write tools are denied): the model answers using the repo scan, documentation skills, and schema-lookup tools without modifying files.
 
 ## Project Structure
 
 ```
 altinity-agents/
 ├── api/                  # FastAPI server
-│   ├── routes/           # API endpoints (agent, websocket)
+│   ├── routes/           # Endpoints: agent, websocket, token_usage, traces
 │   └── main.py           # Application entry point
 ├── agents/
-│   ├── graph/            # LangGraph workflow
-│   │   ├── nodes/        # Workflow nodes (intake, planner, actor, verifier, reviewer)
-│   │   └── runner.py     # Workflow orchestration
-│   ├── services/         # Core services
-│   │   ├── git/          # Git operations
-│   │   ├── llm/          # LLM client
-│   │   └── events/       # Event handling
-│   └── workflows/        # Pipeline stages
+│   ├── graph/            # LangGraph: intake → [spec] → agentic_loop
+│   │   ├── nodes/        # intake_node, spec_node, agentic_loop_node
+│   │   ├── runner.py     # Graph build + pre-graph gates
+│   │   └── state.py      # AgentState
+│   ├── core/             # Agentic loop engine (loop, tool registry, skills, tools/)
+│   ├── altinn/           # Altinn domain library (datamodel, layout, policy, resources)
+│   ├── skills/           # Domain-knowledge skills, loaded on demand
+│   ├── prompts/          # System + user prompts (+ loader)
+│   ├── services/         # git, llm, events, validation, repo, patching, telemetry
+│   └── workflows/        # Up-front pipeline stages (intake, spec)
 └── shared/               # Config, models, utilities
 ```
 
