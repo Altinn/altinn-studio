@@ -10,7 +10,7 @@
       {
         "size": "h2",
         "id": "RadioButtonsPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "RadioButtonsPage"
         }
@@ -18,7 +18,7 @@
       {
         "size": "h3",
         "id": "RadioButtonsPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Component"
         }
@@ -55,7 +55,7 @@
       {
         "size": "h3",
         "id": "RadioButtonsPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
@@ -69,7 +69,7 @@
       {
         "size": "h3",
         "id": "RadioButtonsPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }

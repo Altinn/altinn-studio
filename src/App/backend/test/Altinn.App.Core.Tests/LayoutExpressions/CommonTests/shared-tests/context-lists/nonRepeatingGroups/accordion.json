@@ -6,7 +6,7 @@
         "layout": [
           {
             "id": "comp1",
-            "type": "Header"
+            "type": "Heading"
           },
           {
             "id": "accordion1",

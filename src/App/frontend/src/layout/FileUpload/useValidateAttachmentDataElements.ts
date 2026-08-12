@@ -17,15 +17,13 @@ export function validateAttachmentDataElements(
     }
 
     return Object.values(otherValidations).flatMap((validationList) =>
-      validationList.map(
-        (validation): AnyValidation => ({
-          ...validation,
-          // Backend categories are only shown here while `showAllUnboundValidations` is active.
-          // After copying the validation onto the FileUpload node, we want it to stay visible through the
-          // default post-submit mask, so we remap it to `Required`.
-          category: ValidationMask.Required,
-        }),
-      ),
+      validationList.map((validation): AnyValidation => ({
+        ...validation,
+        // Backend categories are only shown here while `showAllUnboundValidations` is active.
+        // After copying the validation onto the FileUpload node, we want it to stay visible through the
+        // default post-submit mask, so we remap it to `Required`.
+        category: ValidationMask.Required,
+      })),
     );
   });
 }

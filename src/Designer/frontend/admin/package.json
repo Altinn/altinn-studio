@@ -25,14 +25,14 @@
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
-    "axios": "1.18.1",
+    "axios": "1.19.0",
     "classnames": "2.5.1",
     "i18next": "25.10.10",
-    "posthog-js": "1.386.8",
+    "posthog-js": "1.414.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-i18next": "17.0.11",
-    "react-router-dom": "7.17.0"
+    "react-router-dom": "7.18.2"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",

@@ -8,7 +8,7 @@
       },
       {
         "id": "contactInformation",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "contactInformation"
         },

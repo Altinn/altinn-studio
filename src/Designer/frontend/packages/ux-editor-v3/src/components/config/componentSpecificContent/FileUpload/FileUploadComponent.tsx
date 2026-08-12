@@ -23,8 +23,7 @@ export const FileUploadComponent = ({
 
   const handleHasCustomFileEndingsChange = (hasCustomFileEndings: string) => {
     const componentCopy = { ...component } as
-      | FormFileUploaderComponent
-      | FormFileUploaderWithTagComponent;
+      FormFileUploaderComponent | FormFileUploaderWithTagComponent;
     componentCopy.hasCustomFileEndings = hasCustomFileEndings === 'true';
     if (!componentCopy.hasCustomFileEndings) {
       componentCopy.validFileEndings = undefined;
@@ -34,13 +33,11 @@ export const FileUploadComponent = ({
 
   const handleValidFileEndingsChange = (validFileEndings: string) =>
     handleComponentChange({ ...component, validFileEndings } as
-      | FormFileUploaderComponent
-      | FormFileUploaderWithTagComponent);
+      FormFileUploaderComponent | FormFileUploaderWithTagComponent);
 
   const handleNumberOfAttachmentsChange = (type: string) => (maxNumberOfAttachments: number) => {
     const componentCopy = { ...component } as
-      | FormFileUploaderComponent
-      | FormFileUploaderWithTagComponent;
+      FormFileUploaderComponent | FormFileUploaderWithTagComponent;
     if (type === 'max') {
       componentCopy.maxNumberOfAttachments =
         maxNumberOfAttachments >= 1 ? maxNumberOfAttachments : 1;
@@ -54,8 +51,7 @@ export const FileUploadComponent = ({
 
   const handleMaxFileSizeInMBChange = (maxFileSizeInMB: number) => {
     const componentCopy = { ...component } as
-      | FormFileUploaderComponent
-      | FormFileUploaderWithTagComponent;
+      FormFileUploaderComponent | FormFileUploaderWithTagComponent;
     componentCopy.maxFileSizeInMB = maxFileSizeInMB >= 0 ? maxFileSizeInMB : 0;
     handleComponentChange(componentCopy);
   };
