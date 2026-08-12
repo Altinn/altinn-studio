@@ -246,7 +246,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
-        HttpResponseMessage response = await client.GetAsync(
+        using HttpResponseMessage response = await client.GetAsync(
             $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}"
         );
 

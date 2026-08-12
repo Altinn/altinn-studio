@@ -2,6 +2,7 @@ using System.Net;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Correspondence;
+using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -519,6 +520,88 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         // Assert — a disposed MemoryStream reports CanRead false.
         Assert.False(firstStream.CanRead, "the stream acquired before the failure was not disposed");
+    }
+
+    [Fact]
+    public async Task GetCorrespondenceAttachments_DisposesAllStreams_WhenAttachmentConstructionFails()
+    {
+        // Arrange
+        InstanceIdentifier instanceIdentifier = new(123456, Guid.NewGuid());
+
+        DataElement firstElement = new()
+        {
+            Id = "11111111-1111-1111-1111-111111111111",
+            Filename = "first.pdf",
+            ContentType = "application/pdf",
+            DataType = "someType",
+        };
+
+        // No filename and an empty data type produce an empty attachment filename, which the
+        // builder rejects in Build() — after this element's stream has already been acquired.
+        DataElement elementWithoutFilename = new()
+        {
+            Id = "22222222-2222-2222-2222-222222222222",
+            Filename = null,
+            ContentType = null,
+            DataType = "",
+        };
+
+        Instance instance = new() { Data = [firstElement, elementWithoutFilename] };
+
+        Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
+        instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
+        UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
+        IEnumerable<DataElementSignature> dataElementSignatures =
+        [
+            new DataElementSignature(firstElement.Id),
+            new DataElementSignature(elementWithoutFilename.Id),
+        ];
+
+        ApplicationMetadata appMetadata = new("org/app") { DataTypes = [] };
+
+        var firstStream = new MemoryStream([1, 2, 3]);
+        var secondStream = new MemoryStream([4, 5, 6]);
+        var dataClientMock = new Mock<IDataClient>();
+        dataClientMock
+            .Setup(x =>
+                x.GetBinaryDataStream(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.Is<Guid>(id => id == Guid.Parse(firstElement.Id)),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<TimeSpan?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(firstStream);
+        dataClientMock
+            .Setup(x =>
+                x.GetBinaryDataStream(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.Is<Guid>(id => id == Guid.Parse(elementWithoutFilename.Id)),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<TimeSpan?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(secondStream);
+
+        // Act
+        await Assert.ThrowsAsync<CorrespondenceArgumentException>(async () =>
+            await SigningReceiptService.GetCorrespondenceAttachments(
+                instanceIdentifier,
+                dataElementSignatures,
+                appMetadata,
+                context,
+                dataClientMock.Object,
+                CancellationToken.None
+            )
+        );
+
+        // Assert — both the attachment already built and the stream whose attachment failed to build.
+        Assert.False(firstStream.CanRead, "the first stream (already wrapped in an attachment) was not disposed");
+        Assert.False(secondStream.CanRead, "the stream acquired for the failing attachment was not disposed");
     }
 
     [Fact]
