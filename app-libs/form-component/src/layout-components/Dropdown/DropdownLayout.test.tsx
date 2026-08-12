@@ -125,7 +125,7 @@ describe('Dropdown', () => {
     const { container } = render({ title: 'dropdown.title', renderedInTable: true });
     // The title is exposed to assistive tech via the input's aria-label...
     expect(getInput(container)).toHaveAttribute('aria-label', 'Bostedsland');
-    expect(screen.getByRole('textbox', { name: 'Bostedsland' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Bostedsland' })).toBeInTheDocument();
   });
 
   it('does not set an aria-label on the input when not rendered in a table', () => {
