@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.57
-chart_digest=sha256:267d4f1a420bfdab10f3f54c72d8082d2c007648a1710134367801278d30f02d
+chart_version=0.8.63
+chart_digest=sha256:fa11b475b652e592f25932230d5e02e46117cca6f999298ccf7486ef11554660
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
@@ -46,10 +46,16 @@ yq -e '
 
 yq -e '
   select(.kind == "ExternalSecret" and .metadata.name == "nvt-broker-env") |
-  (.spec.data | length) == 1 and
+  (.spec.data | length) == 3 and
   .spec.data[0].remoteRef.key == "nvt-agent-private-key-pem" and
   .spec.data[0].secretKey == "privateKeyPem" and
-  (.spec.target.template.data | keys | length) == 3 and
+  .spec.data[1].remoteRef.key == "nvt-dynamic-account-assertion-key" and
+  .spec.data[1].secretKey == "dynamicAccountAssertionKey" and
+  .spec.data[2].remoteRef.key == "nvt-dynamic-account-coordination-key" and
+  .spec.data[2].secretKey == "dynamicAccountCoordinationKey" and
+  (.spec.target.template.data | keys | length) == 5 and
+  (.spec.target.template.data | has("NVT_DYNAMIC_ACCOUNT_ASSERTION_KEY")) and
+  (.spec.target.template.data | has("NVT_DYNAMIC_ACCOUNT_COORDINATION_KEY")) and
   (.spec.target.template.data | has("NVT_GITHUB_APP_ID")) and
   (.spec.target.template.data | has("NVT_GITHUB_APP_INSTALLATION_ID")) and
   (.spec.target.template.data | has("NVT_GITHUB_APP_PRIVATE_KEY_BASE64"))
@@ -118,15 +124,26 @@ yq -e '
   .spec.values.agentSchedule.template.tolerations[0].key == "purpose" and
   .spec.values.agentSchedule.template.tolerations[0].operator == "Equal" and
   .spec.values.agentSchedule.template.tolerations[0].value == "nvt-agent" and
-  .spec.values.agentSchedule.profileSelection.onNoMatch == "deny" and
-  (.spec.values.agentSchedule.profiles | length) == 4 and
-  .spec.values.agentSchedule.profiles[0].name == "mirkoSekulic" and
+  .spec.values.agentSchedule.principalCredentialSelection.enabled == true and
+  .spec.values.agentSchedule.principalCredentialSelection.onNoMatch == "deny" and
+  (.spec.values.agentSchedule.principalCredentialSelection.templateProfiles | length) == 2 and
+  .spec.values.agentSchedule.principalCredentialSelection.templateProfiles[0].template == "codex-member" and
+  .spec.values.agentSchedule.principalCredentialSelection.templateProfiles[0].profile == "member-codex" and
+  .spec.values.agentSchedule.principalCredentialSelection.templateProfiles[1].template == "claude-member" and
+  .spec.values.agentSchedule.principalCredentialSelection.templateProfiles[1].profile == "member-claude" and
+  ((.spec.values.agentSchedule.profileSelection // {}) | length) == 0 and
+  (.spec.values.agentSchedule.producerPolicies[0].allowedPrincipalIssuers | length) == 1 and
+  .spec.values.agentSchedule.producerPolicies[0].allowedPrincipalIssuers[0] == "https://github.com" and
+  (.spec.values.agentSchedule.profiles | length) == 2 and
+  .spec.values.agentSchedule.profiles[0].name == "member-codex" and
   .spec.values.agentSchedule.profiles[0].egress == "mediated" and
   .spec.values.agentSchedule.profiles[0].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[0].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[0].execution.kind == "pod" and
   .spec.values.agentSchedule.profiles[0].execution.driver == "kubernetes" and
   .spec.values.agentSchedule.profiles[0].agentRuntimeConfig.resume.command == "codex" and
+  .spec.values.agentSchedule.profiles[0].agentRuntimeConfig.proxy.provider == "$principal-account" and
+  .spec.values.agentSchedule.profiles[0].broker.grants[0].provider == "$principal-account" and
   (.spec.values.agentSchedule.profiles[0].agentRuntimeConfig.resume.args | join("\u0000")) == "resume\u0000--last\u0000--sandbox\u0000danger-full-access\u0000--ask-for-approval\u0000never" and
   (.spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add | length) == 1 and
   .spec.values.agentSchedule.profiles[0].runtime.container.capabilities.add[0] == "SYS_PTRACE" and
@@ -137,13 +154,15 @@ yq -e '
   .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.issues == "write" and
   .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.pull_requests == "write" and
   .spec.values.agentSchedule.profiles[0].broker.grants[1].permissions.workflows == "write" and
-  .spec.values.agentSchedule.profiles[1].name == "jondyr" and
+  .spec.values.agentSchedule.profiles[1].name == "member-claude" and
   .spec.values.agentSchedule.profiles[1].egress == "mediated" and
   .spec.values.agentSchedule.profiles[1].egressEnforcement == true and
   .spec.values.agentSchedule.profiles[1].egressTransport == "transparent" and
   .spec.values.agentSchedule.profiles[1].execution.kind == "pod" and
   .spec.values.agentSchedule.profiles[1].execution.driver == "kubernetes" and
   .spec.values.agentSchedule.profiles[1].agentRuntimeConfig.resume.command == "claude" and
+  .spec.values.agentSchedule.profiles[1].agentRuntimeConfig.proxy.provider == "$principal-account" and
+  .spec.values.agentSchedule.profiles[1].broker.grants[0].provider == "$principal-account" and
   (.spec.values.agentSchedule.profiles[1].agentRuntimeConfig.resume.args | join("\u0000")) == "--continue\u0000--dangerously-skip-permissions" and
   (.spec.values.agentSchedule.profiles[1].broker.grants | length) == 2 and
   .spec.values.agentSchedule.profiles[1].broker.grants[1].provider == "github-main" and
@@ -152,40 +171,6 @@ yq -e '
   .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.issues == "write" and
   .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.pull_requests == "write" and
   .spec.values.agentSchedule.profiles[1].broker.grants[1].permissions.workflows == "write" and
-  .spec.values.agentSchedule.profiles[2].name == "nkylstad" and
-  .spec.values.agentSchedule.profiles[2].agentRuntimeConfig.proxy.provider == "claude-nkylstad" and
-  .spec.values.agentSchedule.profiles[2].egress == "mediated" and
-  .spec.values.agentSchedule.profiles[2].egressEnforcement == true and
-  .spec.values.agentSchedule.profiles[2].egressTransport == "transparent" and
-  .spec.values.agentSchedule.profiles[2].execution.kind == "pod" and
-  .spec.values.agentSchedule.profiles[2].execution.driver == "kubernetes" and
-  .spec.values.agentSchedule.profiles[2].agentRuntimeConfig.resume.command == "claude" and
-  (.spec.values.agentSchedule.profiles[2].agentRuntimeConfig.resume.args | join("\u0000")) == "--continue\u0000--dangerously-skip-permissions" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[0].provider == "claude-nkylstad" and
-  (.spec.values.agentSchedule.profiles[2].broker.grants | length) == 2 and
-  .spec.values.agentSchedule.profiles[2].broker.grants[1].provider == "github-main" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.checks == "read" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.contents == "write" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.issues == "write" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.pull_requests == "write" and
-  .spec.values.agentSchedule.profiles[2].broker.grants[1].permissions.workflows == "write" and
-  .spec.values.agentSchedule.profiles[3].name == "ErlingHauan" and
-  .spec.values.agentSchedule.profiles[3].agentRuntimeConfig.proxy.provider == "claude-erlinghauan" and
-  .spec.values.agentSchedule.profiles[3].egress == "mediated" and
-  .spec.values.agentSchedule.profiles[3].egressEnforcement == true and
-  .spec.values.agentSchedule.profiles[3].egressTransport == "transparent" and
-  .spec.values.agentSchedule.profiles[3].execution.kind == "pod" and
-  .spec.values.agentSchedule.profiles[3].execution.driver == "kubernetes" and
-  .spec.values.agentSchedule.profiles[3].agentRuntimeConfig.resume.command == "claude" and
-  (.spec.values.agentSchedule.profiles[3].agentRuntimeConfig.resume.args | join("\u0000")) == "--continue\u0000--dangerously-skip-permissions" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[0].provider == "claude-erlinghauan" and
-  (.spec.values.agentSchedule.profiles[3].broker.grants | length) == 2 and
-  .spec.values.agentSchedule.profiles[3].broker.grants[1].provider == "github-main" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.checks == "read" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.contents == "write" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.issues == "write" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.pull_requests == "write" and
-  .spec.values.agentSchedule.profiles[3].broker.grants[1].permissions.workflows == "write" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].name == "git-host-credentials" and
   .spec.values.agentSchedule.template.agent.config.plugins[0].config.default-provider == "github-main" and
   (.spec.values.agentSchedule.template.agent.config.plugins[0].config.providers | length) == 1 and
@@ -217,7 +202,24 @@ yq -e '
   (.spec.values.agentSchedule.template.agent.config.plugins[2].config.repos[0] | has("upstream") | not) and
   .spec.values.agentSchedule.template.agent.config.plugins[3].egress.provider == "github-main" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
+  .spec.values.broker.dynamicAccountAssertionRotationEpoch == "2026-08-12-1" and
+  .spec.values.broker.config."dynamic-accounts".enabled == true and
+  .spec.values.broker.config."dynamic-accounts".authentication."hmac-key-env" == "NVT_DYNAMIC_ACCOUNT_ASSERTION_KEY" and
+  .spec.values.broker.config."dynamic-accounts"."template-switching".enabled == true and
+  .spec.values.broker.config."dynamic-accounts"."template-switching"."operator-hmac-key-env" == "NVT_DYNAMIC_ACCOUNT_COORDINATION_KEY" and
+  (.spec.values.broker.config."dynamic-accounts"."provider-templates" | length) == 2 and
+  .spec.values.broker.config."dynamic-accounts"."provider-templates"[0].name == "principal-codex" and
+  .spec.values.broker.config."dynamic-accounts"."provider-templates"[0]."credential-config-key" == "auth-file" and
+  .spec.values.broker.config."dynamic-accounts"."provider-templates"[1].name == "principal-claude" and
+  .spec.values.broker.config."dynamic-accounts"."provider-templates"[1]."credential-config-key" == "credentials-file" and
+  (.spec.values.broker.config."dynamic-accounts"."credential-templates" | length) == 2 and
+  .spec.values.broker.config."dynamic-accounts"."credential-templates"[0].name == "codex-member" and
+  .spec.values.broker.config."dynamic-accounts"."credential-templates"[1].name == "claude-member" and
   .spec.values.broker.persistence.seedSecretName == "nvt-portal-seed" and
+  .spec.values.operator.principalAccounts.enabled == true and
+  .spec.values.operator.principalAccounts.authentication.existingSecret == "nvt-broker-env" and
+  .spec.values.operator.principalAccounts.templateSwitching.enabled == true and
+  .spec.values.operator.principalAccounts.templateSwitching.authentication.existingSecret == "nvt-broker-env" and
   .spec.values.credentialPortal.enabled == true and
   .spec.values.credentialPortal.publicURL == "https://staging.altinn.studio/agents/credentials" and
   .spec.values.credentialPortal.enrollment.experimentalCodexDeviceAuth == true and
@@ -227,22 +229,31 @@ yq -e '
   .spec.values.credentialPortal.auth.oauth2.credentials.existingSecret == "nvt-gateway-github" and
   .spec.values.credentialPortal.auth.oauth2.issuer == "https://github.com" and
   .spec.values.credentialPortal.auth.oauth2.identity.subjectPath == "id" and
-  (.spec.values.credentialPortal.slots | length) == 4 and
-  .spec.values.credentialPortal.slots[0].owner.subject == "23359247" and
-  .spec.values.credentialPortal.slots[0].brokerProvider == "codex-mirkoSekulic" and
-  .spec.values.credentialPortal.slots[0].secretName == "nvt-portal-seed" and
-  .spec.values.credentialPortal.slots[0].dataKey == "codex-mirkosekulic.json" and
-  .spec.values.credentialPortal.slots[1].owner.subject == "1525466" and
-  .spec.values.credentialPortal.slots[1].brokerProvider == "claude-jondyr" and
-  .spec.values.credentialPortal.slots[2].owner.subject == "1636323" and
-  .spec.values.credentialPortal.slots[2].brokerProvider == "claude-nkylstad" and
-  .spec.values.credentialPortal.slots[3].owner.subject == "148075168" and
-  .spec.values.credentialPortal.slots[3].brokerProvider == "claude-erlinghauan" and
+  .spec.values.credentialPortal.dynamic.enabled == true and
+  .spec.values.credentialPortal.dynamic.broker.authentication.existingSecret == "nvt-broker-env" and
+  .spec.values.credentialPortal.dynamic.templateSwitch.enabled == true and
+  (.spec.values.credentialPortal.dynamic.templates | length) == 2 and
+  .spec.values.credentialPortal.dynamic.templates[0].name == "codex-member" and
+  .spec.values.credentialPortal.dynamic.templates[1].name == "claude-member" and
+  (.spec.values.credentialPortal.slots | length) == 0 and
+  .spec.values.credentialPortal.auth.claimEnrichment.sources[0].endpoint == "https://api.github.com/user/teams" and
+  .spec.values.credentialPortal.auth.claimEnrichment.sources[0].pagination.maxPages == 2 and
+  .spec.values.credentialPortal.auth.eligibility.rules[0].where.array == "teams[]" and
+  .spec.values.credentialPortal.auth.eligibility.rules[0].where.all[0].values[0] == "Altinn" and
+  .spec.values.credentialPortal.auth.eligibility.rules[0].where.all[1].values[0] == "team-altinn-studio" and
   .spec.values.producer.githubApp.existingSecret == "nvt-github-app" and
   .spec.values.producer.githubApp.appID == "${NVT_GITHUB_APP_ID}" and
   .spec.values.producer.githubApp.installationID == "${NVT_GITHUB_APP_INSTALLATION_ID}" and
+  (.spec.values.producer.allowedAuthors | length) == 1 and
+  .spec.values.producer.allowedAuthors[0] == "*" and
   .spec.values.gateway.auth.oauth2.credentials.existingSecret == "nvt-gateway-github" and
   .spec.values.gateway.auth.session.existingSecret == "nvt-gateway-session" and
+  .spec.values.gateway.auth.claimEnrichment.sources[0].endpoint == "https://api.github.com/user/teams" and
+  .spec.values.gateway.auth.claimEnrichment.sources[0].pagination.maxPages == 2 and
+  .spec.values.gateway.auth.admission.rules[0].where.array == "teams[]" and
+  .spec.values.gateway.auth.admission.rules[0].where.all[0].values[0] == "Altinn" and
+  .spec.values.gateway.auth.admission.rules[0].where.all[1].values[0] == "team-altinn-studio" and
+  .spec.values.gateway.auth.authorization.rules[0].owner == true and
   .spec.values.gateway.credentialPortal.url == "/agents/credentials" and
   .spec.values.egress.defaultMode == "mediated" and
   .spec.values.egress.allowInsecureUpstreams == false and

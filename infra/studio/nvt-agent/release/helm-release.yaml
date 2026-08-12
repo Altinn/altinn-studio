@@ -94,28 +94,23 @@ spec:
       producerPolicies:
         - defaultWorkflow: implement-pr
           identity: system:serviceaccount:nvt:nvt-github-comments-producer
+          allowedPrincipalIssuers:
+            - https://github.com
           workflows:
             - implement-pr
-      profileSelection:
+      principalCredentialSelection:
+        enabled: true
         onNoMatch: deny
-        rules:
-          - issuer: https://github.com
-            profile: mirkoSekulic
-            subject: "23359247"
-          - issuer: https://github.com
-            profile: jondyr
-            subject: "1525466"
-          - issuer: https://github.com
-            profile: nkylstad
-            subject: "1636323"
-          - issuer: https://github.com
-            profile: ErlingHauan
-            subject: "148075168"
+        templateProfiles:
+          - profile: member-codex
+            template: codex-member
+          - profile: member-claude
+            template: claude-member
       profiles:
         - agentRuntimeConfig:
             command: codex
             proxy:
-              provider: codex-mirkoSekulic
+              provider: $principal-account
             resume:
               command: codex
               args:
@@ -132,7 +127,7 @@ spec:
                   - api.openai.com:443
                   - auth.openai.com:443
                 materialization: placeholder-file
-                provider: codex-mirkoSekulic
+                provider: $principal-account
                 repositories:
                   - Altinn/altinn-studio
               - egressHosts:
@@ -155,7 +150,7 @@ spec:
           execution:
             kind: pod
             driver: kubernetes
-          name: mirkoSekulic
+          name: member-codex
           runtime:
             autonomy: trusted-local
             container:
@@ -172,7 +167,7 @@ spec:
         - agentRuntimeConfig:
             command: claude
             proxy:
-              provider: claude-jondyr
+              provider: $principal-account
             resume:
               command: claude
               args:
@@ -184,7 +179,7 @@ spec:
                   - api.anthropic.com:443
                   - mcp-proxy.anthropic.com:443
                 materialization: placeholder-file
-                provider: claude-jondyr
+                provider: $principal-account
                 repositories:
                   - Altinn/altinn-studio
               - egressHosts:
@@ -207,103 +202,7 @@ spec:
           execution:
             kind: pod
             driver: kubernetes
-          name: jondyr
-          runtime:
-            autonomy: trusted-local
-            docker:
-              kernelLogDevice: true
-              requiredNetworks:
-                - name: kind
-                  subnet: 172.31.250.0/24
-            type: claude
-            user: non-root
-        - agentRuntimeConfig:
-            command: claude
-            proxy:
-              provider: claude-nkylstad
-            resume:
-              command: claude
-              args:
-                - --continue
-                - --dangerously-skip-permissions
-          broker:
-            grants:
-              - egressHosts:
-                  - api.anthropic.com:443
-                  - mcp-proxy.anthropic.com:443
-                materialization: placeholder-file
-                provider: claude-nkylstad
-                repositories:
-                  - Altinn/altinn-studio
-              - egressHosts:
-                  - github.com:443
-                  - api.github.com:443
-                git: true
-                materialization: header-inject
-                permissions:
-                  checks: read
-                  contents: write
-                  issues: write
-                  pull_requests: write
-                  workflows: write
-                provider: github-main
-                repositories:
-                  - Altinn/altinn-studio
-          egress: mediated
-          egressEnforcement: true
-          egressTransport: transparent
-          execution:
-            kind: pod
-            driver: kubernetes
-          name: nkylstad
-          runtime:
-            autonomy: trusted-local
-            docker:
-              kernelLogDevice: true
-              requiredNetworks:
-                - name: kind
-                  subnet: 172.31.250.0/24
-            type: claude
-            user: non-root
-        - agentRuntimeConfig:
-            command: claude
-            proxy:
-              provider: claude-erlinghauan
-            resume:
-              command: claude
-              args:
-                - --continue
-                - --dangerously-skip-permissions
-          broker:
-            grants:
-              - egressHosts:
-                  - api.anthropic.com:443
-                  - mcp-proxy.anthropic.com:443
-                materialization: placeholder-file
-                provider: claude-erlinghauan
-                repositories:
-                  - Altinn/altinn-studio
-              - egressHosts:
-                  - github.com:443
-                  - api.github.com:443
-                git: true
-                materialization: header-inject
-                permissions:
-                  checks: read
-                  contents: write
-                  issues: write
-                  pull_requests: write
-                  workflows: write
-                provider: github-main
-                repositories:
-                  - Altinn/altinn-studio
-          egress: mediated
-          egressEnforcement: true
-          egressTransport: transparent
-          execution:
-            kind: pod
-            driver: kubernetes
-          name: ErlingHauan
+          name: member-claude
           runtime:
             autonomy: trusted-local
             docker:
@@ -428,7 +327,64 @@ spec:
           size: 30Gi
           storageClassName: nvt-managed-csi
     broker:
+      dynamicAccountAssertionRotationEpoch: "2026-08-12-1"
       config:
+        dynamic-accounts:
+          enabled: true
+          state-dir: /state/principal-accounts
+          authentication:
+            hmac-key-env: NVT_DYNAMIC_ACCOUNT_ASSERTION_KEY
+          template-switching:
+            enabled: true
+            operator-hmac-key-env: NVT_DYNAMIC_ACCOUNT_COORDINATION_KEY
+          provider-templates:
+            - name: principal-codex
+              plugin: codex-oauth
+              credential-config-key: auth-file
+              config:
+                injection-claim-headers:
+                  - claim-path:
+                      - https://api.openai.com/auth
+                      - chatgpt_account_id
+                    header: chatgpt-account-id
+                injection-hosts:
+                  - chatgpt.com
+                  - api.openai.com
+                  - auth.openai.com
+                placeholder-file:
+                  hosts:
+                    - chatgpt.com
+                    - api.openai.com
+                    - auth.openai.com
+                  id-token-claims:
+                    - claim: chatgpt_account_id
+                      claim-path:
+                        - https://api.openai.com/auth
+                        - chatgpt_account_id
+                  path: .codex/auth.json
+            - name: principal-claude
+              plugin: claude-oauth
+              credential-config-key: credentials-file
+              config:
+                injection-extra-headers:
+                  anthropic-beta: oauth-2025-04-20
+                injection-hosts:
+                  - api.anthropic.com
+                  - mcp-proxy.anthropic.com
+                placeholder-file:
+                  hosts:
+                    - api.anthropic.com
+                    - mcp-proxy.anthropic.com
+                  path: .claude/.credentials.json
+          credential-templates:
+            - name: codex-member
+              label: Codex
+              enrollment-adapter: codex-oauth-file
+              provider-template: principal-codex
+            - name: claude-member
+              label: Claude Code
+              enrollment-adapter: claude-oauth-file
+              provider-template: principal-claude
         providers:
           - config:
               auth-file: /state/auth/codex-mirkosekulic.json
@@ -529,14 +485,78 @@ spec:
         storageClassName: nvt-managed-csi
       tls:
         enabled: true
+    operator:
+      principalAccounts:
+        enabled: true
+        brokerURL: https://nvt-broker:7347
+        ca:
+          existingSecret: nvt-broker-tls
+          key: ca.crt
+        authentication:
+          existingSecret: nvt-broker-env
+          key: NVT_DYNAMIC_ACCOUNT_ASSERTION_KEY
+        templateSwitching:
+          enabled: true
+          authentication:
+            existingSecret: nvt-broker-env
+            key: NVT_DYNAMIC_ACCOUNT_COORDINATION_KEY
     credentialPortal:
       enabled: true
       publicURL: https://staging.altinn.studio/agents/credentials
+      maxUploadBytes: 786432
       enrollment:
         experimentalCodexDeviceAuth: true
       recoveryUpload:
         enabled: true
+      dynamic:
+        enabled: true
+        broker:
+          url: https://nvt-broker:7347
+          ca:
+            existingSecret: nvt-broker-tls
+            key: ca.crt
+          authentication:
+            existingSecret: nvt-broker-env
+            key: NVT_DYNAMIC_ACCOUNT_ASSERTION_KEY
+        templateSwitch:
+          enabled: true
+          coordinatorURL: http://nvt-operator:8082
+        templates:
+          - name: codex-member
+            label: Codex
+            adapter: codex-oauth-file
+          - name: claude-member
+            label: Claude Code
+            adapter: claude-oauth-file
       auth:
+        eligibility:
+          default: deny
+          rules:
+            - id: altinn-studio-team
+              effect: allow
+              where:
+                array: teams[]
+                all:
+                  - claimPath: organization.login
+                    values:
+                      - Altinn
+                  - claimPath: slug
+                    values:
+                      - team-altinn-studio
+        claimEnrichment:
+          allowedHosts:
+            - api.github.com
+          limits:
+            maxResponseBytes: 262144
+            maxArrayItems: 60
+            maxTotalNodes: 4096
+          sources:
+            - endpoint: https://api.github.com/user/teams
+              outputClaim: teams
+              valuePath: $
+              pagination:
+                mode: link
+                maxPages: 2
         mode: oauth2
         session:
           existingSecret: nvt-credential-portal-session
@@ -558,43 +578,12 @@ spec:
           issuer: https://github.com
           scopes: []
           tokenURL: https://github.com/login/oauth/access_token
-      slots:
-        - name: mirko-codex
-          label: Mirko Codex
-          owner:
-            issuer: https://github.com
-            subject: "23359247"
-          adapter: codex-oauth-file
-          brokerProvider: codex-mirkoSekulic
-          secretName: nvt-portal-seed
-          dataKey: codex-mirkosekulic.json
-        - name: jondyr-claude
-          label: Jondyr Claude
-          owner:
-            issuer: https://github.com
-            subject: "1525466"
-          adapter: claude-oauth-file
-          brokerProvider: claude-jondyr
-          secretName: nvt-portal-seed
-          dataKey: claude-jondyr.json
-        - name: nkylstad-claude
-          label: Nina Claude
-          owner:
-            issuer: https://github.com
-            subject: "1636323"
-          adapter: claude-oauth-file
-          brokerProvider: claude-nkylstad
-          secretName: nvt-portal-seed
-          dataKey: claude-nkylstad.json
-        - name: erlinghauan-claude
-          label: Erling Claude
-          owner:
-            issuer: https://github.com
-            subject: "148075168"
-          adapter: claude-oauth-file
-          brokerProvider: claude-erlinghauan
-          secretName: nvt-portal-seed
-          dataKey: claude-erlinghauan.json
+      slots: []
+      networkPolicy:
+        egressTCPPorts:
+          - 443
+          - 7347
+          - 8082
     egress:
       allowInsecureUpstreams: false
       defaultMode: mediated
@@ -607,26 +596,17 @@ spec:
         admission:
           default: deny
           rules:
-            - claimPath: oauth2_subject
+            - id: altinn-studio-team
               effect: allow
-              id: mirkoSekulic
-              values:
-                - "23359247"
-            - claimPath: oauth2_subject
-              effect: allow
-              id: jondyr
-              values:
-                - "1525466"
-            - claimPath: oauth2_subject
-              effect: allow
-              id: nkylstad
-              values:
-                - "1636323"
-            - claimPath: oauth2_subject
-              effect: allow
-              id: ErlingHauan
-              values:
-                - "148075168"
+              where:
+                array: teams[]
+                all:
+                  - claimPath: organization.login
+                    values:
+                      - Altinn
+                  - claimPath: slug
+                    values:
+                      - team-altinn-studio
         authorization:
           default: deny
           rules:
@@ -634,8 +614,19 @@ spec:
               id: agent-owner
               owner: true
         claimEnrichment:
-          allowedHosts: []
-          sources: []
+          allowedHosts:
+            - api.github.com
+          limits:
+            maxResponseBytes: 262144
+            maxArrayItems: 60
+            maxTotalNodes: 4096
+          sources:
+            - endpoint: https://api.github.com/user/teams
+              outputClaim: teams
+              valuePath: $
+              pagination:
+                mode: link
+                maxPages: 2
         mode: oauth2
         oauth2:
           authorizationURL: https://github.com/login/oauth/authorize
@@ -671,10 +662,7 @@ spec:
       name: nvt
     producer:
       allowedAuthors:
-        - mirkoSekulic
-        - Jondyr
-        - nkylstad
-        - ErlingHauan
+        - "*"
       enabled: true
       githubApp:
         appID: ${NVT_GITHUB_APP_ID}
