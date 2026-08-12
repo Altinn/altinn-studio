@@ -241,6 +241,23 @@ public class MaskinportenCollisionUtilsTests
             diagnostics,
             d => Assert.Equal(Diagnostics.Configuration.ExternalMaskinportenSectionCollision.Id, d.Id)
         );
+
+        // Order-reversed, so a regression to classifying only the first (or only the last) section
+        // cannot slip through: the external-only key must dominate from either position.
+        var reversed = Collect(
+            """
+            {
+              "maskinportensettings": { "clientId": "e23f-..." },
+              "MaskinportenSettings": { "Environment": "test" }
+            }
+            """
+        );
+
+        Assert.Equal(2, reversed.Count);
+        Assert.All(
+            reversed,
+            d => Assert.Equal(Diagnostics.Configuration.ExternalMaskinportenSectionCollision.Id, d.Id)
+        );
     }
 
     [Fact]
