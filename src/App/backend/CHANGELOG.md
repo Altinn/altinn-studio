@@ -9,9 +9,24 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: the eFormidling client is now part of `Altinn.App.Core` instead of arriving as the separate `Altinn.Common.EFormidlingClient` package, which is no longer published. The types keep their names and move namespace: `Altinn.Common.EFormidlingClient` to `Altinn.App.Core.EFormidling.Interface`, `Altinn.Common.EFormidlingClient.Configuration` to `Altinn.App.Core.EFormidling.Configuration`, `Altinn.Common.EFormidlingClient.Models` to `Altinn.App.Core.EFormidling.Models`, and `Altinn.Common.EFormidlingClient.Models.SBD` to `Altinn.App.Core.EFormidling.Models.SBD`. For most apps that is one `using` in the file implementing `IEFormidlingReceivers`, and `studioctl app upgrade v9` rewrites it. If your app declares its own `PackageReference` to `Altinn.Common.EFormidlingClient`, remove it — the same types would otherwise arrive twice.
+- Breaking: `IEFormidlingClient` no longer takes a `Dictionary<string, string>` of request headers. The client now builds them itself — the subscription key on every request, and the user token plus the app's platform access token on the shipment calls — so the headers sent are unchanged, they are just no longer yours to supply. Every method takes a `CancellationToken` instead, which the shipment observes throughout rather than only between calls. `UploadAttachment` returns `Task` rather than `Task<bool>`: it only ever returned `true` or threw.
+- Breaking: a failed eFormidling request throws `PlatformHttpException` rather than `WebException`. The status code and response body are properties on the exception (`StatusCode`, `Response.Content`) instead of being interpolated into its message, so code that recognised a specific error by searching the message text should read those instead. As a consequence, response bodies no longer appear verbatim in exception messages — the snapshot caps and redacts them.
+- Breaking: the status model is renamed. `Statuses` becomes `MessageStatuses`, and the generically named `Content`, `Sort` and `Pageable` types are now nested inside it as `MessageStatuses.Entry`, `MessageStatuses.SortInfo` and `MessageStatuses.PageInfo`. The JSON on the wire is unchanged.
+- eFormidling now fails at startup, rather than at the first shipment, when `EFormidlingClientSettings.BaseUrl` is missing for an environment where an eFormidling task is enabled. An app that registers its own `IEFormidlingService` is not asked for one. A `BaseUrl` without a trailing slash also no longer silently drops its last path segment from every request.
+- The eFormidling client emits telemetry, like the app's other HTTP clients, and no longer logs whole response bodies at debug level.
+
 ### Fixed
 
 - Dispose the streams you get from `IDataClient.GetBinaryData`, `IDataClient.GetBinaryDataStream` and `IPdfGeneratorClient.GeneratePdf` once you have finished reading them — each one holds an HTTP response open until it is disposed, and disposing the stream releases it. The interfaces now say so. Code that already disposed these streams is unaffected, and code that does not is no worse off than before. The app's other HTTP clients now release their responses promptly too, which needs nothing from you.
+- The eFormidling client releases its HTTP responses, and reports an empty or malformed response body as an error instead of returning null for the caller to trip over later.
+
+### Removed
+
+- Breaking: eight `IEFormidlingClient` members that nothing was calling — `GetCapabilities`, `GetAllConversations`, `GetConversationById`, `GetConversationByMessageId`, `GetAllMessageStatuses`, `FindOutGoingMessages`, `SubscribeeFormidling` and `UnSubscribeeFormidling` — along with the `Capabilities`, `Conversation` and `CreateSubscription` models only they used. What a shipment is made of remains: `CreateMessage`, `UploadAttachment`, `SendMessage` and `GetMessageStatusById`. Call the integrasjonspunkt's REST API directly if you need any of the rest; `studioctl app upgrade v9` reports usages it finds.
+- Breaking: `Altinn.EFormidlingClient.Extensions.HttpClientExtension`, whose `GetAsync`/`PostAsync`/`PutAsync`/`DeleteAsync` overloads took a dictionary of request headers. There is no replacement namespace, and `Altinn.App.Core.Extensions.HttpClientExtension` is a different type with different overloads, not a substitute. If your app used these for its own HTTP calls, build the `HttpRequestMessage`, add the headers to it, and call `HttpClient.SendAsync`. `studioctl app upgrade v9` reports the files to change.
 
 ## [9.0.0-preview.4] - 2026-08-11
 

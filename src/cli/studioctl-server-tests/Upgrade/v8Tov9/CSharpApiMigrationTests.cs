@@ -1974,6 +1974,94 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- RemovedEFormidlingClientApiDetector -----------------------------------------------------
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheDeletedHttpClientExtension()
+    {
+        // Observed in the wild against unrelated APIs, which is why it is named rather than dropped.
+        _app.Write(
+            "logic/Clients/BevillingsregisterClient.cs",
+            """
+            using Altinn.App.Core.Extensions;
+            using Altinn.EFormidlingClient.Extensions;
+            public class BevillingsregisterClient
+            {
+                public async Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    await client.GetAsync(query, headers);
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using Altinn.EFormidlingClient.Extensions", StringComparison.Ordinal)
+        );
+        Assert.Contains(Summaries(result), w => w.Contains("HttpClientExtension", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsRemovedEndpointsAndModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusPoller.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class StatusPoller
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Poll()
+                {
+                    Capabilities capabilities = await _client.GetCapabilities("991825827", null);
+                    await _client.SubscribeeFormidling(new CreateSubscription(), null);
+                    await _client.FindOutGoingMessages("DPO", null);
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("GetCapabilities", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("SubscribeeFormidling", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("FindOutGoingMessages", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("CreateSubscription", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresTheEndpointsThatSurvived()
+    {
+        // The four the shipment flow is built from keep working; only their namespace changes, and
+        // that is rewritten automatically rather than reported.
+        _app.Write(
+            "logic/Eformidling/Shipment.cs",
+            """
+            using Altinn.App.Core.EFormidling.Interface;
+            public class Shipment
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Send(StandardBusinessDocument sbd, Stream file)
+                {
+                    await _client.CreateMessage(sbd);
+                    await _client.UploadAttachment(file, "id", "name.pdf");
+                    await _client.SendMessage("id");
+                    await _client.GetMessageStatusById("id");
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- Scanner ---------------------------------------------------------------------------------
 
     [Fact]
