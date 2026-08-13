@@ -39,25 +39,61 @@ public class EFormidlingMetadata : IEFormidlingMetadata
                         OpprettetAv = "LandLord",
                         ArkivertDato = DateTime.Now,
                         ArkivertAv = "LandLord",
-                        Dokumentbeskrivelse = new Dokumentbeskrivelse
+                        // A main document and an attachment, which is what AntallFiler claims. The
+                        // model could only describe one of them until dokumentbeskrivelse became
+                        // repeatable, as the schema has always allowed.
+                        Dokumentbeskrivelse = new List<Dokumentbeskrivelse>
                         {
-                            SystemID = Guid.NewGuid().ToString(),
-                            Dokumenttype = "Bestilling",
-                            Dokumentstatus = "Dokumentet er ferdigstilt",
-                            Tittel = "Hei",
-                            OpprettetDato = DateTime.UtcNow,
-                            OpprettetAv = "LandLord",
-                            TilknyttetRegistreringSom = "hoveddokument",
-                            Dokumentnummer = 1,
-                            TilknyttetDato = DateTime.Now,
-                            TilknyttetAv = "Landlord",
-                            Dokumentobjekt = new Dokumentobjekt
+                            new Dokumentbeskrivelse
                             {
-                                Versjonsnummer = 1,
-                                Variantformat = "Produksjonsformat",
+                                SystemID = Guid.NewGuid().ToString(),
+                                Dokumenttype = "Bestilling",
+                                Dokumentstatus = "Dokumentet er ferdigstilt",
+                                Tittel = "Hei",
                                 OpprettetDato = DateTime.UtcNow,
                                 OpprettetAv = "LandLord",
-                                ReferanseDokumentfil = "model.xml",
+                                TilknyttetRegistreringSom = "hoveddokument",
+                                Dokumentnummer = 1,
+                                TilknyttetDato = DateTime.Now,
+                                TilknyttetAv = "Landlord",
+                                Dokumentobjekt = new List<Dokumentobjekt>
+                                {
+                                    new Dokumentobjekt
+                                    {
+                                        Versjonsnummer = 1,
+                                        Variantformat = "Produksjonsformat",
+                                        OpprettetDato = DateTime.UtcNow,
+                                        OpprettetAv = "LandLord",
+                                        ReferanseDokumentfil = "model.xml",
+                                    },
+                                },
+                            },
+                            new Dokumentbeskrivelse
+                            {
+                                SystemID = Guid.NewGuid().ToString(),
+                                Dokumenttype = "Bestilling",
+                                Dokumentstatus = "Dokumentet er ferdigstilt",
+                                Tittel = "Vedlegg",
+                                OpprettetDato = DateTime.UtcNow,
+                                OpprettetAv = "LandLord",
+                                TilknyttetRegistreringSom = "vedlegg",
+                                Dokumentnummer = 2,
+                                TilknyttetDato = DateTime.Now,
+                                TilknyttetAv = "Landlord",
+                                Dokumentobjekt = new List<Dokumentobjekt>
+                                {
+                                    new Dokumentobjekt
+                                    {
+                                        Versjonsnummer = 1,
+                                        Variantformat = "Arkivformat",
+                                        OpprettetDato = DateTime.UtcNow,
+                                        OpprettetAv = "LandLord",
+                                        // The task ships two data types, model and ref-data-as-pdf.
+                                        // A PDF data element with no filename is uploaded under its
+                                        // data type id, which is what this refers to.
+                                        ReferanseDokumentfil = "ref-data-as-pdf",
+                                    },
+                                },
                             },
                         },
                         Tittel = "Nye lysrør",

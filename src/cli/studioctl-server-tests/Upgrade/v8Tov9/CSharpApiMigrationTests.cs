@@ -2085,6 +2085,31 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingClientDetector_FlagsTheNowRepeatableArkivmeldingProperties()
+    {
+        _app.Write(
+            "logic/EFormidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Basisregistrering Build() =>
+                    new Basisregistrering
+                    {
+                        Dokumentbeskrivelse = new Dokumentbeskrivelse { Dokumentnummer = 1 },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Basisregistrering", StringComparison.Ordinal));
+        Assert.Contains(Locations(result), w => w.Contains("Dokumentbeskrivelse", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("maxOccurs", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
     {
         // "Content" is an everyday identifier. Only files reaching into the eFormidling models

@@ -189,10 +189,12 @@ public class Dokumentbeskrivelse
     public string? TilknyttetAv { get; set; }
 
     /// <summary>
-    /// The document object this description refers to.
+    /// The document objects this description refers to — one per variant or version of the document,
+    /// for example a production format alongside an archive format.
     /// </summary>
+    /// <remarks>Repeatable, per the schema's <c>dokumentbeskrivelse</c> type.</remarks>
     [XmlElement(ElementName = "dokumentobjekt")]
-    public Dokumentobjekt? Dokumentobjekt { get; set; }
+    public List<Dokumentobjekt>? Dokumentobjekt { get; set; }
 }
 
 /// <summary>
@@ -257,10 +259,22 @@ public class Basisregistrering
     public string? ReferanseForelderMappe { get; set; }
 
     /// <summary>
-    /// The document description for this registration.
+    /// The document descriptions for this registration — typically the main document followed by its
+    /// attachments.
     /// </summary>
+    /// <remarks>
+    /// Repeatable, per the schema's <c>registrering</c> type. Ordered before <see cref="Tittel"/>
+    /// because it belongs to the base type, and an XSD extension appends to its parent's sequence.
+    /// </remarks>
     [XmlElement(ElementName = "dokumentbeskrivelse")]
-    public Dokumentbeskrivelse? Dokumentbeskrivelse { get; set; }
+    public List<Dokumentbeskrivelse>? Dokumentbeskrivelse { get; set; }
+
+    /// <summary>
+    /// Document objects attached directly to the registration rather than through a
+    /// <see cref="Dokumentbeskrivelse"/>. Optional, and rarely used.
+    /// </summary>
+    [XmlElement(ElementName = "dokumentobjekt")]
+    public List<Dokumentobjekt>? Dokumentobjekt { get; set; }
 
     /// <summary>
     /// The title.

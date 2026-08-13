@@ -1,12 +1,11 @@
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 /// <summary>
-/// Warn-only detector for the parts of <c>Altinn.Common.EFormidlingClient</c> that did not survive the
-/// move into <c>Altinn.App.Core</c>. The namespaces that did move are rewritten automatically; this
-/// reports only what has no destination to be rewritten to.
+/// Warn-only detector for the eFormidling client changes the namespace rewrite cannot carry. The
+/// namespaces that simply moved are rewritten automatically; everything reported here needs a human.
 /// </summary>
 /// <remarks>
-/// Two distinct concerns, reported separately because the guidance differs:
+/// Four concerns, reported separately because the guidance differs:
 /// <list type="number">
 /// <item>
 /// <c>Altinn.EFormidlingClient.Extensions</c> - the <c>HttpClientExtension</c> header-dictionary
@@ -15,10 +14,15 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// caller-supplied headers. Apps are observed to use it for unrelated HTTP clients, which is exactly
 /// why it is worth naming rather than silently dropping.
 /// </item>
+/// <item>The eight <c>IEFormidlingClient</c> endpoints removed with the move, and their models.</item>
+/// <item><c>Content</c>, <c>Sort</c> and <c>Pageable</c>, now nested inside <c>Statuses</c>.</item>
 /// <item>
-/// The eight <c>IEFormidlingClient</c> endpoints removed with the move.
+/// The arkivmelding properties that became lists to match the Noark 5 schema's <c>unbounded</c>
+/// cardinality.
 /// </item>
 /// </list>
+/// The last two are scoped to files referencing the models namespace, since their names are far too
+/// ordinary to match safely across a whole app.
 /// </remarks>
 internal sealed class RemovedEFormidlingClientApiDetector
 {
@@ -76,6 +80,25 @@ internal sealed class RemovedEFormidlingClientApiDetector
         + "overloads for its own HTTP calls (unrelated to eFormidling), build the HttpRequestMessage directly "
         + "and add the headers to it, then call HttpClient.SendAsync. Update these files by hand:";
 
+    /// <summary>
+    /// Noark types whose child collections became repeatable. Reported on the same
+    /// namespace-scoped basis as the nested models.
+    /// </summary>
+    private static readonly IReadOnlySet<string> _repeatableOwners = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Basisregistrering",
+        "Dokumentbeskrivelse",
+    };
+
+    private const string RepeatableSummary =
+        "Two arkivmelding properties are now lists, matching the Noark 5 schema, which has always "
+        + "declared both as maxOccurs=\"unbounded\": Basisregistrering.Dokumentbeskrivelse is a "
+        + "List<Dokumentbeskrivelse> and Dokumentbeskrivelse.Dokumentobjekt is a List<Dokumentobjekt>. "
+        + "Until now a journalpost could only describe a single document, so a main document plus "
+        + "attachments could not be expressed at all. Wrap the existing initialisers in a collection; "
+        + "Basisregistrering also gained an optional Dokumentobjekt list for objects attached directly "
+        + "to the registration. Apps that carry their own copy of these models are unaffected:";
+
     private const string NestedSummary =
         "These eFormidling status models are now nested inside the Statuses class they describe, because "
         + "their old names were too generic to sit in a shared namespace: Content is Statuses.Entry, Sort is "
@@ -110,14 +133,16 @@ internal sealed class RemovedEFormidlingClientApiDetector
                 .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedModels))
         );
 
-        var nested = _scanner
-            .Files.Where(ReferencesModelsNamespace)
-            .SelectMany(file => CSharpSyntaxQueries.TypeReferences(file, _nestedModels));
+        ScannedCSharpFile[] modelFiles = _scanner.Files.Where(ReferencesModelsNamespace).ToArray();
+
+        var nested = modelFiles.SelectMany(file => CSharpSyntaxQueries.TypeReferences(file, _nestedModels));
+        var repeatable = modelFiles.SelectMany(file => CSharpSyntaxQueries.TypeReferences(file, _repeatableOwners));
 
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(ExtensionsSummary, extensions),
             WarnOnlyDetector.Report(EndpointsSummary, endpoints),
-            WarnOnlyDetector.Report(NestedSummary, nested)
+            WarnOnlyDetector.Report(NestedSummary, nested),
+            WarnOnlyDetector.Report(RepeatableSummary, repeatable)
         );
     }
 }
