@@ -12,6 +12,13 @@ internal static class PersistentItemStatusMap
             PersistentItemStatus.Waiting,
         ];
 
+    /// <summary>
+    /// Statuses the fetch query may claim: <see cref="Incomplete"/> minus
+    /// <see cref="PersistentItemStatus.Processing"/>, which is already owned by a worker.
+    /// </summary>
+    public static IReadOnlyCollection<PersistentItemStatus> Fetchable =>
+        [PersistentItemStatus.Enqueued, PersistentItemStatus.Requeued, PersistentItemStatus.Waiting];
+
     public static IReadOnlyCollection<PersistentItemStatus> Successful => [PersistentItemStatus.Completed];
 
     /// <summary>
@@ -38,6 +45,18 @@ internal static class PersistentItemStatusMap
     /// Same constancy contract as <see cref="FinishedSqlList"/>.
     /// </summary>
     public const string IncompleteSqlList = "0, 1, 2, 8";
+
+    /// <summary>
+    /// <see cref="Fetchable"/> as a comma-separated list of integer literals.
+    /// Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string FetchableSqlList = "0, 2, 8";
+
+    /// <summary>
+    /// <see cref="PersistentItemStatus.Processing"/> as an integer literal, for interpolation
+    /// into compile-time-constant SQL. Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string ProcessingSqlLiteral = "1";
 
     /// <summary>
     /// Renders a status set as a comma-separated list of integer literals, in ascending order

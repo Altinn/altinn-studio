@@ -31,6 +31,8 @@ internal sealed class WorkflowEntity
 
     public DateTimeOffset? BackoffUntil { get; set; }
 
+    public DateTimeOffset? ThrottledUntil { get; set; }
+
     public DateTimeOffset? HeartbeatAt { get; set; }
 
     public int ReclaimCount { get; set; }
@@ -76,6 +78,7 @@ internal sealed class WorkflowEntity
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
             BackoffUntil = workflow.BackoffUntil,
+            ThrottledUntil = workflow.ThrottledUntil,
             HeartbeatAt = workflow.HeartbeatAt,
             ReclaimCount = workflow.ReclaimCount,
             LeaseToken = workflow.LeaseToken,
@@ -120,6 +123,7 @@ internal sealed class WorkflowEntity
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
             BackoffUntil = BackoffUntil,
+            ThrottledUntil = ThrottledUntil,
             HeartbeatAt = HeartbeatAt,
             ReclaimCount = ReclaimCount,
             LeaseToken = LeaseToken,
