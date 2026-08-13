@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Paragraph, Alert, Heading } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { ConfigContent } from './ConfigContent';
@@ -8,6 +8,7 @@ import { ConfigEndEvent } from './ConfigEndEvent';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { ConfigServiceTask } from './ConfigServiceTask';
+import { StudioParagraph, StudioHeading } from '@studio/components';
 
 export const ConfigPanel = (): React.ReactElement => {
   return (
@@ -66,10 +67,10 @@ type BpmnAlertProps = {
 const BpmnAlert = ({ title, message }: BpmnAlertProps): React.ReactElement => {
   return (
     <Alert>
-      <Heading level={3} size='xxsmall' spacing>
+      <StudioHeading level={3} data-size='xs' spacing>
         {title}
-      </Heading>
-      <Paragraph size='small'>{message}</Paragraph>
+      </StudioHeading>
+      <StudioParagraph data-size='md'>{message}</StudioParagraph>
     </Alert>
   );
 };

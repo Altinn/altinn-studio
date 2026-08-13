@@ -45,8 +45,7 @@ export type Organisation = {
   name: string;
 };
 export type OrganizationLookupResponse =
-  | { success: false; organisationDetails: null }
-  | { success: true; organisationDetails: Organisation };
+  { success: false; organisationDetails: null } | { success: true; organisationDetails: Organisation };
 
 async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null } | { org: null; error: string }> {
   if (!orgNr) {

@@ -86,14 +86,16 @@
       "groupName": "Design system in Designer"
     },
     {
-      "matchFileNames": ["src/App/**"],
-      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
-      "groupName": "Design system in App"
-    },
-    {
       "matchFileNames": ["src/App/**", "app-libs/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
+    },
+    {
+      "description": "Keep App Designsystemet updates together and separate from other dependency updates",
+      "matchManagers": ["npm"],
+      "matchFileNames": ["src/App/frontend/**", "app-libs/**"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
+      "groupName": "Design system in App"
     },
     {
       "description": "Automerge non-major Altinn app template package updates",

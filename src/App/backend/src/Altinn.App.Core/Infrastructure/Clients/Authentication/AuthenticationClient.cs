@@ -45,7 +45,7 @@ public class AuthenticationClient : IAuthenticationClient
     {
         string endpointUrl = $"refresh";
         string token = _authenticationContext.Current.Token; // TODO: check if authenticated?
-        HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {

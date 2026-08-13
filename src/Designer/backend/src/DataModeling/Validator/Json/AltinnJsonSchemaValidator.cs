@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Nodes;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
@@ -22,7 +23,7 @@ public class AltinnJsonSchemaValidator : IJsonSchemaValidator
 
     public JsonSchemaValidationResult Validate(JsonNode jsonSchema)
     {
-        var schema = JsonSchema.FromText(jsonSchema.ToString());
+        var schema = JsonSchemaKeywords.FromText(jsonSchema.ToString());
         var validationContext = new ValidationContext(schema);
 
         var rootPath = JsonPointer.Parse("#");
@@ -34,7 +35,7 @@ public class AltinnJsonSchemaValidator : IJsonSchemaValidator
         {
             validationContext.Issues.Add(
                 new JsonSchemaValidationIssue(
-                    rootPath.ToString(JsonPointerStyle.UriEncoded),
+                    rootPath.ToUriEncodedString(),
                     JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema
                 )
             );
@@ -103,7 +104,7 @@ public class AltinnJsonSchemaValidator : IJsonSchemaValidator
         {
             validationContext.Issues.Add(
                 new JsonSchemaValidationIssue(
-                    path.ToString(JsonPointerStyle.UriEncoded),
+                    path.ToUriEncodedString(),
                     JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
                 )
             );
@@ -144,7 +145,7 @@ public class AltinnJsonSchemaValidator : IJsonSchemaValidator
         {
             validationContext.Issues.Add(
                 new JsonSchemaValidationIssue(
-                    path.ToString(JsonPointerStyle.UriEncoded),
+                    path.ToUriEncodedString(),
                     JsonSchemaValidationErrorCodes.InvalidReference
                 )
             );
