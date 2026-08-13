@@ -919,12 +919,14 @@ public class RepositoryService : IRepository
     public async Task DeleteRepository(string org, string repository)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
-        );
-        await _sourceControl.DeleteRepository(altinnRepoEditingContext);
+        string localServiceRepoFolder = _settings.GetServicePath(org, repository, developer);
+
+        if (Directory.Exists(localServiceRepoFolder))
+        {
+            DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
+        }
+
+        await _giteaClient.DeleteRepository(org, repository);
     }
 
     public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)

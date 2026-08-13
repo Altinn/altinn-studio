@@ -356,23 +356,28 @@ public class RepositoryServiceTests
     }
 
     [Fact]
-    public async Task DeleteRepository_SourceControlServiceIsCalled()
+    public async Task DeleteRepository_DeletesLocalCloneAndCallsGiteaClient()
     {
         // Arrange
-        string developer = "testUser";
         string org = "ttd";
-        string repository = "apps-test";
+        string origApp = "hvem-er-hvem";
+        string app = TestDataHelper.GenerateTestRepoName(origApp);
+        string developer = "testUser";
 
-        Mock<ISourceControl> mock = new();
-        mock.Setup(m => m.DeleteRepository(It.IsAny<AltinnRepoEditingContext>())).Returns(Task.CompletedTask);
+        await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
+        string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
-        RepositoryService sut = GetServiceForTest(developer, mock.Object);
+        Mock<IGiteaClient> giteaClientMock = new();
+        giteaClientMock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
+
+        RepositoryService sut = GetServiceForTest(developer, giteaClient: giteaClientMock.Object);
 
         // Act
-        await sut.DeleteRepository(org, repository);
+        await sut.DeleteRepository(org, app);
 
         // Assert
-        mock.VerifyAll();
+        giteaClientMock.Verify(m => m.DeleteRepository(org, app), Times.Once);
+        Assert.False(Directory.Exists(expectedPath));
     }
 
     [Fact]
@@ -614,7 +619,8 @@ public class RepositoryServiceTests
         string developer,
         ISourceControl sourceControlMock = null,
         ICustomTemplateService customTemplateServiceMock = null,
-        IAppScopesService appScopesServiceMock = null
+        IAppScopesService appScopesServiceMock = null,
+        IGiteaClient giteaClient = null
     )
     {
         HttpContext ctx = GetHttpContextForTestUser(developer);
@@ -662,7 +668,7 @@ public class RepositoryServiceTests
             new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object
         );
 
-        IGiteaClient giteaClientMock = new IGiteaClientMock();
+        IGiteaClient giteaClientMock = giteaClient ?? new IGiteaClientMock();
         ApplicationMetadataService applicationInformationService = new(
             new Mock<ILogger<ApplicationMetadataService>>().Object,
             altinnStorageAppMetadataClient,
