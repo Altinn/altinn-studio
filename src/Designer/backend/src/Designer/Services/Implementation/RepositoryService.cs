@@ -319,7 +319,7 @@ public class RepositoryService : IRepository
             catch (Exception)
             {
                 // Cleanup repository on failure
-                await DeleteRepository(org, serviceConfig.RepositoryName, developer);
+                await DeleteRepository(authenticatedContext.RepoEditingContext);
                 throw;
             }
         }
@@ -917,25 +917,29 @@ public class RepositoryService : IRepository
     }
 
     /// <inheritdoc/>
-    public async Task DeleteRepository(string org, string repository, string developer)
+    public async Task DeleteRepository(AltinnRepoEditingContext editingContext)
     {
         using Activity activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(RepositoryService)}.{nameof(DeleteRepository)}"
         );
-        activity?.SetTag("org", org);
-        activity?.SetTag("repository", repository);
-        activity?.SetTag("developer", developer);
+        activity?.SetTag("org", editingContext.Org);
+        activity?.SetTag("repository", editingContext.Repo);
+        activity?.SetTag("developer", editingContext.Developer);
 
         try
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, developer);
+            string localServiceRepoFolder = _settings.GetServicePath(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer
+            );
 
             if (Directory.Exists(localServiceRepoFolder))
             {
                 DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
             }
 
-            await _giteaClient.DeleteRepository(org, repository);
+            await _giteaClient.DeleteRepository(editingContext.Org, editingContext.Repo);
         }
         catch (Exception ex)
         {

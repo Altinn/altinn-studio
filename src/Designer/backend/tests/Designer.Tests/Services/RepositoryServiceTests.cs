@@ -371,9 +371,10 @@ public class RepositoryServiceTests
         giteaClientMock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
 
         RepositoryService sut = GetServiceForTest(developer, giteaClient: giteaClientMock.Object);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
         // Act
-        await sut.DeleteRepository(org, app, developer);
+        await sut.DeleteRepository(editingContext);
 
         // Assert
         giteaClientMock.Verify(m => m.DeleteRepository(org, app), Times.Once);

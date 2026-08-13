@@ -170,8 +170,6 @@ public interface IRepository
     /// <summary>
     /// Deletes the repository both locally and remotely.
     /// </summary>
-    /// <param name="org">The repository owner id.</param>
-    /// <param name="repository">The repository name.</param>
-    /// <param name="developer">The developer user name.</param>
-    Task DeleteRepository(string org, string repository, string developer);
+    /// <param name="editingContext">The editing context identifying the org, repository and developer.</param>
+    Task DeleteRepository(AltinnRepoEditingContext editingContext);
 }
