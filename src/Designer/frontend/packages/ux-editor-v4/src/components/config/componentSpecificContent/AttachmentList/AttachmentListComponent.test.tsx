@@ -98,7 +98,7 @@ describe('AttachmentListComponent', () => {
       screen.getByLabelText(textMock('ux_editor.component_properties.select_attachments')),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', {
+      screen.getByRole('switch', {
         name: textMock('ux_editor.component_properties.current_task'),
       }),
     ).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId4',
     );
 
-    const includePdfCheckbox = screen.getByRole('checkbox', {
+    const includePdfCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.select_pdf'),
     });
 
@@ -155,7 +155,7 @@ describe('AttachmentListComponent', () => {
     );
 
     expect(
-      screen.queryByRole('checkbox', {
+      screen.queryByRole('switch', {
         name: textMock('ux_editor.component_properties.select_pdf'),
       }),
     ).not.toBeInTheDocument();
@@ -172,7 +172,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    const currentTaskCheckbox = screen.getByRole('checkbox', {
+    const currentTaskCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.current_task'),
     });
 
@@ -206,7 +206,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    const currentTaskCheckbox = screen.getByRole('checkbox', {
+    const currentTaskCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.current_task'),
     });
 

@@ -2,12 +2,12 @@ import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Fieldset, Switch } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner, StudioHeading } from '@studio/components';
+import { StudioSpinner, StudioSwitch, StudioHeading } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
@@ -78,9 +78,12 @@ export const EditFormComponent = ({
 
   return (
     <Fieldset className={classes.root} legend=''>
-      <Switch onChange={toggleShowBetaFunc} checked={showComponentConfigBeta} size='small'>
-        {t('ux_editor.edit_component.show_beta_func')}
-      </Switch>
+      <StudioSwitch
+        data-size='sm'
+        onChange={toggleShowBetaFunc}
+        checked={showComponentConfigBeta}
+        label={t('ux_editor.edit_component.show_beta_func')}
+      />
       <StudioHeading level={2} data-size='sm'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </StudioHeading>

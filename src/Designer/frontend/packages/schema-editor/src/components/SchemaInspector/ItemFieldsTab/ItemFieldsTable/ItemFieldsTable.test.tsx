@@ -73,7 +73,7 @@ describe('ItemFieldsTable', () => {
     const children = model.getChildNodes(selectedItemPointer);
     expect(textboxes).toHaveLength(children.length);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(expectedNameInTextField(i)));
-    expect(screen.getAllByRole('checkbox')).toHaveLength(children.length);
+    expect(screen.getAllByRole('switch')).toHaveLength(children.length);
     expect(
       screen.getAllByRole('button', {
         name: textMock('schema_editor.delete_field'),
