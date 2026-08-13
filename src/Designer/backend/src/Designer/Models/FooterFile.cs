@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
@@ -8,10 +8,10 @@ namespace Altinn.Studio.Designer.Models;
 public class FooterFile
 {
     [JsonPropertyName("$schema")]
-    public string Schema { get; set; }
+    public string Schema { get; set; } = string.Empty;
 
     [JsonPropertyName("footer")]
-    public List<FooterLayout> Footer { get; set; }
+    public List<FooterLayout> Footer { get; set; } = [];
 }
 
 public class FooterLayout
@@ -21,13 +21,10 @@ public class FooterLayout
     public ComponentType Type { get; set; }
 
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [JsonPropertyName("target")]
-#nullable enable annotations
     public string? Target { get; set; }
-
-#nullable disable annotations
 
     [JsonPropertyName("icon")]
     [JsonConverter(typeof(JsonStringEnumConverter))]

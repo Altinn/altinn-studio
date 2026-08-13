@@ -1,4 +1,4 @@
-﻿#nullable disable
+﻿#nullable enable
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,7 +25,6 @@ public class DeleteFormLayoutTests
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1")]
-#nullable enable annotations
     public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(
         string org,
         string app,
@@ -51,8 +50,6 @@ public class DeleteFormLayoutTests
         Assert.False(File.Exists(layoutFilePath));
     }
 
-#nullable disable annotations
-
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "nonExistingLayoutFile")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "nonExistingLayoutFile")]
@@ -60,7 +57,7 @@ public class DeleteFormLayoutTests
         string org,
         string app,
         string developer,
-        string layoutSetName,
+        string? layoutSetName,
         string layoutName
     )
     {

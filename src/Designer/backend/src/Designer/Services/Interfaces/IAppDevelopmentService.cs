@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -20,7 +20,7 @@ public interface IAppDevelopmentService
     /// <returns>A list of all FormLayouts for a layoutset</returns>
     public Task<Dictionary<string, JsonNode>> GetFormLayouts(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -36,7 +36,7 @@ public interface IAppDevelopmentService
     /// <returns></returns>
     public Task SaveFormLayout(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         string layoutName,
         JsonNode formLayout,
         CancellationToken cancellationToken = default
@@ -52,7 +52,7 @@ public interface IAppDevelopmentService
     /// <returns></returns>
     public void DeleteFormLayout(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         string layoutName
     );
 
@@ -65,7 +65,7 @@ public interface IAppDevelopmentService
     /// <param name="newName">The new name of the layout file</param>
     public void UpdateFormLayoutName(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         string layoutName,
         string newName
     );
@@ -79,7 +79,7 @@ public interface IAppDevelopmentService
     /// <returns>JsonNode for layoutset</returns>
     public Task<JsonNode> GetLayoutSettings(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -93,7 +93,7 @@ public interface IAppDevelopmentService
     public Task SaveLayoutSettings(
         AltinnRepoEditingContext altinnRepoEditingContext,
         JsonNode layoutSettings,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -128,15 +128,12 @@ public interface IAppDevelopmentService
     /// <param name="dataModelName">Name of data model to fetch</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model metadata for a given layout set.</returns>
-#nullable enable annotations
     public Task<ModelMetadata> GetModelMetadata(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string? layoutSetName,
         string? dataModelName,
         CancellationToken cancellationToken = default
     );
-
-#nullable disable annotations
 
     /// <summary>
     /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
@@ -166,7 +163,7 @@ public interface IAppDevelopmentService
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<LayoutSetConfig> GetLayoutSetConfig(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetId,
+        string? layoutSetId,
         CancellationToken cancellationToken = default
     );
 
@@ -219,7 +216,7 @@ public interface IAppDevelopmentService
     /// <returns>A task that represents the asynchronous operation. The task result contains the rule handler as a string.</returns>
     public Task<string> GetRuleHandler(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -234,7 +231,7 @@ public interface IAppDevelopmentService
     public Task SaveRuleHandler(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string ruleHandler,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -247,7 +244,7 @@ public interface IAppDevelopmentService
     /// <returns>A task that represents the asynchronous operation. The task result contains the rule configuration as a string.</returns>
     public Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -262,7 +259,7 @@ public interface IAppDevelopmentService
     public Task SaveRuleConfig(
         AltinnRepoEditingContext altinnRepoEditingContext,
         JsonNode ruleConfig,
-        string layoutSetName,
+        string? layoutSetName,
         CancellationToken cancellationToken = default
     );
 
@@ -303,7 +300,7 @@ public interface IAppDevelopmentService
 
     public Task SaveValidationOnNavigationLayoutSets(
         AltinnRepoEditingContext context,
-        ValidationOnNavigation validationOnNavigation,
+        ValidationOnNavigation? validationOnNavigation,
         CancellationToken cancellationToken
     );
 

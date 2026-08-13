@@ -426,9 +426,8 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        System.Text.Json.Nodes.JsonNode.Parse(
-                            System.Text.Json.JsonSerializer.Serialize(layoutSettings)
-                        ),
+                        JsonSerializer.SerializeToNode(layoutSettings)
+                            ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
                     );
@@ -445,9 +444,8 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        System.Text.Json.Nodes.JsonNode.Parse(
-                            System.Text.Json.JsonSerializer.Serialize(newLayoutSettings)
-                        ),
+                        JsonSerializer.SerializeToNode(newLayoutSettings)
+                            ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
                     );
@@ -671,7 +669,7 @@ public class AppDevelopmentController : Controller
                         g => g.Pages.Contains(pageName)
                     );
 
-                    JsonObject? dataNode = layoutNode?["data"]?.AsObject();
+                    JsonObject? dataNode = layoutNode["data"]?.AsObject();
                     if (dataNode == null)
                     {
                         continue;

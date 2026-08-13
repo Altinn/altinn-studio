@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -7,13 +7,10 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class OptionListData
 {
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [JsonPropertyName("data")]
-#nullable enable annotations
     public List<Option>? Data { get; set; }
-
-#nullable disable annotations
 
     [JsonPropertyName("hasError")]
     public bool? HasError { get; set; }
