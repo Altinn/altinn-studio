@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -17,7 +18,8 @@ func renderedLines(t *testing.T, steps []studioctlserver.AppUpgradeStep) []strin
 
 	var stdout bytes.Buffer
 	renderUpgradeSteps(ui.NewOutput(&stdout, io.Discard, false), steps)
-	return strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
+	rendered := strings.TrimSuffix(stdout.String(), osutil.LineBreak)
+	return strings.Split(rendered, osutil.LineBreak)
 }
 
 func TestRenderUpgradeStepsRendersStatusLabels(t *testing.T) {
