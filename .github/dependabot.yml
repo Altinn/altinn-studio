@@ -1,0 +1,42 @@
+version: 2
+
+# Renovate owns routine dependency updates. These entries only customize
+# Dependabot security updates and explicitly disable version-update PRs.
+updates:
+  - package-ecosystem: npm
+    directories:
+      - '/'
+      - '/src/lhci-server'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      npm-security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  - package-ecosystem: gomod
+    directories:
+      - '**/*'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      go-security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  - package-ecosystem: uv
+    directories:
+      - '/src/AI/agents'
+      - '/src/AI/mcp'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      uv-security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
