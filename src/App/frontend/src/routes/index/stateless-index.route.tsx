@@ -1,9 +1,26 @@
 import React from 'react';
+import { redirect } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 
 import { Loader } from 'src/core/loading/Loader';
-import { clientLoader } from 'src/routes/index/stateless-index.loader';
+import { GlobalData } from 'src/GlobalData';
+import { isStateless } from 'src/routes/index/isStateless';
+import { getRawFirstPage } from 'src/utils/computeStartUrl';
 
-export { clientLoader };
+export function clientLoader({ request }: LoaderFunctionArgs) {
+  if (!isStateless()) {
+    return null;
+  }
+
+  const folderId = GlobalData.applicationMetadata.onEntry?.show;
+  const firstPage = getRawFirstPage(folderId);
+  if (!firstPage) {
+    throw new Error(`Cannot determine start page for stateless app (folderId=${folderId ?? 'undefined'})`);
+  }
+
+  const queryKeys = new URL(request.url).search;
+  return redirect(`/${firstPage}${queryKeys}`);
+}
 
 export default function StatelessIndex() {
   return <Loader reason='stateless-redirect' />;

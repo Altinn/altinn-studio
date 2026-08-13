@@ -1,7 +1,7 @@
 import { redirect } from 'react-router';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { clientLoader } from 'src/routes/index/stateless-index.loader';
+import { clientLoader } from 'src/routes/index/stateless-index.route';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 
 // react-router's redirect() requires the Fetch API Response class, which jsdom doesn't provide.
