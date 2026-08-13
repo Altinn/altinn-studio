@@ -29,7 +29,7 @@ jobs:
   playwright-tests:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright
-    timeout-minutes: 25
+    timeout-minutes: 35
     runs-on: self-hosted-single
 
     steps:

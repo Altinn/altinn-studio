@@ -57,6 +57,6 @@ Cypress.Commands.add('ignoreConsoleMessages', (consoleMessages: ConsoleMessage[]
   });
 });
 
-if (Cypress.env('CYPRESS_LOGS_COLLECTOR') === 'true') {
+if (Cypress.expose('CYPRESS_LOGS_COLLECTOR') === 'true') {
   installLogsCollector();
 }

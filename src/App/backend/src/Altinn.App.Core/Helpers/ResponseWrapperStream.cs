@@ -8,18 +8,44 @@ internal sealed class ResponseWrapperStream : Stream
     private readonly HttpResponseMessage _response;
     private readonly Stream _innerStream;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ResponseWrapperStream"/> class.
-    /// </summary>
-    /// <param name="response">The HTTP response message to be disposed when the stream is disposed.</param>
-    /// <param name="innerStream">The inner stream to wrap and delegate operations to.</param>
-    public ResponseWrapperStream(HttpResponseMessage response, Stream innerStream)
+    private ResponseWrapperStream(HttpResponseMessage response, Stream innerStream)
     {
         ArgumentNullException.ThrowIfNull(response);
         ArgumentNullException.ThrowIfNull(innerStream);
 
         _response = response;
         _innerStream = innerStream;
+    }
+
+    /// <summary>
+    /// Reads <paramref name="response"/>'s content as a stream and wraps the pair, handing ownership of
+    /// the response to the stream returned: disposing that stream disposes the response. This is the only
+    /// way to create a <see cref="ResponseWrapperStream"/>, so the ownership transfer cannot be skipped.
+    /// </summary>
+    /// <remarks>
+    /// For a method that returns a stream taken from a response, this is the alternative to a
+    /// <c>using</c> on the response — which would dispose the content the returned stream reads from,
+    /// and fail in the caller rather than here. Ownership transfer is atomic: if the content stream
+    /// cannot be read, the response is disposed before the exception propagates, so a call that throws
+    /// leaks nothing and leaves the caller nothing to clean up.
+    /// </remarks>
+    /// <param name="response">The response to take over. Owned by the returned stream once this succeeds.</param>
+    /// <param name="cancellationToken">Cancels reading the content stream.</param>
+    /// <returns>A stream over the response content that disposes the response when disposed.</returns>
+    public static async Task<Stream> Create(HttpResponseMessage response, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+
+        try
+        {
+            Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            return new ResponseWrapperStream(response, stream);
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -113,6 +139,37 @@ internal sealed class ResponseWrapperStream : Stream
     /// <returns>A task that represents the asynchronous read operation. The value contains the total number of bytes read into the buffer.</returns>
     public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
         _innerStream.ReadAsync(buffer, cancellationToken);
+
+    /// <summary>
+    /// Reads a sequence of bytes from the current stream and advances the position within the stream by the number of bytes read.
+    /// </summary>
+    /// <param name="buffer">The region of memory to write the data into.</param>
+    /// <returns>The total number of bytes read into the buffer.</returns>
+    public override int Read(Span<byte> buffer) => _innerStream.Read(buffer);
+
+    // CopyTo/CopyToAsync are delegated rather than left to the base implementation, which would read
+    // through this wrapper in chunks. A buffered response hands out a MemoryStream, whose own copy is a
+    // single block copy, and the PDF and signing paths copy these streams wholesale (PdfService,
+    // SigningProcessTask and PaymentProcessTask all call CopyToAsync on the stream they are handed).
+    // Note that MVC's FileStreamResult does not come through here — it runs its own pooled-buffer loop
+    // over ReadAsync(Memory<byte>), which is delegated above.
+
+    /// <summary>
+    /// Reads the bytes from the current stream and writes them to another stream.
+    /// </summary>
+    /// <param name="destination">The stream to which the contents of the current stream will be copied.</param>
+    /// <param name="bufferSize">The size of the buffer, in bytes.</param>
+    public override void CopyTo(Stream destination, int bufferSize) => _innerStream.CopyTo(destination, bufferSize);
+
+    /// <summary>
+    /// Asynchronously reads the bytes from the current stream and writes them to another stream.
+    /// </summary>
+    /// <param name="destination">The stream to which the contents of the current stream will be copied.</param>
+    /// <param name="bufferSize">The size of the buffer, in bytes.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
+    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) =>
+        _innerStream.CopyToAsync(destination, bufferSize, cancellationToken);
 
     /// <summary>
     /// Sets the position within the current stream.
