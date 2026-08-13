@@ -175,9 +175,9 @@ public class AppDevelopmentController : Controller
                     );
                 }
             }
-            if (!formLayouts.ContainsKey(layoutName))
+            if (!formLayouts.ContainsKey(layoutName) && layoutSetName is not null)
             {
-                LayoutSetConfig? layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(
+                LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(
                     editingContext,
                     layoutSetName,
                     cancellationToken
@@ -832,7 +832,7 @@ public class AppDevelopmentController : Controller
                 async (layoutSet) =>
                 {
                     LayoutSetDto layoutSetDto = layoutSet.ToDto();
-                    string? layoutSetId = layoutSet?.Id;
+                    string layoutSetId = layoutSet.Id;
                     LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(editingContext, layoutSetId);
                     PagesDto pages = PagesDto.From(layoutSettings);
                     layoutSetDto.PageCount =

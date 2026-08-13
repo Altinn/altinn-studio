@@ -160,9 +160,9 @@ public interface IAppDevelopmentService
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="layoutSetId">The id of the layout set to get config for.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<LayoutSetConfig?> GetLayoutSetConfig(
+    public Task<LayoutSetConfig> GetLayoutSetConfig(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        string? layoutSetId,
+        string layoutSetId,
         CancellationToken cancellationToken = default
     );
 

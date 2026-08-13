@@ -185,11 +185,11 @@ public class ProcessModelingService : IProcessModelingService
         {
             XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
             Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
-            LayoutSetConfig? layoutSet = await _appDevelopmentService.GetLayoutSetConfig(
+            LayoutSetConfig layoutSet = await _appDevelopmentService.GetLayoutSetConfig(
                 altinnRepoEditingContext,
                 layoutSetId
             );
-            string? taskId = layoutSet?.Tasks?.FirstOrDefault();
+            string? taskId = layoutSet.Tasks?.FirstOrDefault();
             ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
             return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
         }
