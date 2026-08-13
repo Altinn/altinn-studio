@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using WorkflowEngine.Resilience.Constants;
 using WorkflowEngine.Resilience.Models;
 
 // CA2208: Instantiate argument exceptions correctly
@@ -65,8 +66,11 @@ public static class RetryStrategyExtensions
 
         /// <summary>
         /// Calculates the delay before the next retry attempt based on the backoff strategy.
+        /// The result carries uniform ±<see cref="Defaults.RetryDelayJitterFraction"/> jitter so that
+        /// workflows failing on the same cause de-synchronize instead of retrying in waves, and never
+        /// exceeds <see cref="RetryStrategy.MaxDelay"/>.
         /// </summary>
-        public TimeSpan CalculateDelay(int iteration)
+        public TimeSpan CalculateDelay(int iteration, Random? random = null)
         {
             var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
 
@@ -79,7 +83,12 @@ public static class RetryStrategyExtensions
                 _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
             };
 
-            return TimeSpan.FromSeconds(Math.Min(delaySeconds, maxDelaySeconds));
+            delaySeconds = Math.Min(delaySeconds, maxDelaySeconds);
+
+            var jitterFactor =
+                1 + (Defaults.RetryDelayJitterFraction * ((2 * (random ?? Random.Shared).NextDouble()) - 1));
+
+            return TimeSpan.FromSeconds(Math.Clamp(delaySeconds * jitterFactor, 0, maxDelaySeconds));
         }
 
         /// <summary>
