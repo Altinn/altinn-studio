@@ -54,7 +54,7 @@ export const DeploymentStatus = ({
         <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
         </StudioHeading>
-        <StudioParagraph spacing>{content}</StudioParagraph>
+        {content}
         <StudioParagraph data-size='xs'>{footer}</StudioParagraph>
       </Alert>
     );
@@ -65,10 +65,10 @@ export const DeploymentStatus = ({
       <DeploymentStatusAlert
         severity='info'
         content={
-          <span className={classes.loadingSpinner}>
+          <div className={classes.loadingSpinner}>
             <StudioSpinner aria-hidden data-size='xs' />
             {t('app_deployment.status.inProgress')}
-          </span>
+          </div>
         }
         footer={
           <Trans i18nKey='overview.go_to_publish'>
@@ -84,11 +84,7 @@ export const DeploymentStatus = ({
     return (
       <DeploymentStatusAlert
         severity='info'
-        content={
-          <StudioParagraph spacing data-size='sm'>
-            {t('app_deployment.status.none')}
-          </StudioParagraph>
-        }
+        content={<StudioParagraph spacing>{t('app_deployment.status.none')}</StudioParagraph>}
         footer={
           <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
@@ -103,9 +99,7 @@ export const DeploymentStatus = ({
       <DeploymentStatusAlert
         severity='warning'
         content={
-          <StudioParagraph spacing data-size='sm'>
-            {t('app_deployment.status.unavailable')}
-          </StudioParagraph>
+          <StudioParagraph spacing>{t('app_deployment.status.unavailable')}</StudioParagraph>
         }
         footer={
           <Trans i18nKey='overview.go_to_publish'>
@@ -120,7 +114,7 @@ export const DeploymentStatus = ({
     <DeploymentStatusAlert
       severity='success'
       content={
-        <StudioParagraph spacing data-size='sm'>
+        <StudioParagraph spacing>
           <Trans
             i18nKey={'app_deployment.status.succeeded'}
             values={{

@@ -53,9 +53,7 @@ export const DeploymentEnvironmentStatus = ({
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
-        <StudioParagraph data-size='sm' spacing={!!footer} className={classes.content}>
-          {content}
-        </StudioParagraph>
+        {content}
         {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
       </Alert>
     );
@@ -66,10 +64,10 @@ export const DeploymentEnvironmentStatus = ({
       <DeploymentStatusAlert
         severity='info'
         content={
-          <span className={classes.loadingSpinner}>
+          <div className={classes.loadingSpinner}>
             <StudioSpinner aria-hidden data-size='xs' />
             {t('app_deployment.status.inProgress')}
-          </span>
+          </div>
         }
       />
     );
