@@ -13,6 +13,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Dispose the streams you get from `IDataClient.GetBinaryData`, `IDataClient.GetBinaryDataStream` and `IPdfGeneratorClient.GeneratePdf` once you have finished reading them — each one holds an HTTP response open until it is disposed, and disposing the stream releases it. The interfaces now say so. Code that already disposed these streams is unaffected, and code that does not is no worse off than before. The app's other HTTP clients now release their responses promptly too, which needs nothing from you.
 
+### Removed
+
+- Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. No app can be affected: referring to it has been a compile error for a long time, and the replacement its obsoletion message pointed to — `Altinn.App.Core.Internal.Data.IDataClient` — is unchanged.
+
 ## [9.0.0-preview.4] - 2026-08-11
 
 ### Added
