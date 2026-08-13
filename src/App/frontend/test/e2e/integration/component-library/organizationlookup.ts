@@ -78,8 +78,9 @@ describe('Organisation lookup', () => {
       }
     });
 
-    // 3 instances of this text (component, Summary2, ErrorReport)
-    cy.findAllByText('Du må fylle ut organisasjonsnummer og hente opplysninger').should('exist').and('have.length', 3);
+    // The component and Summary2 show the validation, but ErrorReport stays hidden until a validation boundary.
+    cy.findAllByText('Du må fylle ut organisasjonsnummer og hente opplysninger').should('exist').and('have.length', 2);
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.changeLayout((component) => {
       if (component.type === 'OrganizationLookup') {

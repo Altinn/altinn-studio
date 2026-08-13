@@ -420,9 +420,8 @@ describe('Options', () => {
     cy.get('[data-componentid="ingredientId-3"]').should('have.text', '1');
 
     const errMsg = 'Du kan ikke ha flere ingredienser av samme type';
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').eq(0).should('contain.text', errMsg);
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').eq(1).should('contain.text', errMsg);
+    cy.findAllByText(errMsg).should('have.length', 2);
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     // Select something else than grapes in the third and fourth row
     cy.dsSelect('#ingredientType-2', 'Jordbær');
