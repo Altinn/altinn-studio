@@ -271,7 +271,7 @@ void Configure(IConfiguration configuration)
             OnPrepareResponse = context =>
             {
                 ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-                headers.CacheControl = StaticFileCachePolicy.Create(context.Context.Request.Path, context.File.Name);
+                headers.CacheControl = StaticFileCachePolicy.Create(context.File.Name);
             },
         }
     );
