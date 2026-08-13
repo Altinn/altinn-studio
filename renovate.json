@@ -25,11 +25,6 @@
   },
   "packageRules": [
     {
-      "description": "Require explicit dashboard approval before Renovate creates major update pull requests",
-      "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true
-    },
-    {
       "matchManagers": ["gomod", "pep621"],
       "groupName": "{{manager}} non-major dependencies",
       "matchPackageNames": ["*"],
