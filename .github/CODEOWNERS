@@ -35,8 +35,6 @@ src/AI/agents/**/docker-compose.*.yml                                     @Erlin
 src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
 src/AI/agents/**/dockerfile*                                              @ErlingHauan
 src/AI/agents/**/pyproject.toml                                           @ErlingHauan
-src/AI/agents/**/requirements-dev.txt                                     @ErlingHauan
-src/AI/agents/**/requirements.txt                                         @ErlingHauan
 src/AI/agents/**/uv.lock                                                  @ErlingHauan
 src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
 src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
@@ -44,7 +42,6 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 src/AI/mcp/**/docker-compose.yaml                                         @ErlingHauan
 src/AI/mcp/**/dockerfile*                                                 @ErlingHauan
 src/AI/mcp/**/pyproject.toml                                              @ErlingHauan
-src/AI/mcp/**/requirements.txt                                            @ErlingHauan
 src/AI/mcp/**/uv.lock                                                     @ErlingHauan
 
 # Squad Kjøring

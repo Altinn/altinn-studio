@@ -7,25 +7,25 @@ This directory contains the test suite for the Altinity Agents service.
 ### Install dev dependencies
 
 ```bash
-pip install -r requirements-dev.txt
+uv sync --locked --extra dev
 ```
 
 ### Run all tests
 
 ```bash
-python -m pytest
+uv run python -m pytest
 ```
 
 ### Run specific test file
 
 ```bash
-python -m pytest tests/frontend_api/test_main.py
+uv run python -m pytest tests/frontend_api/test_main.py
 ```
 
 ### Run tests with coverage report
 
 ```bash
-python -m pytest --cov --cov-report=term-missing --cov-report=html
+uv run python -m pytest --cov --cov-report=term-missing --cov-report=html
 ```
 
 This will:

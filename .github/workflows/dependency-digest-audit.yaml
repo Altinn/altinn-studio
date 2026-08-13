@@ -1,0 +1,39 @@
+name: Dependency digest audit
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "**/*Dockerfile*"
+      - "**/*dockerfile*"
+      - "**/*.go"
+      - "**/*.yml"
+      - "**/*.yaml"
+      - ".github/scripts/dependency-digest-audit.mjs"
+      - ".github/workflows/dependency-digest-audit.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: ${{ github.event.pull_request.user.login == 'renovate[bot]' }}
+    name: Expose digest changes for review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Test audit script
+        run: node --test .github/scripts/dependency-digest-audit.test.mjs
+      - name: Build audit context
+        run: >-
+          node .github/scripts/dependency-digest-audit.mjs
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
+          --output "$GITHUB_STEP_SUMMARY"

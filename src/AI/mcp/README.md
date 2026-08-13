@@ -84,20 +84,12 @@ If you prefer running without Docker:
 **Prerequisites:**
 
 - Python 3.12 or higher
-- `uv` package manager (recommended) or `pip`
+- `uv` package manager
 
 **Install Dependencies:**
 
-Using `uv` (recommended):
-
 ```bash
-uv pip install -e .
-```
-
-Or using `pip`:
-
-```bash
-pip install -e .
+uv sync --locked
 ```
 
 **Configuration:**

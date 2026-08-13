@@ -4,22 +4,28 @@ This directory contains the test suite for the Altinity MCP Server.
 
 ## Running Tests
 
+### Install dev dependencies
+
+```bash
+uv sync --locked --extra dev
+```
+
 ### Run all tests
 
 ```bash
-python -m pytest
+uv run python -m pytest
 ```
 
 ### Run specific test file
 
 ```bash
-python -m pytest tests/server/test_main.py
+uv run python -m pytest tests/server/test_main.py
 ```
 
 ### Run tests with coverage report
 
 ```bash
-python -m pytest --cov --cov-report=term-missing --cov-report=html
+uv run python -m pytest --cov --cov-report=term-missing --cov-report=html
 ```
 
 This will:
