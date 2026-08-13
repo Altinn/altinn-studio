@@ -7,6 +7,7 @@ using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models.SBD;
 using Altinn.App.Core.Exceptions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -22,6 +23,13 @@ namespace Altinn.App.Core.Tests.Eformidling.Implementation;
 public class EFormidlingClientTests
 {
     private const string BaseUrl = "https://platform.example/eformidling/";
+
+    /// <summary>
+    /// A structurally valid JWT: <see cref="JwtToken.Parse"/> rejects anything else, and the gateway
+    /// forwards this header to an introspection call, so it has to be a real token in practice.
+    /// </summary>
+    private const string ServiceOwnerToken =
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0." + "eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIiLCJleHAiOjQ4ODMyNjE1OTh9.";
 
     private sealed record Harness(IEFormidlingClient Client, List<HttpRequestMessage> Requests)
     {
@@ -62,13 +70,15 @@ public class EFormidlingClientTests
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
         accessTokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
 
-        var userTokenProvider = new Mock<IUserTokenProvider>();
-        userTokenProvider.Setup(u => u.GetUserToken()).Returns("user-token");
+        var tokenResolver = new Mock<IAuthenticationTokenResolver>();
+        tokenResolver
+            .Setup(r => r.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(ServiceOwnerToken));
 
         var services = new ServiceCollection();
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(accessTokenGenerator.Object);
-        services.AddSingleton(userTokenProvider.Object);
+        services.AddSingleton(tokenResolver.Object);
         services.AddSingleton(Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key" }));
         services.AddSingleton(Options.Create(new EFormidlingClientSettings { BaseUrl = baseUrl }));
 
@@ -91,7 +101,7 @@ public class EFormidlingClientTests
         Assert.Equal(HttpMethod.Post, request.Method);
         Assert.Equal(new Uri(BaseUrl + "messages/out"), request.RequestUri);
         Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
-        Assert.Equal("user-token", request.Headers.Authorization?.Parameter);
+        Assert.Equal(ServiceOwnerToken, request.Headers.Authorization?.Parameter);
         Assert.Equal("access-token", HeaderValue(request, General.EFormidlingAccessTokenHeaderName));
         Assert.Equal("subscription-key", HeaderValue(request, General.SubscriptionKeyHeaderName));
     }

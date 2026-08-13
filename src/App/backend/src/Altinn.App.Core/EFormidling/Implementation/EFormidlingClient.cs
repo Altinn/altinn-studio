@@ -35,7 +35,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
 
     private readonly HttpClient _client;
     private readonly PlatformSettings _platformSettings;
-    private readonly IUserTokenProvider _userTokenProvider;
+    private readonly IAuthenticationTokenResolver _tokenResolver;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IAppMetadata _appMetadata;
     private readonly Telemetry? _telemetry;
@@ -44,7 +44,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
     {
         ArgumentNullException.ThrowIfNull(httpClient);
 
-        _userTokenProvider = serviceProvider.GetRequiredService<IUserTokenProvider>();
+        _tokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
         _accessTokenGenerator = serviceProvider.GetRequiredService<IAccessTokenGenerator>();
         _appMetadata = serviceProvider.GetRequiredService<IAppMetadata>();
         _telemetry = serviceProvider.GetService<Telemetry>();
@@ -97,7 +97,12 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         string json = JsonSerializer.Serialize(sbd, _jsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        using HttpRequestMessage request = await CreateAppRequest(HttpMethod.Post, "messages/out", content);
+        using HttpRequestMessage request = await CreateAppRequest(
+            HttpMethod.Post,
+            "messages/out",
+            content,
+            cancellationToken
+        );
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, "create eFormidling message", cancellationToken);
 
@@ -127,7 +132,12 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
         string requestUri = $"messages/out/{Uri.EscapeDataString(messageId)}?title={Uri.EscapeDataString(filename)}";
-        using HttpRequestMessage request = await CreateAppRequest(HttpMethod.Put, requestUri, content);
+        using HttpRequestMessage request = await CreateAppRequest(
+            HttpMethod.Put,
+            requestUri,
+            content,
+            cancellationToken
+        );
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, $"upload eFormidling attachment '{filename}'", cancellationToken);
     }
@@ -141,7 +151,8 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         using HttpRequestMessage request = await CreateAppRequest(
             HttpMethod.Post,
             $"messages/out/{Uri.EscapeDataString(messageId)}",
-            content: null
+            content: null,
+            cancellationToken
         );
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, "send eFormidling message", cancellationToken);
@@ -185,17 +196,29 @@ internal sealed class EFormidlingClient : IEFormidlingClient
     }
 
     /// <summary>
-    /// An operation on the shipment. Carries the subscription key, the app's platform access token, and
-    /// the caller's bearer token.
+    /// An operation on the shipment. Carries the subscription key, the app's platform access token, and a
+    /// service owner token.
     /// </summary>
     /// <remarks>
-    /// The gateway admits the request on the platform access token — the <c>AltinnIntegrationPointToken</c>
-    /// header — and rejects one without it as "requires a valid integration point access token". The
-    /// <c>Authorization</c> header is not consulted at that layer: tt02 answers a valid service-owner token
-    /// and a junk string identically. It is sent because the integrasjonspunkt behind the gateway may read
-    /// it, which is not something we can observe without a token that gets us past the gate.
+    /// Both tokens are required, and they are not independent. The gateway takes the
+    /// <c>AltinnIntegrationPointToken</c> as the subject of an RFC 7662 introspection call to Altinn
+    /// Authentication, and authenticates <em>that call</em> with whatever arrives in
+    /// <c>Authorization</c>. An absent or unacceptable <c>Authorization</c> therefore fails the
+    /// introspection, and the gateway reports it as "requires a valid integration point access token" —
+    /// naming the header that was fine. Verified against tt02: the subscription key plus both tokens
+    /// reaches the integrasjonspunkt, and dropping either token produces that same 401.
+    /// <para>
+    /// So the bearer token has to be one introspection accepts, which is why this resolves a service
+    /// owner token rather than reading the current user's. A shipment runs from a workflow-engine
+    /// callback, where there is no user to borrow one from.
+    /// </para>
     /// </remarks>
-    private async Task<HttpRequestMessage> CreateAppRequest(HttpMethod method, string requestUri, HttpContent? content)
+    private async Task<HttpRequestMessage> CreateAppRequest(
+        HttpMethod method,
+        string requestUri,
+        HttpContent? content,
+        CancellationToken cancellationToken
+    )
     {
         var request = new HttpRequestMessage(method, requestUri) { Content = content };
         request.Headers.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
@@ -206,9 +229,14 @@ internal sealed class EFormidlingClient : IEFormidlingClient
             applicationMetadata.AppIdentifier.App
         );
 
+        JwtToken serviceOwnerToken = await _tokenResolver.GetAccessToken(
+            AuthenticationMethod.ServiceOwner(),
+            cancellationToken
+        );
+
         request.Headers.Authorization = new AuthenticationHeaderValue(
             AuthorizationSchemes.Bearer,
-            _userTokenProvider.GetUserToken()
+            serviceOwnerToken.Value
         );
         request.Headers.Add(General.EFormidlingAccessTokenHeaderName, platformAccessToken);
 
