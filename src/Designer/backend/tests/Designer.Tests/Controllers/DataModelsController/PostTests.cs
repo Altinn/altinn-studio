@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
@@ -64,7 +65,7 @@ public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<We
         Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
 
         string postContent = await postResponse.Content.ReadAsStringAsync();
-        JsonSchema postJsonSchema = JsonSchema.FromText(postContent);
+        JsonSchema postJsonSchema = JsonSchemaKeywords.FromText(postContent);
         Assert.NotNull(postJsonSchema);
 
         // Try to read back the created schema to verify it's stored
@@ -73,7 +74,7 @@ public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<We
         using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
         using var getResponse = await HttpClient.SendAsync(getRequestMessage);
         string getContent = await getResponse.Content.ReadAsStringAsync();
-        var getJsonSchema = JsonSchema.FromText(getContent);
+        var getJsonSchema = JsonSchemaKeywords.FromText(getContent);
         Assert.NotNull(getJsonSchema);
         Assert.Equal(postContent, getContent);
     }

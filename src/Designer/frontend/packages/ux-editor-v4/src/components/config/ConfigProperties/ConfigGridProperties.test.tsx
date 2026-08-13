@@ -19,7 +19,7 @@ describe('ConfigGridProperties', () => {
     const handleComponentUpdate = jest.fn();
     renderConfigGridProperties({ props: { handleComponentUpdate } });
     await openConfigAndVerify({ user, property: propertyKey });
-    const switchDefaultGrid = screen.getByRole('checkbox', {
+    const switchDefaultGrid = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_grid_use_default'),
     });
     expect(switchDefaultGrid).toBeChecked();
@@ -81,7 +81,7 @@ describe('ConfigGridProperties', () => {
         handleComponentUpdate={handleComponentUpdate}
       />,
     );
-    const switchDefaultGrid = screen.getByRole('checkbox', {
+    const switchDefaultGrid = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_grid_use_default'),
     });
     await user.click(switchDefaultGrid);
@@ -105,7 +105,7 @@ describe('ConfigGridProperties', () => {
       props: { component: componentWithGrid, handleComponentUpdate },
     });
     await openConfigAndVerify({ user, property: propertyKey });
-    const switchDefaultGrid = screen.getByRole('checkbox', {
+    const switchDefaultGrid = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_grid_use_default'),
     });
     expect(switchDefaultGrid).not.toBeChecked();

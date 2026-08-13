@@ -19,13 +19,13 @@ describe('RequiredSwitch', () => {
 
   it('Saves the model when the required checkbox is checked', async () => {
     renderRequiredSwitch();
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('switch'));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Saves the model when the required checkbox is unchecked', async () => {
     renderRequiredSwitch({ isRequired: true });
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('switch'));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 });

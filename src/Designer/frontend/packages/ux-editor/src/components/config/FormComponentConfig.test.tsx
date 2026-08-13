@@ -122,9 +122,7 @@ describe('FormComponentConfig', () => {
     });
     await user.click(screen.getByText(textMock('ux_editor.component_properties.sortOrder')));
     expect(
-      screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.sortOrder'),
-      }),
+      screen.getByLabelText(textMock('ux_editor.component_properties.sortOrder')),
     ).toBeInTheDocument();
   });
 
@@ -169,7 +167,7 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('nullProperty')).not.toBeInTheDocument();
   });
 
-  it('should call updateComponent with false value when checking a default true property switch', async () => {
+  it('should call updateComponent with true value when checking a default false property switch', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     renderFormComponentConfig({
@@ -181,12 +179,12 @@ describe('FormComponentConfig', () => {
     });
     expect(button).toBeInTheDocument();
     await user.click(button);
-    const timeStampSwitch = screen.getByRole('checkbox', {
+    const timeStampSwitch = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.timeStamp'),
     });
     await user.click(timeStampSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ timeStamp: false }),
+      expect.objectContaining({ timeStamp: true }),
     );
   });
 

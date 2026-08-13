@@ -22,7 +22,7 @@ public class GeneralJsonTemplateTests
         var actualJsonTemplate = new GeneralJsonTemplate(new Uri(expectedId), expectedModelName);
 
         // Assert
-        JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
+        JsonSchema jsonSchema = JsonSchemaKeywords.FromText(actualJsonTemplate.GetJsonString());
         var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
         Assert.Equal(expectedId, idKeyword.Id.ToString());
 

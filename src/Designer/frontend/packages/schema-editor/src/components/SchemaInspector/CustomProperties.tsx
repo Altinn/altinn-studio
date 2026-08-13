@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset, Switch } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -12,7 +12,7 @@ import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton, StudioHelpText, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioHelpText, StudioSwitch, StudioTextfield } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -128,7 +128,7 @@ export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked);
-  return <Switch size='small' id={id} onChange={handleChange} checked={value} />;
+  return <StudioSwitch data-size='sm' id={id} onChange={handleChange} checked={value} label='' />;
 };
 
 export const UnsupportedInput = () => {

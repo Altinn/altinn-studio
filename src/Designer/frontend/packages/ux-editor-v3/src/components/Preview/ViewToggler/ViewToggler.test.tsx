@@ -8,7 +8,7 @@ describe('ViewToggler', () => {
   it('should render desktop view as default', () => {
     render(<ViewToggler onChange={() => {}} />);
 
-    const switchButton = screen.getByRole('checkbox', {
+    const switchButton = screen.getByRole('switch', {
       name: textMock('ux_editor.mobilePreview'),
     });
     expect(switchButton).not.toBeChecked();
@@ -17,7 +17,7 @@ describe('ViewToggler', () => {
   it('should render mobile view when initialView is mobile', () => {
     render(<ViewToggler initialView='mobile' onChange={() => {}} />);
 
-    const switchButton = screen.getByRole('checkbox', {
+    const switchButton = screen.getByRole('switch', {
       name: textMock('ux_editor.mobilePreview'),
     });
 
@@ -29,7 +29,7 @@ describe('ViewToggler', () => {
     const onChangeMock = jest.fn();
     render(<ViewToggler onChange={onChangeMock} />);
 
-    const switchButton = screen.getByRole('checkbox', {
+    const switchButton = screen.getByRole('switch', {
       name: textMock('ux_editor.mobilePreview'),
     });
 

@@ -6,7 +6,7 @@ This file provides guidance to AI agents when working with code.
 
 Altinn Studio Designer's backend is built using the following technologies:
 
-- .NET 9 (ASP.NET Core Web API)
+- .NET 10 (ASP.NET Core Web API)
 - Entity Framework Core with PostgreSQL
 - SignalR for real-time communication
 - MediatR for CQRS/mediator pattern
