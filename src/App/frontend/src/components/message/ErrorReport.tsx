@@ -41,6 +41,8 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
   const wasVisible = useRef(false);
 
   useEffect(() => {
+    // This makes sure we focus the ErrorReport after it has been rendered and first became visible. The same thing
+    // will happen in a future version of the design system, so when we upgrade to 1.18.0+ this can be removed.
     const isVisible = show && !hasErrorReport && errors !== undefined;
     if (isVisible && !wasVisible.current) {
       errorReportRef.current?.focus();
