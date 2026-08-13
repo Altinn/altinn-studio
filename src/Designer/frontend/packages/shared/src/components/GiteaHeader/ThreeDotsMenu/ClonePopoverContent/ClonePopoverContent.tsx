@@ -29,7 +29,6 @@ export const ClonePopoverContent = () => {
       <StudioLabelAsParagraph data-size='sm'>
         {t('sync_header.favourite_tool')}
       </StudioLabelAsParagraph>
-
       <StudioLink
         href={altinnDocsUrl({ language: 'nb' })}
         target='_blank'

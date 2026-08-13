@@ -2,13 +2,13 @@ import React, { type JSX } from 'react';
 import classes from './DeploymentStatus.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Spinner, Link } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
+import { StudioLink, StudioParagraph, StudioSpinner, StudioHeading } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { StudioParagraph, StudioHeading } from '@studio/components';
 
 export type DeploymentStatusProps = {
   kubernetesDeployment?: KubernetesDeployment;
@@ -54,7 +54,7 @@ export const DeploymentStatus = ({
         <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
         </StudioHeading>
-        <StudioParagraph spacing>{content}</StudioParagraph>
+        {content}
         <StudioParagraph data-size='xs'>{footer}</StudioParagraph>
       </Alert>
     );
@@ -65,10 +65,10 @@ export const DeploymentStatus = ({
       <DeploymentStatusAlert
         severity='info'
         content={
-          <span className={classes.loadingSpinner}>
-            <Spinner variant='interaction' title='' size='xsmall' />
+          <div className={classes.loadingSpinner}>
+            <StudioSpinner aria-hidden data-size='xs' />
             {t('app_deployment.status.inProgress')}
-          </span>
+          </div>
         }
         footer={
           <Trans i18nKey='overview.go_to_publish'>
@@ -84,7 +84,7 @@ export const DeploymentStatus = ({
     return (
       <DeploymentStatusAlert
         severity='info'
-        content={t('app_deployment.status.none')}
+        content={<StudioParagraph spacing>{t('app_deployment.status.none')}</StudioParagraph>}
         footer={
           <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
@@ -98,7 +98,9 @@ export const DeploymentStatus = ({
     return (
       <DeploymentStatusAlert
         severity='warning'
-        content={t('app_deployment.status.unavailable')}
+        content={
+          <StudioParagraph spacing>{t('app_deployment.status.unavailable')}</StudioParagraph>
+        }
         footer={
           <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
@@ -112,20 +114,22 @@ export const DeploymentStatus = ({
     <DeploymentStatusAlert
       severity='success'
       content={
-        <Trans
-          i18nKey={'app_deployment.status.succeeded'}
-          values={{
-            version: kubernetesDeployment.version,
-          }}
-          components={{
-            a: (
-              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
-                {' '}
-              </Link>
-            ),
-            ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
-          }}
-        />
+        <StudioParagraph spacing>
+          <Trans
+            i18nKey={'app_deployment.status.succeeded'}
+            values={{
+              version: kubernetesDeployment.version,
+            }}
+            components={{
+              a: (
+                <StudioLink href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                  {' '}
+                </StudioLink>
+              ),
+              ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
+            }}
+          />
+        </StudioParagraph>
       }
       footer={
         lastPublishedDate && (

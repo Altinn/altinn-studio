@@ -237,6 +237,9 @@ export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
 
+// App Templates (the scaffold a new app is created from)
+export const appTemplatesPath = () => `${apiBasePath}/apptemplates`; // GET
+
 // Custom Templates
 export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET
 

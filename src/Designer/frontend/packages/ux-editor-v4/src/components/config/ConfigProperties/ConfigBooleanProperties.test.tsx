@@ -21,7 +21,7 @@ describe('ConfigBooleanProperties', () => {
     });
     const properties = ['readOnly', 'required', 'hidden'];
     for (const property of properties) {
-      expect(getPropertyByRole('checkbox', property)).toBeInTheDocument();
+      expect(getPropertyByRole('switch', property)).toBeInTheDocument();
     }
   });
 
@@ -57,7 +57,7 @@ describe('ConfigBooleanProperties', () => {
       'formatting',
     ];
     for (const property of properties) {
-      expect(getPropertyByRole('checkbox', property)).toBeInTheDocument();
+      expect(getPropertyByRole('switch', property)).toBeInTheDocument();
     }
   });
 
@@ -75,7 +75,7 @@ describe('ConfigBooleanProperties', () => {
     expect(button).toBeInTheDocument();
     await user.click(button);
     expect(
-      screen.getByRole('checkbox', {
+      screen.getByRole('switch', {
         name: textMock('ux_editor.component_properties.timeStamp_v4'),
       }),
     ).toBeChecked();
@@ -91,7 +91,7 @@ describe('ConfigBooleanProperties', () => {
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
-    await user.click(getPropertyByRole('checkbox', 'readOnly'));
+    await user.click(getPropertyByRole('switch', 'readOnly'));
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({ readOnly: true }),
     );

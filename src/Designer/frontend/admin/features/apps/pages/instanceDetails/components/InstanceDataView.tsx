@@ -7,6 +7,7 @@ import {
   StudioError,
   StudioCard,
   StudioHeading,
+  StudioTag,
 } from '@studio/components';
 import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +20,6 @@ import { InstanceStatus } from 'admin/features/apps/pages/instances/components/I
 import { useAppMetadataQuery } from 'admin/features/apps/hooks/queries/useAppMetadataQuery';
 import { useReduceQueries } from 'admin/features/apps/hooks/useReduceQueries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { Tag } from '@digdir/designsystemet-react';
 import {
   FileTextIcon,
   PaperclipIcon,
@@ -307,9 +307,9 @@ const DataElementGroup = ({
             {label}
           </div>
           {taskName && (
-            <Tag size='sm' color='first'>
+            <StudioTag data-size='sm' color='first'>
               {taskName}
-            </Tag>
+            </StudioTag>
           )}
         </span>
       </StudioLabel>

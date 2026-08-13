@@ -1,8 +1,7 @@
 import React from 'react';
 import { useText } from '../../../../hooks';
 import type { GridSize } from '@studio/components-legacy';
-import { StudioGridSelector, StudioParagraph } from '@studio/components';
-import { Switch } from '@digdir/designsystemet-react';
+import { StudioGridSelector, StudioSwitch, StudioParagraph } from '@studio/components';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
 import { ObjectUtils } from '@studio/pure-functions';
@@ -54,9 +53,12 @@ export const EditGridForGivenViewSize = ({
           handleUpdateGrid(newGridObject);
         }}
       />
-      <Switch checked={!gridValues[viewSize]} onChange={handleSwitchChange} size='small'>
-        {t('ux_editor.modal_properties_grid_use_default')}
-      </Switch>
+      <StudioSwitch
+        data-size='sm'
+        checked={!gridValues[viewSize]}
+        onChange={handleSwitchChange}
+        label={t('ux_editor.modal_properties_grid_use_default')}
+      />
     </>
   );
 };

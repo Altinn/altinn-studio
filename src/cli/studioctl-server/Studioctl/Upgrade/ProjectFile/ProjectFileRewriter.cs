@@ -53,15 +53,14 @@ internal sealed class ProjectFileRewriter
         await Save();
     }
 
-    /// <summary>
-    /// Removes a package reference from the project file
-    /// </summary>
-    /// <param name="packageName">The name of the package to remove</param>
-    public async Task RemovePackageReference(string packageName)
+    /// <summary>Removes every <c>PackageReference</c> to <paramref name="packageName"/>.</summary>
+    /// <returns>Whether the project referenced the package at all, so the caller can report accurately.</returns>
+    public async Task<bool> RemovePackageReference(string packageName)
     {
         var packageElements = GetPackageReferenceElement(packageName);
         packageElements?.ForEach(e => e.Remove());
         await Save();
+        return packageElements is { Count: > 0 };
     }
 
     public async Task SetTargetFramework()

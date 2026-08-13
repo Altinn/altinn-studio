@@ -38,10 +38,8 @@ environmentVariables:
       value: dev.altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: GeneralSettings__CheckTeamMembershipForDeploy
       value: true
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -138,10 +136,8 @@ environmentVariables:
       value: staging.altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: GeneralSettings__CheckTeamMembershipForDeploy
       value: true
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -238,10 +234,8 @@ environmentVariables:
       value: altinn.studio
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
-    - name: GeneralSettings__DeploymentLocation
-      value: Templates/AspNet/deployment
-    - name: GeneralSettings__AppLocation
-      value: Templates/AspNet/App
+    - name: GeneralSettings__DefaultAppTemplate
+      value: v8
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint

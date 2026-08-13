@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
@@ -31,7 +32,7 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
             """
         );
 
-        var output = new StringWriter();
+        var report = new UpgradeReport();
         var error = new StringWriter();
 
         await V8Tov9Upgrade.RunAsync(
@@ -43,13 +44,18 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
                 SkipCsprojUpgrade: true,
                 ConvertPackageReferences: false,
                 StudioRoot: null,
-                Output: output,
+                Report: report,
                 Error: error,
                 CancellationToken: TestContext.Current.CancellationToken
             )
         );
 
-        return output.ToString() + error.ToString();
+        // The run reports into the report now, so flatten it - step names included, since a step name is
+        // what tells the reader which job a message came from.
+        var reported = report.Steps.SelectMany(step =>
+            step.Messages.Select(message => message.Text).Prepend(step.Name)
+        );
+        return string.Join(Environment.NewLine, reported) + error.ToString();
     }
 
     [Fact]
@@ -100,7 +106,7 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
 
         var log = await RunUpgrade();
 
-        Assert.Contains("Checking the Maskinporten configuration section", log, StringComparison.Ordinal);
+        Assert.Contains("Maskinporten settings", log, StringComparison.Ordinal);
         Assert.Contains("appsettings.json", log, StringComparison.Ordinal);
         Assert.Contains("Rename your own section", log, StringComparison.Ordinal);
     }
