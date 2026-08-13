@@ -98,6 +98,12 @@
       "groupName": "Design system in App"
     },
     {
+      "description": "Skip @percy/cypress 3.1.9: it depends on a beta @percy/sdk-utils (1.32.3-beta.1) whose waitForReady DOM-readiness step hangs, timing out all Cypress Percy snapshots. Allow again once a fixed release (>3.1.9) ships.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@percy/cypress"],
+      "allowedVersions": "!=3.1.9"
+    },
+    {
       "description": "Automerge non-major Altinn app template package updates",
       "matchManagers": ["nuget"],
       "matchFileNames": ["src/App/template/src/App/App.csproj"],
