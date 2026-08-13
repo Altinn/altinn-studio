@@ -3,7 +3,7 @@ import {
   StudioSectionHeader,
   StudioLabelAsParagraph,
   StudioLink,
-  StudioParagraph
+  StudioParagraph,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';

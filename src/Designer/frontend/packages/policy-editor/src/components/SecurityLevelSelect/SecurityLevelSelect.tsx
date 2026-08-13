@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { StudioHelpText, StudioSelect, StudioLabel, StudioLink, StudioHeading, StudioParagraph } from '@studio/components';
+import {
+  StudioHelpText,
+  StudioSelect,
+  StudioLabel,
+  StudioLink,
+  StudioHeading,
+  StudioParagraph,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 

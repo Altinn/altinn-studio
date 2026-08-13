@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react';
 import classes from './LocalChangesActionButton.module.css';
-import { StudioButton, StudioLabelAsParagraph, StudioLink, StudioParagraph } from '@studio/components';
+import {
+  StudioButton,
+  StudioLabelAsParagraph,
+  StudioLink,
+  StudioParagraph,
+} from '@studio/components';
 
 interface LinkAction {
   /**
