@@ -24,6 +24,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -918,15 +919,31 @@ public class RepositoryService : IRepository
     /// <inheritdoc/>
     public async Task DeleteRepository(string org, string repository)
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        string localServiceRepoFolder = _settings.GetServicePath(org, repository, developer);
+        using Activity activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(RepositoryService)}.{nameof(DeleteRepository)}"
+        );
+        activity?.SetTag("org", org);
+        activity?.SetTag("repository", repository);
 
-        if (Directory.Exists(localServiceRepoFolder))
+        try
         {
-            DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
-        }
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            activity?.SetTag("developer", developer);
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, developer);
 
-        await _giteaClient.DeleteRepository(org, repository);
+            if (Directory.Exists(localServiceRepoFolder))
+            {
+                DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
+            }
+
+            await _giteaClient.DeleteRepository(org, repository);
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.GetType().Name);
+            throw;
+        }
     }
 
     public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
