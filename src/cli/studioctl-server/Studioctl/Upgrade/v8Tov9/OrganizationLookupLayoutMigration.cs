@@ -29,13 +29,11 @@ internal static class OrganizationLookupLayoutMigration
         var uiDirectory = ResolveUiDirectory(projectFolder);
         if (uiDirectory is null)
         {
-            await UpgradeConsole.Out.WriteLineAsync("No UI directory found, skipping OrganizationLookup migration");
+            UpgradeConsole.Skip("No UI directory found");
             return 0;
         }
 
         var changedFiles = 0;
-        var changedComponents = 0;
-        var changedBindings = 0;
         foreach (var layoutFile in FindLayoutFiles(uiDirectory))
         {
             var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(layoutFile));
@@ -65,19 +63,17 @@ internal static class OrganizationLookupLayoutMigration
 
             await Utf8TextFile.Write(layoutFile, migrated, decoded.HadBom);
             changedFiles++;
-            changedComponents += occurrences.Components;
             var bindings = occurrences.OrganizationNumberBindings + occurrences.OrganizationNameBindings;
-            changedBindings += bindings;
-            await UpgradeConsole.Out.WriteLineAsync(
-                $"Migrated {occurrences.Components} OrganizationLookup component type(s) and {bindings} binding(s) in {layoutFile}"
+            UpgradeConsole.Ok(
+                $"Migrated {occurrences.Components} component type(s) and {bindings} binding(s) in {layoutFile}"
             );
         }
 
-        await UpgradeConsole.Out.WriteLineAsync(
-            changedFiles == 0
-                ? "No OrganisationLookup contract tokens found to migrate"
-                : $"Migrated {changedComponents} OrganizationLookup component type(s) and {changedBindings} binding(s) across {changedFiles} layout file(s)"
-        );
+        if (changedFiles == 0)
+        {
+            UpgradeConsole.Skip("No OrganisationLookup contract tokens found");
+        }
+
         return 0;
     }
 

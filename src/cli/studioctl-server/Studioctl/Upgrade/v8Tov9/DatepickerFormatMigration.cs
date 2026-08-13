@@ -29,7 +29,7 @@ internal static class DatepickerFormatMigration
         var uiDirectory = ResolveUiDirectory(projectFolder);
         if (uiDirectory is null)
         {
-            await UpgradeConsole.Out.WriteLineAsync("No UI directory found, skipping Datepicker format migration");
+            UpgradeConsole.Skip("No UI directory found, skipping Datepicker format migration");
             return 0;
         }
 
@@ -58,9 +58,7 @@ internal static class DatepickerFormatMigration
             await Utf8TextFile.Write(layoutFile, updated, decoded.HadBom);
             changedFiles.Add(layoutFile);
             changedFormats += replacedInFile;
-            await UpgradeConsole.Out.WriteLineAsync(
-                $"Migrated {replacedInFile} legacy Datepicker format value(s) in {layoutFile}"
-            );
+            UpgradeConsole.Ok($"Migrated {replacedInFile} legacy Datepicker format value(s) in {layoutFile}");
         }
 
         if (changedFiles.Count > 0)
@@ -75,11 +73,17 @@ internal static class DatepickerFormatMigration
             }
         }
 
-        await UpgradeConsole.Out.WriteLineAsync(
-            changedFiles.Count == 0
-                ? "No legacy Datepicker format values found to migrate"
-                : $"Migrated {changedFormats} legacy Datepicker format value(s) across {changedFiles.Count} layout file(s)"
-        );
+        if (changedFiles.Count == 0)
+        {
+            UpgradeConsole.Skip("No legacy Datepicker format values found to migrate");
+        }
+        else
+        {
+            UpgradeConsole.Ok(
+                $"Migrated {changedFormats} legacy Datepicker format value(s) across {changedFiles.Count} layout file(s)"
+            );
+        }
+
         return 0;
     }
 
