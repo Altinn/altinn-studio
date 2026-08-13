@@ -9,22 +9,31 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
+  
+### Fixed
+
+- Relax rules for validating Altinn.App.Api and Altinn.App.Core nuget versions to allow missing Core reference and range versions `8.*`, `[8.11.3]` and `[8.0,9.0)`
+
+## [0.1.0-preview.21] - 2026-08-11
+
 ### Added
 
-- Warn in `studioctl app upgrade v9` about uses of the Altinn Events receive stack removed in v9: `IEventHandler` implementations, `IEventsSubscription`, and `IEventSecretCodeProvider`. Apps no longer expose the `/api/v1/eventsreceiver` endpoint, so these are never invoked; the warning explains what to move to instead (a workflow-engine service task for self-addressed reminder events, or a purpose-built endpoint for genuine inbound events). Publishing app events through `IEventsClient` is unaffected and not reported.
-
+- Warn in `studioctl app upgrade v9` about uses of the Altinn Events receive stack removed in v9: `IEventHandler` implementations, `IEventsSubscription` and `IEventSecretCodeProvider`, along with the built-in handlers, resolver and clients behind them. Apps no longer expose the `/api/v1/eventsreceiver` endpoint, so these are never invoked; the warning explains what to move to instead (a workflow-engine service task for self-addressed reminder events, or a purpose-built endpoint for genuine inbound events). Publishing app events through `IEventsClient` is unaffected and not reported.
 - Auto-migrate the `PlatformHttpException` changes in `studioctl app upgrade v9`: rename `PlatformHttpException.CreateAsync(...)` to `Create(...)`, and rewrite constructor calls that built a throwaway `HttpResponseMessage` just to carry a status code into the v9 constructor that takes the status code directly. Every rewrite is listed for review, and any constructor call whose response argument cannot be identified is reported for you to finish by hand.
 - Warn in `studioctl app upgrade v9` about uses of `PlatformHttpException.Response` that the v9 response snapshot cannot satisfy. Reading `Response.StatusCode` is unaffected and is not reported. This includes a warning for apps that read the property by reflection and cast it to `HttpResponseMessage`, which keeps compiling but silently stops finding the status code.
 - Warn in `studioctl app upgrade v9` when an app supplies its own Maskinporten credentials in a configuration section named `MaskinportenSettings`. That section now belongs to the Maskinporten client every v9 app has, which Studio sets up automatically at deploy time — and because those provisioned settings are applied on top of `appsettings.json` and combined key by key, an app supplying its own `clientId`, `jwk` or `jwkBase64` there ends up with credentials belonging to neither client, which Maskinporten rejects. This applies whether the settings were meant for the external Maskinporten package or the built-in client. Nothing fails locally or at startup, so it is easy to miss without the warning. A section with only `authority` is fine, and `appsettings.Development.json` is reported without failing the upgrade, since deployed environments never load it.
 - Warn in `studioctl app upgrade v9` about the obsolete Maskinporten types removed in v9 (`IMaskinportenTokenProvider`, `MaskinportenJwkTokenProvider`, `AddMaskinportenJwkTokenProvider`, `IX509CertificateProvider`), pointing at the built-in `IMaskinportenClient` that replaces them.
-- Warn in `studioctl app upgrade v9` about the eFormidling status check handlers, which are no longer available to apps in v9 — `EformidlingStatusCheckEventHandler` is removed and `EformidlingStatusCheckEventHandler2` is now internal — pointing at `AddEFormidlingServices2<TM, TR>`, which registers the status check for you.
+- Warn in `studioctl app upgrade v9` about the eFormidling status check handlers, both removed in v9 — `EformidlingStatusCheckEventHandler` and `EformidlingStatusCheckEventHandler2`. The warning explains that nothing takes their place, because the v9 eFormidling service task waits for the delivery confirmation itself, and points at `AddEFormidling().WithMetadata<T>()` for the registration.
 - Report in `studioctl app upgrade v9` when an app uses the external `Altinn.ApiClients.Maskinporten` package, which v9 no longer supplies. Apps that declare the package themselves are told they can keep it and simply pointed at the built-in client; apps that relied on it arriving with `Altinn.App.Core` are told their build will break and given both ways out.
 - Warn in `studioctl app upgrade v9` when an app calls `ConfigureMaskinportenClient` with its own configuration section or a custom lambda. In v9 that takes over a client the app no longer owns alone: Studio provisions its credentials at deploy time and the workflow engine mints the app's service owner tokens through it, so redirecting it means the provisioned credentials are never read, and process transitions fail once deployed. Binding to the standard `MaskinportenSettings` section remains unchanged and is not reported.
 
 ### Changed
 
 - Rename `Header` layout components (and summary `componentType` refs) to `Heading` when running `studioctl app upgrade v9`.
-- `studioctl app upgrade v9` rewrites the eFormidling registration in the app's C# code: `AddEFormidlingServices<TM>(config)` and `AddEFormidlingServices<TM, TR>(config)` become `AddEFormidling().WithMetadata<TM>()`, with `.WithReceivers<TR>()` added only where the app supplies its own receivers. The `IConfiguration` argument is dropped, and the upgrade says so — eFormidling now reads its `EFormidlingClientSettings` section from the app's configuration directly. A registration written as a static call rather than `services.AddEFormidlingServices<..>(config)` is reported for you to change by hand.
+- `studioctl app upgrade v9` rewrites the eFormidling registration in the app's C# code: `AddEFormidlingServices<TM>(config)` and `AddEFormidlingServices<TM, TR>(config)`, and the `AddEFormidlingServices2` forms of both, become `AddEFormidling().WithMetadata<TM>()`, with `.WithReceivers<TR>()` added only where the app supplies its own receivers. The `IConfiguration` argument is dropped, and the upgrade says so — eFormidling now reads its `EFormidlingClientSettings` section from the app's configuration directly. A registration written as a static call rather than `services.AddEFormidlingServices<..>(config)` is reported for you to change by hand.
 
 ## [0.1.0-preview.20] - 2026-08-07
 

@@ -92,16 +92,12 @@ module.exports = {
         }
       },
       CallExpression(node) {
-        if (
-          !(
-            // Direct function call: lang('key')
-            (
-              (node.callee.type === 'Identifier' && functionCalls.indexOf(node.callee.name) !== -1) ||
-              // Method call: obj.lang('key') or this.lang('key')
-              (node.callee.type === 'MemberExpression' && functionCalls.indexOf(node.callee.property.name) !== -1)
-            )
-          )
-        ) {
+        if (!(
+          // Direct function call: lang('key')
+          (node.callee.type === 'Identifier' && functionCalls.indexOf(node.callee.name) !== -1) ||
+          // Method call: obj.lang('key') or this.lang('key')
+          (node.callee.type === 'MemberExpression' && functionCalls.indexOf(node.callee.property.name) !== -1)
+        )) {
           return;
         }
 

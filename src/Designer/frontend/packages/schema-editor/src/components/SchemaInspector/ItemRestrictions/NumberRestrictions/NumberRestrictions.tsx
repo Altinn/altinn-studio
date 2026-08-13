@@ -69,8 +69,7 @@ export function NumberRestrictions({
   const handleMinMaxChange = (
     event: React.ChangeEvent<HTMLInputElement> | React.FocusEvent<HTMLInputElement>,
     actionType:
-      | NumberRestrictionsReducerActionType.setMin
-      | NumberRestrictionsReducerActionType.setMax,
+      NumberRestrictionsReducerActionType.setMin | NumberRestrictionsReducerActionType.setMax,
   ) => {
     const newValue = event.target.value.trim();
     dispatchAction(

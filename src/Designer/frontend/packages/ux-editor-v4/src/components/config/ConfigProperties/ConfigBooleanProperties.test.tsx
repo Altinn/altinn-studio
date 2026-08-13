@@ -74,7 +74,11 @@ describe('ConfigBooleanProperties', () => {
     });
     expect(button).toBeInTheDocument();
     await user.click(button);
-    expect(getPropertyByRole('checkbox', 'timeStamp')).toBeChecked();
+    expect(
+      screen.getByRole('checkbox', {
+        name: textMock('ux_editor.component_properties.timeStamp_v4'),
+      }),
+    ).toBeChecked();
   });
 
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {

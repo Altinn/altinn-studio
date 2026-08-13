@@ -354,11 +354,7 @@ export interface ITextResource {
 export interface IVariable {
   key: string;
   dataSource:
-    | 'instanceContext'
-    | 'applicationSettings'
-    | 'dataModel.default'
-    | `dataModel.${string}`
-    | 'customTextParameters';
+    'instanceContext' | 'applicationSettings' | 'dataModel.default' | `dataModel.${string}` | 'customTextParameters';
   defaultValue?: string;
 }
 
