@@ -5,7 +5,6 @@
     ":prHourlyLimit4",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
-  "automerge": false,
   "customManagers": [
     {
       "customType": "regex",
@@ -107,13 +106,15 @@
       "groupName": "Design system in App"
     },
     {
-      "description": "Keep non-major Altinn app template package updates together",
+      "description": "Automerge non-major Altinn app template package updates",
       "matchManagers": ["nuget"],
       "matchFileNames": ["src/App/template/src/App/App.csproj"],
       "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Altinn app template NuGet packages",
-      "groupSlug": "app-template-nuget"
+      "groupSlug": "app-template-nuget",
+      "addLabels": ["approve"],
+      "automerge": true
     },
     {
       "matchFileNames": ["src/Runtime/localtest/**"],
@@ -185,11 +186,6 @@
       "groupSlug": "react-ecosystem",
       "additionalBranchPrefix": "",
       "commitMessageSuffix": ""
-    },
-    {
-      "description": "Require human approval for every Renovate pull request, including rules inherited from shared presets",
-      "matchPackageNames": ["*"],
-      "automerge": false
     }
   ],
   "schedule": []
