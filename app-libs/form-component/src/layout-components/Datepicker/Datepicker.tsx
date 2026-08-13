@@ -58,7 +58,7 @@ export function Datepicker({
   format,
   minDate,
   maxDate,
-  timeStamp = true,
+  timeStamp = false,
   readOnly,
   required,
   autoComplete,

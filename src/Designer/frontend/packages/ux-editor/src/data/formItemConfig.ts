@@ -212,7 +212,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: true,
+      timeStamp: false,
     },
     propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
