@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -25,8 +24,10 @@ public class FooterLayout
     public string Title { get; set; }
 
     [JsonPropertyName("target")]
-    [CanBeNull]
-    public string Target { get; set; }
+#nullable enable annotations
+    public string? Target { get; set; }
+
+#nullable disable annotations
 
     [JsonPropertyName("icon")]
     [JsonConverter(typeof(JsonStringEnumConverter))]

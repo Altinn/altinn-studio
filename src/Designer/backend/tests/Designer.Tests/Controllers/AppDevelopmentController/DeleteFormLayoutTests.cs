@@ -1,11 +1,11 @@
-﻿using System.IO;
+﻿#nullable disable
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -25,11 +25,12 @@ public class DeleteFormLayoutTests
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1")]
+#nullable enable annotations
     public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(
         string org,
         string app,
         string developer,
-        [CanBeNull] string layoutSetName,
+        string? layoutSetName,
         string layoutName
     )
     {
@@ -49,6 +50,8 @@ public class DeleteFormLayoutTests
         string layoutFilePath = Path.Combine(TestRepoPath, relativePath);
         Assert.False(File.Exists(layoutFilePath));
     }
+
+#nullable disable annotations
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "nonExistingLayoutFile")]

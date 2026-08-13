@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
@@ -129,12 +128,15 @@ public interface IAppDevelopmentService
     /// <param name="dataModelName">Name of data model to fetch</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model metadata for a given layout set.</returns>
+#nullable enable annotations
     public Task<ModelMetadata> GetModelMetadata(
         AltinnRepoEditingContext altinnRepoEditingContext,
-        [CanBeNull] string layoutSetName,
-        [CanBeNull] string dataModelName,
+        string? layoutSetName,
+        string? dataModelName,
         CancellationToken cancellationToken = default
     );
+
+#nullable disable annotations
 
     /// <summary>
     /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
