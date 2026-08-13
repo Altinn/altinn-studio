@@ -56,7 +56,8 @@ func renderUpgradeSteps(out *ui.Output, steps []studioctlserver.AppUpgradeStep) 
 }
 
 func splitByNewLines(text string) []string {
-	return strings.FieldsFunc(text, func(r rune) bool { return r == '\n' || r == '\r' })
+	normalized := strings.ReplaceAll(strings.ReplaceAll(text, "\r\n", "\n"), "\r", "\n")
+	return strings.Split(strings.TrimSuffix(normalized, "\n"), "\n")
 }
 
 // upgradeStatusStyle gives a status the label to print and the styles for that label and for the message
