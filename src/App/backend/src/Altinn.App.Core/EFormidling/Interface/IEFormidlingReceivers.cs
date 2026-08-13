@@ -1,5 +1,5 @@
+using Altinn.App.Core.EFormidling.Models.SBD;
 using Altinn.App.Core.Features;
-using Altinn.Common.EFormidlingClient.Models.SBD;
 
 namespace Altinn.App.Core.EFormidling.Interface;
 
