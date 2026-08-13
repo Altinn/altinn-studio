@@ -11,11 +11,18 @@ const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
 
 // noinspection JSUnusedGlobalSymbols
 module.exports = defineConfig({
+  allowCypressEnv: false,
   e2e: {
     setupNodeEvents(on, config) {
       const snapshotsPath = path.resolve('snapshots.json');
       require('cypress-terminal-report/src/installLogsPrinter')(on, { printLogsToConsole: 'always' });
-      on('file:preprocessor', vitePreprocessor(path.resolve(__dirname, 'vite.config.cypress.ts')));
+      on(
+        'file:preprocessor',
+        vitePreprocessor({
+          configFile: path.resolve(__dirname, 'vite.config.cypress.mts'),
+          configLoader: 'native',
+        }),
+      );
 
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.name === 'electron') {
@@ -76,7 +83,12 @@ module.exports = defineConfig({
         return getConfigurationByFile(config.env.environment).then((fileConfig) => ({
           ...fileConfig,
           env: {
+            ...config.env,
             ...fileConfig.env,
+          },
+          expose: {
+            ...config.expose,
+            ...fileConfig.expose,
             // Specs that assert on backend-local date/time values need the backend's timezone.
             // Only in localtest does the app backend run on the same machine as Cypress, so only
             // then is the machine timezone valid - read it here in the Node process, since the
@@ -104,6 +116,9 @@ Valid environments are:
   // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
   expose: {
     axeCorePath: require.resolve('axe-core/axe.min.js'),
+    // Percy uses this public local endpoint to communicate with its CLI. Exposing it prevents
+    // @percy/cypress from falling back to the disabled Cypress.env() API when Percy is not running.
+    PERCY_SERVER_ADDRESS: process.env.PERCY_SERVER_ADDRESS || 'http://localhost:5338',
   },
   fixturesFolder: 'test/e2e/fixtures',
   downloadsFolder: 'test/downloads',

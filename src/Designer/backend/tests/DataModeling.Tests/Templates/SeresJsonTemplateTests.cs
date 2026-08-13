@@ -25,7 +25,7 @@ public class SeresJsonTemplateTests
         var actualJsonTemplate = new SeresJsonTemplate(new Uri(expectedId), "melding");
 
         // Assert
-        JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
+        JsonSchema jsonSchema = JsonSchemaKeywords.FromText(actualJsonTemplate.GetJsonString());
         var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
         Assert.Equal(expectedId, idKeyword.Id.ToString());
 
@@ -45,7 +45,7 @@ public class SeresJsonTemplateTests
 
         var id = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
         var jsonSeresTemplate = new SeresJsonTemplate(new Uri(id), "melding");
-        JsonSchema jsonSchema = JsonSchema.FromText(jsonSeresTemplate.GetJsonString());
+        JsonSchema jsonSchema = JsonSchemaKeywords.FromText(jsonSeresTemplate.GetJsonString());
 
         XmlSchema xsd = ConvertJsonSchema(jsonSchema);
 

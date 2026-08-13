@@ -17,7 +17,7 @@ import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
-import { Link } from '@digdir/designsystemet-react';
+import { StudioLink } from '@studio/components';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
@@ -96,11 +96,7 @@ const renderDefaultToast = () => {
         <Trans
           i18nKey={'general.error_message'}
           components={{
-            a: (
-              <Link href='/info/contact' inverted={true}>
-                {' '}
-              </Link>
-            ),
+            a: <StudioLink href='/info/contact'> </StudioLink>,
           }}
         />
       </div>

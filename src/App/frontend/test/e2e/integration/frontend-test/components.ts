@@ -628,6 +628,12 @@ describe('UI Components', () => {
       } else {
         cy.get('#form-content-newFirstName').should('not.contain', 'Bruk 4 eller færre tegn');
       }
+      cy.get(appFrontend.errorReport).should('not.exist');
+      cy.get(appFrontend.changeOfName.newFirstName).type('a');
+      cy.get(appFrontend.changeOfName.confirmChangeName)
+        .findByRole('checkbox', { name: /Ja[a-z, ]*/ })
+        .check();
+      cy.findByRole('button', { name: /Neste/ }).click();
       cy.get(appFrontend.errorReport).should('be.visible');
       cy.get(appFrontend.errorReport).should('contain.text', 'Bruk 4 eller færre tegn');
     });

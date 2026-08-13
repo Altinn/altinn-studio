@@ -8,6 +8,10 @@ export const getPropertyByRole = (role: string, property: string): HTMLElement |
   });
 };
 
+export const getPropertyByLabel = (property: string): HTMLElement => {
+  return screen.getByLabelText(textMock(`ux_editor.component_properties.${property}`));
+};
+
 export const saveConfigChanges = async (user: UserEvent) => {
   const saveButton = screen.getByRole('button', { name: textMock('general.save') });
   await waitFor(() => expect(saveButton).toBeEnabled());

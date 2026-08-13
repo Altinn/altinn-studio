@@ -120,8 +120,8 @@ describe('DatepickerComponent', () => {
 
     await userEvent.click(calendarButton);
 
-    // Ignore TZ part of timestamp to avoid test failing when this changes
-    // DatePickerCalendar opens up on current year/month by default, so we need to cater for this in the expected output
+    // DatePickerCalendar opens on current year/month by default; with timeStamp false (new default)
+    // the saved value is a date-only string (yyyy-MM-dd).
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}`),
@@ -174,7 +174,7 @@ describe('DatepickerComponent', () => {
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: expect.stringContaining('2022-12-31T00:00:00'),
+      newValue: '2022-12-31',
     });
   });
 
