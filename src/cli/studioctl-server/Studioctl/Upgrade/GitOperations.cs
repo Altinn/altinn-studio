@@ -36,29 +36,29 @@ internal static class GitOperations
 
     /// <summary>
     /// Stages every change in the repository containing <paramref name="path"/> — the equivalent of
-    /// <c>git add -A</c>. Failures are reported to <paramref name="output"/> and never fail the caller.
+    /// <c>git add -A</c>. Failures are reported and never fail the caller.
     /// </summary>
-    public static void StageAllChanges(string path, TextWriter output)
+    public static void StageAllChanges(string path)
     {
         try
         {
             using var repo = TryOpenRepository(path);
             if (repo is null)
             {
-                output.WriteLine("Not a git repository - leaving changes unstaged");
+                UpgradeConsole.Skip("Not a git repository - leaving changes unstaged");
                 return;
             }
 
             Commands.Stage(repo, "*");
 
             using var stagedChanges = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index);
-            output.WriteLine(
+            UpgradeConsole.Ok(
                 $"Staged the {stagedChanges.Count} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them"
             );
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            output.WriteLine($"Warning: Failed to stage changes: {ex.Message}");
+            UpgradeConsole.Warning($"Failed to stage changes: {ex.Message}");
         }
     }
 
