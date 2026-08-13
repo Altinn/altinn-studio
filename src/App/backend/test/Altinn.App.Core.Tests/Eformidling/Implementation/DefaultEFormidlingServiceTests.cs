@@ -418,11 +418,11 @@ public class DefaultEFormidlingServiceTests
             .ReturnsAsync(
                 // A status entry without a status value (the frozen client model is pre-NRT, so a
                 // missing field deserialises to null) must not break the recovery path.
-                new MessageStatuses
+                new Statuses
                 {
                     Content = statuses
-                        .Select(status => new MessageStatuses.Entry { Status = status })
-                        .Prepend(new MessageStatuses.Entry())
+                        .Select(status => new Statuses.Entry { Status = status })
+                        .Prepend(new Statuses.Entry())
                         .ToList(),
                 }
             );
@@ -526,12 +526,12 @@ public class DefaultEFormidlingServiceTests
             setupEFormidlingClient: static c =>
                 c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(
-                        new MessageStatuses
+                        new Statuses
                         {
                             Content =
                             [
-                                new MessageStatuses.Entry { Status = "sendt" },
-                                new MessageStatuses.Entry { Status = "levert", Description = "Levert til mottaker" },
+                                new Statuses.Entry { Status = "sendt" },
+                                new Statuses.Entry { Status = "levert", Description = "Levert til mottaker" },
                             ],
                         }
                     )

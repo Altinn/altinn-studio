@@ -5,12 +5,12 @@ namespace Altinn.App.Core.Tests.Eformidling.Implementation;
 
 public class EFormidlingStatusReaderTests
 {
-    private static MessageStatuses StatusList(string statuses) =>
+    private static Statuses StatusList(string statuses) =>
         new()
         {
             Content = statuses
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(status => new MessageStatuses.Entry { Status = status })
+                .Select(status => new Statuses.Entry { Status = status })
                 .ToList(),
         };
 
@@ -51,12 +51,12 @@ public class EFormidlingStatusReaderTests
     [Fact]
     public void Classify_reports_the_entry_that_decided_a_terminal_state()
     {
-        MessageStatuses statuses = new()
+        Statuses statuses = new()
         {
             Content =
             [
-                new MessageStatuses.Entry { Status = "opprettet" },
-                new MessageStatuses.Entry { Status = "feil", Description = "Mottaker er ikke registrert" },
+                new Statuses.Entry { Status = "opprettet" },
+                new Statuses.Entry { Status = "feil", Description = "Mottaker er ikke registrert" },
             ],
         };
 
@@ -81,16 +81,13 @@ public class EFormidlingStatusReaderTests
     {
         // The integrasjonspunkt may not know the message yet, in which case it reports a page whose
         // content list is absent entirely.
-        Assert.Equal(EFormidlingDeliveryState.Pending, EFormidlingStatusReader.Classify(new MessageStatuses()).State);
+        Assert.Equal(EFormidlingDeliveryState.Pending, EFormidlingStatusReader.Classify(new Statuses()).State);
     }
 
     [Fact]
     public void Classify_tolerates_entries_without_a_status_value()
     {
-        MessageStatuses statuses = new()
-        {
-            Content = [new MessageStatuses.Entry(), new MessageStatuses.Entry { Status = "levert" }],
-        };
+        Statuses statuses = new() { Content = [new Statuses.Entry(), new Statuses.Entry { Status = "levert" }] };
 
         Assert.Equal(EFormidlingDeliveryState.Delivered, EFormidlingStatusReader.Classify(statuses).State);
     }
@@ -110,6 +107,6 @@ public class EFormidlingStatusReaderTests
     [Fact]
     public void HasLeftOutbox_treats_an_absent_status_list_as_still_in_the_outbox()
     {
-        Assert.False(EFormidlingStatusReader.HasLeftOutbox(new MessageStatuses()));
+        Assert.False(EFormidlingStatusReader.HasLeftOutbox(new Statuses()));
     }
 }

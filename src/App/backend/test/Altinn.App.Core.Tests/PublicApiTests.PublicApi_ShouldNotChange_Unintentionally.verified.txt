@@ -171,7 +171,7 @@ namespace Altinn.App.Core.EFormidling.Interface
     public interface IEFormidlingClient
     {
         System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocument> CreateMessage(Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocument sbd, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.MessageStatuses> GetMessageStatusById(string messageId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.EFormidling.Models.Statuses> GetMessageStatusById(string messageId, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task SendMessage(string messageId, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task UploadAttachment(System.IO.Stream attachment, string messageId, string filename, System.Threading.CancellationToken cancellationToken = default);
     }
@@ -362,11 +362,11 @@ namespace Altinn.App.Core.EFormidling.Models
         [System.Xml.Serialization.XmlAttribute(AttributeName="type", Namespace="http://www.w3.org/2001/XMLSchema-instance")]
         public string? Type { get; set; }
     }
-    public sealed class MessageStatuses
+    public sealed class Statuses
     {
-        public MessageStatuses() { }
+        public Statuses() { }
         [System.Text.Json.Serialization.JsonPropertyName("content")]
-        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.MessageStatuses.Entry>? Content { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Statuses.Entry>? Content { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("empty")]
         public bool Empty { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("first")]
@@ -378,11 +378,11 @@ namespace Altinn.App.Core.EFormidling.Models
         [System.Text.Json.Serialization.JsonPropertyName("numberOfElements")]
         public int NumberOfElements { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("pageable")]
-        public Altinn.App.Core.EFormidling.Models.MessageStatuses.PageInfo? Pageable { get; set; }
+        public Altinn.App.Core.EFormidling.Models.Statuses.PageInfo? Pageable { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("size")]
         public int Size { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("sort")]
-        public Altinn.App.Core.EFormidling.Models.MessageStatuses.SortInfo? Sort { get; set; }
+        public Altinn.App.Core.EFormidling.Models.Statuses.SortInfo? Sort { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("totalElements")]
         public int TotalElements { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("totalPages")]
@@ -417,7 +417,7 @@ namespace Altinn.App.Core.EFormidling.Models
             [System.Text.Json.Serialization.JsonPropertyName("paged")]
             public bool Paged { get; set; }
             [System.Text.Json.Serialization.JsonPropertyName("sort")]
-            public Altinn.App.Core.EFormidling.Models.MessageStatuses.SortInfo? Sort { get; set; }
+            public Altinn.App.Core.EFormidling.Models.Statuses.SortInfo? Sort { get; set; }
             [System.Text.Json.Serialization.JsonPropertyName("unpaged")]
             public bool Unpaged { get; set; }
         }

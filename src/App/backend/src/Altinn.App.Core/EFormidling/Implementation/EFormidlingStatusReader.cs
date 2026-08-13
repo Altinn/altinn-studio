@@ -24,14 +24,14 @@ internal static class EFormidlingStatusReader
     /// Lets the send path tell a duplicate that is already on its way from one that was created but
     /// never sent, and so needs its upload/send steps finishing.
     /// </summary>
-    internal static bool HasLeftOutbox(MessageStatuses statuses) =>
+    internal static bool HasLeftOutbox(Statuses statuses) =>
         Find(statuses, Sent, ReceivedByRecipient, Delivered, Read) is not null;
 
     /// <summary>
     /// Classifies the status list into the outcome a caller acts on. Delivery wins over failure: a
     /// shipment that recorded an error and was delivered anyway has been delivered.
     /// </summary>
-    internal static EFormidlingShipmentStatus Classify(MessageStatuses statuses)
+    internal static EFormidlingShipmentStatus Classify(Statuses statuses)
     {
         if (Find(statuses, Delivered, Read) is { } delivered)
         {
@@ -48,7 +48,7 @@ internal static class EFormidlingStatusReader
         return Describe(EFormidlingDeliveryState.Pending, LastOrDefault(statuses));
     }
 
-    private static EFormidlingShipmentStatus Describe(EFormidlingDeliveryState state, MessageStatuses.Entry? entry) =>
+    private static EFormidlingShipmentStatus Describe(EFormidlingDeliveryState state, Statuses.Entry? entry) =>
         new()
         {
             State = state,
@@ -61,15 +61,15 @@ internal static class EFormidlingStatusReader
     /// integrasjonspunkt may omit the field — and
     /// <see cref="string.Equals(string?, string?, StringComparison)"/> handles that.
     /// </summary>
-    private static MessageStatuses.Entry? Find(MessageStatuses statuses, params ReadOnlySpan<string> wanted)
+    private static Statuses.Entry? Find(Statuses statuses, params ReadOnlySpan<string> wanted)
     {
-        List<MessageStatuses.Entry>? content = statuses.Content;
+        List<Statuses.Entry>? content = statuses.Content;
         if (content is null)
         {
             return null;
         }
 
-        foreach (MessageStatuses.Entry entry in content)
+        foreach (Statuses.Entry entry in content)
         {
             foreach (string candidate in wanted)
             {
@@ -83,9 +83,9 @@ internal static class EFormidlingStatusReader
         return null;
     }
 
-    private static MessageStatuses.Entry? LastOrDefault(MessageStatuses statuses)
+    private static Statuses.Entry? LastOrDefault(Statuses statuses)
     {
-        List<MessageStatuses.Entry>? content = statuses.Content;
+        List<Statuses.Entry>? content = statuses.Content;
         return content is { Count: > 0 } ? content[^1] : null;
     }
 }

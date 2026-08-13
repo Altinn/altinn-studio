@@ -2062,6 +2062,51 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNestedStatusModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusReader.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class StatusReader
+            {
+                public bool Delivered(Statuses statuses) =>
+                    statuses.Content.Exists((Content entry) => entry.Status == "levert");
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Content", StringComparison.Ordinal));
+        // Statuses itself keeps its name, so it must not be reported as changed.
+        Assert.DoesNotContain(Summaries(result), w => w.Contains("Statuses is ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
+    {
+        // "Content" is an everyday identifier. Only files reaching into the eFormidling models
+        // namespace can plausibly mean the nested status type.
+        _app.Write(
+            "logic/Clients/SomeClient.cs",
+            """
+            using System.Net.Http;
+            public class SomeClient
+            {
+                public async Task<string> Read(HttpResponseMessage response) =>
+                    await response.Content.ReadAsStringAsync();
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- Scanner ---------------------------------------------------------------------------------
 
     [Fact]

@@ -60,7 +60,7 @@ public interface IEFormidlingClient
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>
     /// The status page. A message that exists but has no statuses yet returns a page with an empty
-    /// <see cref="MessageStatuses.Content"/> rather than null.
+    /// <see cref="Statuses.Content"/> rather than null.
     /// </returns>
-    Task<MessageStatuses> GetMessageStatusById(string messageId, CancellationToken cancellationToken = default);
+    Task<Statuses> GetMessageStatusById(string messageId, CancellationToken cancellationToken = default);
 }

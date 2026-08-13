@@ -11,7 +11,7 @@ namespace Altinn.App.Core.EFormidling.Models;
 /// matches the API response.
 /// Ref: <see href="https://docs.digdir.no/eformidling_nm_restdocs.html"/>.
 /// </remarks>
-public sealed class MessageStatuses
+public sealed class Statuses
 {
     /// <summary>
     /// The statuses on this page, oldest first in practice — though the API promises no ordering.

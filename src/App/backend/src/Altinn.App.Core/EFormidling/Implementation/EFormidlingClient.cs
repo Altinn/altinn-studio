@@ -159,10 +159,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
     }
 
     /// <inheritdoc/>
-    public async Task<MessageStatuses> GetMessageStatusById(
-        string messageId,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Statuses> GetMessageStatusById(string messageId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
         using Activity? activity = _telemetry?.StartEFormidlingGetMessageStatusActivity();
@@ -174,7 +171,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, "read eFormidling message status", cancellationToken);
 
-        return await ReadJson<MessageStatuses>(response, cancellationToken);
+        return await ReadJson<Statuses>(response, cancellationToken);
     }
 
     /// <summary>

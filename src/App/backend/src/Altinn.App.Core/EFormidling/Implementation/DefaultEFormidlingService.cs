@@ -98,7 +98,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         }
         catch (PlatformHttpException e) when (IsMessageAlreadyExistsError(e))
         {
-            MessageStatuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, cancellationToken);
+            Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, cancellationToken);
             if (EFormidlingStatusReader.HasLeftOutbox(statuses))
             {
                 _logger.LogInformation(
@@ -167,7 +167,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
 
         string instanceGuid = dataAccessor.Instance.Id.Split("/")[1];
 
-        MessageStatuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, cancellationToken);
+        Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, cancellationToken);
         EFormidlingShipmentStatus status = EFormidlingStatusReader.Classify(statuses);
 
         _logger.LogInformation(
@@ -287,7 +287,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         return body.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
     }
 
-    private static void ThrowIfMessageFailed(MessageStatuses statuses, string messageId)
+    private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
     {
         if (EFormidlingStatusReader.Classify(statuses) is { State: EFormidlingDeliveryState.Failed } failed)
         {

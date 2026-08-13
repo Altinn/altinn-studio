@@ -44,6 +44,29 @@ internal sealed class RemovedEFormidlingClientApiDetector
         "CreateSubscription",
     };
 
+    /// <summary>
+    /// Types that still exist but are now nested inside <c>Statuses</c>. Their old names were too
+    /// generic to sit in a shared namespace; <c>Statuses</c> itself is unchanged.
+    /// </summary>
+    private static readonly IReadOnlySet<string> _nestedModels = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Content",
+        "Sort",
+        "Pageable",
+    };
+
+    /// <summary>
+    /// The models namespace, before and after the move. Matching these nested names anywhere would be
+    /// far too broad — <c>Content</c> in particular is an everyday identifier — so they are only
+    /// reported in files that reference the namespace they came from. The new name is checked first
+    /// because the namespace rewrite has already run by the time detection happens.
+    /// </summary>
+    private static readonly string[] _modelNamespaces =
+    [
+        "Altinn.App.Core.EFormidling.Models",
+        "Altinn.Common.EFormidlingClient.Models",
+    ];
+
     private const string ExtensionsSummary =
         "Altinn.EFormidlingClient.Extensions is removed in v9 and has no replacement namespace. It held "
         + "HttpClientExtension - the GetAsync/PostAsync/PutAsync/DeleteAsync overloads taking a "
@@ -52,6 +75,12 @@ internal sealed class RemovedEFormidlingClientApiDetector
         + "different type with different overloads and is not a drop-in substitute. If the app used these "
         + "overloads for its own HTTP calls (unrelated to eFormidling), build the HttpRequestMessage directly "
         + "and add the headers to it, then call HttpClient.SendAsync. Update these files by hand:";
+
+    private const string NestedSummary =
+        "These eFormidling status models are now nested inside the Statuses class they describe, because "
+        + "their old names were too generic to sit in a shared namespace: Content is Statuses.Entry, Sort is "
+        + "Statuses.SortInfo, and Pageable is Statuses.PageInfo. Statuses itself is unchanged, and so is the "
+        + "JSON on the wire. Qualify these usages:";
 
     private const string EndpointsSummary =
         "These IEFormidlingClient members are removed in v9. The client keeps only what a shipment is made "
@@ -66,6 +95,9 @@ internal sealed class RemovedEFormidlingClientApiDetector
         _scanner = scanner;
     }
 
+    private static bool ReferencesModelsNamespace(ScannedCSharpFile file) =>
+        Array.Exists(_modelNamespaces, ns => CSharpSyntaxQueries.UsingNamespaces(file, ns).Any());
+
     public MigrationResult Detect()
     {
         var extensions = _scanner.Files.SelectMany(file =>
@@ -78,9 +110,14 @@ internal sealed class RemovedEFormidlingClientApiDetector
                 .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedModels))
         );
 
+        var nested = _scanner
+            .Files.Where(ReferencesModelsNamespace)
+            .SelectMany(file => CSharpSyntaxQueries.TypeReferences(file, _nestedModels));
+
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(ExtensionsSummary, extensions),
-            WarnOnlyDetector.Report(EndpointsSummary, endpoints)
+            WarnOnlyDetector.Report(EndpointsSummary, endpoints),
+            WarnOnlyDetector.Report(NestedSummary, nested)
         );
     }
 }
