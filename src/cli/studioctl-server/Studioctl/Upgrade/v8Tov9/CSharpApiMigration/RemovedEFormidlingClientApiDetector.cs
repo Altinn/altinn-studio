@@ -15,8 +15,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <item>The arkivmelding properties that became lists to match the schema's <c>unbounded</c>
 /// cardinality.</item>
 /// <item>The SBD's <c>Arkivmelding</c>, renamed to <c>ArkivmeldingMetadata</c>.</item>
+/// <item>Aliased <c>using</c> directives and fully-qualified references, which the rewrite skips.</item>
 /// </list>
-/// The last three are scoped to files referencing the namespace they came from, since their names are
+/// Concerns 3 to 5 are scoped to files referencing the namespace they came from, since their names are
 /// far too ordinary to match safely across a whole app.
 /// </remarks>
 internal sealed class RemovedEFormidlingClientApiDetector
@@ -79,9 +80,20 @@ internal sealed class RemovedEFormidlingClientApiDetector
     /// </summary>
     private static readonly IReadOnlySet<string> _repeatableOwners = new HashSet<string>(StringComparer.Ordinal)
     {
+        "Mappe",
         "Basisregistrering",
         "Dokumentbeskrivelse",
     };
+
+    /// <summary>
+    /// Namespaces the rewrite handles for plain <c>using</c> directives only. An aliased directive or a
+    /// fully-qualified reference survives it untouched, so both are reported instead.
+    /// </summary>
+    private static readonly string[] _clientNamespaces =
+    [
+        "Altinn.Common.EFormidlingClient",
+        "Altinn.EFormidlingClient",
+    ];
 
     /// <summary>
     /// The SBD envelope namespace, before and after the move.
@@ -120,12 +132,22 @@ internal sealed class RemovedEFormidlingClientApiDetector
         + "Arkivmelding and still serializes to \"arkivmelding\". Rename these usages:";
 
     private const string RepeatableSummary =
-        "Two arkivmelding properties are now lists, matching the Noark 5 schema, which has always "
-        + "declared both as maxOccurs=\"unbounded\": Basisregistrering.Dokumentbeskrivelse is a "
-        + "List<Dokumentbeskrivelse> and Dokumentbeskrivelse.Dokumentobjekt is a List<Dokumentobjekt>. "
-        + "Wrap the existing initialisers in a collection; Basisregistrering also gained an optional "
-        + "Dokumentobjekt list for objects attached directly to the registration. Apps that carry their "
-        + "own copy of these models are unaffected:";
+        "Four arkivmelding properties are now lists, matching the Noark 5 schema, which has always "
+        + "declared them as maxOccurs=\"unbounded\": Mappe.Basisregistrering, "
+        + "Basisregistrering.Dokumentbeskrivelse, Basisregistrering.Korrespondansepart and "
+        + "Dokumentbeskrivelse.Dokumentobjekt. Wrap the existing initialisers in a collection; "
+        + "Basisregistrering also gained an optional Dokumentobjekt list for objects attached directly "
+        + "to the registration. The elements of these types are now also emitted in the schema's "
+        + "sequence rather than sorted by name, which needs nothing from you unless your app reads the "
+        + "generated XML back. Apps that carry their own copy of these models are unaffected:";
+
+    private const string QualifiedSummary =
+        "These eFormidling client references survive the v9 namespace rewrite untouched, because it "
+        + "only rewrites plain 'using' directives. An aliased directive (using X = "
+        + "Altinn.Common.EFormidlingClient;) and a name written out in full "
+        + "(Altinn.Common.EFormidlingClient.IEFormidlingClient) both have to be repointed by hand. The "
+        + "namespaces moved to Altinn.App.Core.EFormidling - Interface for the client itself, and "
+        + "Configuration, Models and Models.SBD for the rest:";
 
     private const string NestedSummary =
         "These eFormidling status models are now nested inside the Statuses class they describe: Content "
@@ -182,12 +204,21 @@ internal sealed class RemovedEFormidlingClientApiDetector
                     )
             );
 
+        var qualified = _scanner.Files.SelectMany(file =>
+            _clientNamespaces.SelectMany(ns =>
+                CSharpSyntaxQueries
+                    .AliasedUsingNamespaces(file, ns)
+                    .Concat(CSharpSyntaxQueries.QualifiedNameReferences(file, ns))
+            )
+        );
+
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(ExtensionsSummary, extensions),
             WarnOnlyDetector.Report(EndpointsSummary, endpoints),
             WarnOnlyDetector.Report(NestedSummary, nested),
             WarnOnlyDetector.Report(RepeatableSummary, repeatable),
-            WarnOnlyDetector.Report(SbdSummary, sbd)
+            WarnOnlyDetector.Report(SbdSummary, sbd),
+            WarnOnlyDetector.Report(QualifiedSummary, qualified)
         );
     }
 }

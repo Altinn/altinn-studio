@@ -425,6 +425,66 @@ internal static class CSharpSyntaxQueries
     }
 
     /// <summary>
+    /// Aliased <c>using</c> directives (<c>using X = A.B;</c>) naming <paramref name="namespacePrefix"/>
+    /// or a namespace nested under it. Separate from <see cref="UsingNamespaces"/> because the
+    /// namespace rewrite deliberately skips aliased directives - it only rewrites a plain
+    /// <c>using A.B;</c> - so these are the ones a human still has to change.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> AliasedUsingNamespaces(ScannedCSharpFile file, string namespacePrefix)
+    {
+        foreach (var directive in file.Root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            if (directive.Alias is null || directive.Name?.ToString() is not { } name)
+            {
+                continue;
+            }
+
+            if (
+                name.Equals(namespacePrefix, StringComparison.Ordinal)
+                || name.StartsWith(namespacePrefix + ".", StringComparison.Ordinal)
+            )
+            {
+                yield return new CSharpApiMatch(
+                    file.RelativePath,
+                    file.GetLine(directive),
+                    $"using {directive.Alias.Name} = {name}"
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fully-qualified references to <paramref name="namespacePrefix"/> written out in code rather than
+    /// imported (<c>Altinn.Common.EFormidlingClient.IEFormidlingClient</c>). The namespace rewrite only
+    /// touches <c>using</c> directives, so these survive it untouched and must be changed by hand.
+    /// </summary>
+    /// <remarks>
+    /// Only the outermost qualified name is reported: <see cref="SyntaxNode.DescendantNodes"/> also
+    /// yields the nested left-hand names of a qualified name, which would report the same reference
+    /// several times over. Names inside <c>using</c> directives are skipped - those are already covered
+    /// by <see cref="UsingNamespaces"/> and <see cref="AliasedUsingNamespaces"/>.
+    /// </remarks>
+    public static IEnumerable<CSharpApiMatch> QualifiedNameReferences(ScannedCSharpFile file, string namespacePrefix)
+    {
+        foreach (var qualified in file.Root.DescendantNodes().OfType<QualifiedNameSyntax>())
+        {
+            if (
+                qualified.Parent is QualifiedNameSyntax
+                || qualified.FirstAncestorOrSelf<UsingDirectiveSyntax>() is not null
+            )
+            {
+                continue;
+            }
+
+            var name = qualified.ToString();
+            if (name.StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(qualified), name);
+            }
+        }
+    }
+
+    /// <summary>
     /// Whether <paramref name="name"/> is the name that identifies a base-list entry itself - the
     /// name <see cref="TypesImplementing"/> resolves and reports - as opposed to a name nested
     /// inside it (a generic type argument).

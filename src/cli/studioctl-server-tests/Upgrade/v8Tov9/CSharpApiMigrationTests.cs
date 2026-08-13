@@ -2161,6 +2161,59 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingClientDetector_FlagsReferencesTheNamespaceRewriteCannotReach()
+    {
+        // The rewrite only touches plain `using A.B;`. An alias and a fully-qualified name both
+        // survive it, so they are reported rather than silently left broken.
+        _app.Write(
+            "logic/Eformidling/Aliased.cs",
+            """
+            using Client = Altinn.Common.EFormidlingClient;
+            public class Aliased
+            {
+                private Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        var locations = Locations(result).ToList();
+        Assert.Contains(
+            locations,
+            w => w.Contains("using Client = Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            locations,
+            w => w.Contains("Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
+    {
+        // A plain using is rewritten automatically, so reporting it would be noise.
+        _app.Write(
+            "logic/Eformidling/Plain.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class Plain
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(
+            Summaries(result),
+            s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
     public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
     {
         // "Content" is an everyday identifier. Only files reaching into the eFormidling models
