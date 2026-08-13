@@ -4,11 +4,12 @@ import {
   uploadFileWithTagAndVerify,
 } from 'test/e2e/support/apps/component-library/uploadFileAndVerify';
 
+import { FileScanResults } from 'src/features/attachments/types';
+
 const appFrontend = new AppFrontend();
 
 describe('FileUpload, FileUploadWithTags, AttachmentList test', () => {
   it('shows an infected file inline before revealing the error report on blocked navigation', () => {
-    const fileName = 'infected.pdf';
     let uploadedDataElementId: string | undefined;
     let scanPolls = 0;
 
@@ -31,7 +32,7 @@ describe('FileUpload, FileUploadWithTags, AttachmentList test', () => {
         const uploadedFile = res.body.instance.data.find(
           (dataElement: { id: string }) => dataElement.id === uploadedDataElementId,
         );
-        uploadedFile.fileScanResult = 'Pending';
+        uploadedFile.fileScanResult = FileScanResults.Pending;
       });
     }).as('infectedFileUpload');
 
@@ -48,12 +49,12 @@ describe('FileUpload, FileUploadWithTags, AttachmentList test', () => {
 
           // Mark the file as infected after a few polls
           scanPolls += 1;
-          uploadedFile.fileScanResult = scanPolls >= 2 ? 'Infected' : 'Pending';
+          uploadedFile.fileScanResult = scanPolls >= 2 ? FileScanResults.Infected : FileScanResults.Pending;
         }
       });
     });
 
-    uploadFileAndVerify(fileName);
+    uploadFileAndVerify('infected.pdf');
     cy.wait('@infectedFileUpload');
     cy.wait('@fileScanPoll', { timeout: 20000 });
     cy.wait('@fileScanPoll', { timeout: 20000 });
