@@ -2,11 +2,12 @@ import type { IInternalLayout } from '../../types/global';
 import { FormTree } from './FormTree';
 import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { Alert, Paragraph } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { FormLayoutWarning } from './FormLayoutWarning';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItem } from './AddItem';
 import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { StudioParagraph } from '@studio/components';
 
 export interface FormLayoutProps {
   layout: IInternalLayout;
@@ -39,7 +40,7 @@ const MultiPageWarning = () => {
   const { t } = useTranslation();
   return (
     <Alert severity='warning'>
-      <Paragraph size='small'>{t('ux_editor.multi_page_warning')}</Paragraph>
+      <StudioParagraph data-size='sm'>{t('ux_editor.multi_page_warning')}</StudioParagraph>
     </Alert>
   );
 };

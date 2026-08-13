@@ -1,4 +1,4 @@
-import { Switch } from '@digdir/designsystemet-react';
+import { StudioSwitch } from '@studio/components';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText, useComponentPropertyLabel, useComponentPropertyHelpText } from '../../../hooks';
 import { FormField } from '../../FormField';
@@ -50,16 +50,15 @@ export const EditBooleanValue = ({
       className={className}
       renderField={({ fieldProps }) => {
         return (
-          <Switch
+          <StudioSwitch
+            data-size='sm'
             {...fieldProps}
             checked={fieldProps.value ?? defaultValue}
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
-            size='small'
             id={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(fieldProps.value)}
-          >
-            {componentPropertyLabel(propertyKey)}
-          </Switch>
+            label={componentPropertyLabel(propertyKey)}
+          />
         );
       }}
     />

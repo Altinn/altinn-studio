@@ -3,12 +3,17 @@ import { useCallback, useState, useMemo } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset, Switch } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { StudioDecimalInput, StudioSelect, StudioTextfield } from '@studio/components';
+import {
+  StudioDecimalInput,
+  StudioSelect,
+  StudioSwitch,
+  StudioTextfield,
+} from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,
@@ -243,13 +248,12 @@ function DateOrTimeFormatRestrictions({
             onChange={handleSetEarliest}
             value={formatState.earliest}
           />
-          <Switch
-            size='small'
+          <StudioSwitch
+            data-size='sm'
             checked={formatState.earliestIsInclusive}
             onChange={handleSetMinIncl}
-          >
-            {t('format_date_inclusive')}
-          </Switch>
+            label={t('format_date_inclusive')}
+          />
         </div>
       </div>
       <div>
@@ -259,9 +263,12 @@ function DateOrTimeFormatRestrictions({
             onChange={handleSetLatest}
             value={formatState.latest}
           />
-          <Switch size='small' checked={formatState.latestIsInclusive} onChange={handleSetMaxIncl}>
-            {t('format_date_inclusive')}
-          </Switch>
+          <StudioSwitch
+            data-size='sm'
+            checked={formatState.latestIsInclusive}
+            onChange={handleSetMaxIncl}
+            label={t('format_date_inclusive')}
+          />
         </div>
       </div>
     </>

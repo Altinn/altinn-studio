@@ -35,12 +35,7 @@ import { StringUtils } from '@studio/pure-functions';
 import type { CellTextResourceInputProps } from './Cell/CellTextResource';
 
 type ElementName =
-  | 'checkbox'
-  | 'textfield'
-  | 'numberfield'
-  | 'textarea'
-  | 'button'
-  | 'textResource';
+  'checkbox' | 'textfield' | 'numberfield' | 'textarea' | 'button' | 'textResource';
 type NativeElement<Name extends ElementName> = {
   checkbox: HTMLInputElement;
   textfield: HTMLInputElement;

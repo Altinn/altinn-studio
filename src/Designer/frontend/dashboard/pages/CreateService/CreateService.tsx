@@ -87,20 +87,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
 
           switch (errorKind) {
             case ErrorKind.AppNameAlreadyExists:
-              setFormError(
-                (prevErrors): CreateServiceFormError => ({
-                  ...prevErrors,
-                  repoName: t('dashboard.app_already_exists'),
-                }),
-              );
+              setFormError((prevErrors): CreateServiceFormError => ({
+                ...prevErrors,
+                repoName: t('dashboard.app_already_exists'),
+              }));
               break;
             case ErrorKind.TemplateError:
-              setFormError(
-                (prevErrors): CreateServiceFormError => ({
-                  ...prevErrors,
-                  template: t('dashboard.new_application_form.template_error'),
-                }),
-              );
+              setFormError((prevErrors): CreateServiceFormError => ({
+                ...prevErrors,
+                template: t('dashboard.new_application_form.template_error'),
+              }));
               break;
             default:
               // handle other types of errors or rethrow

@@ -71,7 +71,7 @@ const imageComponent: FormComponent<ComponentType.Image> = {
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),
   dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
-  timeStamp: true,
+  timeStamp: false,
 };
 
 const dividerComponent: FormComponent<ComponentType.Divider> = {

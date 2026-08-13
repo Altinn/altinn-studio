@@ -202,7 +202,7 @@ describe('EditFormComponent', () => {
       },
     });
     await switchToBeta(user);
-    const datePickerTimeStampProp = screen.getByRole('checkbox', {
+    const datePickerTimeStampProp = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.timeStamp'),
     });
     expect(datePickerTimeStampProp).toBeChecked();
@@ -210,7 +210,7 @@ describe('EditFormComponent', () => {
 });
 
 const switchToBeta = async (user) => {
-  const betaConfigSwitch = screen.getByRole('checkbox', {
+  const betaConfigSwitch = screen.getByRole('switch', {
     name: textMock('ux_editor.edit_component.show_beta_func'),
   });
   await user.click(betaConfigSwitch);

@@ -68,7 +68,7 @@ describe('EditGrid', () => {
     const lockIcon = screen.getByRole('img', { name: 'lockIcon' });
     expect(lockIcon).toBeInTheDocument();
 
-    const switchUseDefault = screen.getByRole('checkbox');
+    const switchUseDefault = screen.getByRole('switch');
 
     await user.click(switchUseDefault);
 
@@ -127,7 +127,7 @@ describe('EditGrid', () => {
       handleComponentChange,
     });
 
-    const switchUseDefault = screen.getByRole('checkbox');
+    const switchUseDefault = screen.getByRole('switch');
     await user.click(switchUseDefault);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -151,7 +151,7 @@ describe('EditGrid', () => {
     });
     await user.click(laptopTab);
 
-    const switchUseDefault = screen.getByRole('checkbox');
+    const switchUseDefault = screen.getByRole('switch');
 
     await user.click(switchUseDefault);
 
@@ -175,7 +175,7 @@ describe('EditGrid', () => {
       handleComponentChange,
     });
 
-    const switchUseDefault = screen.getByRole('checkbox');
+    const switchUseDefault = screen.getByRole('switch');
 
     await user.click(switchUseDefault);
 
@@ -196,7 +196,7 @@ describe('EditGrid', () => {
       handleComponentChange,
     });
 
-    const switchUseDefault = screen.getByRole('checkbox');
+    const switchUseDefault = screen.getByRole('switch');
 
     await user.click(switchUseDefault);
 
