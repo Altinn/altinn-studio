@@ -1482,12 +1482,14 @@ internal sealed partial class EngineRepository
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
                     // Reset from terminal + Requeued/Waiting (both skip the backoff wait). Clearing
-                    // LeaseToken preserves the "NOT NULL iff Processing" invariant.
+                    // LeaseToken preserves the "NOT NULL iff Processing" invariant. throttled_until
+                    // is cleared too: an explicit resume wins over the namespace circuit breaker.
                     const string resetPrimarySql = """
                         UPDATE engine.workflows
                         SET status = @enqueued,
                             cancellation_requested_at = NULL,
                             backoff_until = NULL,
+                            throttled_until = NULL,
                             heartbeat_at = NULL,
                             lease_token = NULL,
                             reclaim_count = 0,
@@ -1544,6 +1546,7 @@ internal sealed partial class EngineRepository
                             SET status = @enqueued,
                                 cancellation_requested_at = NULL,
                                 backoff_until = NULL,
+                                throttled_until = NULL,
                                 heartbeat_at = NULL,
                                 lease_token = NULL,
                                 reclaim_count = 0,
@@ -1623,10 +1626,14 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
 
+                    // Also clears throttled_until: a nudge is an explicit operator/caller poke,
+                    // and it always wins over the namespace circuit breaker — the workflow gets
+                    // its immediate re-check even while its namespace is throttled.
                     const string sql = """
                         UPDATE engine.workflows
-                        SET backoff_until = NULL, updated_at = @now
-                        WHERE id = @id AND namespace = @ns AND status IN (@requeued, @waiting) AND backoff_until IS NOT NULL
+                        SET backoff_until = NULL, throttled_until = NULL, updated_at = @now
+                        WHERE id = @id AND namespace = @ns AND status IN (@requeued, @waiting)
+                          AND (backoff_until IS NOT NULL OR throttled_until IS NOT NULL)
                         """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));

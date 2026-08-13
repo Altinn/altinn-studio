@@ -14,8 +14,10 @@ namespace WorkflowEngine.Data.Repository;
 
 /// <summary>
 /// Repository surface of the namespace throttle sweep (failure-storm circuit breaker).
-/// All methods here are called from <c>NamespaceThrottleService</c> only; consistency with that
-/// service's design is documented on <see cref="IEngineRepository"/>. Unlike most write paths in
+/// All writes here are called from <c>NamespaceThrottleService</c> only (sweep cycles and
+/// operator overrides, both under the sweep's advisory lock); the read methods additionally
+/// serve the throttle observability endpoints. Consistency with the service's design is
+/// documented on <see cref="IEngineRepository"/>. Unlike most write paths in
 /// this repository, these methods carry no per-operation retry: the sweep is periodic and applies
 /// its own failure backoff at cycle level (the <c>DbMaintenanceService</c> house pattern), and
 /// retrying inside a cycle would only stretch the time the sweep's advisory lock is held.

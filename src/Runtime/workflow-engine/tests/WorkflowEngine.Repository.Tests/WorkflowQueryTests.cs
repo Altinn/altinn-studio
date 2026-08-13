@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
 
@@ -193,6 +194,51 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CountRunnableWorkflows_MirrorsTheFetchGateVariant_ForThrottledWorkflows()
+    {
+        // A workflow parked purely behind a future throttled_until is unclaimable when the process
+        // runs with throttling enabled (the gated fetch variant), so it must not count as
+        // runnable there — but with throttling disabled the fetch ignores the column entirely,
+        // and a stale stamp must not hide a claimable workflow.
+        await using var context = fixture.CreateDbContext();
+        var disabledRepo = fixture.CreateRepository();
+        var enabledRepo = fixture.CreateRepository(
+            Options.Create(
+                fixture.Settings with
+                {
+                    Throttling = new ThrottlingSettings
+                    {
+                        Enabled = true,
+                        MinRequeuedWorkflows = 50,
+                        MinRequeuedRatio = 0.5,
+                        SweepInterval = TimeSpan.FromSeconds(30),
+                        CanaryCount = 3,
+                        InitialWindow = TimeSpan.FromMinutes(10),
+                        MaxWindow = TimeSpan.FromHours(1),
+                    },
+                }
+            )
+        );
+
+        var throttled = await WorkflowTestHelper.InsertAndSetStatus(
+            disabledRepo,
+            context,
+            PersistentItemStatus.Requeued
+        );
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.workflows
+            SET backoff_until = NULL, throttled_until = {DateTimeOffset.UtcNow.AddMinutes(30)}
+            WHERE id = {throttled.DatabaseId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(0, await enabledRepo.CountRunnableWorkflows(TestContext.Current.CancellationToken));
+        Assert.Equal(1, await disabledRepo.CountRunnableWorkflows(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task ResumeWorkflow_WrongNamespace_ReturnsEmpty()
     {
         await using var context = fixture.CreateDbContext();
@@ -273,6 +319,130 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         Assert.False(updated);
+    }
+
+    [Fact]
+    public async Task ClearBackoff_ThrottledWorkflow_ClearsBothGates()
+    {
+        // A nudge is an explicit operator poke: it clears the throttle stamp along with the
+        // backoff, so it always wins over the namespace circuit breaker.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.workflows
+            SET backoff_until = {DateTimeOffset.UtcNow.AddMinutes(5)},
+                throttled_until = {DateTimeOffset.UtcNow.AddMinutes(30)}
+            WHERE id = {workflow.DatabaseId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        var updated = await repo.ClearBackoff(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.True(updated);
+        var row = await context
+            .Workflows.AsNoTracking()
+            .SingleAsync(w => w.Id == workflow.DatabaseId, TestContext.Current.CancellationToken);
+        Assert.Null(row.BackoffUntil);
+        Assert.Null(row.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task ClearBackoff_ThrottledWithoutBackoff_StillClearsAndReportsNudged()
+    {
+        // Parked purely behind the throttle gate (backoff already elapsed and cleared): the nudge
+        // must still count as having cleared something, not report "already runnable".
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.workflows
+            SET backoff_until = NULL, throttled_until = {DateTimeOffset.UtcNow.AddMinutes(30)}
+            WHERE id = {workflow.DatabaseId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        var updated = await repo.ClearBackoff(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.True(updated);
+        var row = await context
+            .Workflows.AsNoTracking()
+            .SingleAsync(w => w.Id == workflow.DatabaseId, TestContext.Current.CancellationToken);
+        Assert.Null(row.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task ClearBackoff_NotParkedStatus_ReturnsFalseAndLeavesStampAlone()
+    {
+        // The status gate stays authoritative: a workflow outside Requeued/Waiting is not
+        // nudgeable, so even a (stale) throttle stamp on it is left untouched.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed);
+        var stamp = DateTimeOffset.UtcNow.AddMinutes(30);
+        await context.Database.ExecuteSqlAsync(
+            $"UPDATE engine.workflows SET throttled_until = {stamp} WHERE id = {workflow.DatabaseId}",
+            TestContext.Current.CancellationToken
+        );
+
+        var updated = await repo.ClearBackoff(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.False(updated);
+        var row = await context
+            .Workflows.AsNoTracking()
+            .SingleAsync(w => w.Id == workflow.DatabaseId, TestContext.Current.CancellationToken);
+        Assert.NotNull(row.ThrottledUntil);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_ThrottledWorkflow_ClearsThrottledUntil()
+    {
+        // An explicit resume wins over the namespace circuit breaker: the reset column list
+        // includes throttled_until, so the resumed workflow re-enters the queue unthrottled.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
+        await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE engine.workflows
+            SET backoff_until = {DateTimeOffset.UtcNow.AddMinutes(5)},
+                throttled_until = {DateTimeOffset.UtcNow.AddMinutes(30)}
+            WHERE id = {workflow.DatabaseId}
+            """,
+            TestContext.Current.CancellationToken
+        );
+
+        var resumed = await repo.ResumeWorkflow(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            DateTimeOffset.UtcNow,
+            cascade: false,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal([workflow.DatabaseId], resumed);
+        var row = await context
+            .Workflows.AsNoTracking()
+            .SingleAsync(w => w.Id == workflow.DatabaseId, TestContext.Current.CancellationToken);
+        Assert.Equal(PersistentItemStatus.Enqueued, row.Status);
+        Assert.Null(row.BackoffUntil);
+        Assert.Null(row.ThrottledUntil);
     }
 
     // ── GetActiveWorkflows ─────────────────────────────────────

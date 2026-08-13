@@ -105,9 +105,15 @@ internal static class ServiceCollectionExtensions
             // (unlike HeartbeatService vs the processor in Core's AddWorkflowEngineHost): the
             // sweep holds no in-flight work and stops instantly, and with Throttling.Enabled off
             // it exits before entering its loop.
+            // The sweep service is registered as a singleton and forwarded to both roles: the
+            // hosted service (the sweep loop) and INamespaceThrottleOperator (the force-open/
+            // force-close override endpoints), so overrides share the sweep's trip/close logic
+            // and its in-process state.
             services.AddSingleton<ThrottleStateView>();
             services.AddSingleton<IThrottleStateView>(sp => sp.GetRequiredService<ThrottleStateView>());
-            services.AddHostedService<NamespaceThrottleService>();
+            services.AddSingleton<NamespaceThrottleService>();
+            services.AddSingleton<INamespaceThrottleOperator>(sp => sp.GetRequiredService<NamespaceThrottleService>());
+            services.AddHostedService(sp => sp.GetRequiredService<NamespaceThrottleService>());
 
             return services;
         }

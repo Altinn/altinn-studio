@@ -37,8 +37,15 @@ internal static class EngineRepositoryQueryExtensions
         /// and cannot become runnable on its own until the timer elapses. A pending cancellation
         /// makes a parked workflow runnable regardless of its timer, mirroring the fetch gate's
         /// cancellation bypass.
+        /// <para>
+        /// <paramref name="throttleGate"/> mirrors the fetch gate variant selected at startup from
+        /// <c>EngineSettings.Throttling.Enabled</c>: when the throttle gate is active, a workflow
+        /// parked behind a future <c>ThrottledUntil</c> is not claimable either. Pass the process's
+        /// actual setting — with throttling disabled the fetch ignores the column, so a stale stamp
+        /// must not hide a claimable workflow.
+        /// </para>
         /// </summary>
-        public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
+        public IQueryable<WorkflowEntity> GetRunnableWorkflows(bool throttleGate = false) =>
             dbContext
                 .Workflows.Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
@@ -47,6 +54,7 @@ internal static class EngineRepositoryQueryExtensions
                     || (
                         (wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                         && (wf.BackoffUntil == null || wf.BackoffUntil <= DateTime.UtcNow)
+                        && (!throttleGate || wf.ThrottledUntil == null || wf.ThrottledUntil <= DateTime.UtcNow)
                     )
                 );
 

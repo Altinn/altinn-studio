@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -85,6 +86,7 @@ internal static class EngineEndpoints
                 """
                 Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) back to Enqueued
                 for re-processing. Pass cascade=true to also resume workflows left in DependencyFailed by this one.
+                Also clears any throttled_until stamp: an explicit resume wins over the namespace circuit breaker.
 
                 202 Accepted when the workflow was resumed (the processor picks it up on its next cycle).
                 409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist.
@@ -121,7 +123,8 @@ internal static class EngineEndpoints
             .WithDescription(
                 """
                 Clears the pending backoff of a parked workflow (Requeued or Waiting) so the processor
-                picks it up on its next cycle instead of when the timer elapses.
+                picks it up on its next cycle instead of when the timer elapses. Also clears any
+                throttled_until stamp: an explicit nudge wins over the namespace circuit breaker.
 
                 This is the engine's push channel: a step that deferred while awaiting an external
                 outcome can be told the outcome has arrived, turning a scheduled poll into an immediate
@@ -132,6 +135,80 @@ internal static class EngineEndpoints
                 202 Accepted when this call cleared a pending backoff, 200 OK when the workflow was
                 already runnable (idempotent replay), 409 Conflict when it is not parked, and
                 404 Not Found when it does not exist.
+                """
+            );
+
+        app.MapGet("/api/v1/throttles", EngineRequestHandlers.ListThrottles)
+            .WithTags("Throttling")
+            .WithName("ListNamespaceThrottles")
+            .WithSummary("List namespace throttles")
+            .WithDescription(
+                """
+                Lists the failure-storm circuit breaker state of every namespace that currently has one
+                (open, recovering, or recently closed — closed rows linger for a short grace period).
+
+                Purely observational: works whether or not throttling is enabled.
+                Returns 204 No Content when no breaker state exists.
+                """
+            );
+
+        var throttleGroup = app.MapGroup("/api/v1/{namespace}/throttle").WithTags("Throttling");
+
+        throttleGroup
+            .MapGet("", EngineRequestHandlers.GetThrottle)
+            .WithName("GetNamespaceThrottle")
+            .WithSummary("Get namespace throttle")
+            .WithDescription(
+                """
+                Gets the namespace's failure-storm circuit breaker state: breaker state
+                (Open, HalfOpen, Closed), when it tripped, the current throttle window, canary count,
+                and the population counts observed at the last sweep evaluation.
+
+                Purely observational: works whether or not throttling is enabled.
+                404 Not Found when the namespace has no breaker state row.
+                """
+            );
+
+        throttleGroup
+            .MapPost("/open", EngineRequestHandlers.ForceOpenThrottle)
+            .WithName("ForceOpenNamespaceThrottle")
+            .WithSummary("Force-open namespace throttle")
+            .WithDescription(
+                """
+                Trips the namespace's failure-storm circuit breaker immediately, regardless of the
+                detection thresholds: state Open with the configured initial window, a fresh canary set
+                probing on the normal retry schedule, and the rest of the Requeued population parked.
+                Coordinates with the throttle sweep's advisory lock, so the override never interleaves
+                with a running sweep cycle.
+
+                This is a one-shot intervention, not standing policy: it does not prevent canary-driven
+                recovery — once a canary progresses, the breaker starts releasing as usual. Force-opening
+                an already-open breaker re-trips it (initial window, fresh canaries).
+
+                202 Accepted with the resulting breaker state. 409 Conflict when throttling is disabled
+                (Throttling.Enabled = false): with the feature off the workflow fetch ignores
+                throttled_until entirely, so a force-open would be inert.
+                """
+            );
+
+        throttleGroup
+            .MapPost("/close", EngineRequestHandlers.ForceCloseThrottle)
+            .WithName("ForceCloseNamespaceThrottle")
+            .WithSummary("Force-close namespace throttle")
+            .WithDescription(
+                """
+                Closes the namespace's failure-storm circuit breaker immediately: state Closed and every
+                throttled_until stamp in the namespace cleared, so the parked population re-enters the
+                normal retry schedule at once. The state row lingers through the normal closed grace
+                period so stragglers parked by stale replica snapshots are still cleaned up.
+
+                This is a one-shot intervention ("release now"), not standing policy ("never throttle"):
+                it does not prevent the next sweep from re-tripping if the trip condition still holds —
+                by design. To keep a namespace released, fix the underlying failure or disable throttling.
+
+                202 Accepted with the resulting breaker state, 200 OK when the breaker was already closed
+                (idempotent replay), 404 Not Found when the namespace has no breaker state, and
+                409 Conflict when throttling is disabled.
                 """
             );
 
@@ -635,4 +712,104 @@ internal static class EngineRequestHandlers
 
         return TypedResults.Ok(collection);
     }
+
+    public static async Task<Results<Ok<IReadOnlyList<NamespaceThrottleResponse>>, NoContent>> ListThrottles(
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-throttles"));
+
+        var throttles = await repository.GetNamespaceThrottles(cancellationToken);
+        if (throttles.Count == 0)
+            return TypedResults.NoContent();
+
+        IReadOnlyList<NamespaceThrottleResponse> responses =
+        [
+            .. throttles
+                .OrderBy(t => t.Namespace, StringComparer.Ordinal)
+                .Select(NamespaceThrottleResponse.FromThrottle),
+        ];
+        return TypedResults.Ok(responses);
+    }
+
+    public static async Task<Results<Ok<NamespaceThrottleResponse>, NotFound>> GetThrottle(
+        [FromRoute] string @namespace,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-throttle"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var throttle = (await repository.GetNamespaceThrottles(cancellationToken)).FirstOrDefault(t =>
+            t.Namespace == ns
+        );
+
+        if (throttle is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(NamespaceThrottleResponse.FromThrottle(throttle));
+    }
+
+    public static async Task<Results<Accepted<NamespaceThrottleResponse>, Conflict<ProblemDetails>>> ForceOpenThrottle(
+        [FromRoute] string @namespace,
+        [FromServices] INamespaceThrottleOperator throttleOperator,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-open"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await throttleOperator.ForceOpen(ns, cancellationToken);
+
+        return result switch
+        {
+            ThrottleForceOpenResult.Opened r => TypedResults.Accepted(
+                (string?)null,
+                NamespaceThrottleResponse.FromThrottle(r.Throttle)
+            ),
+            ThrottleForceOpenResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<
+        Results<Accepted<NamespaceThrottleResponse>, Ok<NamespaceThrottleResponse>, NotFound, Conflict<ProblemDetails>>
+    > ForceCloseThrottle(
+        [FromRoute] string @namespace,
+        [FromServices] INamespaceThrottleOperator throttleOperator,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-close"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await throttleOperator.ForceClose(ns, cancellationToken);
+
+        return result switch
+        {
+            ThrottleForceCloseResult.Closed r => TypedResults.Accepted(
+                (string?)null,
+                NamespaceThrottleResponse.FromThrottle(r.Throttle)
+            ),
+            ThrottleForceCloseResult.AlreadyClosed r => TypedResults.Ok(
+                NamespaceThrottleResponse.FromThrottle(r.Throttle)
+            ),
+            ThrottleForceCloseResult.NotFound => TypedResults.NotFound(),
+            ThrottleForceCloseResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    private static ProblemDetails ThrottlingDisabledProblem() =>
+        new()
+        {
+            Title = "Throttling is disabled",
+            Detail =
+                "EngineSettings.Throttling.Enabled is false: the sweep is not running and the workflow "
+                + "fetch ignores throttled_until entirely, so throttle overrides would be inert. "
+                + "Enable throttling (restart required) to use the breaker.",
+            Status = StatusCodes.Status409Conflict,
+        };
 }

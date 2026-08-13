@@ -1050,6 +1050,94 @@ body {
     background: rgba(var(--amber-rgb), 0.08);
 }
 
+/* ── Throttled namespaces (failure-storm circuit breakers) ── */
+.throttle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+.throttle-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 76px;
+}
+.throttle-state.Open {
+    color: var(--red);
+    border: 1px solid var(--red);
+    background: rgba(var(--red-rgb), 0.08);
+}
+.throttle-state.HalfOpen {
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    background: rgba(var(--orange-rgb), 0.08);
+}
+.throttle-state.Closed {
+    color: var(--green);
+    border: 1px solid var(--green);
+    background: rgba(var(--green-rgb), 0.08);
+}
+.throttle-ns {
+    font-weight: 700;
+    color: var(--text-bright);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.throttle-meta {
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+.throttle-spacer {
+    flex: 1;
+}
+.throttle-action {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: rgba(var(--orange-rgb), 0.1);
+    color: var(--orange);
+    border: 1px solid rgba(var(--orange-rgb), 0.3);
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.throttle-action.close {
+    background: rgba(var(--green-rgb), 0.1);
+    color: var(--green);
+    border-color: rgba(var(--green-rgb), 0.3);
+}
+.throttle-action:hover {
+    border-color: currentColor;
+}
+.throttle-action.armed {
+    background: rgba(var(--red-rgb), 0.15);
+    color: var(--red);
+    border-color: var(--red);
+}
+.throttle-action.failed {
+    color: var(--red) !important;
+    border-color: var(--red) !important;
+    background: rgba(var(--red-rgb), 0.1) !important;
+}
+.throttle-action[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ── Step pipeline ────────────────────────────────────────── */
 .pipeline {
     display: flex;
