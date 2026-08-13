@@ -1,10 +1,10 @@
-import { List, Link, Heading } from '@digdir/designsystemet-react';
+import { List, Link } from '@digdir/designsystemet-react';
 import { repositoryLayoutPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
-import { StudioSectionHeader } from '@studio/components';
+import { StudioHeading, StudioSectionHeader } from '@studio/components';
 import { SectionHeaderWarningIcon } from '@studio/icons';
 import classes from './PageConfigWarning.module.css';
 
@@ -31,9 +31,9 @@ export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfig
         className={classes.configWarningHeader}
       />
       <div className={classes.configWarningContent}>
-        <Heading level={3} size='xxsmall' spacing>
+        <StudioHeading level={3} data-size='xs' spacing>
           {t('ux_editor.config.warning_duplicates.solution_heading')}
-        </Heading>
+        </StudioHeading>
         <List.Root className={classes.configWarningList} size='small'>
           <List.Ordered>
             <List.Item>

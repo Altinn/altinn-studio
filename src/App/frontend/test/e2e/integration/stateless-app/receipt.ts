@@ -32,8 +32,8 @@ describe('Receipt', () => {
     cy.get(appFrontend.feedback).should('contain.text', 'Org.nr: 12345678901');
 
     const userFirstName =
-      Cypress.env('type') === 'localtest'
-        ? Cypress.env('defaultFirstName')
+      Cypress.expose('type') === 'localtest'
+        ? Cypress.expose('defaultFirstName')
         : Tenor.users.saligBlomsterplante.firstName.toUpperCase();
     cy.get(appFrontend.feedback).should('contain.text', `Navn: ${userFirstName}`);
     cy.get(appFrontend.feedback).should('contain.text', 'ID: 1364');

@@ -69,7 +69,7 @@ public class AuthorizationClient : IAuthorizationClient
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
         try
         {
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -98,7 +98,7 @@ public class AuthorizationClient : IAuthorizationClient
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {

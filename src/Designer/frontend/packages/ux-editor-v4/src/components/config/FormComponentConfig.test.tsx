@@ -182,7 +182,7 @@ describe('FormComponentConfig', () => {
     expect(button).toBeInTheDocument();
     await user.click(button);
     const timeStampSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.timeStamp'),
+      name: textMock('ux_editor.component_properties.timeStamp_v4'),
     });
     await user.click(timeStampSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
