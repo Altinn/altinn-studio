@@ -367,18 +367,36 @@ public class RepositoryServiceTests
         await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
         string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
-        Mock<IGiteaClient> giteaClientMock = new();
-        giteaClientMock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
+        try
+        {
+            // Guard the fixture: the assertion below only proves something if the clone actually existed.
+            Assert.True(Directory.Exists(expectedPath), "Test fixture was not set up: local clone does not exist.");
 
-        RepositoryService sut = GetServiceForTest(developer, giteaClient: giteaClientMock.Object);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            Mock<IGiteaClient> giteaClientMock = new();
+            giteaClientMock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
 
-        // Act
-        await sut.DeleteRepository(editingContext);
+            RepositoryService sut = GetServiceForTest(developer, giteaClient: giteaClientMock.Object);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
 
-        // Assert
-        giteaClientMock.Verify(m => m.DeleteRepository(org, app), Times.Once);
-        Assert.False(Directory.Exists(expectedPath));
+            // Act
+            await sut.DeleteRepository(editingContext);
+
+            // Assert
+            giteaClientMock.Verify(m => m.DeleteRepository(org, app), Times.Once);
+            Assert.False(Directory.Exists(expectedPath));
+        }
+        finally
+        {
+            // Ensure a failed run leaves no fixture files behind for later tests.
+            if (Directory.Exists(expectedPath))
+            {
+                Directory.Delete(expectedPath, recursive: true);
+            }
+        }
     }
 
     [Fact]
