@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
-import { Paragraph } from '@digdir/designsystemet-react';
 import {
-  StudioCenter,
   StudioAlert,
+  StudioCenter,
+  StudioParagraph,
   StudioSpinner,
   StudioValidationMessage,
 } from '@studio/components';
@@ -53,7 +53,7 @@ const NoSelectedPageMessage = () => {
   const { t } = useTranslation();
   return (
     <StudioCenter>
-      <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
+      <StudioParagraph data-size='md'>{t('ux_editor.no_components_selected')}</StudioParagraph>
     </StudioCenter>
   );
 };

@@ -40,7 +40,7 @@ const browserTimezones = [tzNewYork, tzOslo] as const;
  * UTC, which is what those backends run in. The browser timezone cannot be used for any of this -
  * these tests emulate it via CDP, while the backend keeps its own timezone.
  */
-const backendTimezone: string = Cypress.env('machineTimezone') ?? 'UTC';
+const backendTimezone: string = Cypress.expose('machineTimezone') ?? 'UTC';
 
 function backendLocalParts(instant: string) {
   const parts = new Intl.DateTimeFormat('en-GB', {

@@ -35,7 +35,7 @@
   font-size: var(--ds-size-5);
 }
 
-.groupPageAccordionWrapper {
+.pageAccordionWrapper {
   margin: auto;
   width: 90%;
 }
