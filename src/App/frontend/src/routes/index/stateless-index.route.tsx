@@ -9,6 +9,7 @@ import { getRawFirstPage } from 'src/utils/computeStartUrl';
 
 export function clientLoader({ request }: LoaderFunctionArgs) {
   if (!isStateless()) {
+    // redirect is handled by routes/index/index.loader.ts
     return null;
   }
 

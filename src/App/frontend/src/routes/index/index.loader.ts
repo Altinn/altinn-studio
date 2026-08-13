@@ -25,6 +25,7 @@ export async function clientLoader({ context }: LoaderFunctionArgs): Promise<Ind
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   if (isStateless()) {
+    // redirect is handled by routes/index/stateless-index.route.tsx
     return null;
   }
 
