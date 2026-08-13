@@ -5,7 +5,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
-import { ErrorMessage, Switch } from '@digdir/designsystemet-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import type {
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerState,
@@ -16,7 +16,7 @@ import {
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import { ValidationUtils } from '@studio/pure-functions';
-import { StudioTextfield } from '@studio/components';
+import { StudioSwitch, StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
@@ -102,15 +102,14 @@ export function NumberRestrictions({
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <Switch
-            size='small'
+          <StudioSwitch
+            data-size='sm'
             checked={formatState.isMinInclusive}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
             }
-          >
-            {t('schema_editor.format_date_inclusive')}
-          </Switch>
+            label={t('schema_editor.format_date_inclusive')}
+          />
         </div>
       </div>
       <div>
@@ -127,16 +126,15 @@ export function NumberRestrictions({
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
-          <Switch
-            size='small'
+          <StudioSwitch
+            data-size='sm'
             id='include-minimum-value-checkbox'
             checked={formatState.isMaxInclusive}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)
             }
-          >
-            {t('schema_editor.format_date_inclusive')}
-          </Switch>
+            label={t('schema_editor.format_date_inclusive')}
+          />
         </div>
       </div>
       <div>
