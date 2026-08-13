@@ -9,7 +9,7 @@ namespace Altinn.App.Core.EFormidling.Models;
 /// <remarks>
 /// Generated from the XSD definition at
 /// <see href="https://github.com/difi/felleslosninger/blob/gh-pages/resources/arkivmelding/arkivmelding.xsd"/>.
-/// Not to be confused with <see cref="Altinn.App.Core.EFormidling.Models.SBD.Arkivmelding"/>, which is
+/// Distinct from <see cref="Altinn.App.Core.EFormidling.Models.SBD.ArkivmeldingMetadata"/>, which is
 /// the shipment metadata carried in the SBD envelope.
 /// </remarks>
 [XmlRoot(ElementName = "arkivmelding", Namespace = ArkivmeldingNamespaces.Noark5)]

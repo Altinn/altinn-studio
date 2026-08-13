@@ -19,7 +19,7 @@ public class StandardBusinessDocument
     /// Shipment metadata for the arkivmelding this document carries.
     /// </summary>
     [JsonPropertyName("arkivmelding")]
-    public Arkivmelding? Arkivmelding { get; set; }
+    public ArkivmeldingMetadata? Arkivmelding { get; set; }
 }
 
 /// <summary>
@@ -215,10 +215,12 @@ public class StandardBusinessDocumentHeader
 /// Shipment metadata for the arkivmelding carried by a <see cref="StandardBusinessDocument"/>.
 /// </summary>
 /// <remarks>
-/// Not to be confused with <see cref="Altinn.App.Core.EFormidling.Models.Arkivmelding"/>, which is the
-/// Noark 5 document itself.
+/// Named for what it is rather than for the JSON property it serializes to: this is metadata
+/// <em>about</em> the shipped arkivmelding, not the arkivmelding itself — that is
+/// <see cref="Altinn.App.Core.EFormidling.Models.Arkivmelding"/>, the Noark 5 document. The two shared
+/// a name until v9, which is why code handling both had to alias one of them.
 /// </remarks>
-public class Arkivmelding
+public class ArkivmeldingMetadata
 {
     /// <summary>
     /// The authentication level required to open the document.
@@ -230,13 +232,18 @@ public class Arkivmelding
     /// Configuration for Digital post til FIKS meldingsformidler.
     /// </summary>
     [JsonPropertyName("dpf")]
-    public DPF? DPF { get; set; }
+    public Dpf? Dpf { get; set; }
 }
 
 /// <summary>
 /// Configuration for Digital post til FIKS meldingsformidler.
 /// </summary>
-public class DPF
+/// <remarks>
+/// Left alongside <see cref="ArkivmeldingMetadata"/> rather than nested inside it: C# forbids a nested
+/// type and a property sharing a name, and every alternative name reads worse than matching the
+/// property. Every other type in this namespace pairs with a same-named property the same way.
+/// </remarks>
+public class Dpf
 {
     /// <summary>
     /// The shipment type, used for routing on the receiving end.

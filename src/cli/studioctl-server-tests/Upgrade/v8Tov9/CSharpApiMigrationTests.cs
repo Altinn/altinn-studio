@@ -2110,6 +2110,57 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingClientDetector_FlagsTheRenamedSbdArkivmelding()
+    {
+        _app.Write(
+            "logic/Eformidling/Envelope.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models.SBD;
+            public class Envelope
+            {
+                public StandardBusinessDocument Build() =>
+                    new StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding
+                        {
+                            Sikkerhetsnivaa = 3,
+                            DPF = new DPF { ForsendelsesType = "annet" },
+                        },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("Sikkerhetsnivaa", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("DPF", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagTheNoarkArkivmelding()
+    {
+        // The Noark 5 Arkivmelding keeps its name. Matching on the type name would report every app
+        // that generates one, which is nearly all of them.
+        _app.Write(
+            "logic/Eformidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Arkivmelding Build() => new Arkivmelding { AntallFiler = 1, System = "app" };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Arkivmelding", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
     {
         // "Content" is an everyday identifier. Only files reaching into the eFormidling models

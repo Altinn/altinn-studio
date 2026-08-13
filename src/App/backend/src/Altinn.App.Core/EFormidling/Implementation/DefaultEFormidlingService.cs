@@ -13,7 +13,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Arkivmelding = Altinn.App.Core.EFormidling.Models.SBD.Arkivmelding;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
@@ -241,12 +240,12 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         StandardBusinessDocument sbd = new StandardBusinessDocument
         {
             StandardBusinessDocumentHeader = sbdHeader,
-            Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = config.SecurityLevel },
+            Arkivmelding = new ArkivmeldingMetadata { Sikkerhetsnivaa = config.SecurityLevel },
         };
 
         if (!string.IsNullOrEmpty(config.DpfShipmentType))
         {
-            sbd.Arkivmelding.DPF = new() { ForsendelsesType = config.DpfShipmentType };
+            sbd.Arkivmelding.Dpf = new() { ForsendelsesType = config.DpfShipmentType };
         }
 
         return sbd;

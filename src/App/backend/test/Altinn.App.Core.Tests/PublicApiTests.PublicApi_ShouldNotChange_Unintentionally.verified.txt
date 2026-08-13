@@ -437,11 +437,11 @@ namespace Altinn.App.Core.EFormidling.Models
 }
 namespace Altinn.App.Core.EFormidling.Models.SBD
 {
-    public class Arkivmelding
+    public class ArkivmeldingMetadata
     {
-        public Arkivmelding() { }
+        public ArkivmeldingMetadata() { }
         [System.Text.Json.Serialization.JsonPropertyName("dpf")]
-        public Altinn.App.Core.EFormidling.Models.SBD.DPF? DPF { get; set; }
+        public Altinn.App.Core.EFormidling.Models.SBD.Dpf? Dpf { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("sikkerhetsnivaa")]
         public int Sikkerhetsnivaa { get; set; }
     }
@@ -450,12 +450,6 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         public BusinessScope() { }
         [System.Text.Json.Serialization.JsonPropertyName("scope")]
         public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Scope>? Scope { get; set; }
-    }
-    public class DPF
-    {
-        public DPF() { }
-        [System.Text.Json.Serialization.JsonPropertyName("forsendelseType")]
-        public string? ForsendelsesType { get; set; }
     }
     public class DocumentIdentification
     {
@@ -470,6 +464,12 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         public string? Type { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("typeVersion")]
         public string? TypeVersion { get; set; }
+    }
+    public class Dpf
+    {
+        public Dpf() { }
+        [System.Text.Json.Serialization.JsonPropertyName("forsendelseType")]
+        public string? ForsendelsesType { get; set; }
     }
     public class Identifier
     {
@@ -517,7 +517,7 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
     {
         public StandardBusinessDocument() { }
         [System.Text.Json.Serialization.JsonPropertyName("arkivmelding")]
-        public Altinn.App.Core.EFormidling.Models.SBD.Arkivmelding? Arkivmelding { get; set; }
+        public Altinn.App.Core.EFormidling.Models.SBD.ArkivmeldingMetadata? Arkivmelding { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("standardBusinessDocumentHeader")]
         public Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocumentHeader? StandardBusinessDocumentHeader { get; set; }
     }

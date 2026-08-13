@@ -90,6 +90,46 @@ internal sealed class RemovedEFormidlingClientApiDetector
         "Dokumentbeskrivelse",
     };
 
+    /// <summary>
+    /// The SBD envelope namespace, before and after the move.
+    /// </summary>
+    private static readonly string[] _sbdNamespaces =
+    [
+        "Altinn.App.Core.EFormidling.Models.SBD",
+        "Altinn.Common.EFormidlingClient.Models.SBD",
+    ];
+
+    /// <summary>
+    /// Identifies use of the SBD's renamed <c>Arkivmelding</c> by pairing the constructed type with a
+    /// member only it has. The type name alone cannot be matched, because the Noark 5
+    /// <c>Arkivmelding</c> keeps that name and flagging it would report nearly every eFormidling app;
+    /// the Noark type has neither of these members, so the pairing separates them without a semantic
+    /// model.
+    /// </summary>
+    private static readonly IReadOnlySet<string> _sbdArkivmeldingTypes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Arkivmelding",
+    };
+
+    private static readonly IReadOnlySet<string> _sbdArkivmeldingMembers = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Sikkerhetsnivaa",
+        "DPF",
+    };
+
+    private static readonly IReadOnlySet<string> _sbdRenamedTypes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "DPF",
+    };
+
+    private const string SbdSummary =
+        "The Standard Business Document's Arkivmelding is now ArkivmeldingMetadata, and the DPF type it "
+        + "refers to is now Dpf. The old name collided with the Noark 5 "
+        + "Arkivmelding - a different type in a sibling namespace - which forced anyone handling both to "
+        + "alias one of them; the Noark type is unchanged. The JSON is unchanged too: the property is still "
+        + "called Arkivmelding and still serializes to \"arkivmelding\". Only code that builds the SBD "
+        + "envelope by hand is affected, which is not something the built-in shipment requires:";
+
     private const string RepeatableSummary =
         "Two arkivmelding properties are now lists, matching the Noark 5 schema, which has always "
         + "declared both as maxOccurs=\"unbounded\": Basisregistrering.Dokumentbeskrivelse is a "
@@ -121,6 +161,9 @@ internal sealed class RemovedEFormidlingClientApiDetector
     private static bool ReferencesModelsNamespace(ScannedCSharpFile file) =>
         Array.Exists(_modelNamespaces, ns => CSharpSyntaxQueries.UsingNamespaces(file, ns).Any());
 
+    private static bool ReferencesSbdNamespace(ScannedCSharpFile file) =>
+        Array.Exists(_sbdNamespaces, ns => CSharpSyntaxQueries.UsingNamespaces(file, ns).Any());
+
     public MigrationResult Detect()
     {
         var extensions = _scanner.Files.SelectMany(file =>
@@ -138,11 +181,26 @@ internal sealed class RemovedEFormidlingClientApiDetector
         var nested = modelFiles.SelectMany(file => CSharpSyntaxQueries.TypeReferences(file, _nestedModels));
         var repeatable = modelFiles.SelectMany(file => CSharpSyntaxQueries.TypeReferences(file, _repeatableOwners));
 
+        var sbd = _scanner
+            .Files.Where(ReferencesSbdNamespace)
+            .SelectMany(file =>
+                CSharpSyntaxQueries
+                    .TypeReferences(file, _sbdRenamedTypes)
+                    .Concat(
+                        CSharpSyntaxQueries.ObjectInitializerMembers(
+                            file,
+                            _sbdArkivmeldingTypes,
+                            _sbdArkivmeldingMembers
+                        )
+                    )
+            );
+
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(ExtensionsSummary, extensions),
             WarnOnlyDetector.Report(EndpointsSummary, endpoints),
             WarnOnlyDetector.Report(NestedSummary, nested),
-            WarnOnlyDetector.Report(RepeatableSummary, repeatable)
+            WarnOnlyDetector.Report(RepeatableSummary, repeatable),
+            WarnOnlyDetector.Report(SbdSummary, sbd)
         );
     }
 }
