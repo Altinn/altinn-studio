@@ -97,12 +97,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         string json = JsonSerializer.Serialize(sbd, _jsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        using HttpRequestMessage request = await CreateRequest(
-            HttpMethod.Post,
-            "messages/out",
-            content,
-            AuthenticateAs.App
-        );
+        using HttpRequestMessage request = await CreateAppRequest(HttpMethod.Post, "messages/out", content);
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, "create eFormidling message", cancellationToken);
 
@@ -132,7 +127,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
         string requestUri = $"messages/out/{Uri.EscapeDataString(messageId)}?title={Uri.EscapeDataString(filename)}";
-        using HttpRequestMessage request = await CreateRequest(HttpMethod.Put, requestUri, content, AuthenticateAs.App);
+        using HttpRequestMessage request = await CreateAppRequest(HttpMethod.Put, requestUri, content);
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, $"upload eFormidling attachment '{filename}'", cancellationToken);
     }
@@ -143,11 +138,10 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
         using Activity? activity = _telemetry?.StartEFormidlingSendMessageActivity();
 
-        using HttpRequestMessage request = await CreateRequest(
+        using HttpRequestMessage request = await CreateAppRequest(
             HttpMethod.Post,
             $"messages/out/{Uri.EscapeDataString(messageId)}",
-            content: null,
-            AuthenticateAs.App
+            content: null
         );
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, "send eFormidling message", cancellationToken);
@@ -162,13 +156,9 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
         using Activity? activity = _telemetry?.StartEFormidlingGetMessageStatusActivity();
 
-        // Only the subscription key, matching what the status query has always sent: this is a read
-        // through the platform gateway, not an operation on the instance's behalf.
-        using HttpRequestMessage request = await CreateRequest(
+        using HttpRequestMessage request = CreateGatewayRequest(
             HttpMethod.Get,
-            $"statuses?messageId={Uri.EscapeDataString(messageId)}",
-            content: null,
-            AuthenticateAs.Gateway
+            $"statuses?messageId={Uri.EscapeDataString(messageId)}"
         );
         using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
         await EnsureSuccess(response, "read eFormidling message status", cancellationToken);
@@ -176,39 +166,51 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         return await ReadJson<MessageStatuses>(response, cancellationToken);
     }
 
-    private enum AuthenticateAs
+    /// <summary>
+    /// A read through the platform gateway. Carries the subscription key alone.
+    /// </summary>
+    /// <remarks>
+    /// The subscription key is not what admits the request — <c>GET statuses</c> was verified against
+    /// tt02 to accept a request bearing no credentials whatsoever — but it identifies the app to the
+    /// gateway's product, which is what the quota and rate limit are counted against. Everything the
+    /// shipment calls mint is deliberately skipped: none of it is read here, and
+    /// <see cref="IAccessTokenGenerator.GenerateAccessToken(string, string)"/> signs a certificate on
+    /// every call, on a path the delivery wait polls repeatedly.
+    /// </remarks>
+    private HttpRequestMessage CreateGatewayRequest(HttpMethod method, string requestUri)
     {
-        /// <summary>Subscription key only — a read through the platform gateway.</summary>
-        Gateway,
-
-        /// <summary>Subscription key, the current user's token, and the app's platform access token.</summary>
-        App,
+        var request = new HttpRequestMessage(method, requestUri);
+        request.Headers.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+        return request;
     }
 
-    private async Task<HttpRequestMessage> CreateRequest(
-        HttpMethod method,
-        string requestUri,
-        HttpContent? content,
-        AuthenticateAs authenticateAs
-    )
+    /// <summary>
+    /// An operation on the shipment. Carries the subscription key, the app's platform access token, and
+    /// the caller's bearer token.
+    /// </summary>
+    /// <remarks>
+    /// The gateway admits the request on the platform access token — the <c>AltinnIntegrationPointToken</c>
+    /// header — and rejects one without it as "requires a valid integration point access token". The
+    /// <c>Authorization</c> header is not consulted at that layer: tt02 answers a valid service-owner token
+    /// and a junk string identically. It is sent because the integrasjonspunkt behind the gateway may read
+    /// it, which is not something we can observe without a token that gets us past the gate.
+    /// </remarks>
+    private async Task<HttpRequestMessage> CreateAppRequest(HttpMethod method, string requestUri, HttpContent? content)
     {
         var request = new HttpRequestMessage(method, requestUri) { Content = content };
         request.Headers.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
 
-        if (authenticateAs is AuthenticateAs.App)
-        {
-            ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-            string platformAccessToken = _accessTokenGenerator.GenerateAccessToken(
-                applicationMetadata.Org,
-                applicationMetadata.AppIdentifier.App
-            );
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        string platformAccessToken = _accessTokenGenerator.GenerateAccessToken(
+            applicationMetadata.Org,
+            applicationMetadata.AppIdentifier.App
+        );
 
-            request.Headers.Authorization = new AuthenticationHeaderValue(
-                AuthorizationSchemes.Bearer,
-                _userTokenProvider.GetUserToken()
-            );
-            request.Headers.Add(General.EFormidlingAccessTokenHeaderName, platformAccessToken);
-        }
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            _userTokenProvider.GetUserToken()
+        );
+        request.Headers.Add(General.EFormidlingAccessTokenHeaderName, platformAccessToken);
 
         return request;
     }
