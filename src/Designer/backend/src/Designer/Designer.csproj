@@ -27,7 +27,6 @@
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
     <PackageReference Include="DistributedLock.Postgres" />
     <PackageReference Include="DotNetEnv" />
-    <PackageReference Include="JetBrains.Annotations" />
     <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
