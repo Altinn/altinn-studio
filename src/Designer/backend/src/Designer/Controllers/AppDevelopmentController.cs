@@ -87,7 +87,7 @@ public class AppDevelopmentController : Controller
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(
+            Dictionary<string, JsonNode?> formLayouts = await _appDevelopmentService.GetFormLayouts(
                 editingContext,
                 layoutSetName,
                 cancellationToken
@@ -130,7 +130,7 @@ public class AppDevelopmentController : Controller
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(
+            Dictionary<string, JsonNode?> formLayouts = await _appDevelopmentService.GetFormLayouts(
                 editingContext,
                 layoutSetName,
                 cancellationToken
@@ -175,7 +175,7 @@ public class AppDevelopmentController : Controller
                     );
                 }
             }
-            if (!formLayouts.ContainsKey(layoutName))
+            if (!formLayouts.ContainsKey(layoutName) && layoutSetName is not null)
             {
                 LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(
                     editingContext,
@@ -426,9 +426,8 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        System.Text.Json.Nodes.JsonNode.Parse(
-                            System.Text.Json.JsonSerializer.Serialize(layoutSettings)
-                        ),
+                        JsonSerializer.SerializeToNode(layoutSettings)
+                            ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
                     );
@@ -445,9 +444,8 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        System.Text.Json.Nodes.JsonNode.Parse(
-                            System.Text.Json.JsonSerializer.Serialize(newLayoutSettings)
-                        ),
+                        JsonSerializer.SerializeToNode(newLayoutSettings)
+                            ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
                     );
@@ -587,30 +585,38 @@ public class AppDevelopmentController : Controller
 
             foreach (var layoutSet in layoutSetsModel.Sets)
             {
-                Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                Dictionary<string, JsonNode?> layouts = await _appDevelopmentService.GetFormLayouts(
                     editingContext,
                     layoutSet.Id,
                     cancellationToken
                 );
 
-                IEnumerable<PageValidationOnNavigationDto> groups = layouts
-                    .Where(kvp => kvp.Value?["data"]?["validationOnNavigation"] != null)
-                    .Select(kvp => new
+                var layoutsWithNavigation = new List<(string PageName, ValidationOnNavigation Navigation)>();
+                foreach ((string pageName, JsonNode? layout) in layouts)
+                {
+                    ValidationOnNavigation? navigation = layout?["data"]?[
+                        "validationOnNavigation"
+                    ]?.Deserialize<ValidationOnNavigation>();
+                    if (navigation is not null)
                     {
-                        PageName = kvp.Key,
-                        Nav = kvp.Value["data"]!["validationOnNavigation"].Deserialize<ValidationOnNavigation>(),
-                    })
+                        layoutsWithNavigation.Add((pageName, navigation));
+                    }
+                }
+
+                IEnumerable<PageValidationOnNavigationDto> groups = layoutsWithNavigation
                     .GroupBy(x => new
                     {
-                        Page = x.Nav!.Page ?? string.Empty,
-                        ShowKey = x.Nav.Show != null ? string.Join(",", x.Nav.Show.OrderBy(s => s)) : string.Empty,
+                        Page = x.Navigation.Page ?? string.Empty,
+                        ShowKey = x.Navigation.Show != null
+                            ? string.Join(",", x.Navigation.Show.OrderBy(s => s))
+                            : string.Empty,
                     })
                     .Select(group => new PageValidationOnNavigationDto
                     {
                         Task = layoutSet.Id,
                         Pages = [.. group.Select(x => x.PageName)],
-                        Page = group.First().Nav!.Page!,
-                        Show = group.First().Nav!.Show!.OrderBy(s => s).ToList(),
+                        Page = group.Key.Page,
+                        Show = group.First().Navigation.Show?.OrderBy(s => s).ToList() ?? [],
                     });
 
                 result.AddRange(groups);
@@ -657,7 +663,7 @@ public class AppDevelopmentController : Controller
 
             foreach (var layoutSet in layoutSetsModel.Sets)
             {
-                Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                Dictionary<string, JsonNode?> layouts = await _appDevelopmentService.GetFormLayouts(
                     editingContext,
                     layoutSet.Id,
                     cancellationToken
@@ -665,14 +671,19 @@ public class AppDevelopmentController : Controller
 
                 var validationGroupsForLayoutSet = pageSettings.Where(g => g.Task == layoutSet.Id).ToList();
 
-                foreach ((string pageName, JsonNode layoutNode) in layouts)
+                foreach ((string pageName, JsonNode? layoutNode) in layouts)
                 {
                     PageValidationOnNavigationDto? matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(
                         g => g.Pages.Contains(pageName)
                     );
 
-                    JsonObject? dataNode = layoutNode?["data"]?.AsObject();
-                    if (dataNode == null)
+                    if (layoutNode is null)
+                    {
+                        continue;
+                    }
+
+                    JsonObject? dataNode = layoutNode["data"]?.AsObject();
+                    if (dataNode is null)
                     {
                         continue;
                     }
@@ -821,7 +832,7 @@ public class AppDevelopmentController : Controller
                 async (layoutSet) =>
                 {
                     LayoutSetDto layoutSetDto = layoutSet.ToDto();
-                    string? layoutSetId = layoutSet?.Id;
+                    string layoutSetId = layoutSet.Id;
                     LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(editingContext, layoutSetId);
                     PagesDto pages = PagesDto.From(layoutSettings);
                     layoutSetDto.PageCount =
@@ -845,7 +856,7 @@ public class AppDevelopmentController : Controller
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        ValidationOnNavigation config = await _appDevelopmentService.GetValidationOnNavigationLayoutSets(
+        ValidationOnNavigation? config = await _appDevelopmentService.GetValidationOnNavigationLayoutSets(
             editingContext,
             cancellationToken
         );
@@ -1059,7 +1070,7 @@ public class AppDevelopmentController : Controller
             return NotFound();
         }
 
-        string frontendVersion;
+        string? frontendVersion;
 
         // For v9 apps and onwards, Index.cshtml no longer exists and frontend major version aligns with backend major version.
         if (backendVersion.Major >= 9)
