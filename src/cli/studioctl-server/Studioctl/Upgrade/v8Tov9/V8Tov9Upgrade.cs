@@ -244,8 +244,7 @@ internal static class V8Tov9Upgrade
         UpgradeConsole.BeginStep("Dockerfile");
         try
         {
-            await DockerfileMigration.Migrate(projectFolder, targetFramework);
-            return ExitSuccess;
+            return await DockerfileMigration.Migrate(projectFolder, targetFramework);
         }
         catch (Exception ex)
         {
@@ -634,6 +633,7 @@ internal static class V8Tov9Upgrade
 
             var layoutSetDirectories = Directory.GetDirectories(uiPath);
             var totalProcessed = 0;
+            var generationFailed = false;
 
             foreach (var layoutSetPath in layoutSetDirectories)
             {
@@ -707,6 +707,7 @@ internal static class V8Tov9Upgrade
                         UpgradeConsole.Failed(error);
                     }
 
+                    generationFailed = true;
                     continue;
                 }
 
@@ -732,12 +733,12 @@ internal static class V8Tov9Upgrade
                 totalProcessed++;
             }
 
-            if (totalProcessed == 0)
+            if (totalProcessed == 0 && !generationFailed)
             {
                 UpgradeConsole.Skip("No data processing rules found to convert");
             }
 
-            return ExitSuccess;
+            return generationFailed ? ExitError : ExitSuccess;
         }
         catch (Exception ex)
         {

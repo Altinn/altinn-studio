@@ -21,13 +21,16 @@ internal static class DockerfileMigration
         TimeSpan.FromSeconds(1)
     );
 
-    internal static async Task Migrate(string projectFolder, string targetFramework)
+    /// <returns>
+    /// Returns 0 on success, 3 for manual follow up.
+    /// </returns>
+    internal static async Task<int> Migrate(string projectFolder, string targetFramework)
     {
         var dockerfilePath = Path.Combine(projectFolder, "Dockerfile");
         if (!File.Exists(dockerfilePath))
         {
             UpgradeConsole.Skip("No Dockerfile found");
-            return;
+            return 0;
         }
 
         var imageTag = GetImageTag(targetFramework);
@@ -38,18 +41,19 @@ internal static class DockerfileMigration
         {
             await File.WriteAllLinesAsync(dockerfilePath, updated);
             UpgradeConsole.Ok($"Updated to .NET image tag '{imageTag}'");
-            return;
+            return 0;
         }
 
         if (lines.Any(IsDotnetBaseImage))
         {
             UpgradeConsole.Skip($"Already targets .NET image tag '{imageTag}'");
-            return;
+            return 0;
         }
 
         UpgradeConsole.Todo(
             "No .NET base image found in the Dockerfile. Update the .NET version by hand to match the app."
         );
+        return 3;
     }
 
     /// <summary>
