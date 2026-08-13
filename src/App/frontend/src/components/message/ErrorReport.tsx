@@ -37,7 +37,7 @@ const ErrorReportContext = createContext(false);
 export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
   const hasErrorReport = useContext(ErrorReportContext);
   const isMobile = useIsMobile();
-  const errorReportRef = useRef<React.ElementRef<typeof ErrorSummary>>(null);
+  const errorReportRef = useRef<React.ComponentRef<typeof ErrorSummary>>(null);
   const wasVisible = useRef(false);
 
   useEffect(() => {
