@@ -7,11 +7,26 @@ updates:
     directories:
       - '/'
       - '/src/lhci-server'
+      - '/src/Runtime/localtest'
+      - '/src/Runtime/pdf3'
+      - '/src/test/K6'
     schedule:
       interval: weekly
     open-pull-requests-limit: 0
     groups:
       npm-security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  - package-ecosystem: nuget
+    directories:
+      - '**/*'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      nuget-security-updates:
         applies-to: security-updates
         patterns:
           - '*'
@@ -24,6 +39,17 @@ updates:
     open-pull-requests-limit: 0
     groups:
       go-security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  - package-ecosystem: pip
+    directory: '/src/tools/altinn-fleet-stats/backend'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      pip-security-updates:
         applies-to: security-updates
         patterns:
           - '*'
