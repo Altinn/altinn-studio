@@ -356,7 +356,8 @@ internal sealed class WorkflowHandler(
         // Errors after a deferral anchor on the last deferral, so a long wait does not consume the
         // retry allowance. Must be LastDeferredAt, not UpdatedAt: UpdatedAt advances on every
         // write-back, sliding the deadline forward per attempt until MaxDuration stops binding.
-        var initialStartTime = currentStep.LastDeferredAt ?? previousStep?.UpdatedAt ?? currentStep.CreatedAt;
+        // The rule is shared with the throttle sweep's deadline clamp via ResolveRetryAnchor.
+        var initialStartTime = currentStep.ResolveRetryAnchor(previousStep);
 
         if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, timeProvider))
         {

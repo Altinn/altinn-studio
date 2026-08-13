@@ -17,7 +17,6 @@ namespace WorkflowEngine.Data.Services;
 /// </summary>
 internal sealed class DbMigrationService
 {
-    private const long MigrationLockId = 0x4D6967726174; // "Migrat" in hex
     private readonly NpgsqlDataSource? _dataSource;
     private static ILogger<DbMigrationService>? _logger { get; set; }
 
@@ -57,7 +56,11 @@ internal sealed class DbMigrationService
 
     private static async Task Migrate(NpgsqlConnection connection, CancellationToken cancellationToken)
     {
-        await using var dbLock = await AdvisoryLockScope.Acquire(MigrationLockId, connection, cancellationToken);
+        await using var dbLock = await AdvisoryLockScope.Acquire(
+            AdvisoryLockIds.Migration,
+            connection,
+            cancellationToken
+        );
 
         var options = new DbContextOptionsBuilder<EngineDbContext>()
             .UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.Engine))

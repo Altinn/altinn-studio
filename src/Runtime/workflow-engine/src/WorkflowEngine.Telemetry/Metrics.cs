@@ -333,6 +333,53 @@ public static class Metrics
     /// </summary>
     public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>("engine.db.operations.failed");
 
+    /// <summary>
+    /// Counter of namespace circuit breaker trips, tagged with <c>namespace</c> — including
+    /// re-trips from a failed recovery. Namespace is a safe tag here: trips are rare events whose
+    /// cardinality is bounded by incident count, not fleet size (a documented decision in the
+    /// failure-throttling ADR).
+    /// </summary>
+    public static readonly Counter<long> ThrottleTripped = Meter.CreateCounter<long>(
+        "engine.throttle.tripped",
+        description: "Number of namespace circuit breaker trips, including re-trips from failed recovery"
+    );
+
+    /// <summary>
+    /// Counter of throttle window extensions (every canary failed its probe), tagged with <c>namespace</c>.
+    /// </summary>
+    public static readonly Counter<long> ThrottleExtended = Meter.CreateCounter<long>(
+        "engine.throttle.extended",
+        description: "Number of throttle window extensions after unanimous canary failure"
+    );
+
+    /// <summary>
+    /// Counter of workflows released from throttling in recovery cohorts, tagged with <c>namespace</c>.
+    /// Incremented by the cohort size actually released, not by 1 per cohort.
+    /// </summary>
+    public static readonly Counter<long> ThrottleCohortReleased = Meter.CreateCounter<long>(
+        "engine.throttle.released",
+        description: "Number of workflows released from throttling in recovery cohorts"
+    );
+
+    /// <summary>
+    /// Counter of namespace circuit breakers closed after successful recovery, tagged with <c>namespace</c>.
+    /// </summary>
+    public static readonly Counter<long> ThrottleClosed = Meter.CreateCounter<long>(
+        "engine.throttle.closed",
+        description: "Number of namespace circuit breakers closed after successful recovery"
+    );
+
+    private static long _openThrottleBreakersCount;
+
+    /// <summary>
+    /// Gauge of namespace circuit breakers currently in the Open state.
+    /// </summary>
+    public static readonly ObservableGauge<long> OpenThrottleBreakers = Meter.CreateObservableGauge(
+        "engine.throttle.breakers.open",
+        static () => _openThrottleBreakersCount,
+        description: "Number of namespace circuit breakers currently open"
+    );
+
     private static long _maintenanceConsecutiveFailures;
 
     /// <summary>
@@ -499,6 +546,11 @@ public static class Metrics
     /// Sets the value reported by <see cref="MaintenanceConsecutiveFailures"/>.
     /// </summary>
     public static void SetMaintenanceConsecutiveFailures(int count) => _maintenanceConsecutiveFailures = count;
+
+    /// <summary>
+    /// Sets the value reported by <see cref="OpenThrottleBreakers"/>.
+    /// </summary>
+    public static void SetOpenThrottleBreakersCount(long count) => _openThrottleBreakersCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="HealthStatus"/>.

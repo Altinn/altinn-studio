@@ -137,6 +137,25 @@ public sealed class PostgresFixture : IAsyncLifetime
         );
     }
 
+    internal (NamespaceThrottleService Service, ThrottleStateView View) CreateThrottleService(
+        IOptions<EngineSettings> settings
+    )
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        _dataSources.Add(dataSource);
+        var view = new ThrottleStateView();
+        var service = new NamespaceThrottleService(
+            NullLogger<NamespaceThrottleService>.Instance,
+            TimeProvider.System,
+            dataSource,
+            settings,
+            CreateRepository(settings),
+            view
+        );
+        _disposables.Add(service);
+        return (service, view);
+    }
+
     internal DbMaintenanceService CreateMaintenanceService(TimeProvider? timeProvider = null)
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
