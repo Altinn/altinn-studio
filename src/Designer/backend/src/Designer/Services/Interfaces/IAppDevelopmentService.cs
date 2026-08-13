@@ -18,7 +18,7 @@ public interface IAppDevelopmentService
     /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of all FormLayouts for a layoutset</returns>
-    public Task<Dictionary<string, JsonNode>> GetFormLayouts(
+    public Task<Dictionary<string, JsonNode?>> GetFormLayouts(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string? layoutSetName,
         CancellationToken cancellationToken = default
@@ -161,7 +161,7 @@ public interface IAppDevelopmentService
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="layoutSetId">The id of the layout set to get config for.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<LayoutSetConfig> GetLayoutSetConfig(
+    public Task<LayoutSetConfig?> GetLayoutSetConfig(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string? layoutSetId,
         CancellationToken cancellationToken = default
@@ -269,7 +269,7 @@ public interface IAppDevelopmentService
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="version">Version of the frontend used in app.</param>
     /// <returns>A <see cref="bool"/> representing if frontend version if successfully found.</returns>
-    public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version);
+    public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string? version);
 
     /// <summary>
     /// Add a component to layout
@@ -293,7 +293,7 @@ public interface IAppDevelopmentService
     /// <param name="context"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<ValidationOnNavigation> GetValidationOnNavigationLayoutSets(
+    public Task<ValidationOnNavigation?> GetValidationOnNavigationLayoutSets(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
     );

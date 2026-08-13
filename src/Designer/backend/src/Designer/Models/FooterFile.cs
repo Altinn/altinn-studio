@@ -8,10 +8,10 @@ namespace Altinn.Studio.Designer.Models;
 public class FooterFile
 {
     [JsonPropertyName("$schema")]
-    public string Schema { get; set; } = string.Empty;
+    public string? Schema { get; set; }
 
     [JsonPropertyName("footer")]
-    public List<FooterLayout> Footer { get; set; } = [];
+    public List<FooterLayout>? Footer { get; set; }
 }
 
 public class FooterLayout
@@ -21,7 +21,7 @@ public class FooterLayout
     public ComponentType Type { get; set; }
 
     [JsonPropertyName("title")]
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; set; }
 
     [JsonPropertyName("target")]
     public string? Target { get; set; }

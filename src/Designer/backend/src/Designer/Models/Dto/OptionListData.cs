@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class OptionListData
 {
     [JsonPropertyName("title")]
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; set; }
 
     [JsonPropertyName("data")]
     public List<Option>? Data { get; set; }
