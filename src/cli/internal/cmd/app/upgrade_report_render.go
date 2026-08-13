@@ -40,7 +40,7 @@ func renderUpgradeSteps(out *ui.Output, steps []studioctlserver.AppUpgradeStep) 
 	for _, step := range steps {
 		for _, message := range step.Messages {
 			label, labelStyle, textStyle := upgradeStatusStyle(message.Status)
-			for i, line := range textLines(message.Text) {
+			for i, line := range splitByNewLines(message.Text) {
 				labelCell := ui.Empty()
 				stepNameCell := ui.Empty()
 				if i == 0 {
@@ -55,8 +55,7 @@ func renderUpgradeSteps(out *ui.Output, steps []studioctlserver.AppUpgradeStep) 
 	out.RenderTable(table)
 }
 
-
-func textLines(text string) []string {
+func splitByNewLines(text string) []string {
 	return strings.FieldsFunc(text, func(r rune) bool { return r == '\n' || r == '\r' })
 }
 
@@ -88,7 +87,7 @@ const (
 	upgradeExitManualRequired = 3
 )
 
-// printUpgradeVerdict closes every upgrade with what its exit code means
+// printUpgradeVerdict closes every upgrade with what its exit code means.
 func printUpgradeVerdict(out *ui.Output, exitCode int) {
 	switch exitCode {
 	case upgradeExitSuccess:
