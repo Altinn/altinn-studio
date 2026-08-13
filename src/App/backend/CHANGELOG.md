@@ -15,7 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. No app can be affected: referring to it has been a compile error for a long time, and the replacement its obsoletion message pointed to — `Altinn.App.Core.Internal.Data.IDataClient` — is unchanged.
+- Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. Use `Altinn.App.Core.Internal.Data.IDataClient`, which its obsoletion message has long pointed to and which is unchanged. Referring to `IData` from app source has been an error rather than a warning for a long time, so app code that builds today is unlikely to mention it; a pre-built library compiled against `IData` at an earlier version does need rebuilding, since the type it looks for is now gone.
 
 ## [9.0.0-preview.4] - 2026-08-11
 
