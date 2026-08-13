@@ -6,7 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import {
   cancelConfigAndVerify,
-  getPropertyByRole,
+  getPropertyByLabel,
   openConfigAndVerify,
   saveConfigChanges,
 } from './testConfigUtils';
@@ -31,7 +31,7 @@ describe('ConfigArrayProperties', () => {
     const user = userEvent.setup();
     renderConfigArrayProperties({});
     await openConfigAndVerify({ user, property: supportedKey });
-    expect(getPropertyByRole('combobox', supportedKey)).toBeInTheDocument();
+    expect(getPropertyByLabel(supportedKey)).toBeInTheDocument();
   });
 
   it('should render array properties with enum values correctly', async () => {
@@ -48,14 +48,14 @@ describe('ConfigArrayProperties', () => {
     await openConfigAndVerify({ user, property: supportedKey });
     for (const dataType of enumValues) {
       expect(
-        screen.getByText(textMock(`ux_editor.component_properties.enum_${dataType}`)),
-      ).toBeInTheDocument();
+        screen.getAllByText(textMock(`ux_editor.component_properties.enum_${dataType}`)).length,
+      ).toBeGreaterThan(0);
     }
   });
 
   it("should render in edit mode when 'keepEditOpen' is true", async () => {
     renderConfigArrayProperties({ props: { keepEditOpen: true } });
-    expect(getPropertyByRole('combobox', supportedKey)).toBeInTheDocument();
+    expect(getPropertyByLabel(supportedKey)).toBeInTheDocument();
   });
 
   it('should call handleComponentUpdate in keepEditOpen mode when array property is updated', async () => {
@@ -99,11 +99,12 @@ const defaultArraySchema = {
 };
 
 const selectOption = async (user: UserEvent, optionText: string) => {
-  const combobox = getPropertyByRole('combobox', supportedKey);
-  await user.click(combobox);
+  await user.click(getPropertyByLabel(supportedKey));
 
-  const option = screen.getByRole('option', {
-    name: textMock(`ux_editor.component_properties.enum_${optionText}`),
+  const optionLabel = textMock(`ux_editor.component_properties.enum_${optionText}`);
+  const option = await screen.findByRole('option', {
+    name: (accessibleName: string) => accessibleName.endsWith(optionLabel),
+    hidden: true,
   });
   await user.click(option);
   await waitFor(() => expect(option).toHaveAttribute('aria-selected', 'true'));

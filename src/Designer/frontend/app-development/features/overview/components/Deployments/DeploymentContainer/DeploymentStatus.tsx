@@ -2,12 +2,13 @@ import React, { type JSX } from 'react';
 import classes from './DeploymentStatus.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/designsystemet-react';
+import { Alert, Spinner, Link } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { StudioParagraph, StudioHeading } from '@studio/components';
 
 export type DeploymentStatusProps = {
   kubernetesDeployment?: KubernetesDeployment;
@@ -50,13 +51,11 @@ export const DeploymentStatus = ({
     const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
     return (
       <Alert severity={severity} className={classes.alert}>
-        <Heading spacing level={2} size='xsmall'>
+        <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
-        </Heading>
-        <Paragraph spacing size='small'>
-          {content}
-        </Paragraph>
-        <Paragraph size='xsmall'>{footer}</Paragraph>
+        </StudioHeading>
+        <StudioParagraph spacing>{content}</StudioParagraph>
+        <StudioParagraph data-size='xs'>{footer}</StudioParagraph>
       </Alert>
     );
   };

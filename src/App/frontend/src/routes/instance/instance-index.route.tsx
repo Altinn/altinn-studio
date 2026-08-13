@@ -1,3 +1,4 @@
+import React from 'react';
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
@@ -5,11 +6,12 @@ import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';
 
-export async function instanceIndexLoader({ context, params, request }: LoaderFunctionArgs) {
+export async function clientLoader({ context, params, request }: LoaderFunctionArgs) {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   const { instanceOwnerPartyId, instanceGuid } = params;
@@ -41,4 +43,8 @@ export async function instanceIndexLoader({ context, params, request }: LoaderFu
   });
 
   return redirect(startUrl);
+}
+
+export default function InstanceIndex() {
+  return <UnknownError error={new Error('Failed to redirect from the instance index page')} />;
 }

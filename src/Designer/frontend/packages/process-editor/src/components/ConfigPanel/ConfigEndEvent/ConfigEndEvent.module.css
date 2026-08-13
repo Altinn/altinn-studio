@@ -10,10 +10,6 @@
   padding-inline: var(--custom-receipt-spacing);
 }
 
-.paragraph {
-  padding-bottom: var(--fds-spacing-1);
-}
-
 .detailsContent {
   margin: 0;
   padding: var(--fds-spacing-5);

@@ -34,7 +34,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
   id,
   value,
   dateFormat,
-  timeStamp = true,
+  timeStamp = false,
   onValueChange,
   readOnly = false,
   required = false,
