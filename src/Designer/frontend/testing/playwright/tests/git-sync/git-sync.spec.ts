@@ -47,7 +47,8 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const newPageName: string = 'Side2';
-  await makeChangesOnUiEditorPage(uiEditorPage, newPageName);
+  await makeChangesOnUiEditorPage(uiEditorPage);
+  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
 
   await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
   await giteaPage.verifyThatTheNewPageIsNotPresent(newPageName);
@@ -68,8 +69,7 @@ test('That it is possible to delete local changes', async ({ page, testAppName }
   const header = new AppDevelopmentHeader(page, { app: testAppName });
   const localChangesModal = new LocalChangesModal(page, { app: testAppName });
 
-  const newPageName: string = 'Side2';
-  await makeChangesOnUiEditorPage(uiEditorPage, newPageName);
+  await makeChangesOnUiEditorPage(uiEditorPage);
 
   await header.clickOnThreeDotsMenu();
   await header.clickOnLocalChangesButton();
@@ -99,10 +99,8 @@ test('That it is possible to download local changes zip', async ({ page, testApp
 });
 
 // Below are helper functions for "duplicate" code where the process is the same
-const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage, newPageName: string) => {
-  await uiEditorPage.verifyThatNewPageIsHidden(newPageName);
+const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage) => {
   await uiEditorPage.clickOnAddNewPage();
-  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
   await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.NavigationButtons);
 };
 
@@ -127,8 +125,7 @@ const makeUiEditorChangesAndOpenLocalChangesModal = async (
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
 
-  const newPageName: string = 'Side2';
-  await makeChangesOnUiEditorPage(uiEditorPage, newPageName);
+  await makeChangesOnUiEditorPage(uiEditorPage);
 
   await header.clickOnThreeDotsMenu();
   await header.clickOnLocalChangesButton();

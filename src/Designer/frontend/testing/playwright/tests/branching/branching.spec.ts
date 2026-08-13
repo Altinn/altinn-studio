@@ -126,5 +126,5 @@ const goToUiEditor = async (page: Page, testAppName: string): Promise<void> => {
 const addUncommittedChange = async (page: Page, testAppName: string): Promise<void> => {
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.clickOnAddNewPage();
-  await expect(page.getByRole('button', { name: FIRST_ADDED_PAGE, exact: true })).toBeVisible();
+  await uiEditorPage.verifyThatNewPageIsVisible(FIRST_ADDED_PAGE);
 };
