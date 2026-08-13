@@ -112,7 +112,7 @@ public class AltinnPartyClient : IAltinnPartyClient
 
         using StringContent content = new(JsonSerializerPermissive.Serialize(partyLookup));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             endpointUrl,
             content,
