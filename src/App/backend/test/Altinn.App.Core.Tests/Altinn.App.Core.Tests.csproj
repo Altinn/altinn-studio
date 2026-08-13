@@ -55,6 +55,16 @@
   </ItemGroup>
 
   <!--
+    The Noark 5 arkivmelding schema, verbatim from Arkivverket via difi/felleslosninger, and the
+    metadata catalogue it imports. Embedded so ArkivmeldingTests can validate a serialized shipment
+    against the real schema rather than against assertions we wrote ourselves.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Eformidling/Models/Schema/arkivmelding.xsd" />
+    <EmbeddedResource Include="Eformidling/Models/Schema/metadatakatalog.xsd" />
+  </ItemGroup>
+
+  <!--
     Workflow-engine wire-contract drift guard. The engine owns the contract; these two files are
     consumed (not copied) directly from the engine host's test project so there is a single source of
     truth in the monorepo. The shared describer is compiled in; the engine's committed contract

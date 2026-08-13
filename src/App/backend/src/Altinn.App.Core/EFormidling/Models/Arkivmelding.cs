@@ -11,10 +11,33 @@ namespace Altinn.App.Core.EFormidling.Models;
 /// <see href="https://github.com/difi/felleslosninger/blob/gh-pages/resources/arkivmelding/arkivmelding.xsd"/>.
 /// Distinct from <see cref="Altinn.App.Core.EFormidling.Models.SBD.ArkivmeldingMetadata"/>, which is
 /// the shipment metadata carried in the SBD envelope.
+/// <para>
+/// Members throughout this file are declared in the schema's element order, because that is the order
+/// <see cref="XmlSerializer"/> emits and the receiving archive validates against. Sorting them by name
+/// — which is how several of these types arrived — emits invalid XML.
+/// </para>
 /// </remarks>
 [XmlRoot(ElementName = "arkivmelding", Namespace = ArkivmeldingNamespaces.Noark5)]
 public class Arkivmelding
 {
+    /// <summary>
+    /// The system that produced the arkivmelding.
+    /// </summary>
+    [XmlElement(ElementName = "system", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? System { get; set; }
+
+    /// <summary>
+    /// The message id.
+    /// </summary>
+    [XmlElement(ElementName = "meldingId", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? MeldingId { get; set; }
+
+    /// <summary>
+    /// When the arkivmelding was produced.
+    /// </summary>
+    [XmlElement(ElementName = "tidspunkt", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? Tidspunkt { get; set; }
+
     /// <summary>
     /// The number of files in the shipment.
     /// </summary>
@@ -28,28 +51,10 @@ public class Arkivmelding
     public List<Mappe>? Mappe { get; set; }
 
     /// <summary>
-    /// The message id.
-    /// </summary>
-    [XmlElement(ElementName = "meldingId", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? MeldingId { get; set; }
-
-    /// <summary>
     /// The XML schema location.
     /// </summary>
     [XmlAttribute(AttributeName = "schemaLocation", Namespace = ArkivmeldingNamespaces.XmlSchemaInstance)]
     public string? SchemaLocation { get; set; }
-
-    /// <summary>
-    /// The system that produced the arkivmelding.
-    /// </summary>
-    [XmlElement(ElementName = "system", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? System { get; set; }
-
-    /// <summary>
-    /// When the arkivmelding was produced.
-    /// </summary>
-    [XmlElement(ElementName = "tidspunkt", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? Tidspunkt { get; set; }
 
     /// <summary>
     /// The default XML namespace declaration.
@@ -303,14 +308,19 @@ public class Basisregistrering
     /// <summary>
     /// The journal date.
     /// </summary>
-    [XmlElement(ElementName = "journaldato")]
+    /// <remarks>
+    /// Emitted as an <c>xs:date</c>, which is what the schema declares. Without the explicit data type
+    /// this serializes as an <c>xs:dateTime</c> and the element fails validation.
+    /// </remarks>
+    [XmlElement(ElementName = "journaldato", DataType = "date")]
     public DateTime Journaldato { get; set; }
 
     /// <summary>
-    /// The correspondence party.
+    /// The correspondence parties of the registration — typically the sender and each recipient.
     /// </summary>
+    /// <remarks>Repeatable, per the schema's <c>journalpost</c> type.</remarks>
     [XmlElement(ElementName = "korrespondansepart")]
-    public Korrespondansepart? Korrespondansepart { get; set; }
+    public List<Korrespondansepart>? Korrespondansepart { get; set; }
 
     /// <summary>
     /// The XML schema instance type, which selects the concrete registration type.
@@ -328,57 +338,15 @@ public class Basisregistrering
 /// <summary>
 /// A folder (saksmappe) holding registrations.
 /// </summary>
+/// <remarks>
+/// Declared in the schema's element order, which is what <see cref="XmlSerializer"/> emits. The
+/// schema's <c>saksmappe</c> extends <c>mappe</c>, so the base type's elements come first — down to
+/// and including the registrations — and only then the case-handling elements the extension adds.
+/// Sorting these members by name would emit invalid XML.
+/// </remarks>
 [XmlType(TypeName = "saksmappe")]
 public class Mappe
 {
-    /// <summary>
-    /// The administrative unit responsible for the folder.
-    /// </summary>
-    [XmlElement(ElementName = "administrativEnhet", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? AdministrativEnhet { get; set; }
-
-    /// <summary>
-    /// The registration held by the folder.
-    /// </summary>
-    [XmlElement(ElementName = "basisregistrering", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public Basisregistrering? Basisregistrering { get; set; }
-
-    /// <summary>
-    /// The classifications applied to the folder.
-    /// </summary>
-    [XmlElement(ElementName = "klassifikasjon", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public List<Klassifikasjon>? Klassifikasjon { get; set; }
-
-    /// <summary>
-    /// Who created the folder.
-    /// </summary>
-    [XmlElement(ElementName = "opprettetAv", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? OpprettetAv { get; set; }
-
-    /// <summary>
-    /// When the folder was created.
-    /// </summary>
-    [XmlElement(ElementName = "opprettetDato", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? OpprettetDato { get; set; }
-
-    /// <summary>
-    /// Who is responsible for the case.
-    /// </summary>
-    [XmlElement(ElementName = "saksansvarlig", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? Saksansvarlig { get; set; }
-
-    /// <summary>
-    /// The case date.
-    /// </summary>
-    [XmlElement(ElementName = "saksdato", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? Saksdato { get; set; }
-
-    /// <summary>
-    /// The case status.
-    /// </summary>
-    [XmlElement(ElementName = "saksstatus", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? Saksstatus { get; set; }
-
     /// <summary>
     /// The system id.
     /// </summary>
@@ -390,6 +358,55 @@ public class Mappe
     /// </summary>
     [XmlElement(ElementName = "tittel", Namespace = ArkivmeldingNamespaces.Noark5)]
     public string? Tittel { get; set; }
+
+    /// <summary>
+    /// When the folder was created.
+    /// </summary>
+    [XmlElement(ElementName = "opprettetDato", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? OpprettetDato { get; set; }
+
+    /// <summary>
+    /// Who created the folder.
+    /// </summary>
+    [XmlElement(ElementName = "opprettetAv", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? OpprettetAv { get; set; }
+
+    /// <summary>
+    /// The classifications applied to the folder.
+    /// </summary>
+    [XmlElement(ElementName = "klassifikasjon", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public List<Klassifikasjon>? Klassifikasjon { get; set; }
+
+    /// <summary>
+    /// The registrations held by the folder — a journalpost per archived registration.
+    /// </summary>
+    /// <remarks>Repeatable, per the schema's <c>mappe</c> type.</remarks>
+    [XmlElement(ElementName = "basisregistrering", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public List<Basisregistrering>? Basisregistrering { get; set; }
+
+    /// <summary>
+    /// The case date.
+    /// </summary>
+    [XmlElement(ElementName = "saksdato", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? Saksdato { get; set; }
+
+    /// <summary>
+    /// The administrative unit responsible for the folder.
+    /// </summary>
+    [XmlElement(ElementName = "administrativEnhet", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? AdministrativEnhet { get; set; }
+
+    /// <summary>
+    /// Who is responsible for the case.
+    /// </summary>
+    [XmlElement(ElementName = "saksansvarlig", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? Saksansvarlig { get; set; }
+
+    /// <summary>
+    /// The case status.
+    /// </summary>
+    [XmlElement(ElementName = "saksstatus", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? Saksstatus { get; set; }
 
     /// <summary>
     /// The XML schema instance type, which selects the concrete folder type.
@@ -405,16 +422,22 @@ public class Mappe
 public class Klassifikasjon
 {
     /// <summary>
+    /// A reference to the classification system.
+    /// </summary>
+    [XmlElement(ElementName = "referanseKlassifikasjonssystem", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? ReferanseKlassifikasjonssystem { get; set; }
+
+    /// <summary>
     /// The class id.
     /// </summary>
     [XmlElement(ElementName = "klasseID", Namespace = ArkivmeldingNamespaces.Noark5)]
     public string? KlasseID { get; set; }
 
     /// <summary>
-    /// Who created the classification.
+    /// The title.
     /// </summary>
-    [XmlElement(ElementName = "opprettetAv", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? OpprettetAv { get; set; }
+    [XmlElement(ElementName = "tittel", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? Tittel { get; set; }
 
     /// <summary>
     /// When the classification was created.
@@ -423,14 +446,8 @@ public class Klassifikasjon
     public string? OpprettetDato { get; set; }
 
     /// <summary>
-    /// A reference to the classification system.
+    /// Who created the classification.
     /// </summary>
-    [XmlElement(ElementName = "referanseKlassifikasjonssystem", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? ReferanseKlassifikasjonssystem { get; set; }
-
-    /// <summary>
-    /// The title.
-    /// </summary>
-    [XmlElement(ElementName = "tittel", Namespace = ArkivmeldingNamespaces.Noark5)]
-    public string? Tittel { get; set; }
+    [XmlElement(ElementName = "opprettetAv", Namespace = ArkivmeldingNamespaces.Noark5)]
+    public string? OpprettetAv { get; set; }
 }

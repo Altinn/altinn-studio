@@ -1,4 +1,7 @@
+using System.Reflection;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using Altinn.App.Core.EFormidling.Models;
 
@@ -27,33 +30,36 @@ public class ArkivmeldingTests
                     SystemID = Guid.NewGuid().ToString(),
                     Tittel = "Sak",
                     Type = "saksmappe",
-                    Basisregistrering = new Basisregistrering
-                    {
-                        Type = "journalpost",
-                        SystemID = Guid.NewGuid().ToString(),
-                        Tittel = "Journalpost",
-                        Dokumentbeskrivelse =
-                        [
-                            new Dokumentbeskrivelse
-                            {
-                                Tittel = "Hoveddokument",
-                                TilknyttetRegistreringSom = "hoveddokument",
-                                Dokumentnummer = 1,
-                                Dokumentobjekt =
-                                [
-                                    new Dokumentobjekt { ReferanseDokumentfil = "model.xml" },
-                                    new Dokumentobjekt { ReferanseDokumentfil = "model.pdf" },
-                                ],
-                            },
-                            new Dokumentbeskrivelse
-                            {
-                                Tittel = "Vedlegg",
-                                TilknyttetRegistreringSom = "vedlegg",
-                                Dokumentnummer = 2,
-                                Dokumentobjekt = [new Dokumentobjekt { ReferanseDokumentfil = "vedlegg.pdf" }],
-                            },
-                        ],
-                    },
+                    Basisregistrering =
+                    [
+                        new Basisregistrering
+                        {
+                            Type = "journalpost",
+                            SystemID = Guid.NewGuid().ToString(),
+                            Tittel = "Journalpost",
+                            Dokumentbeskrivelse =
+                            [
+                                new Dokumentbeskrivelse
+                                {
+                                    Tittel = "Hoveddokument",
+                                    TilknyttetRegistreringSom = "hoveddokument",
+                                    Dokumentnummer = 1,
+                                    Dokumentobjekt =
+                                    [
+                                        new Dokumentobjekt { ReferanseDokumentfil = "model.xml" },
+                                        new Dokumentobjekt { ReferanseDokumentfil = "model.pdf" },
+                                    ],
+                                },
+                                new Dokumentbeskrivelse
+                                {
+                                    Tittel = "Vedlegg",
+                                    TilknyttetRegistreringSom = "vedlegg",
+                                    Dokumentnummer = 2,
+                                    Dokumentobjekt = [new Dokumentobjekt { ReferanseDokumentfil = "vedlegg.pdf" }],
+                                },
+                            ],
+                        },
+                    ],
                 },
             ],
         };
@@ -120,5 +126,152 @@ public class ArkivmeldingTests
             childOrder.IndexOf("dokumentbeskrivelse") < childOrder.IndexOf("tittel"),
             $"dokumentbeskrivelse must precede tittel, but order was: {string.Join(", ", childOrder)}"
         );
+    }
+
+    [Fact]
+    public void A_complete_shipment_validates_against_the_Noark_5_schema()
+    {
+        // The guard the hand-written assertions above cannot be: element order, cardinality and data
+        // types all checked at once, by the schema itself rather than by our reading of it. Several of
+        // these types arrived sorted by member name, which emits the elements out of sequence.
+        XDocument document = Serialize(BuildCompleteShipment());
+
+        List<string> errors = [];
+        document.Validate(
+            NoarkSchemas(),
+            (_, e) => errors.Add($"{e.Severity} at line {e.Exception?.LineNumber}: {e.Message}"),
+            addSchemaInfo: false
+        );
+
+        Assert.True(
+            errors.Count == 0,
+            $"Schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}"
+        );
+    }
+
+    [Fact]
+    public void The_schema_validation_is_not_vacuous()
+    {
+        // If the schema set failed to associate with the document's namespace, Validate would report
+        // nothing and the test above would pass without checking anything. This proves it bites: the
+        // minimal fixture omits elements the schema requires.
+        XDocument document = Serialize(BuildWithTwoDocuments());
+
+        List<XmlSeverityType> severities = [];
+        document.Validate(NoarkSchemas(), (_, e) => severities.Add(e.Severity), addSchemaInfo: false);
+
+        Assert.Contains(XmlSeverityType.Error, severities);
+    }
+
+    /// <summary>
+    /// Loads the schema pair embedded in this test project. The arkivmelding schema imports the
+    /// metadata catalogue by relative path, so both are added to the set explicitly rather than left
+    /// to a resolver that would try to reach the filesystem.
+    /// </summary>
+    private static XmlSchemaSet NoarkSchemas()
+    {
+        var schemas = new XmlSchemaSet { XmlResolver = null };
+        Add("metadatakatalog.xsd", "http://www.arkivverket.no/standarder/noark5/metadatakatalog");
+        Add("arkivmelding.xsd", ArkivmeldingNamespaces.Noark5);
+        schemas.Compile();
+        return schemas;
+
+        void Add(string filename, string targetNamespace)
+        {
+            string resource = $"Altinn.App.Core.Tests.Eformidling.Models.Schema.{filename}";
+            using Stream stream =
+                Assembly.GetExecutingAssembly().GetManifestResourceStream(resource)
+                ?? throw new InvalidOperationException($"Embedded schema '{resource}' was not found.");
+            using XmlReader reader = XmlReader.Create(stream);
+            schemas.Add(targetNamespace, reader);
+        }
+    }
+
+    /// <summary>
+    /// Every element the schema makes mandatory, with values its enumerations accept — the smallest
+    /// document that proves the model can express a valid shipment at all.
+    /// </summary>
+    private static Arkivmelding BuildCompleteShipment()
+    {
+        DateTime now = new(2026, 8, 13, 10, 30, 0, DateTimeKind.Utc);
+        string folderId = Guid.NewGuid().ToString();
+
+        return new Arkivmelding
+        {
+            System = "Altinn",
+            MeldingId = Guid.NewGuid().ToString(),
+            Tidspunkt = now.ToString("o"),
+            AntallFiler = 1,
+            Mappe =
+            [
+                new Mappe
+                {
+                    SystemID = folderId,
+                    Tittel = "Sak",
+                    OpprettetDato = now.ToString("o"),
+                    OpprettetAv = "Altinn",
+                    Type = "saksmappe",
+                    Basisregistrering =
+                    [
+                        new Basisregistrering
+                        {
+                            Type = "journalpost",
+                            SystemID = Guid.NewGuid().ToString(),
+                            OpprettetDato = now,
+                            OpprettetAv = "Altinn",
+                            ReferanseForelderMappe = folderId,
+                            Dokumentbeskrivelse =
+                            [
+                                new Dokumentbeskrivelse
+                                {
+                                    SystemID = Guid.NewGuid().ToString(),
+                                    Dokumenttype = "Bestilling",
+                                    Dokumentstatus = "Dokumentet er ferdigstilt",
+                                    Tittel = "Hoveddokument",
+                                    OpprettetDato = now,
+                                    OpprettetAv = "Altinn",
+                                    TilknyttetRegistreringSom = "Hoveddokument",
+                                    Dokumentnummer = 1,
+                                    TilknyttetDato = now,
+                                    TilknyttetAv = "Altinn",
+                                    Dokumentobjekt =
+                                    [
+                                        new Dokumentobjekt
+                                        {
+                                            Versjonsnummer = 1,
+                                            Variantformat = "Produksjonsformat",
+                                            OpprettetDato = now,
+                                            OpprettetAv = "Altinn",
+                                            ReferanseDokumentfil = "model.xml",
+                                        },
+                                    ],
+                                },
+                            ],
+                            Tittel = "Journalpost",
+                            Journalposttype = "Utgående dokument",
+                            Journalstatus = "Journalført",
+                            Journaldato = now,
+                            Korrespondansepart =
+                            [
+                                new Korrespondansepart
+                                {
+                                    Korrespondanseparttype = "Avsender",
+                                    KorrespondansepartNavn = "Digitaliseringsdirektoratet",
+                                },
+                                new Korrespondansepart
+                                {
+                                    Korrespondanseparttype = "Mottaker",
+                                    KorrespondansepartNavn = "Oslo kommune",
+                                },
+                            ],
+                        },
+                    ],
+                    Saksdato = now.ToString("yyyy-MM-dd"),
+                    AdministrativEnhet = "Digitaliseringsdirektoratet",
+                    Saksansvarlig = "Altinn",
+                    Saksstatus = "Under behandling",
+                },
+            ],
+        };
     }
 }

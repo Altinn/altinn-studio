@@ -233,14 +233,14 @@ namespace Altinn.App.Core.EFormidling.Models
         public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Dokumentbeskrivelse>? Dokumentbeskrivelse { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="dokumentobjekt")]
         public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Dokumentobjekt>? Dokumentobjekt { get; set; }
-        [System.Xml.Serialization.XmlElement(ElementName="journaldato")]
+        [System.Xml.Serialization.XmlElement(DataType="date", ElementName="journaldato")]
         public System.DateTime Journaldato { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="journalposttype")]
         public string? Journalposttype { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="journalstatus")]
         public string? Journalstatus { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="korrespondansepart")]
-        public Altinn.App.Core.EFormidling.Models.Korrespondansepart? Korrespondansepart { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Korrespondansepart>? Korrespondansepart { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="offentligTittel")]
         public string? OffentligTittel { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="opprettetAv")]
@@ -344,7 +344,7 @@ namespace Altinn.App.Core.EFormidling.Models
         [System.Xml.Serialization.XmlElement(ElementName="administrativEnhet", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
         public string? AdministrativEnhet { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="basisregistrering", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
-        public Altinn.App.Core.EFormidling.Models.Basisregistrering? Basisregistrering { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Basisregistrering>? Basisregistrering { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="klassifikasjon", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
         public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.Klassifikasjon>? Klassifikasjon { get; set; }
         [System.Xml.Serialization.XmlElement(ElementName="opprettetAv", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
