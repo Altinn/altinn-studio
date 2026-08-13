@@ -18,9 +18,11 @@
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
     }
   ],
-  "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "postUpdateOptions": ["gomodTidy"],
+  "vulnerabilityAlerts": {
+    "enabled": false
+  },
   "packageRules": [
     {
       "matchManagers": ["gomod", "pep621"],
@@ -30,10 +32,10 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "description": "Helm Go dependency updates are done manually because even patch releases can change Kubernetes client minor versions",
+      "description": "Require explicit approval for Helm Go dependency updates because even patch releases can change Kubernetes client minor versions",
       "matchManagers": ["gomod"],
       "matchPackageNames": ["helm.sh/helm/v3"],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
@@ -49,7 +51,7 @@
       "groupSlug": "k8s-flux-runtime-go-patches"
     },
     {
-      "description": "Kubernetes, Flux, and cluster tooling Go dependency minor/major updates are done manually after checking target cluster compatibility",
+      "description": "Require explicit approval for Kubernetes, Flux, and cluster tooling Go dependency minor/major updates after checking target cluster compatibility",
       "matchManagers": ["gomod"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
@@ -58,7 +60,7 @@
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
       "matchUpdateTypes": ["minor", "major"],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "groupName": "LibGit2Sharp dependency",
@@ -88,7 +90,8 @@
     {
       "matchFileNames": ["src/App/**", "app-libs/**"],
       "additionalBranchPrefix": "app/",
-      "commitMessageSuffix": " (app)"
+      "commitMessageSuffix": " (app)",
+      "separateMinorPatch": true
     },
     {
       "description": "Keep App Designsystemet updates together and separate from other dependency updates",
@@ -125,11 +128,6 @@
       "commitMessageSuffix": " (localtest)"
     },
     {
-      "matchFileNames": ["src/Runtime/pdf3/**"],
-      "additionalBranchPrefix": "pdf3/",
-      "commitMessageSuffix": " (pdf3)"
-    },
-    {
       "description": "Keep Go module updates in repository-wide groups",
       "matchManagers": ["gomod"],
       "additionalBranchPrefix": "",
@@ -151,7 +149,7 @@
         "/^Microsoft\\.CodeAnalysis/",
         "/^Microsoft\\.Build/"
       ],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "matchFileNames": [
@@ -179,7 +177,7 @@
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"
       ],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Upgrade React consistently across the entire repository",
