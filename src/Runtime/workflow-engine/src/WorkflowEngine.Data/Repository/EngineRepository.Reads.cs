@@ -442,7 +442,9 @@ internal sealed partial class EngineRepository
             logger.CountingWorkflows("runnable");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context.GetRunnableWorkflows().CountAsync(cancellationToken);
+            var result = await context
+                .GetRunnableWorkflows(throttleGate: settings.Value.Throttling.Enabled)
+                .CountAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result);
 
