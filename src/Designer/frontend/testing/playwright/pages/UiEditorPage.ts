@@ -6,6 +6,7 @@ import type { DragAndDropComponents } from '../types/DragAndDropComponents';
 import { expect } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
 import type { LanguageCode } from '../enum/LanguageCode';
+import { accordionHeaderId } from '@studio/testing/testids';
 
 const dataModelBindingButtonTextMap: Record<string, TextKey> = {
   Input: 'ux_editor.component_title.Input',
@@ -54,7 +55,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).click();
+    await this.getPageAccordion(pageName).click();
   }
 
   public async clickOnComponentTextConfigAccordion(): Promise<void> {
@@ -106,7 +107,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyThatNewPageIsHidden(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).isHidden();
+    await expect(this.getPageAccordion(pageName)).toBeHidden();
   }
 
   public async clickOnAddNewPage(): Promise<void> {
@@ -114,7 +115,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).isVisible();
+    await expect(this.getPageAccordion(pageName)).toBeVisible();
   }
 
   public async verifyThatPageEmptyMessageIsHidden(): Promise<void> {
@@ -293,6 +294,10 @@ export class UiEditorPage extends BasePage {
   public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
     const addButton = this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') });
     await expect(addButton).toBeVisible();
+  }
+
+  private getPageAccordion(pageName: string): Locator {
+    return this.page.getByTestId(accordionHeaderId(pageName));
   }
 
   private getDroppableList(): Locator {
