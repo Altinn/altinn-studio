@@ -10,7 +10,6 @@ Altinity is a multi-agent system powered by LangGraph that understands Altinn St
 
 - Azure OpenAI API access (or OpenAI)
 - **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** running
-- [uv](https://docs.astral.sh/uv/) for local Python development
 
 ## Quick Start
 
@@ -31,8 +30,8 @@ docker-compose up
 ### Local Python
 
 ```bash
-# 1. Install the locked dependencies
-uv sync --locked
+# 1. Install dependencies
+pip install -r requirements.txt
 
 # 2. Configure
 cp .env.example .env
@@ -42,7 +41,7 @@ cp .env.example .env
 # See: https://github.com/Simenwai/altinity-mcp
 
 # 4. Start Altinity
-uv run python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
 ## Features

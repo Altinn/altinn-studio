@@ -6,7 +6,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY uv.lock ./
 
-RUN uv sync --locked --no-dev --no-install-project
+RUN uv pip install --system .
 
 COPY codegen/ ./codegen/
 COPY server/ ./server/
@@ -14,7 +14,6 @@ COPY scripts/ ./scripts/
 
 EXPOSE 8069
 
-ENV PATH="/app/.venv/bin:$PATH" \
-    PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "-m", "server.main"]
