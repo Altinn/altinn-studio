@@ -74,7 +74,7 @@ describe('ConfigBooleanProperties', () => {
     });
     expect(button).toBeInTheDocument();
     await user.click(button);
-    expect(getPropertyByRole('checkbox', 'timeStamp')).toBeChecked();
+    expect(getPropertyByRole('checkbox', 'timeStamp')).not.toBeChecked();
   });
 
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {

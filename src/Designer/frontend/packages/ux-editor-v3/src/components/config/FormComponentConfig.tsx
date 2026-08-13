@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
+import { StudioHeading, StudioParagraph } from '@studio/components';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -69,9 +70,9 @@ export const FormComponentConfig = ({
       )}
       {textResourceBindings?.properties && (
         <>
-          <Heading level={3} size='xxsmall'>
+          <StudioHeading level={3} data-size='xs'>
             {t('general.text')}
-          </Heading>
+          </StudioHeading>
           <EditTextResourceBindings
             component={component}
             handleComponentChange={handleComponentUpdate}
@@ -83,9 +84,9 @@ export const FormComponentConfig = ({
       )}
       {dataModelBindings?.properties && (
         <>
-          <Heading level={3} size='xxsmall'>
+          <StudioHeading level={3} data-size='xs'>
             {t('top_menu.data_model')}
-          </Heading>
+          </StudioHeading>
           {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
             return (
               <EditDataModelBindings
@@ -105,9 +106,9 @@ export const FormComponentConfig = ({
       )}
       {grid && (
         <div>
-          <Heading level={3} size='xxsmall'>
+          <StudioHeading level={3} data-size='xs'>
             {t('ux_editor.component_properties.grid')}
-          </Heading>
+          </StudioHeading>
           <EditGrid
             key={component.id}
             component={component}
@@ -116,9 +117,9 @@ export const FormComponentConfig = ({
         </div>
       )}
       {!hideUnsupported && (
-        <Heading level={3} size='xxsmall'>
+        <StudioHeading level={3} data-size='xs'>
           {t('ux_editor.component_other_properties_title')}
-        </Heading>
+        </StudioHeading>
       )}
       {options && optionsId && (
         <EditOptions
@@ -232,11 +233,11 @@ export const FormComponentConfig = ({
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
             <Fragment key={propertyKey}>
-              <Heading level={3} size='xxsmall'>
+              <StudioHeading level={3} data-size='xs'>
                 {getComponentPropertyLabel(propertyKey, t)}
-              </Heading>
+              </StudioHeading>
               {rest[propertyKey]?.description && (
-                <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
+                <StudioParagraph data-size='sm'>{rest[propertyKey].description}</StudioParagraph>
               )}
               <FormComponentConfig
                 key={propertyKey}

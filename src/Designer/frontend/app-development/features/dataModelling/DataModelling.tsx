@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCenter, StudioError, StudioPageSpinner } from '@studio/components';
-import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
+import { StudioCenter, StudioError, StudioPageSpinner, StudioParagraph } from '@studio/components';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
 import { useDataModelsJsonQuery, useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useParams } from 'react-router-dom';
@@ -25,8 +25,8 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
       return (
         <StudioCenter>
           <StudioError>
-            <Paragraph>{t('general.fetch_error_message')}</Paragraph>
-            <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
+            <StudioParagraph>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph>{t('general.error_message_with_colon')}</StudioParagraph>
             {jsonError && <ErrorMessage>{jsonError.message}</ErrorMessage>}
             {xsdError && <ErrorMessage>{xsdError.message}</ErrorMessage>}
           </StudioError>
