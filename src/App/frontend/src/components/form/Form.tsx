@@ -73,7 +73,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
     (state) =>
       state.validation.formMask > 0 ||
       state.validation.showAllUnboundValidations ||
-      Boolean(currentPageId && state.validation.pageMasks[currentPageId]),
+      Object.values(state.validation.pageMasks).some((mask) => mask > 0),
   );
 
   useRedirectToStoredPage();
