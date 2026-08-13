@@ -93,6 +93,7 @@
     <PackageVersion Include="WireMock.Net.Minimal" Version="2.14.0" />
     <PackageVersion Include="DistributedLock.FileSystem" Version="1.0.3" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.7.3" />
+    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
     <PackageVersion Include="Verify.Xunit" Version="31.12.5" />
   </ItemGroup>
 </Project>
