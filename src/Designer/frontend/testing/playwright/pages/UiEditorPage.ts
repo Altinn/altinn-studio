@@ -106,10 +106,6 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
-  public async verifyThatNewPageIsHidden(pageName: string): Promise<void> {
-    await expect(this.getPageAccordion(pageName)).toBeHidden();
-  }
-
   public async clickOnAddNewPage(): Promise<void> {
     await this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') }).click();
   }
@@ -131,11 +127,16 @@ export class UiEditorPage extends BasePage {
   }
 
   public async openTextComponentSection(): Promise<void> {
+    const headingToolbarItem = this.page
+      .getByTestId(DataTestId.DraggableToolbarItem as string)
+      .filter({
+        hasText: this.textMock('ux_editor.component_title.Heading'),
+      });
+
     await this.page
-      .getByRole('heading', { level: 3 })
-      .getByRole('button', {
-        name: this.textMock('ux_editor.collapsable_text_components'),
-      })
+      .locator('details')
+      .filter({ has: headingToolbarItem })
+      .locator('summary')
       .click();
   }
 
