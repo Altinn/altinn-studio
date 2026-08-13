@@ -5,24 +5,19 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// namespaces that simply moved are rewritten automatically; everything reported here needs a human.
 /// </summary>
 /// <remarks>
-/// Four concerns, reported separately because the guidance differs:
+/// Five concerns, reported separately because the guidance differs:
 /// <list type="number">
-/// <item>
-/// <c>Altinn.EFormidlingClient.Extensions</c> - the <c>HttpClientExtension</c> header-dictionary
-/// overloads. Deleted rather than moved: the name collides with the existing
-/// <c>Altinn.App.Core.Extensions.HttpClientExtension</c>, and the eFormidling client no longer takes
-/// caller-supplied headers. Apps are observed to use it for unrelated HTTP clients, which is exactly
-/// why it is worth naming rather than silently dropping.
-/// </item>
+/// <item><c>Altinn.EFormidlingClient.Extensions</c> - the <c>HttpClientExtension</c> header-dictionary
+/// overloads, deleted with no destination to rewrite to. Apps are observed to use it for unrelated
+/// HTTP clients, which is why it is worth naming rather than silently dropping.</item>
 /// <item>The eight <c>IEFormidlingClient</c> endpoints removed with the move, and their models.</item>
 /// <item><c>Content</c>, <c>Sort</c> and <c>Pageable</c>, now nested inside <c>Statuses</c>.</item>
-/// <item>
-/// The arkivmelding properties that became lists to match the Noark 5 schema's <c>unbounded</c>
-/// cardinality.
-/// </item>
+/// <item>The arkivmelding properties that became lists to match the schema's <c>unbounded</c>
+/// cardinality.</item>
+/// <item>The SBD's <c>Arkivmelding</c>, renamed to <c>ArkivmeldingMetadata</c>.</item>
 /// </list>
-/// The last two are scoped to files referencing the models namespace, since their names are far too
-/// ordinary to match safely across a whole app.
+/// The last three are scoped to files referencing the namespace they came from, since their names are
+/// far too ordinary to match safely across a whole app.
 /// </remarks>
 internal sealed class RemovedEFormidlingClientApiDetector
 {
@@ -49,8 +44,7 @@ internal sealed class RemovedEFormidlingClientApiDetector
     };
 
     /// <summary>
-    /// Types that still exist but are now nested inside <c>Statuses</c>. Their old names were too
-    /// generic to sit in a shared namespace; <c>Statuses</c> itself is unchanged.
+    /// Types that still exist but are now nested inside <c>Statuses</c>, which is itself unchanged.
     /// </summary>
     private static readonly IReadOnlySet<string> _nestedModels = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -60,10 +54,9 @@ internal sealed class RemovedEFormidlingClientApiDetector
     };
 
     /// <summary>
-    /// The models namespace, before and after the move. Matching these nested names anywhere would be
-    /// far too broad — <c>Content</c> in particular is an everyday identifier — so they are only
-    /// reported in files that reference the namespace they came from. The new name is checked first
-    /// because the namespace rewrite has already run by the time detection happens.
+    /// The models namespace, before and after the move. <c>Content</c> in particular is an everyday
+    /// identifier, so these names are only reported in files that reference the namespace they came
+    /// from. The new name is checked first because the namespace rewrite has already run by then.
     /// </summary>
     private static readonly string[] _modelNamespaces =
     [
@@ -75,10 +68,10 @@ internal sealed class RemovedEFormidlingClientApiDetector
         "Altinn.EFormidlingClient.Extensions is removed in v9 and has no replacement namespace. It held "
         + "HttpClientExtension - the GetAsync/PostAsync/PutAsync/DeleteAsync overloads taking a "
         + "Dictionary<string, string> of request headers - which is gone because the eFormidling client now "
-        + "resolves its own authentication. Note that Altinn.App.Core.Extensions.HttpClientExtension is a "
-        + "different type with different overloads and is not a drop-in substitute. If the app used these "
-        + "overloads for its own HTTP calls (unrelated to eFormidling), build the HttpRequestMessage directly "
-        + "and add the headers to it, then call HttpClient.SendAsync. Update these files by hand:";
+        + "resolves its own authentication. Altinn.App.Core.Extensions.HttpClientExtension is a different "
+        + "type with different overloads, not a drop-in substitute. If the app used these overloads for its "
+        + "own HTTP calls, build the HttpRequestMessage directly, add the headers to it, and call "
+        + "HttpClient.SendAsync. Update these files by hand:";
 
     /// <summary>
     /// Noark types whose child collections became repeatable. Reported on the same
@@ -100,11 +93,9 @@ internal sealed class RemovedEFormidlingClientApiDetector
     ];
 
     /// <summary>
-    /// Identifies use of the SBD's renamed <c>Arkivmelding</c> by pairing the constructed type with a
-    /// member only it has. The type name alone cannot be matched, because the Noark 5
-    /// <c>Arkivmelding</c> keeps that name and flagging it would report nearly every eFormidling app;
-    /// the Noark type has neither of these members, so the pairing separates them without a semantic
-    /// model.
+    /// Identifies the SBD's renamed <c>Arkivmelding</c> by pairing the constructed type with a member
+    /// only it has. The name alone cannot be matched: the Noark 5 <c>Arkivmelding</c> keeps it, so
+    /// that would report nearly every eFormidling app. The Noark type has neither of these members.
     /// </summary>
     private static readonly IReadOnlySet<string> _sbdArkivmeldingTypes = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -124,32 +115,28 @@ internal sealed class RemovedEFormidlingClientApiDetector
 
     private const string SbdSummary =
         "The Standard Business Document's Arkivmelding is now ArkivmeldingMetadata, and the DPF type it "
-        + "refers to is now Dpf. The old name collided with the Noark 5 "
-        + "Arkivmelding - a different type in a sibling namespace - which forced anyone handling both to "
-        + "alias one of them; the Noark type is unchanged. The JSON is unchanged too: the property is still "
-        + "called Arkivmelding and still serializes to \"arkivmelding\". Only code that builds the SBD "
-        + "envelope by hand is affected, which is not something the built-in shipment requires:";
+        + "refers to is now Dpf. The old name collided with the Noark 5 Arkivmelding in a sibling "
+        + "namespace, which is unchanged. The JSON is unchanged too: the property is still called "
+        + "Arkivmelding and still serializes to \"arkivmelding\". Rename these usages:";
 
     private const string RepeatableSummary =
         "Two arkivmelding properties are now lists, matching the Noark 5 schema, which has always "
         + "declared both as maxOccurs=\"unbounded\": Basisregistrering.Dokumentbeskrivelse is a "
         + "List<Dokumentbeskrivelse> and Dokumentbeskrivelse.Dokumentobjekt is a List<Dokumentobjekt>. "
-        + "Until now a journalpost could only describe a single document, so a main document plus "
-        + "attachments could not be expressed at all. Wrap the existing initialisers in a collection; "
-        + "Basisregistrering also gained an optional Dokumentobjekt list for objects attached directly "
-        + "to the registration. Apps that carry their own copy of these models are unaffected:";
+        + "Wrap the existing initialisers in a collection; Basisregistrering also gained an optional "
+        + "Dokumentobjekt list for objects attached directly to the registration. Apps that carry their "
+        + "own copy of these models are unaffected:";
 
     private const string NestedSummary =
-        "These eFormidling status models are now nested inside the Statuses class they describe, because "
-        + "their old names were too generic to sit in a shared namespace: Content is Statuses.Entry, Sort is "
-        + "Statuses.SortInfo, and Pageable is Statuses.PageInfo. Statuses itself is unchanged, and so is the "
-        + "JSON on the wire. Qualify these usages:";
+        "These eFormidling status models are now nested inside the Statuses class they describe: Content "
+        + "is Statuses.Entry, Sort is Statuses.SortInfo, and Pageable is Statuses.PageInfo. Statuses "
+        + "itself is unchanged, and so is the JSON on the wire. Qualify these usages:";
 
     private const string EndpointsSummary =
         "These IEFormidlingClient members are removed in v9. The client keeps only what a shipment is made "
-        + "of - CreateMessage, UploadAttachment, SendMessage and GetMessageStatusById - and the capability, "
-        + "conversation and subscription endpoints (and their models) went with the move into Altinn.App.Core. "
-        + "Call the integrasjonspunkt's REST API directly if the app still needs them:";
+        + "of: CreateMessage, UploadAttachment, SendMessage and GetMessageStatusById. Call the "
+        + "integrasjonspunkt's REST API directly if the app still needs the capability, conversation or "
+        + "subscription endpoints:";
 
     private readonly CSharpSourceScanner _scanner;
 

@@ -180,8 +180,8 @@ internal sealed class EFormidlingClient : IEFormidlingClient
     /// <remarks>
     /// The subscription key is not what admits the request — <c>GET statuses</c> was verified against
     /// tt02 to accept a request bearing no credentials whatsoever — but it identifies the app to the
-    /// gateway's product, which is what the quota and rate limit are counted against. Everything the
-    /// shipment calls mint is deliberately skipped: none of it is read here, and
+    /// gateway's product, which the quota and rate limit are counted against. The tokens the shipment
+    /// calls mint are deliberately skipped: nothing here reads them, and
     /// <see cref="IAccessTokenGenerator.GenerateAccessToken(string, string)"/> signs a certificate on
     /// every call, on a path the delivery wait polls repeatedly.
     /// </remarks>
@@ -201,13 +201,13 @@ internal sealed class EFormidlingClient : IEFormidlingClient
     /// <c>AltinnIntegrationPointToken</c> as the subject of an RFC 7662 introspection call to Altinn
     /// Authentication, and authenticates <em>that call</em> with whatever arrives in
     /// <c>Authorization</c>. An absent or unacceptable <c>Authorization</c> therefore fails the
-    /// introspection, and the gateway reports it as "requires a valid integration point access token" —
+    /// introspection, which the gateway reports as "requires a valid integration point access token" —
     /// naming the header that was fine. Verified against tt02: the subscription key plus both tokens
-    /// reaches the integrasjonspunkt, and dropping either token produces that same 401.
+    /// reaches the integrasjonspunkt, and dropping either produces that same 401.
     /// <para>
-    /// So the bearer token has to be one introspection accepts, which is why this resolves a service
-    /// owner token rather than reading the current user's. A shipment runs from a workflow-engine
-    /// callback, where there is no user to borrow one from.
+    /// So the bearer has to be a token introspection accepts, which is why this resolves a service
+    /// owner token rather than the current user's — a shipment runs from a workflow-engine callback,
+    /// where there is no user to borrow one from.
     /// </para>
     /// </remarks>
     private async Task<HttpRequestMessage> CreateAppRequest(

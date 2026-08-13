@@ -11,11 +11,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Warn in `studioctl app upgrade v9` about the parts of the eFormidling client that v9 removed rather than moved. `Altinn.EFormidlingClient.Extensions` is reported because it has no replacement namespace: it held `HttpClientExtension`, whose `GetAsync`/`PostAsync`/`PutAsync`/`DeleteAsync` overloads took a dictionary of request headers, and apps are known to use those for their own unrelated HTTP calls — the warning says to build the `HttpRequestMessage` directly, and notes that `Altinn.App.Core.Extensions.HttpClientExtension` is a different type, not a drop-in substitute. The `IEFormidlingClient` endpoints removed in v9 are reported separately, along with the `Capabilities`, `Conversation` and `CreateSubscription` models that went with them.
+- `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; and the renamed Standard Business Document `Arkivmelding`. Each is reported separately, with the fix to apply.
 
 ### Changed
 
-- `studioctl app upgrade v9` rewrites the eFormidling client namespaces, which moved into `Altinn.App.Core` in v9: `Altinn.Common.EFormidlingClient` becomes `Altinn.App.Core.EFormidling.Interface`, `Altinn.Common.EFormidlingClient.Configuration` becomes `Altinn.App.Core.EFormidling.Configuration`, `Altinn.Common.EFormidlingClient.Models` becomes `Altinn.App.Core.EFormidling.Models`, and `Altinn.Common.EFormidlingClient.Models.SBD` becomes `Altinn.App.Core.EFormidling.Models.SBD`. For most apps this is a single `using` in the file implementing `IEFormidlingReceivers`. The two model namespaces stay separate because `Arkivmelding` exists in both with different meanings.
+- `studioctl app upgrade v9` rewrites the eFormidling client namespaces, which moved into `Altinn.App.Core` in v9: `Altinn.Common.EFormidlingClient` becomes `Altinn.App.Core.EFormidling.Interface`, and its `.Configuration`, `.Models` and `.Models.SBD` namespaces become the matching ones under `Altinn.App.Core.EFormidling`. For most apps this is a single `using` in the file implementing `IEFormidlingReceivers`.
 - `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
   
 ### Fixed

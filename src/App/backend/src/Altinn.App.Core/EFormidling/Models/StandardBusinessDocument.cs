@@ -217,8 +217,8 @@ public class StandardBusinessDocumentHeader
 /// <remarks>
 /// Named for what it is rather than for the JSON property it serializes to: this is metadata
 /// <em>about</em> the shipped arkivmelding, not the arkivmelding itself — that is
-/// <see cref="Altinn.App.Core.EFormidling.Models.Arkivmelding"/>, the Noark 5 document. The two shared
-/// a name until v9, which is why code handling both had to alias one of them.
+/// <see cref="Altinn.App.Core.EFormidling.Models.Arkivmelding"/>, the Noark 5 document, which shared
+/// this name until v9.
 /// </remarks>
 public class ArkivmeldingMetadata
 {
