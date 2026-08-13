@@ -319,7 +319,7 @@ public class RepositoryService : IRepository
             catch (Exception)
             {
                 // Cleanup repository on failure
-                await DeleteRepository(org, serviceConfig.RepositoryName);
+                await DeleteRepository(org, serviceConfig.RepositoryName, developer);
                 throw;
             }
         }
@@ -917,18 +917,17 @@ public class RepositoryService : IRepository
     }
 
     /// <inheritdoc/>
-    public async Task DeleteRepository(string org, string repository)
+    public async Task DeleteRepository(string org, string repository, string developer)
     {
         using Activity activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(RepositoryService)}.{nameof(DeleteRepository)}"
         );
         activity?.SetTag("org", org);
         activity?.SetTag("repository", repository);
+        activity?.SetTag("developer", developer);
 
         try
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            activity?.SetTag("developer", developer);
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, developer);
 
             if (Directory.Exists(localServiceRepoFolder))

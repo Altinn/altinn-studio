@@ -172,5 +172,6 @@ public interface IRepository
     /// </summary>
     /// <param name="org">The repository owner id.</param>
     /// <param name="repository">The repository name.</param>
-    Task DeleteRepository(string org, string repository);
+    /// <param name="developer">The developers name.</param>
+    Task DeleteRepository(string org, string repository, string developer);
 }

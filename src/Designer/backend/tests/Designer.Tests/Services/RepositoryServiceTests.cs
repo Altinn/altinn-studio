@@ -373,7 +373,7 @@ public class RepositoryServiceTests
         RepositoryService sut = GetServiceForTest(developer, giteaClient: giteaClientMock.Object);
 
         // Act
-        await sut.DeleteRepository(org, app);
+        await sut.DeleteRepository(org, app, developer);
 
         // Assert
         giteaClientMock.Verify(m => m.DeleteRepository(org, app), Times.Once);
