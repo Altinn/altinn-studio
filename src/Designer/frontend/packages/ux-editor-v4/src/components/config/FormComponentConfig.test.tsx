@@ -122,9 +122,7 @@ describe('FormComponentConfig', () => {
     });
     await user.click(screen.getByText(textMock('ux_editor.component_properties.sortOrder')));
     expect(
-      screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.sortOrder'),
-      }),
+      screen.getByLabelText(textMock('ux_editor.component_properties.sortOrder')),
     ).toBeInTheDocument();
   });
 

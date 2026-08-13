@@ -1,6 +1,6 @@
-import { Combobox, Label, Checkbox } from '@digdir/designsystemet-react';
+import { Checkbox } from '@digdir/designsystemet-react';
+import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import classes from './AttachmentListContent.module.css';
 
 type IAttachmentListContent = {
   currentAvailableAttachments: string[];
@@ -17,11 +17,11 @@ export const AttachmentListContent = ({
   const checkboxInIndeterminateState =
     selectedDataTypes.length > 0 && selectedDataTypes.length < currentAvailableAttachments.length;
 
+  const handleSelectedChange = (items: StudioSuggestionItem[]): void =>
+    onChange(items.map((item) => item.value));
+
   return (
     <>
-      <Label htmlFor={'attachmentList'}>
-        {t('ux_editor.component_properties.select_attachments')}
-      </Label>
       <Checkbox
         size='small'
         checked={selectedDataTypes.length === currentAvailableAttachments.length}
@@ -31,25 +31,19 @@ export const AttachmentListContent = ({
       >
         {t('ux_editor.component_properties.select_all_attachments')}
       </Checkbox>
-      <Combobox
-        id={'attachmentList'}
+      <StudioSuggestion
         multiple
-        className={classes.comboboxLabel}
-        size='small'
-        value={selectedDataTypes}
-        onValueChange={onChange}
+        label={t('ux_editor.component_properties.select_attachments')}
+        emptyText={t('general.no_options')}
+        selected={selectedDataTypes}
+        onSelectedChange={handleSelectedChange}
       >
-        {currentAvailableAttachments?.map((attachment) => {
-          return (
-            <Combobox.Option
-              key={attachment}
-              value={attachment}
-              description={attachment}
-              displayValue={attachment}
-            />
-          );
-        })}
-      </Combobox>
+        {currentAvailableAttachments?.map((attachment) => (
+          <StudioSuggestion.Option key={attachment} value={attachment} label={attachment}>
+            {attachment}
+          </StudioSuggestion.Option>
+        ))}
+      </StudioSuggestion>
     </>
   );
 };
