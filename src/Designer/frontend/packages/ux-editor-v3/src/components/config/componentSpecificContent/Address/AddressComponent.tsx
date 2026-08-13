@@ -1,4 +1,4 @@
-import { Switch, Fieldset } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -6,6 +6,7 @@ import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/comp
 import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
+import { StudioSwitch } from '@studio/components';
 
 export const AddressComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -29,14 +30,13 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
         onChange={handleToggleAddressSimple}
         propertyPath={`${component.propertyPath}/properties/simplified`}
         renderField={({ fieldProps }) => (
-          <Switch
+          <StudioSwitch
+            data-size='sm'
             {...fieldProps}
-            size='small'
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             checked={fieldProps.value}
-          >
-            {t('ux_editor.modal_configure_address_component_simplified')}
-          </Switch>
+            label={t('ux_editor.modal_configure_address_component_simplified')}
+          />
         )}
       />
 

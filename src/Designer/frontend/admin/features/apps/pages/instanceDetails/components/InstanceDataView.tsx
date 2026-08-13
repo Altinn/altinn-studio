@@ -195,12 +195,7 @@ const DataElementGroups = ({
 };
 
 type DataTypeType =
-  | 'datamodel'
-  | 'pdfReceipt'
-  | 'signature'
-  | 'signeeStates'
-  | 'paymentInfo'
-  | 'default';
+  'datamodel' | 'pdfReceipt' | 'signature' | 'signeeStates' | 'paymentInfo' | 'default';
 
 const DataTypeIcons: { [k in DataTypeType]: React.FC } = {
   datamodel: () => <FileTextIcon title='Datamodell' className={classes['data-element-icon']} />,

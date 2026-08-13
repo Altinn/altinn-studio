@@ -2,7 +2,7 @@ import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset, Switch } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, FieldNode, UiSchemaNode } from '@altinn/schema-model';
@@ -34,7 +34,7 @@ import { renamePrefillMappings } from '@altinn/schema-editor/components/SchemaIn
 import { NameField } from './NameField';
 import { RequiredSwitch } from './RequiredSwitch';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioTextarea, StudioSelect, StudioTextfield } from '@studio/components';
+import { StudioSelect, StudioSwitch, StudioTextarea, StudioTextfield } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -162,14 +162,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             />
           )}
           {!isCombination(schemaNode) && !pointerIsDefinition(schemaPointer) && (
-            <Switch
+            <StudioSwitch
+              data-size='sm'
               className={classes.switch}
-              size='small'
               checked={isArray}
               onChange={handleArrayPropertyToggle}
-            >
-              {t('schema_editor.multiple_answers')}
-            </Switch>
+              label={t('schema_editor.multiple_answers')}
+            />
           )}
           {isCombination(schemaNode) && (
             <StudioSelect
@@ -185,14 +184,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </StudioSelect>
           )}
           {isCombination(schemaNode) && (
-            <Switch
+            <StudioSwitch
+              data-size='sm'
               className={classes.switch}
-              size='small'
               checked={combinationIsNullable(getChildNodes())}
               onChange={onChangeNullable}
-            >
-              {t('schema_editor.nullable')}
-            </Switch>
+              label={t('schema_editor.nullable')}
+            />
           )}
           {!pointerIsDefinition(schemaPointer) && (
             <RequiredSwitch

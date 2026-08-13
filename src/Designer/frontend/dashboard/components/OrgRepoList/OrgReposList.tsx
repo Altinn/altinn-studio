@@ -6,7 +6,7 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { Heading } from '@digdir/designsystemet-react';
+import { StudioHeading } from '@studio/components';
 import { DATA_MODEL_REPO_IDENTIFIER, DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useSearchReposQuery, useStarredReposQuery } from 'dashboard/hooks/queries';
@@ -52,9 +52,9 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
 
   return (
     <div>
-      <Heading level={2} size='small' spacing>
+      <StudioHeading level={2} data-size='md' spacing>
         {getReposLabel({ selectedContext, orgs: organizations, t })}
-      </Heading>
+      </StudioHeading>
       <RepoList
         repos={reposIncludingStarredData.filter(
           (repo) => !repo.name.endsWith(DATA_MODEL_REPO_IDENTIFIER),

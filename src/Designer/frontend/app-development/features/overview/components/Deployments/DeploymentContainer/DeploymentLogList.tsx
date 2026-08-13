@@ -1,7 +1,7 @@
 import classes from './DeploymentLogList.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Environment } from 'app-shared/types/Environment';
-import { Heading } from '@digdir/designsystemet-react';
+import { StudioHeading } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
@@ -33,9 +33,9 @@ export const DeploymentLogList = ({
 
   return (
     <div className={classes.container}>
-      <Heading level={2} size='xxsmall' className={classes.heading}>
+      <StudioHeading level={2} data-size='2xs' className={classes.heading}>
         {t('overview.activity')}
-      </Heading>
+      </StudioHeading>
       <ul className={classes.logs}>
         {hasSucceededDeployments ? (
           succeededPipelineDeploymentList.map((pipelineDeployment: PipelineDeployment) => {

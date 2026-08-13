@@ -5,11 +5,10 @@ import cn from 'classnames';
 import { deleteNode, setRequired, setPropertyName, type UiSchemaNode } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioCenter } from '@studio/components';
+import { StudioCenter, StudioSwitch } from '@studio/components';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { ItemFieldType } from './ItemFieldType';
 
@@ -78,8 +77,8 @@ export const ItemFieldsTableRow = ({
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>
-          <Switch
-            size='small'
+          <StudioSwitch
+            data-size='sm'
             aria-label={t('schema_editor.required')}
             checked={fieldNode?.isRequired ?? false}
             disabled={readonly}

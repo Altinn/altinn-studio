@@ -1,11 +1,10 @@
 import React from 'react';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
-import { StudioCard, StudioLink, StudioParagraph } from '@studio/components';
+import { StudioCard, StudioLink, StudioParagraph, StudioHeading } from '@studio/components';
 
 export const News = () => {
   const { t } = useTranslation();
@@ -37,12 +36,12 @@ export const News = () => {
               showNews(date) && (
                 <StudioCard className={classes.newsContent} key={title}>
                   <StudioCard.Block>
-                    <Heading level={3} size='xxsmall'>
+                    <StudioHeading level={3} data-size='xs'>
                       {title}
-                    </Heading>
-                    <Paragraph size='xsmall'>
+                    </StudioHeading>
+                    <StudioParagraph data-size='xs'>
                       {t('overview.news_date', { date: formatDateToText(date) })}
-                    </Paragraph>
+                    </StudioParagraph>
                     <StudioParagraph data-size='md'>
                       <Trans
                         i18nKey={content}
@@ -60,16 +59,16 @@ export const News = () => {
         ) : (
           <StudioCard variant='tinted' className={classes.noNews}>
             <StudioCard.Block>
-              <Heading level={3} size='xxsmall'>
+              <StudioHeading level={3} data-size='xs'>
                 {t('overview.no_news_title')}
-              </Heading>
+              </StudioHeading>
             </StudioCard.Block>
             <StudioCard.Block>
-              <Paragraph size='small'>
+              <StudioParagraph data-size='md'>
                 <StudioLink href={gitHubRoadMapUrl} rel='noopener noreferrer' target='_newTab'>
                   {t('overview.no_news_content')}
                 </StudioLink>
-              </Paragraph>
+              </StudioParagraph>
             </StudioCard.Block>
           </StudioCard>
         )}
@@ -86,9 +85,9 @@ const NewsTemplate = ({ children }: NewsTemplateProps) => {
   const { t } = useTranslation();
   return (
     <>
-      <Heading level={2} size='xxsmall' spacing>
+      <StudioHeading level={2} data-size='xs' spacing>
         {t('overview.news_title')}
-      </Heading>
+      </StudioHeading>
       <div className={classes.news}>{children}</div>
     </>
   );

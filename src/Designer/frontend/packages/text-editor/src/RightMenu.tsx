@@ -3,7 +3,8 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Checkbox, Fieldset, Heading } from '@digdir/designsystemet-react';
+import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
+import { StudioHeading } from '@studio/components';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
@@ -44,9 +45,7 @@ export const RightMenu = ({
   return (
     <aside className={classes.rightMenuSidebar}>
       <div className={classes.rightMenuVerticalContent}>
-        <Heading level={2} size='small'>
-          {t('schema_editor.language')}
-        </Heading>
+        <StudioHeading level={2}>{t('schema_editor.language')}</StudioHeading>
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.rightMenuVerticalContent}>

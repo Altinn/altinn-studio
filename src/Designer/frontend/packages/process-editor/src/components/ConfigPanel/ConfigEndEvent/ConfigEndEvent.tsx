@@ -3,8 +3,8 @@ import {
   StudioSectionHeader,
   StudioLabelAsParagraph,
   StudioLink,
+  StudioParagraph
 } from '@studio/components';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
@@ -34,9 +34,9 @@ export const ConfigEndEvent = () => {
               <StudioLabelAsParagraph>
                 {t('process_editor.configuration_panel_custom_receipt_default_receipt_heading')}
               </StudioLabelAsParagraph>
-              <Paragraph size='small' className={classes.paragraph}>
+              <StudioParagraph spacing>
                 {t('process_editor.configuration_panel_custom_receipt_default_receipt_info')}
-              </Paragraph>
+              </StudioParagraph>
               <StudioLink
                 href={altinnDocsUrl({
                   relativeUrl:
@@ -53,9 +53,9 @@ export const ConfigEndEvent = () => {
                 <StudioLabelAsParagraph>
                   {t('process_editor.configuration_panel_custom_receipt_heading')}
                 </StudioLabelAsParagraph>
-                <Paragraph size='small'>
+                <StudioParagraph>
                   {t('process_editor.configuration_panel_custom_receipt_info')}
-                </Paragraph>
+                </StudioParagraph>
               </div>
               <CustomReceiptContent />
             </div>

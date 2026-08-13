@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { StudioHelpText, StudioSelect, StudioLabel, StudioLink } from '@studio/components';
+import { StudioHelpText, StudioSelect, StudioLabel, StudioLink, StudioHeading, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 
@@ -30,12 +29,10 @@ export const SecurityLevelSelect = ({
 
   return (
     <div>
-      <Heading level={4} size='xxsmall' spacing>
+      <StudioHeading level={4} data-size='xs' spacing>
         {t('policy_editor.security_level_label')}
-      </Heading>
-      <Paragraph className={classes.paragraph} size='small'>
-        {t('policy_editor.security_level_description')}
-      </Paragraph>
+      </StudioHeading>
+      <StudioParagraph spacing>{t('policy_editor.security_level_description')}</StudioParagraph>
       <div>
         <div className={classes.labelAndHelpTextWrapper}>
           <StudioLabel htmlFor={SELECT_AUTH_LEVEL_ID}>

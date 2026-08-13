@@ -37,7 +37,7 @@ describe('EditBooleanValue', () => {
     renderEditBooleanValue();
 
     expect(
-      screen.getByRole('checkbox', { name: textMock('ux_editor.component_properties.required') }),
+      screen.getByRole('switch', { name: textMock('ux_editor.component_properties.required') }),
     ).toBeInTheDocument();
   });
 

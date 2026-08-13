@@ -2,8 +2,8 @@ import React, { type JSX } from 'react';
 import classes from './DeploymentStatus.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Heading } from '@digdir/designsystemet-react';
-import { StudioLink, StudioParagraph, StudioSpinner } from '@studio/components';
+import { Alert } from '@digdir/designsystemet-react';
+import { StudioLink, StudioParagraph, StudioSpinner, StudioHeading } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
@@ -51,10 +51,10 @@ export const DeploymentStatus = ({
     const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
     return (
       <Alert severity={severity} className={classes.alert}>
-        <Heading spacing level={2} size='xsmall'>
+        <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
-        </Heading>
-        {content}
+        </StudioHeading>
+        <StudioParagraph spacing>{content}</StudioParagraph>
         <StudioParagraph data-size='xs'>{footer}</StudioParagraph>
       </Alert>
     );

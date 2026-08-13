@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.DatepickerMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
@@ -140,7 +141,13 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
@@ -528,6 +535,26 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Setting timeStamp: true on Datepicker components that omit the property..."
+            );
+            var result = await new DatepickerTimeStampMigrator(projectFolder).Migrate();
+            await UpgradeConsole.Out.WriteLineAsync(
+                $"Added {result.PropertiesAdded} timeStamp flag(s) across {result.FilesChanged} layout file(s)"
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.WriteErrorAsync("Error migrating Datepicker timeStamp defaults", ex);
+            return ExitError;
+        }
+    }
+
     static async Task<int> MigrateHeadingLayouts(string projectFolder)
     {
         try
@@ -538,6 +565,20 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating Header components to Heading: {ex.Message}");
+            return ExitError;
+        }
+    }
+
+    static async Task<int> MigrateDatepickerFormats(string projectFolder)
+    {
+        try
+        {
+            await UpgradeConsole.Out.WriteLineAsync("Migrating legacy Datepicker format values...");
+            return await DatepickerFormatMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.WriteErrorAsync("Error migrating legacy Datepicker format values", ex);
             return ExitError;
         }
     }
