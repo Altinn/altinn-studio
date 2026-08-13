@@ -541,21 +541,26 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
     {
+        UpgradeConsole.BeginStep("Datepicker timeStamp");
         try
         {
-            await UpgradeConsole.Out.WriteLineAsync(
-                "Setting timeStamp: true on Datepicker components that omit the property..."
-            );
             var result = await new DatepickerTimeStampMigrator(projectFolder).Migrate();
-            await UpgradeConsole.Out.WriteLineAsync(
-                $"Added {result.PropertiesAdded} timeStamp flag(s) across {result.FilesChanged} layout file(s)"
-            );
+            if (result.PropertiesAdded == 0)
+            {
+                UpgradeConsole.Skip("No Datepicker components omit timeStamp");
+            }
+            else
+            {
+                UpgradeConsole.Ok(
+                    $"Added {result.PropertiesAdded} timeStamp flag(s) across {result.FilesChanged} layout file(s)"
+                );
+            }
+
             return ExitSuccess;
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.WriteErrorAsync("Error migrating Datepicker timeStamp defaults", ex);
-            return ExitError;
+            return Fail("Error migrating Datepicker timeStamp defaults", ex);
         }
     }
 
@@ -574,15 +579,14 @@ internal static class V8Tov9Upgrade
 
     static async Task<int> MigrateDatepickerFormats(string projectFolder)
     {
+        UpgradeConsole.BeginStep("Datepicker formats");
         try
         {
-            await UpgradeConsole.Out.WriteLineAsync("Migrating legacy Datepicker format values...");
             return await DatepickerFormatMigration.Migrate(projectFolder);
         }
         catch (Exception ex)
         {
-            await UpgradeConsole.WriteErrorAsync("Error migrating legacy Datepicker format values", ex);
-            return ExitError;
+            return Fail("Error migrating legacy Datepicker format values", ex);
         }
     }
 
