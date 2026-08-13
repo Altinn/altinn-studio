@@ -22,7 +22,7 @@ internal sealed class IndexCshtmlMigrator
     /// <summary>
     /// Migrates Index.cshtml to assets.json configuration
     /// </summary>
-    /// <returns>0 on success, 1 on failure</returns>
+    /// <returns>0 on success, 1 on failure, 3 on manual follow up</returns>
     public async Task<int> Migrate()
     {
         if (!File.Exists(_indexCshtmlPath))
@@ -44,7 +44,7 @@ internal sealed class IndexCshtmlMigrator
                     + "to a static config file):"
                     + string.Concat(parser.DetectedRazorDirectives.Select(directive => $"\n- {directive}"))
             );
-            return 1;
+            return 3;
         }
 
         var document = parser.GetDocument();
@@ -62,14 +62,14 @@ internal sealed class IndexCshtmlMigrator
             UpgradeConsole.Todo(
                 "Keeping Index.cshtml due to unexpected elements (please review it manually and delete it if you want the auto-generated one)"
             );
-            return 1;
+            return 3;
         }
 
         var frameworkValidationError = ValidateFrameworkFileConsistency(categorizationResult);
         if (frameworkValidationError != null)
         {
             UpgradeConsole.Todo($"Keeping Index.cshtml: {frameworkValidationError}");
-            return 1;
+            return 3;
         }
 
         return await PerformMigration(categorizationResult);
