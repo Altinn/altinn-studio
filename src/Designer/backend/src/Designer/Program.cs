@@ -40,7 +40,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
-using Microsoft.Net.Http.Headers;
 
 ILogger logger;
 
@@ -272,7 +271,7 @@ void Configure(IConfiguration configuration)
             OnPrepareResponse = context =>
             {
                 ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-                headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(60) };
+                headers.CacheControl = StaticFileCachePolicy.Create(context.File.Name);
             },
         }
     );
