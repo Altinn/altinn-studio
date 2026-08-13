@@ -1,17 +1,16 @@
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Models;
-using Altinn.Common.EFormidlingClient.Models;
 
 namespace Altinn.App.Core.Tests.Eformidling.Implementation;
 
 public class EFormidlingStatusReaderTests
 {
-    private static Statuses StatusList(string statuses) =>
+    private static MessageStatuses StatusList(string statuses) =>
         new()
         {
             Content = statuses
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(status => new Content { Status = status })
+                .Select(status => new MessageStatuses.Entry { Status = status })
                 .ToList(),
         };
 
@@ -52,12 +51,12 @@ public class EFormidlingStatusReaderTests
     [Fact]
     public void Classify_reports_the_entry_that_decided_a_terminal_state()
     {
-        Statuses statuses = new()
+        MessageStatuses statuses = new()
         {
             Content =
             [
-                new Content { Status = "opprettet" },
-                new Content { Status = "feil", Description = "Mottaker er ikke registrert" },
+                new MessageStatuses.Entry { Status = "opprettet" },
+                new MessageStatuses.Entry { Status = "feil", Description = "Mottaker er ikke registrert" },
             ],
         };
 
@@ -80,16 +79,18 @@ public class EFormidlingStatusReaderTests
     [Fact]
     public void Classify_treats_an_absent_status_list_as_pending()
     {
-        // The integrasjonspunkt may not know the message yet, and the frozen client model is
-        // pre-NRT, so both the response and its content list can be null.
-        Assert.Equal(EFormidlingDeliveryState.Pending, EFormidlingStatusReader.Classify(null).State);
-        Assert.Equal(EFormidlingDeliveryState.Pending, EFormidlingStatusReader.Classify(new Statuses()).State);
+        // The integrasjonspunkt may not know the message yet, in which case it reports a page whose
+        // content list is absent entirely.
+        Assert.Equal(EFormidlingDeliveryState.Pending, EFormidlingStatusReader.Classify(new MessageStatuses()).State);
     }
 
     [Fact]
     public void Classify_tolerates_entries_without_a_status_value()
     {
-        Statuses statuses = new() { Content = [new Content(), new Content { Status = "levert" }] };
+        MessageStatuses statuses = new()
+        {
+            Content = [new MessageStatuses.Entry(), new MessageStatuses.Entry { Status = "levert" }],
+        };
 
         Assert.Equal(EFormidlingDeliveryState.Delivered, EFormidlingStatusReader.Classify(statuses).State);
     }
@@ -109,7 +110,6 @@ public class EFormidlingStatusReaderTests
     [Fact]
     public void HasLeftOutbox_treats_an_absent_status_list_as_still_in_the_outbox()
     {
-        Assert.False(EFormidlingStatusReader.HasLeftOutbox(null));
-        Assert.False(EFormidlingStatusReader.HasLeftOutbox(new Statuses()));
+        Assert.False(EFormidlingStatusReader.HasLeftOutbox(new MessageStatuses()));
     }
 }

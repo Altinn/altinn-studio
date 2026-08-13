@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
-using Altinn.Common.EFormidlingClient.Models;
+using Altinn.App.Core.EFormidling.Models;
 
 namespace Altinn.App.Code;
 
