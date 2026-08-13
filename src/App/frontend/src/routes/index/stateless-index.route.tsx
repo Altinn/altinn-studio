@@ -2,7 +2,7 @@ import React from 'react';
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { Loader } from 'src/core/loading/Loader';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { GlobalData } from 'src/GlobalData';
 import { isStateless } from 'src/routes/index/isStateless';
 import { getRawFirstPage } from 'src/utils/computeStartUrl';
@@ -23,5 +23,5 @@ export function clientLoader({ request }: LoaderFunctionArgs) {
 }
 
 export default function StatelessIndex() {
-  return <Loader reason='stateless-redirect' />;
+  return <UnknownError error={new Error('Failed to redirect from the stateless index page')} />;
 }

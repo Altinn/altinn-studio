@@ -2,10 +2,10 @@ import React from 'react';
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { Loader } from 'src/core/loading/Loader';
 import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
@@ -48,5 +48,5 @@ export async function clientLoader({ context, params, request }: LoaderFunctionA
 }
 
 export default function TaskIndex() {
-  return <Loader reason='task-redirect' />;
+  return <UnknownError error={new Error('Failed to redirect from the task index page')} />;
 }
