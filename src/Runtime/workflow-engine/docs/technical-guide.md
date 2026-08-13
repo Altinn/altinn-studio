@@ -923,9 +923,19 @@ All via `EngineSettings` (bound from `appsettings.json`):
 Per-namespace failure-storm throttling (see the failure-throttling ADR). Ships dark: with
 `Enabled: false` (the default) the sweep does not run and the fetch query's throttle gate is
 switched off by a parameter, so `throttled_until` has no bearing on which workflows are fetched
-and the schema is fully inert. What exists today is the schema, the configuration, and the fetch
-gate — an enabled repository already skips workflows parked behind a future `throttled_until`,
-but nothing writes that column yet. The sweep (the writer) and the handler cooperation land
+and the schema is fully inert.
+
+The sweep (`NamespaceThrottleService`) runs the whole state machine every `SweepInterval` under a
+Postgres advisory lock (single writer across replicas; a replica that finds the lock held skips
+its cycle): trip when a namespace's `Requeued` population exceeds both thresholds, park that
+population behind `throttled_until` (jittered ±20% per row and clamped per stamp to each
+workflow's retry deadline, so throttling never costs a final attempt), keep a small rotating
+canary set on the normal retry schedule, extend the window ×2 on unanimous canary failure, and —
+once any canary progresses (judged by requeue-count comparison, never timing) — release the
+parked horde oldest-first in doubling cohorts with a jittered smear. A failed recovery re-trips
+keeping the grown window; a cleared breaker lingers for a grace period (5 sweep intervals) during
+which stragglers are cleared. Each cycle every replica refreshes an in-memory snapshot of the
+tripped breakers (`IThrottleStateView`); handler cooperation on top of that snapshot lands
 separately.
 
 | Setting                            | Default | Description                                             |
