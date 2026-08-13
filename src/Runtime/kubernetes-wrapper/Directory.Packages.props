@@ -20,7 +20,7 @@
 
     <!-- Testing -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.18" />
-    <PackageVersion Include="TUnit" Version="1.63.0" />
+    <PackageVersion Include="TUnit" Version="1.63.25" />
     <PackageVersion Include="Verify.TUnit" Version="31.28.0" />
   </ItemGroup>
 </Project>
