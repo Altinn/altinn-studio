@@ -1,12 +1,10 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Flex, FullWidthWrapper } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
-import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
-import { FileScanResults } from 'src/features/attachments/types';
 import {
   InstantiationValidation,
   isInstantiationValidationResult,
@@ -18,9 +16,7 @@ import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import { splitDashedKey } from 'src/utils/splitDashedKey';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
-import type { UploadedAttachment } from 'src/features/attachments';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 export interface IErrorReportProps extends PropsWithChildren {
@@ -41,6 +37,19 @@ const ErrorReportContext = createContext(false);
 export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
   const hasErrorReport = useContext(ErrorReportContext);
   const isMobile = useIsMobile();
+  const errorReportRef = useRef<React.ComponentRef<typeof ErrorSummary>>(null);
+  const wasVisible = useRef(false);
+
+  useEffect(() => {
+    // This makes sure we focus the ErrorReport after it has been rendered and first became visible. The same thing
+    // will happen in a future version of the design system, so when we upgrade to 1.18.0+ this can be removed.
+    const isVisible = show && !hasErrorReport && errors !== undefined;
+    if (isVisible && !wasVisible.current) {
+      errorReportRef.current?.focus();
+    }
+    wasVisible.current = isVisible;
+  }, [errors, hasErrorReport, show]);
+
   if (errors === undefined || hasErrorReport || !show) {
     return children;
   }
@@ -49,6 +58,8 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
     <ErrorReportContext.Provider value={true}>
       <FullWidthWrapper isOnBottom={true}>
         <ErrorSummary
+          ref={errorReportRef}
+          tabIndex={-1}
           data-testid='ErrorReport'
           className={classes.errorSummary}
           data-size={isMobile ? 'md' : 'lg'}
@@ -85,36 +96,8 @@ interface ErrorReportListProps {
   taskErrors: BaseValidation<'error'>[];
 }
 
-type InfectedFileError = NodeRefValidation & { dataElementId: string };
-
 export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
-  const allAttachments = AttachmentReadModel.useAllAttachments();
-
-  const infectedFileErrors: InfectedFileError[] = Object.entries(allAttachments || {}).flatMap(
-    ([nodeId, attachments]) => {
-      const { baseComponentId } = splitDashedKey(nodeId);
-
-      return (attachments || [])
-        .filter((attachment) => attachment.uploaded && attachment.data.fileScanResult === FileScanResults.Infected)
-        .map((attachment) => {
-          const uploadedAttachment = attachment as UploadedAttachment;
-          return {
-            nodeId,
-            baseComponentId,
-            source: 'Frontend',
-            code: 'InfectedFile',
-            dataElementId: uploadedAttachment.data.id,
-            message: {
-              key: 'general.wait_for_attachments_infected',
-              params: [uploadedAttachment.data.filename],
-            },
-            severity: 'error',
-            category: 0,
-          };
-        });
-    },
-  );
 
   return (
     <>
@@ -126,12 +109,6 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
             params={error.message.params}
           />
         </ErrorReportListItem>
-      ))}
-      {infectedFileErrors.map((error) => (
-        <ErrorWithLink
-          key={`infected-${error.nodeId}-${error.dataElementId}`}
-          error={error}
-        />
       ))}
       {formErrors.map((error) => (
         <ErrorWithLink
