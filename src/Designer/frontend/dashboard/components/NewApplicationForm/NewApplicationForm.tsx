@@ -37,6 +37,7 @@ export type NewApplicationFormProps = {
   organizations: Organization[];
   isLoading: boolean;
   shouldUseCustomTemplate?: boolean;
+  shouldUseAppTemplate?: boolean;
   submitButtonText: string;
   formError: CreateServiceFormError;
   setFormError: React.Dispatch<React.SetStateAction<CreateServiceFormError>>;
@@ -49,6 +50,7 @@ export const NewApplicationForm = ({
   organizations,
   isLoading,
   shouldUseCustomTemplate = true,
+  shouldUseAppTemplate = true,
   submitButtonText,
   formError,
   setFormError,
@@ -58,6 +60,7 @@ export const NewApplicationForm = ({
   const selectedContext = useSelectedContext();
   const isCustomTemplatesEnabled = useFeatureFlag(FeatureFlag.CustomTemplates);
   const isAppTemplatesEnabled = useFeatureFlag(FeatureFlag.AppTemplates);
+  const canSelectAppTemplate: boolean = isAppTemplatesEnabled && shouldUseAppTemplate;
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
@@ -66,9 +69,9 @@ export const NewApplicationForm = ({
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
   const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
   const [selectedAppTemplate, setSelectedAppTemplate] = useState<AppTemplate>();
-  const { data: appTemplates } = useAppTemplatesQuery({ enabled: isAppTemplatesEnabled });
-  // Without the flag no choice is offered, and the backend applies its configured default.
-  const effectiveAppTemplate: AppTemplate | undefined = isAppTemplatesEnabled
+  const { data: appTemplates } = useAppTemplatesQuery({ enabled: canSelectAppTemplate });
+  // Without a choice offered, the backend applies its configured default.
+  const effectiveAppTemplate: AppTemplate | undefined = canSelectAppTemplate
     ? (selectedAppTemplate ?? appTemplates?.[0])
     : undefined;
   const { data: userOrgPermissions, isFetching } = useUserOrgPermissionsQuery(currentSelectedOrg, {
@@ -145,7 +148,7 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      {isAppTemplatesEnabled && appTemplates?.length > 0 && (
+      {canSelectAppTemplate && appTemplates?.length > 0 && (
         <AppTemplateSelector
           appTemplates={appTemplates}
           selectedAppTemplate={effectiveAppTemplate}

@@ -153,6 +153,22 @@ describe('NewApplicationForm', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should not show app template selector when shouldUseAppTemplate is false', () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
+
+    renderNewApplicationForm(
+      { shouldUseAppTemplate: false },
+      { featureFlags: [FeatureFlag.AppTemplates], queryClient },
+    );
+
+    expect(
+      screen.queryByRole('combobox', {
+        name: textMock('dashboard.new_application_form.select_app_template'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it('should submit the selected app template when the feature is enabled', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();

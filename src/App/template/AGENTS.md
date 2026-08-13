@@ -35,11 +35,13 @@ dashboard picker:
 { "displayName": "Altinn App v8", "description": "…" }
 ```
 
-**v9 is generated, not hand-written.** It started as a copy of `v8` and was migrated with
-`studioctl app upgrade v9 -p src/App/template/v9/src`. Redo it that way when the `v8` baseline changes.
+**v9 was not hand-written.** It started as a copy of `v8`, migrated once with
+`studioctl app upgrade v9 -p src/App/template/v9/src`. From there it is maintained on its own — changes
+to `v8` are not carried over.
 
 **Adding a version is a folder drop.** Copy a folder, edit its manifest and `App.csproj`, add the id to
-the CI matrices and Renovate rules. No backend change — the Designer discovers them.
+the CI matrices, the Renovate rules, and the release-rsync stages in `src/Designer/Dockerfile` — without
+the last one the template is missing from the image. No backend change — the Designer discovers them.
 
 Users pick the template when creating an application (`appTemplate` on the create-app request, listed by
 `GET designer/api/apptemplates`, behind the `appTemplates` feature flag). Without a choice the Designer
