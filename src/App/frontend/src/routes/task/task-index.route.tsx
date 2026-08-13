@@ -1,15 +1,17 @@
+import React from 'react';
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
 import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';
 
-export async function taskIndexLoader({ context, params, request }: LoaderFunctionArgs): Promise<Response | null> {
+export async function clientLoader({ context, params, request }: LoaderFunctionArgs): Promise<Response | null> {
   const queryClient = context.get(queryClientContext);
   const { instanceApi } = context.get(apiClientsContext);
   const { instanceOwnerPartyId, instanceGuid, taskId } = params;
@@ -43,4 +45,8 @@ export async function taskIndexLoader({ context, params, request }: LoaderFuncti
   });
 
   return redirect(startUrl);
+}
+
+export default function TaskIndex() {
+  return <UnknownError error={new Error('Failed to redirect from the task index page')} />;
 }
