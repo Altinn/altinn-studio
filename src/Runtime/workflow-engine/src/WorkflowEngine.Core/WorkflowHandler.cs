@@ -3,6 +3,7 @@ using Altinn.Studio.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Constants;
+using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
@@ -12,7 +13,10 @@ using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
 // S3878: This is required to avoid nullability mismatch in call to Metrics.Errors.Add()
+// CA5394: Random is an insecure random number generator — the throttle-parking jitter spreads
+// scheduling stamps, it is not security-sensitive (same justification as the retry delay jitter).
 #pragma warning disable S3878
+#pragma warning disable CA5394
 
 namespace WorkflowEngine.Core;
 
@@ -25,6 +29,7 @@ internal sealed class WorkflowHandler(
     IWorkflowUpdateBuffer statusWriteBuffer,
     IOptions<EngineSettings> settings,
     TimeProvider timeProvider,
+    IThrottleStateView throttleStateView,
     ILogger<WorkflowHandler> logger
 )
 {
@@ -372,6 +377,7 @@ internal sealed class WorkflowHandler(
                 )
             );
             workflow.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
+            ParkIfNamespaceThrottled(workflow, retryStrategy, initialStartTime);
 
             Metrics.StepsRequeued.Add(1);
             logger.SlatingStepForRetry(currentStep, currentStep.RequeueCount);
@@ -470,6 +476,48 @@ internal sealed class WorkflowHandler(
 
         Metrics.StepsDeferred.Add(1);
         logger.DeferringStep(currentStep, currentStep.DeferCount, scheduledDelay);
+    }
+
+    /// <summary>
+    /// Cooperative parking for the failure-storm circuit breaker (see the failure-throttling ADR):
+    /// when a step fails a retryable attempt and the workflow's namespace has an open breaker in
+    /// the <see cref="IThrottleStateView"/> snapshot, the workflow is parked immediately behind
+    /// <c>ThrottledUntil = now + window</c>, jittered ±<see cref="ThrottlingSettings.JitterFraction"/>
+    /// and clamped per stamp to the step's retry deadline — the exact rule the sweep's parking
+    /// applies, so throttling can never cost the workflow its final retry attempt. The normal
+    /// Requeued transition and <see cref="Workflow.BackoffUntil"/> are untouched: throttle effects
+    /// live only in <see cref="Workflow.ThrottledUntil"/>, keeping them identifiable and undoable.
+    /// The sweep decides, the handler applies: this is one read-only dictionary lookup on the
+    /// failure path — no database reads, no breaker judgment, no writes to breaker state.
+    /// </summary>
+    /// <remarks>
+    /// Internal for direct unit testing of the deadline guard: through
+    /// <see cref="UpdateStepStatusAndRetryDecision"/> the retryable branch is only reachable while
+    /// the deadline is still ahead, so the guard only fires when the wall clock crosses the
+    /// deadline between the retry decision and this stamp.
+    /// </remarks>
+    internal void ParkIfNamespaceThrottled(Workflow workflow, RetryStrategy retryStrategy, DateTimeOffset retryAnchor)
+    {
+        if (!throttleStateView.OpenBreakers.TryGetValue(workflow.Namespace, out var window))
+            return;
+
+        var now = timeProvider.GetUtcNow();
+        var deadline = retryStrategy.GetDeadline(retryAnchor);
+
+        // The final attempt is due (or overdue): parking would only delay it for no benefit,
+        // so the workflow stays on its normal retry schedule.
+        if (deadline <= now)
+            return;
+
+        var jitterFactor = 1 + (ThrottlingSettings.JitterFraction * ((2 * Random.Shared.NextDouble()) - 1));
+        var throttledUntil = now + (window * jitterFactor);
+        if (throttledUntil > deadline)
+            throttledUntil = deadline;
+
+        workflow.ThrottledUntil = throttledUntil;
+
+        Metrics.ThrottleHandlerParked.Add(1, ("namespace", workflow.Namespace));
+        logger.ParkingThrottledWorkflow(workflow, throttledUntil);
     }
 
     private RetryStrategy GetRetryStrategy(Step step) => step.RetryStrategy ?? _settings.DefaultStepRetryStrategy;
@@ -657,4 +705,14 @@ internal static partial class WorkflowHandlerLogs
         "Lease lost for workflow {Workflow} — another host has reclaimed it; exiting local processing without retry"
     )]
     internal static partial void WorkflowLeaseLost(this ILogger<WorkflowHandler> logger, Workflow workflow);
+
+    [LoggerMessage(
+        LogLevel.Debug,
+        "Parking workflow {Workflow} until {ThrottledUntil} — its namespace has an open throttle breaker"
+    )]
+    internal static partial void ParkingThrottledWorkflow(
+        this ILogger<WorkflowHandler> logger,
+        Workflow workflow,
+        DateTimeOffset throttledUntil
+    );
 }
