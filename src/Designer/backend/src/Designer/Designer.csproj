@@ -31,6 +31,7 @@
     <PackageReference Include="DotNetEnv" />
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />
+    <PackageReference Include="JetBrains.Annotations" />
     <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
@@ -45,7 +46,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" />

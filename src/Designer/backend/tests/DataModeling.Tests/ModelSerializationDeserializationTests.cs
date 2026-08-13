@@ -55,13 +55,14 @@ public class ModelSerializationDeserializationTests
     [Fact]
     public Task JsonModel_SeresBasic_ShouldValidate()
     {
+        JsonSchemaKeywords.RegisterXsdKeywords();
         var json = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_JSON_RESOURCE);
         var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
         var jsonDocument = JsonDocument.Parse(json);
 
         var validationResults = jsonSchema.Evaluate(
             jsonDocument.RootElement,
-            new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical }
+            new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical, ProcessCustomKeywords = true }
         );
 
         Assert.True(validationResults.IsValid);
@@ -89,7 +90,7 @@ public class ModelSerializationDeserializationTests
 
         var validationResults = jsonSchema.Evaluate(
             jsonDocument.RootElement,
-            new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical }
+            new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical, ProcessCustomKeywords = true }
         );
 
         Assert.True(validationResults.IsValid);
