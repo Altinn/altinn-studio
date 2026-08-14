@@ -122,6 +122,11 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrEmpty(jsonTexts.Schema))
+        {
+            jsonTexts.Schema = TextResource.SchemaUrl;
+        }
+
         string textsFileRelativeFilePath = TextResourceFilePath(languageCode);
         string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
         await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true, cancellationToken);

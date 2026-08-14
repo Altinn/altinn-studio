@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -48,9 +50,11 @@ public class CreateResourceTests
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(TestDataHelper.FileExistsInRepo(targetOrg, targetRepository, developer, RelativePath(lang)));
+        JsonObject expectedJson = JsonNode.Parse(payload)!.AsObject();
+        expectedJson["$schema"] = TextResource.SchemaUrl;
         Assert.True(
             JsonUtils.DeepEquals(
-                payload,
+                expectedJson.ToJsonString(),
                 TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang))
             )
         );
