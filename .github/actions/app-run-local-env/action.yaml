@@ -47,25 +47,14 @@ runs:
         name: app-frontend-dist
         path: src/App/frontend/dist
 
-    - name: Setup Node.js
-      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-      with:
-        node-version: '22'
-        cache: 'yarn'
-        cache-dependency-path: yarn.lock
-
-    - name: Install dependencies
-      working-directory: src/App/frontend
-      run: yarn install --immutable
-      shell: bash
-
     - name: Start frontend server
-      working-directory: src/App/frontend
       run: |
         echo "Starting frontend server on port 8080..."
-        yarn run serve -p 8080 > frontend-server.log 2>&1 &
-        echo $! > frontend-server.pid
-        echo "Frontend server started with PID $(cat frontend-server.pid)"
+        python3 "${{ github.action_path }}/serve-frontend.py" \
+          "${GITHUB_WORKSPACE}/src/App/frontend/dist" \
+          > "${GITHUB_WORKSPACE}/src/App/frontend/frontend-server.log" 2>&1 &
+        echo $! > "${GITHUB_WORKSPACE}/src/App/frontend/frontend-server.pid"
+        echo "Frontend server started with PID $!"
       shell: bash
 
     - name: Wait for frontend server to be ready
