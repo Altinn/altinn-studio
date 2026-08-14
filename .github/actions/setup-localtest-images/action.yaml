@@ -14,6 +14,7 @@ runs:
       with:
         path: .cache/localtest-images/images.tar.zst
         key: localtest-dev-images-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/Runtime/localtest/**', 'src/Runtime/pdf3/**', 'src/Runtime/workflow-engine/**', 'src/Runtime/workflow-engine-app/**', 'src/common/**', 'src/Shared/**', 'src/cli/internal/cmd/env/localtest/**', 'src/cli/internal/config/config.yaml', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/actions/setup-localtest-images/action.yaml') }}
+        lookup-only: ${{ inputs.populate-cache }}
 
     - name: Load cached LocalTest dev images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit == 'true' && inputs.populate-cache != 'true' }}
