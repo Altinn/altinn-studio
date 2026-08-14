@@ -32,7 +32,7 @@ concurrency:
 jobs:
   build-frontend:
     if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn' &&
       (
         (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
@@ -49,7 +49,7 @@ jobs:
 
   build-frontend-external:
     if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn' &&
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
     name: Build Frontend
@@ -64,7 +64,7 @@ jobs:
   build-app-run-targets:
     name: Build App Run Targets
     if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn'
     runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
     timeout-minutes: 45
@@ -136,7 +136,7 @@ jobs:
   build-studioctl:
     name: Build studioctl
     if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn'
     runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
     timeout-minutes: 15
@@ -150,7 +150,7 @@ jobs:
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn' &&
       (
         (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
@@ -248,7 +248,7 @@ jobs:
   cypress-run-external:
     name: Cypress Run External
     if: |
-      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn' &&
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
