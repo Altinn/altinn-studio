@@ -11,10 +11,6 @@ inputs:
     description: "Whether to pass --skip-build when starting app processes"
     required: false
     default: "false"
-  studioctl-artifact-name:
-    description: "Optional prebuilt studioctl dev-install artifact"
-    required: false
-    default: ""
 runs:
   using: "composite"
   steps:
@@ -33,8 +29,6 @@ runs:
     - name: Setup studioctl
       if: ${{ inputs.run-localtest == 'true' }}
       uses: ./.github/actions/setup-studioctl
-      with:
-        artifact-name: ${{ inputs.studioctl-artifact-name }}
 
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}

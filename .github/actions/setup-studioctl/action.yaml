@@ -1,15 +1,17 @@
 name: "Setup studioctl"
-description: "Builds or restores a dev studioctl install for CI workflows"
-inputs:
-  artifact-name:
-    description: "Optional artifact containing studioctl-dev.tar.gz"
-    required: false
-    default: ""
+description: "Sets up a dev studioctl install for CI workflows"
 runs:
   using: "composite"
   steps:
+    - name: Cache studioctl dev install
+      id: cache-studioctl
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: src/cli/build/dev-home
+        key: studioctl-dev-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Shared/**', 'Directory.Packages.props') }}
+
     - name: Setup Go
-      if: ${{ inputs.artifact-name == '' }}
+      if: ${{ steps.cache-studioctl.outputs.cache-hit != 'true' }}
       uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
       with:
         go-version-file: src/cli/go.mod
@@ -20,24 +22,9 @@ runs:
         dotnet-version: "10.0.x"
 
     - name: Build studioctl dev install
-      if: ${{ inputs.artifact-name == '' }}
+      if: ${{ steps.cache-studioctl.outputs.cache-hit != 'true' }}
       working-directory: src/cli
       run: make dev-install
-      shell: bash
-
-    - name: Download studioctl dev install
-      if: ${{ inputs.artifact-name != '' }}
-      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-      with:
-        name: ${{ inputs.artifact-name }}
-        path: /tmp/studioctl-dev
-
-    - name: Extract studioctl dev install
-      if: ${{ inputs.artifact-name != '' }}
-      working-directory: src/cli
-      run: |
-        mkdir -p build
-        tar -xzf /tmp/studioctl-dev/studioctl-dev.tar.gz -C build
       shell: bash
 
     - name: Set studioctl paths
