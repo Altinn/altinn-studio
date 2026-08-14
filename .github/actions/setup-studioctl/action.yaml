@@ -3,12 +3,17 @@ description: "Sets up a dev studioctl install for CI workflows"
 runs:
   using: "composite"
   steps:
+    - name: Resolve studioctl cache key
+      id: studioctl-cache-key
+      shell: bash
+      run: echo "key=studioctl-dev-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
+
     - name: Cache studioctl dev install
       id: cache-studioctl
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: src/cli/build/dev-home
-        key: studioctl-dev-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}
+        key: ${{ steps.studioctl-cache-key.outputs.key }}
 
     - name: Setup Go
       if: ${{ steps.cache-studioctl.outputs.cache-hit != 'true' }}
