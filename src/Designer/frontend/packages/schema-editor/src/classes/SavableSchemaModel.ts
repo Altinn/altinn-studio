@@ -65,4 +65,10 @@ export class SavableSchemaModel extends SchemaModel {
     this.save();
     return movedNode;
   }
+
+  public duplicateNodeAndSave(schemaPointer: string): UiSchemaNode {
+    const duplicatedNode = this.duplicateNode(schemaPointer);
+    this.save();
+    return duplicatedNode;
+  }
 }
