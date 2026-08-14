@@ -98,7 +98,7 @@ function NavigationButtonsComponentInner({
   const isAnyProcessing = useIsAnyProcessing();
 
   const nextTextKey = textResourceBindings?.next || 'navigation.next';
-  const backTextKey = textResourceBindings?.back || 'navigation.back';
+  const backTextKey = textResourceBindings?.back || 'navigation.previous';
 
   const backToPageTextKey = textResourceBindings?.backToPage || 'form_filler.back_to_page';
 

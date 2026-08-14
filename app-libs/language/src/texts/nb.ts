@@ -145,6 +145,7 @@ export function nb() {
     'navigation.back_to_main_form': 'Tilbake til {0}',
     'navigation.main_form': '{0}',
     'navigation.back': 'Tilbake',
+    'navigation.previous': 'Forrige',
     'navigation.next': 'Neste',
     'navigation.page_error': 'Feil på side',
     'navigation.page_complete': 'Side fullført',

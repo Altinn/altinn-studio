@@ -144,6 +144,7 @@ export function en() {
     'navigation.back_to_main_form': 'Back to {0}',
     'navigation.main_form': '{0}',
     'navigation.back': 'Back',
+    'navigation.previous': 'Previous',
     'navigation.next': 'Next',
     'navigation.page_complete': 'Page completed',
     'navigation.page_error': 'Error on page',
