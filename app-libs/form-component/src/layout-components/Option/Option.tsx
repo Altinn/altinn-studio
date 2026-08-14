@@ -99,22 +99,29 @@ export function Option({
     <div
       className={cn(
         classes.label,
+        classes.fieldWrapper,
         classes.optionComponent,
         direction === 'vertical' ? classes.vertical : classes.horizontal,
       )}
     >
       <Flex item size={labelGrid ?? { xs: 12 }}>
-        <span className={classes.labelWrapper}>
-          <span className={classes.labelRow}>
-            <DsLabel asChild>
+        <DsLabel asChild>
+          <span className={classes.labelWrapper}>
+            <span className={classes.labelContainer}>
               <span id={labelId} className={classes.labelContent}>
                 {lang(title)}
               </span>
-            </DsLabel>
-            {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
+              {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
+            </span>
+            {description && (
+              <Description
+                componentId={componentId}
+                description={lang(description)}
+                className={classes.labelDescription}
+              />
+            )}
           </span>
-          {description && <Description componentId={componentId} description={lang(description)} />}
-        </span>
+        </DsLabel>
       </Flex>
       <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
         {isLoading ? (

@@ -3,12 +3,16 @@
   margin-right: 12px;
 }
 
+.fieldWrapper {
+  display: grid;
+  gap: var(--ds-size-2);
+}
+
 .optionComponent {
   display: flex;
   justify-content: space-between;
   margin: 0;
   width: 100%;
-  gap: var(--ds-size-2);
 }
 
 .label span {
@@ -30,14 +34,18 @@
   align-items: flex-start;
 }
 
-.labelRow {
+.labelContainer {
   display: flex;
-  align-items: center;
   gap: var(--ds-size-2);
+  align-items: center;
 }
 
 .labelContent {
   overflow-wrap: anywhere;
+}
+
+.labelDescription {
+  padding-bottom: var(--ds-size-3);
 }
 
 .optionLabelContainer {
