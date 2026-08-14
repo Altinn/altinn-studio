@@ -116,13 +116,13 @@ describe('NavigationButtons', () => {
   test('renders default NavigationButtons component', async () => {
     await render({ component: navButton1, currentPageId: 'layout2' });
 
-    expect(await screen.findByText('back')).toBeInTheDocument();
+    expect(await screen.findByText('Forrige')).toBeInTheDocument();
   });
 
   test('does not render back button when explicitly disabled', async () => {
     await render({ component: navButtonWithoutBackButton, currentPageId: 'layout2' });
 
-    expect(screen.queryByText('back')).not.toBeInTheDocument();
+    expect(screen.queryByText('Forrige')).not.toBeInTheDocument();
   });
 
   test('renders NavigationButtons component without back button if there is no previous page', async () => {
