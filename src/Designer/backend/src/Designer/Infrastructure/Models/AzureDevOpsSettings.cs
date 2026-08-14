@@ -14,11 +14,6 @@ public class AzureDevOpsSettings : ISettingsMarker
     public int BuildDefinitionId { get; set; }
 
     /// <summary>
-    /// Id for a definition that deploys an Altinn Studio app
-    /// </summary>
-    public int DeployDefinitionId { get; set; }
-
-    /// <summary>
     /// Id for a definition that undeploy an Altinn Studio app
     /// </summary>
     public int DecommissionDefinitionId { get; set; }
