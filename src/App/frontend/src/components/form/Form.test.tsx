@@ -221,7 +221,7 @@ describe('Form', () => {
 
     expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    await userEvent.click(screen.getByRole('button', { name: /Neste/i }));
 
     const errorReport = await screen.findByTestId('ErrorReport');
     expect(errorReport).toBeInTheDocument();
