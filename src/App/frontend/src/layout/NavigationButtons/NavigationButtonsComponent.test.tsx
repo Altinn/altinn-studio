@@ -116,13 +116,13 @@ describe('NavigationButtons', () => {
   test('renders default NavigationButtons component', async () => {
     await render({ component: navButton1, currentPageId: 'layout2' });
 
-    expect(await screen.findByText('back')).toBeInTheDocument();
+    expect(await screen.findByText('Forrige')).toBeInTheDocument();
   });
 
   test('does not render back button when explicitly disabled', async () => {
     await render({ component: navButtonWithoutBackButton, currentPageId: 'layout2' });
 
-    expect(screen.queryByText('back')).not.toBeInTheDocument();
+    expect(screen.queryByText('Forrige')).not.toBeInTheDocument();
   });
 
   test('renders NavigationButtons component without back button if there is no previous page', async () => {
@@ -130,14 +130,14 @@ describe('NavigationButtons', () => {
       component: navButton2,
     });
 
-    expect(screen.getByText('next')).toBeInTheDocument();
-    expect(screen.queryByText('back')).toBeNull();
+    expect(screen.getByText('Neste')).toBeInTheDocument();
+    expect(screen.queryByText('Forrige')).toBeNull();
   });
 
   test('renders NavigationButtons component with back button if there is a previous page', async () => {
     await render({ component: navButton2, currentPageId: 'layout2' });
 
-    expect(screen.getByText('back')).toBeInTheDocument();
+    expect(screen.getByText('Forrige')).toBeInTheDocument();
   });
 
   test('uses page validation when button has no validation config', async () => {
@@ -148,11 +148,11 @@ describe('NavigationButtons', () => {
       inputRequired: true,
     });
 
-    await userEvent.click(screen.getByText('next'));
+    await userEvent.click(screen.getByText('Neste'));
 
-    await waitFor(() => expect(screen.getByText('next').closest('button')).not.toBeDisabled());
+    await waitFor(() => expect(screen.getByText('Neste').closest('button')).not.toBeDisabled());
 
-    expect(screen.getByText('next')).toBeInTheDocument();
+    expect(screen.getByText('Neste')).toBeInTheDocument();
   });
 
   test('page validation overrides button validation', async () => {
@@ -163,11 +163,11 @@ describe('NavigationButtons', () => {
       inputRequired: true,
     });
 
-    await userEvent.click(screen.getByText('next'));
+    await userEvent.click(screen.getByText('Neste'));
 
-    await waitFor(() => expect(screen.getByText('next').closest('button')).not.toBeDisabled());
+    await waitFor(() => expect(screen.getByText('Neste').closest('button')).not.toBeDisabled());
 
-    expect(screen.getByText('next')).toBeInTheDocument();
+    expect(screen.getByText('Neste')).toBeInTheDocument();
   });
 
   test('button validation is used when page has no validation config', async () => {
@@ -177,10 +177,10 @@ describe('NavigationButtons', () => {
       inputRequired: true,
     });
 
-    await userEvent.click(screen.getByText('next'));
+    await userEvent.click(screen.getByText('Neste'));
 
-    await waitForElementToBeRemoved(() => screen.queryByText('next'));
+    await waitForElementToBeRemoved(() => screen.queryByText('Neste'));
 
-    expect(screen.queryByText('next')).not.toBeInTheDocument();
+    expect(screen.queryByText('Neste')).not.toBeInTheDocument();
   });
 });

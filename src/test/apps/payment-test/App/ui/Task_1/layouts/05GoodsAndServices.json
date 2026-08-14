@@ -8,7 +8,7 @@
       },
       {
         "id": "goodsAndServicesTitle",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "goodsAndServicesTitle"
         },

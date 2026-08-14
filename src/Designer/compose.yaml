@@ -109,14 +109,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
-      - GeneralSettings:AppLocation=Templates/AspNet/App
-      - GeneralSettings:DeploymentLocation=/Templates/deployment
-      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
       - GeneralSettings:EnvironmentsUrl=http://studio-azure-mock:6161/environments.json
-      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
       - GeneralSettings:LanguageFilesLocation=Languages/
-      - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:TemplateLocation=Templates/AspNet
+      - GeneralSettings:DefaultAppTemplate=v8
       - MaskinPortenHttpClientSettings:BaseUrl=http://studio-azure-mock:6161
       - PostgreSQLSettings:AdminConnectionString=Host=studio_db;Port=5432;Username=designer_admin;Password={0};Database=designerdb
       - PostgreSQLSettings:ConnectionString=Host=studio_db;Port=5432;Username=designer;Password={0};Database=designerdb
@@ -146,7 +142,6 @@ services:
       - StudioOidcLoginSettings:AuthorizationDetails:0:OrganizationForm=enterprise
       - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
-      - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true

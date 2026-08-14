@@ -7,7 +7,3 @@
   border-radius: 100%;
   background-color: var(--fds-semantic-surface-danger-default);
 }
-
-.number {
-  color: var(--fds-semantic-text-neutral-on_inverted);
-}

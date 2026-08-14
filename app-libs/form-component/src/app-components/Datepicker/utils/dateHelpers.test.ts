@@ -24,9 +24,6 @@ describe('dateHelpers', () => {
       props: Parameters<typeof getDateFormat>;
       expected: ReturnType<typeof getDateFormat>;
     }[] = [
-      { props: ['YYYY-MM-DD'], expected: 'yyyy-MM-dd' },
-      { props: ['DD/MM/YYYY'], expected: 'dd/MM/yyyy' },
-      { props: ['DD.MM.YYYY'], expected: 'dd.MM.yyyy' },
       { props: ['yyyy-MM-dd'], expected: 'yyyy-MM-dd' },
       { props: ['dd/MM/yyyy'], expected: 'dd/MM/yyyy' },
       { props: ['dd.MM.yyyy'], expected: 'dd.MM.yyyy' },

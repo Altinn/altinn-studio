@@ -6,12 +6,7 @@ import { Radio, Textfield } from '@digdir/designsystemet-react';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
 export type FormDataValue =
-  | string
-  | number
-  | boolean
-  | null
-  | FormDataValue[]
-  | { [key: string]: FormDataValue };
+  string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };
 
 export interface FormDataObject {
   [key: string]: FormDataValue;

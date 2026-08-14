@@ -86,8 +86,7 @@ describe('Component utils', () => {
 
   describe('addOptionToComponent', () => {
     it.each([ComponentTypeV3.Checkboxes, ComponentTypeV3.RadioButtons] as (
-      | ComponentTypeV3.Checkboxes
-      | ComponentTypeV3.RadioButtons
+      ComponentTypeV3.Checkboxes | ComponentTypeV3.RadioButtons
     )[])('Adds option to %s component', (componentType) => {
       const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
         id: 'test',
@@ -115,8 +114,7 @@ describe('Component utils', () => {
 
   describe('changeComponentOptionLabel', () => {
     it.each([ComponentTypeV3.Checkboxes, ComponentTypeV3.RadioButtons] as (
-      | ComponentTypeV3.Checkboxes
-      | ComponentTypeV3.RadioButtons
+      ComponentTypeV3.Checkboxes | ComponentTypeV3.RadioButtons
     )[])('Changes label of option with given value on %s component', (componentType) => {
       const valueOfWhichLabelShouldChange = 'testValue2';
       const component: FormCheckboxesComponent | FormRadioButtonsComponent = {

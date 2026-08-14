@@ -6,7 +6,8 @@
 !yarn.lock
 !.yarn*
 !src/App/frontend/package.json
-!src/App/template/src
+!src/App/template/v8/src
+!src/App/template/v9/src
 !app-libs
 
 # Test-apps are built in its own container, so they need to be included

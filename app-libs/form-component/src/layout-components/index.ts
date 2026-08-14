@@ -9,7 +9,7 @@ export * from './Date';
 export * from './Datepicker';
 export * from './Divider';
 export * from './Dropdown';
-export * from './Header';
+export * from './Heading';
 export * from './IFrame';
 export * from './ImageUpload';
 export * from './Image';

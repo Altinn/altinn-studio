@@ -414,7 +414,7 @@ describe('useGetOptions', () => {
         },
         {
           id: 'FirstInside',
-          type: 'Header',
+          type: 'Heading',
           textResourceBindings: {
             title: 'This title is not important',
           },

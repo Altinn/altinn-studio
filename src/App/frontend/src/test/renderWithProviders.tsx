@@ -645,7 +645,7 @@ export const renderWithInstanceAndLayout = async ({
                   layout: [
                     {
                       id: 'noOtherComponentsHere',
-                      type: 'Header',
+                      type: 'Heading',
                       textResourceBindings: {
                         title:
                           "You haven't added any components yet. Supply your own components " +

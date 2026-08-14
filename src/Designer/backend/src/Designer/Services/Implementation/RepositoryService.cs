@@ -112,9 +112,10 @@ public class RepositoryService : IRepository
     /// Method that creates service metadata for a new app
     /// </summary>
     /// <param name="serviceMetadata">The <see cref="ModelMetadata"/></param>
+    /// <param name="appTemplate">The app scaffold to copy the new application from</param>
     /// <returns>A boolean indicating if creation of service metadata went ok</returns>
     #region Service metadata
-    public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
+    public bool CreateServiceMetadata(ModelMetadata serviceMetadata, AppTemplate appTemplate)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
@@ -130,19 +131,19 @@ public class RepositoryService : IRepository
         CopyFolderToApp(
             serviceMetadata.Org,
             serviceMetadata.RepositoryName,
-            _generalSettings.DeploymentLocation,
+            appTemplate.DeploymentPath,
             _settings.GetDeploymentFolderName()
         );
         CopyFolderToApp(
             serviceMetadata.Org,
             serviceMetadata.RepositoryName,
-            _generalSettings.AppLocation,
+            appTemplate.AppPath,
             _settings.GetAppFolderName()
         );
-        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
-        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
-        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
-        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
+        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.DockerfileFileName);
+        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.AppSlnFileName);
+        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.GitIgnoreFileName);
+        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.DockerIgnoreFileName);
 
         return true;
     }
@@ -257,7 +258,8 @@ public class RepositoryService : IRepository
     public async Task<RepositoryClient.Model.Repository> CreateService(
         string org,
         ServiceConfiguration serviceConfig,
-        List<CustomTemplateReference> templates
+        List<CustomTemplateReference> templates,
+        AppTemplate appTemplate
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -293,7 +295,7 @@ public class RepositoryService : IRepository
             try
             {
                 // This creates all files
-                CreateServiceMetadata(metadata);
+                CreateServiceMetadata(metadata, appTemplate);
                 await ApplyCustomTemplates(org, serviceConfig.RepositoryName, developer, templates);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer, templates);
@@ -503,14 +505,14 @@ public class RepositoryService : IRepository
         }
     }
 
-    private void CopyFileToApp(string org, string app, string fileName)
+    private void CopyFileToApp(string org, string app, AppTemplate appTemplate, string fileName)
     {
         string appPath = _settings.GetServicePath(
             org,
             app,
             AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
         );
-        File.Copy($"{_generalSettings.TemplatePath}/{fileName}", Path.Combine(appPath, fileName));
+        File.Copy(Path.Combine(appTemplate.RootPath, fileName), Path.Combine(appPath, fileName));
     }
 
     /// <inheritdoc/>

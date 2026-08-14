@@ -122,8 +122,7 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
   }, [order, pageValidations]);
 
   return { isCompleted, hasErrors } as
-    | { isCompleted: typeof isCompleted; hasErrors: typeof hasErrors }
-    | typeof ContextNotProvided;
+    { isCompleted: typeof isCompleted; hasErrors: typeof hasErrors } | typeof ContextNotProvided;
 }
 
 //Prevents navigation to a page if there are pages between the current page and the target page that have validateOnNavigation enabled and contain validation errors.

@@ -1,6 +1,5 @@
 import classes from './Notification.module.css';
-import { Paragraph } from '@digdir/designsystemet-react';
-
+import { StudioParagraph } from '@studio/components';
 export type NotificationProps = {
   numChanges?: number;
 };
@@ -8,9 +7,7 @@ export type NotificationProps = {
 export const Notification = ({ numChanges }: NotificationProps) => {
   return (
     <span className={classes.wrapper} aria-hidden aria-label={'sync_header.notification_label'}>
-      <Paragraph asChild size='xsmall' variant='short' className={classes.number}>
-        <span>{numChanges}</span>
-      </Paragraph>
+      <StudioParagraph>{numChanges}</StudioParagraph>
     </span>
   );
 };

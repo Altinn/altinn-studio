@@ -39,14 +39,12 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Dat
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
  */
 export type ExprValToActualOrExpr<T extends ExprVal> =
-  | ExprValToActual<T>
-  | NonRecursiveExpression<FunctionsReturning<T>>;
+  ExprValToActual<T> | NonRecursiveExpression<FunctionsReturning<T>>;
 
 type ArgsFor<F extends ExprFunctionName> = F extends ExprFunctionName ? ExprFunctions[F]['args'] : never;
 
 type FunctionsReturning<T extends ExprVal> =
-  | keyof PickByValue<ExprFunctions, { returns: T }>
-  | keyof PickByValue<ExprFunctions, { returns: ExprVal.Any }>;
+  keyof PickByValue<ExprFunctions, { returns: T }> | keyof PickByValue<ExprFunctions, { returns: ExprVal.Any }>;
 
 /**
  * An expression definition is basically [functionName, ...arguments], but when we map arguments (using their

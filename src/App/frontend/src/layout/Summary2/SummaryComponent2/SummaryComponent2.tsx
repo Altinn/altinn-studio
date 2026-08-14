@@ -1,11 +1,19 @@
 import React from 'react';
+import type { PropsWithChildren } from 'react';
 
+import cn from 'classnames';
+
+import { EmptyChildrenBoundary, useHasOnlyEmptyChildren } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
-import { Summary2StoreProvider } from 'src/layout/Summary2/summaryStoreContext';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { Summary2StoreProvider, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
+import printStyles from 'src/styles/print.module.css';
+import { pageBreakStyles } from 'src/utils/formComponentUtils';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IPageBreak } from 'src/layout/common.generated';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 interface SummaryBodyProps {
@@ -25,13 +33,43 @@ function SummaryBody({ target }: SummaryBodyProps) {
   return <ComponentSummary targetBaseComponentId={target.id} />;
 }
 
+function Summary2PrintBoundary({ children, pageBreak }: PropsWithChildren<{ pageBreak?: ExprResolved<IPageBreak> }>) {
+  const hideEmptyFields = useSummaryProp('hideEmptyFields');
+  const hasOnlyEmptyChildren = useHasOnlyEmptyChildren();
+  const shouldRenderMarkers = pageBreak && !(hideEmptyFields && hasOnlyEmptyChildren);
+
+  return (
+    <>
+      {shouldRenderMarkers && (
+        <div
+          aria-hidden='true'
+          className={cn(printStyles.pageBreakMarker, pageBreakStyles({ breakBefore: pageBreak.breakBefore }))}
+          data-testid='summary2-page-break-before'
+        />
+      )}
+      {children}
+      {shouldRenderMarkers && (
+        <div
+          aria-hidden='true'
+          className={cn(printStyles.pageBreakMarker, pageBreakStyles({ breakAfter: pageBreak.breakAfter }))}
+          data-testid='summary2-page-break-after'
+        />
+      )}
+    </>
+  );
+}
+
 function SummaryComponent2Inner({ baseComponentId }: Pick<PropsFromGenericComponent<'Summary2'>, 'baseComponentId'>) {
-  const target = useExternalItem(baseComponentId, 'Summary2').target;
+  const { pageBreak, target } = useItemWhenType(baseComponentId, 'Summary2');
   return (
     <Summary2StoreProvider baseComponentId={baseComponentId}>
-      <TaskSummaryWrapper taskId={target?.taskId}>
-        <SummaryBody target={target} />
-      </TaskSummaryWrapper>
+      <EmptyChildrenBoundary reportSelf={false}>
+        <Summary2PrintBoundary pageBreak={pageBreak}>
+          <TaskSummaryWrapper taskId={target?.taskId}>
+            <SummaryBody target={target} />
+          </TaskSummaryWrapper>
+        </Summary2PrintBoundary>
+      </EmptyChildrenBoundary>
     </Summary2StoreProvider>
   );
 }

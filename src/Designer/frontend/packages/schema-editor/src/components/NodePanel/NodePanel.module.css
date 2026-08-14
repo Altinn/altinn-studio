@@ -4,12 +4,7 @@
 }
 
 .backButton {
-  background-color: var(--fds-semantic-surface-action-subtle);
-  border: none;
-  height: var(--fds-sizing-6);
+  display: flex;
   width: 100%;
-}
-
-.backButton:hover {
-  background-color: var(--fds-semantic-surface-action-subtle-hover);
+  justify-content: start;
 }

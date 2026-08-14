@@ -26,7 +26,6 @@ export const DeploymentEnvironment = ({
   const lastPipelineDeployment = pipelineDeploymentList[0];
   const deploymentStatus = getDeployStatus(lastPipelineDeployment);
   const isDeploymentInProgress = deploymentStatus === BuildResult.none;
-
   return (
     <div className={classes.container}>
       <div className={classes.header}>
