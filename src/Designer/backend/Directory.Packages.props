@@ -61,10 +61,10 @@
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
-    <PackageVersion Include="Quartz" Version="3.16.1" />
-    <PackageVersion Include="Quartz.Extensions.DependencyInjection" Version="3.16.1" />
-    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.16.1" />
-    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.16.1" />
+    <PackageVersion Include="Quartz" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Extensions.DependencyInjection" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.19.1" />
   </ItemGroup>
   <ItemGroup Label="Packages used for testing">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
