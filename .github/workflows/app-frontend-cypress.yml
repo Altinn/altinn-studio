@@ -94,7 +94,20 @@ jobs:
             }
             core.setOutput('app-run-targets-json', JSON.stringify(targets));
 
+      - name: Resolve app process cache key
+        id: app-process-cache-key
+        shell: bash
+        run: echo "key=app-process-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/**', 'src/App/backend/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache app process outputs
+        id: cache-app-process-outputs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: app-process-build.tar.gz
+          key: ${{ steps.app-process-cache-key.outputs.key }}
+
       - name: Build app process outputs
+        if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
         shell: bash
         run: |
           mapfile -t app_projects < <(find src/test/apps -path '*/App/*.csproj' -type f | sort)
@@ -109,6 +122,7 @@ jobs:
           done
 
       - name: Package app process outputs
+        if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
         shell: bash
         run: |
           mapfile -t build_dirs < <(find \
