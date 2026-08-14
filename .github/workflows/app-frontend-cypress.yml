@@ -133,6 +133,33 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  build-studioctl:
+    name: Build studioctl
+    if: |
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      github.repository_owner == 'Altinn'
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build studioctl dev install
+        uses: ./.github/actions/setup-studioctl
+
+      - name: Package studioctl dev install
+        working-directory: src/cli/build
+        shell: bash
+        run: tar -czf studioctl-dev.tar.gz dev-home
+
+      - name: Upload studioctl dev install
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: studioctl-dev
+          path: src/cli/build/studioctl-dev.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -144,7 +171,7 @@ jobs:
       )
     runs-on: self-hosted-single
     timeout-minutes: 120
-    needs: [build-frontend, build-app-run-targets]
+    needs: [build-frontend, build-app-run-targets, build-studioctl]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -172,6 +199,7 @@ jobs:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
           skip-app-build: true
+          studioctl-artifact-name: studioctl-dev
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -240,7 +268,7 @@ jobs:
 
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    needs: [build-frontend-external, build-app-run-targets]
+    needs: [build-frontend-external, build-app-run-targets, build-studioctl]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -265,6 +293,7 @@ jobs:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
           skip-app-build: true
+          studioctl-artifact-name: studioctl-dev
 
       - name: Install Cypress binary
         shell: bash
