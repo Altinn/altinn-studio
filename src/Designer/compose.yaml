@@ -142,7 +142,6 @@ services:
       - StudioOidcLoginSettings:AuthorizationDetails:0:OrganizationForm=enterprise
       - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
-      - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true

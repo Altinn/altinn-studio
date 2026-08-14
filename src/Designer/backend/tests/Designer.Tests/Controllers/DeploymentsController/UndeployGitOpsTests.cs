@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
@@ -26,8 +25,8 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class UndeployWithGitOpsEnabledTests
-    : DbDesignerEndpointsTestsBase<UndeployWithGitOpsEnabledTests>,
+public class UndeployGitOpsTests
+    : DbDesignerEndpointsTestsBase<UndeployGitOpsTests>,
         IClassFixture<WebApplicationFactory<Program>>,
         IClassFixture<DesignerDbFixture>,
         IClassFixture<MockServerFixture>
@@ -41,7 +40,7 @@ public class UndeployWithGitOpsEnabledTests
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/deployments";
 
-    public UndeployWithGitOpsEnabledTests(
+    public UndeployGitOpsTests(
         WebApplicationFactory<Program> factory,
         DesignerDbFixture designerDbFixture,
         MockServerFixture mockServerFixture
@@ -55,9 +54,6 @@ public class UndeployWithGitOpsEnabledTests
         JsonConfigOverrides.Add(
             $$"""
             {
-               "FeatureManagement": {
-                    "{{StudioFeatureFlags.GitOpsDeploy}}": true
-               },
                "Integrations": {
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
