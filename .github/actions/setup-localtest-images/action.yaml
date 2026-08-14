@@ -18,7 +18,7 @@ runs:
     - name: Load cached LocalTest dev images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit == 'true' && inputs.populate-cache != 'true' }}
       shell: bash
-      run: zstd --decompress --stdout .cache/localtest-images/images.tar.zst | docker load
+      run: zstd -d -c .cache/localtest-images/images.tar.zst | docker load
 
     - name: Require cached LocalTest dev images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache != 'true' }}
@@ -42,7 +42,7 @@ runs:
           localtest:dev \
           localtest-pdf3:dev \
           localtest-workflow-engine:dev \
-          "$workflow_db_image" | zstd --threads=0 --fast=3 --output=.cache/localtest-images/images.tar.zst
+          "$workflow_db_image" | zstd -3 -o .cache/localtest-images/images.tar.zst
 
     - name: Stop cache-building environment
       if: ${{ always() && steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
