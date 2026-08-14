@@ -15,9 +15,10 @@ describe('Attachment tags validation', () => {
     // Opt-in to attachment type validation
     cy.findByRole('radio', { name: /ja/i }).check();
 
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Vitnemål'");
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Søknad'");
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Motivasjonsbrev'");
+    cy.findByText("Du må laste opp 'Vitnemål'").should('be.visible');
+    cy.findByText("Du må laste opp 'Søknad'").should('be.visible');
+    cy.findByText("Du må laste opp 'Motivasjonsbrev'").should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.get(appFrontend.expressionValidationTest.cvUploader).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
@@ -26,32 +27,32 @@ describe('Attachment tags validation', () => {
     cy.findByRole('button', { name: /^lagre$/i }).click();
 
     // Verify "Søknad" validation is removed, but others remain
-    cy.get(appFrontend.errorReport).should('not.contain.text', "Du må laste opp 'Søknad'");
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Vitnemål'");
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Motivasjonsbrev'");
+    cy.findByText("Du må laste opp 'Søknad'").should('not.exist');
+    cy.findByText("Du må laste opp 'Vitnemål'").should('be.visible');
+    cy.findByText("Du må laste opp 'Motivasjonsbrev'").should('be.visible');
 
     cy.findByRole('button', { name: /rediger/i }).click();
     cy.dsSelect(appFrontend.expressionValidationTest.groupTag, 'Vitnemål');
     cy.findByRole('button', { name: /^lagre$/i }).click();
 
     // Verify "Vitnemål" validation is removed and "Søknad" validation is back
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Søknad'");
-    cy.get(appFrontend.errorReport).should('not.contain.text', "Du må laste opp 'Vitnemål'");
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Motivasjonsbrev'");
+    cy.findByText("Du må laste opp 'Søknad'").should('be.visible');
+    cy.findByText("Du må laste opp 'Vitnemål'").should('not.exist');
+    cy.findByText("Du må laste opp 'Motivasjonsbrev'").should('be.visible');
 
     // Upload second file and tag as "Søknad"
     cy.get(appFrontend.expressionValidationTest.cvUploader).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.contains('Ferdig lastet').should('be.visible');
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Søknad'");
+    cy.findByText("Du må laste opp 'Søknad'").should('be.visible');
     cy.dsSelect(appFrontend.expressionValidationTest.groupTag, 'Søknad');
     cy.findAllByRole('button', { name: /^lagre$/i })
       .last()
       .click();
 
     // Verify "Søknad" validation is removed
-    cy.get(appFrontend.errorReport).should('not.contain.text', "Du må laste opp 'Søknad'");
-    cy.get(appFrontend.errorReport).should('not.contain.text', "Du må laste opp 'Vitnemål'");
-    cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Motivasjonsbrev'");
+    cy.findByText("Du må laste opp 'Søknad'").should('not.exist');
+    cy.findByText("Du må laste opp 'Vitnemål'").should('not.exist');
+    cy.findByText("Du må laste opp 'Motivasjonsbrev'").should('be.visible');
 
     // Upload third file and tag as "Motivasjonsbrev"
     cy.get(appFrontend.expressionValidationTest.cvUploader).selectFile('test/e2e/fixtures/test.pdf', { force: true });

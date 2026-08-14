@@ -115,8 +115,38 @@ internal static class Endpoints
         if (!result.IsValid)
             return Results.BadRequest(new CommandResponse(result.Message));
 
-        return Results.Ok(new UpgradeResponse(result.Message, result.ExitCode, result.Output, result.Error));
+        return Results.Ok(
+            new UpgradeResponse(
+                result.Message,
+                result.ExitCode,
+                result.Output,
+                result.Error,
+                [.. result.Steps.Select(ToResponse)]
+            )
+        );
     }
+
+    private static UpgradeStepResponse ToResponse(UpgradeStep step) =>
+        new(
+            step.Name,
+            [.. step.Messages.Select(message => new UpgradeMessageResponse(message.Text, ToWire(message.Status)))]
+        );
+
+    /// <summary>
+    /// The wire spelling of a message status. Mapped explicitly because no <c>JsonSerializerOptions</c> are
+    /// configured for this app, so a bare enum would serialise as a number.
+    /// </summary>
+    private static string ToWire(UpgradeMessageStatus status) =>
+        status switch
+        {
+            UpgradeMessageStatus.Ok => "OK",
+            UpgradeMessageStatus.Info => "INFO",
+            UpgradeMessageStatus.Skip => "SKIP",
+            UpgradeMessageStatus.Warning => "WARN",
+            UpgradeMessageStatus.Todo => "TODO",
+            UpgradeMessageStatus.Failed => "FAIL",
+            _ => "INFO",
+        };
 
     private sealed record StatusResponse(
         string Status,
@@ -157,5 +187,16 @@ internal static class Endpoints
 
     private sealed record CommandResponse(string Message);
 
-    private sealed record UpgradeResponse(string Message, int ExitCode, string Output, string Error);
+    private sealed record UpgradeResponse(
+        string Message,
+        int ExitCode,
+        string Output,
+        string Error,
+        IReadOnlyList<UpgradeStepResponse> Steps
+    );
+
+    private sealed record UpgradeStepResponse(string Name, IReadOnlyList<UpgradeMessageResponse> Messages);
+
+    /// <summary>Status carries the wire spelling produced by <see cref="ToWire"/>.</summary>
+    private sealed record UpgradeMessageResponse(string Text, string Status);
 }

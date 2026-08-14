@@ -1,11 +1,10 @@
 import React from 'react';
-import { Card } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
-import { StudioParagraph, StudioHeading, StudioLink } from '@studio/components';
+import { StudioCard, StudioLink, StudioParagraph, StudioHeading } from '@studio/components';
 
 export const News = () => {
   const { t } = useTranslation();
@@ -35,18 +34,14 @@ export const News = () => {
           newsList?.map(({ title, content, date }) => {
             return (
               showNews(date) && (
-                <Card className={classes.newsContent} key={title}>
-                  <Card.Header>
+                <StudioCard className={classes.newsContent} key={title}>
+                  <StudioCard.Block>
                     <StudioHeading level={3} data-size='xs'>
                       {title}
                     </StudioHeading>
-                  </Card.Header>
-                  <Card.Content>
                     <StudioParagraph data-size='xs'>
                       {t('overview.news_date', { date: formatDateToText(date) })}
                     </StudioParagraph>
-                  </Card.Content>
-                  <Card.Content>
                     <StudioParagraph data-size='md'>
                       <Trans
                         i18nKey={content}
@@ -56,26 +51,26 @@ export const News = () => {
                         }}
                       />
                     </StudioParagraph>
-                  </Card.Content>
-                </Card>
+                  </StudioCard.Block>
+                </StudioCard>
               )
             );
           })
         ) : (
-          <Card color='subtle' className={classes.noNews}>
-            <Card.Header>
+          <StudioCard variant='tinted' className={classes.noNews}>
+            <StudioCard.Block>
               <StudioHeading level={3} data-size='xs'>
                 {t('overview.no_news_title')}
               </StudioHeading>
-            </Card.Header>
-            <Card.Content>
+            </StudioCard.Block>
+            <StudioCard.Block>
               <StudioParagraph data-size='md'>
                 <StudioLink href={gitHubRoadMapUrl} rel='noopener noreferrer' target='_newTab'>
                   {t('overview.no_news_content')}
                 </StudioLink>
               </StudioParagraph>
-            </Card.Content>
-          </Card>
+            </StudioCard.Block>
+          </StudioCard>
         )}
       </NewsTemplate>
     </div>

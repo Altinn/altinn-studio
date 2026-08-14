@@ -170,20 +170,13 @@ describe('derived validation state', () => {
     it('validation on navigating to next page should not be blocked by unrelated validations', async () => {
       await render({ text: 'this is too long', showValidations: ['Schema'], validateOnNext: ['Required'] });
 
-      const ErrorReport = screen.getByTestId('ErrorReport');
-      expect(within(ErrorReport).getByText(/bruk 10 eller færre tegn/i)).toBeInTheDocument();
-      expect(within(ErrorReport).queryByText(/du må fylle ut text/i)).not.toBeInTheDocument();
+      expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
       await screen.findByText(/this is the second page!/i);
 
-      await waitFor(() =>
-        expect(within(screen.getByTestId('ErrorReport')).getByText(/bruk 10 eller færre tegn/i)).toBeInTheDocument(),
-      );
-      await waitFor(() =>
-        expect(within(screen.getByTestId('ErrorReport')).queryByText(/du må fylle ut text/i)).not.toBeInTheDocument(),
-      );
+      expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
     });
 
     it('validation on navigating to next page should not remove visibility existing in showValidations, but add to them', async () => {
@@ -194,13 +187,12 @@ describe('derived validation state', () => {
         backendValidations: ['Backend says this is wrong'],
       });
 
-      const ErrorReport = screen.getByTestId('ErrorReport');
-      expect(within(ErrorReport).getByText(/Backend says this is wrong/i)).toBeInTheDocument();
-      expect(within(ErrorReport).queryByText(/bruk 10 eller færre tegn/i)).not.toBeInTheDocument();
+      expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
-      await waitFor(() => expect(within(ErrorReport).getByText(/bruk 10 eller færre tegn/i)).toBeInTheDocument());
+      const ErrorReport = await screen.findByTestId('ErrorReport');
+      expect(within(ErrorReport).getByText(/bruk 10 eller færre tegn/i)).toBeInTheDocument();
       expect(within(ErrorReport).getByText(/Backend says this is wrong/i)).toBeInTheDocument();
     });
 
