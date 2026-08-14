@@ -136,17 +136,36 @@ public class ArkivmeldingTests
         // these types arrived sorted by member name, which emits the elements out of sequence.
         XDocument document = Serialize(BuildCompleteShipment());
 
-        List<string> errors = [];
+        List<string> problems = [];
         document.Validate(
             NoarkSchemas(),
-            (_, e) => errors.Add($"{e.Severity} at line {e.Exception?.LineNumber}: {e.Message}"),
+            (_, e) => problems.Add($"{e.Severity} at line {e.Exception?.LineNumber}: {e.Message}"),
             addSchemaInfo: false
         );
 
+        // Warnings count too: the most likely one here is "no schema found for element", which means
+        // the document was never really checked.
         Assert.True(
-            errors.Count == 0,
-            $"Schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}"
+            problems.Count == 0,
+            $"Schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}"
         );
+    }
+
+    [Fact]
+    public Task The_serialized_shipment_has_a_stable_shape()
+    {
+        // Schema validity is necessary but not sufficient: plenty of wrong documents are still valid
+        // — an optional element silently dropped, a value changed, elements reordered within what the
+        // schema permits. This pins the exact bytes so any such change shows up in review as a diff
+        // rather than being invisible. It is also the guard that would have made the members-sorted-
+        // by-name ordering obvious to a reader.
+        //
+        // The snapshot records current behaviour, warts included: `arkivertDato` is optional in the
+        // schema but a non-nullable DateTime here, so it is emitted as 0001-01-01 even when the
+        // shipment never set it. Schema-valid, semantically junk, and invisible to the validator.
+        XDocument document = Serialize(BuildCompleteShipment());
+
+        return Verify(document.ToString()).UseDirectory(".Verify");
     }
 
     [Fact]
@@ -168,6 +187,12 @@ public class ArkivmeldingTests
     /// metadata catalogue by relative path, so both are added to the set explicitly rather than left
     /// to a resolver that would try to reach the filesystem.
     /// </summary>
+    /// <remarks>
+    /// The schemas are unmodified upstream copies, retrieved 2026-08-13 from Arkivverket's Noark 5
+    /// schemas as published by difi/felleslosninger:
+    /// <see href="https://github.com/difi/felleslosninger/tree/gh-pages/resources/arkivmelding"/>.
+    /// See the <c>EmbeddedResource</c> block in the test project file for the exact source URLs.
+    /// </remarks>
     private static XmlSchemaSet NoarkSchemas()
     {
         var schemas = new XmlSchemaSet { XmlResolver = null };
@@ -191,15 +216,19 @@ public class ArkivmeldingTests
     /// Every element the schema makes mandatory, with values its enumerations accept — the smallest
     /// document that proves the model can express a valid shipment at all.
     /// </summary>
+    /// <remarks>
+    /// Deterministic: fixed ids and a fixed clock, so the serialized form can be snapshotted. The ids
+    /// still satisfy the schema's GUID pattern.
+    /// </remarks>
     private static Arkivmelding BuildCompleteShipment()
     {
         DateTime now = new(2026, 8, 13, 10, 30, 0, DateTimeKind.Utc);
-        string folderId = Guid.NewGuid().ToString();
+        const string folderId = "11111111-1111-1111-1111-111111111111";
 
         return new Arkivmelding
         {
             System = "Altinn",
-            MeldingId = Guid.NewGuid().ToString(),
+            MeldingId = "00000000-0000-0000-0000-000000000001",
             Tidspunkt = now.ToString("o"),
             AntallFiler = 1,
             Mappe =
@@ -216,7 +245,7 @@ public class ArkivmeldingTests
                         new Basisregistrering
                         {
                             Type = "journalpost",
-                            SystemID = Guid.NewGuid().ToString(),
+                            SystemID = "22222222-2222-2222-2222-222222222222",
                             OpprettetDato = now,
                             OpprettetAv = "Altinn",
                             ReferanseForelderMappe = folderId,
@@ -224,7 +253,7 @@ public class ArkivmeldingTests
                             [
                                 new Dokumentbeskrivelse
                                 {
-                                    SystemID = Guid.NewGuid().ToString(),
+                                    SystemID = "33333333-3333-3333-3333-333333333333",
                                     Dokumenttype = "Bestilling",
                                     Dokumentstatus = "Dokumentet er ferdigstilt",
                                     Tittel = "Hoveddokument",
