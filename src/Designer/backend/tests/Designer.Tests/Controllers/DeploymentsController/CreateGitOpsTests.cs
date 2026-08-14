@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -27,8 +26,8 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class CreateWithGitOpsEnabledTests
-    : DbDesignerEndpointsTestsBase<CreateWithGitOpsEnabledTests>,
+public class CreateGitOpsTests
+    : DbDesignerEndpointsTestsBase<CreateGitOpsTests>,
         IClassFixture<WebApplicationFactory<Program>>,
         IClassFixture<DesignerDbFixture>,
         IClassFixture<MockServerFixture>
@@ -39,7 +38,7 @@ public class CreateWithGitOpsEnabledTests
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/deployments";
 
-    public CreateWithGitOpsEnabledTests(
+    public CreateGitOpsTests(
         WebApplicationFactory<Program> factory,
         DesignerDbFixture designerDbFixture,
         MockServerFixture mockServerFixture
@@ -49,13 +48,10 @@ public class CreateWithGitOpsEnabledTests
         _mockServerFixture = mockServerFixture;
         _gitOpsConfigurationManagerMock = new Mock<IGitOpsConfigurationManager>();
 
-        // Configure settings to point to mock server with GitOpsDeploy enabled
+        // Configure settings to point to the mock server
         JsonConfigOverrides.Add(
             $$"""
                 {
-                  "FeatureManagement": {
-                      "{{StudioFeatureFlags.GitOpsDeploy}}": true
-                  },
                   "GeneralSettings": {
                         "EnvironmentsUrl": "{{mockServerFixture.MockApi.Url}}/cdn-mock/environments.json",
                         "HostName": "{{mockServerFixture.MockApi.Url}}"
@@ -64,7 +60,6 @@ public class CreateWithGitOpsEnabledTests
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
                         "BuildDefinitionId": 1,
-                        "DeployDefinitionId": 2,
                         "DecommissionDefinitionId": 3,
                         "GitOpsManagerDefinitionId": 4
                     }
