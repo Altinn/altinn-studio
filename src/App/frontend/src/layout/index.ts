@@ -134,7 +134,7 @@ export function implementsDataModelBindingValidation<T extends CompTypes>(
     context: DataModelBindingValidationContext,
   ) => string[];
 } {
-  return 'validateDataModelBindings' in def;
+  return !!def && 'validateDataModelBindings' in def;
 }
 
 export function implementsIsDataModelBindingsRequired<T extends CompTypes>(
@@ -142,7 +142,7 @@ export function implementsIsDataModelBindingsRequired<T extends CompTypes>(
 ): def is CompDef<T> & {
   isDataModelBindingsRequired: (baseComponentId: string, lookups: LayoutLookups) => boolean;
 } {
-  return 'isDataModelBindingsRequired' in def;
+  return !!def && 'isDataModelBindingsRequired' in def;
 }
 
 export function isDataModelBindingsRequired(baseComponentId: string, lookups: LayoutLookups): boolean {
