@@ -143,11 +143,11 @@ internal sealed class RemovedEFormidlingClientApiDetector
 
     private const string QualifiedSummary =
         "These eFormidling client references survive the v9 namespace rewrite untouched, because it "
-        + "only rewrites plain 'using' directives. An aliased directive (using X = "
-        + "Altinn.Common.EFormidlingClient;) and a name written out in full "
-        + "(Altinn.Common.EFormidlingClient.IEFormidlingClient) both have to be repointed by hand. The "
-        + "namespaces moved to Altinn.App.Core.EFormidling - Interface for the client itself, and "
-        + "Configuration, Models and Models.SBD for the rest:";
+        + "only rewrites a plain 'using Altinn.Common.EFormidlingClient;'. An aliased directive "
+        + "(using X = Altinn.Common.EFormidlingClient;), one written with global::, and a name written "
+        + "out in full (Altinn.Common.EFormidlingClient.IEFormidlingClient) all have to be repointed by "
+        + "hand. The namespaces moved to Altinn.App.Core.EFormidling - Interface for the client itself, "
+        + "and Configuration, Models and Models.SBD for the rest:";
 
     private const string NestedSummary =
         "These eFormidling status models are now nested inside the Statuses class they describe: Content "
@@ -207,7 +207,7 @@ internal sealed class RemovedEFormidlingClientApiDetector
         var qualified = _scanner.Files.SelectMany(file =>
             _clientNamespaces.SelectMany(ns =>
                 CSharpSyntaxQueries
-                    .AliasedUsingNamespaces(file, ns)
+                    .UnrewritableUsingNamespaces(file, ns)
                     .Concat(CSharpSyntaxQueries.QualifiedNameReferences(file, ns))
             )
         );

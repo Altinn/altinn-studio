@@ -2191,6 +2191,57 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingClientDetector_FlagsGlobalQualifiedReferences()
+    {
+        // `global::` is a legal way to write either form, and the rewrite misses both just the same.
+        _app.Write(
+            "logic/Eformidling/Global.cs",
+            """
+            using Legacy = global::Altinn.Common.EFormidlingClient;
+            public class Global
+            {
+                private global::Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("using Legacy = global::", StringComparison.Ordinal));
+        Assert.Contains(
+            locations,
+            w => w.Contains("global::Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsAPlainUsingWrittenWithGlobal()
+    {
+        // Not aliased, so it looks rewritable - but the rewrite compares the name exactly, and
+        // "global::Altinn.Common.EFormidlingClient" is not "Altinn.Common.EFormidlingClient".
+        _app.Write(
+            "logic/Eformidling/PlainGlobal.cs",
+            """
+            using global::Altinn.Common.EFormidlingClient;
+            public class PlainGlobal
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using global::Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
     public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
     {
         // A plain using is rewritten automatically, so reporting it would be noise.
