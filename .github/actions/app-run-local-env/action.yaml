@@ -30,6 +30,10 @@ runs:
       if: ${{ inputs.run-localtest == 'true' }}
       uses: ./.github/actions/setup-studioctl
 
+    - name: Setup LocalTest images
+      if: ${{ inputs.run-localtest == 'true' }}
+      uses: ./.github/actions/setup-localtest-images
+
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: ${{ github.workspace }}

@@ -8,7 +8,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: src/cli/build/dev-home
-        key: studioctl-dev-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Shared/**', 'Directory.Packages.props') }}
+        key: studioctl-dev-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}
 
     - name: Setup Go
       if: ${{ steps.cache-studioctl.outputs.cache-hit != 'true' }}

@@ -134,7 +134,7 @@ jobs:
           retention-days: 1
 
   build-studioctl:
-    name: Build studioctl
+    name: Build Cypress environment cache
     if: |
       (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn'
@@ -146,6 +146,11 @@ jobs:
 
       - name: Build studioctl dev install
         uses: ./.github/actions/setup-studioctl
+
+      - name: Populate LocalTest image cache
+        uses: ./.github/actions/setup-localtest-images
+        with:
+          populate-cache: true
 
   cypress-run-internal:
     name: Cypress Run Internal
