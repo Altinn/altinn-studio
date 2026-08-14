@@ -248,8 +248,37 @@ public class Basisregistrering
     /// <summary>
     /// When the registration was archived.
     /// </summary>
+    /// <remarks>
+    /// Nullable because the schema declares it <c>minOccurs="0"</c>. As a plain <see cref="DateTime"/>
+    /// it was written on every shipment whether set or not, so a registration that was never archived
+    /// still claimed an archive date of <c>0001-01-01</c> — schema-valid, and therefore invisible to
+    /// validation. Matches <see cref="ArkivertAv"/>, which has always omitted itself when unset.
+    /// </remarks>
     [XmlElement(ElementName = "arkivertDato")]
-    public DateTime ArkivertDato { get; set; }
+    public DateTime? ArkivertDato { get; set; }
+
+    /// <summary>
+    /// Whether <see cref="ArkivertDato"/> is written. Serialization plumbing, not something to set.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="XmlSerializer"/> writes <c>xsi:nil</c> for a null <c>DateTime?</c>, which this schema
+    /// rejects — the element is optional but not nillable — and it refuses
+    /// <c>IsNullable = false</c> on a nullable type outright. The <c>Specified</c> convention is the
+    /// remaining way to omit the element entirely, and deriving it from the value keeps it in step
+    /// without anyone having to remember it.
+    /// </remarks>
+    [XmlIgnore]
+    public bool ArkivertDatoSpecified
+    {
+        get => ArkivertDato.HasValue;
+        set
+        {
+            if (!value)
+            {
+                ArkivertDato = null;
+            }
+        }
+    }
 
     /// <summary>
     /// Who archived the registration.

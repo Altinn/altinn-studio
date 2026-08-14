@@ -24,7 +24,7 @@
       "typeVersion": "2.0",
       "instanceIdentifier": "dddf6910-6bde-11eb-83f7-e5be6c2ac43bo",
       "type": "arkivmelding",
-      "creationDateAndTime": "2020-01-09T15:45:51+01:00"
+      "creationDateAndTime": "{timestamp}"
     },
     "businessScope": {
       "scope": [
@@ -34,7 +34,7 @@
           "identifier": "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
           "scopeInformation": [
             {
-              "expectedResponseDateTime": "2021-02-27T23:59:00+01:00"
+              "expectedResponseDateTime": "{timestamp}"
             }
           ]
         }

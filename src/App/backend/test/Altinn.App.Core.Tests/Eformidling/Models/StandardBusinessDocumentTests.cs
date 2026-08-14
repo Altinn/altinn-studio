@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.EFormidling.Models.SBD;
 
 namespace Altinn.App.Core.Tests.Eformidling.Models;
@@ -118,6 +119,21 @@ public class StandardBusinessDocumentTests
             new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }
         );
 
-        return Verify(roundTripped).UseDirectory(".Verify");
+        // Timestamps are scrubbed because the model carries them as DateTime rather than
+        // DateTimeOffset: the captured "+01:00" is read as a local time and written back with the
+        // running machine's offset, so the same instant renders differently in Oslo and on a UTC build
+        // agent. The instants themselves are asserted in
+        // A_captured_document_binds_to_every_part_of_the_envelope, which compares in UTC; this snapshot
+        // is here for the shape.
+        return Verify(ScrubTimestamps(roundTripped)).UseDirectory(".Verify");
     }
+
+    private static string ScrubTimestamps(string json) =>
+        Regex.Replace(
+            json,
+            @"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})",
+            "{timestamp}",
+            RegexOptions.None,
+            TimeSpan.FromSeconds(5)
+        );
 }
