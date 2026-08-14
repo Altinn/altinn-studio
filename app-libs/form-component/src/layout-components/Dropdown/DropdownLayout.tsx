@@ -208,7 +208,6 @@ export function Dropdown({
                 key={option.value}
                 value={option.value}
                 label={langAsString(option.label)}
-                onClick={() => handleChange(option.value)}
               >
                 <span className={classes.optionContent}>
                   {lang(option.label)}
