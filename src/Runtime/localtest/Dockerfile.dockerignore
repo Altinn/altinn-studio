@@ -7,6 +7,9 @@
 !Runtime/localtest/testdata/**
 !Runtime/common/dotnet/
 !Runtime/common/dotnet/Altinn.Studio.Runtime.Common/
-!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/**
+!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/HostBridge/
+!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/HostBridge/**
+!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/EnvTopology/
+!Runtime/common/dotnet/Altinn.Studio.Runtime.Common/EnvTopology/**
 **/bin
 **/obj

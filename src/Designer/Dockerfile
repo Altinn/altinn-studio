@@ -42,10 +42,10 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
-COPY src/common/typescript/package.json ./src/common/typescript/
-COPY src/common/typescript/form-component/package.json ./src/common/typescript/form-component/
-COPY src/common/typescript/form-engine/package.json ./src/common/typescript/form-engine/
-COPY src/common/typescript/language/package.json ./src/common/typescript/language/
+COPY src/common/ts/package.json ./src/common/ts/
+COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
+COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
+COPY src/common/ts/language/package.json ./src/common/ts/language/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true

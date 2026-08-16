@@ -20,7 +20,7 @@
 .github/workflows/studio-components-legacy-deploy.yaml                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                          @altinn/team-altinn-studio-utforming
-src/common/typescript/**/package.json                                     @altinn/team-altinn-studio-utforming
+src/common/ts/**/package.json                                             @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/package.json                                     @altinn/team-altinn-studio-utforming
 
 # Team Access Info

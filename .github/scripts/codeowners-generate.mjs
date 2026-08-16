@@ -37,7 +37,7 @@ const GROUPS = [
   {
     title: 'Team Utforming',
     owner: '@altinn/team-altinn-studio-utforming',
-    roots: ['src/common/typescript', 'src/App/frontend', 'src/Designer/frontend'],
+    roots: ['src/common/ts', 'src/App/frontend', 'src/Designer/frontend'],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
       '.github/workflows/app-frontend-cypress.yml',

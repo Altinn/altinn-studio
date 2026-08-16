@@ -126,9 +126,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-component@workspace:*, @app/form-component@workspace:src/common/typescript/form-component":
+"@app/form-component@workspace:*, @app/form-component@workspace:src/common/ts/form-component":
   version: 0.0.0-use.local
-  resolution: "@app/form-component@workspace:src/common/typescript/form-component"
+  resolution: "@app/form-component@workspace:src/common/ts/form-component"
   dependencies:
     "@app/language": "workspace:0.1.0"
     "@chromatic-com/storybook": "npm:5.3.0"
@@ -192,9 +192,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-engine@workspace:*, @app/form-engine@workspace:src/common/typescript/form-engine":
+"@app/form-engine@workspace:*, @app/form-engine@workspace:src/common/ts/form-engine":
   version: 0.0.0-use.local
-  resolution: "@app/form-engine@workspace:src/common/typescript/form-engine"
+  resolution: "@app/form-engine@workspace:src/common/ts/form-engine"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@testing-library/jest-dom": "npm:6.9.1"
@@ -217,9 +217,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/language@workspace:*, @app/language@workspace:0.1.0, @app/language@workspace:src/common/typescript/language":
+"@app/language@workspace:*, @app/language@workspace:0.1.0, @app/language@workspace:src/common/ts/language":
   version: 0.0.0-use.local
-  resolution: "@app/language@workspace:src/common/typescript/language"
+  resolution: "@app/language@workspace:src/common/ts/language"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
@@ -5482,9 +5482,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/common-typescript@workspace:src/common/typescript":
+"@studio/common-typescript@workspace:src/common/ts":
   version: 0.0.0-use.local
-  resolution: "@studio/common-typescript@workspace:src/common/typescript"
+  resolution: "@studio/common-typescript@workspace:src/common/ts"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
     vitest: "npm:4.1.10"

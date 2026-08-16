@@ -7,8 +7,10 @@ See the Runtime [`AGENTS.md`](../AGENTS.md) and root [`/AGENTS.md`](../../../AGE
 
 ## .NET
 
-`dotnet/Altinn.Studio.Runtime.Common` targets .NET 8 so it can be referenced by both Localtest (.NET 8)
-and studioctl-server (.NET 10). It contains two cross-language local-runtime capabilities:
+`dotnet/Altinn.Studio.Runtime.Common` targets .NET 10 as a standalone project. Localtest (.NET 8) and
+studioctl-server (.NET 10) compile its source files directly, so the sources must remain compatible with
+both consumer targets and must not rely on project-provided implicit or global usings. It contains two
+cross-language local-runtime capabilities:
 
 - `EnvTopology/` — bound-topology routing configuration. Its Go counterpart is
   `src/cli/internal/envtopology/`.
@@ -24,5 +26,7 @@ dotnet build dotnet/Altinn.Studio.Runtime.Common/Altinn.Studio.Runtime.Common.cs
 ## Working here
 
 - Keep shared projects small and dependency-light.
+- Keep the .NET project consumable both as a project and through direct source inclusion; verify the
+  standalone project, Localtest, and studioctl-server when its sources change.
 - When a cross-language behavior changes, update and verify both the .NET and Go implementations.
 - Add another stack directory only when shared Runtime code for that stack actually exists.

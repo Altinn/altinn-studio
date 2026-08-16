@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/common/typescript/**'
+      - 'src/common/ts/**'
       - 'package.json'
       - 'yarn.lock'
       - '.github/workflows/common-typescript-unit-test.yml'
@@ -24,7 +24,7 @@ jobs:
     name: Unit tests
     defaults:
       run:
-        working-directory: src/common/typescript/
+        working-directory: src/common/ts/
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

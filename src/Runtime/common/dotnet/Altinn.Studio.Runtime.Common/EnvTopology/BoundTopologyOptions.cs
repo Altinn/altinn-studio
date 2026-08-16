@@ -1,5 +1,7 @@
 #nullable enable
 
+using System;
+
 namespace Altinn.Studio.EnvTopology;
 
 public sealed class BoundTopologyOptions

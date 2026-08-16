@@ -1,5 +1,10 @@
 #nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
 namespace Altinn.Studio.EnvTopology;
 
 public sealed class BoundTopologyIndex

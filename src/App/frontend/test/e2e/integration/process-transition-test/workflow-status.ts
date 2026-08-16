@@ -56,7 +56,7 @@ const appFrontend = new AppFrontend();
  *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
  *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
  *
- * UI strings (src/common/typescript nb.ts, keys process_workflow.*):
+ * UI strings (src/common/ts nb.ts, keys process_workflow.*):
  *   processing  = spinner + "Vi jobber med skjemaet ditt" (deliberately never names the target
  *                 task and never shows engine step counts - internal progress means nothing to
  *                 the user)

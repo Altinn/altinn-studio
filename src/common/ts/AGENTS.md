@@ -1,4 +1,4 @@
-# AGENTS.md — Common TypeScript libraries (`src/common/typescript`)
+# AGENTS.md — Common TypeScript libraries (`src/common/ts`)
 
 TypeScript and React libraries shared across Altinn Studio product areas. They are being extracted from
 [`src/App/frontend`](../../App/frontend/AGENTS.md) so form rendering and form logic can also be reused by
@@ -18,7 +18,7 @@ for the wider repository picture.
 
 ## Build & test
 
-Run from `src/common/typescript/` (Node 22, Yarn):
+Run from `src/common/ts/` (Node 22, Yarn):
 
 ```bash
 yarn test:ci

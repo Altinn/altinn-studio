@@ -54,8 +54,8 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
-    "src/common/typescript",
-    "src/common/typescript/**"
+    "src/common/ts",
+    "src/common/ts/**"
   ],
   "resolutions": {
     "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"

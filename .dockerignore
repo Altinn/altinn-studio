@@ -4,11 +4,17 @@
 !src/Designer/development/azure-devops-mock
 !package.json
 !yarn.lock
-!.yarn*
+!.yarnrc.yml
+!.yarn/
+.yarn/*
+!.yarn/releases/
+!.yarn/releases/**
+!.yarn/patches/
+!.yarn/patches/**
 !src/App/frontend/package.json
 !src/App/template/v8/src
 !src/App/template/v9/src
-!src/common/typescript
+!src/common/ts
 
 # Test-apps are built in its own container, so they need to be included
 !src/App/backend
