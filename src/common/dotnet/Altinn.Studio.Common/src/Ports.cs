@@ -1,16 +1,10 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Common;
 
-[SuppressMessage(
-    "Naming",
-    "CA1724:Type names should not match namespaces",
-    Justification = "Ports is the established public API for common endpoint port configuration."
-)]
 public static class Ports
 {
     private static int? _publicPort;

@@ -33,11 +33,7 @@ public sealed record RequestStartFrame(
     int TargetPort
 );
 
-public sealed record ResponseStartFrame(
-    long RequestId,
-    int StatusCode,
-    Dictionary<string, string[]> Headers
-);
+public sealed record ResponseStartFrame(long RequestId, int StatusCode, Dictionary<string, string[]> Headers);
 
 public sealed record HeadersFrame(long RequestId, Dictionary<string, string[]> Headers);
 
@@ -130,11 +126,14 @@ public static class HostBridgeProtocol
         CancellationToken cancellationToken
     )
     {
+        ArgumentNullException.ThrowIfNull(socket);
+        ArgumentNullException.ThrowIfNull(messageBuffer);
+
         messageBuffer.Clear();
 
         while (true)
         {
-            var result = await socket.ReceiveAsync(receiveBuffer, cancellationToken);
+            var result = await socket.ReceiveAsync(receiveBuffer, cancellationToken).ConfigureAwait(false);
             if (result.MessageType == WebSocketMessageType.Close)
                 return false;
 
@@ -152,12 +151,10 @@ public static class HostBridgeProtocol
         }
     }
 
-    public static Task SendFrame(
-        WebSocket socket,
-        byte[] payload,
-        CancellationToken cancellationToken
-    )
+    public static Task SendFrame(WebSocket socket, byte[] payload, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(socket);
+
         return socket.SendAsync(payload, WebSocketMessageType.Binary, true, cancellationToken);
     }
 

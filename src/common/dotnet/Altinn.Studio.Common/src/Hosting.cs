@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -18,11 +17,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Common;
 
-[SuppressMessage(
-    "Naming",
-    "CA1724:Type names should not match namespaces",
-    Justification = "Hosting is the established public API for common host configuration."
-)]
 public static class Hosting
 {
     private static readonly string[] _localEnvironments = ["local", "development"];
@@ -145,11 +139,6 @@ public static class Hosting
         }
     }
 
-    [SuppressMessage(
-        "Performance",
-        "CA1812:Avoid uninstantiated internal classes",
-        Justification = "The exception handler is registered and instantiated by ASP.NET Core dependency injection."
-    )]
     private sealed class BadRequestExceptionHandler : IExceptionHandler
     {
         public async ValueTask<bool> TryHandleAsync(
@@ -183,11 +172,6 @@ public static class Hosting
     /// <remarks>
     /// Based on guidance from https://github.com/dotnet/dotnet-docker/blob/2a6f35b9361d1aacb664b0ce09e529698b622d2b/samples/kubernetes/graceful-shutdown/graceful-shutdown.md
     /// </remarks>
-    [SuppressMessage(
-        "Performance",
-        "CA1812:Avoid uninstantiated internal classes",
-        Justification = "The host lifetime is instantiated through ActivatorUtilities in the service registration."
-    )]
     private sealed class AppHostLifetime(
         ILogger<AppHostLifetime> logger,
         IHostEnvironment environment,
