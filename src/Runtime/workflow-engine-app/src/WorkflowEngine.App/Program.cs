@@ -20,11 +20,10 @@ var connectionString =
     );
 
 builder.AddWorkflowEngine(connectionString);
-builder.UseGracefulShutdown(
-    new GracefulShutdownProfile(
-        endpointDrainDelay: TimeSpan.FromSeconds(5),
-        applicationShutdownTimeout: TimeSpan.FromSeconds(20)
-    )
+builder.Services.AddGracefulShutdown(
+    builder.Environment,
+    endpointDrainDelay: TimeSpan.FromSeconds(5),
+    applicationShutdownTimeout: TimeSpan.FromSeconds(20)
 );
 
 // App-specific commands

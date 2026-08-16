@@ -15,12 +15,4 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="tests/**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <InternalsVisibleTo Include="Altinn.Studio.Common.Tests" />
-  </ItemGroup>
 </Project>

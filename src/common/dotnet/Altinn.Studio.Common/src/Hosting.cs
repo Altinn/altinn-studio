@@ -31,27 +31,6 @@ public static class Hosting
         }
 
         /// <summary>
-        /// Configures the application to use the supplied graceful shutdown profile.
-        /// </summary>
-        /// <remarks>
-        /// On POSIX systems, the host delays application shutdown so Kubernetes endpoint removal can propagate,
-        /// then gives the host the configured timeout to drain active work. Development environments retain the
-        /// default host lifetime for responsive local shutdown.
-        /// </remarks>
-        public WebApplicationBuilder UseGracefulShutdown(GracefulShutdownProfile profile)
-        {
-            ArgumentNullException.ThrowIfNull(profile);
-
-            builder.Services.AddGracefulShutdown(
-                builder.Environment,
-                profile.EndpointDrainDelay,
-                profile.ApplicationShutdownTimeout
-            );
-
-            return builder;
-        }
-
-        /// <summary>
         /// Configures the application to use ProblemDetails for bad requests.
         /// </summary>
         /// <remarks>
