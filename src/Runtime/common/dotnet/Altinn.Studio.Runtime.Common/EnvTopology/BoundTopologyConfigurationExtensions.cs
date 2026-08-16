@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,8 @@ public static class BoundTopologyConfigurationExtensions
         bool optionalBoundConfig = false
     )
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         services.Configure<BoundTopologyOptions>(configuration.GetSection(BoundTopologyOptions.SectionName));
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<BoundTopologyOptions>>().Value);
         services.Configure<BoundTopologyConfig>(
@@ -22,7 +25,10 @@ public static class BoundTopologyConfigurationExtensions
         );
         services.Configure<BoundTopologyConfig>(
             BoundTopologyOptions.BoundName,
-            BoundTopologyConfiguration(configuration[BoundTopologyOptions.ConfigPathConfigurationKey], optionalBoundConfig)
+            BoundTopologyConfiguration(
+                configuration[BoundTopologyOptions.ConfigPathConfigurationKey],
+                optionalBoundConfig
+            )
         );
         services.AddSingleton<BoundTopologyIndexAccessor>();
         return services;

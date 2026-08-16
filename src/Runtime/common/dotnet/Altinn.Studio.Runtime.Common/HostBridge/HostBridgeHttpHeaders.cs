@@ -33,10 +33,7 @@ public static class HostBridgeHttpHeaders
         HeaderNames.AltSvc,
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly FrozenSet<string> ContentHeaders = new HashSet<string>(
-        11,
-        StringComparer.OrdinalIgnoreCase
-    )
+    private static readonly FrozenSet<string> ContentHeaders = new HashSet<string>(11, StringComparer.OrdinalIgnoreCase)
     {
         HeaderNames.Allow,
         HeaderNames.ContentDisposition,
@@ -53,6 +50,8 @@ public static class HostBridgeHttpHeaders
 
     public static bool ShouldSkipRequestHeader(string headerName)
     {
+        ArgumentNullException.ThrowIfNull(headerName);
+
         if (HeadersToExclude.Contains(headerName))
             return true;
 
@@ -63,6 +62,5 @@ public static class HostBridgeHttpHeaders
 
     public static bool IsContentHeader(string headerName) => ContentHeaders.Contains(headerName);
 
-    public static bool IsBodylessStatusCode(int statusCode) =>
-        statusCode is >= 100 and < 200 or 204 or 205;
+    public static bool IsBodylessStatusCode(int statusCode) => statusCode is >= 100 and < 200 or 204 or 205;
 }

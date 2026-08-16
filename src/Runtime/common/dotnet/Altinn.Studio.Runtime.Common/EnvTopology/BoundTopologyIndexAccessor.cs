@@ -22,6 +22,9 @@ public sealed class BoundTopologyIndexAccessor
         BoundTopologyOptions options
     )
     {
+        ArgumentNullException.ThrowIfNull(boundTopologyConfig);
+        ArgumentNullException.ThrowIfNull(options);
+
         _boundConfigPath = options.ConfigPath;
         _current = new BoundTopologyIndex(boundTopologyConfig.Get(BoundTopologyOptions.BoundName));
         _currentFileStamp = TryGetFileStamp(_boundConfigPath, out var fileStamp) ? fileStamp : null;

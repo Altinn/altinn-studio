@@ -29,7 +29,7 @@ public sealed class BoundTopologyIndex
         _appsById = apps.RoutesById;
     }
 
-    public IReadOnlyList<BoundTopologyAppRoute> GetApps() => _apps;
+    public IReadOnlyList<BoundTopologyAppRoute> Apps => _apps;
 
     public IReadOnlyList<BoundTopologyComponentRoute> GetComponentRoutes(string component)
     {
@@ -109,7 +109,9 @@ public sealed class BoundTopologyIndex
             routesById.TryAdd(appId, new BoundTopologyAppRoute(route.Route, httpDestinationUri, appId));
         }
 
-        var appRoutes = routesById.Values.OrderBy(static route => route.AppId, StringComparer.OrdinalIgnoreCase).ToArray();
+        var appRoutes = routesById
+            .Values.OrderBy(static route => route.AppId, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
         return (appRoutes, routesById);
     }
 
@@ -136,15 +138,18 @@ public sealed class BoundTopologyIndex
 
     private static Dictionary<string, RouteGroup[]> BuildRouteGroups(IEnumerable<CompiledRoute> routes)
     {
-        return routes.GroupBy(static route => route.Host, StringComparer.OrdinalIgnoreCase)
+        return routes
+            .GroupBy(static route => route.Host, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
                 static hostGroup => hostGroup.Key,
-                static hostGroup => hostGroup.GroupBy(static route => route.GroupKey, StringComparer.Ordinal)
-                    .Select(static routeGroup => new RouteGroup([.. routeGroup]))
-                    .OrderBy(static group => group.IsHostOnly)
-                    .ThenByDescending(static group => group.PathPrefixLength)
-                    .ThenBy(static group => group.GroupKey, StringComparer.Ordinal)
-                    .ToArray(),
+                static hostGroup =>
+                    hostGroup
+                        .GroupBy(static route => route.GroupKey, StringComparer.Ordinal)
+                        .Select(static routeGroup => new RouteGroup([.. routeGroup]))
+                        .OrderBy(static group => group.IsHostOnly)
+                        .ThenByDescending(static group => group.PathPrefixLength)
+                        .ThenBy(static group => group.GroupKey, StringComparer.Ordinal)
+                        .ToArray(),
                 StringComparer.OrdinalIgnoreCase
             );
     }
@@ -251,12 +256,8 @@ public sealed class BoundTopologyIndex
         public BoundTopologyRequestMatch Match() => new(Route, HttpDestinationUri);
     }
 
-    private sealed class HostRoute(
-        BoundTopologyRoute route,
-        string host,
-        string groupKey,
-        Uri? httpDestinationUri
-    ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
+    private sealed class HostRoute(BoundTopologyRoute route, string host, string groupKey, Uri? httpDestinationUri)
+        : CompiledRoute(route, host, groupKey, httpDestinationUri)
     {
         public override bool IsHostOnly => true;
 
