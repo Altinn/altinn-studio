@@ -15,8 +15,4 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Content Include=".config\dotnet-tools.json" />
-  </ItemGroup>
 </Project>
