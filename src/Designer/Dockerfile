@@ -61,8 +61,9 @@ RUN cd src/Designer/frontend && yarn build
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
-COPY src/Designer/backend .
-RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
+COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/Designer/backend ./src/Designer/backend
+RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version
