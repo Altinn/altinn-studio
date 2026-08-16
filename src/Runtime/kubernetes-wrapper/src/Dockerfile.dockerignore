@@ -1,0 +1,12 @@
+# Keep the src/ build context limited to Kubernetes Wrapper and its shared dependency.
+**
+!common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
+!common/dotnet/Altinn.Studio.Common/src/**
+!Runtime/kubernetes-wrapper/Directory.Build.props
+!Runtime/kubernetes-wrapper/Directory.Packages.props
+!Runtime/kubernetes-wrapper/global.json
+!Runtime/kubernetes-wrapper/.csharpierignore
+!Runtime/kubernetes-wrapper/.csharpierrc.yaml
+!Runtime/kubernetes-wrapper/src/**
+**/bin
+**/obj
