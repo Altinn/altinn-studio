@@ -1306,3 +1306,10 @@ namespace Altinn.App.Api.Models
         public string Path { get; init; }
     }
 }
+namespace Altinn.Studio.Common
+{
+    public static class GracefulShutdown
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddGracefulShutdown(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Hosting.IHostEnvironment environment, System.TimeSpan endpointDrainDelay, System.TimeSpan applicationShutdownTimeout) { }
+    }
+}
