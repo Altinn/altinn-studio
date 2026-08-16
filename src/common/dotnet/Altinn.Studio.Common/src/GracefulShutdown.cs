@@ -9,20 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Common;
 
-/// <summary>
-/// Extensions for configuring graceful host shutdown.
-/// </summary>
-public static class GracefulShutdown
+internal static class GracefulShutdown
 {
-    /// <summary>
-    /// Delays host shutdown while endpoint removal propagates, then configures the time allowed to drain active work.
-    /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <param name="environment">The host environment.</param>
-    /// <param name="endpointDrainDelay">Time allowed for endpoint removal to propagate.</param>
-    /// <param name="applicationShutdownTimeout">Maximum time allowed for application shutdown.</param>
-    /// <returns>The supplied service collection.</returns>
-    public static IServiceCollection AddGracefulShutdown(
+    internal static IServiceCollection AddGracefulShutdown(
         this IServiceCollection services,
         IHostEnvironment environment,
         TimeSpan endpointDrainDelay,
