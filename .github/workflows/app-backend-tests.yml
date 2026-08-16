@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/App/backend/**'
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'

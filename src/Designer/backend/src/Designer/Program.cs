@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Common;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
@@ -47,6 +48,11 @@ ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
 {
+    builder.Services.AddGracefulShutdown(
+        builder.Environment,
+        endpointDrainDelay: TimeSpan.FromSeconds(5),
+        applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+    );
     SetConfigurationProviders(builder.Configuration, builder.Environment);
     ConfigureLogging(builder.Logging);
     builder.AddOpenTelemetry();

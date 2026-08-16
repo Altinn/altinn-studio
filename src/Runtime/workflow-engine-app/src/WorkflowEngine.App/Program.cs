@@ -23,7 +23,7 @@ builder.AddWorkflowEngine(connectionString);
 builder.Services.AddGracefulShutdown(
     builder.Environment,
     endpointDrainDelay: TimeSpan.FromSeconds(5),
-    applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+    applicationShutdownTimeout: TimeSpan.FromSeconds(35)
 );
 
 // App-specific commands
