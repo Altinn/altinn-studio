@@ -1,8 +1,9 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Runtime.Common;
+namespace Altinn.Studio.Common;
 
 public static class Ports
 {

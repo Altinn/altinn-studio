@@ -1,6 +1,8 @@
 #nullable enable
 
+using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using Microsoft.Net.Http.Headers;
 
 namespace Altinn.Studio.HostBridge;

@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Collections.Generic;
+
 namespace Altinn.Studio.EnvTopology;
 
 public sealed class BoundTopologyConfig
