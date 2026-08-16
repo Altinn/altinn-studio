@@ -61,6 +61,10 @@ Each area below links to its own `AGENTS.md` where one exists.
 R&D projects from the AI lab (to be handed off to the Studio team): `agents` (Altinity natural-language
 app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
+### Experimental — [`src/experimental`](src/experimental/AGENTS.md)
+
+Early agent-platform architecture with a reusable sandbox SDK and a separate agent automation layer.
+
 ### Shared code
 
 | Area                                                 | What it is                                                                                                                             |
