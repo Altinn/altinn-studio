@@ -16,6 +16,8 @@ on:
       - 'src/test/apps/**'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
