@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -12,8 +11,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Common;
 
@@ -29,7 +26,27 @@ public static class Hosting
         public WebApplicationBuilder UseCommonHostingConfiguration()
         {
             builder.UseHeaderForwarding();
-            builder.UseGracefulShutdown();
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the application to use the supplied graceful shutdown profile.
+        /// </summary>
+        /// <remarks>
+        /// On POSIX systems, the host delays application shutdown so Kubernetes endpoint removal can propagate,
+        /// then gives the host the configured timeout to drain active work. Development environments retain the
+        /// default host lifetime for responsive local shutdown.
+        /// </remarks>
+        public WebApplicationBuilder UseGracefulShutdown(GracefulShutdownProfile profile)
+        {
+            ArgumentNullException.ThrowIfNull(profile);
+
+            builder.Services.AddGracefulShutdown(
+                builder.Environment,
+                profile.EndpointDrainDelay,
+                profile.ApplicationShutdownTimeout
+            );
 
             return builder;
         }
@@ -101,42 +118,6 @@ public static class Hosting
 
             return builder;
         }
-
-        /// <summary>
-        /// Configures the application to use graceful shutdown.
-        /// <para>
-        /// Need to coordinate graceful shutdown (let's assume k8s as the scheduler/runtime):
-        /// - deployment is configured with a terminationGracePeriod of 30s (default timeout before SIGKILL)
-        /// - k8s flow of information is eventually consistent.
-        ///   it takes time for knowledge of SIGTERM on the worker node to propagate to e.g. networking layers
-        ///   (k8s Service -> Endspoints rotation. It takes time to be taken out of Endpoint rotation)
-        /// - we want to gracefully drain ASP.NET core for requests, leaving some time for active requests to complete
-        /// This leaves us with the following sequence of events
-        /// - container receives SIGTERM
-        /// - `AppHostLifetime` intercepts SIGTERM and delays for `shutdownDelay`
-        /// - `AppHostLifetime` calls `IHostApplicationLifetime.StopApplication`, to start ASP.NET Core shutdown process
-        /// - ASP.NET Core will spend a maximum of `shutdownTimeout` trying to drain active requests
-        ///   (cancelable requests can combine cancellation tokens with `IHostApplicationLifetime.ApplicationStopping`)
-        /// - If ASP.NET Core completes shutdown within `shutdownTimeout`, everything is fine
-        /// - If ASP.NET Core is stuck or in some way can't terminate, kubelet will eventually SIGKILL
-        /// </para>
-        /// </summary>
-        public WebApplicationBuilder UseGracefulShutdown()
-        {
-            if (builder.Environment.IsDevelopment())
-                return builder;
-
-            var shutdownDelay = TimeSpan.FromSeconds(5);
-            var shutdownTimeout = TimeSpan.FromSeconds(20);
-
-            builder.Services.AddSingleton<IHostLifetime>(sp =>
-                ActivatorUtilities.CreateInstance<AppHostLifetime>(sp, shutdownDelay)
-            );
-
-            builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = shutdownTimeout);
-
-            return builder;
-        }
     }
 
     private sealed class BadRequestExceptionHandler : IExceptionHandler
@@ -163,88 +144,6 @@ public static class Hosting
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
             return true;
-        }
-    }
-
-    /// <summary>
-    /// Host lifetime implementation with graceful shutdown support.
-    /// </summary>
-    /// <remarks>
-    /// Based on guidance from https://github.com/dotnet/dotnet-docker/blob/2a6f35b9361d1aacb664b0ce09e529698b622d2b/samples/kubernetes/graceful-shutdown/graceful-shutdown.md
-    /// </remarks>
-    private sealed class AppHostLifetime(
-        ILogger<AppHostLifetime> logger,
-        IHostEnvironment environment,
-        IHostApplicationLifetime applicationLifetime,
-        TimeSpan delay
-    ) : IHostLifetime, IDisposable
-    {
-        private IDisposable[]? _disposables;
-
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-        public Task WaitForStartAsync(CancellationToken cancellationToken)
-        {
-            Debug.Assert(!environment.IsDevelopment(), "We don't need graceful shutdown in development environments");
-            PosixSignalRegistration? sigint = null;
-            PosixSignalRegistration? sigquit = null;
-            PosixSignalRegistration? sigterm = null;
-            try
-            {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                // If we get an exception, we dispose below
-                // Otherwise ownership is transferred to _disposables
-                // which is disposed in Dispose()
-                sigint = PosixSignalRegistration.Create(PosixSignal.SIGINT, HandleSignal);
-                sigquit = PosixSignalRegistration.Create(PosixSignal.SIGQUIT, HandleSignal);
-                sigterm = PosixSignalRegistration.Create(PosixSignal.SIGTERM, HandleSignal);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                _disposables = [sigint, sigquit, sigterm];
-            }
-            catch
-            {
-                TryDispose(sigint);
-                TryDispose(sigquit);
-                TryDispose(sigterm);
-                throw;
-            }
-            return Task.CompletedTask;
-        }
-
-        private void HandleSignal(PosixSignalContext ctx)
-        {
-            logger.LogInformation("Received shutdown signal: {Signal}, delaying shutdown", ctx.Signal);
-            ctx.Cancel = true; // Signal intercepted here, we are now responsible for calling `StopApplication`
-
-            _ = Task.Delay(delay)
-                .ContinueWith(
-                    t =>
-                    {
-                        logger.LogInformation("Starting host shutdown...");
-                        applicationLifetime.StopApplication();
-                    },
-                    TaskScheduler.Default
-                );
-        }
-
-        public void Dispose()
-        {
-            foreach (var disposable in _disposables ?? [])
-                TryDispose(disposable);
-        }
-
-        private void TryDispose(IDisposable? disposable)
-        {
-            if (disposable is null)
-                return;
-            try
-            {
-                disposable.Dispose();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error during disposal of {Type}", disposable.GetType().FullName);
-            }
         }
     }
 }

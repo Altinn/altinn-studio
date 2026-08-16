@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Altinn.Studio.Common.csproj" />
+  <Project Path="tests/Altinn.Studio.Common.Tests/Altinn.Studio.Common.Tests.csproj" />
+</Solution>

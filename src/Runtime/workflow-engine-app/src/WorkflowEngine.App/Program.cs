@@ -1,3 +1,4 @@
+using Altinn.Studio.Common;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Extensions;
 using WorkflowEngine.Core.Extensions;
@@ -19,6 +20,12 @@ var connectionString =
     );
 
 builder.AddWorkflowEngine(connectionString);
+builder.UseGracefulShutdown(
+    new GracefulShutdownProfile(
+        endpointDrainDelay: TimeSpan.FromSeconds(5),
+        applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+    )
+);
 
 // App-specific commands
 builder.Services.ConfigureAppCommand();
