@@ -35,9 +35,9 @@ spec:
         azure.workload.identity/use: "true"
       annotations:
         linkerd.io/inject: enabled
-        # Linkerd 2026.4.2 uses regular sidecars; keep the proxy alive through application shutdown.
-        config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "40"
-        config.linkerd.io/shutdown-grace-period: "5s"
+        # Linkerd 2026.4.2 uses regular sidecars; mirror the application's 5s drain + 35s shutdown.
+        config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "5"
+        config.linkerd.io/shutdown-grace-period: "35s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
