@@ -83,10 +83,6 @@ jobs:
         with:
           global-json-file: src/cli/global.json
 
-      - name: Build standalone Runtime common project
-        if: matrix.os == 'ubuntu-latest'
-        run: dotnet build src/Runtime/common/dotnet/Altinn.Studio.Runtime.Common/Altinn.Studio.Runtime.Common.csproj
-
       - name: Setup Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
