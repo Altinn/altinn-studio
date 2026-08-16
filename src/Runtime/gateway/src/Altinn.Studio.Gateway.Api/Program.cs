@@ -9,6 +9,11 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.AddGateway();
 builder.ConfigureKestrelPorts(publicPort: PortConfiguration.PublicPort, internalPort: PortConfiguration.InternalPort);
 builder.UseCommonHostingConfiguration();
+builder.Services.AddGracefulShutdown(
+    builder.Environment,
+    endpointDrainDelay: TimeSpan.FromSeconds(5),
+    applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+);
 builder.AddMaskinportenAuthentication();
 builder.AddOpenTelemetry();
 builder.Services.ConfigureHttpJsonOptions(options =>
