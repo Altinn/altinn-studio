@@ -251,7 +251,7 @@
         "type": "Heading",
         "size": "h4",
         "textResourceBindings": {
-          "title": "Med ikon og beskrivelse (beskrivelsen og ikon krever en tittel for å vises)"
+          "title": "Med ikon og beskrivelse (beskrivelsen og ikonet krever en tittel for å vises)"
         }
       },
       {
