@@ -35,6 +35,10 @@ only in which app they create and which template they create it from:
 }
 ```
 
+Every suite that creates an app through the API has such a pair, so v9 gets the same coverage as v8. The
+exceptions are `tests/create-app-only/`, which creates its app through the dashboard form rather than the
+API, and `tests/logout/` and `tests/invalid-login/`, which do not create an app at all.
+
 `testAppTemplate` defaults to `AppTemplate.V8`, so a project that does not set it keeps its old behaviour.
 The specs read the option in `beforeAll` and pass it on:
 

@@ -1,10 +1,15 @@
 export enum AppNames {
   CREATE_APP_ONLY = 'simple-app-test',
   DATA_MODEL_APP = 'data-model-app-test',
+  DATA_MODEL_V9_APP = 'data-model-v9-app-test',
   DASHBOARD_APP = 'dashboard-app-test',
+  DASHBOARD_V9_APP = 'dashboard-v9-app-test',
   GIT_SYNC_APP = 'git-sync-app-test',
+  GIT_SYNC_V9_APP = 'git-sync-v9-app-test',
   MAIN_NAVIGATION_APP = 'navigation-app-test',
+  MAIN_NAVIGATION_V9_APP = 'navigation-v9-app-test',
   APP_SETTINGS_APP = 'app-settings-app-test',
+  APP_SETTINGS_V9_APP = 'app-settings-v9-app-test',
   UI_EDITOR_APP = 'ui-editor-app-test',
   UI_EDITOR_V9_APP = 'ui-editor-v9-app-test',
   TEXT_EDITOR_APP = 'text-editor-app-test',
@@ -12,5 +17,7 @@ export enum AppNames {
   PROCESS_EDITOR_APP = 'process-editor-app-test',
   PROCESS_EDITOR_V9_APP = 'process-editor-v9-app-test',
   ORG_LIBRARY = 'org-library-app-test',
+  ORG_LIBRARY_V9 = 'org-library-v9-app-test',
   BRANCHING_APP = 'branching-app-test',
+  BRANCHING_V9_APP = 'branching-v9-app-test',
 }
