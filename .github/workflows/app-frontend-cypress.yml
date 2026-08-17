@@ -154,6 +154,8 @@ jobs:
       github.repository_owner == 'Altinn'
     runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
     timeout-minutes: 15
+    outputs:
+      localtest-image-cache-key: ${{ steps.localtest-images.outputs.cache-key }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -162,6 +164,7 @@ jobs:
         uses: ./.github/actions/setup-studioctl
 
       - name: Populate LocalTest image cache
+        id: localtest-images
         uses: ./.github/actions/setup-localtest-images
         with:
           populate-cache: true
@@ -208,6 +211,7 @@ jobs:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
           skip-app-build: true
+          localtest-image-cache-key: ${{ needs.build-studioctl.outputs.localtest-image-cache-key }}
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -304,6 +308,7 @@ jobs:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
           skip-app-build: true
+          localtest-image-cache-key: ${{ needs.build-studioctl.outputs.localtest-image-cache-key }}
 
       - name: Install Cypress binary
         shell: bash

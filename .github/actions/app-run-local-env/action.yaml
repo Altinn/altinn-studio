@@ -11,6 +11,10 @@ inputs:
     description: "Whether to pass --skip-build when starting app processes"
     required: false
     default: "false"
+  localtest-image-cache-key:
+    description: "LocalTest image cache key resolved by a prerequisite job"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -33,6 +37,8 @@ runs:
     - name: Setup LocalTest images
       if: ${{ inputs.run-localtest == 'true' }}
       uses: ./.github/actions/setup-localtest-images
+      with:
+        cache-key: ${{ inputs.localtest-image-cache-key }}
 
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
