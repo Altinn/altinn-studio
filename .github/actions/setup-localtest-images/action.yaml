@@ -23,7 +23,7 @@ runs:
         PROVIDED_CACHE_KEY: ${{ inputs.cache-key }}
         SOURCE_HASH: ${{ hashFiles('src/Runtime/localtest/**', 'src/Runtime/pdf3/**', 'src/Runtime/workflow-engine/**', 'src/Runtime/workflow-engine-app/**', 'src/common/**', 'src/Shared/**', 'src/cli/internal/cmd/env/localtest/**', 'src/cli/internal/config/config.yaml', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!**/bin/**', '!**/obj/**') }}
       run: |
-        cache_key="${PROVIDED_CACHE_KEY:-localtest-dev-images-v2-${{ runner.os }}-${{ runner.arch }}-${SOURCE_HASH}}"
+        cache_key="${PROVIDED_CACHE_KEY:-localtest-dev-images-v3-${{ runner.os }}-${{ runner.arch }}-${SOURCE_HASH}}"
         echo "cache-key=${cache_key}" >> "$GITHUB_OUTPUT"
 
     - name: Cache LocalTest dev images
@@ -56,10 +56,12 @@ runs:
       shell: bash
       run: |
         mkdir -p .cache/localtest-images
+        workflow_engine_db_image="$(docker inspect --format '{{.Config.Image}}' localtest-workflow-engine-db)"
         docker image save --output .cache/localtest-images/images.tar \
           localtest:dev \
           localtest-pdf3:dev \
-          localtest-workflow-engine:dev
+          localtest-workflow-engine:dev \
+          "$workflow_engine_db_image"
 
     - name: Stop cache-building environment
       if: ${{ always() && steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
