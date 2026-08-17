@@ -4,6 +4,7 @@ on:
     branches:
       - main
     paths:
+      - src/common/dotnet/**
       - src/Runtime/kubernetes-wrapper/**
       - infra/studio/syncroot/base/kubernetes-wrapper.yaml
       - infra/runtime/syncroot/base/kubernetes-wrapper.yaml
@@ -52,7 +53,7 @@ jobs:
         run: |
           SHA="${GITHUB_SHA::10}"
           IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
-          docker build --platform linux/amd64,linux/arm64 src/Runtime/kubernetes-wrapper \
+          docker build --platform linux/amd64,linux/arm64 src \
             -f src/Runtime/kubernetes-wrapper/src/Dockerfile \
             -t "${IMAGE_BASE}:${SHA}"
 

@@ -1,0 +1,16 @@
+{
+  "name": "@studio/common-typescript",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "yarn@4.18.0",
+  "scripts": {
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "typecheck": "yarn workspaces foreach -A --include '@app/*' run typecheck",
+    "lint": "yarn workspaces foreach -A --include '@app/*' run lint"
+  },
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@7.0.2",
+    "vitest": "4.1.10"
+  }
+}
