@@ -1,8 +1,8 @@
-name: "Install App Frontend test dependencies"
-description: "Installs only the App Frontend workspace and its transitive workspace dependencies"
+name: "Set up App Frontend test dependencies"
+description: "Restores or installs the App Frontend workspace and its transitive workspace dependencies"
 inputs:
   populate-cache:
-    description: "Populate the cache on a miss without downloading it on a hit"
+    description: "Install and cache dependencies on a miss; only check availability on a hit"
     required: false
     default: "false"
   require-cache-hit:
@@ -10,12 +10,12 @@ inputs:
     required: false
     default: "false"
   cache-key:
-    description: "Cache key resolved by a prerequisite job; computed locally when omitted"
+    description: "Cache key from a prerequisite job; derived from local sources when omitted"
     required: false
     default: ""
 outputs:
   cache-key:
-    description: "The cache key used for the focused App Frontend dependencies"
+    description: "The cache key selected for the focused App Frontend dependencies"
     value: ${{ steps.cache-resolution.outputs.cache-key }}
 runs:
   using: "composite"

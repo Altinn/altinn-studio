@@ -1,12 +1,12 @@
-name: "Setup LocalTest images"
-description: "Restores cached LocalTest dev images or builds an archive to populate the cache"
+name: "Set up LocalTest images"
+description: "Restores the required LocalTest images, or builds and caches them in population mode"
 inputs:
   populate-cache:
-    description: "Build and archive the images when the cache is empty instead of requiring a hit"
+    description: "Build and cache images on a miss; only check availability on a hit"
     required: false
     default: "false"
   cache-key:
-    description: "Cache key resolved by the prerequisite job; computed locally when omitted"
+    description: "Cache key from a prerequisite job; derived from local sources when omitted"
     required: false
     default: ""
 outputs:
@@ -26,7 +26,7 @@ runs:
         cache_key="${PROVIDED_CACHE_KEY:-localtest-dev-images-v3-${{ runner.os }}-${{ runner.arch }}-${SOURCE_HASH}}"
         echo "cache-key=${cache_key}" >> "$GITHUB_OUTPUT"
 
-    - name: Cache LocalTest dev images
+    - name: Find LocalTest image archive
       id: cache-localtest-images
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
@@ -34,24 +34,24 @@ runs:
         key: ${{ steps.resolve-cache-key.outputs.cache-key }}
         lookup-only: ${{ inputs.populate-cache }}
 
-    - name: Load cached LocalTest dev images
+    - name: Load cached LocalTest images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit == 'true' && inputs.populate-cache != 'true' }}
       shell: bash
       run: docker image load --input .cache/localtest-images/images.tar
 
-    - name: Require cached LocalTest dev images
+    - name: Require cached LocalTest images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache != 'true' }}
       shell: bash
       run: |
         echo "The LocalTest dev image cache was not populated by the prerequisite job."
         exit 1
 
-    - name: Build LocalTest dev images
+    - name: Prepare required LocalTest images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
       shell: bash
       run: studioctl env up --detach
 
-    - name: Archive LocalTest dev images
+    - name: Archive required LocalTest images
       if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
       shell: bash
       run: |

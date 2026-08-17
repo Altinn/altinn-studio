@@ -56,7 +56,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install App Frontend test dependencies
+      - name: Set up App Frontend test dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
 
       - name: Run Local Environment

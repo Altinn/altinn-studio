@@ -62,7 +62,7 @@ jobs:
         uses: ./.github/actions/app-build-frontend
 
   build-app-run-targets:
-    name: Build App Run Targets
+    name: Prepare app process outputs
     if: |
       (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn'
@@ -74,7 +74,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Build app run targets
+      - name: Resolve app run targets
         id: app-run-targets
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
@@ -148,7 +148,7 @@ jobs:
           retention-days: 1
 
   build-studioctl:
-    name: Build Cypress environment cache
+    name: Prepare studioctl and LocalTest image caches
     if: |
       (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn'
@@ -160,7 +160,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Build studioctl dev install
+      - name: Set up studioctl dev install
         uses: ./.github/actions/setup-studioctl
 
       - name: Populate LocalTest image cache
@@ -170,7 +170,7 @@ jobs:
           populate-cache: true
 
   prepare-app-frontend-dependencies:
-    name: Prepare App Frontend dependency cache
+    name: Prepare App Frontend test dependency cache
     if: |
       (github.event_name != 'pull_request' || github.event.action != 'closed') &&
       github.repository_owner == 'Altinn'
@@ -182,7 +182,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Populate App Frontend dependency cache
+      - name: Populate App Frontend test dependency cache
         id: dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
         with:
@@ -221,7 +221,7 @@ jobs:
         shell: bash
         run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
 
-      - name: Install App Frontend test dependencies
+      - name: Restore App Frontend test dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
         with:
           cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
@@ -321,7 +321,7 @@ jobs:
         shell: bash
         run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
 
-      - name: Install App Frontend test dependencies
+      - name: Restore App Frontend test dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
         with:
           cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
