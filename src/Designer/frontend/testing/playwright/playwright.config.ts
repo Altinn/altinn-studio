@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import type { ExtendedTestOptions } from './extenders/testExtend';
 import { AppNames } from './enum/AppNames';
 import { TestNames } from './enum/TestNames';
+import { AppTemplate } from './enum/AppTemplate';
 
 config();
 
@@ -93,6 +94,21 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.UI_EDITOR_APP,
+        testAppTemplate: AppTemplate.V8,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.UI_EDITOR_V9,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/ui-editor/',
+      testMatch: '*.spec.ts',
+      timeout: 60000,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.UI_EDITOR_V9_APP,
+        testAppTemplate: AppTemplate.V9,
         headless: true,
       },
     },
@@ -117,6 +133,20 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.TEXT_EDITOR_APP,
+        testAppTemplate: AppTemplate.V8,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.TEXT_EDITOR_V9,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/text-editor/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.TEXT_EDITOR_V9_APP,
+        testAppTemplate: AppTemplate.V9,
         headless: true,
       },
     },
@@ -130,6 +160,21 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.PROCESS_EDITOR_APP,
+        testAppTemplate: AppTemplate.V8,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.PROCESS_EDITOR_V9,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/process-editor/',
+      testMatch: '*.spec.ts',
+      timeout: 60000,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.PROCESS_EDITOR_V9_APP,
+        testAppTemplate: AppTemplate.V9,
         headless: true,
       },
     },
@@ -168,9 +213,12 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
         TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
+        TestNames.UI_EDITOR_V9,
         TestNames.APP_SETTINGS,
         TestNames.TEXT_EDITOR,
+        TestNames.TEXT_EDITOR_V9,
         TestNames.PROCESS_EDITOR,
+        TestNames.PROCESS_EDITOR_V9,
         TestNames.ORG_LIBRARY,
         TestNames.BRANCHING,
       ],

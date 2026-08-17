@@ -6,8 +6,11 @@ export enum AppNames {
   MAIN_NAVIGATION_APP = 'navigation-app-test',
   APP_SETTINGS_APP = 'app-settings-app-test',
   UI_EDITOR_APP = 'ui-editor-app-test',
+  UI_EDITOR_V9_APP = 'ui-editor-v9-app-test',
   TEXT_EDITOR_APP = 'text-editor-app-test',
+  TEXT_EDITOR_V9_APP = 'text-editor-v9-app-test',
   PROCESS_EDITOR_APP = 'process-editor-app-test',
+  PROCESS_EDITOR_V9_APP = 'process-editor-v9-app-test',
   ORG_LIBRARY = 'org-library-app-test',
   BRANCHING_APP = 'branching-app-test',
 }

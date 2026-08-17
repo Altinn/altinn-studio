@@ -7,10 +7,13 @@ export enum TestNames {
   INVALID_LOGIN = 'invalid-login',
   MAIN_NAVIGATION_BETWEEN_SUB_APPS = 'main-navigation-between-sub-apps',
   UI_EDITOR = 'ui-editor',
+  UI_EDITOR_V9 = 'ui-editor-v9',
   GIT_SYNC = 'git-sync',
   APP_SETTINGS = 'app-settings',
   TEXT_EDITOR = 'text-editor',
+  TEXT_EDITOR_V9 = 'text-editor-v9',
   PROCESS_EDITOR = 'process-editor',
+  PROCESS_EDITOR_V9 = 'process-editor-v9',
   ORG_LIBRARY = 'org-library',
   BRANCHING = 'branching',
 }
