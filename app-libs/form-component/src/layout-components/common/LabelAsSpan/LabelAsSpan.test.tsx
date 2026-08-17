@@ -19,11 +19,18 @@ describe('LabelAsSpan', () => {
     expect(screen.getByText('20.07.2026')).toBeInTheDocument();
   });
 
-  it('sets the label id on the title span', () => {
+  it('sets the label id on the outer field wrapper (includes title + value for aria-labelledby)', () => {
     render({ componentId: 'date-preview' });
     const label = document.getElementById('label-date-preview');
     expect(label).toBeInTheDocument();
     expect(label).toHaveTextContent('my.title');
+    expect(label).toHaveTextContent('20.07.2026');
     expect(label?.tagName).toBe('SPAN');
+  });
+
+  it('keeps the layout wrapper but hides title text when hideLabel is set', () => {
+    render({ hideLabel: true });
+    expect(screen.queryByText('my.title')).not.toBeInTheDocument();
+    expect(screen.getByText('20.07.2026')).toBeInTheDocument();
   });
 });

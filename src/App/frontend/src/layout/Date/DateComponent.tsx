@@ -38,9 +38,10 @@ export const DateComponent = ({ baseComponentId, overrideDisplay }: PropsFromGen
     <Date
       componentId={componentId}
       value={displayData}
-      title={showLabel ? textResourceBindings?.title : undefined}
+      title={textResourceBindings?.title}
       description={showLabel ? textResourceBindings?.description : undefined}
       help={showLabel ? textResourceBindings?.help : undefined}
+      hideLabel={!showLabel}
       icon={icon}
       direction={direction ?? 'horizontal'}
       labelGrid={grid?.labelGrid}

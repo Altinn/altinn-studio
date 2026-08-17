@@ -21,6 +21,7 @@ export interface DateProps {
   direction?: DateDirection;
   labelGrid?: IGridStyling;
   innerGrid?: IGridStyling;
+  hideLabel?: boolean;
 }
 
 export function Date({
@@ -33,11 +34,12 @@ export function Date({
   direction = 'horizontal',
   labelGrid,
   innerGrid,
+  hideLabel = false,
 }: DateProps) {
   const { langAsString } = useTranslation();
 
   if (!title) {
-    return <DisplayDate value={value} iconUrl={icon} iconAltText='' />;
+    return <DisplayDate value={value} />;
   }
 
   const labelId = getLabelId(componentId);
@@ -46,9 +48,10 @@ export function Date({
     <LabelAsSpan
       componentId={componentId}
       title={title}
-      description={description}
-      help={help}
+      description={hideLabel ? undefined : description}
+      help={hideLabel ? undefined : help}
       labelGrid={labelGrid}
+      hideLabel={hideLabel}
       className={cn(
         classes.label,
         classes.dateComponent,

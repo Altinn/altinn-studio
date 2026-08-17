@@ -20,6 +20,7 @@ export interface LabelAsSpanProps {
   help?: string;
   labelGrid?: IGridStyling;
   className?: string;
+  hideLabel?: boolean;
 }
 
 export function LabelAsSpan({
@@ -29,27 +30,32 @@ export function LabelAsSpan({
   help,
   labelGrid,
   className,
+  hideLabel = false,
   children,
 }: PropsWithChildren<LabelAsSpanProps>) {
   const { lang } = useTranslation();
   const labelId = getLabelId(componentId);
 
   return (
-    <span className={cn(classes.fieldWrapper, className)}>
+    <span id={labelId} className={cn(classes.fieldWrapper, className)}>
       <Flex item size={labelGrid ?? { xs: 12 }}>
-        <DsLabel asChild>
-          <span className={classes.labelWrapper}>
-            <span className={classes.labelContainer}>
-              <span id={labelId} className={classes.labelContent}>
-                {lang(title)}
+        {!hideLabel && (
+          <DsLabel asChild>
+            <span className={classes.labelWrapper}>
+              <span className={classes.labelContainer}>
+                <span className={classes.labelContent}>{lang(title)}</span>
+                {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
               </span>
-              {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
+              {description && (
+                <Description
+                  componentId={componentId}
+                  description={lang(description)}
+                  className={classes.description}
+                />
+              )}
             </span>
-            {description && (
-              <Description componentId={componentId} description={lang(description)} />
-            )}
-          </span>
-        </DsLabel>
+          </DsLabel>
+        )}
       </Flex>
       {children}
     </span>

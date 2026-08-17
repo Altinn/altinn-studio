@@ -14,6 +14,7 @@ export const DATE_PROP_CATEGORIES = {
   componentId: 'content',
   labelGrid: 'content',
   innerGrid: 'content',
+  hideLabel: 'runtime',
 } satisfies PropCategories<DateProps>;
 
 const meta = {
