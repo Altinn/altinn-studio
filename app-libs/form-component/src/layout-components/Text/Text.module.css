@@ -7,7 +7,7 @@
 }
 
 .label span {
-  font-size: 1rem;
+  font-size: var(--ds-body-md-font-size);
 }
 
 .vertical {

@@ -11,9 +11,7 @@ export function DisplayText({ value, iconUrl, iconAltText, labelId }: DisplayTex
   return (
     <>
       {iconUrl && <img src={iconUrl} className={classes.icon} alt={iconAltText} />}
-      <span className={classes.value} aria-labelledby={labelId}>
-        {value}
-      </span>
+      <span aria-labelledby={labelId}>{value}</span>
     </>
   );
 }
