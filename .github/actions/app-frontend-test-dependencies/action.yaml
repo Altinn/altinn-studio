@@ -3,14 +3,33 @@ description: "Installs only the App Frontend workspace and its transitive worksp
 runs:
   using: "composite"
   steps:
-    - name: Setup Node.js
+    - name: Restore focused App Frontend dependencies
+      id: focused-dependencies
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          node_modules
+          src/App/frontend/node_modules
+          app-libs/**/node_modules
+          .yarn/install-state.gz
+        key: app-frontend-focused-dependencies-v1-${{ runner.os }}-${{ runner.arch }}-node22-yarn4.18-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json', 'src/App/frontend/package.json', 'app-libs/**/package.json') }}
+
+    - name: Setup Node.js with Yarn package cache
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' }}
       uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: "22"
         cache: "yarn"
         cache-dependency-path: yarn.lock
 
+    - name: Setup Node.js
+      if: ${{ steps.focused-dependencies.outputs.cache-hit == 'true' }}
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      with:
+        node-version: "22"
+
     - name: Install focused App Frontend dependencies
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' }}
       working-directory: ${{ github.workspace }}
       shell: bash
       env:
