@@ -21,7 +21,7 @@ describe('ConfigBooleanProperties', () => {
     });
     const properties = ['readOnly', 'required', 'hidden'];
     for (const property of properties) {
-      expect(getPropertyByRole('checkbox', property)).toBeInTheDocument();
+      expect(getPropertyByRole('switch', property)).toBeInTheDocument();
     }
   });
 
@@ -57,7 +57,7 @@ describe('ConfigBooleanProperties', () => {
       'formatting',
     ];
     for (const property of properties) {
-      expect(getPropertyByRole('checkbox', property)).toBeInTheDocument();
+      expect(getPropertyByRole('switch', property)).toBeInTheDocument();
     }
   });
 
@@ -74,7 +74,7 @@ describe('ConfigBooleanProperties', () => {
     });
     expect(button).toBeInTheDocument();
     await user.click(button);
-    expect(getPropertyByRole('checkbox', 'timeStamp')).not.toBeChecked();
+    expect(getPropertyByRole('switch', 'timeStamp')).not.toBeChecked();
   });
 
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {
@@ -87,7 +87,7 @@ describe('ConfigBooleanProperties', () => {
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
-    await user.click(getPropertyByRole('checkbox', 'readOnly'));
+    await user.click(getPropertyByRole('switch', 'readOnly'));
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({ readOnly: true }),
     );

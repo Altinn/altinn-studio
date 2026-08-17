@@ -27,7 +27,6 @@
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
     <PackageReference Include="DistributedLock.Postgres" />
     <PackageReference Include="DotNetEnv" />
-    <PackageReference Include="JetBrains.Annotations" />
     <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
@@ -150,6 +149,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
     <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>

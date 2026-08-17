@@ -1,8 +1,8 @@
 import React from 'react';
-import { Switch } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 import classes from './ViewToggler.module.css';
+import { StudioSwitch } from '@studio/components';
 
 export type SupportedView = 'mobile' | 'desktop';
 
@@ -22,14 +22,13 @@ export const ViewToggler = ({ initialView = 'desktop', onChange }: ViewTogglerPr
 
   return (
     <div className={classes.root}>
-      <Switch
-        size='small'
+      <StudioSwitch
+        data-size='sm'
         className={classes.toggler}
         onChange={handleViewToggle}
         defaultChecked={isMobileInitially}
-      >
-        {t('ux_editor.mobilePreview')}
-      </Switch>
+        label={t('ux_editor.mobilePreview')}
+      />
     </div>
   );
 };

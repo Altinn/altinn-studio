@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
@@ -39,9 +38,6 @@ public class PublishSyncRootTests
         JsonConfigOverrides.Add(
             $$"""
             {
-               "FeatureManagement": {
-                    "{{StudioFeatureFlags.GitOpsDeploy}}": true
-               },
                "Integrations": {
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",

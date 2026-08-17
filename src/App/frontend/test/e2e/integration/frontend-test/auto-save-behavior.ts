@@ -238,9 +238,13 @@ describe('Auto save behavior', () => {
         ];
       }
 
-      cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', expectedErrors.length);
-      for (const error of expectedErrors) {
-        cy.get(appFrontend.errorReport).should('contain.text', error);
+      if (validateOnNext === undefined) {
+        cy.get(appFrontend.errorReport).should('not.exist');
+      } else {
+        cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', expectedErrors.length);
+        for (const error of expectedErrors) {
+          cy.get(appFrontend.errorReport).should('contain.text', error);
+        }
       }
 
       cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName))

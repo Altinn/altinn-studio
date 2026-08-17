@@ -17,7 +17,6 @@
   <ItemGroup Label="Shared nuget packages">
     <PackageVersion Include="JsonSchema.Net" Version="7.4.0" />
     <PackageVersion Include="JsonPatch.Net" Version="3.3.0" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageVersion Include="CSharpier.MsBuild" Version="1.3.0" />
     <PackageVersion Include="LibGit2Sharp" Version="0.32.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
@@ -48,9 +47,9 @@
     <PackageVersion Include="DistributedLock.Postgres" Version="1.3.1" />
     <PackageVersion Include="System.Text.Json" Version="[10.0.10]" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.14.28" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[5.0.0]" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[5.0.0]" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.6.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[5.6.0]" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[5.6.0]" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="[12.29.1]" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="[4.11.0]" />
@@ -62,10 +61,10 @@
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
-    <PackageVersion Include="Quartz" Version="3.16.1" />
-    <PackageVersion Include="Quartz.Extensions.DependencyInjection" Version="3.16.1" />
-    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.16.1" />
-    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.16.1" />
+    <PackageVersion Include="Quartz" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Extensions.DependencyInjection" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.19.1" />
+    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.19.1" />
   </ItemGroup>
   <ItemGroup Label="Packages used for testing">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
@@ -77,7 +76,7 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Basic.Reference.Assemblies" Version="1.8.10" />
     <PackageVersion Include="Fare" Version="2.2.2" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.8.0" />
     <PackageVersion Include="Testcontainers" Version="4.13.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />

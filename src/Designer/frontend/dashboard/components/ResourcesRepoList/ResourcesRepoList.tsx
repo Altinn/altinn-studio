@@ -7,8 +7,8 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading, StudioSpinner } from '@studio/components';
-import { Alert, Link } from '@digdir/designsystemet-react';
+import { StudioLink, StudioSpinner, StudioHeading } from '@studio/components';
+import { Alert } from '@digdir/designsystemet-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
@@ -63,9 +63,9 @@ export const ResourcesRepoList = ({
           isResourcesRepo: true,
         })}
       </StudioHeading>
-      <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
+      <StudioLink href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
         {t('dashboard.go_to_resources')}
-      </Link>
+      </StudioLink>
       {isLoadingResourceList ? (
         <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (

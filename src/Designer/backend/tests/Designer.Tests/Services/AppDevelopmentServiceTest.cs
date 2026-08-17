@@ -194,6 +194,45 @@ public class AppDevelopmentServiceTest : IDisposable
     }
 
     [Fact]
+    public async Task GetLayoutSetConfig_WhenLayoutSetExists_ShouldReturnConfig()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        LayoutSetConfig result = await _appDevelopmentService.GetLayoutSetConfig(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            "layoutSet1"
+        );
+
+        Assert.Equal("layoutSet1", result.Id);
+    }
+
+    [Fact]
+    public async Task GetLayoutSetConfig_WhenLayoutSetDoesNotExist_ShouldThrow()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+
+        Func<Task> act = async () =>
+            await _appDevelopmentService.GetLayoutSetConfig(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+                "missing-layout-set"
+            );
+
+        await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
+    }
+
+    [Fact]
     public async Task UpdateLayoutSet_WhenUpdatingSetIdToAnExistingId_ShouldThrowError()
     {
         // Arrange

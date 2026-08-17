@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Altinn.Studio.Runtime.Common;
+using Altinn.Studio.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Constants;
