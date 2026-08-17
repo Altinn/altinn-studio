@@ -73,7 +73,12 @@ describe('ItemFieldsTable', () => {
     const children = model.getChildNodes(selectedItemPointer);
     expect(textboxes).toHaveLength(children.length);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(expectedNameInTextField(i)));
-    expect(screen.getAllByRole('checkbox')).toHaveLength(children.length);
+    expect(screen.getAllByRole('switch')).toHaveLength(children.length);
+    expect(
+      screen.getAllByRole('button', {
+        name: textMock('schema_editor.duplicate_field'),
+      }),
+    ).toHaveLength(children.length);
     expect(
       screen.getAllByRole('button', {
         name: textMock('schema_editor.delete_field'),
@@ -144,6 +149,18 @@ describe('ItemFieldsTable', () => {
       name: textMock('schema_editor.data_model_field_deletion_confirm'),
     });
     await user.click(confirmButton);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+  });
+
+  it('Calls "save" when the duplicate button is clicked', async () => {
+    const user = userEvent.setup();
+    renderItemFieldsTab();
+
+    const [firstDuplicateButton] = screen.getAllByRole('button', {
+      name: textMock('schema_editor.duplicate_field'),
+    });
+    await user.click(firstDuplicateButton);
+
     expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 });

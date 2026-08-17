@@ -1,4 +1,5 @@
 using System.Reflection;
+using Altinn.Studio.Common;
 using Altinn.Studio.KubernetesWrapper.Configuration;
 using Altinn.Studio.KubernetesWrapper.Hosting;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
@@ -8,6 +9,11 @@ using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddGracefulShutdown(
+    builder.Environment,
+    endpointDrainDelay: TimeSpan.FromSeconds(5),
+    applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+);
 
 RegisterServices(builder.Services, builder.Configuration);
 builder.AddOpenTelemetry();
@@ -72,7 +78,9 @@ static void RegisterServices(IServiceCollection services, IConfiguration configu
     {
         options.AddDefaultPolicy(builder =>
         {
+#pragma warning disable S5122 // Read-only API is consumed by apps hosted on arbitrary service-owner origins.
             builder.AllowAnyOrigin();
+#pragma warning restore S5122
             builder.WithMethods("GET");
             builder.AllowAnyHeader();
         });

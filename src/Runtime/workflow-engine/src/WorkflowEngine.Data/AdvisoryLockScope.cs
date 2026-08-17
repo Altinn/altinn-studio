@@ -1,9 +1,6 @@
 using System.Data;
 using System.Data.Common;
 
-// CA2100: Review SQL queries for security vulnerabilities
-#pragma warning disable CA2100
-
 namespace WorkflowEngine.Data;
 
 internal sealed class AdvisoryLockScope : IAsyncDisposable
@@ -27,7 +24,12 @@ internal sealed class AdvisoryLockScope : IAsyncDisposable
             await connection.OpenAsync(cancellationToken);
 
         await using DbCommand cmd = connection.CreateCommand();
-        cmd.CommandText = $"SELECT pg_advisory_lock({lockKey})";
+        cmd.CommandText = "SELECT pg_advisory_lock(@lockKey)";
+        DbParameter lockKeyParameter = cmd.CreateParameter();
+        lockKeyParameter.ParameterName = "lockKey";
+        lockKeyParameter.DbType = DbType.Int64;
+        lockKeyParameter.Value = lockKey;
+        cmd.Parameters.Add(lockKeyParameter);
         await cmd.ExecuteNonQueryAsync(cancellationToken);
 
         return new AdvisoryLockScope(connection, lockKey);
@@ -36,7 +38,12 @@ internal sealed class AdvisoryLockScope : IAsyncDisposable
     public async ValueTask Release()
     {
         await using DbCommand cmd = _connection.CreateCommand();
-        cmd.CommandText = $"SELECT pg_advisory_unlock({_lockKey})";
+        cmd.CommandText = "SELECT pg_advisory_unlock(@lockKey)";
+        DbParameter lockKeyParameter = cmd.CreateParameter();
+        lockKeyParameter.ParameterName = "lockKey";
+        lockKeyParameter.DbType = DbType.Int64;
+        lockKeyParameter.Value = _lockKey;
+        cmd.Parameters.Add(lockKeyParameter);
         await cmd.ExecuteNonQueryAsync(CancellationToken.None);
     }
 

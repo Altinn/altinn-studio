@@ -12,3 +12,4 @@ ALTINNAPP0500 | CodeSmells | Warning | CodeSmells
 ALTINNAPP0600 | Deprecation | Error | enablePdfCreation is not supported
 ALTINNAPP0601 | Deprecation | Error | Legacy eFormidling config is not supported
 ALTINNAPP0700 | Contracts | Error | Sealed default implementation replaced
+ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded

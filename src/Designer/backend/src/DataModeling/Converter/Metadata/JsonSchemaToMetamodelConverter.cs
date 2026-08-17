@@ -99,7 +99,7 @@ public class JsonSchemaToMetamodelConverter
     public ModelMetadata Convert(string jsonSchema)
     {
         _modelMetadata = new ModelMetadata();
-        _schema = JsonSchema.FromText(jsonSchema);
+        _schema = JsonSchemaKeywords.FromText(jsonSchema);
 
         _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema);
         ModelName = _schemaXsdMetadata.MessageName;
@@ -503,7 +503,7 @@ public class JsonSchemaToMetamodelConverter
                 TypeName = typeName,
                 ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                 XPath = xPath,
-                JsonSchemaPointer = path.ToString(JsonPointerStyle.Plain),
+                JsonSchemaPointer = path.ToString(),
                 MinOccurs = minOccurs,
                 MaxOccurs = maxOccurs,
                 Type = ElementType.Group,
@@ -560,7 +560,7 @@ public class JsonSchemaToMetamodelConverter
                 ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                 XsdValueType = xsdValueType,
                 XPath = xPath,
-                JsonSchemaPointer = path.ToString(JsonPointerStyle.Plain),
+                JsonSchemaPointer = path.ToString(),
                 MinOccurs = minOccurs,
                 MaxOccurs = maxOccurs,
                 Type = @type,
@@ -820,15 +820,12 @@ public class JsonSchemaToMetamodelConverter
 
     private static string GetTypeNameFromRefPath(JsonPointer pointer)
     {
-        if (
-            pointer.Segments.Length != 2
-            || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions")
-        )
+        if (pointer.Count != 2 || (pointer[0] != "$defs" && pointer[0] != "definitions"))
         {
             return string.Empty;
         }
 
-        return pointer.Segments[1].Value;
+        return pointer[1];
     }
 
     private void CheckForRequiredPropertiesKeyword(JsonSchema subSchema, SchemaContext context)

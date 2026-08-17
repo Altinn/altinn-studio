@@ -54,15 +54,18 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains the pre-v9 OrganisationLookup name used by ux-editor-v4.
+// ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
 export type FormItemConfigs = {
-  [T in Exclude<
-    ComponentType | CustomComponentType,
-    ComponentType.OrganisationLookup
-  >]: FormItemConfig<T>;
-} & Partial<
-  Record<ComponentType.OrganisationLookup, FormItemConfig<ComponentType.OrganisationLookup>>
->;
+  [
+    T in Exclude<
+      ComponentType | CustomComponentType,
+      ComponentType.OrganisationLookup | ComponentType.Header
+    >
+  ]: FormItemConfig<T>;
+} & Partial<{
+  [ComponentType.OrganisationLookup]: FormItemConfig<ComponentType.OrganisationLookup>;
+  [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
+}>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -169,8 +172,7 @@ export const formItemConfigs: FormItemConfigs = {
     getDisplayName: ({
       actions,
     }: ComponentSpecificConfig<ComponentType.CustomButton>):
-      | ComponentType
-      | CustomComponentType => {
+      ComponentType | CustomComponentType => {
       const isCloseSubformAction =
         actions?.length === 1 &&
         actions[0]?.id === 'closeSubform' &&
@@ -210,7 +212,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: true,
+      timeStamp: false,
     },
     propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
@@ -271,13 +273,14 @@ export const formItemConfigs: FormItemConfigs = {
     icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
-  [ComponentType.Header]: {
-    name: ComponentType.Header,
+  // The v9 editor uses the renamed contract; ux-editor-v4 retains Header.
+  [ComponentType.Heading]: {
+    name: ComponentType.Heading,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       size: 'L',
     },
-    propertyPath: 'definitions/headerComponent',
+    propertyPath: 'definitions/headingComponent',
     icon: TitleIcon,
   },
   [ComponentType.IFrame]: {
@@ -588,7 +591,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Header],
+  formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
   formItemConfigs[ComponentType.Alert],
@@ -596,7 +599,7 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Header],
+  formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
@@ -614,7 +617,7 @@ export const defaultComponents: ComponentType[] = [
   ComponentType.Dropdown,
   ComponentType.Datepicker,
   ComponentType.FileUpload,
-  ComponentType.Header,
+  ComponentType.Heading,
   ComponentType.Paragraph,
   ComponentType.Button,
 ];
@@ -628,7 +631,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.PersonLookup,
   ],
   text: [
-    ComponentType.Header,
+    ComponentType.Heading,
     ComponentType.Paragraph,
     ComponentType.Panel,
     ComponentType.Alert,

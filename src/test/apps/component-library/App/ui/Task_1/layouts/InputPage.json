@@ -9,7 +9,7 @@
       },
       {
         "id": "InputPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "InputPage"
@@ -17,7 +17,7 @@
       },
       {
         "id": "InputPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -84,7 +84,7 @@
       },
       {
         "id": "InputPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -112,7 +112,7 @@
       },
       {
         "id": "InputPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary2"

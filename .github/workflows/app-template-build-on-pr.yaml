@@ -18,9 +18,11 @@ jobs:
   analyze:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
+      fail-fast: false  # one template failing must not mask the state of the other
       matrix:
         os: [ubuntu-latest]
-    name: Run release and docker build
+        template: [v8, v9]
+    name: Run release and docker build (${{ matrix.template }})
     runs-on: ${{ matrix.os}}
     timeout-minutes: 30
     env:
@@ -31,9 +33,9 @@ jobs:
       - name: Make template release
         run: |
           rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore app-template-release
-        working-directory: src/App/template/src
+        working-directory: src/App/template/${{ matrix.template }}/src
 
       - name: Docker build release
         run: |
           docker build .
-        working-directory: src/App/template/src/app-template-release
+        working-directory: src/App/template/${{ matrix.template }}/src/app-template-release

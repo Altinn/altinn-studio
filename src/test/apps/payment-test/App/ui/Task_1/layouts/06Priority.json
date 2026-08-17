@@ -8,7 +8,7 @@
       },
       {
         "id": "priorityTitle",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "priorityTitle"
         },

@@ -81,7 +81,7 @@ test('That when adding more than one page, navigation buttons are added to the p
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
 
-test('That it is possible to add a Header component to the page when there is already a component on the page and edit the name of the component', async ({
+test('That it is possible to add a Heading component to the page when there is already a component on the page and edit the name of the component', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -90,16 +90,16 @@ test('That it is possible to add a Header component to the page when there is al
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
 
   await uiEditorPage.openTextComponentSection();
-  await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.Header);
+  await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.Heading);
 
   await uiEditorPage.dragComponentIntoDroppableListItem({
-    componentToDrag: ComponentType.Header,
+    componentToDrag: ComponentType.Heading,
     componentToDropOn: ComponentType.Input,
   });
-  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Header);
+  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Heading);
 
-  const newHeaderName: string = 'New Header';
-  await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
+  const newHeadingName: string = 'New Heading';
+  await addNewLabelToTreeItemComponent(uiEditorPage, newHeadingName);
 });
 
 const openPageAccordionAndVerifyUpdatedUrl = async (

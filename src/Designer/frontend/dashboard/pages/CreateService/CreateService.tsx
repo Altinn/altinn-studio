@@ -69,12 +69,13 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const createAppRepo = async (newAppForm: NewAppForm) => {
-    const { org, repoName, template } = newAppForm;
+    const { org, repoName, template, appTemplate } = newAppForm;
 
     addRepoMutation(
       {
         org,
         repository: repoName,
+        appTemplate: appTemplate?.id,
         template: template ? { id: template.id, owner: template.owner } : undefined,
       },
       {
@@ -86,20 +87,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
 
           switch (errorKind) {
             case ErrorKind.AppNameAlreadyExists:
-              setFormError(
-                (prevErrors): CreateServiceFormError => ({
-                  ...prevErrors,
-                  repoName: t('dashboard.app_already_exists'),
-                }),
-              );
+              setFormError((prevErrors): CreateServiceFormError => ({
+                ...prevErrors,
+                repoName: t('dashboard.app_already_exists'),
+              }));
               break;
             case ErrorKind.TemplateError:
-              setFormError(
-                (prevErrors): CreateServiceFormError => ({
-                  ...prevErrors,
-                  template: t('dashboard.new_application_form.template_error'),
-                }),
-              );
+              setFormError((prevErrors): CreateServiceFormError => ({
+                ...prevErrors,
+                template: t('dashboard.new_application_form.template_error'),
+              }));
               break;
             default:
               // handle other types of errors or rethrow

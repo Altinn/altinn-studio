@@ -490,8 +490,7 @@ function SummaryCellWithLabel({
   const refItem = useItemFor(cell.labelFrom);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
-    | ITextResourceBindings
-    | undefined;
+    ITextResourceBindings | undefined;
   const title = trb && 'title' in trb ? trb.title : undefined;
   const required = (refItem && 'required' in refItem && refItem.required) ?? false;
 

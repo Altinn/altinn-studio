@@ -42,7 +42,6 @@ public class ReceiveDeployEventTests
             $$"""
             {
                 "FeatureManagement": {
-                    "{{StudioFeatureFlags.GitOpsDeploy}}": true,
                     "{{StudioFeatureFlags.Maskinporten}}": true
                 },
                 "Maskinporten": {

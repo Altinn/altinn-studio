@@ -2,7 +2,6 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Code;
 using Altinn.App.Core.EFormidling.Extensions;
-using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.Features.Process;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,7 +20,7 @@ void RegisterCustomAppServices(
     services.AddTransient<IServiceTask, FailServiceTask>();
     if (!env.IsDevelopment())
     {
-        services.AddEFormidlingServices2<EFormidlingMetadata, DefaultEFormidlingReceivers>(config);
+        services.AddEFormidling().WithMetadata<EFormidlingMetadata>();
     }
 }
 

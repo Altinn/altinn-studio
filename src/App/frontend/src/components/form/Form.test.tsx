@@ -151,7 +151,7 @@ describe('Form', () => {
     expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
   });
 
-  it('should render ErrorReport when there are validation errors', async () => {
+  it('should not render ErrorReport for visible validation errors before a validation boundary is attempted', async () => {
     await render({
       validationIssues: [
         {
@@ -165,7 +165,7 @@ describe('Form', () => {
       ],
     });
 
-    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+    expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
   });
 
   it('should render ErrorReport when there are unmapped validation errors', async () => {
@@ -204,6 +204,7 @@ describe('Form', () => {
         {
           id: 'bottomNavButtons',
           type: 'NavigationButtons',
+          validateOnNext: { page: 'current', show: ['CustomBackend'] },
         },
       ],
       validationIssues: [
@@ -218,7 +219,11 @@ describe('Form', () => {
       ],
     });
 
-    const errorReport = screen.getByTestId('ErrorReport');
+    expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /Neste/i }));
+
+    const errorReport = await screen.findByTestId('ErrorReport');
     expect(errorReport).toBeInTheDocument();
 
     expect(screen.getByTestId('NavigationButtons')).toBeInTheDocument();

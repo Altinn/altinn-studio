@@ -21,8 +21,7 @@ export type ExplicitDataModelBinding = {
 
 export type IDataModelBindingsKeyValueExplicit = KeyValuePairs<ExplicitDataModelBinding>;
 export type IDataModelBindingsKeyValue =
-  | KeyValuePairs<ImplicitDataModelBinding>
-  | KeyValuePairs<ExplicitDataModelBinding>;
+  KeyValuePairs<ImplicitDataModelBinding> | KeyValuePairs<ExplicitDataModelBinding>;
 export type IDataModelBindings = ImplicitDataModelBinding | ExplicitDataModelBinding;
 
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;

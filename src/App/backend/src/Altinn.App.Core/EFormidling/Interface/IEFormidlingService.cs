@@ -6,7 +6,7 @@ namespace Altinn.App.Core.EFormidling.Interface;
 
 /// <summary>
 /// Interface for implementing custom logic for sending eFormidling shipments and following them to
-/// delivery. A default implementation is registered by <c>AddEFormidlingServices2</c>; replace it by
+/// delivery. A default implementation is registered by <c>AddEFormidling()</c>; replace it by
 /// registering your own implementation of this interface.
 /// </summary>
 public interface IEFormidlingService

@@ -8,7 +8,7 @@
       },
       {
         "id": "RepeatingGroup-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "RepeatingGroupPage"
         },
@@ -16,7 +16,7 @@
       },
       {
         "id": "RepeatingGroup-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Component"
         },
@@ -254,7 +254,7 @@
       },
       {
         "id": "RepeatingGroup-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         },
@@ -277,7 +277,7 @@
       },
       {
         "id": "RepeatingGroup-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         },
@@ -294,7 +294,7 @@
       },
       {
         "id": "RepeatingGroup-Header-Summary2-table",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Displayed as table"
         },

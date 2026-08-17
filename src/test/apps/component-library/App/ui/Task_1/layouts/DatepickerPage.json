@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "DatepickerHeader",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "DatepickerPage"
         }
@@ -25,7 +25,7 @@
           "simpleBinding": "DatepickerExample"
         },
         "readOnly": false,
-        "format": "DD/MM/YYYY",
+        "format": "dd/MM/yyyy",
         "minDate": ["dataModel","DatepickerMinDateExample"],
         "maxDate":  ["dataModel","DatepickerMaxDateExample"],
         "required": true,
@@ -45,7 +45,7 @@
         "dataModelBindings": {
           "simpleBinding": "DatepickerMinDateExample"
         },
-        "format": "DD/MM/YYYY"
+        "format": "dd/MM/yyyy"
       },
       {
         "id": "DatepickerMaxDateExample1",
@@ -57,12 +57,12 @@
         "dataModelBindings": {
           "simpleBinding": "DatepickerMaxDateExample"
         },
-        "format": "DD/MM/YYYY"
+        "format": "dd/MM/yyyy"
       },
       {
         "size": "h3",
         "id": "DatepickerHeader2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Datepicker Summary example:"
         }

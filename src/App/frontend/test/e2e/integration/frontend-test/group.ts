@@ -214,7 +214,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.currentValue).type('456');
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.fieldValidation('newValue-1')).should('have.text', texts.requiredFieldToValue456);
-    cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldToValue456);
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.group.newValue).type('1');
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
@@ -222,6 +222,9 @@ describe('Group', () => {
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.newValue).type('789');
     cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
 
     cy.get(appFrontend.errorReport)
       .should('contain.text', texts.requiredFieldFromValue)
@@ -455,6 +458,11 @@ describe('Group', () => {
     cy.get(appFrontend.group.currentValue).type('88889');
     cy.get(appFrontend.group.newValue).type('55554');
 
+    cy.get(appFrontend.fieldValidation('currentValue-5')).should('contain.text', 'Det er teit å endre fra 88889');
+    cy.get(appFrontend.fieldValidation('newValue-5')).should('contain.text', 'Det er teit å endre til 55554');
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Det er teit å endre fra 88889');
     cy.get(appFrontend.errorReport).should('contain.text', 'Det er teit å endre til 55554');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 4);

@@ -539,7 +539,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.focus');
   });
 
-  it.only('should display alert unchecking checkbox in checkbox group', () => {
+  it('should display alert unchecking checkbox in checkbox group', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
@@ -628,6 +628,12 @@ describe('UI Components', () => {
       } else {
         cy.get('#form-content-newFirstName').should('not.contain', 'Bruk 4 eller færre tegn');
       }
+      cy.get(appFrontend.errorReport).should('not.exist');
+      cy.get(appFrontend.changeOfName.newFirstName).type('a');
+      cy.get(appFrontend.changeOfName.confirmChangeName)
+        .findByRole('checkbox', { name: /Ja[a-z, ]*/ })
+        .check();
+      cy.findByRole('button', { name: /Neste/ }).click();
       cy.get(appFrontend.errorReport).should('be.visible');
       cy.get(appFrontend.errorReport).should('contain.text', 'Bruk 4 eller færre tegn');
     });

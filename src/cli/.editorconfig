@@ -176,6 +176,16 @@ dotnet_diagnostic.S125.severity = suggestion
 [studioctl-server/Studioctl/AppUpgradeService.cs]
 dotnet_diagnostic.S1135.severity = none
 
+[studioctl-server/Studioctl/Upgrade/**/*.cs]
+# S5332: Upgrade migrations must preserve schema namespace identifiers and localhost HTTP URLs
+dotnet_diagnostic.S5332.severity = suggestion
+# S6444: Existing upgrade regexes need a separately designed and tested timeout policy
+dotnet_diagnostic.S6444.severity = suggestion
+
+[studioctl-server/Platform/PortListeners/WindowsPortListeners.cs]
+# S6640: Windows port discovery requires unsafe access to native network tables
+dotnet_diagnostic.S6640.severity = suggestion
+
 [Program.cs]
 dotnet_diagnostic.CA1050.severity = none
 dotnet_diagnostic.S1118.severity = none

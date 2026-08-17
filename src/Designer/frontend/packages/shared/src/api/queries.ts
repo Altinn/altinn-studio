@@ -81,6 +81,7 @@ import {
   canUseFeaturePath,
   orgLibraryPath,
   publishedResourcesPath,
+  appTemplatesPath,
   customTemplatesPath,
   userApiKeysPath,
   studioctlAuthRequestPath,
@@ -140,6 +141,7 @@ import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
@@ -157,6 +159,7 @@ export const getAppValidation = (owner: string, app: string) => get<AppValidatio
 
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAppTemplates = () => get<AppTemplate[]>(appTemplatesPath());
 export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
