@@ -152,6 +152,7 @@ jobs:
     if: |
       (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
       github.repository_owner == 'Altinn'
+    permissions: {}
     runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
     timeout-minutes: 15
     outputs:
@@ -159,6 +160,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up studioctl dev install
         uses: ./.github/actions/setup-studioctl
@@ -174,6 +177,7 @@ jobs:
     if: |
       (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
       github.repository_owner == 'Altinn'
+    permissions: {}
     runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
     timeout-minutes: 15
     outputs:
@@ -181,6 +185,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Populate App Frontend test dependency cache
         id: dependencies
