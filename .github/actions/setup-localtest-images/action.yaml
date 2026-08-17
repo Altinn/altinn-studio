@@ -1,8 +1,12 @@
 name: "Set up LocalTest images"
-description: "Restores the required LocalTest images, or builds and caches them in population mode"
+description: "Restores required LocalTest images, builds them on a miss, and optionally caches them"
 inputs:
   populate-cache:
     description: "Build and cache images on a miss; only check availability on a hit"
+    required: false
+    default: "false"
+  require-cache-hit:
+    description: "Fail instead of preparing images when the cache is missing"
     required: false
     default: "false"
   cache-key:
@@ -11,7 +15,7 @@ inputs:
     default: ""
 outputs:
   cache-key:
-    description: "The cache key used for the LocalTest dev images"
+    description: "The cache key used for the LocalTest image archive"
     value: ${{ steps.resolve-cache-key.outputs.cache-key }}
 runs:
   using: "composite"
@@ -28,7 +32,7 @@ runs:
 
     - name: Find LocalTest image archive
       id: cache-localtest-images
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .cache/localtest-images/images.tar
         key: ${{ steps.resolve-cache-key.outputs.cache-key }}
@@ -40,14 +44,14 @@ runs:
       run: docker image load --input .cache/localtest-images/images.tar
 
     - name: Require cached LocalTest images
-      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache != 'true' }}
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.require-cache-hit == 'true' }}
       shell: bash
       run: |
         echo "The LocalTest dev image cache was not populated by the prerequisite job."
         exit 1
 
     - name: Prepare required LocalTest images
-      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.require-cache-hit != 'true' }}
       shell: bash
       run: studioctl env up --detach
 
@@ -62,6 +66,13 @@ runs:
           localtest-pdf3:dev \
           localtest-workflow-engine:dev \
           "$workflow_engine_db_image"
+
+    - name: Save LocalTest image archive
+      if: ${{ steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .cache/localtest-images/images.tar
+        key: ${{ steps.resolve-cache-key.outputs.cache-key }}
 
     - name: Stop cache-building environment
       if: ${{ always() && steps.cache-localtest-images.outputs.cache-hit != 'true' && inputs.populate-cache == 'true' }}

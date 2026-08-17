@@ -12,7 +12,7 @@ inputs:
     required: false
     default: "false"
   localtest-image-cache-key:
-    description: "LocalTest image cache key from a prerequisite job"
+    description: "LocalTest image cache key to require from a prerequisite job"
     required: false
     default: ""
 runs:
@@ -39,6 +39,7 @@ runs:
       uses: ./.github/actions/setup-localtest-images
       with:
         cache-key: ${{ inputs.localtest-image-cache-key }}
+        require-cache-hit: ${{ inputs.localtest-image-cache-key != '' }}
 
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
