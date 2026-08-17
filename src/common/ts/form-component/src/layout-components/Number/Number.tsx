@@ -1,18 +1,16 @@
 import { DisplayNumber } from '@app/form-component/app-components/DisplayNumber';
-import { Flex } from '@app/form-component/app-components/Flex';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
+import { LabelAsSpan } from '@app/form-component/layout-components/common/LabelAsSpan';
 import { getLabelId } from '@app/form-component/layout-components/utils/labelIds';
-import { Label as DsLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { DisplayNumberProps } from '@app/form-component/app-components/DisplayNumber';
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
+import type { LabelAsSpanDirection } from '@app/form-component/layout-components/common/LabelAsSpan';
 
 import classes from './Number.module.css';
 
-export type NumberDirection = 'horizontal' | 'vertical';
+export type NumberDirection = LabelAsSpanDirection;
 
 export interface NumberProps {
   componentId: string;
@@ -25,6 +23,7 @@ export interface NumberProps {
   direction?: NumberDirection;
   labelGrid?: IGridStyling;
   innerGrid?: IGridStyling;
+  hideLabel?: boolean;
 }
 
 export function Number({
@@ -38,36 +37,30 @@ export function Number({
   direction = 'horizontal',
   labelGrid,
   innerGrid,
+  hideLabel = false,
 }: NumberProps) {
-  const { lang, langAsString } = useTranslation();
+  const { langAsString } = useTranslation();
 
   if (!title) {
-    return <DisplayNumber value={value} formatting={formatting} iconUrl={icon} iconAltText='' />;
+    return <DisplayNumber value={value} formatting={formatting} />;
   }
 
   const labelId = getLabelId(componentId);
 
   return (
-    <div
+    <LabelAsSpan
+      componentId={componentId}
+      title={title}
+      description={hideLabel ? undefined : description}
+      help={hideLabel ? undefined : help}
+      labelGrid={labelGrid}
+      hideLabel={hideLabel}
       className={cn(
         classes.label,
         classes.numberComponent,
-        direction === 'vertical' ? classes.vertical : classes.horizontal,
+        !hideLabel && (direction === 'vertical' ? classes.vertical : classes.horizontal),
       )}
     >
-      <Flex item size={labelGrid ?? { xs: 12 }}>
-        <span className={classes.labelWrapper}>
-          <span className={classes.labelRow}>
-            <DsLabel asChild>
-              <span id={labelId} className={classes.labelContent}>
-                {lang(title)}
-              </span>
-            </DsLabel>
-            {help && <HelpTextContainer id={componentId} title={title} helpText={lang(help)} />}
-          </span>
-          {description && <Description componentId={componentId} description={lang(description)} />}
-        </span>
-      </Flex>
       <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
         <DisplayNumber
           value={value}
@@ -77,6 +70,6 @@ export function Number({
           labelId={labelId}
         />
       </ComponentStructure>
-    </div>
+    </LabelAsSpan>
   );
 }
