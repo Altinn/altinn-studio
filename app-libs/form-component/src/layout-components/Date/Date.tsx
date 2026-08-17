@@ -55,7 +55,7 @@ export function Date({
       className={cn(
         classes.label,
         classes.dateComponent,
-        direction === 'vertical' ? classes.vertical : classes.horizontal,
+        !hideLabel && (direction === 'vertical' ? classes.vertical : classes.horizontal),
       )}
     >
       <ComponentStructure componentId={componentId} innerGrid={innerGrid}>

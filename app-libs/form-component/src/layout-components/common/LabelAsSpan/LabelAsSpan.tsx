@@ -38,8 +38,8 @@ export function LabelAsSpan({
 
   return (
     <span id={labelId} className={cn(classes.fieldWrapper, className)}>
-      <Flex item size={labelGrid ?? { xs: 12 }}>
-        {!hideLabel && (
+      {!hideLabel && (
+        <Flex item size={labelGrid ?? { xs: 12 }}>
           <DsLabel asChild>
             <span className={classes.labelWrapper}>
               <span className={classes.labelContainer}>
@@ -55,8 +55,8 @@ export function LabelAsSpan({
               )}
             </span>
           </DsLabel>
-        )}
-      </Flex>
+        </Flex>
+      )}
       {children}
     </span>
   );
