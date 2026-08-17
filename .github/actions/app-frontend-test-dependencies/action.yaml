@@ -1,8 +1,35 @@
 name: "Install App Frontend test dependencies"
 description: "Installs only the App Frontend workspace and its transitive workspace dependencies"
+inputs:
+  populate-cache:
+    description: "Populate the cache on a miss without downloading it on a hit"
+    required: false
+    default: "false"
+  require-cache-hit:
+    description: "Fail instead of installing dependencies when the cache is missing"
+    required: false
+    default: "false"
+  cache-key:
+    description: "Cache key resolved by a prerequisite job; computed locally when omitted"
+    required: false
+    default: ""
+outputs:
+  cache-key:
+    description: "The cache key used for the focused App Frontend dependencies"
+    value: ${{ steps.resolve-cache-key.outputs.cache-key }}
 runs:
   using: "composite"
   steps:
+    - name: Resolve focused dependency cache key
+      id: resolve-cache-key
+      shell: bash
+      env:
+        PROVIDED_CACHE_KEY: ${{ inputs.cache-key }}
+        SOURCE_HASH: ${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json', 'src/App/frontend/package.json', 'app-libs/**/package.json') }}
+      run: |
+        cache_key="${PROVIDED_CACHE_KEY:-app-frontend-focused-dependencies-v1-${{ runner.os }}-${{ runner.arch }}-node22-yarn4.18-${SOURCE_HASH}}"
+        echo "cache-key=${cache_key}" >> "$GITHUB_OUTPUT"
+
     - name: Restore focused App Frontend dependencies
       id: focused-dependencies
       uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -12,10 +39,18 @@ runs:
           src/App/frontend/node_modules
           app-libs/**/node_modules
           .yarn/install-state.gz
-        key: app-frontend-focused-dependencies-v1-${{ runner.os }}-${{ runner.arch }}-node22-yarn4.18-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json', 'src/App/frontend/package.json', 'app-libs/**/package.json') }}
+        key: ${{ steps.resolve-cache-key.outputs.cache-key }}
+        lookup-only: ${{ inputs.populate-cache }}
+
+    - name: Require cached App Frontend dependencies
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' && inputs.require-cache-hit == 'true' }}
+      shell: bash
+      run: |
+        echo "The focused App Frontend dependency cache was not populated by the prerequisite job."
+        exit 1
 
     - name: Setup Node.js with Yarn package cache
-      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' }}
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' && inputs.require-cache-hit != 'true' }}
       uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: "22"
@@ -23,13 +58,13 @@ runs:
         cache-dependency-path: yarn.lock
 
     - name: Setup Node.js
-      if: ${{ steps.focused-dependencies.outputs.cache-hit == 'true' }}
+      if: ${{ steps.focused-dependencies.outputs.cache-hit == 'true' && inputs.populate-cache != 'true' }}
       uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: "22"
 
     - name: Install focused App Frontend dependencies
-      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' }}
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' && inputs.require-cache-hit != 'true' }}
       working-directory: ${{ github.workspace }}
       shell: bash
       env:
@@ -39,7 +74,7 @@ runs:
       run: yarn workspaces focus app-frontend-react
 
     - name: Save focused App Frontend dependencies
-      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' }}
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' && inputs.require-cache-hit != 'true' }}
       uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
@@ -47,4 +82,4 @@ runs:
           src/App/frontend/node_modules
           app-libs/**/node_modules
           .yarn/install-state.gz
-        key: ${{ steps.focused-dependencies.outputs.cache-primary-key }}
+        key: ${{ steps.resolve-cache-key.outputs.cache-key }}

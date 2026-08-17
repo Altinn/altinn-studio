@@ -169,6 +169,25 @@ jobs:
         with:
           populate-cache: true
 
+  prepare-app-frontend-dependencies:
+    name: Prepare App Frontend dependency cache
+    if: |
+      (github.event_name != 'pull_request' || github.event.action != 'closed') &&
+      github.repository_owner == 'Altinn'
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
+    timeout-minutes: 15
+    outputs:
+      cache-key: ${{ steps.dependencies.outputs.cache-key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Populate App Frontend dependency cache
+        id: dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          populate-cache: true
+
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -180,7 +199,7 @@ jobs:
       )
     runs-on: self-hosted-single
     timeout-minutes: 120
-    needs: [build-frontend, build-app-run-targets, build-studioctl]
+    needs: [build-frontend, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -204,6 +223,9 @@ jobs:
 
       - name: Install App Frontend test dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
+          require-cache-hit: true
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
@@ -280,7 +302,7 @@ jobs:
 
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    needs: [build-frontend-external, build-app-run-targets, build-studioctl]
+    needs: [build-frontend-external, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -301,6 +323,9 @@ jobs:
 
       - name: Install App Frontend test dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
+          require-cache-hit: true
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
