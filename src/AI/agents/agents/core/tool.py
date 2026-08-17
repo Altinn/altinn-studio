@@ -5,7 +5,7 @@ declares its name, a description (shown to the model), an input schema
 (used both to advertise the call shape and to validate args at dispatch
 time), and a permission check that gates execution.
 
-This file intentionally avoids importing any LLM, MCP, or LangGraph
+This file intentionally avoids importing any LLM or LangGraph
 machinery — tools should be testable in isolation.
 """
 
@@ -103,8 +103,7 @@ class Tool(ABC):
     - `concurrency_safe_for(args)` / `read_only_for(args)` are
       input-aware methods that consult the class attributes by default.
       Tools whose safety depends on the call (a future Bash tool would
-      classify per command, an MCP proxy per upstream tool) override
-      these instead of the attributes.
+      classify per command) override these instead of the attributes.
 
     The dispatcher calls the methods, never the attributes, so the
     two paths stay consistent.

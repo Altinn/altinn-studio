@@ -59,14 +59,13 @@ Each area below links to its own `AGENTS.md` where one exists.
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
 R&D projects from the AI lab (to be handed off to the Studio team): `agents` (Altinity natural-language
-app builder), `mcp` (Altinity MCP server of Altinn-domain tools), `augmenter-agent` (document/PDF
-augmentation microservice).
+app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
 ### Shared code
 
-| Area                                 | What it is                                                                                                                                                          |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/common`](src/common/AGENTS.md) | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries. |
+| Area                                                 | What it is                                                                                                                             |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
 | [`src/Runtime/common`](src/Runtime/common/AGENTS.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
 
 ### Testing — [`src/test`](src/test/AGENTS.md)
