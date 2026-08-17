@@ -5,7 +5,7 @@ runs:
   steps:
     - name: Restore focused App Frontend dependencies
       id: focused-dependencies
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           node_modules
@@ -37,3 +37,14 @@ runs:
         YARN_ENABLE_IMMUTABLE_INSTALLS: "true"
         YARN_NM_MODE: "hardlinks-local"
       run: yarn workspaces focus app-frontend-react
+
+    - name: Save focused App Frontend dependencies
+      if: ${{ steps.focused-dependencies.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          node_modules
+          src/App/frontend/node_modules
+          app-libs/**/node_modules
+          .yarn/install-state.gz
+        key: ${{ steps.focused-dependencies.outputs.cache-primary-key }}
