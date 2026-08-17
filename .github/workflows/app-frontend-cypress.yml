@@ -199,6 +199,9 @@ jobs:
         shell: bash
         run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
 
+      - name: Install App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
@@ -291,6 +294,9 @@ jobs:
       - name: Extract app process outputs
         shell: bash
         run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
+
+      - name: Install App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env

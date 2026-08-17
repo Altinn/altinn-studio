@@ -1,0 +1,20 @@
+name: "Install App Frontend test dependencies"
+description: "Installs only the App Frontend workspace and its transitive workspace dependencies"
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      with:
+        node-version: "22"
+        cache: "yarn"
+        cache-dependency-path: yarn.lock
+
+    - name: Install focused App Frontend dependencies
+      working-directory: ${{ github.workspace }}
+      shell: bash
+      env:
+        HUSKY: "0"
+        YARN_ENABLE_IMMUTABLE_INSTALLS: "true"
+        YARN_NM_MODE: "hardlinks-local"
+      run: yarn workspaces focus app-frontend-react
