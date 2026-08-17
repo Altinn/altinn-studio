@@ -103,7 +103,11 @@ runs:
       if: ${{ steps.cache-resolution.outputs.cache-available != 'true' && inputs.require-cache-hit != 'true' }}
       uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: .cache/focused-dependency-verification
+        path: |
+          node_modules
+          src/App/frontend/node_modules
+          app-libs/**/node_modules
+          .yarn/install-state.gz
         key: ${{ steps.resolve-cache-key.outputs.cache-key }}
         lookup-only: true
         fail-on-cache-miss: true
