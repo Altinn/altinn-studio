@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Link } from '@digdir/designsystemet-react';
-import { StudioSearch } from '@studio/components';
+import { StudioLink, StudioSearch } from '@studio/components';
 import { PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
@@ -58,14 +57,14 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               clearButtonLabel={t('general.search_clear_button_title')}
               className={classes.search}
             />
-            <Link
+            <StudioLink
               href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
               className={classes.newLink}
             >
               <span>{t('dashboard.new_service')}</span>
               <PlusCircleFillIcon className={classes.plusFillIcon} />
               <PlusCircleIcon className={classes.plusIcon} />
-            </Link>
+            </StudioLink>
           </div>
 
           {debouncedSearchText ? (
@@ -81,7 +80,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                       <Trans
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
-                          a: <Link href='/info/contact'> </Link>,
+                          a: <StudioLink href='/info/contact'> </StudioLink>,
                         }}
                       ></Trans>
                     }
@@ -100,7 +99,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                         <Trans
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
-                            a: <Link href='/info/contact'> </Link>,
+                            a: <StudioLink href='/info/contact'> </StudioLink>,
                           }}
                         ></Trans>
                       }
@@ -119,7 +118,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                       <Trans
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
-                          a: <Link href='/info/contact'> </Link>,
+                          a: <StudioLink href='/info/contact'> </StudioLink>,
                         }}
                       ></Trans>
                     }
@@ -138,7 +137,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                         <Trans
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
-                            a: <Link href='/info/contact'> </Link>,
+                            a: <StudioLink href='/info/contact'> </StudioLink>,
                           }}
                         ></Trans>
                       }

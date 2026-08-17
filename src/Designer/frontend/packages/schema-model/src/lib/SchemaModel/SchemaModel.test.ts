@@ -14,6 +14,7 @@ import {
   referenceNodeMock,
   referenceToCombinationDefNodeMock,
   referenceToObjectNodeMock,
+  requiredNodeMock,
   rootNodeMock,
   simpleArrayMock,
   simpleChildNodeMock,
@@ -654,6 +655,58 @@ describe('SchemaModel', () => {
       const model = schemaModel.deepClone();
       expect(() => model.deleteNode(defNodeWithChildrenChildMock.schemaPointer)).not.toThrow();
       expect(model.asArray()).not.toEqual(schemaModel.asArray());
+    });
+  });
+
+  describe('duplicateNode', () => {
+    it('Adds a new node as a sibling of the original node, right after it', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(stringNodeMock.schemaPointer);
+      const parent = model.getNodeBySchemaPointer(parentNodeMock.schemaPointer) as FieldNode;
+      const originalIndex = parent.children.indexOf(stringNodeMock.schemaPointer);
+      expect(parent.children[originalIndex + 1]).toEqual(result.schemaPointer);
+      validateTestUiSchema(model.asArray());
+    });
+
+    it('Copies all settings from the original node', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(requiredNodeMock.schemaPointer);
+      const duplicatedNode = model.getNodeBySchemaPointer(result.schemaPointer);
+      expect(duplicatedNode).toEqual({
+        ...requiredNodeMock,
+        schemaPointer: result.schemaPointer,
+        implicitType: false,
+      });
+    });
+
+    it('Generates a unique name for the new node', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(stringNodeMock.schemaPointer);
+      expect(model.hasNode(result.schemaPointer)).toBe(true);
+      expect(result.schemaPointer).not.toEqual(stringNodeMock.schemaPointer);
+      validateTestUiSchema(model.asArray());
+    });
+
+    it('Does not modify the original node', () => {
+      const model = schemaModel.deepClone();
+      const originalNode = model.getNodeBySchemaPointer(stringNodeMock.schemaPointer);
+      model.duplicateNode(stringNodeMock.schemaPointer);
+      expect(model.getNodeBySchemaPointer(stringNodeMock.schemaPointer)).toEqual(originalNode);
+    });
+
+    it('Duplicates children and grandchildren recursively', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(subParentNodeMock.schemaPointer) as FieldNode;
+      const originalSubParentNode = subParentNodeMock as FieldNode;
+      expect(result.children).toHaveLength(originalSubParentNode.children.length);
+      const duplicatedChild = model.getNodeBySchemaPointer(result.children[0]);
+      expect(duplicatedChild).toEqual({
+        ...subSubNodeMock,
+        schemaPointer: result.children[0],
+        implicitType: false,
+      });
+      expect(duplicatedChild.schemaPointer).not.toEqual(subSubNodeMock.schemaPointer);
+      validateTestUiSchema(model.asArray());
     });
   });
 

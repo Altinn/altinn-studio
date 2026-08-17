@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search } from '@digdir/designsystemet-react';
+import { StudioSearch } from '@studio/components';
 
 import classes from './ArchiveReferenceSearch.module.css';
 import { useTranslation } from 'react-i18next';
@@ -42,17 +42,16 @@ export const ArchiveReferenceSearch = ({
   };
 
   return (
-    <Search
+    <StudioSearch
       className={classes.search}
-      variant={canSearch ? 'primary' : 'simple'}
-      error={!isEmpty && !isValid ? t('admin.instances.archive_reference_validation') : undefined}
-      hideLabel={false}
-      size='sm'
+      data-size='sm'
       label={t('admin.instances.archive_reference')}
+      error={!isEmpty && !isValid && t('admin.instances.archive_reference_validation')}
       value={searchString}
-      onClear={handleClear}
       onChange={handleChange}
-      onSearchClick={handleSearchClick}
+      clearButtonLabel={t('general.search_clear_button_title')}
+      searchButtonLabel={t('general.search')}
+      onSearchClick={canSearch ? handleSearchClick : undefined}
     />
   );
 };

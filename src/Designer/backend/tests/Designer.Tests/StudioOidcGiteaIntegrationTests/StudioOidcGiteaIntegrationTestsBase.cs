@@ -136,8 +136,7 @@ public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : Api
             "..",
             "..",
             "App",
-            "template",
-            "src"
+            "template"
         );
         string templateLocation = new Uri(templateLocationPath).AbsolutePath;
         string configOverride =
@@ -152,8 +151,7 @@ public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : Api
                     }},
                     ""GeneralSettings"": {{
                         ""TemplateLocation"": ""{templateLocation}"",
-                        ""DeploymentLocation"": ""{templateLocation}/deployment"",
-                        ""AppLocation"": ""{templateLocation}/App""
+                        ""DefaultAppTemplate"": ""v8""
                     }},
                     ""StudioOidcLoginSettings"": {{
                         ""ClientId"": ""fake-client"",

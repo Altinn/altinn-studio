@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Common;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
@@ -29,6 +30,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
@@ -39,7 +41,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
-using Microsoft.Net.Http.Headers;
 
 ILogger logger;
 
@@ -47,6 +48,11 @@ ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
 {
+    builder.Services.AddGracefulShutdown(
+        builder.Environment,
+        endpointDrainDelay: TimeSpan.FromSeconds(5),
+        applicationShutdownTimeout: TimeSpan.FromSeconds(20)
+    );
     SetConfigurationProviders(builder.Configuration, builder.Environment);
     ConfigureLogging(builder.Logging);
     builder.AddOpenTelemetry();
@@ -239,11 +245,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     if (!env.IsDevelopment())
     {
-        // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
+        // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-10.0
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            options.KnownNetworks.Clear();
+            options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
         });
 
@@ -262,7 +268,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
-    app.UseExceptionHandler();
+    app.UseExceptionHandler(new ExceptionHandlerOptions { SuppressDiagnosticsCallback = _ => false });
 
     app.UseDefaultFiles();
     app.UseStaticFiles(
@@ -271,7 +277,7 @@ void Configure(IConfiguration configuration)
             OnPrepareResponse = context =>
             {
                 ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-                headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(60) };
+                headers.CacheControl = StaticFileCachePolicy.Create(context.File.Name);
             },
         }
     );

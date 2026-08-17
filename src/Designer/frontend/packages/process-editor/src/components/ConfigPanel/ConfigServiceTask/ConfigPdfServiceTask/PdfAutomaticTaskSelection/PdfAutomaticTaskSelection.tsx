@@ -1,15 +1,13 @@
-import React, { useId, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Combobox } from '@digdir/designsystemet-react';
+import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
 import { useUpdatePdfConfigTaskIds } from '../../../../../hooks/useUpdatePdfConfigTaskIds';
 import { usePdfConfig } from '../usePdfConfig';
 import { filterCurrentTaskIds, getAvailableTasks } from '../utils';
-import classes from './PdfAutomaticTaskSelection.module.css';
 
 export const PdfAutomaticTaskSelection = (): React.ReactElement => {
   const { t } = useTranslation();
-  const taskIdsId = useId();
   const updateTaskIds = useUpdatePdfConfigTaskIds();
   const { pdfConfig } = usePdfConfig();
 
@@ -21,33 +19,35 @@ export const PdfAutomaticTaskSelection = (): React.ReactElement => {
   const currentTaskIds = filterCurrentTaskIds(pdfConfig, availableTaskIds);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>(currentTaskIds);
 
-  const handleTaskIdsChange = (newTaskIds: string[]): void => {
+  const taskLabel = (taskId: string): string => {
+    const task = availableTasks.find((availableTask) => availableTask.id === taskId);
+    return task ? `${task.name} (${task.id})` : taskId;
+  };
+
+  const selectedItems: StudioSuggestionItem[] = selectedTaskIds.map((taskId) => ({
+    value: taskId,
+    label: taskLabel(taskId),
+  }));
+
+  const handleSelectedChange = (items: StudioSuggestionItem[]): void => {
+    const newTaskIds = items.map((item) => item.value);
     setSelectedTaskIds(newTaskIds);
     updateTaskIds(newTaskIds);
   };
 
   return (
-    <div className={classes.taskIdSelectContainer}>
-      <div className={classes.taskIdSelectAndButtons}>
-        <Combobox
-          id={taskIdsId}
-          value={selectedTaskIds}
-          size='small'
-          className={classes.taskIdSelect}
-          multiple
-          onValueChange={handleTaskIdsChange}
-          placeholder={t('process_editor.configuration_panel_select_tasks_placeholder')}
-        >
-          <Combobox.Empty>
-            {t('process_editor.configuration_panel_pdf_no_tasks_to_select')}
-          </Combobox.Empty>
-          {availableTasks.map((task) => (
-            <Combobox.Option key={task.id} value={task.id}>
-              {task.name} ({task.id})
-            </Combobox.Option>
-          ))}
-        </Combobox>
-      </div>
-    </div>
+    <StudioSuggestion
+      multiple
+      label={t('process_editor.configuration_panel_select_tasks_placeholder')}
+      selected={selectedItems}
+      emptyText={t('process_editor.configuration_panel_pdf_no_tasks_to_select')}
+      onSelectedChange={handleSelectedChange}
+    >
+      {availableTasks.map((task) => (
+        <StudioSuggestion.Option key={task.id} value={task.id} label={taskLabel(task.id)}>
+          {task.name} ({task.id})
+        </StudioSuggestion.Option>
+      ))}
+    </StudioSuggestion>
   );
 };
