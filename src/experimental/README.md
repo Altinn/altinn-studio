@@ -41,6 +41,24 @@ Important considerations:
 
 ### Concepts
 
+The host and Sandbox each have a separate service and CLI pair:
+
+```text
+Host
+├── agentd       Agent Control Plane and API server
+└── agentctl     Agent Control Plane CLI
+
+Sandbox
+└── Agent Runtime
+    ├── sessiond       Session, harness and plugin runtime
+    └── sessionctl     Local Agent Runtime CLI
+```
+
+`agentctl` may also be installed inside a Sandbox as an authorized client of the host `agentd`; it remains separate
+from `sessionctl`, which only operates the local Agent Runtime. Agent Home is the logical root for host control-plane
+state. `AGENT_HOME` overrides it explicitly, while its default follows operating-system conventions under the
+eventual product name rather than being tied to the `agentd` executable name.
+
 The Sandbox layer is independent of Agent automation. A Node is a host machine or VM, a Sandbox is an isolated
 execution environment on that Node, and an Execution is a running command inside the Sandbox.
 
@@ -51,15 +69,14 @@ Node
 ```
 
 The Agent layer builds on the Sandbox layer. The Agent Control Plane manages Agents, each Agent owns a Sandbox, and
-the sandbox-resident Agent Runtime owns the long-lived Sessions and Runs that contain harness state and computation.
+the sandbox-resident Agent Runtime owns the long-lived Sessions that contain harness state and computation.
 
 ```text
-Agent Control Plane
-└── Agent
-    └── Sandbox
-        └── Agent Runtime
+Agent Control Plane (on the host)
+└── Agent (Session API, on the host)
+    └── Sandbox (vsock transport)
+        └── Agent Runtime (in the sandbox)
             └── Sessions
-                └── Runs
 ```
 
 CI uses the Sandbox layer directly and does not depend on Agent concepts. A future Runner Coordinator creates an
@@ -102,6 +119,103 @@ ownership model inside a Sandbox.
 - Familiar Kubernetes-style resource quantities, manifests and CLI semantics where applicable
 - An Agent able to modify and test this platform from its own isolated repository clone
 - Production-quality API foundations verified through automated tests and a manual native-platform test matrix
+
+##### Agent layer implementation plan (temporary)
+
+This working plan will be removed when the initial Agent deliverable is complete.
+
+- Complete one end-to-end Agent lifecycle
+  - Replace the memory-only `agentd` composition with persistent Agent state and the real Sandbox, Network,
+    authorization and secret-store implementations
+  - Reconcile applied Agents into retained Sandboxes, adopt them after `agentd` restarts and report useful status
+  - Keep the Agent manifest declarative while keeping Sessions imperative
+- Implement persistent, harness-neutral Sessions in the Agent Runtime
+  - Use this public data model; the control plane assigns the UUID, and `CreateSession.workingDirectory` defaults to
+    `$HOME/code` while the resulting `Session.workingDirectory` is always the resolved absolute Sandbox path:
+
+    ```text
+    CreateSession {
+      initialPrompt: String
+      harnessInstallation: HarnessInstallationId
+      workingDirectory?: SandboxPath,
+      plugins: SessionPlugin[]
+    }
+
+    Session {
+      id: SessionId (UUID)
+      initialPrompt: String
+      harnessInstallation: HarnessInstallationId
+      workingDirectory: SandboxPath
+      state: Starting | Running { activity: SessionActivity } | Stopped | Failed
+      createdAt: Timestamp
+      updatedAt: Timestamp
+      archivedAt?: Timestamp
+      deletedAt?: Timestamp
+    }
+
+    SessionPlugin [
+      sessionId: SessionId
+      pluginId: String
+      state: JSONB
+    ]
+
+    SessionActivity = Unknown | Idle | Working | WaitingForInput (associated data?) | WaitingForApproval
+
+    SessionContent {
+      rootThreadId: ThreadId
+      threads: Thread[]
+    }
+
+    Thread {
+      id: ThreadId
+      parentThreadId?: ThreadId
+      kind: Primary | Subagent
+      turns: Turn[]
+    }
+
+    Turn {
+      id: TurnId
+      state: InProgress | Completed | Interrupted | Failed | Unknown
+      items: ThreadItem[]
+      startedAt?: Timestamp
+      completedAt?: Timestamp
+    }
+    ```
+
+  - Keep harness-native conversation identifiers and Session Driver identifiers as opaque Adapter and Driver state,
+    separate from the stable Session ID
+  - Store Session metadata in SQLite through `rusqlite`, using a dedicated database thread so synchronous database
+    work does not block the Tokio local runtime
+  - Treat `initialPrompt` as display metadata only; read messages, responses, tool calls and other Session contents
+    directly from harness-native JSONL, SQLite or equivalent storage through the selected Harness Adapter
+  - Hydrate `SessionContent` on demand instead of persisting it; derive stable, Session-scoped Thread and Turn IDs from
+    harness-native identifiers or deterministic storage locations
+  - Represent harness-native subagents as child Threads in `SessionContent`; they remain within their owning
+    Session's harness and lifecycle and are not independently managed platform Sessions
+  - Submit prompts to the Session Driver without durable delivery or automatic retry; expose successfully written
+    prompts as in-memory pending submissions until the Harness Adapter observes them or they expire after ten seconds
+  - Replace the persisted Run API with `getSessionContent`, `submitPrompt`, `steerSession` and `interruptSession`;
+    Turns are read-only harness-derived content rather than platform-managed resources
+  - Allow archive, unarchive and soft delete only while a Session is `Stopped`; represent them with `archivedAt` and
+    `deletedAt`, hide them from normal listings, and garbage-collect deleted Session metadata after 30 days
+- Keep platform delegation separate from harness-native subagents
+  - Create a real Session or Agent through `agentd` when a Session delegates work through the platform, and record the
+    source Session as creation provenance without giving harness-native child Threads independent platform lifecycle
+- Complete the host-side Agent API and CLI
+  - Expose Agent lifecycle, Session and event operations through the versioned Agent Control API
+  - Add concise Kubernetes-style `agentctl` commands and status/progress output for those operations
+  - Preserve a single per-user `agentd` and host control-plane home on Linux, macOS and Windows
+- Add mediated authentication and egress
+  - Store provider accounts and credentials only in the host control-plane home
+  - Support one-time host login and proactive token maintenance for Codex and Claude Code subscriptions
+  - Mediate GitHub authentication and authorized network requests through the Network Backend and
+    `sandbox-authorization`, without copying credentials into the Sandbox
+  - Fail closed when authorization, secret resolution or the trusted network path is unavailable
+- Prove the deliverable with a self-development Agent
+  - Build an Agent image containing the required harnesses and development tools, with its own repository clone
+  - Demonstrate concurrent Codex and Claude Code Sessions through the common Session API
+  - Demonstrate that the Agent can modify and test this workspace, survive restarts and retain its Sessions
+  - Automate backend-neutral and Linux/Microsandbox coverage, then complete the documented native-host manual matrix
 
 ## References
 
