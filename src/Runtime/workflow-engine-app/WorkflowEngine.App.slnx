@@ -13,5 +13,5 @@
     <Folder Name="/tests/">
         <Project Path="tests/WorkflowEngine.App.Tests/WorkflowEngine.App.Tests.csproj" />
     </Folder>
-    <Project Path="../../common/Altinn.Studio.Runtime.Common.csproj" />
+    <Project Path="../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
 </Solution>

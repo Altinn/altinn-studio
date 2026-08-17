@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'app-libs/form-component/**'
+      - 'src/common/ts/form-component/**'
       - '.github/workflows/apps-storybook-deploy.yaml'
 
 concurrency:
@@ -33,7 +33,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build Storybook
-        working-directory: app-libs/form-component
+        working-directory: src/common/ts/form-component
         run: yarn build-storybook
 
       - name: Deploy to Azure Static Web Apps
@@ -42,7 +42,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.APPS_DEV_STORYBOOK }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "app-libs/form-component/storybook-static"
+          app_location: "src/common/ts/form-component/storybook-static"
           api_location: ""
           output_location: ""
           skip_app_build: true

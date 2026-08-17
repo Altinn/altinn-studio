@@ -116,7 +116,7 @@ _WRAPUP_NOTICE = (
 
 # Hard cap on the size of a concurrency-safe batch.  Even when the model
 # fires 20 reads in one turn, we never run more than this many in
-# parallel — protects shared resources (MCP server, filesystem, network)
+# parallel — protects shared resources (filesystem, network)
 # and bounds the spike a single turn can put on the host.  Tunable via
 # `ALTINITY_MAX_TOOL_USE_CONCURRENCY` to make tuning a config change
 # rather than a code change.

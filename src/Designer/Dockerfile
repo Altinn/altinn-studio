@@ -42,10 +42,10 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
-COPY app-libs/package.json ./app-libs/
-COPY app-libs/form-component/package.json ./app-libs/form-component/
-COPY app-libs/form-engine/package.json ./app-libs/form-engine/
-COPY app-libs/language/package.json ./app-libs/language/
+COPY src/common/ts/package.json ./src/common/ts/
+COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
+COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
+COPY src/common/ts/language/package.json ./src/common/ts/language/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
@@ -61,8 +61,9 @@ RUN cd src/Designer/frontend && yarn build
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
-COPY src/Designer/backend .
-RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
+COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/Designer/backend ./src/Designer/backend
+RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version

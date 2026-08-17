@@ -13,7 +13,7 @@
     "docs:validate": "node .github/scripts/agents-docs-validate.mjs",
     "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
-    "lint:libs": "yarn workspace app-libs lint",
+    "lint:libs": "yarn workspace @studio/common-typescript lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
@@ -54,8 +54,8 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
-    "app-libs",
-    "app-libs/**"
+    "src/common/ts",
+    "src/common/ts/**"
   ],
   "resolutions": {
     "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"

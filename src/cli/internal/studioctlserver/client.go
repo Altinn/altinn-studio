@@ -148,6 +148,7 @@ type AppUpgrade struct {
 	StudioRoot               string `json:"studioRoot,omitempty"`
 	Kind                     string `json:"kind"`
 	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
+	AllowDirty               bool   `json:"allowDirty,omitempty"`
 }
 
 // AppUpgradeStatus describes what a migration step did: "OK", "INFO", "SKIP", "WARN", "TODO" or "FAIL".
