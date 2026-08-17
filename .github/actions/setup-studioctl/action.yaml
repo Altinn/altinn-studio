@@ -6,7 +6,7 @@ runs:
     - name: Resolve studioctl cache key
       id: studioctl-cache-key
       shell: bash
-      run: echo "key=studioctl-dev-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!src/cli/build/**', '!**/bin/**', '!**/obj/**') }}" >> "$GITHUB_OUTPUT"
+      run: echo "key=studioctl-dev-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Runtime/localtest/testdata/**', 'src/Runtime/localtest/infra/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!src/cli/build/**', '!**/bin/**', '!**/obj/**') }}" >> "$GITHUB_OUTPUT"
 
     - name: Cache studioctl dev install
       id: cache-studioctl
