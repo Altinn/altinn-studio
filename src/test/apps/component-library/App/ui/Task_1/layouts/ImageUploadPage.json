@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "ImageUploadPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "ImageUploadPage"
         }
@@ -17,7 +17,7 @@
       {
         "size": "h3",
         "id": "ImageUploadPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Last opp profilbilde"
         }

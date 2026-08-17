@@ -9,16 +9,19 @@ on:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
-      - 'app-libs/form-component/src/**'
-      - 'app-libs/form-component/package.json'
-      - 'app-libs/language/src/**'
-      - 'app-libs/language/package.json'
+      - 'src/common/ts/form-component/src/**'
+      - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
+      - 'src/common/ts/language/src/**'
+      - 'src/common/ts/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
@@ -157,7 +160,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download app process outputs
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app-process-build
           path: /tmp/app-process-build
@@ -209,10 +212,7 @@ jobs:
             --browser "${CHROME_PATH:-chrome}"
             --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
             --spec test/e2e/integration
-            # CYPRESS_LOGS_COLLECTOR prints the browser logs of failed tests to the CI log
-            # (cypress-terminal-report) - without it the assertion failures only exist on
-            # Cypress Cloud.
-            --env environment=localtest,CYPRESS_LOGS_COLLECTOR=true
+            --env environment=localtest
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
@@ -253,7 +253,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download app process outputs
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app-process-build
           path: /tmp/app-process-build

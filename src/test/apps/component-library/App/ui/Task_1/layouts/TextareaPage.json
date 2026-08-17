@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "TextareaPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "TextareaPage"
         }
@@ -17,7 +17,7 @@
       {
         "size": "h3",
         "id": "TextareaPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Component"
         }
@@ -35,7 +35,7 @@
       {
         "size": "h3",
         "id": "TextareaPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
@@ -48,7 +48,7 @@
       {
         "size": "h3",
         "id": "TextareaPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }

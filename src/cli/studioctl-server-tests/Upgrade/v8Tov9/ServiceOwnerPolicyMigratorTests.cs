@@ -75,7 +75,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         // A freshly-scaffolded app ships with the default Studio template, whose org rule already
         // grants read/write/complete (via the [ORG]/[APP] placeholders). The migrator must recognise
         // that and leave the file completely untouched. The fixture is a verbatim copy of
-        // src/App/template/src/App/config/authorization/policy.xml.
+        // src/App/template/v8/src/App/config/authorization/policy.xml.
         var policy = await File.ReadAllTextAsync(
             Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-policy.xml"),
             TestContext.Current.CancellationToken

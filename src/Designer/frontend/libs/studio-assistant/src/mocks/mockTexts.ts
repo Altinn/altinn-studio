@@ -27,8 +27,6 @@ const emptyThreadTexts: EmptyThreadTexts = {
 
 const textAreaTexts: TextAreaTexts = {
   placeholder: 'placeholder',
-  wait: 'wait',
-  waitingForConnection: 'waitingForConnection',
 };
 
 export const messageFeedbackTexts: MessageFeedbackTexts = {

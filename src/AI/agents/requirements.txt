@@ -6,7 +6,6 @@ pydantic>=2.12.5
 
 # HTTP client
 httpx>=0.28.1
-httpx-sse>=0.4.3
 
 # Configuration
 python-dotenv>=1.2.2

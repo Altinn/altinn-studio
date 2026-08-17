@@ -363,7 +363,7 @@ internal class PaymentService : IPaymentService
             System.Text.Encoding.UTF8,
             "application/json"
         );
-        var response = await client.PutAsync($"instances/{instance.Id}/process/next", content);
+        using var response = await client.PutAsync($"instances/{instance.Id}/process/next", content);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError(

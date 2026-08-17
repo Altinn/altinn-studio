@@ -49,7 +49,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             httpRequest.Headers.Add(CollectionKeyHeader, collectionKey);
         }
 
-        HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
         if (!response.IsSuccessStatusCode)
         {
             string body = await response.Content.ReadAsStringAsync(ct);
@@ -142,7 +142,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/cancel";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
-        HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<CancelWorkflowResponse>(ct)
@@ -165,7 +165,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
-        HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(ct)
@@ -180,7 +180,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/abandon";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
-        HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
         if (response.StatusCode == HttpStatusCode.Conflict)
         {
             // Compare-and-set lost: the workflow is not in an abandonable state (e.g. a concurrent

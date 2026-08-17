@@ -6,7 +6,7 @@
       {
         "size": "L",
         "id": "Task1Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Task1.header.title"
         }

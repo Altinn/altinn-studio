@@ -53,8 +53,8 @@ const inputComponent: FormComponent<ComponentType.Input> = {
   ...commonProps(ComponentType.Input),
   dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
 };
-const headerComponent: FormComponent<ComponentType.Header> = {
-  ...commonProps(ComponentType.Header),
+const headingComponent: FormComponent<ComponentType.Heading> = {
+  ...commonProps(ComponentType.Heading),
   size: 'medium',
 };
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
@@ -71,7 +71,7 @@ const imageComponent: FormComponent<ComponentType.Image> = {
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),
   dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
-  timeStamp: true,
+  timeStamp: false,
 };
 
 const dividerComponent: FormComponent<ComponentType.Divider> = {
@@ -229,7 +229,7 @@ export const componentMocks = {
   [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
   [ComponentType.FileUpload]: fileUploadComponent,
   [ComponentType.Group]: groupContainer,
-  [ComponentType.Header]: headerComponent,
+  [ComponentType.Heading]: headingComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
   [ComponentType.Link]: linkComponent,

@@ -18,9 +18,9 @@
 .github/workflows/storybook-to-github-pages.yaml                          @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-deploy.yaml                           @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-legacy-deploy.yaml                    @altinn/team-altinn-studio-utforming
-app-libs/**/package.json                                                  @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                          @altinn/team-altinn-studio-utforming
+src/common/ts/**/package.json                                             @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/package.json                                     @altinn/team-altinn-studio-utforming
 
 # Team Access Info
@@ -87,6 +87,8 @@ src/cli/**/dockerfile*                                                    @altin
 src/cli/**/global.json                                                    @altinn/team-altinn-studio-kjoring
 src/cli/**/go.mod                                                         @altinn/team-altinn-studio-kjoring
 src/cli/**/go.sum                                                         @altinn/team-altinn-studio-kjoring
+src/common/dotnet/**/*.csproj                                             @altinn/team-altinn-studio-kjoring
+src/common/dotnet/**/global.json                                          @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/Dockerfile*                 @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/go.mod                      @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/docker-compose.*.yml                                   @altinn/team-altinn-studio-kjoring
@@ -98,6 +100,7 @@ src/lhci-server/**/Dockerfile*                                            @altin
 src/lhci-server/**/package.json                                           @altinn/team-altinn-studio-kjoring
 src/lhci-server/**/yarn.lock                                              @altinn/team-altinn-studio-kjoring
 src/load-balancer/**/Dockerfile*                                          @altinn/team-altinn-studio-kjoring
+src/Runtime/common/**/*.csproj                                            @altinn/team-altinn-studio-kjoring
 src/Runtime/devenv/**/go.mod                                              @altinn/team-altinn-studio-kjoring
 src/Runtime/devenv/**/go.sum                                              @altinn/team-altinn-studio-kjoring
 src/Runtime/gateway/**/*.csproj                                           @altinn/team-altinn-studio-kjoring
