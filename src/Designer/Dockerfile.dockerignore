@@ -1,0 +1,30 @@
+# Designer's frontend build requires the repository-root Yarn workspace, so this is the deliberate
+# exception to the src/ context convention. Keep the root context as a complete narrow allowlist.
+**
+!package.json
+!yarn.lock
+!.yarnrc.yml
+!.yarn/releases/**
+!.yarn/patches/**
+!src/App/frontend/package.json
+!src/App/template/v8/src
+!src/App/template/v8/src/**
+!src/App/template/v9/src
+!src/App/template/v9/src/**
+!src/common/ts
+!src/common/ts/**
+!src/common/dotnet/Altinn.Studio.Common
+!src/common/dotnet/Altinn.Studio.Common/**
+!src/Designer/backend
+!src/Designer/backend/**
+!src/Designer/development/azure-devops-mock/package.json
+!src/Designer/frontend
+!src/Designer/frontend/**
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache

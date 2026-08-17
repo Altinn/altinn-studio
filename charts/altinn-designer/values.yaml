@@ -1,4 +1,5 @@
 replicaCount: 1
+terminationGracePeriodSeconds: 30
 
 environment: dev
 

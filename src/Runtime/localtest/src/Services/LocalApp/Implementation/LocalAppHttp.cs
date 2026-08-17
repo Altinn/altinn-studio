@@ -276,7 +276,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         private IReadOnlyList<BoundTopologyAppRoute> GetBoundAppRoutes()
         {
-            return _boundTopologyIndex.Current.GetApps();
+            return _boundTopologyIndex.Current.Apps;
         }
 
         private BoundTopologyAppRoute? ResolveAppRoute(string? appId)

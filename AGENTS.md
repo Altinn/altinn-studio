@@ -29,7 +29,7 @@ developer tooling, and the supporting infrastructure to run it all.
 
 ## Repository map
 
-Nearly everything lives under `src/`; the one top-level code directory outside it is `app-libs/`.
+Product code and shared libraries live under `src/`.
 Each area below links to its own `AGENTS.md` where one exists.
 
 ### Product surfaces
@@ -59,16 +59,14 @@ Each area below links to its own `AGENTS.md` where one exists.
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
 R&D projects from the AI lab (to be handed off to the Studio team): `agents` (Altinity natural-language
-app builder), `mcp` (Altinity MCP server of Altinn-domain tools), `augmenter-agent` (document/PDF
-augmentation microservice).
+app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
 ### Shared code
 
-| Area                                 | What it is                                                                                                                                                          |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/common`](src/common/AGENTS.md) | `Altinn.Studio.Runtime.Common` — shared .NET hosting helpers used by the Runtime services.                                                                          |
-| [`src/Shared`](src/Shared/AGENTS.md) | Cross-language shared contracts compiled into `studioctl-server`: `EnvTopology` (routing) and `HostBridge` (WebSocket tunnel protocol), each with a Go counterpart. |
-| [`app-libs`](app-libs/AGENTS.md)     | TS/React libraries for apps (top level, not under `src/`), being extracted from `src/App/frontend`: `form-component`, `form-engine`, `language`.                    |
+| Area                                                 | What it is                                                                                                                             |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
+| [`src/Runtime/common`](src/Runtime/common/AGENTS.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
 
 ### Testing — [`src/test`](src/test/AGENTS.md)
 

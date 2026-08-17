@@ -1,4 +1,4 @@
-using Altinn.Studio.Runtime.Common;
+using Altinn.Studio.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +41,7 @@ public static class WorkflowEngineBuilderExtensions
                 isDev
                 || string.Equals(builder.Environment.EnvironmentName, "Docker", StringComparison.OrdinalIgnoreCase);
 
-            // Hosting fundamentals (from Altinn.Studio.Runtime.Common)
+            // Hosting fundamentals (from Altinn.Studio.Common)
             builder.UseCommonHostingConfiguration();
             builder.UseProblemDetailsForBadRequests();
             builder.UseCaseInsensitiveCamelCaseJson();

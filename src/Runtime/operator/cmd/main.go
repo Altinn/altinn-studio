@@ -47,6 +47,11 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+const (
+	managerGracefulShutdownTimeout = 30 * time.Second
+	telemetryShutdownTimeout       = 5 * time.Second
+)
+
 //nolint:gochecknoinits // Scheme registration follows controller-runtime/Kubebuilder conventions.
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -56,6 +61,14 @@ func init() {
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(cnpgapi.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
+}
+
+func shutdownTelemetry(shutdown func(context.Context) error) {
+	ctx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
+	defer cancel()
+	if err := shutdown(ctx); err != nil {
+		setupLog.Error(err, "unable to shut down OTel")
+	}
 }
 
 //nolint:funlen,gocyclo,gocognit,gocritic // Keeping Kubebuilder's scaffolded manager setup shape intact is more important here.
@@ -102,9 +115,7 @@ func main() {
 	}
 
 	// Handle shutdown properly so nothing leaks.
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
+	defer shutdownTelemetry(otelShutdown)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -148,9 +159,10 @@ func main() {
 		LeaderElectionID:       "ec156e4c.altinn.studio",
 		// Stretch the lease timings to reduce steady-state renewal chatter while
 		// keeping multiple renewal attempts before leadership is lost.
-		LeaseDuration: ptr.To(leaderElectionLeaseDuration),
-		RenewDeadline: ptr.To(leaderElectionRenewDeadline),
-		RetryPeriod:   ptr.To(leaderElectionRetryPeriod),
+		LeaseDuration:           ptr.To(leaderElectionLeaseDuration),
+		RenewDeadline:           ptr.To(leaderElectionRenewDeadline),
+		RetryPeriod:             ptr.To(leaderElectionRetryPeriod),
+		GracefulShutdownTimeout: new(managerGracefulShutdownTimeout),
 		BaseContext: func() context.Context {
 			return managerCtx
 		},
