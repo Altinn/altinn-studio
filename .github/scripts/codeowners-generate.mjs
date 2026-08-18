@@ -65,11 +65,7 @@ const GROUPS = [
   {
     title: 'AI',
     owner: '@ErlingHauan',
-    roots: ['src/AI/agents', 'src/AI/augmenter-agent', 'src/AI/mcp'],
-    extraPaths: [
-      '.github/workflows/deploy-studio-mcp-server.yaml',
-      '.github/workflows/mcp-build-test.yaml',
-    ],
+    roots: ['src/AI/agents', 'src/AI/augmenter-agent'],
   },
   {
     title: 'Squad Kjøring',
