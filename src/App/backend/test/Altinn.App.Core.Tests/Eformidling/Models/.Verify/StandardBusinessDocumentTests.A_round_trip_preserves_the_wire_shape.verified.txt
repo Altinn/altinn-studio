@@ -1,0 +1,48 @@
+﻿{
+  "standardBusinessDocumentHeader": {
+    "headerVersion": "1.0",
+    "sender": [
+      {
+        "identifier": {
+          "value": "0192:910075918",
+          "authority": "iso6523-actorid-upis"
+        },
+        "contactInformation": []
+      }
+    ],
+    "receiver": [
+      {
+        "identifier": {
+          "value": "0192:910075918",
+          "authority": "iso6523-actorid-upis"
+        },
+        "contactInformation": []
+      }
+    ],
+    "documentIdentification": {
+      "standard": "urn:no:difi:arkivmelding:xsd::arkivmelding",
+      "typeVersion": "2.0",
+      "instanceIdentifier": "dddf6910-6bde-11eb-83f7-e5be6c2ac43bo",
+      "type": "arkivmelding",
+      "creationDateAndTime": "{timestamp}"
+    },
+    "businessScope": {
+      "scope": [
+        {
+          "type": "ConversationId",
+          "instanceIdentifier": "dddfb730-6bde-11eb-83f7-e5be6c2ac43o",
+          "identifier": "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
+          "scopeInformation": [
+            {
+              "expectedResponseDateTime": "{timestamp}"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "arkivmelding": {
+    "sikkerhetsnivaa": 3,
+    "dpf": null
+  }
+}

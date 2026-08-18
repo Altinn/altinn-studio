@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; the renamed Standard Business Document `Arkivmelding`; and references the namespace rewrite cannot reach — an aliased `using X = Altinn.Common.EFormidlingClient;`, one written with `global::`, or a name written out in full — since it only rewrites plain `using` directives matched by name. Each is reported separately, with the fix to apply.
 - Added option --allow-dirty to upgrade script. `studioctl app upgrade --allow-dirty` allows updating when the repository contains modified or untracked files.
 
 ### Changed
@@ -18,6 +19,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - End every `studioctl app upgrade` with the same closing advice, whichever migration you run. The v4 upgrade previously ended without any, and the v8 upgrade worded its own differently.
 - Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labelling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
 - Rewrite legacy Datepicker `format` values (`DD.MM.YYYY`, `DD/MM/YYYY`, `YYYY-MM-DD`) to their supported equivalents (`dd.MM.yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`) in layout files when running `studioctl app upgrade v9`.
+- `studioctl app upgrade v9` rewrites the eFormidling client namespaces, which moved into `Altinn.App.Core` in v9: `Altinn.Common.EFormidlingClient` becomes `Altinn.App.Core.EFormidling.Interface`, and its `.Configuration`, `.Models` and `.Models.SBD` namespaces become the matching ones under `Altinn.App.Core.EFormidling`. For most apps this is a single `using` in the file implementing `IEFormidlingReceivers`.
 - `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
 
 ### Fixed
