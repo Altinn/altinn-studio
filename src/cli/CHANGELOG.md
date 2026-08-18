@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.22] - 2026-08-18
+
 ### Added
 
 - Allow CI jobs to reuse prebuilt development images by setting `STUDIOCTL_PREBUILT_DEV_IMAGES=true` together with `STUDIOCTL_INTERNAL_DEV=true`. `studioctl env up` now requires the expected local image tags in this mode instead of rebuilding or pulling other images.
