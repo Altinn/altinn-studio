@@ -10,7 +10,7 @@ export type ServiceOwnerSelectorProps = {
   organizations: Organization[];
   errorMessage?: string;
   name?: string;
-  onChange?: (org: string) => void;
+  onChange: (org: string) => void;
 };
 
 export const ServiceOwnerSelector = ({
