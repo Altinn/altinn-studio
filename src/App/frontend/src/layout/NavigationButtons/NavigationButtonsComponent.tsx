@@ -174,6 +174,14 @@ function NavigationButtonsComponentInner({
       await navigateToPage(backToPage, { skipAutoSave: true });
     });
 
+  const loadingKey =
+    currentProcessKey === 'next' ||
+    currentProcessKey === 'previous' ||
+    currentProcessKey === 'backToSummary' ||
+    currentProcessKey === 'backToPage'
+      ? currentProcessKey
+      : undefined;
+
   return (
     <NavigationButtons
       componentId={id}
@@ -188,14 +196,7 @@ function NavigationButtonsComponentInner({
       showBackToPage={showBackToPageButton}
       disabled={isAnyProcessing}
       nextDisabled={attachmentsPending}
-      loadingKey={
-        currentProcessKey === 'next' ||
-        currentProcessKey === 'previous' ||
-        currentProcessKey === 'backToSummary' ||
-        currentProcessKey === 'backToPage'
-          ? currentProcessKey
-          : undefined
-      }
+      loadingKey={loadingKey}
       onClickNext={onClickNext}
       onClickPrevious={onClickPrevious}
       onClickBackToSummary={onClickBackToSummary}
