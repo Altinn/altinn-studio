@@ -64,6 +64,10 @@ class TestBuildRegistry:
         registry = _build_registry()
         assert "skill" in registry
 
+    def test_upgrade_app_tool_registered(self):
+        registry = _build_registry()
+        assert "upgrade_app_to_v9" in registry
+
 
 class TestEventBridge:
     def test_lookup_tool_call_emits_trail_status(self, monkeypatch):
