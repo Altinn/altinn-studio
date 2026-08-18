@@ -21,7 +21,7 @@ public class CreateBranchTests
     : DesignerEndpointsTestsBase<CreateBranchTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
+    private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
     private static string VersionPrefix => "/designer/api/repos";
 
     public CreateBranchTests(WebApplicationFactory<Program> factory)
@@ -31,7 +31,7 @@ public class CreateBranchTests
     {
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_sourceControlMock.Object);
+        services.AddSingleton(_branchServiceMock.Object);
     }
 
     [Theory]
@@ -45,7 +45,7 @@ public class CreateBranchTests
         var expectedBranch = new Branch { Name = branchName };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock.Setup(x => x.CreateBranch(editingContext, branchName)).ReturnsAsync(expectedBranch);
+        _branchServiceMock.Setup(x => x.CreateBranch(editingContext, branchName)).ReturnsAsync(expectedBranch);
 
         var request = new CreateBranchRequest { BranchName = branchName };
         using var content = new StringContent(
@@ -62,7 +62,7 @@ public class CreateBranchTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(branchName, responseContent.Name);
-        _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
+        _branchServiceMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
     }
 
     [Theory]
@@ -73,7 +73,7 @@ public class CreateBranchTests
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock
+        _branchServiceMock
             .Setup(x => x.CreateBranch(editingContext, branchName))
             .ThrowsAsync(new LibGit2Sharp.NameConflictException("Branch already exists"));
 
@@ -90,7 +90,7 @@ public class CreateBranchTests
         // Assert
         // NameConflictException is handled by global exception handler and returns InternalServerError
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
+        _branchServiceMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
     }
 
     [Fact]

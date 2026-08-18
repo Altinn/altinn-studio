@@ -142,13 +142,6 @@ public interface ISourceControl
     void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 
     /// <summary>
-    /// Creates a new branch in the given repository.
-    /// </summary>
-    /// <param name="editingContext">The altinn repo editing context</param>
-    /// <param name="branchName">The name of the branch to create</param>
-    Task<RepositoryClient.Model.Branch> CreateBranch(AltinnRepoEditingContext editingContext, string branchName);
-
-    /// <summary>
     /// Creates a pull request for merging source into target for the provided repository.
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
@@ -165,13 +158,6 @@ public interface ISourceControl
     Task DeleteRepository(AltinnRepoEditingContext editingContext);
 
     /// <summary>
-    /// Checkout the repository on specified branch.
-    /// </summary>
-    /// <param name="editingContext">The altinn repo editing context</param>
-    /// <param name="branchName">The name of the branch</param>
-    void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName);
-
-    /// <summary>
     /// Make a commit to local repository.
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
@@ -183,13 +169,6 @@ public interface ISourceControl
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
     RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
-
-    /// <summary>
-    /// Deletes a local branch based on the specified name.
-    /// </summary>
-    /// <param name="editingContext">The altinn repo editing context</param>
-    /// <param name="branchName">The name of the branch</param>
-    void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName);
 
     /// <summary>
     /// Creates a local branch based on the specified commit sha if given.
@@ -205,39 +184,6 @@ public interface ISourceControl
     /// <param name="editingContext">The altinn repo editing context</param>
     /// <param name="featureBranch">The name of the feature branch</param>
     void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
-
-    /// <summary>
-    /// Gets information about the current branch
-    /// </summary>
-    /// <param name="editingContext">The altinn repo editing context</param>
-    /// <returns>Information about the current branch</returns>
-    CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext);
-
-    /// <summary>
-    /// Checks out a branch, validating that there are no uncommitted changes first
-    /// </summary>
-    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-    /// <param name="branchName">The name of the branch to checkout</param>
-    /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
-    /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
-    RepoStatus CheckoutBranchWithValidation(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        string branchName
-    );
-
-    /// <summary>
-    /// Discards all local changes in the repository (hard reset + clean untracked files)
-    /// </summary>
-    /// <param name="editingContext">The altinn repo editing context</param>
-    /// <returns>The updated repository status</returns>
-    RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext);
-
-    /// <summary>
-    /// Deletes a remote branch based on the specified name, if it exists.
-    /// </summary>
-    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-    /// <param name="branchName">The name of the branch</param>
-    void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
 
     /// <summary>
     /// Publishes branch to remote.

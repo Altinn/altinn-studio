@@ -207,12 +207,14 @@ public class OrgLibraryServiceTests
     {
         Mock<IGiteaClient> giteaClient = overrideGitea ?? new();
         Mock<ISourceControl> sourceControl = new();
+        Mock<IBranchService> branchService = new();
         Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = overrideFactory ?? new();
         Mock<ISharedContentClient> sharedContentClient = new();
 
         return new(
             giteaClient.Object,
             sourceControl.Object,
+            branchService.Object,
             altinnGitRepositoryFactory.Object,
             sharedContentClient.Object
         );

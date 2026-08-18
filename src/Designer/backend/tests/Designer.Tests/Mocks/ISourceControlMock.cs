@@ -82,11 +82,6 @@ public class ISourceControlMock : ISourceControl
         TestDataHelper.CopyDirectory(localPath, remotePath, true).Wait();
     }
 
-    public static Task CreateBranch(AltinnRepoEditingContext editingContext, string branchName)
-    {
-        return Task.CompletedTask;
-    }
-
     public Task<bool> CreatePullRequest(
         AltinnRepoEditingContext editingContext,
         string target,
@@ -181,23 +176,12 @@ public class ISourceControlMock : ISourceControl
         return;
     }
 
-    Task<Branch> ISourceControl.CreateBranch(AltinnRepoEditingContext editingContext, string branchName)
-    {
-        return Task.FromResult(new Branch { Name = branchName });
-    }
-
     public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-
-    public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) =>
-        throw new NotImplementedException();
 
     public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) =>
         throw new NotImplementedException();
 
     public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) =>
-        throw new NotImplementedException();
-
-    public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) =>
         throw new NotImplementedException();
 
     public void CreateLocalBranch(
@@ -208,22 +192,6 @@ public class ISourceControlMock : ISourceControl
 
     public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch) =>
         throw new NotImplementedException();
-
-    public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext) =>
-        throw new NotImplementedException();
-
-    public RepoStatus CheckoutBranchWithValidation(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        string branchName
-    ) => throw new NotImplementedException();
-
-    public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext) =>
-        throw new NotImplementedException();
-
-    public void DeleteRemoteBranchIfExists(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        string branchName
-    ) => throw new NotImplementedException();
 
     public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) =>
         throw new NotImplementedException();

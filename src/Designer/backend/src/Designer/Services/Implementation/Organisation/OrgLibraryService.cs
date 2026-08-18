@@ -23,6 +23,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgLibraryService(
     IGiteaClient giteaClient,
     ISourceControl sourceControl,
+    IBranchService branchService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     ISharedContentClient sharedContentClient
 ) : IOrgLibraryService
@@ -135,7 +136,7 @@ public class OrgLibraryService(
             cancellationToken
         );
 
-        sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
+        branchService.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
         sourceControl.PullRemoteChanges(authenticatedContext);
         sourceControl.FetchGitNotes(authenticatedContext);
 
@@ -175,19 +176,19 @@ public class OrgLibraryService(
         AltinnRepoEditingContext editingContext = authenticatedContext.RepoEditingContext;
         string branchName = GenerateBranchNameWithHashSuffix(editingContext);
 
-        sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
-        sourceControl.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
+        branchService.DeleteLocalBranchIfExists(editingContext, branchName);
+        branchService.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
 
         sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
-        sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
+        branchService.CheckoutRepoOnBranch(editingContext, branchName);
 
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
 
         RebaseWithConflictHandling(authenticatedContext, branchName);
-        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        branchService.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         sourceControl.MergeBranchIntoHead(editingContext, branchName);
-        sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+        branchService.DeleteLocalBranchIfExists(editingContext, branchName);
     }
 
     internal void RebaseWithConflictHandling(

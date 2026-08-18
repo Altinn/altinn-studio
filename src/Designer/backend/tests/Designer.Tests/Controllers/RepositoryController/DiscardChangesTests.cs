@@ -20,7 +20,7 @@ public class DiscardChangesTests
     : DesignerEndpointsTestsBase<DiscardChangesTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
+    private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
     private static string VersionPrefix => "/designer/api/repos";
 
     public DiscardChangesTests(WebApplicationFactory<Program> factory)
@@ -30,7 +30,7 @@ public class DiscardChangesTests
     {
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_sourceControlMock.Object);
+        services.AddSingleton(_branchServiceMock.Object);
     }
 
     [Theory]
@@ -48,7 +48,7 @@ public class DiscardChangesTests
         };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
+        _branchServiceMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
         // Act
         using HttpResponseMessage response = await HttpClient.PostAsync(uri, null);
@@ -59,7 +59,7 @@ public class DiscardChangesTests
         Assert.NotNull(responseContent);
         Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
         Assert.Empty(responseContent.ContentStatus);
-        _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
+        _branchServiceMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
     }
 
     [Theory]
@@ -76,7 +76,7 @@ public class DiscardChangesTests
         };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
+        _branchServiceMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
         // Act
         using HttpResponseMessage response = await HttpClient.PostAsync(uri, null);
@@ -86,7 +86,7 @@ public class DiscardChangesTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
-        _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
+        _branchServiceMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class DiscardChangesTests
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock
+        _branchServiceMock
             .Setup(x => x.DiscardLocalChanges(editingContext))
             .Throws(new LibGit2Sharp.RepositoryNotFoundException("Repository not found"));
 
@@ -108,7 +108,7 @@ public class DiscardChangesTests
         // Assert
         // RepositoryNotFoundException is handled by global exception handler and returns NotFound
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
+        _branchServiceMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
     }
 
     [Theory]
@@ -128,7 +128,7 @@ public class DiscardChangesTests
         };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
+        _branchServiceMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
         // Act
         using HttpResponseMessage response = await HttpClient.PostAsync(uri, null);
@@ -139,6 +139,6 @@ public class DiscardChangesTests
         Assert.NotNull(responseContent);
         Assert.Equal(branchName, responseContent.CurrentBranch);
         Assert.Empty(responseContent.ContentStatus);
-        _sourceControlMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
+        _branchServiceMock.Verify(x => x.DiscardLocalChanges(editingContext), Times.Once);
     }
 }

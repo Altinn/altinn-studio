@@ -25,6 +25,7 @@ public class SourceControlServiceTest : IDisposable
     private ServiceRepositorySettings _settings;
     private Mock<HttpContext> _httpContextMock;
     private SourceControlService _sourceControlService;
+    private BranchService _branchService;
 
     private readonly string _org = "ttd";
     private readonly string _developer = "testUser";
@@ -56,6 +57,15 @@ public class SourceControlServiceTest : IDisposable
             _giteaClientMock.Object,
             new Mock<IGitServerAuthHeadersProvider>().Object
         );
+
+        // Branch operations were extracted to BranchService, which delegates shared git plumbing back
+        // to the source control service.
+        _branchService = new BranchService(
+            _sourceControlService,
+            _giteaClientMock.Object,
+            _settings,
+            new Mock<IGitServerAuthHeadersProvider>().Object
+        );
     }
 
     [Fact]
@@ -72,7 +82,7 @@ public class SourceControlServiceTest : IDisposable
             Assert.Contains(repo.Branches, b => b.FriendlyName == branchName);
         }
 
-        _sourceControlService.DeleteLocalBranchIfExists(context, branchName);
+        _branchService.DeleteLocalBranchIfExists(context, branchName);
 
         // Assert
         using Repository finalRepoState = new(_repoDir);
@@ -164,7 +174,7 @@ public class SourceControlServiceTest : IDisposable
         _sourceControlService.CreateLocalBranch(context, branchName);
 
         // Act
-        _sourceControlService.CheckoutRepoOnBranch(context, branchName);
+        _branchService.CheckoutRepoOnBranch(context, branchName);
 
         using Repository repository = new(_repoDir);
 
@@ -186,17 +196,17 @@ public class SourceControlServiceTest : IDisposable
 
         // Create a branch and add a commit
         _sourceControlService.CreateLocalBranch(context, branchName);
-        _sourceControlService.CheckoutRepoOnBranch(context, branchName);
+        _branchService.CheckoutRepoOnBranch(context, branchName);
         AddFileToRepo("file-on-feature-branch");
         _sourceControlService.CommitToLocalRepo(context, commitMessageFeature);
 
         // Add a commit to master
-        _sourceControlService.CheckoutRepoOnBranch(context, defaultBranchName);
+        _branchService.CheckoutRepoOnBranch(context, defaultBranchName);
         AddFileToRepo("file-on-master");
         _sourceControlService.CommitToLocalRepo(context, commitMessageMaster);
 
         // Act
-        _sourceControlService.CheckoutRepoOnBranch(context, branchName);
+        _branchService.CheckoutRepoOnBranch(context, branchName);
         _sourceControlService.RebaseOntoDefaultBranch(context);
 
         // Assert
@@ -223,12 +233,12 @@ public class SourceControlServiceTest : IDisposable
 
         // Create a branch and add a commit
         _sourceControlService.CreateLocalBranch(context, branchName);
-        _sourceControlService.CheckoutRepoOnBranch(context, branchName);
+        _branchService.CheckoutRepoOnBranch(context, branchName);
         AddFileToRepo("file-on-feature-branch");
         _sourceControlService.CommitToLocalRepo(context, commitMessage);
 
         // Act
-        _sourceControlService.CheckoutRepoOnBranch(context, defaultBranchName);
+        _branchService.CheckoutRepoOnBranch(context, defaultBranchName);
         _sourceControlService.MergeBranchIntoHead(context, branchName);
 
         // Assert
@@ -327,7 +337,7 @@ public class SourceControlServiceTest : IDisposable
 
         // Create feature branch and commit a file
         _sourceControlService.CreateLocalBranch(context, BranchName);
-        _sourceControlService.CheckoutRepoOnBranch(context, BranchName);
+        _branchService.CheckoutRepoOnBranch(context, BranchName);
 
         string committedFile = Path.Join(_repoDir, "committed-on-feature.txt");
         File.WriteAllText(committedFile, "Committed content");

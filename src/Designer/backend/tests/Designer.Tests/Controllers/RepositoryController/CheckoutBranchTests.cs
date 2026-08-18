@@ -23,7 +23,7 @@ public class CheckoutBranchTests
     : DesignerEndpointsTestsBase<CheckoutBranchTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
+    private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
     private static string VersionPrefix => "/designer/api/repos";
     private const string TestUser = "testUser";
     private const string TestAuthHandlerTokenValue = "test-access-token-for-git-operations";
@@ -35,7 +35,7 @@ public class CheckoutBranchTests
     {
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_sourceControlMock.Object);
+        services.AddSingleton(_branchServiceMock.Object);
     }
 
     [Theory]
@@ -55,7 +55,7 @@ public class CheckoutBranchTests
                 TestAuthHandlerTokenValue
             );
 
-        _sourceControlMock
+        _branchServiceMock
             .Setup(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName))
             .Returns(expectedRepoStatus);
 
@@ -75,7 +75,7 @@ public class CheckoutBranchTests
         Assert.NotNull(responseContent);
         Assert.Equal(branchName, responseContent.CurrentBranch);
         Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
-        _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
+        _branchServiceMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
     }
 
     [Theory]
@@ -113,7 +113,7 @@ public class CheckoutBranchTests
 
         var exception = new UncommittedChangesException(errorDetails);
 
-        _sourceControlMock
+        _branchServiceMock
             .Setup(x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch))
             .Throws(exception);
 
@@ -135,7 +135,7 @@ public class CheckoutBranchTests
         Assert.Equal(currentBranch, responseContent.CurrentBranch);
         Assert.Equal(targetBranch, responseContent.TargetBranch);
         Assert.Equal(2, responseContent.UncommittedFiles.Count);
-        _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch), Times.Once);
+        _branchServiceMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch), Times.Once);
     }
 
     [Theory]
@@ -159,7 +159,7 @@ public class CheckoutBranchTests
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        _sourceControlMock.Verify(
+        _branchServiceMock.Verify(
             x => x.CheckoutBranchWithValidation(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>()),
             Times.Never
         );
@@ -181,7 +181,7 @@ public class CheckoutBranchTests
                 TestAuthHandlerTokenValue
             );
 
-        _sourceControlMock
+        _branchServiceMock
             .Setup(x =>
                 x.CheckoutBranchWithValidation(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>())
             )
@@ -199,6 +199,6 @@ public class CheckoutBranchTests
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
+        _branchServiceMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
     }
 }

@@ -554,7 +554,7 @@ public class RepositoryController : ControllerBase
             repository,
             developer
         );
-        var branch = await _sourceControl.CreateBranch(editingContext, request.BranchName);
+        var branch = await _branchService.CreateBranch(editingContext, request.BranchName);
         return Ok(branch);
     }
 
@@ -605,7 +605,7 @@ public class RepositoryController : ControllerBase
             repository,
             developer
         );
-        var branchInfo = _sourceControl.GetCurrentBranch(editingContext);
+        var branchInfo = _branchService.GetCurrentBranch(editingContext);
         return Ok(branchInfo);
     }
 
@@ -642,7 +642,7 @@ public class RepositoryController : ControllerBase
         string token = await HttpContext.GetDeveloperAppTokenAsync();
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
-        RepoStatus repoStatus = _sourceControl.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
+        RepoStatus repoStatus = _branchService.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
         return Ok(repoStatus);
     }
 
@@ -662,7 +662,7 @@ public class RepositoryController : ControllerBase
             repository,
             developer
         );
-        var repoStatus = _sourceControl.DiscardLocalChanges(editingContext);
+        var repoStatus = _branchService.DiscardLocalChanges(editingContext);
         return Ok(repoStatus);
     }
 

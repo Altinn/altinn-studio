@@ -18,7 +18,7 @@ public class GetCurrentBranchTests
     : DesignerEndpointsTestsBase<GetCurrentBranchTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
+    private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
     private static string VersionPrefix => "/designer/api/repos";
 
     public GetCurrentBranchTests(WebApplicationFactory<Program> factory)
@@ -28,7 +28,7 @@ public class GetCurrentBranchTests
     {
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_sourceControlMock.Object);
+        services.AddSingleton(_branchServiceMock.Object);
     }
 
     [Theory]
@@ -46,7 +46,7 @@ public class GetCurrentBranchTests
         var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock.Setup(x => x.GetCurrentBranch(editingContext)).Returns(expectedBranchInfo);
+        _branchServiceMock.Setup(x => x.GetCurrentBranch(editingContext)).Returns(expectedBranchInfo);
 
         // Act
         using HttpResponseMessage response = await HttpClient.GetAsync(uri);
@@ -56,7 +56,7 @@ public class GetCurrentBranchTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(branchName, responseContent.BranchName);
-        _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
+        _branchServiceMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class GetCurrentBranchTests
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        _sourceControlMock
+        _branchServiceMock
             .Setup(x => x.GetCurrentBranch(editingContext))
             .Throws(new LibGit2Sharp.RepositoryNotFoundException("Repository not found"));
 
@@ -78,6 +78,6 @@ public class GetCurrentBranchTests
         // Assert
         // RepositoryNotFoundException is handled by global exception handler and returns NotFound
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
+        _branchServiceMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
     }
 }
