@@ -13,7 +13,6 @@ on:
       - src/Runtime/workflow-engine-app/Dockerfile
       - src/Runtime/workflow-engine-app/Dockerfile.dockerignore
       - src/Runtime/workflow-engine-app/infra/**
-      - infra/runtime/syncroot/base/workflow-engine-app.yaml
       - infra/runtime/flux-config/**
       - .github/workflows/deploy-runtime-workflow-engine-app.yaml
   workflow_dispatch:
@@ -21,7 +20,7 @@ on:
       environments:
         description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: "at_ring2"
+        default: "at_ring2,tt_ring1"
       tag-latest:
         description: 'Tag the GHCR image as "latest"'
         required: false
@@ -38,7 +37,7 @@ jobs:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
-      override-default-runtime-environments: at_ring2
+      override-default-runtime-environments: at_ring2,tt_ring1
 
   push-workflow-engine-app-artifact:
     name: Push workflow-engine-app as OCI artifact
