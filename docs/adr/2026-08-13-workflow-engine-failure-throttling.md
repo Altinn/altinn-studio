@@ -172,7 +172,8 @@ breaker is therefore a per-target breaker without the engine learning any Altinn
   `DbMaintenanceService` shape, but under a Postgres advisory lock — single writer across replicas,
   one narrator for the state machine) runs detect → throttle → probe → release and is the only
   writer of `engine.namespace_throttles`. It publishes the set of open breakers; each replica's
-  workflow handler holds a read-only in-memory snapshot (refreshed per sweep cycle) and, on a
+  workflow handler holds a read-only in-memory snapshot (refreshed per sweep cycle, expiring
+  fail-open if refresh stops) and, on a
   retryable failure in an open namespace, parks the workflow immediately with
   `throttled_until = now + window`, jittered and deadline-clamped — the same rule the sweep applies.
   The handler never writes breaker state and never judges.
@@ -195,8 +196,12 @@ breaker is therefore a per-target breaker without the engine learning any Altinn
   does), and the retry delay calculation gains jitter so retry waves de-synchronize with or without
   a breaker.
 - **Observability.** Trip/extend/release events logged and emitted as metrics tagged with the
-  namespace (rare events; cardinality is bounded by incident count, not fleet size), a dashboard
-  panel listing open breakers, and manual override endpoints.
+  namespace, a dashboard panel listing open breakers, and manual override endpoints. The namespace
+  label's worst case is a platform-wide cause tripping one breaker per namespace, so its
+  cardinality bound is the number of namespaces the deployment serves — accepted deliberately:
+  series only materialize for namespaces that trip, the tagged metrics are incident-grade counters
+  (per trip/extension/cohort, never per workflow), and unlabeled aggregates would leave operators
+  unable to tell *who* is throttled without leaving the metrics view.
 - **Explicitly deferred, with promotion triggers.** Gating fresh enqueues (promote if high-volume
   machine-to-machine producers make first attempts alone a hammer; mechanism would be a jittered
   delayed `StartAt`, not a 429). Failure-velocity counters for faster detection (promote if
@@ -207,7 +212,7 @@ breaker is therefore a per-target breaker without the engine learning any Altinn
 
 ## Implementation notes
 
-Five details are load-bearing, and each is easy to "simplify" back into a defect.
+Six details are load-bearing, and each is easy to "simplify" back into a defect.
 
 - **The deadline clamp is per-stamp, not per-trip.** Every write of `throttled_until` — initial
   parking, window extension, handler cooperation — independently clamps to that step's retry
@@ -223,11 +228,26 @@ Five details are load-bearing, and each is easy to "simplify" back into a defect
   release it. The state row therefore persists in a closed state for a grace period during which
   the sweep clears any non-null `throttled_until` in that namespace. Deleting the row at close is
   the natural-looking simplification that creates orphans.
-- **Canary outcomes are judged by progress, not status.** A canary that left `Requeued` (completed,
-  advanced a step, or is currently executing) with its requeue count not increased has progressed; a
-  canary observed with an increased requeue count has failed. Comparing against the requeue count
-  recorded at selection is what makes the check race-free against the canary being mid-attempt at
-  sweep time.
+- **The handler's snapshot fails open, never closed.** The snapshot carries its publication time and
+  reads as empty once older than a few sweep intervals: a replica whose sweep loop has died must
+  lose its power to park, not keep exercising a frozen view (which would otherwise stamp workflows
+  into a long-closed namespace after the grace-period row is gone, with nothing left to clear them).
+  A missing or stale snapshot merely returns parking duty to the sweep — the authoritative writer —
+  at the cost of one sweep's cooperation latency. The failure direction is asymmetric by design: a
+  failing sweep is loud (error metric, cycle-level backoff) and its absence is safe, because nothing
+  re-stamps elapsing windows, so throttling decays rather than ratchets. The closed-state grace
+  period exceeds the staleness bound so stragglers parked at the edge are still cleared.
+- **Canary outcomes are judged by progress, not liveness.** A canary observed with an increased
+  requeue count has failed; one that left `Requeued` for a settled or advanced state with its count
+  unchanged has progressed; one that is currently executing is *neither* — being leased proves
+  nothing about the target, and in a hang-until-timeout storm an in-flight probe is the failure
+  mode's signature, so counting it as progress would release cohorts into a hanging target that
+  cannot even feed the re-trip signal until its attempts time out. The sweep waits for the attempt
+  to record its result. Comparing against the requeue count recorded at selection is what makes the
+  judgment race-free. Canaries need no exemption from handler cooperation: a verdict takes one probe
+  (a failure is in the requeue count the moment the canary requeues, and parking it afterwards just
+  stops a proven-failing probe from hammering out the rest of the window), and rotation atomically
+  unparks the replacements.
 - **Disabled means inert, not dormant.** With `Enabled: false` the sweep does not run *and* the
   fetch query variant without the `throttled_until` predicate is selected at startup (configuration
   is restart-only, so the choice is per-process-lifetime and the SQL stays a compile-time constant).
