@@ -89,3 +89,39 @@ async fn cache_directory_must_not_be_empty() {
         })
     ));
 }
+
+#[tokio::test(flavor = "local")]
+async fn runtime_bundle_must_be_a_regular_file() {
+    let temporary = tempfile::tempdir().expect("temporary home should be created");
+    let result = MicrosandboxProvider::builder(temporary.path().join("provider"))
+        .runtime_bundle(temporary.path().join("missing.tar.gz"), "0".repeat(64))
+        .open()
+        .await;
+
+    assert!(matches!(
+        result,
+        Err(sandbox::Error::Invalid {
+            field: "provider.runtimeBundle.path",
+            ..
+        })
+    ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn runtime_bundle_digest_must_be_sha256() {
+    let temporary = tempfile::tempdir().expect("temporary home should be created");
+    let bundle = temporary.path().join("runtime.tar.gz");
+    std::fs::write(&bundle, []).expect("placeholder runtime bundle should be written");
+    let result = MicrosandboxProvider::builder(temporary.path().join("provider"))
+        .runtime_bundle(bundle, "not-a-sha256")
+        .open()
+        .await;
+
+    assert!(matches!(
+        result,
+        Err(sandbox::Error::Invalid {
+            field: "provider.runtimeBundle.sha256",
+            ..
+        })
+    ));
+}

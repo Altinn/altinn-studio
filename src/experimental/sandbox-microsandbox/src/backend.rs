@@ -48,6 +48,13 @@ pub struct MicrosandboxProvider {
 pub struct MicrosandboxProviderBuilder {
     home: PathBuf,
     cache_directory: Option<PathBuf>,
+    runtime_bundle: Option<RuntimeBundle>,
+}
+
+#[derive(Clone)]
+pub(crate) struct RuntimeBundle {
+    pub(crate) path: PathBuf,
+    pub(crate) sha256: String,
 }
 
 impl MicrosandboxProvider {
@@ -57,6 +64,7 @@ impl MicrosandboxProvider {
         MicrosandboxProviderBuilder {
             home: home.into(),
             cache_directory: None,
+            runtime_bundle: None,
         }
     }
 
@@ -76,15 +84,33 @@ impl MicrosandboxProvider {
         self.client.cache_directory()
     }
 
-    async fn open_configured(home: PathBuf, cache_directory: Option<PathBuf>) -> Result<Self, Error> {
+    async fn open_configured(
+        home: PathBuf,
+        cache_directory: Option<PathBuf>,
+        runtime_bundle: Option<RuntimeBundle>,
+    ) -> Result<Self, Error> {
         if home.as_os_str().is_empty() {
             return Err(Error::invalid("provider.home", "must not be empty"));
         }
         if cache_directory.as_ref().is_some_and(|path| path.as_os_str().is_empty()) {
             return Err(Error::invalid("provider.cacheDirectory", "must not be empty"));
         }
+        if let Some(bundle) = &runtime_bundle {
+            if !bundle.path.is_file() {
+                return Err(Error::invalid(
+                    "provider.runtimeBundle.path",
+                    "must identify a regular file",
+                ));
+            }
+            if bundle.sha256.len() != 64 || !bundle.sha256.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                return Err(Error::invalid(
+                    "provider.runtimeBundle.sha256",
+                    "must be a 64-character hexadecimal SHA-256 digest",
+                ));
+            }
+        }
         let state = StateStore::open(home.join("state")).await?;
-        let client = Client::open(home.join("runtime"), cache_directory).await?;
+        let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
         let image_resolver = MicrosandboxImageResolver::new(client.clone());
         Ok(Self {
             client,
@@ -388,6 +414,19 @@ impl MicrosandboxProviderBuilder {
         self
     }
 
+    /// Installs the Microsandbox host runtime from a verified local release bundle.
+    ///
+    /// The path must identify a platform-compatible Microsandbox `tar.gz`
+    /// runtime bundle. The expected digest is checked before extraction.
+    #[must_use]
+    pub fn runtime_bundle(mut self, path: impl Into<PathBuf>, sha256: impl Into<String>) -> Self {
+        self.runtime_bundle = Some(RuntimeBundle {
+            path: path.into(),
+            sha256: sha256.into(),
+        });
+        self
+    }
+
     /// Opens the configured Microsandbox Provider.
     ///
     /// # Errors
@@ -395,7 +434,7 @@ impl MicrosandboxProviderBuilder {
     /// Returns an error when a configured path is empty or cannot be
     /// initialized by the Microsandbox runtime.
     pub async fn open(self) -> Result<MicrosandboxProvider, Error> {
-        MicrosandboxProvider::open_configured(self.home, self.cache_directory).await
+        MicrosandboxProvider::open_configured(self.home, self.cache_directory, self.runtime_bundle).await
     }
 }
 
