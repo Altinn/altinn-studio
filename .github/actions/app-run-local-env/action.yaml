@@ -1,5 +1,5 @@
-name: "App Run Local Environment"
-description: "Starts the frontend server and optional localtest"
+name: "Run app in local environment"
+description: "Starts the frontend server, app processes, and optional LocalTest services"
 inputs:
   run-localtest:
     description: "Whether to start localtest with studioctl"
@@ -11,6 +11,10 @@ inputs:
     description: "Whether to pass --skip-build when starting app processes"
     required: false
     default: "false"
+  localtest-image-cache-key:
+    description: "LocalTest image cache key to require from a prerequisite job"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -26,9 +30,16 @@ runs:
         fi
       shell: bash
 
-    - name: Setup studioctl
+    - name: Set up studioctl
       if: ${{ inputs.run-localtest == 'true' }}
       uses: ./.github/actions/setup-studioctl
+
+    - name: Set up LocalTest images
+      if: ${{ inputs.run-localtest == 'true' }}
+      uses: ./.github/actions/setup-localtest-images
+      with:
+        cache-key: ${{ inputs.localtest-image-cache-key }}
+        require-cache-hit: ${{ inputs.localtest-image-cache-key != '' }}
 
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
@@ -43,25 +54,14 @@ runs:
         name: app-frontend-dist
         path: src/App/frontend/dist
 
-    - name: Setup Node.js
-      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-      with:
-        node-version: '22'
-        cache: 'yarn'
-        cache-dependency-path: yarn.lock
-
-    - name: Install dependencies
-      working-directory: src/App/frontend
-      run: yarn install --immutable
-      shell: bash
-
     - name: Start frontend server
-      working-directory: src/App/frontend
       run: |
         echo "Starting frontend server on port 8080..."
-        yarn run serve -p 8080 > frontend-server.log 2>&1 &
-        echo $! > frontend-server.pid
-        echo "Frontend server started with PID $(cat frontend-server.pid)"
+        python3 "${{ github.action_path }}/serve-frontend.py" \
+          "${GITHUB_WORKSPACE}/src/App/frontend/dist" \
+          > "${GITHUB_WORKSPACE}/src/App/frontend/frontend-server.log" 2>&1 &
+        echo $! > "${GITHUB_WORKSPACE}/src/App/frontend/frontend-server.pid"
+        echo "Frontend server started with PID $!"
       shell: bash
 
     - name: Wait for frontend server to be ready

@@ -149,6 +149,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
     <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>

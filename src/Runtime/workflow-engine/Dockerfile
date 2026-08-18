@@ -8,7 +8,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:72dd743782f2ae7e5476fd64f6a460045e
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /build
 
-COPY common/ common/
+COPY common/dotnet/Altinn.Studio.Common/ common/dotnet/Altinn.Studio.Common/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 
 # Prune host build artifacts, including literal backslash dirs such as `bin\Debug`.

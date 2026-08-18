@@ -9,6 +9,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Allow CI jobs to reuse prebuilt development images by setting `STUDIOCTL_PREBUILT_DEV_IMAGES=true` together with `STUDIOCTL_INTERNAL_DEV=true`. `studioctl env up` now requires the expected local image tags in this mode instead of rebuilding or pulling other images.
+- Added option --allow-dirty to upgrade script. `studioctl app upgrade --allow-dirty` allows updating when the repository contains modified or untracked files.
+
 ### Changed
 
 - End every `studioctl app upgrade` with the same closing advice, whichever migration you run. The v4 upgrade previously ended without any, and the v8 upgrade worded its own differently.

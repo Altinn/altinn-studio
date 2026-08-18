@@ -8,10 +8,13 @@ on:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
       - '.github/actions/**'
       - 'src/App/frontend/**'
-      - 'app-libs/form-component/src/**'
-      - 'app-libs/form-component/package.json'
-      - 'app-libs/language/src/**'
-      - 'app-libs/language/package.json'
+      - 'src/common/ts/form-component/src/**'
+      - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
+      - 'src/common/ts/language/src/**'
+      - 'src/common/ts/language/package.json'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
   pull_request:
@@ -20,10 +23,13 @@ on:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
       - '.github/actions/**'
       - 'src/App/frontend/**'
-      - 'app-libs/form-component/src/**'
-      - 'app-libs/form-component/package.json'
-      - 'app-libs/language/src/**'
-      - 'app-libs/language/package.json'
+      - 'src/common/ts/form-component/src/**'
+      - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
+      - 'src/common/ts/language/src/**'
+      - 'src/common/ts/language/package.json'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
       - '!**/AGENTS.md'
@@ -55,6 +61,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+
+      - name: Set up App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env

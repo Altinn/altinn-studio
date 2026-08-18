@@ -1,0 +1,23 @@
+[package]
+name = "sandbox"
+description = "Backend-neutral sandbox lifecycle building blocks"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+bytes.workspace = true
+futures-core.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-util = { workspace = true, features = ["rt"] }
+uuid.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true
