@@ -24,7 +24,7 @@ public class CheckoutBranchTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
-    private static string VersionPrefix => "/designer/api/repos";
+    private static string VersionPrefix => "/designer/api";
     private const string TestUser = "testUser";
     private const string TestAuthHandlerTokenValue = "test-access-token-for-git-operations";
 
@@ -45,7 +45,7 @@ public class CheckoutBranchTests
     public async Task CheckoutBranch_ValidBranch_ReturnsRepoStatus(string org, string repo, string branchName)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/checkout";
         var expectedRepoStatus = new RepoStatus { RepositoryStatus = RepositoryStatus.Ok, CurrentBranch = branchName };
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
@@ -87,7 +87,7 @@ public class CheckoutBranchTests
     )
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/checkout";
         string currentBranch = "main";
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
@@ -145,7 +145,7 @@ public class CheckoutBranchTests
     public async Task CheckoutBranch_EmptyBranchName_ReturnsBadRequest(string org, string repo, string branchName)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/checkout";
 
         var request = new CheckoutBranchRequest { BranchName = branchName };
         using var content = new StringContent(
@@ -172,7 +172,7 @@ public class CheckoutBranchTests
         string org = "ttd";
         string repo = "apps-test";
         string branchName = "non-existing-branch";
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/checkout";
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
                 org,

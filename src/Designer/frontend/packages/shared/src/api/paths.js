@@ -132,12 +132,11 @@ export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app
 export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
-export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
-export const branchPath = (org, app, branchName) => `${apiBasePath}/repos/repo/${org}/${app}/branches/${branchName}`; // Delete
-export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
-export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
-export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
-export const discardChangesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/discard-changes`; // Post
+export const branchPath = (org, app, branchName) => `${apiBasePath}/${org}/${app}/branches/${branchName}`; // Get, Delete
+export const branchesPath = (org, app) => `${apiBasePath}/${org}/${app}/branches`; // Get, Post
+export const checkoutBranchPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/checkout`; // Post
+export const currentBranchPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/current`; // Get
+export const discardChangesPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/discard-changes`; // Post
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${apiBasePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,

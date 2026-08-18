@@ -21,7 +21,7 @@ public class DiscardChangesTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
-    private static string VersionPrefix => "/designer/api/repos";
+    private static string VersionPrefix => "/designer/api";
 
     public DiscardChangesTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -39,7 +39,7 @@ public class DiscardChangesTests
     public async Task DiscardLocalChanges_WithUncommittedChanges_ReturnsCleanRepoStatus(string org, string repo)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/discard-changes";
         var expectedRepoStatus = new RepoStatus
         {
             RepositoryStatus = RepositoryStatus.Ok,
@@ -67,7 +67,7 @@ public class DiscardChangesTests
     public async Task DiscardLocalChanges_NoChanges_ReturnsRepoStatus(string org, string repo)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/discard-changes";
         var expectedRepoStatus = new RepoStatus
         {
             RepositoryStatus = RepositoryStatus.Ok,
@@ -95,7 +95,7 @@ public class DiscardChangesTests
         // Arrange
         string org = "ttd";
         string repo = "non-existing-repo";
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/discard-changes";
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _branchServiceMock
@@ -117,7 +117,7 @@ public class DiscardChangesTests
     public async Task DiscardLocalChanges_MultipleFiles_DiscardsAll(string org, string repo, string branchName)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/discard-changes";
 
         // Repo status after discarding should be clean
         var expectedRepoStatus = new RepoStatus

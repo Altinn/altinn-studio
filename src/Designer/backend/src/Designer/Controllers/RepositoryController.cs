@@ -40,7 +40,6 @@ public class RepositoryController : ControllerBase
     private readonly ISourceControl _sourceControl;
     private readonly IRepository _repository;
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
-    private readonly IBranchService _branchService;
     private readonly IAppTemplateCatalog _appTemplateCatalog;
 
     /// <summary>
@@ -53,14 +52,12 @@ public class RepositoryController : ControllerBase
     /// <param name="sourceControl">the source control</param>
     /// <param name="repository">the repository control</param>
     /// <param name="syncHub">websocket syncHub</param>
-    /// <param name="branchService">the branch service</param>
     /// <param name="appTemplateCatalog">the available app scaffolds</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
         IHubContext<SyncHub, ISyncClient> syncHub,
-        IBranchService branchService,
         IAppTemplateCatalog appTemplateCatalog
     )
     {
@@ -68,7 +65,6 @@ public class RepositoryController : ControllerBase
         _sourceControl = sourceControl;
         _repository = repository;
         _syncHub = syncHub;
-        _branchService = branchService;
         _appTemplateCatalog = appTemplateCatalog;
     }
 
@@ -480,190 +476,6 @@ public class RepositoryController : ControllerBase
             developer
         );
         return _sourceControl.GetLatestCommitForCurrentUser(editingContext);
-    }
-
-    /// <summary>
-    /// Returns information about a given branch
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <param name="branch">Name of branch</param>
-    /// <returns>The branch info</returns>
-    [HttpGet]
-    [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
-    public async Task<Branch> Branch(string org, string repository, [FromQuery] string? branch) =>
-        await _giteaClient.GetBranch(org, repository, branch);
-
-    /// <summary>
-    /// Returns a list of branches in the repository
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <returns>List of branches</returns>
-    [HttpGet]
-    [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
-    public async Task<ActionResult<List<Branch>>> Branches(string org, string repository)
-    {
-        try
-        {
-            List<Branch> branches = await _giteaClient.GetBranches(org, repository);
-            if (branches == null || branches.Count == 0)
-            {
-                return NoContent();
-            }
-            return Ok(branches);
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError);
-        }
-    }
-
-    /// <summary>
-    /// Creates a new branch in the repository
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <param name="request">The branch creation request</param>
-    /// <returns>The created branch</returns>
-    [HttpPost]
-    [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
-    public async Task<ActionResult<Branch>> CreateBranch(
-        string org,
-        string repository,
-        [FromBody] CreateBranchRequest request
-    )
-    {
-        if (string.IsNullOrWhiteSpace(request?.BranchName))
-        {
-            return BadRequest("Branch name is required");
-        }
-
-        try
-        {
-            Guard.AssertValidRepoBranchName(request.BranchName);
-        }
-        catch (ArgumentException)
-        {
-            return BadRequest($"{request.BranchName} is an invalid branch name.");
-        }
-
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
-        );
-        var branch = await _branchService.CreateBranch(editingContext, request.BranchName);
-        return Ok(branch);
-    }
-
-    /// <summary>
-    /// Deletes a branch from the repository
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <param name="branchName">The name of the branch to delete</param>
-    [HttpDelete]
-    [Route(
-        "repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/{**branchName}"
-    )]
-    public async Task<ActionResult> DeleteBranch(string org, string repository, [FromRoute] string branchName)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string token = await HttpContext.GetDeveloperAppTokenAsync();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext =
-            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
-
-        DeleteBranchResult result = _branchService.DeleteBranch(authenticatedContext, branchName);
-
-        return result switch
-        {
-            DeleteBranchResult.Success => NoContent(),
-            DeleteBranchResult.InvalidBranchName => BadRequest($"{branchName} is an invalid branch name."),
-            DeleteBranchResult.DefaultBranchProtected => BadRequest("Cannot delete the default branch."),
-            DeleteBranchResult.CheckedOutBranchProtected => BadRequest(
-                "Cannot delete the currently checked out branch."
-            ),
-            _ => StatusCode(500),
-        };
-    }
-
-    /// <summary>
-    /// Gets information about the current branch
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <returns>Information about the current branch</returns>
-    [HttpGet]
-    [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/current-branch")]
-    public ActionResult<CurrentBranchInfo> GetCurrentBranch(string org, string repository)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
-        );
-        var branchInfo = _branchService.GetCurrentBranch(editingContext);
-        return Ok(branchInfo);
-    }
-
-    /// <summary>
-    /// Checks out a specific branch
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <param name="request">The checkout request</param>
-    /// <returns>The updated repository status</returns>
-    [HttpPost]
-    [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/checkout")]
-    public async Task<ActionResult<RepoStatus>> CheckoutBranch(
-        string org,
-        string repository,
-        [FromBody] CheckoutBranchRequest request
-    )
-    {
-        if (string.IsNullOrWhiteSpace(request?.BranchName))
-        {
-            return BadRequest("Branch name is required");
-        }
-
-        try
-        {
-            Guard.AssertValidRepoBranchName(request.BranchName);
-        }
-        catch (ArgumentException)
-        {
-            return BadRequest($"{request.BranchName} is an invalid branch name.");
-        }
-
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string token = await HttpContext.GetDeveloperAppTokenAsync();
-        AltinnAuthenticatedRepoEditingContext authenticatedContext =
-            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
-        RepoStatus repoStatus = _branchService.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
-        return Ok(repoStatus);
-    }
-
-    /// <summary>
-    /// Discards all local changes in the repository
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repository">The name of repository</param>
-    /// <returns>The updated repository status</returns>
-    [HttpPost]
-    [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard-changes")]
-    public ActionResult<RepoStatus> DiscardLocalChanges(string org, string repository)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
-        );
-        var repoStatus = _branchService.DiscardLocalChanges(editingContext);
-        return Ok(repoStatus);
     }
 
     /// <summary>

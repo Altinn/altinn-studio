@@ -22,7 +22,7 @@ public class CreateBranchTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
-    private static string VersionPrefix => "/designer/api/repos";
+    private static string VersionPrefix => "/designer/api";
 
     public CreateBranchTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -41,7 +41,7 @@ public class CreateBranchTests
     public async Task CreateBranch_ValidBranchName_ReturnsCreatedBranch(string org, string repo, string branchName)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches";
         var expectedBranch = new Branch { Name = branchName };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
@@ -70,7 +70,7 @@ public class CreateBranchTests
     public async Task CreateBranch_BranchAlreadyExists_ReturnsError(string org, string repo, string branchName)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches";
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _branchServiceMock
@@ -97,7 +97,7 @@ public class CreateBranchTests
     public async Task CreateBranch_EmptyRequest_ReturnsBadRequest()
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
+        string uri = $"{VersionPrefix}/ttd/apps-test/branches";
         using var content = new StringContent("{}", Encoding.UTF8, "application/json");
 
         // Act

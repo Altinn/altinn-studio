@@ -20,7 +20,7 @@ public class DeleteBranchTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
-    private static string VersionPrefix => "/designer/api/repos";
+    private static string VersionPrefix => "/designer/api";
 
     public DeleteBranchTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -38,7 +38,7 @@ public class DeleteBranchTests
     public async Task DeleteBranch_Success_ReturnsNoContent(string org, string repo, string branchName)
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches/{branchName}";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/{branchName}";
         _branchServiceMock
             .Setup(x => x.DeleteBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), branchName))
             .Returns(DeleteBranchResult.Success);
@@ -66,7 +66,7 @@ public class DeleteBranchTests
     )
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches/{branchName}";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/{branchName}";
         _branchServiceMock
             .Setup(x => x.DeleteBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), branchName))
             .Returns(result);

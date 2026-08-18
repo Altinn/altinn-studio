@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.RepositoryController;
 
 public class BranchesTests : DesignerEndpointsTestsBase<BranchesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix => "/designer/api/repos";
+    private static string VersionPrefix => "/designer/api";
 
     public BranchesTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -32,7 +32,7 @@ public class BranchesTests : DesignerEndpointsTestsBase<BranchesTests>, IClassFi
     public async Task Branches_Returned_OK()
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
+        string uri = $"{VersionPrefix}/ttd/apps-test/branches";
 
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 

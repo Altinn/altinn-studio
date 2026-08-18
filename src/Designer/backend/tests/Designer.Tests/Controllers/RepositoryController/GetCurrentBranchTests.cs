@@ -19,7 +19,7 @@ public class GetCurrentBranchTests
         IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IBranchService> _branchServiceMock = new Mock<IBranchService>();
-    private static string VersionPrefix => "/designer/api/repos";
+    private static string VersionPrefix => "/designer/api";
 
     public GetCurrentBranchTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -42,7 +42,7 @@ public class GetCurrentBranchTests
     )
     {
         // Arrange
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/current";
         var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
@@ -65,7 +65,7 @@ public class GetCurrentBranchTests
         // Arrange
         string org = "ttd";
         string repo = "non-existing-repo";
-        string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
+        string uri = $"{VersionPrefix}/{org}/{repo}/branches/current";
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _branchServiceMock
