@@ -2242,6 +2242,58 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingClientDetector_ScopesTheModelChecksByQualifiedNamesToo()
+    {
+        // No `using` anywhere, so scoping on imports alone would give this file only the generic
+        // "repoint these references" warning - and none of the guidance it actually needs about the
+        // nested status types, the list cardinality, or the SBD rename.
+        _app.Write(
+            "logic/Eformidling/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Altinn.Common.EFormidlingClient.Models.Content Entry;
+                public Altinn.Common.EFormidlingClient.Models.Basisregistrering Registration;
+
+                public Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument Build() =>
+                    new Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
+                    };
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("Statuses.Entry", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("maxOccurs", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_GivesTheExtensionsItsOwnGuidanceWhenWrittenInFull()
+    {
+        // The extensions namespace sits under a reported prefix, so without de-duplication this would
+        // arrive only as the generic warning, which does not say what to write instead.
+        _app.Write(
+            "logic/Clients/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(client, query, headers);
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("HttpClientExtension", StringComparison.Ordinal));
+        Assert.DoesNotContain(summaries, s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
     {
         // A plain using is rewritten automatically, so reporting it would be noise.

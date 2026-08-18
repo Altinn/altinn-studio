@@ -7,7 +7,7 @@ namespace Altinn.App.Core.EFormidling.Models.SBD;
 /// Business Document Header specification.
 /// Ref: <see href="https://www.gs1.org/standards/edi/standard-business-document-header-sbdh"/>.
 /// </summary>
-public class StandardBusinessDocument
+public sealed class StandardBusinessDocument
 {
     /// <summary>
     /// The header describing sender, receiver, document and business scope.
@@ -25,7 +25,7 @@ public class StandardBusinessDocument
 /// <summary>
 /// Identifies a party to the shipment.
 /// </summary>
-public class Identifier
+public sealed class Identifier
 {
     /// <summary>
     /// The identifying value. Requires a <c>0192:</c> prefix for Norwegian organisations; the prefix is
@@ -44,7 +44,7 @@ public class Identifier
 /// <summary>
 /// The organisation that created the standard business document.
 /// </summary>
-public class Sender
+public sealed class Sender
 {
     /// <summary>
     /// Identifies the sender.
@@ -62,7 +62,7 @@ public class Sender
 /// <summary>
 /// An organisation receiving the standard business document.
 /// </summary>
-public class Receiver
+public sealed class Receiver
 {
     /// <summary>
     /// Identifies the receiver.
@@ -80,7 +80,7 @@ public class Receiver
 /// <summary>
 /// Identifies the document being sent.
 /// </summary>
-public class DocumentIdentification
+public sealed class DocumentIdentification
 {
     /// <summary>
     /// The originator of the business data standard, used to verify that a message's grammar is valid.
@@ -121,7 +121,7 @@ public class DocumentIdentification
 /// <summary>
 /// Supporting information for a <see cref="Scope"/>.
 /// </summary>
-public class ScopeInformation
+public sealed class ScopeInformation
 {
     /// <summary>
     /// When a response is expected. The integrasjonspunkt reads the shipment's lifetime from this and
@@ -134,7 +134,7 @@ public class ScopeInformation
 /// <summary>
 /// One scope the document operates under, such as a conversation or a business process.
 /// </summary>
-public class Scope
+public sealed class Scope
 {
     /// <summary>
     /// The kind of scope, for example <c>ConversationId</c>, <c>SenderRef</c> or <c>ReceiverRef</c>.
@@ -165,7 +165,7 @@ public class Scope
 /// <summary>
 /// The scopes the document operates under.
 /// </summary>
-public class BusinessScope
+public sealed class BusinessScope
 {
     /// <summary>
     /// The scopes. Only those the parties have agreed to are valid; intermediary scopes need not all
@@ -178,7 +178,7 @@ public class BusinessScope
 /// <summary>
 /// The header of a <see cref="StandardBusinessDocument"/>.
 /// </summary>
-public class StandardBusinessDocumentHeader
+public sealed class StandardBusinessDocumentHeader
 {
     /// <summary>
     /// The version of the header specification.
@@ -220,7 +220,7 @@ public class StandardBusinessDocumentHeader
 /// <see cref="Altinn.App.Core.EFormidling.Models.Arkivmelding"/>, the Noark 5 document, which shared
 /// this name until v9.
 /// </remarks>
-public class ArkivmeldingMetadata
+public sealed class ArkivmeldingMetadata
 {
     /// <summary>
     /// The authentication level required to open the document.
@@ -243,7 +243,7 @@ public class ArkivmeldingMetadata
 /// type and a property sharing a name, and every alternative name reads worse than matching the
 /// property. Every other type in this namespace pairs with a same-named property the same way.
 /// </remarks>
-public class Dpf
+public sealed class Dpf
 {
     /// <summary>
     /// The shipment type, used for routing on the receiving end.

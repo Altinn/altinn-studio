@@ -195,7 +195,7 @@ namespace Altinn.App.Core.EFormidling.Interface
 namespace Altinn.App.Core.EFormidling.Models
 {
     [System.Xml.Serialization.XmlRoot(ElementName="arkivmelding", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
-    public class Arkivmelding
+    public sealed class Arkivmelding
     {
         public Arkivmelding() { }
         [System.Xml.Serialization.XmlElement(ElementName="antallFiler", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
@@ -222,7 +222,7 @@ namespace Altinn.App.Core.EFormidling.Models
         public const string XmlSchemaInstance = "http://www.w3.org/2001/XMLSchema-instance";
     }
     [System.Xml.Serialization.XmlType(TypeName="journalpost")]
-    public class Basisregistrering
+    public sealed class Basisregistrering
     {
         public Basisregistrering() { }
         [System.Xml.Serialization.XmlElement(ElementName="arkivertAv")]
@@ -261,7 +261,7 @@ namespace Altinn.App.Core.EFormidling.Models
         public string? Type { get; set; }
     }
     [System.Xml.Serialization.XmlRoot(ElementName="dokumentbeskrivelse")]
-    public class Dokumentbeskrivelse
+    public sealed class Dokumentbeskrivelse
     {
         public Dokumentbeskrivelse() { }
         [System.Xml.Serialization.XmlElement(ElementName="dokumentnummer")]
@@ -288,7 +288,7 @@ namespace Altinn.App.Core.EFormidling.Models
         public string? Tittel { get; set; }
     }
     [System.Xml.Serialization.XmlRoot(ElementName="dokumentobjekt")]
-    public class Dokumentobjekt
+    public sealed class Dokumentobjekt
     {
         public Dokumentobjekt() { }
         [System.Xml.Serialization.XmlElement(ElementName="opprettetAv")]
@@ -316,7 +316,7 @@ namespace Altinn.App.Core.EFormidling.Models
         public string? Status { get; init; }
     }
     [System.Xml.Serialization.XmlRoot(ElementName="klassifikasjon", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
-    public class Klassifikasjon
+    public sealed class Klassifikasjon
     {
         public Klassifikasjon() { }
         [System.Xml.Serialization.XmlElement(ElementName="klasseID", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
@@ -331,7 +331,7 @@ namespace Altinn.App.Core.EFormidling.Models
         public string? Tittel { get; set; }
     }
     [System.Xml.Serialization.XmlRoot(ElementName="korrespondansepart")]
-    public class Korrespondansepart
+    public sealed class Korrespondansepart
     {
         public Korrespondansepart() { }
         [System.Xml.Serialization.XmlElement(ElementName="korrespondansepartNavn")]
@@ -340,7 +340,7 @@ namespace Altinn.App.Core.EFormidling.Models
         public string? Korrespondanseparttype { get; set; }
     }
     [System.Xml.Serialization.XmlType(TypeName="saksmappe")]
-    public class Mappe
+    public sealed class Mappe
     {
         public Mappe() { }
         [System.Xml.Serialization.XmlElement(ElementName="administrativEnhet", Namespace="http://www.arkivverket.no/standarder/noark5/arkivmelding")]
@@ -439,7 +439,7 @@ namespace Altinn.App.Core.EFormidling.Models
 }
 namespace Altinn.App.Core.EFormidling.Models.SBD
 {
-    public class ArkivmeldingMetadata
+    public sealed class ArkivmeldingMetadata
     {
         public ArkivmeldingMetadata() { }
         [System.Text.Json.Serialization.JsonPropertyName("dpf")]
@@ -447,13 +447,13 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("sikkerhetsnivaa")]
         public int Sikkerhetsnivaa { get; set; }
     }
-    public class BusinessScope
+    public sealed class BusinessScope
     {
         public BusinessScope() { }
         [System.Text.Json.Serialization.JsonPropertyName("scope")]
         public System.Collections.Generic.List<Altinn.App.Core.EFormidling.Models.SBD.Scope>? Scope { get; set; }
     }
-    public class DocumentIdentification
+    public sealed class DocumentIdentification
     {
         public DocumentIdentification() { }
         [System.Text.Json.Serialization.JsonPropertyName("creationDateAndTime")]
@@ -467,13 +467,13 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("typeVersion")]
         public string? TypeVersion { get; set; }
     }
-    public class Dpf
+    public sealed class Dpf
     {
         public Dpf() { }
         [System.Text.Json.Serialization.JsonPropertyName("forsendelseType")]
         public string? ForsendelsesType { get; set; }
     }
-    public class Identifier
+    public sealed class Identifier
     {
         public Identifier() { }
         [System.Text.Json.Serialization.JsonPropertyName("authority")]
@@ -481,7 +481,7 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("value")]
         public string? Value { get; set; }
     }
-    public class Receiver
+    public sealed class Receiver
     {
         public Receiver() { }
         [System.Text.Json.Serialization.JsonPropertyName("contactInformation")]
@@ -489,7 +489,7 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
         public Altinn.App.Core.EFormidling.Models.SBD.Identifier? Identifier { get; set; }
     }
-    public class Scope
+    public sealed class Scope
     {
         public Scope() { }
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
@@ -501,13 +501,13 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string? Type { get; set; }
     }
-    public class ScopeInformation
+    public sealed class ScopeInformation
     {
         public ScopeInformation() { }
         [System.Text.Json.Serialization.JsonPropertyName("expectedResponseDateTime")]
         public System.DateTime ExpectedResponseDateTime { get; set; }
     }
-    public class Sender
+    public sealed class Sender
     {
         public Sender() { }
         [System.Text.Json.Serialization.JsonPropertyName("contactInformation")]
@@ -515,7 +515,7 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
         public Altinn.App.Core.EFormidling.Models.SBD.Identifier? Identifier { get; set; }
     }
-    public class StandardBusinessDocument
+    public sealed class StandardBusinessDocument
     {
         public StandardBusinessDocument() { }
         [System.Text.Json.Serialization.JsonPropertyName("arkivmelding")]
@@ -523,7 +523,7 @@ namespace Altinn.App.Core.EFormidling.Models.SBD
         [System.Text.Json.Serialization.JsonPropertyName("standardBusinessDocumentHeader")]
         public Altinn.App.Core.EFormidling.Models.SBD.StandardBusinessDocumentHeader? StandardBusinessDocumentHeader { get; set; }
     }
-    public class StandardBusinessDocumentHeader
+    public sealed class StandardBusinessDocumentHeader
     {
         public StandardBusinessDocumentHeader() { }
         [System.Text.Json.Serialization.JsonPropertyName("businessScope")]

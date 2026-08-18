@@ -167,16 +167,30 @@ internal sealed class RemovedEFormidlingClientApiDetector
         _scanner = scanner;
     }
 
-    private static bool ReferencesModelsNamespace(ScannedCSharpFile file) =>
-        Array.Exists(_modelNamespaces, ns => CSharpSyntaxQueries.UsingNamespaces(file, ns).Any());
+    /// <summary>
+    /// Whether a file reaches into <paramref name="namespaces"/> at all, by importing one or by writing
+    /// a name in full. Both count: a file that only ever writes
+    /// <c>Altinn.Common.EFormidlingClient.Models.Content</c> has no matching <c>using</c>, and scoping
+    /// on imports alone would deny it the guidance it most needs.
+    /// </summary>
+    private static bool References(ScannedCSharpFile file, string[] namespaces) =>
+        Array.Exists(
+            namespaces,
+            ns =>
+                CSharpSyntaxQueries.UsingNamespaces(file, ns).Any()
+                || CSharpSyntaxQueries.QualifiedNameReferences(file, ns).Any()
+        );
 
-    private static bool ReferencesSbdNamespace(ScannedCSharpFile file) =>
-        Array.Exists(_sbdNamespaces, ns => CSharpSyntaxQueries.UsingNamespaces(file, ns).Any());
+    private static bool ReferencesModelsNamespace(ScannedCSharpFile file) => References(file, _modelNamespaces);
+
+    private static bool ReferencesSbdNamespace(ScannedCSharpFile file) => References(file, _sbdNamespaces);
 
     public MigrationResult Detect()
     {
         var extensions = _scanner.Files.SelectMany(file =>
-            CSharpSyntaxQueries.UsingNamespaces(file, ExtensionsNamespace)
+            CSharpSyntaxQueries
+                .UsingNamespaces(file, ExtensionsNamespace)
+                .Concat(CSharpSyntaxQueries.QualifiedNameReferences(file, ExtensionsNamespace))
         );
 
         var endpoints = _scanner.Files.SelectMany(file =>
@@ -204,13 +218,18 @@ internal sealed class RemovedEFormidlingClientApiDetector
                     )
             );
 
-        var qualified = _scanner.Files.SelectMany(file =>
-            _clientNamespaces.SelectMany(ns =>
-                CSharpSyntaxQueries
-                    .UnrewritableUsingNamespaces(file, ns)
-                    .Concat(CSharpSyntaxQueries.QualifiedNameReferences(file, ns))
+        // Anything already reported under ExtensionsSummary is dropped here: the extensions namespace
+        // sits under one of these prefixes, and its own summary carries the replacement to write, which
+        // this generic one does not.
+        var qualified = _scanner
+            .Files.SelectMany(file =>
+                _clientNamespaces.SelectMany(ns =>
+                    CSharpSyntaxQueries
+                        .UnrewritableUsingNamespaces(file, ns)
+                        .Concat(CSharpSyntaxQueries.QualifiedNameReferences(file, ns))
+                )
             )
-        );
+            .Where(match => !match.Symbol.Contains(ExtensionsNamespace, StringComparison.Ordinal));
 
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(ExtensionsSummary, extensions),

@@ -18,7 +18,7 @@ namespace Altinn.App.Core.EFormidling.Models;
 /// </para>
 /// </remarks>
 [XmlRoot(ElementName = "arkivmelding", Namespace = ArkivmeldingNamespaces.Noark5)]
-public class Arkivmelding
+public sealed class Arkivmelding
 {
     /// <summary>
     /// The system that produced the arkivmelding.
@@ -94,7 +94,7 @@ public static class ArkivmeldingNamespaces
 /// A document object — the file a <see cref="Dokumentbeskrivelse"/> describes.
 /// </summary>
 [XmlRoot(ElementName = "dokumentobjekt")]
-public class Dokumentobjekt
+public sealed class Dokumentobjekt
 {
     /// <summary>
     /// The version number.
@@ -131,7 +131,7 @@ public class Dokumentobjekt
 /// A document description — the metadata for one document in a registration.
 /// </summary>
 [XmlRoot(ElementName = "dokumentbeskrivelse")]
-public class Dokumentbeskrivelse
+public sealed class Dokumentbeskrivelse
 {
     /// <summary>
     /// The system id.
@@ -206,7 +206,7 @@ public class Dokumentbeskrivelse
 /// A correspondence party of a registration.
 /// </summary>
 [XmlRoot(ElementName = "korrespondansepart")]
-public class Korrespondansepart
+public sealed class Korrespondansepart
 {
     /// <summary>
     /// The kind of correspondence party.
@@ -225,7 +225,7 @@ public class Korrespondansepart
 /// A basic registration — a journal entry (journalpost) within a folder.
 /// </summary>
 [XmlType(TypeName = "journalpost")]
-public class Basisregistrering
+public sealed class Basisregistrering
 {
     /// <summary>
     /// The system id.
@@ -374,7 +374,7 @@ public class Basisregistrering
 /// Sorting these members by name would emit invalid XML.
 /// </remarks>
 [XmlType(TypeName = "saksmappe")]
-public class Mappe
+public sealed class Mappe
 {
     /// <summary>
     /// The system id.
@@ -448,7 +448,7 @@ public class Mappe
 /// A classification applied to a folder.
 /// </summary>
 [XmlRoot(ElementName = "klassifikasjon", Namespace = ArkivmeldingNamespaces.Noark5)]
-public class Klassifikasjon
+public sealed class Klassifikasjon
 {
     /// <summary>
     /// A reference to the classification system.

@@ -468,10 +468,16 @@ internal static class CSharpSyntaxQueries
     /// touches <c>using</c> directives, so these survive it untouched and must be changed by hand.
     /// </summary>
     /// <remarks>
-    /// Only the outermost qualified name is reported: <see cref="SyntaxNode.DescendantNodes"/> also
-    /// yields the nested left-hand names of a qualified name, which would report the same reference
-    /// several times over. Names inside <c>using</c> directives are skipped - those are already covered
-    /// by <see cref="UsingNamespaces"/> and <see cref="AliasedUsingNamespaces"/>.
+    /// Covers both positions a qualified name can appear in, because they parse differently: a type
+    /// (<c>QualifiedNameSyntax</c>, e.g. a field's declared type) and an expression
+    /// (<c>MemberAccessExpressionSyntax</c>, e.g. a static call). Matching only the first would miss
+    /// <c>Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(...)</c> entirely.
+    /// <para>
+    /// Only the outermost name is reported in each case: <see cref="SyntaxNode.DescendantNodes"/> also
+    /// yields the nested left-hand names, which would report the same reference several times over.
+    /// Names inside <c>using</c> directives are skipped - those are already covered by
+    /// <see cref="UsingNamespaces"/> and <see cref="UnrewritableUsingNamespaces"/>.
+    /// </para>
     /// </remarks>
     public static IEnumerable<CSharpApiMatch> QualifiedNameReferences(ScannedCSharpFile file, string namespacePrefix)
     {
@@ -489,6 +495,20 @@ internal static class CSharpSyntaxQueries
             if (WithoutGlobalAlias(name).StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
             {
                 yield return new CSharpApiMatch(file.RelativePath, file.GetLine(qualified), name);
+            }
+        }
+
+        foreach (var access in file.Root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        {
+            if (access.Parent is MemberAccessExpressionSyntax outer && outer.Expression == access)
+            {
+                continue;
+            }
+
+            var name = access.ToString();
+            if (WithoutGlobalAlias(name).StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(access), name);
             }
         }
     }
