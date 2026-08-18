@@ -244,15 +244,9 @@ public sealed class DataClient : IDataClient
             return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
-        // Nothing takes the response over on the remaining paths, so this scope owns it.
+        // Nothing takes the response over on the failure path, so this scope owns it.
         using (response)
         {
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                // ! TODO: Remove null return in v9 and throw exception instead
-                return null!;
-            }
-
             throw await PlatformHttpException.Create(response, cts.Token);
         }
     }
