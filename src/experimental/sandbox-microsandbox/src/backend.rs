@@ -1,4 +1,10 @@
-use std::{cell::RefCell, collections::HashMap, path::Path, rc::Rc, time::Instant};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    path::{Path, PathBuf},
+    rc::Rc,
+    time::Instant,
+};
 
 use microsandbox::sandbox::{PullPolicy, SandboxStatus};
 use sandbox::progress::SandboxProgress;
@@ -38,7 +44,22 @@ pub struct MicrosandboxProvider {
     pub(crate) executions: ExecutionControls,
 }
 
+/// Configures the host storage used by a [`MicrosandboxProvider`].
+pub struct MicrosandboxProviderBuilder {
+    home: PathBuf,
+    cache_directory: Option<PathBuf>,
+}
+
 impl MicrosandboxProvider {
+    /// Configures a Microsandbox Provider below its private data directory.
+    #[must_use]
+    pub fn builder(home: impl Into<PathBuf>) -> MicrosandboxProviderBuilder {
+        MicrosandboxProviderBuilder {
+            home: home.into(),
+            cache_directory: None,
+        }
+    }
+
     /// Opens an isolated Microsandbox Provider below its data directory.
     ///
     /// # Errors
@@ -46,12 +67,24 @@ impl MicrosandboxProvider {
     /// Returns an error when the home cannot be initialized or Microsandbox
     /// cannot open its local runtime.
     pub async fn open(home: impl AsRef<Path>) -> Result<Self, Error> {
-        let home = home.as_ref();
+        Self::builder(home.as_ref().to_path_buf()).open().await
+    }
+
+    /// Returns the configured shared Microsandbox cache directory.
+    #[must_use]
+    pub fn cache_directory(&self) -> PathBuf {
+        self.client.cache_directory()
+    }
+
+    async fn open_configured(home: PathBuf, cache_directory: Option<PathBuf>) -> Result<Self, Error> {
         if home.as_os_str().is_empty() {
             return Err(Error::invalid("provider.home", "must not be empty"));
         }
+        if cache_directory.as_ref().is_some_and(|path| path.as_os_str().is_empty()) {
+            return Err(Error::invalid("provider.cacheDirectory", "must not be empty"));
+        }
         let state = StateStore::open(home.join("state")).await?;
-        let client = Client::open(home.join("runtime")).await?;
+        let client = Client::open(home.join("runtime"), cache_directory).await?;
         let image_resolver = MicrosandboxImageResolver::new(client.clone());
         Ok(Self {
             client,
@@ -340,6 +373,29 @@ impl MicrosandboxProvider {
             });
         }
         Ok(resolved)
+    }
+}
+
+impl MicrosandboxProviderBuilder {
+    /// Places reusable Microsandbox cache artifacts in this directory.
+    ///
+    /// Separate Provider instances may share this directory. Sandbox state,
+    /// writable roots and other mutable runtime data remain below the private
+    /// Provider home.
+    #[must_use]
+    pub fn cache_directory(mut self, path: impl Into<PathBuf>) -> Self {
+        self.cache_directory = Some(path.into());
+        self
+    }
+
+    /// Opens the configured Microsandbox Provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when a configured path is empty or cannot be
+    /// initialized by the Microsandbox runtime.
+    pub async fn open(self) -> Result<MicrosandboxProvider, Error> {
+        MicrosandboxProvider::open_configured(self.home, self.cache_directory).await
     }
 }
 

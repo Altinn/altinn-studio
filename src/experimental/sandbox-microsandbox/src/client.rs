@@ -75,15 +75,21 @@ fn unsupported_resource(resource: &'static str, value: impl std::fmt::Display, r
 }
 
 impl Client {
-    pub(crate) async fn open(microsandbox_home: PathBuf) -> Result<Self, Error> {
-        let backend = LocalBackend::builder()
+    pub(crate) async fn open(microsandbox_home: PathBuf, cache_directory: Option<PathBuf>) -> Result<Self, Error> {
+        if let Some(cache_directory) = &cache_directory {
+            tokio::fs::create_dir_all(cache_directory)
+                .await
+                .map_err(|source| error::io("create Microsandbox cache directory", source))?;
+        }
+        let mut builder = LocalBackend::builder()
             .ignore_persisted_config()
             .home(&microsandbox_home)
             .disable_metrics_sample(true)
-            .deployment_profile(microsandbox::sandbox::DeploymentProfile::SingleTenant)
-            .build()
-            .await
-            .map_err(error::microsandbox)?;
+            .deployment_profile(microsandbox::sandbox::DeploymentProfile::SingleTenant);
+        if let Some(cache_directory) = cache_directory {
+            builder = builder.cache_dir(cache_directory);
+        }
+        let backend = builder.build().await.map_err(error::microsandbox)?;
         Ok(Self {
             backend: Arc::new(backend),
             microsandbox_home,
@@ -93,6 +99,10 @@ impl Client {
 
     pub(crate) fn local(&self) -> &LocalBackend {
         &self.backend
+    }
+
+    pub(crate) fn cache_directory(&self) -> PathBuf {
+        self.backend.cache_dir()
     }
 
     pub(crate) async fn bind_network_controller(
