@@ -28,9 +28,12 @@ spec:
           resources:
             requests:
               cpu: 100m # Tested usage: 70m spike for 5 concurrent workflows
-              memory: 250Mi # Tested usage: 220Mi
+              # Baseline raised: studioctl starts studioctl-server (.NET) in this
+              # pod for the v8->v9 upgrade, and it keeps running.
+              memory: 400Mi # Python ~220Mi + idle studioctl-server
             limits:
-              memory: 1Gi
+              # Headroom for the upgrade's `dotnet restore` + Roslyn spike.
+              memory: 2Gi
           env:
             - name: AZURE_API_KEY
               valueFrom:
