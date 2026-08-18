@@ -119,4 +119,16 @@ internal static partial class EngineRepositoryLogs
         int lostCount,
         int totalCount
     );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed to {Operation} mailbox {MailboxId} after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedMailboxOperation(
+        this ILogger<EngineRepository> logger,
+        string operation,
+        Guid mailboxId,
+        string message,
+        Exception ex
+    );
 }

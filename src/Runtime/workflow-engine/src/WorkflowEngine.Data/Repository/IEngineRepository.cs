@@ -286,4 +286,44 @@ internal interface IEngineRepository
         string ns,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Mints a mailbox with the caller-generated <paramref name="mailboxId"/>, stamping its absolute
+    /// deadline as <paramref name="now"/> plus <paramref name="timeout"/>.
+    /// Idempotent on <c>(namespace, idempotencyKey)</c>: a key that already minted a mailbox returns
+    /// that mailbox unchanged, and does so even when the collection is at its cap — refusing a replay
+    /// would strand a caller that has already published the mailbox id.
+    /// A genuinely new mailbox in a named collection is refused with
+    /// <see cref="MailboxMintResult.AtCollectionCapacity"/> once the collection holds
+    /// <paramref name="maxOpenPerCollection"/> open mailboxes. A mailbox minted without a collection key
+    /// is not capped — there is no collection to count it against.
+    /// </summary>
+    Task<MailboxMintResult> MintMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string? collectionKey,
+        TimeSpan timeout,
+        DateTimeOffset now,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a mailbox by id within a namespace, or null when it does not exist there.
+    /// </summary>
+    Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Closes a mailbox for deliveries, taking its row lock as the transaction's first act.
+    /// Idempotent: an already-closed mailbox is returned as it stands, carrying the reason and instant
+    /// of the close that actually happened rather than this call's.
+    /// </summary>
+    Task<MailboxCloseResult> CloseMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDisposedReason reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default
+    );
 }

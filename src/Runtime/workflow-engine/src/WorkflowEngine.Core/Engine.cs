@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -59,6 +60,28 @@ internal interface IEngine
     /// it up immediately instead of when its timer elapses. Idempotent.
     /// </summary>
     Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Mints a mailbox, generating its id and stamping its absolute deadline from the requested timeout.
+    /// Idempotent on the caller's key within the namespace.
+    /// </summary>
+    /// <remarks>
+    /// Validates the request itself and answers <see cref="MailboxMintResult.Invalid"/> when it is
+    /// inadmissible — an idempotency or collection key that is empty, whitespace, or longer than the 200
+    /// characters the schema stores, or a timeout that is not positive or exceeds
+    /// <see cref="EngineSettings.MaxMailboxTimeout"/>. A caller need not pre-validate.
+    /// </remarks>
+    Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Closes a mailbox for deliveries at a caller's request. Idempotent: an already-closed mailbox is
+    /// reported as it stands, carrying the reason and instant of the close that actually happened.
+    /// </summary>
+    Task<MailboxCloseResult> CloseMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -416,6 +439,110 @@ internal sealed class Engine(
             return new NudgeWorkflowResult.AlreadyRunnable(workflowId);
 
         return new NudgeWorkflowResult.NotParked(status.Value);
+    }
+
+    /// <summary>
+    /// The longest mailbox key the schema stores: <c>idempotency_key</c> and <c>collection_key</c> are
+    /// both <c>varchar(200)</c>.
+    /// </summary>
+    private const int MaxMailboxKeyLength = 200;
+
+    /// <summary>
+    /// Validates a mint request before it can reach the database.
+    /// </summary>
+    /// <remarks>
+    /// Length in particular has to be caught here. Both keys are <c>varchar(200)</c>, and Postgres
+    /// answers an over-long value with SQLSTATE 22001, which the repository's retry classifier reads as
+    /// transient — so a caller's typo would be retried until the database command timeout and then
+    /// logged as a suspected database outage. That is a slow, noisy, and entirely wrong answer to a
+    /// plain input error.
+    /// </remarks>
+    private MailboxMintResult.Invalid? ValidateMailboxRequest(MailboxCreateRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+            return new MailboxMintResult.Invalid("IdempotencyKey cannot be empty or whitespace.");
+
+        if (request.IdempotencyKey.Length > MaxMailboxKeyLength)
+            return new MailboxMintResult.Invalid(
+                $"IdempotencyKey '{request.IdempotencyKey[..50]}...' is {request.IdempotencyKey.Length} characters, maximum is {MaxMailboxKeyLength}."
+            );
+
+        if (request.CollectionKey is not null)
+        {
+            if (string.IsNullOrWhiteSpace(request.CollectionKey))
+                return new MailboxMintResult.Invalid("CollectionKey cannot be empty or whitespace.");
+
+            if (request.CollectionKey.Length > MaxMailboxKeyLength)
+                return new MailboxMintResult.Invalid(
+                    $"CollectionKey '{request.CollectionKey[..50]}...' is {request.CollectionKey.Length} characters, maximum is {MaxMailboxKeyLength}."
+                );
+        }
+
+        if (request.Timeout <= TimeSpan.Zero)
+            return new MailboxMintResult.Invalid($"Timeout must be greater than zero, but was {request.Timeout}.");
+
+        if (request.Timeout > _settings.MaxMailboxTimeout)
+            return new MailboxMintResult.Invalid(
+                $"Timeout {request.Timeout} exceeds the maximum mailbox timeout of {_settings.MaxMailboxTimeout}."
+            );
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (ValidateMailboxRequest(request) is { } invalid)
+            return invalid;
+
+        var now = timeProvider.GetUtcNow();
+
+        // Time-ordered so a mailbox id sorts by mint time wherever ids are listed, matching how every
+        // other engine-generated id behaves.
+        var mailboxId = Guid.CreateVersion7(now);
+
+        var result = await repository.MintMailbox(
+            mailboxId,
+            ns,
+            request.IdempotencyKey,
+            request.CollectionKey,
+            request.Timeout,
+            now,
+            _settings.MaxOpenMailboxesPerCollection,
+            cancellationToken
+        );
+
+        if (result is MailboxMintResult.Minted)
+            Metrics.MailboxesCreated.Add(1);
+
+        return result;
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxCloseResult> CloseMailbox(
+        Guid mailboxId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var result = await repository.CloseMailbox(
+            mailboxId,
+            ns,
+            MailboxDisposedReason.Request,
+            timeProvider.GetUtcNow(),
+            cancellationToken
+        );
+
+        // Only the close that actually happened counts. A repeat close, or one that lost to the
+        // deadline, changed nothing and is not a second closure.
+        if (result is MailboxCloseResult.Closed)
+            Metrics.MailboxesClosed.Add(1, ("reason", MailboxStatusMap.ToDbValue(MailboxDisposedReason.Request)));
+
+        return result;
     }
 
     /// <summary>

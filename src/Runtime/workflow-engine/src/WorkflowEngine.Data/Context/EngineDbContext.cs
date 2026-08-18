@@ -24,6 +24,11 @@ internal sealed class EngineDbContext : DbContext
     /// </summary>
     public DbSet<WorkflowCollectionEntity> WorkflowCollections { get; set; }
 
+    /// <summary>
+    /// Gets or sets the mailbox entities stored in the database.
+    /// </summary>
+    public DbSet<MailboxEntity> Mailboxes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -121,6 +126,62 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.HasKey(e => new { e.Key, e.Namespace });
             entity.HasIndex(e => e.Namespace);
+        });
+
+        // Configure Mailbox entity
+        modelBuilder.Entity<MailboxEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // The mint's serialization point: two concurrent mints of the same key contend on this
+            // index, and exactly one of them inserts.
+            entity.HasIndex(e => new { e.Namespace, e.IdempotencyKey }).IsUnique();
+
+            // Backs the open-mailboxes-per-collection cap, which is counted on every mint. Partial on
+            // 'open' because that is the only status the cap counts, and a closed mailbox stays readable
+            // until retention purges it.
+            entity
+                .HasIndex(e => new { e.Namespace, e.CollectionKey })
+                .HasDatabaseName("ix_mailboxes_namespace_collection_key_open")
+                .HasFilter($"status = '{MailboxStatusMap.Open}'");
+
+            entity.Property(e => e.NextIdx).HasDefaultValue(0L);
+            entity.Property(e => e.NextSeq).HasDefaultValue(0L);
+
+            entity
+                .Property(e => e.Status)
+                .HasColumnType("text")
+                .HasConversion(v => MailboxStatusMap.ToDbValue(v), v => MailboxStatusMap.FromDbValue(v))
+                .HasDefaultValue(MailboxStatus.Open);
+
+            entity
+                .Property(e => e.DisposedReason)
+                .HasColumnType("text")
+                .HasConversion(
+                    v => v == null ? null : MailboxStatusMap.ToDbValue(v.Value),
+                    v => v == null ? null : MailboxStatusMap.ReasonFromDbValue(v)
+                );
+
+            entity.ToTable(table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_mailboxes_status",
+                    $"status IN ('{MailboxStatusMap.Open}', '{MailboxStatusMap.Disposed}')"
+                );
+                table.HasCheckConstraint(
+                    "ck_mailboxes_disposed_reason",
+                    $"disposed_reason IN ('{MailboxStatusMap.ReasonRequest}', '{MailboxStatusMap.ReasonDeadline}')"
+                );
+
+                // The disposal fields are set together with the status or not at all, which is what makes
+                // "disposedReason is null exactly while the mailbox is open" a property of the schema
+                // rather than only of the code path that happens to write it.
+                table.HasCheckConstraint(
+                    "ck_mailboxes_disposal_is_complete",
+                    $"(status = '{MailboxStatusMap.Open}' AND disposed_reason IS NULL AND disposed_at IS NULL) "
+                        + $"OR (status = '{MailboxStatusMap.Disposed}' AND disposed_reason IS NOT NULL AND disposed_at IS NOT NULL)"
+                );
+            });
         });
 
         SnakeCaseNamingConvention.Apply(modelBuilder);

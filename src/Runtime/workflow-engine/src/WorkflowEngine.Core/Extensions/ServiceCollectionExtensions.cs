@@ -181,6 +181,12 @@ public static class OptionsBuilderExtensions
                 if (config.MinStepDeferDelay <= TimeSpan.Zero)
                     config.MinStepDeferDelay = Defaults.EngineSettings.MinStepDeferDelay;
 
+                if (config.MaxMailboxTimeout <= TimeSpan.Zero)
+                    config.MaxMailboxTimeout = Defaults.EngineSettings.MaxMailboxTimeout;
+
+                if (config.MaxOpenMailboxesPerCollection <= 0)
+                    config.MaxOpenMailboxesPerCollection = Defaults.EngineSettings.MaxOpenMailboxesPerCollection;
+
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
@@ -286,6 +292,16 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.MinStepDeferDelay <= config.DefaultStepWaitBudget,
                 $"{ns}.{nameof(EngineSettings.MinStepDeferDelay)} must be less than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitBudget)}."
+            );
+
+            builder.Validate(
+                config => config.MaxMailboxTimeout > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.MaxMailboxTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxOpenMailboxesPerCollection > 0,
+                $"{ns}.{nameof(EngineSettings.MaxOpenMailboxesPerCollection)} must be greater than zero."
             );
 
             builder.Validate(

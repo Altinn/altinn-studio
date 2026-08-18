@@ -33,6 +33,9 @@ public sealed class EngineApiClient : IDisposable
     private string GetCollectionsBasePath(string? ns = null) =>
         $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/collections";
 
+    private string GetMailboxesBasePath(string? ns = null) =>
+        $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/mailboxes";
+
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
@@ -347,6 +350,80 @@ public sealed class EngineApiClient : IDisposable
             return null;
 
         return await AssertSuccessAndDeserialize<WorkflowCollectionDetailResponse>(response);
+    }
+
+    /// <summary>
+    /// Mints a mailbox and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> MintMailboxRaw(MailboxCreateRequest request, string? ns = null) =>
+        _client.PostAsJsonAsync(GetMailboxesBasePath(ns), request);
+
+    /// <summary>
+    /// Mints a mailbox from raw JSON and returns the raw <see cref="HttpResponseMessage"/>.
+    /// Used to exercise binding and validation directly.
+    /// </summary>
+    public async Task<HttpResponseMessage> MintMailboxRaw(string jsonRequest, string? ns = null)
+    {
+        using var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+        return await _client.PostAsync(GetMailboxesBasePath(ns), content);
+    }
+
+    /// <summary>
+    /// Mints a mailbox and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<MailboxResponse> MintMailbox(
+        string idempotencyKey,
+        TimeSpan timeout,
+        string? collectionKey = null,
+        string? ns = null
+    )
+    {
+        using var response = await MintMailboxRaw(
+            new MailboxCreateRequest
+            {
+                IdempotencyKey = idempotencyKey,
+                Timeout = timeout,
+                CollectionKey = collectionKey,
+            },
+            ns
+        );
+        return await AssertSuccessAndDeserialize<MailboxResponse>(response);
+    }
+
+    /// <summary>
+    /// Gets a mailbox and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> GetMailboxRaw(Guid mailboxId, string? ns = null) =>
+        _client.GetAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}", CancellationToken.None);
+
+    /// <summary>
+    /// Gets a mailbox. Returns <see langword="null"/> on 404.
+    /// </summary>
+    public async Task<MailboxResponse?> GetMailbox(Guid mailboxId, string? ns = null)
+    {
+        using var response = await GetMailboxRaw(mailboxId, ns);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        return await AssertSuccessAndDeserialize<MailboxResponse>(response);
+    }
+
+    /// <summary>
+    /// Closes a mailbox and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> CloseMailboxRaw(Guid mailboxId, string? ns = null) =>
+        _client.DeleteAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}", CancellationToken.None);
+
+    /// <summary>
+    /// Closes a mailbox and asserts a 2xx response — 202 when this call closed it, 200 on an idempotent
+    /// repeat. Use <see cref="CloseMailboxRaw"/> when the distinction is what the test is about.
+    /// Throws on failure.
+    /// </summary>
+    public async Task<MailboxResponse> CloseMailbox(Guid mailboxId, string? ns = null)
+    {
+        using var response = await CloseMailboxRaw(mailboxId, ns);
+        return await AssertSuccessAndDeserialize<MailboxResponse>(response);
     }
 
     /// <summary>

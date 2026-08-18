@@ -20,6 +20,8 @@ internal static class Defaults
         DefaultStepWaitBudget = TimeSpan.FromDays(1),
         MaxStepWaitBudget = TimeSpan.FromDays(14),
         MinStepDeferDelay = TimeSpan.FromSeconds(1),
+        MaxMailboxTimeout = TimeSpan.FromDays(21),
+        MaxOpenMailboxesPerCollection = 100,
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
             maxDelay: TimeSpan.FromMinutes(5),

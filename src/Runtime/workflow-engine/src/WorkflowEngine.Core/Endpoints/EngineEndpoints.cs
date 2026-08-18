@@ -149,6 +149,66 @@ internal static class EngineEndpoints
             .WithSummary("Get collection")
             .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
 
+        var mailboxGroup = app.MapGroup("/api/v1/{namespace}/mailboxes").WithTags("Mailboxes");
+
+        mailboxGroup
+            .MapPost("", EngineRequestHandlers.MintMailbox)
+            .WithName("MintMailbox")
+            .WithSummary("Mint mailbox")
+            .WithDescription(
+                """
+                Mints a mailbox: a durable inbox that external messages are delivered into, addressed by the
+                engine-generated id this returns.
+
+                The caller supplies an idempotencyKey unique within the namespace, so a retried step replays
+                onto the same mailbox instead of forking a second one, and a required positive timeout from
+                which the engine stamps the mailbox's one absolute deadline (createdAt + timeout). An optional
+                collectionKey groups the mailbox under a workflow collection and scopes the open-mailboxes cap.
+                Both keys are limited to 200 characters and may not be empty or whitespace.
+
+                201 Created when this call minted the mailbox, 200 OK when the idempotency key had already
+                minted one (the existing mailbox is returned unchanged, even when the collection is at its cap),
+                400 Bad Request for a key that is empty or too long, or a timeout that is not positive or
+                exceeds the configured maximum, and 429 Too Many Requests when the collection already holds
+                the maximum number of open mailboxes.
+
+                That cap is a best-effort resource guard, not an exact bound: it is evaluated against the
+                snapshot the mint runs on, so mints in flight at the same instant can each see room and the
+                collection can end up slightly over. The overshoot is bounded by how many mints are in flight
+                together, and is deliberate — serializing every mint to make the guard exact would cost more
+                than the guard is worth.
+                """
+            );
+
+        mailboxGroup
+            .MapGet("/{mailboxId:guid}", EngineRequestHandlers.GetMailbox)
+            .WithName("GetMailbox")
+            .WithSummary("Get mailbox")
+            .WithDescription(
+                """
+                Gets a mailbox: its status and deadline, both log counters, and how many accepted deliveries
+                no receiver was ever enqueued for.
+
+                200 OK with the mailbox, 404 Not Found when no mailbox with that id exists in the namespace.
+                """
+            );
+
+        mailboxGroup
+            .MapDelete("/{mailboxId:guid}", EngineRequestHandlers.CloseMailbox)
+            .WithName("CloseMailbox")
+            .WithSummary("Close mailbox")
+            .WithDescription(
+                """
+                Closes a mailbox for deliveries. Terminal and idempotent: nothing reopens a mailbox, and a
+                repeat close reports the original disposedAt and disposedReason rather than overwriting them —
+                so does a close that lost the race to the mailbox's deadline.
+
+                202 Accepted when this call closed the mailbox, 200 OK when it was already closed (an
+                idempotent replay, reporting the original disposedAt and disposedReason), and 404 Not Found
+                when no mailbox with that id exists in the namespace.
+                """
+            );
+
         return app;
     }
 }
@@ -634,5 +694,77 @@ internal static class EngineRequestHandlers
             return TypedResults.NotFound();
 
         return TypedResults.Ok(collection);
+    }
+
+    public static async Task<Results<Created<MailboxResponse>, Ok<MailboxResponse>, ProblemHttpResult>> MintMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromBody] MailboxCreateRequest request,
+        [FromServices] IEngine engine,
+        [FromServices] IOptions<EngineSettings> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "mint-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.MintMailbox(ns, request, cancellationToken);
+
+        return result switch
+        {
+            MailboxMintResult.Minted minted => TypedResults.Created(
+                $"/api/v1/{Uri.EscapeDataString(ns)}/mailboxes/{minted.Mailbox.Id}",
+                minted.Mailbox
+            ),
+            MailboxMintResult.Existing existing => TypedResults.Ok(existing.Mailbox),
+            MailboxMintResult.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            MailboxMintResult.AtCollectionCapacity => TypedResults.Problem(
+                detail: $"Collection '{request.CollectionKey}' already holds the maximum of "
+                    + $"{settings.Value.MaxOpenMailboxesPerCollection} open mailboxes.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<Results<Ok<MailboxResponse>, NotFound>> GetMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var mailbox = await repository.GetMailbox(mailboxId, ns, cancellationToken);
+
+        return mailbox is null ? TypedResults.NotFound() : TypedResults.Ok(mailbox);
+    }
+
+    public static async Task<Results<Accepted<MailboxResponse>, Ok<MailboxResponse>, NotFound>> CloseMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "close-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.CloseMailbox(mailboxId, ns, cancellationToken);
+
+        return result switch
+        {
+            MailboxCloseResult.Closed closed => TypedResults.Accepted((string?)null, closed.Mailbox),
+            MailboxCloseResult.AlreadyClosed already => TypedResults.Ok(already.Mailbox),
+            MailboxCloseResult.NotFound => TypedResults.NotFound(),
+            _ => throw new UnreachableException(),
+        };
     }
 }
