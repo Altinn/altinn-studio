@@ -260,6 +260,59 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
     }
 
     [Fact]
+    public async Task Sweep_CanaryInFlight_IsIndeterminateAndKeepsWaiting()
+    {
+        // Arrange — an Open breaker whose only canary is currently leased (workflow Processing,
+        // requeue count unchanged). Being mid-attempt proves nothing about the target: in a
+        // hang-until-timeout storm an in-flight probe is the failure signature, so the sweep must
+        // neither open recovery nor extend/rotate — it waits for the attempt to record a result.
+        await using var context = fixture.CreateDbContext();
+        var settings = Settings(minRequeuedWorkflows: 100); // detection quiet; seeded row drives the cycle
+        var repo = fixture.CreateRepository(settings);
+        var (service, _) = fixture.CreateThrottleService(settings);
+        var now = DateTimeOffset.UtcNow;
+
+        var canaryId = await InsertRequeuedWorkflow(context, repo, backoffUntil: now, stepRequeueCount: 1);
+        var parked = new List<Guid>();
+        for (int i = 0; i < 5; i++)
+        {
+            parked.Add(
+                await InsertRequeuedWorkflow(
+                    context,
+                    repo,
+                    backoffUntil: now.AddMinutes(1 + i),
+                    throttledUntil: now + _initialWindow
+                )
+            );
+        }
+
+        await repo.UpsertNamespaceThrottle(
+            new NamespaceThrottle
+            {
+                Namespace = Ns,
+                State = NamespaceThrottleState.Open,
+                TrippedAt = now.AddMinutes(-5),
+                CurrentWindow = _initialWindow,
+                Canaries = [new ThrottleCanary(canaryId, 1)],
+                UpdatedAt = now.AddSeconds(-30),
+            },
+            TestContext.Current.CancellationToken
+        );
+        await SetWorkflowProcessing(context, canaryId);
+
+        // Act
+        await service.RunSweepCycle(now, TestContext.Current.CancellationToken);
+
+        // Assert — still Open with the same window and the same canary; the horde stays parked.
+        var throttle = await GetThrottle();
+        Assert.NotNull(throttle);
+        Assert.Equal(NamespaceThrottleState.Open, throttle.State);
+        Assert.Equal(_initialWindow, throttle.CurrentWindow);
+        Assert.Equal(canaryId, Assert.Single(throttle.Canaries).WorkflowId);
+        AssertStillParked(await GetThrottledUntil(), parked, now);
+    }
+
+    [Fact]
     public async Task Sweep_AllCanariesFailed_DoublesWindowAndRotatesCanaries()
     {
         // Arrange — trip, then bump every canary's requeue count: each canary retried and failed.
@@ -754,6 +807,12 @@ public sealed class NamespaceThrottleSweepTests(PostgresFixture fixture) : IAsyn
 
         return workflow.DatabaseId;
     }
+
+    private static async Task SetWorkflowProcessing(EngineDbContext context, Guid workflowId) =>
+        await context.Database.ExecuteSqlAsync(
+            $"UPDATE engine.workflows SET status = {(int)PersistentItemStatus.Processing} WHERE id = {workflowId}",
+            TestContext.Current.CancellationToken
+        );
 
     private static async Task BumpStepRequeueCount(EngineDbContext context, Guid workflowId) =>
         await context.Database.ExecuteSqlAsync(
