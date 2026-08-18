@@ -2710,8 +2710,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -2765,8 +2765,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-agent-client"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "ciborium",
  "microsandbox-protocol",
@@ -2778,8 +2778,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-db"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "async-trait",
  "sea-orm",
@@ -2790,8 +2790,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-filesystem"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "libc",
  "microsandbox-utils",
@@ -2803,8 +2803,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-image"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -2830,8 +2830,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-metrics"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "chrono",
  "libc",
@@ -2842,8 +2842,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-migration"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "sea-orm-migration",
  "serde_json",
@@ -2851,8 +2851,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-network"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -2896,8 +2896,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-protocol"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "chrono",
  "ciborium",
@@ -2911,8 +2911,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-runtime"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "bytes",
  "chrono",
@@ -2946,8 +2946,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-types"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "chrono",
  "ipnetwork",
@@ -2960,8 +2960,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-utils"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "dirs",
  "libc",
@@ -2973,8 +2973,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-vsock"
-version = "0.6.9-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#c704bdb2e445f7e5bada847c560139b6efbc6965"
+version = "0.6.9-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?branch=main-digdir#a64150dc2efe601172a001537157940bb4bf29bb"
 dependencies = [
  "libc",
  "msb_krun",

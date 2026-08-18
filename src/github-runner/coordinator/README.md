@@ -14,7 +14,7 @@ runner.
 node-local immutable cache shared by coordinator Jobs through the public Microsandbox Provider
 builder; the coordinator does not depend on Microsandbox's default directory layout.
 
-The coordinator image contains the checksum-verified `0.6.9-digdir.1` Microsandbox runtime bundle.
+The coordinator image contains the checksum-verified `0.6.9-digdir.2` Microsandbox runtime bundle.
 The provider installs it from the local image instead of downloading host runtime binaries when a
 Job starts. An online runner that does not claim a queued job within ten minutes is deregistered and
 deleted so redundant KEDA scale-outs do not remain idle.
