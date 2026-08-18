@@ -25,23 +25,23 @@ export class PersonLookup extends PersonLookupDef {
     }
     const parts: string[] = [];
 
-    if (formData.person_lookup_ssn) {
-      parts.push(formData.person_lookup_ssn);
+    if (formData.ssn) {
+      parts.push(formData.ssn);
     }
 
     // Build full name from individual parts or use the Name binding
-    if (formData.person_lookup_name) {
-      parts.push(formData.person_lookup_name);
+    if (formData.fullName) {
+      parts.push(formData.fullName);
     } else {
       const nameParts: string[] = [];
-      if (formData.person_lookup_first_name) {
-        nameParts.push(formData.person_lookup_first_name);
+      if (formData.firstName) {
+        nameParts.push(formData.firstName);
       }
-      if (formData.person_lookup_middle_name) {
-        nameParts.push(formData.person_lookup_middle_name);
+      if (formData.middleName) {
+        nameParts.push(formData.middleName);
       }
-      if (formData.person_lookup_last_name) {
-        nameParts.push(formData.person_lookup_last_name);
+      if (formData.lastName) {
+        nameParts.push(formData.lastName);
       }
 
       if (nameParts.length > 0) {
