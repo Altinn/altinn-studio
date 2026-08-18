@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import React from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
@@ -15,9 +14,14 @@ import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
-const STUDIO_TITLE_SUFFIX = ' \u2013 Altinn Studio';
-const DEFAULT_DOCUMENT_TITLE ='Altinn Studio';
-  
+
+function buildDocumentTitle(title?: string): string {
+  const DEFAULT_DOCUMENT_TITLE = 'Altinn Studio';
+  const TITLE_SEPARATOR = ' \u2013 ';
+
+  return [title, DEFAULT_DOCUMENT_TITLE].filter(Boolean).join(TITLE_SEPARATOR);
+}
+
 /**
  * Displays the layout for the app development pages
  */
@@ -25,24 +29,10 @@ export const PageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
-  const org = match?.params?.org;
-  const app = match?.params?.app;
+  const { org, app } = match?.params ?? {};
   const { data: repository } = useRepoMetadataQuery(org ?? '', app ?? '');
   const repoName = repository?.name;
   
-
-  useEffect(() => {
-  const title = repoName ?? app;
-
-  document.title = title
-    ? `${title}${STUDIO_TITLE_SUFFIX}`
-    : DEFAULT_DOCUMENT_TITLE;
-
-  return () => {
-    document.title = DEFAULT_DOCUMENT_TITLE;
-  };
-}, [repoName, app]);
-
   const { data: orgs, isPending: orgsPending } = useOrgListQuery();
   const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner?.login);
 
@@ -64,6 +54,7 @@ export const PageLayout = (): React.ReactNode => {
 
   return (
     <>
+      <title>{buildDocumentTitle(repoName ?? app)}</title>
       <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
         <PageHeader
           showSubMenu={!repoStatus?.hasMergeConflict}
