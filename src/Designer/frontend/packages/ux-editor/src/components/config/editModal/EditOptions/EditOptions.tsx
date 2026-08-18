@@ -1,8 +1,7 @@
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
-import { ErrorMessage } from '@digdir/designsystemet-react';
-import { StudioHeading, StudioSpinner } from '@studio/components';
+import { StudioHeading, StudioSpinner, StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { OptionTabs } from './OptionTabs';
@@ -28,9 +27,9 @@ export function EditOptions<T extends SelectionComponentType>({
       {isPending ? (
         <StudioSpinner aria-label={t('ux_editor.modal_properties_loading')} />
       ) : isError ? (
-        <ErrorMessage className={classes.errorMessage}>
+        <StudioValidationMessage className={classes.errorMessage}>
           {t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
-        </ErrorMessage>
+        </StudioValidationMessage>
       ) : (
         <OptionTabs
           codeListIdContextData={{ idsFromAppLibrary, orgName: org }}

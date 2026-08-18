@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Fieldset, Radio, ErrorMessage } from '@digdir/designsystemet-react';
+import { Fieldset, Radio } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -13,7 +13,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTextfield, StudioValidationMessage } from '@studio/components';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<
   FormCheckboxesComponent | FormRadioButtonsComponent
@@ -192,7 +192,9 @@ export function EditOptions({
           </StudioButton>
         </div>
       )}
-      {errorMessage && <ErrorMessage size='small'>{errorMessage}</ErrorMessage>}
+      {errorMessage && (
+        <StudioValidationMessage data-size='sm'>{errorMessage}</StudioValidationMessage>
+      )}
     </>
   );
 }

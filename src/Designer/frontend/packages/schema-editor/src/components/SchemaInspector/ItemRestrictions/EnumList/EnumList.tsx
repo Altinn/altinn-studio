@@ -3,12 +3,12 @@ import classes from './EnumList.module.css';
 import type { FieldNode } from '@altinn/schema-model';
 import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { EnumField } from './EnumField';
-import { ErrorMessage, Fieldset } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioValidationMessage } from '@studio/components';
 
 export type EnumListProps = {
   schemaNode: FieldNode;
@@ -59,7 +59,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
       className={classes.enumListFieldsset}
     >
       {duplicateValues !== null && (
-        <ErrorMessage>{t('schema_editor.enum_error_duplicate')}</ErrorMessage>
+        <StudioValidationMessage>{t('schema_editor.enum_error_duplicate')}</StudioValidationMessage>
       )}
       {enumList.map((value: string, index: number) => (
         <EnumField
