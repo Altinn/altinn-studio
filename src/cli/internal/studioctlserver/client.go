@@ -187,6 +187,20 @@ type AppUpgradeResult struct {
 	ExitCode int              `json:"exitCode"`
 }
 
+// The upgrade exit codes studioctl-server reports, mirroring the Exit* constants in V8Tov9Upgrade.cs.
+const (
+	AppUpgradeExitSuccess            = 0 // Everything applied cleanly.
+	AppUpgradeExitError              = 1 // The upgrade failed.
+	AppUpgradeExitUnsupportedVersion = 2 // The app is not on a version this upgrade can start from.
+	AppUpgradeExitManualRequired     = 3 // Applied, but something is left for the user to finish by hand.
+)
+
+// Failed indicates whether the upgrade hit a hard error. Any non-zero code that is not the manual-action signal counts as failure.
+// Mirrors V8Tov9Upgrade.IsError.
+func (r AppUpgradeResult) Failed() bool {
+	return r.ExitCode != AppUpgradeExitSuccess && r.ExitCode != AppUpgradeExitManualRequired
+}
+
 // NewClient constructs a studioctl-server control-plane client.
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
