@@ -65,7 +65,7 @@ export function ButtonLayout({
       >
         {lang(title)}
       </Button>
-      {statusMessage && <span style={{ position: 'absolute' }}>{statusMessage}</span>}
+      {statusMessage && <span style={{ position: 'absolute' }}>{lang(statusMessage)}</span>}
     </ComponentStructure>
   );
 }

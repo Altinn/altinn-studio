@@ -38,7 +38,7 @@ describe('ButtonLayout', () => {
   });
 
   it('shows a status message when provided', () => {
-    render({ statusMessage: 'Venter på vedlegg' });
-    expect(screen.getByText('Venter på vedlegg')).toBeInTheDocument();
+    render({ statusMessage: 'general.wait_for_attachments' }, { language: 'nb' });
+    expect(screen.getByText('Vent litt, vi prosesserer vedlegg')).toBeInTheDocument();
   });
 });
