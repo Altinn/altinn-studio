@@ -35,10 +35,12 @@ tooling and the analyzer that runs in every app from giving contradictory advice
 
 The Roslyn analyzer is the binding constraint, so the sources must stay **netstandard2.0 API surface,
 C# 12, explicit usings, no IO or environment access** (RS1035), and free of external dependencies — pure
-data and functions. The standalone project pins that floor; build it while editing with:
+data and functions. The standalone project pins that floor; build it while editing from the project
+directory, so its own `global.json` selects the SDK:
 
 ```bash
-dotnet build dotnet/Altinn.Studio.MaskinportenRules/Altinn.Studio.MaskinportenRules.csproj
+cd dotnet/Altinn.Studio.MaskinportenRules
+dotnet build
 ```
 
 The sources must also not assume whether a consumer scans JSON documents, syntax trees, or semantic
