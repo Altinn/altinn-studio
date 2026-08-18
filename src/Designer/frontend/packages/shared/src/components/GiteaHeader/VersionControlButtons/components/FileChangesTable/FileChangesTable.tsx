@@ -24,9 +24,6 @@ export const FileChangesTable = ({ fileChanges }: FileChangesTableProps): ReactE
   const { owner, repoName } = useGiteaHeaderContext();
   const { data: repoDiff, status: repoDiffStatus } = useRepoDiffQuery(owner, repoName);
 
-  const gitDiffIncludesFile = (filePath: string): boolean =>
-    repoDiffStatus === 'success' && Object.keys(repoDiff).includes(filePath);
-
   return (
     <>
       <StudioTable zebra className={classes.table}>
@@ -45,7 +42,7 @@ export const FileChangesTable = ({ fileChanges }: FileChangesTableProps): ReactE
             <FileChangeTableRow
               key={fileChange.filePath}
               fileChange={fileChange}
-              diff={gitDiffIncludesFile(fileChange.filePath) && repoDiff[fileChange.filePath]}
+              diff={repoDiff?.[fileChange.filePath]}
               repoDiffStatus={repoDiffStatus}
             />
           ))}
