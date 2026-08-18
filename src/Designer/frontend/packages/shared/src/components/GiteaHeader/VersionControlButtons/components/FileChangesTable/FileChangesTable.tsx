@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { StudioError, StudioSpinner, StudioTag, StudioTable } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +19,7 @@ const fileStatusToTagColorMapping: { [key in FileStatus]: string } = {
   RenamedInWorkdir: 'neutral',
 };
 
-export const FileChangesTable = ({ fileChanges }: FileChangesTableProps): React.ReactElement => {
+export const FileChangesTable = ({ fileChanges }: FileChangesTableProps): ReactElement => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
   const { data: repoDiff, status: repoDiffStatus } = useRepoDiffQuery(owner, repoName);
@@ -95,7 +94,7 @@ const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTabl
   const { filePath, fileStatus } = fileChange;
   const { t } = useTranslation();
 
-  const fileStatusTag: React.ReactElement = (
+  const fileStatusTag: ReactElement = (
     <StudioTag data-size='sm' color={fileStatusToTagColorMapping[fileStatus]}>
       {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
     </StudioTag>
