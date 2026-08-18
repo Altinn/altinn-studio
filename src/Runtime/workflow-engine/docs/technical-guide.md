@@ -546,6 +546,46 @@ Read together they answer the operational question a mailbox exists to raise:
 is derived from the counters rather than counted from rows, which is exact because both logs are
 gapless and neither is pruned piecemeal.
 
+### Deliveries: a gapless log
+
+```http
+POST /api/v1/{namespace}/mailboxes/{mailboxId}/deliveries
+```
+
+Each message delivered into a mailbox becomes a **delivery** at the next position in its log. The
+position is the delivery's whole identity — `(mailboxId, idx)` is its primary key — because that pair
+is exactly what the receiver enqueued at the matching position will read it by: one key lookup, no
+join, no search. Positions are assigned under the mailbox's row lock, which is what makes them
+gapless: position _n_ exists whenever position _n + 1_ does.
+
+The engine stores the payload verbatim and never parses it. Any structure, envelope, or signature
+inside it belongs to the sender and the receiver.
+
+**Acceptance is not consumption.** A message with no receiver enqueued for its position simply sits
+there until one arrives, so an early delivery is first-class and there is no "too early" answer. That
+is why `409` is unambiguous: it always means _too late_.
+
+| Outcome                                 | Response                                       |
+| --------------------------------------- | ---------------------------------------------- |
+| Appended at a new position              | `202 Accepted` with the assigned `idx`         |
+| `idempotencyKey` already delivered      | `200 OK` — the original `idx` and `acceptedAt` |
+| No such mailbox in this namespace       | `404 Not Found`                                |
+| Mailbox closed (by request or deadline) | `409 Conflict` — too late, dead-letterable     |
+| Payload over `MaxMailboxPayloadSize`    | `413 Content Too Large`                        |
+| Log at `MaxMailboxLogLength`            | `429 Too Many Requests`                        |
+
+#### Accepted versus kept
+
+The idempotency lookup runs **before** the refusals, and the order is load-bearing: what the engine
+kept, it keeps answering for. A resend of a message that was accepted while the mailbox was open
+replays as `200` even after the mailbox has closed or its log has filled — reporting it as `409`
+would have a forwarder dead-letter a message that is sitting at its position waiting to be read. The
+converse holds too: what the engine refused, it keeps refusing, and no refusal becomes a replay.
+
+A refused delivery **stores nothing at all**, which is why its `idempotencyKey` stays free: the same
+key may be offered again the moment the reason for the refusal is gone. There is no key to release
+afterwards, because a refusal never claimed one.
+
 ### Closing is terminal, idempotent, and says why
 
 ```http
@@ -588,6 +628,13 @@ collection can settle slightly above the configured number — by at most one pe
 mint, never runaway, and the next sequential mint is refused as normal. Making it exact would mean
 serializing every mint behind a lock, which costs more than a resource guard is worth. Do not assert
 on it as an invariant.
+
+`MaxMailboxLogLength` bounds how many positions a mailbox's logs may hold; a delivery past it is
+refused with `429 Too Many Requests`. It is the only bound on what a single mailbox can cost, because
+deliveries deliberately skip the admission gate an ordinary enqueue must pass — a delivery refused
+for backpressure is a message an external system has already sent and may never send again.
+`MaxMailboxPayloadSize` bounds one delivery's payload, measured on its UTF-8 bytes, and a payload
+past it is refused with `413` rather than truncated.
 
 Both keys are `varchar(200)`: `idempotencyKey` must be non-empty and at most 200 characters, and
 `collectionKey`, when supplied, likewise. These are validated before the mint reaches the database —
@@ -1029,6 +1076,41 @@ DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
 Terminal and idempotent: `202 Accepted` when this call closed the mailbox, `200 OK` when it was
 already closed — reporting the **original** `disposedAt` and `disposedReason` rather than this call's.
 `404 Not Found` when no mailbox with that id exists in the namespace.
+
+### Deliver to Mailbox
+
+Delivers one message into a [mailbox](#deliveries-a-gapless-log). Idempotent on
+`(mailboxId, idempotencyKey)` — pass the source's own message id.
+
+```http
+POST /api/v1/{namespace}/mailboxes/{mailboxId}/deliveries
+```
+
+```json
+{
+    "idempotencyKey": "urn:altinn:message:9f2c…",
+    "payload": "{\"status\":\"received\"}"
+}
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "mailboxId": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
+    "idx": 0,
+    "idempotencyKey": "urn:altinn:message:9f2c…",
+    "acceptedAt": "2026-03-19T10:02:00+00:00"
+}
+```
+
+Returns `200 OK` with the delivery the key already made, at the position it has held since — even
+after the mailbox has closed, since the engine kept it. `404 Not Found` when no mailbox with that id
+exists in the namespace. `409 Conflict` when the mailbox is closed, which always means _too late_ and
+never _too early_; the detail says whether it closed by request or at its deadline. `413` when the
+payload exceeds `MaxMailboxPayloadSize`, and `429` when the log has reached `MaxMailboxLogLength`.
+The payload is not echoed back — the caller just sent it, and the only thing it could not have known
+is the position.
 
 ## Health Checks
 

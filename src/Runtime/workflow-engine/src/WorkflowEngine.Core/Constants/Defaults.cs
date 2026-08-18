@@ -22,6 +22,8 @@ internal static class Defaults
         MinStepDeferDelay = TimeSpan.FromSeconds(1),
         MaxMailboxTimeout = TimeSpan.FromDays(21),
         MaxOpenMailboxesPerCollection = 100,
+        MaxMailboxPayloadSize = 256 * 1024,
+        MaxMailboxLogLength = 100,
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
             maxDelay: TimeSpan.FromMinutes(5),

@@ -79,6 +79,8 @@ public class EngineSettingsConfigurationTests
         // Mailboxes
         Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
         Assert.Equal(100, settings.MaxOpenMailboxesPerCollection);
+        Assert.Equal(256 * 1024, settings.MaxMailboxPayloadSize);
+        Assert.Equal(100, settings.MaxMailboxLogLength);
     }
 
     [Fact]
@@ -89,7 +91,9 @@ public class EngineSettingsConfigurationTests
             {
               "EngineSettings": {
                 "maxMailboxTimeout": "3.00:00:00",
-                "maxOpenMailboxesPerCollection": 7
+                "maxOpenMailboxesPerCollection": 7,
+                "maxMailboxPayloadSize": 4096,
+                "maxMailboxLogLength": 5
               }
             }
             """
@@ -97,13 +101,17 @@ public class EngineSettingsConfigurationTests
 
         Assert.Equal(TimeSpan.FromDays(3), configured.MaxMailboxTimeout);
         Assert.Equal(7, configured.MaxOpenMailboxesPerCollection);
+        Assert.Equal(4096, configured.MaxMailboxPayloadSize);
+        Assert.Equal(5, configured.MaxMailboxLogLength);
 
         var zeroed = Resolve(
             """
             {
               "EngineSettings": {
                 "maxMailboxTimeout": "00:00:00",
-                "maxOpenMailboxesPerCollection": 0
+                "maxOpenMailboxesPerCollection": 0,
+                "maxMailboxPayloadSize": 0,
+                "maxMailboxLogLength": 0
               }
             }
             """
@@ -111,6 +119,8 @@ public class EngineSettingsConfigurationTests
 
         Assert.Equal(TimeSpan.FromDays(21), zeroed.MaxMailboxTimeout);
         Assert.Equal(100, zeroed.MaxOpenMailboxesPerCollection);
+        Assert.Equal(256 * 1024, zeroed.MaxMailboxPayloadSize);
+        Assert.Equal(100, zeroed.MaxMailboxLogLength);
     }
 
     [Fact]

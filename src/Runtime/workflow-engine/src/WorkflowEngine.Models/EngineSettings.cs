@@ -198,6 +198,49 @@ public sealed record EngineSettings
     public int MaxOpenMailboxesPerCollection { get; set; } = 100;
 
     /// <summary>
+    /// The largest delivery payload, in bytes, a mailbox accepts. A delivery above this is refused with
+    /// <c>413 Content Too Large</c> and nothing is stored.
+    /// </summary>
+    /// <remarks>
+    /// Measured on the UTF-8 bytes of the payload as the caller sent it, so the number in the error
+    /// message is the number the caller can act on. Large content belongs in storage with the delivery
+    /// carrying a reference: the payload is written once but read back on every attempt of the receiving
+    /// workflow and kept until retention purges its mailbox, so its size is paid many times over. The
+    /// default of 256 KiB comfortably fits an enveloped status message or receipt while staying under the
+    /// point where PostgreSQL would TOAST every delivery row.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxPayloadSize")]
+    public int MaxMailboxPayloadSize { get; set; } = 256 * 1024;
+
+    /// <summary>
+    /// The most positions a mailbox's logs may hold. A delivery past it is refused with
+    /// <c>429 Too Many Requests</c>, leaving the exchange to conclude on the messages it already has (or
+    /// on its deadline).
+    /// </summary>
+    /// <remarks>
+    /// This is the only bound on how much a <em>single</em> mailbox can cost. Deliveries deliberately
+    /// skip the admission check an ordinary enqueue must pass — a delivery refused is a message an
+    /// external system has already sent and may never send again — so without a cap one misbehaving
+    /// counterparty could fill a mailbox without limit through an endpoint that never says "slow down".
+    /// <para>
+    /// It bounds both of the mailbox's logs, which are two views of the same exchange: a message is a
+    /// position in the deliveries log, and the receiver enqueued to consume it is the matching position in
+    /// the receivers log. Delivery ingestion applies it to the deliveries log; the receiver-enqueue path
+    /// applies the same number to the receivers log.
+    /// </para>
+    /// <para>
+    /// The default of 100 is generous for the exchanges this exists for — an archive receipt flow is an
+    /// acknowledgement and a receipt, two messages — and deliberately not a tuning knob for chatty
+    /// protocols: a conversation needing hundreds of durable turns wants a mailbox per turn, not one
+    /// mailbox per hundred turns. Reaching the cap is a <c>429</c> rather than a close, because the
+    /// engine cannot know whether the app would have considered the exchange finished; the app closes,
+    /// the deadline backstops.
+    /// </para>
+    /// </remarks>
+    [JsonPropertyName("maxMailboxLogLength")]
+    public int MaxMailboxLogLength { get; set; } = 100;
+
+    /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
     [JsonPropertyName("defaultStepRetryStrategy")]
