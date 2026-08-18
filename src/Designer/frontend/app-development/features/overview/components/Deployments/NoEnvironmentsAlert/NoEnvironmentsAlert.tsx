@@ -11,7 +11,7 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
   const { t } = useTranslation();
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
   return (
-    <StudioAlert data-color='warning' className={cn(rest.className)} {...rest}>
+    <StudioAlert {...rest} data-color='warning' className={cn(rest.className)}>
       <StudioHeading level={2} data-size='sm' spacing>
         {t('app_deployment.no_env_title')}
       </StudioHeading>
