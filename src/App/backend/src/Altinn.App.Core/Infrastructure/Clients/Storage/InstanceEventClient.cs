@@ -82,7 +82,7 @@ public class InstanceEventClient : IInstanceEventClient
             apiUrl += $"{paramSeparator}from={from}&to={to}";
         }
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
         if (response.IsSuccessStatusCode)
         {
@@ -94,7 +94,7 @@ public class InstanceEventClient : IInstanceEventClient
             return instanceEvents.InstanceEvents;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 
     /// <inheritdoc/>
@@ -112,7 +112,7 @@ public class InstanceEventClient : IInstanceEventClient
             authenticationMethod ?? _defaultAuthenticationMethod
         );
 
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"),
@@ -132,6 +132,6 @@ public class InstanceEventClient : IInstanceEventClient
             return id;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 }

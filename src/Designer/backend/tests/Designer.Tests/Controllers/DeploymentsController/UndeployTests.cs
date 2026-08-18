@@ -5,14 +5,20 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Interfaces.GitOps;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
@@ -24,6 +30,8 @@ public class UndeployTests
         IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
+    private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;
+    private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock;
     private const int DecommissionDefinitionId = 297;
 
     private static string VersionPrefix(string org, string repository) =>
@@ -37,12 +45,24 @@ public class UndeployTests
         : base(factory, designerDbFixture)
     {
         _mockServerFixture = mockServerFixture;
+        _gitOpsConfigurationManagerMock = new Mock<IGitOpsConfigurationManager>();
+        _runtimeGatewayClientMock = new Mock<IRuntimeGatewayClient>();
+        _gitOpsConfigurationManagerMock
+            .Setup(manager => manager.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(false);
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.IsAppDeployedWithGitOpsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
         JsonConfigOverrides.Add(
             $$"""
             {
-               "FeatureManagement": {
-                    "{{StudioFeatureFlags.GitOpsDeploy}}": false
-               },
                "Integrations": {
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
@@ -52,6 +72,15 @@ public class UndeployTests
             }
             """
         );
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.RemoveAll<IGitOpsConfigurationManager>();
+        services.AddSingleton(_gitOpsConfigurationManagerMock.Object);
+        services.RemoveAll<IRuntimeGatewayClient>();
+        services.AddSingleton(_runtimeGatewayClientMock.Object);
     }
 
     [Theory]

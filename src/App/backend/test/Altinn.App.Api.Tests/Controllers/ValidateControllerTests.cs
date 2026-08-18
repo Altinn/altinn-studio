@@ -261,7 +261,7 @@ public class ValidateControllerTests
         };
 
         var updateProcessResult = new HttpResponseMessage(HttpStatusCode.Forbidden);
-        PlatformHttpException exception = await PlatformHttpException.CreateAsync(updateProcessResult);
+        PlatformHttpException exception = await PlatformHttpException.Create(updateProcessResult);
 
         _instanceClientMock
             .Setup(i =>

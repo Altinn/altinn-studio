@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { v4 as uuidv4 } from 'uuid';
+import { vi } from 'vitest';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -23,9 +23,9 @@ let mockTextResourcesValue: TextResourceMap = {};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
-  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
-  useTextResources: jest.fn(() => mockTextResourcesValue),
+vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
+  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
+  useTextResources: vi.fn(() => mockTextResourcesValue),
 }));
 
 const groupBinding = 'Questions';

@@ -12,6 +12,7 @@ import type {
 } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -88,6 +89,7 @@ import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceLis
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const queriesMock: ServicesContextProps = {
@@ -101,6 +103,7 @@ export const queriesMock: ServicesContextProps = {
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
+  getAppTemplates: jest.fn().mockImplementation(() => Promise.resolve<AppTemplate[]>([])),
   getAvailableTemplates: jest
     .fn()
     .mockImplementation(() =>
@@ -125,6 +128,7 @@ export const queriesMock: ServicesContextProps = {
   getDataModelsJson: jest
     .fn()
     .mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
+  getDataModelPrefill: jest.fn().mockImplementation(() => Promise.resolve<PrefillConfig>(null)),
   getDataModelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
   getDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -348,6 +352,7 @@ export const queriesMock: ServicesContextProps = {
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveDataModelPrefill: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),

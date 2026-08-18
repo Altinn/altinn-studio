@@ -82,6 +82,28 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
         {
             foreach (var serviceTaskId in FindUpstreamServiceTasks(feedbackTaskId, elementsById, flows))
             {
+                var serviceTaskType = elementsById.TryGetValue(serviceTaskId, out var serviceTask)
+                    ? GetAltinnTaskType(serviceTask)
+                    : null;
+
+                // eFormidling is not a "may be redundant" case: in v8 the feedback task held the
+                // instance while delivery was pending, and the Altinn Events reminder loop that
+                // moved the process past it no longer exists. The v9 service task waits for the
+                // delivery confirmation itself, so a trailing feedback task strands the instance.
+                if (string.Equals(serviceTaskType, "eFormidling", StringComparison.OrdinalIgnoreCase))
+                {
+                    warnings.Add(
+                        $"The feedback task '{feedbackTaskId}' follows the eFormidling service task "
+                            + $"'{serviceTaskId}' and must be removed. It exists to hold the instance while the "
+                            + "shipment is delivered, which the v9 eFormidling service task now does itself - and "
+                            + "the Altinn Events reminder that used to move the process past the feedback task is "
+                            + "gone, so nothing will advance it. Instances would wait there indefinitely. Keep it "
+                            + "only if it models a decision gate of its own (e.g. a service-owner review), in "
+                            + "which case something must advance it."
+                    );
+                    continue;
+                }
+
                 warnings.Add(
                     $"The feedback task '{feedbackTaskId}' follows the service task '{serviceTaskId}'. In v9 "
                         + "the process parks on a service task while its work is pending and the frontend shows "

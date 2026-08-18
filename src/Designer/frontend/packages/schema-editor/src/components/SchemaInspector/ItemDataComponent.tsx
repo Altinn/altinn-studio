@@ -2,10 +2,10 @@ import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset, Switch } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
+import type { CombinationKind, FieldNode, UiSchemaNode } from '@altinn/schema-model';
 import {
   addCombinationItem,
   deleteNode,
@@ -24,26 +24,32 @@ import {
   combinationIsNullable,
   ROOT_POINTER,
   changeNameInPointer,
+  schemaPointerToDataBindingName,
 } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
+import { PrefillSection } from '@altinn/schema-editor/components/SchemaInspector/PrefillSection/PrefillSection';
+import { renamePrefillMappings } from '@altinn/schema-editor/components/SchemaInspector/PrefillSection/prefillConfigUtils';
 import { NameField } from './NameField';
+import { RequiredSwitch } from './RequiredSwitch';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioTextarea, StudioSelect, StudioTextfield } from '@studio/components';
+import { StudioSelect, StudioSwitch, StudioTextarea, StudioTextfield } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
 };
 
 export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
-  const { schemaPointer, title = '', description = '', isArray, custom } = schemaNode;
+  const { schemaPointer, title = '', description = '', isArray, isRequired, custom } = schemaNode;
   const {
     schemaModel,
     save,
     setSelectedTypePointer,
     selectedUniquePointer,
     setSelectedUniquePointer,
+    prefillConfig,
+    savePrefillConfig,
   } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
@@ -96,6 +102,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const handleArrayPropertyToggle = () => save(toggleArrayField(schemaModel, schemaPointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
+    const oldDataBindingName = schemaPointerToDataBindingName(schemaPointer);
     save(
       setPropertyName(schemaModel, {
         path: schemaPointer,
@@ -106,12 +113,29 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           }
           const newUniquePointer = changeNameInPointer(selectedUniquePointer, newNodeName);
           setSelectedUniquePointer(newUniquePointer);
+
+          const newDataBindingName = schemaPointerToDataBindingName(newPointer);
+          const updatedPrefillConfig = renamePrefillMappings(
+            prefillConfig,
+            oldDataBindingName,
+            newDataBindingName,
+          );
+          if (updatedPrefillConfig !== prefillConfig) {
+            savePrefillConfig(updatedPrefillConfig);
+          }
         },
       }),
     );
   };
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
+
+  const isPrefillableField =
+    isField(schemaNode) &&
+    !schemaNode.isArray &&
+    !pointerIsDefinition(schemaPointer) &&
+    schemaNode.fieldType !== FieldType.Object &&
+    schemaNode.fieldType !== FieldType.Null;
 
   const titleId = makeDomFriendlyID(schemaPointer, { suffix: 'title' });
   const descriptionId = makeDomFriendlyID(schemaPointer, { suffix: 'description' });
@@ -138,14 +162,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             />
           )}
           {!isCombination(schemaNode) && !pointerIsDefinition(schemaPointer) && (
-            <Switch
+            <StudioSwitch
+              data-size='sm'
               className={classes.switch}
-              size='small'
               checked={isArray}
               onChange={handleArrayPropertyToggle}
-            >
-              {t('schema_editor.multiple_answers')}
-            </Switch>
+              label={t('schema_editor.multiple_answers')}
+            />
           )}
           {isCombination(schemaNode) && (
             <StudioSelect
@@ -161,14 +184,26 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </StudioSelect>
           )}
           {isCombination(schemaNode) && (
-            <Switch
+            <StudioSwitch
+              data-size='sm'
               className={classes.switch}
-              size='small'
               checked={combinationIsNullable(getChildNodes())}
               onChange={onChangeNullable}
-            >
-              {t('schema_editor.nullable')}
-            </Switch>
+              label={t('schema_editor.nullable')}
+            />
+          )}
+          {!pointerIsDefinition(schemaPointer) && (
+            <RequiredSwitch
+              className={classes.switch}
+              schemaPointer={schemaPointer}
+              isRequired={isRequired}
+            />
+          )}
+          {isPrefillableField && (
+            <PrefillSection
+              schemaPointer={schemaPointer}
+              prefill={(schemaNode as FieldNode).prefill}
+            />
           )}
           <ItemRestrictions schemaNode={schemaNode} />
         </>

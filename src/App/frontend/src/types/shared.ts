@@ -238,6 +238,14 @@ interface IProcessWorkflowProcessing {
    */
   retrying?: boolean;
   /**
+   * The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
+   * awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
+   * while the transition is parked on a deferring task that gave a reason. Purely a presentation
+   * hint, like `retrying`: a waiting view may display it (as a text-resource key first, literal
+   * text as fallback).
+   */
+  waitingReason?: string;
+  /**
    * Progress through the in-flight transition's workflow steps (execution is on step
    * `completed + 1` of `total`). Omitted when the engine did not report step counts. Kept in the
    * wire model for observability, but deliberately not rendered - internal engine step counts
@@ -346,11 +354,7 @@ export interface ITextResource {
 export interface IVariable {
   key: string;
   dataSource:
-    | 'instanceContext'
-    | 'applicationSettings'
-    | 'dataModel.default'
-    | `dataModel.${string}`
-    | 'customTextParameters';
+    'instanceContext' | 'applicationSettings' | 'dataModel.default' | `dataModel.${string}` | 'customTextParameters';
   defaultValue?: string;
 }
 

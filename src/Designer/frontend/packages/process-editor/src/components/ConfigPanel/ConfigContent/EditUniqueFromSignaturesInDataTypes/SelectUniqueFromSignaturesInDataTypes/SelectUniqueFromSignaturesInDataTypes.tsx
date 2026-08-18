@@ -1,6 +1,5 @@
-import { useId, useState } from 'react';
-import { Combobox, Label } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { useState } from 'react';
+import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useDebounce } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -57,9 +56,14 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   );
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
   const { t } = useTranslation();
-  const labelId = useId();
 
-  const handleValueChange = (dataTypes: string[]) => {
+  const selectedItems: StudioSuggestionItem[] = value.map((dataTypeId) => ({
+    value: dataTypeId,
+    label: signingTasks.find((task) => task.id === dataTypeId)?.name ?? dataTypeId,
+  }));
+
+  const handleSelectedChange = (items: StudioSuggestionItem[]) => {
+    const dataTypes = items.map((item) => item.value);
     setValue(dataTypes);
     const modelerInstance = modelerRef.current;
     const modeling: Modeling = modelerInstance.get('modeling');
@@ -69,26 +73,25 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
 
   return (
     <div className={classes.container}>
-      <Label size='small' htmlFor={labelId}>
-        {t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
-      </Label>
-      <div className={classes.dataTypeSelectAndButtons}>
-        <Combobox
-          id={labelId}
-          value={value}
-          size='small'
-          className={classes.dataTypeSelect}
+      <div className={classes.dataTypeSelectAndButton}>
+        <StudioSuggestion
           multiple
-          onValueChange={handleValueChange}
+          label={t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
+          selected={selectedItems}
+          emptyText={t('general.no_options')}
+          className={classes.dataTypeSelect}
+          onSelectedChange={handleSelectedChange}
         >
-          {signingTasks?.map((signingTask) => {
-            return (
-              <Combobox.Option key={signingTask.id} value={signingTask.id}>
-                {signingTask.name}
-              </Combobox.Option>
-            );
-          })}
-        </Combobox>
+          {signingTasks?.map((signingTask) => (
+            <StudioSuggestion.Option
+              key={signingTask.id}
+              value={signingTask.id}
+              label={signingTask.name}
+            >
+              {signingTask.name}
+            </StudioSuggestion.Option>
+          ))}
+        </StudioSuggestion>
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}

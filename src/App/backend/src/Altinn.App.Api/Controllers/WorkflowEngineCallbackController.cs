@@ -212,6 +212,53 @@ public class WorkflowEngineCallbackController : ControllerBase
                 activity?.SetStatus(ActivityStatusCode.Ok);
                 return Ok(new AppCallbackResponse { State = updatedState });
 
+            case DeferredProcessEngineCommandResult deferred:
+                // A deferral is stateless by contract: nothing is saved and the incoming state is
+                // echoed back unchanged, so the re-run starts exactly where this attempt did. A step
+                // that checks-and-waits is not a step that records — work that produces something
+                // durable belongs in its own pipeline step. Enforced rather than silently discarded:
+                // a deferring handler that made data changes has broken the contract, and dropping
+                // its writes quietly would be the one worse outcome.
+                DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
+                if (deferredChanges.AllChanges.Count > 0)
+                {
+                    _logger.LogError(
+                        "Callback handler deferred after modifying instance data ({ChangeCount} change(s)). "
+                            + "A deferral is stateless: move the work that records data into its own step. "
+                            + "CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        deferredChanges.AllChanges.Count,
+                        command.GetKey(),
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Deferring handler modified instance data");
+                    return NonRetryableProblem(
+                        "Deferral With Data Changes",
+                        "A deferring handler must not modify instance data — a deferral is stateless. "
+                            + "Move the work that records data into its own pipeline step.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+
+                // The resolved command's own key rather than the route string it matched: same value,
+                // but provably from the registered set, so nothing route-derived reaches the log.
+                _logger.LogInformation(
+                    "Callback handler deferred. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Delay: {Delay}",
+                    command.GetKey(),
+                    instanceId,
+                    currentTaskId,
+                    deferred.Delay
+                );
+                activity?.SetStatus(ActivityStatusCode.Ok);
+
+                return Ok(
+                    new AppCallbackResponse
+                    {
+                        State = payload.State,
+                        Defer = new AppCallbackDeferral { Delay = deferred.Delay, Reason = deferred.Reason },
+                    }
+                );
+
             case FailedProcessEngineCommandResult failed:
                 _logger.LogError(
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",

@@ -5,7 +5,7 @@
       {
         "size": "L",
         "id": "Header-LSgLyT",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Header-LSgLyT.title"
         }
@@ -68,16 +68,15 @@
       },
       {
         "id": "NavigationButtons-A564Nt",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       },
       {
         "id": "organisationLookup",
-        "type": "OrganisationLookup",
+        "type": "OrganizationLookup",
         "dataModelBindings": {
-          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
-          "organisation_lookup_name": "StifterVirksomhet.Navn"
+          "organization_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "organization_lookup_name": "StifterVirksomhet.Navn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
@@ -181,7 +180,7 @@
       },
       {
         "id": "Aksjetegning-heading",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": { "title": "Aksjetegning" },
         "size": "S"
       },
@@ -213,7 +212,7 @@
       },
       {
         "id": "fullmektig-heading",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Fullmektig"
         },

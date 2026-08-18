@@ -100,17 +100,85 @@ graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client, flush_langfuse
-from agents.services.llm import parse_intent_async, suggest_goal_correction
+from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
 
 import logging as _logging
 _log = _logging.getLogger(__name__)
 
 MINIMUM_INTENT_CONFIDENCE = 0.1
+_FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 
 
 class GoalRejected(Exception):
     """Raised when the intent parser rejects the user's goal."""
     pass
+
+
+async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
+    """Run the pre-graph gates. Returns the decline text when the turn was
+    already fully handled (read-only out-of-scope decline) — the caller must
+    then skip the graph. Raises GoalRejected for write-mode rejections.
+
+    Two gates with different jobs:
+    - Scope check (ALL runs): is this about Altinn app development at all?
+      Product behavior, not security — the assistant must not act as a
+      general-purpose chatbot on government infrastructure. An out-of-scope
+      write request rejects like any other invalid goal; an out-of-scope
+      chat question gets a polite decline delivered as a normal reply.
+    - Intent validation (write runs only): see _validate_intent.
+    """
+    scope_result = await check_scope_async(state.user_goal)
+    if not scope_result.in_scope:
+        decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
+        _log.info(
+            "Out-of-scope goal for session %s (%s)",
+            state.session_id, scope_result.reason,
+        )
+        if state.allow_app_changes:
+            # GoalRejected messages are "reason|suggestions" — strip pipes
+            # from the LLM-written decline so it can't spill into fake
+            # suggestion chips.
+            raise GoalRejected(decline_text.replace("|", "/"))
+        _emit_chat_decline(state, event_sink, decline_text)
+        return decline_text
+
+    if state.allow_app_changes:
+        await _validate_intent(state)
+    return None
+
+
+def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> None:
+    """Deliver an out-of-scope decline as a normal chat turn.
+
+    A declined question is not an error: the frontend gets the same
+    assistant_message + terminal status pair a real answer produces, and
+    the decline lands in conversation history so follow-up turns see it.
+    """
+    event_sink.send(AgentEvent(
+        type="assistant_message",
+        session_id=state.session_id,
+        data={
+            "author": "assistant",
+            "content": decline_text,
+            "filesChanged": [],
+            "sources": [],
+            "no_branch_operations": True,
+        },
+    ))
+    try:
+        event_sink.add_to_conversation_history(state.session_id, "assistant", decline_text)
+    except Exception:
+        _log.warning("Could not store the decline in conversation history", exc_info=True)
+    event_sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={
+            "done": True,
+            "success": True,
+            "status": "completed",
+            "message": "Out-of-scope question declined",
+        },
+    ))
 
 
 async def _validate_intent(state: AgentState):
@@ -189,10 +257,21 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
         ) as root_span:
             with propagate_attributes(user_id=state.org):
                 try:
-                    if state.allow_app_changes:
-                        # Read-only runs skip intent validation: it gates
-                        # CHANGE requests; questions are always safe to answer.
-                        await _validate_intent(state)
+                    decline_text = await _gate_goal(state, event_sink)
+                    if decline_text is not None:
+                        # The decline IS the workflow result — record it in the
+                        # trace output so the evaluators (in particular
+                        # no_irrelevant_responses) see declined turns too.
+                        root_span.update(output={
+                            "success": True,
+                            "changed_files": [],
+                            "verify_notes": [],
+                            "summary": decline_text,
+                            "sources": [],
+                            "commit": None,
+                            "next_action": "declined_out_of_scope",
+                        })
+                        return None
 
                     final_state = await graph.ainvoke(state)
 
@@ -224,8 +303,9 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     )
                     raise
     else:
-        if state.allow_app_changes:
-            await _validate_intent(state)
+        decline_text = await _gate_goal(state, event_sink)
+        if decline_text is not None:
+            return None
         final_state = await graph.ainvoke(state)
 
     # Check if cancelled during execution

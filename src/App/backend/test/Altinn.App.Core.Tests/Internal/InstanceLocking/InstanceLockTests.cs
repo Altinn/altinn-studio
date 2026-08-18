@@ -307,14 +307,14 @@ public sealed class InstanceLockTests
 
         var instanceLocker = fixture.ServiceProvider.GetRequiredService<InstanceLocker>();
 
-        var exception = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(instanceLocker.Lock);
+        var exception = await Assert.ThrowsAsync<PlatformHttpException>(instanceLocker.Lock);
 
         var acquireRequests = fixture.Server.FindLogEntries(fixture.GetAcquireLockRequestBuilder());
         Assert.Single(acquireRequests);
 
         await Verify(new { Exception = exception })
             .UseParameters(storageStatusCode)
-            .IgnoreMember<PlatformHttpResponseSnapshotException>(x => x.Headers);
+            .IgnoreMember<PlatformHttpResponse>(x => x.Headers);
     }
 
     [Fact]
@@ -334,12 +334,12 @@ public sealed class InstanceLockTests
 
         var instanceLocker = fixture.ServiceProvider.GetRequiredService<InstanceLocker>();
 
-        var exception = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(instanceLocker.Lock);
+        var exception = await Assert.ThrowsAsync<PlatformHttpException>(instanceLocker.Lock);
 
         var acquireRequests = fixture.Server.FindLogEntries(fixture.GetAcquireLockRequestBuilder());
         Assert.Single(acquireRequests);
 
-        await Verify(new { Exception = exception }).IgnoreMember<PlatformHttpResponseSnapshotException>(x => x.Headers);
+        await Verify(new { Exception = exception }).IgnoreMember<PlatformHttpResponse>(x => x.Headers);
     }
 
     [Fact]
@@ -359,11 +359,11 @@ public sealed class InstanceLockTests
 
         var instanceLocker = fixture.ServiceProvider.GetRequiredService<InstanceLocker>();
 
-        var exception = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(instanceLocker.Lock);
+        var exception = await Assert.ThrowsAsync<PlatformHttpException>(instanceLocker.Lock);
 
         Assert.Single(fixture.Server.LogEntries);
 
-        await Verify(new { Exception = exception }).IgnoreMember<PlatformHttpResponseSnapshotException>(x => x.Headers);
+        await Verify(new { Exception = exception }).IgnoreMember<PlatformHttpResponse>(x => x.Headers);
     }
 
     [Fact]
@@ -595,7 +595,7 @@ public sealed class InstanceLockTests
 
         var instanceLocker = fixture.ServiceProvider.GetRequiredService<InstanceLocker>();
 
-        await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(instanceLocker.Lock);
+        await Assert.ThrowsAsync<PlatformHttpException>(instanceLocker.Lock);
 
         await using var handle = instanceLocker.InitLock();
 

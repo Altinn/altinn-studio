@@ -3,12 +3,11 @@ import { TextRow } from './TextRow';
 import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { filterFunction, getLangName } from './utils';
-import classes from './TextList.module.css';
 import { useTranslation } from 'react-i18next';
 import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Table } from '@digdir/designsystemet-react';
+import { StudioTable } from '@studio/components';
 import { StringUtils } from '@studio/pure-functions';
 
 export type TextListProps = {
@@ -37,23 +36,23 @@ export const TextList = ({
       .some((textId: string) => StringUtils.areCaseInsensitiveEqual(textId, newTextId));
 
   return (
-    <Table className={classes.textListTable}>
-      <Table.Head>
-        <Table.Row>
-          <Table.HeaderCell />
+    <StudioTable>
+      <StudioTable.Head>
+        <StudioTable.Row>
+          <StudioTable.HeaderCell />
           {selectedLanguages.map((language) => (
-            <Table.HeaderCell
+            <StudioTable.HeaderCell
               id={getTableHeaderCellId(language)}
               key={getTableHeaderCellId(language)}
             >
               {getLangName({ code: language })}
-            </Table.HeaderCell>
+            </StudioTable.HeaderCell>
           ))}
-          <Table.HeaderCell>{t('text_editor.table_header_text_key')}</Table.HeaderCell>
-          <Table.HeaderCell>{t('text_editor.table_header_variables')}</Table.HeaderCell>
-        </Table.Row>
-      </Table.Head>
-      <Table.Body>
+          <StudioTable.HeaderCell>{t('text_editor.table_header_text_key')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('text_editor.table_header_variables')}</StudioTable.HeaderCell>
+        </StudioTable.Row>
+      </StudioTable.Head>
+      <StudioTable.Body>
         {resourceRows
           .filter((row) =>
             filterFunction({
@@ -78,7 +77,7 @@ export const TextList = ({
               />
             );
           })}
-      </Table.Body>
-    </Table>
+      </StudioTable.Body>
+    </StudioTable>
   );
 };

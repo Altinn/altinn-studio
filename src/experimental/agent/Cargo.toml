@@ -1,0 +1,25 @@
+[package]
+name = "agent"
+description = "Agent automation and local control plane built on the sandbox crate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+agent-runtime-protocol = { path = "../agent-runtime-protocol" }
+sandbox = { path = "../sandbox" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+tokio-util = { workspace = true, features = ["compat"] }
+win_uds = { version = "0.2.4", features = ["async"] }
+
+[lints]
+workspace = true

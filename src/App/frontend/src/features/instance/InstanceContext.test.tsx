@@ -8,7 +8,7 @@ import { InstanceRouter, renderWithDefaultProviders } from 'src/test/renderWithP
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
 // The error page (UnknownError) calls the real axios isAxiosError on the thrown error.
-jest.unmock('axios');
+vi.unmock('axios');
 
 // The provider polls the instance every 2-3s (jittered) while a workflow transition is processing.
 // Each failed refetch cycle internally retries 3 times with exponential backoff (1s/2s/4s), so a
@@ -24,7 +24,7 @@ function getProcessingInstance(): IInstanceWithProcess {
 
 async function advanceOnePollCycle() {
   await act(async () => {
-    await jest.advanceTimersByTimeAsync(ONE_POLL_CYCLE_MS);
+    await vi.advanceTimersByTimeAsync(ONE_POLL_CYCLE_MS);
   });
 }
 
@@ -47,15 +47,15 @@ async function renderInstanceProvider(getInstance: () => Promise<IInstanceWithPr
 
 describe('InstanceProvider poll-failure tolerance', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     // setupTests makes every window.log* throw to fail tests on unexpected logging; swallowed
     // poll failures log a warning by design, so stub it here (and assert on it where relevant).
-    jest.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
+    vi.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.restoreAllMocks();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('shows the error page immediately when the initial load fails', async () => {
@@ -150,7 +150,7 @@ describe('InstanceProvider poll-failure tolerance', () => {
 
     // Well past both the processing (~2-3s) and the old failed (~10-12s) poll windows: no ticks.
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(60_000);
+      await vi.advanceTimersByTimeAsync(60_000);
     });
     expect(fetchCount).toBe(fetchesAfterLoad);
   });

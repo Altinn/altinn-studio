@@ -97,8 +97,8 @@ function NavigationButtonsComponentInner({
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const isAnyProcessing = useIsAnyProcessing();
 
-  const nextTextKey = textResourceBindings?.next || 'next';
-  const backTextKey = textResourceBindings?.back || 'back';
+  const nextTextKey = textResourceBindings?.next || 'navigation.next';
+  const backTextKey = textResourceBindings?.back || 'navigation.previous';
 
   const backToPageTextKey = textResourceBindings?.backToPage || 'form_filler.back_to_page';
 
@@ -226,7 +226,7 @@ function NavigationButtonsComponentInner({
             <Lang id={nextTextKey} />
           </Button>
         )}
-        {hasPrevious && showBackButton && (
+        {hasPrevious && showBackButton !== false && (
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'previous'}

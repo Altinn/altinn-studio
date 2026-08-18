@@ -152,11 +152,12 @@ local files are kept as the version-controlled source of the evaluator
 prompts: edit the file here, then paste the update into the corresponding
 evaluator in the Langfuse UI.
 
-| Local file                            | Langfuse evaluator |
-| ------------------------------------- | ------------------ |
-| `llm-as-a-judge/intent_match.md`      | `intent_match`     |
-| `llm-as-a-judge/no_hallucination.md`  | `no_hallucination` |
-| `llm-as-a-judge/faithful_summary.md`  | `faithful_summary` |
+| Local file                                   | Langfuse evaluator        |
+| -------------------------------------------- | ------------------------- |
+| `llm-as-a-judge/intent_match.md`             | `intent_match`            |
+| `llm-as-a-judge/no_hallucination.md`         | `no_hallucination`        |
+| `llm-as-a-judge/faithful_summary.md`         | `faithful_summary`        |
+| `llm-as-a-judge/no_irrelevant_responses.md`  | `no_irrelevant_responses` |
 
 `implementation_match` is retired: its inputs (implementation plan, patch
 data) no longer exist in the agentic-loop architecture.  Implementation
@@ -204,6 +205,7 @@ The Langfuse SDK caches prompts internally (default 60s TTL). You can override t
 - `assistant_tool_orchestration.md` - Tool selection for Q&A assistant
 - `assistant_response_generation.md` - Answer generation for Q&A responses
 - `chat_assistant.md` - Simple chat-based Q&A assistance
+- `scope_check.md` - Pre-gate classifier: is a Q&A question in scope for Altinn app development
 
 ### User Templates
 

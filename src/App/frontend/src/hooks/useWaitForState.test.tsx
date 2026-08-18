@@ -13,7 +13,7 @@ function createStringStore(initialValue: string) {
 
 describe('useWaitForState', () => {
   it('should return a promise that resolves when the state is updated', async () => {
-    const callback = jest.fn();
+    const callback = vi.fn();
     const store = createStringStore('initial');
     render(
       <TesterComponent
@@ -35,7 +35,7 @@ describe('useWaitForState', () => {
   });
 
   it('should already have rendered the new value in the component when the promise resolves', async () => {
-    const callback = jest.fn();
+    const callback = vi.fn();
     const store = createStringStore('initial');
     render(
       <TesterComponent
@@ -59,7 +59,7 @@ describe('useWaitForState', () => {
   });
 
   it('should return immediately if the state is already the one we wait for', async () => {
-    const callback = jest.fn();
+    const callback = vi.fn();
     const store = createStringStore('updated');
     render(
       <TesterComponent
@@ -75,7 +75,7 @@ describe('useWaitForState', () => {
   });
 
   it('should wait for the state even if we wait right after setting it', async () => {
-    const callback = jest.fn();
+    const callback = vi.fn();
     const store = createStringStore('initial');
     render(
       <TesterComponent
@@ -101,7 +101,7 @@ describe('useWaitForState', () => {
   });
 
   it('should only render child once, even if state changes multiple times', async () => {
-    const callback = jest.fn();
+    const callback = vi.fn();
     const store = createStringStore('initial');
     render(
       <TesterComponent
@@ -138,8 +138,8 @@ describe('useWaitForState', () => {
   });
 
   it('should resolve promise even after component unmounts', async () => {
-    const callback = jest.fn();
-    const unmounted = jest.fn();
+    const callback = vi.fn();
+    const unmounted = vi.fn();
     const store = createStringStore('initial');
     const { unmount } = render(
       <TesterComponent

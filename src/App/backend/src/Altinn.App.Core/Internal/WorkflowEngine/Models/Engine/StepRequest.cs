@@ -30,4 +30,11 @@ internal sealed record StepRequest
     /// </summary>
     [JsonPropertyName("labels")]
     public Dictionary<string, string>? Labels { get; init; }
+
+    /// <summary>
+    /// For a service-task pipeline stage: the stage's name, carried so the per-stage options
+    /// resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching stage. Internal
+    /// and never serialized — the engine sees the stage name only inside the command payload.
+    /// </summary>
+    internal string? ServiceTaskStageName { get; init; }
 }

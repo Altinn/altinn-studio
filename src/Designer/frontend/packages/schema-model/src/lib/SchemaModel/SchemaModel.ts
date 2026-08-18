@@ -545,6 +545,38 @@ export class SchemaModel extends SchemaModelBase {
     const newNode: UiSchemaNode = { ...node, restrictions };
     return this.updateNode(path, newNode);
   }
+
+  /** Creates a copy of the given node, including all of its settings and descendants, and inserts it as a new sibling right after the original node. */
+  public duplicateNode(schemaPointer: string): UiSchemaNode {
+    const node = this.getNodeBySchemaPointer(schemaPointer);
+    const parent = this.getParentNode(schemaPointer);
+    const target: NodePosition = {
+      parentPointer: parent.schemaPointer,
+      index: this.getIndexOfChildNode(schemaPointer) + 1,
+    };
+    const name = this.generateUniqueChildName(
+      parent.schemaPointer,
+      extractNameFromPointer(schemaPointer),
+    );
+    return this.duplicateSubtree(node, target, name);
+  }
+
+  private duplicateSubtree(node: UiSchemaNode, target: NodePosition, name: string): UiSchemaNode {
+    const nodeCopy: UiSchemaNode = ObjectUtils.deepCopy(node);
+    let childPointers: string[] = [];
+    if (isFieldOrCombination(nodeCopy)) {
+      childPointers = [...nodeCopy.children];
+      nodeCopy.children = [];
+    }
+    const newNode = this.addNode(name, nodeCopy, target);
+    childPointers.forEach((childPointer) => {
+      const childNode = this.getNodeBySchemaPointer(childPointer);
+      const childName = extractNameFromPointer(childPointer);
+      const childTarget: NodePosition = { parentPointer: newNode.schemaPointer, index: -1 };
+      this.duplicateSubtree(childNode, childTarget, childName);
+    });
+    return newNode;
+  }
 }
 
 const defaultNodePosition: NodePosition = { parentPointer: ROOT_POINTER, index: -1 };

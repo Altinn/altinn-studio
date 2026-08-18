@@ -9,7 +9,7 @@
       },
       {
         "id": "ButtonPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Buttons"
@@ -82,9 +82,22 @@
       },
 
       {
+        "id": "pdf-preview-button-primary",
+        "type": "PDFPreviewButton",
+        "buttonStyle": "primary"
+      },
+      {
+        "id": "pdf-preview-button-secondary",
+        "type": "PDFPreviewButton",
+        "buttonStyle": "secondary",
+        "textResourceBindings": {
+          "title": "Forhåndsvis PDF (egen tekst og sekundær stil)"
+        }
+      },
+
+      {
         "id": "Button-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

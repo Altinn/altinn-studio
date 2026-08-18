@@ -57,7 +57,7 @@
             "FileUploadWithTag",
             "Grid",
             "Group",
-            "Header",
+            "Heading",
             "Image",
             "Input",
             "InstanceInformation",
@@ -478,12 +478,12 @@
           "if": {
             "properties": {
               "type": {
-                "const": "Header"
+                "const": "Heading"
               }
             }
           },
           "then": {
-            "$ref": "#/definitions/headerComponent"
+            "$ref": "#/definitions/headingComponent"
           }
         },
         {
@@ -524,10 +524,10 @@
         }
       ]
     },
-    "headerComponent": {
+    "headingComponent": {
       "properties": {
         "size": {
-          "title": "Header size",
+          "title": "Heading size",
           "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
           "type": "string",
           "enum": ["L", "M", "S", "h2", "h3", "h4"]
@@ -643,8 +643,8 @@
         "timeStamp": {
           "type": "boolean",
           "title": "Time stamp",
-          "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true.\n If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
-          "default": true
+          "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to false.\n If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
+          "default": false
         },
         "format": {
           "type": "string",

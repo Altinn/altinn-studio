@@ -6,16 +6,22 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DeploymentsController.Utils;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
@@ -27,6 +33,7 @@ public class CreateTests
         IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
+    private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;
 
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/deployments";
@@ -39,14 +46,29 @@ public class CreateTests
         : base(factory, designerDbFixture)
     {
         _mockServerFixture = mockServerFixture;
+        _gitOpsConfigurationManagerMock = new Mock<IGitOpsConfigurationManager>();
+        _gitOpsConfigurationManagerMock
+            .Setup(manager =>
+                manager.EnsureGitOpsConfigurationExistsAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.IsAny<AltinnEnvironment>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _gitOpsConfigurationManagerMock
+            .Setup(manager =>
+                manager.AppExistsInGitOpsConfigurationAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.IsAny<AltinnRepoName>(),
+                    It.IsAny<AltinnEnvironment>()
+                )
+            )
+            .ReturnsAsync(true);
 
         // Configure settings to point to mock server
         JsonConfigOverrides.Add(
             $$"""
                 {
-                   "FeatureManagement": {
-                       "{{StudioFeatureFlags.GitOpsDeploy}}": false
-                   },
                   "GeneralSettings": {
                         "EnvironmentsUrl": "{{mockServerFixture.MockApi.Url}}/cdn-mock/environments.json",
                         "HostName": "{{mockServerFixture.MockApi.Url}}"
@@ -55,8 +77,8 @@ public class CreateTests
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
                         "BuildDefinitionId": 1,
-                        "DeployDefinitionId": 2,
-                        "DecommissionDefinitionId": 3
+                        "DecommissionDefinitionId": 3,
+                        "GitOpsManagerDefinitionId": 4
                     }
                   },
                   "PlatformSettings": {
@@ -67,6 +89,14 @@ public class CreateTests
                 }
             """
         );
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddTransient<ISourceControl, ISourceControlMock>();
+        services.RemoveAll<IGitOpsConfigurationManager>();
+        services.AddSingleton(_gitOpsConfigurationManagerMock.Object);
     }
 
     [Theory]

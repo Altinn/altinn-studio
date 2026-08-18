@@ -331,18 +331,16 @@ describe('FormData', () => {
 
   describe('Locking', () => {
     beforeEach(() => {
-      jest
-        .spyOn(window, 'logWarn')
+      vi.spyOn(window, 'logWarn')
         .mockImplementation(() => {})
         .mockName(`window.logWarn`);
-      jest
-        .spyOn(window, 'logError')
+      vi.spyOn(window, 'logError')
         .mockImplementation(() => {})
         .mockName(`window.logError`);
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     function LockActionButton({ lockId, renderInfo }: { lockId: string; renderInfo: boolean }) {
@@ -421,11 +419,11 @@ describe('FormData', () => {
     }
 
     beforeAll(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterAll(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('Locking should allow changes to the form data, but some values may be overwritten', async () => {
@@ -444,7 +442,7 @@ describe('FormData', () => {
 
       // Locking prevents saving
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       // Unlock the form
@@ -456,11 +454,10 @@ describe('FormData', () => {
 
       // Saving is now allowed, so the form data we saved earlier is sent. The one value
       // we changed that was overwritten is now lost.
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-      const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
-        .calls[0][1] as IDataModelMultiPatchRequest;
+      const patchReq = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -475,7 +472,7 @@ describe('FormData', () => {
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
 
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       await user.click(await screen.findByRole('button', { name: 'Unlock myLockId' }));
@@ -484,7 +481,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj1.prop2')).toHaveValue('');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('');
 
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       expect(window.logError).toHaveBeenCalledTimes(0);
@@ -505,8 +502,7 @@ describe('FormData', () => {
       await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByTestId('isLocked')).toHaveTextContent('false'); // The save has not finished yet
 
-      const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
-        .calls[0][1] as IDataModelMultiPatchRequest;
+      const patchReq = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj2', value: { prop1: 'a' } }]);
 
       const response: IDataModelMultiPatchResponse = {
@@ -546,7 +542,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
 
       // The other lock id will be locked after the first one is unlocked, so it is still not acquired
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       expect(screen.queryByRole('button', { name: 'Unlock myOtherLockId' })).not.toBeInTheDocument();
 
       await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
@@ -636,11 +632,11 @@ describe('FormData', () => {
     }
 
     beforeAll(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterAll(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('Unsaved changes should be saved before navigating', async () => {
@@ -655,7 +651,7 @@ describe('FormData', () => {
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
 
-      const dataModel = (mutations.doPostStatelessFormData.mock as jest.Mock).mock.calls[0][1];
+      const dataModel = (mutations.doPostStatelessFormData.mock as Mock).mock.calls[0][1];
       expect(dataModel).toEqual({
         obj2: { prop1: 'a' },
       });
@@ -712,7 +708,7 @@ describe('FormData', () => {
       );
 
       const { mutations, queries } = await render();
-      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as jest.Mock;
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as Mock;
       const fetchBootstrapCalls = fetchBootstrapMock.mock.calls as [{ prefill?: string }][];
       const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
         string,
@@ -884,3 +880,4 @@ describe('FormData', () => {
     });
   });
 });
+import type { Mock } from 'vitest';

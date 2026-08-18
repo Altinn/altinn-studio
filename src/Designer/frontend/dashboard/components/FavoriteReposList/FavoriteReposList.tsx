@@ -1,7 +1,7 @@
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
-import { Heading } from '@digdir/designsystemet-react';
+import { StudioHeading } from '@studio/components';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export const FavoriteReposList = () => {
@@ -10,9 +10,9 @@ export const FavoriteReposList = () => {
 
   return (
     <div>
-      <Heading level={2} size='small' spacing>
+      <StudioHeading level={2} data-size='md' spacing>
         {t('dashboard.favourites')}
-      </Heading>
+      </StudioHeading>
       <RepoList
         repos={userStarredRepos}
         isLoading={isPendingStarredRepos}

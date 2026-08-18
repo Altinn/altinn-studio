@@ -395,15 +395,20 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
-      'Adds a new component to the layout when the given type is %s',
-      (componentType) => {
-        const id = 'newItemId';
-        const layout = addItemOfType(mockInternal, componentType, id);
-        expect(layout.components[id].itemType).toEqual('COMPONENT');
-        expect(layout.components[id].type).toEqual(componentType);
-      },
-    );
+    // The shared enum includes the v9 names (OrganizationLookup, Heading) used by ux-editor.
+    it.each(
+      Object.values(ComponentType).filter(
+        (v) =>
+          v !== ComponentType.OrganizationLookup &&
+          v !== ComponentType.Heading &&
+          !containerComponentTypes.includes(v),
+      ),
+    )('Adds a new component to the layout when the given type is %s', (componentType) => {
+      const id = 'newItemId';
+      const layout = addItemOfType(mockInternal, componentType, id);
+      expect(layout.components[id].itemType).toEqual('COMPONENT');
+      expect(layout.components[id].type).toEqual(componentType);
+    });
 
     it.each(containerComponentTypes)(
       'Adds a new container to the layout when the given type is %s',

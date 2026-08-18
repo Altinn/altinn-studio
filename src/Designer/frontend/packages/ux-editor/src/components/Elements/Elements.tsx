@@ -5,10 +5,9 @@ import { DefaultToolbar } from './DefaultToolbar';
 
 import classes from './Elements.module.css';
 
-import { StudioButton, StudioHeading } from '@studio/components';
+import { StudioButton, StudioHeading, StudioParagraph } from '@studio/components';
 import { SidebarLeftIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { Paragraph } from '@digdir/designsystemet-react';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -36,9 +35,9 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         <TogglePanelButton onClick={onCollapseToggle} isCollapsed={collapsed} />
       </div>
       {hideComponents ? (
-        <Paragraph className={classes.noPageSelected} size='small'>
+        <StudioParagraph className={classes.noPageSelected}>
           {t('left_menu.no_components_selected')}
-        </Paragraph>
+        </StudioParagraph>
       ) : shouldShowConfPageToolbar ? (
         <ConfPageToolbar confPageType={configToolbarMode} />
       ) : (

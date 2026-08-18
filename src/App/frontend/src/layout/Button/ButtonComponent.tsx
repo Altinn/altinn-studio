@@ -68,7 +68,6 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
 
   const disabled =
     attachmentState.hasPending ||
-    attachmentState.state === 'Infected' ||
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 

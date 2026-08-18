@@ -22,7 +22,7 @@ export function signingTestLogin(user: User) {
 
     cy.startAppInstance(appFrontend.apps.signingTest, { cyUser: user, urlSuffix: instanceSuffix, tenorUser });
 
-    if (!instanceSuffix && Cypress.env('type') !== 'localtest') {
+    if (!instanceSuffix && Cypress.expose('type') !== 'localtest') {
       const org = Tenor.orgs.overflodigSlemTigerAS;
       cy.findByText('Hvem vil du sende inn for?').should('be.visible');
       cy.findByRole('textbox', { name: 'Søk etter aktør' }).type(org.orgNr);

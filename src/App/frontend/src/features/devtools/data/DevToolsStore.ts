@@ -12,7 +12,6 @@ type Store = IDevToolsState & { actions: IDevToolsActions };
 
 export const DevToolsStore = createStore<Store>((set) => ({
   isOpen: false,
-  pdfPreview: false,
   hiddenComponents: 'hide',
   activeTab: DevToolsTab.General,
   layoutInspector: {
@@ -41,7 +40,6 @@ export const DevToolsStore = createStore<Store>((set) => ({
       set({ activeTab: DevToolsTab.Layout, layoutInspector: { selectedComponentId: componentId } }),
     focusNodeInspector: (nodeId: string) =>
       set({ activeTab: DevToolsTab.Components, nodeInspector: { selectedNodeId: nodeId } }),
-    setPdfPreview: (preview: boolean) => set({ pdfPreview: preview }),
     setShowHiddenComponents: (value: DevToolsHiddenComponents) => set({ hiddenComponents: value }),
     exprPlaygroundSetExpression: (expression: string | undefined) =>
       set((state) => ({ exprPlayground: { ...state.exprPlayground, expression } })),

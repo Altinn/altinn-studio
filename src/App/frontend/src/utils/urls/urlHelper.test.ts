@@ -24,17 +24,17 @@ const hostUnknown = 'www.vg.no';
 
 describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessageBox() returning correct environemnts', () => {
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
     expect(getMessageBoxUrl()).toBe('https://af.tt02.altinn.no/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
     expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
     expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud:8000/');
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudio } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudio } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudioDev } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudioDev } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
-    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostUnknown } as Location);
+    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostUnknown } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
   });
 
@@ -145,7 +145,7 @@ describe('Shared urlHelper.ts', () => {
       );
 
       // getMessageBoxUrl() reads the host off window.location rather than taking it as an argument
-      jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+      vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
       expect(getMessageBoxUrl()).toBe('https://af.yt01.altinn.cloud/');
     });
 
@@ -184,7 +184,7 @@ describe('Shared urlHelper.ts', () => {
       expect(returnUrlToProfile(hostTT)).toBe(undefined);
       expect(returnUrlToArchive(hostTT)).toBe(undefined);
       expect(returnUrlToArchive(hostTT, 12345, dialogId)).toBe(undefined);
-      jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+      vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
       expect(getMessageBoxUrl()).toBe(undefined);
     });
 

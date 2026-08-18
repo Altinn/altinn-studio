@@ -28,6 +28,7 @@ public class CopyAppStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<CopyAp
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestOrgUsername)]
     [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestUser)]
+    [InlineData(GiteaConstants.TestOrgUsername, "TESTUSER")]
     [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.SecondaryTestOrgUsername)]
     public async Task Copy_Repo_Should_Return_Created(string org, string targetOrg)
     {
