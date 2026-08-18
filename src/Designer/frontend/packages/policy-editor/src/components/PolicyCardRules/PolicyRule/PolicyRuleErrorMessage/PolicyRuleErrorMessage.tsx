@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { StudioValidationMessage } from '@studio/components';
 
 export const PolicyRuleErrorMessage = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -38,5 +38,5 @@ export const PolicyRuleErrorMessage = (): React.ReactElement => {
     return '';
   };
 
-  return <ErrorMessage size='small'>{getRuleErrorText()}</ErrorMessage>;
+  return <StudioValidationMessage data-size='sm'>{getRuleErrorText()}</StudioValidationMessage>;
 };
