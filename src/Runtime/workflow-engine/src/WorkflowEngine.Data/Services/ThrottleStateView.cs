@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Options;
+using WorkflowEngine.Models;
+
 namespace WorkflowEngine.Data.Services;
 
 /// <summary>
@@ -15,24 +18,53 @@ internal interface IThrottleStateView
     /// Deliberately excludes <c>HalfOpen</c>: during recovery, released workflows that fail again
     /// must stay unparked so they can accumulate into the sweep's re-trip signal — cooperative
     /// re-parking would hide exactly the evidence recovery is judged on.
+    /// Reads as empty when the snapshot has expired (see
+    /// <see cref="ThrottleStateView.StaleSnapshotSweepMultiplier"/>).
     /// </summary>
     IReadOnlyDictionary<string, TimeSpan> OpenBreakers { get; }
 }
 
 /// <inheritdoc cref="IThrottleStateView"/>
-internal sealed class ThrottleStateView : IThrottleStateView
+internal sealed class ThrottleStateView(TimeProvider timeProvider, IOptions<EngineSettings> options)
+    : IThrottleStateView
 {
+    /// <summary>
+    /// Snapshot age beyond which <see cref="OpenBreakers"/> reads as empty, as a multiple of
+    /// <see cref="ThrottlingSettings.SweepInterval"/>. The view fails open, never closed: a
+    /// replica whose sweep loop has died must lose its power to park, not keep exercising a
+    /// frozen view — which would otherwise stamp workflows into a long-closed namespace after
+    /// the grace-period row is gone, with nothing left to clear them. A stale snapshot merely
+    /// returns parking duty to the sweep, the authoritative writer. Must stay below
+    /// <see cref="NamespaceThrottleService.ClosedGraceSweepMultiplier"/> so stragglers parked at
+    /// the staleness edge are still cleared by the grace-period sweep.
+    /// </summary>
+    internal const int StaleSnapshotSweepMultiplier = 3;
+
+    private sealed record Snapshot(IReadOnlyDictionary<string, TimeSpan> OpenBreakers, DateTimeOffset PublishedAt);
+
     private static readonly IReadOnlyDictionary<string, TimeSpan> _empty = new Dictionary<string, TimeSpan>(
         StringComparer.Ordinal
     );
 
-    private volatile IReadOnlyDictionary<string, TimeSpan> _openBreakers = _empty;
+    private volatile Snapshot? _snapshot;
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<string, TimeSpan> OpenBreakers => _openBreakers;
+    public IReadOnlyDictionary<string, TimeSpan> OpenBreakers
+    {
+        get
+        {
+            var snapshot = _snapshot;
+            if (snapshot is null)
+                return _empty;
+
+            var maxAge = StaleSnapshotSweepMultiplier * options.Value.Throttling.SweepInterval;
+            return timeProvider.GetUtcNow() - snapshot.PublishedAt > maxAge ? _empty : snapshot.OpenBreakers;
+        }
+    }
 
     /// <summary>
-    /// Atomically replaces the snapshot. Called by the sweep only.
+    /// Atomically replaces the snapshot, stamping its publication time. Called by the sweep only.
     /// </summary>
-    internal void Publish(IReadOnlyDictionary<string, TimeSpan> openBreakers) => _openBreakers = openBreakers;
+    internal void Publish(IReadOnlyDictionary<string, TimeSpan> openBreakers) =>
+        _snapshot = new Snapshot(openBreakers, timeProvider.GetUtcNow());
 }

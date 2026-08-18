@@ -47,7 +47,9 @@ internal sealed class NamespaceThrottleService(
     /// stale by one sweep interval, so a workflow may still be parked into a just-closed
     /// namespace; during the grace window the sweep clears such stragglers. One interval would
     /// be the theoretical minimum — five buys margin for a slow replica or a sweep cycle that
-    /// overruns, and costs only a tiny row lingering. A named constant rather than
+    /// overruns, and exceeds <see cref="ThrottleStateView.StaleSnapshotSweepMultiplier"/> so even
+    /// a stamp from a maximally-stale snapshot lands inside the grace window. Costs only a tiny
+    /// row lingering. A named constant rather than
     /// configuration for the same reason as the growth factors: it composes with
     /// <see cref="ThrottlingSettings.SweepInterval"/> multiplicatively.
     /// </summary>
@@ -229,7 +231,8 @@ internal sealed class NamespaceThrottleService(
     /// An open breaker probes its canaries: any progressed canary opens recovery (quorum of one —
     /// premature release self-corrects by re-tripping, while requiring unanimity would let one
     /// idiosyncratically-broken workflow block recovery forever); unanimous failure extends the
-    /// window and rotates the canaries; otherwise the breaker keeps waiting. In all cases the
+    /// window and rotates the canaries; otherwise — including a canary observed mid-attempt,
+    /// which proves nothing about the target — the breaker keeps waiting. In all cases the
     /// sweep re-parks stragglers and re-stamps rows whose window is about to elapse — natural
     /// elapse is the eligibility mechanism, but an open breaker keeps re-parking.
     /// </summary>
@@ -259,8 +262,16 @@ internal sealed class NamespaceThrottleService(
                 continue;
             }
 
+            // A currently-executing canary is neither: being leased proves nothing about the
+            // target — in a hang-until-timeout storm an in-flight probe is the failure mode's
+            // signature, and treating it as progress would release cohorts into a hanging target
+            // that cannot feed the re-trip signal until its attempts time out. The verdict waits
+            // for the attempt to record its result.
             bool failed = observation.RequeueCount > canary.RequeueCount;
-            bool progressed = !failed && observation.Status != PersistentItemStatus.Requeued;
+            bool progressed =
+                !failed
+                && observation.Status != PersistentItemStatus.Requeued
+                && observation.Status != PersistentItemStatus.Processing;
 
             anyProgressed |= progressed;
             allFailed &= failed;
