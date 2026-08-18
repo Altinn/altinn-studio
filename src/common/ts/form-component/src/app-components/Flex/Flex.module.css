@@ -88,6 +88,8 @@
 }
 
 .col-xs-auto {
+  flex-grow: 0;
+  max-width: none;
   flex-basis: auto;
 }
 .col-xs-1 {
@@ -153,6 +155,11 @@
 
 /* Small (sm breakpoint) */
 @media mediaSmUp {
+  .col-sm-auto {
+    flex-grow: 0;
+    max-width: none;
+    flex-basis: auto;
+  }
   .col-sm-1 {
     flex-grow: 0;
     max-width: 8.33%;
@@ -217,6 +224,11 @@
 
 /* Medium (md breakpoint) */
 @media mediaMdUp {
+  .col-md-auto {
+    flex-grow: 0;
+    max-width: none;
+    flex-basis: auto;
+  }
   .col-md-1 {
     flex-grow: 0;
     max-width: 8.33%;
@@ -281,6 +293,11 @@
 
 /* Large (lg breakpoint) */
 @media mediaLgUp {
+  .col-lg-auto {
+    flex-grow: 0;
+    max-width: none;
+    flex-basis: auto;
+  }
   .col-lg-1 {
     flex-grow: 0;
     max-width: 8.33%;
