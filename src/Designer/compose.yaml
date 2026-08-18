@@ -169,9 +169,10 @@ services:
       - 'studio.localhost:host-gateway'
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
-      interval: 5s
+      interval: 2s
       timeout: 10s
-      retries: 5
+      retries: 15
+      start_period: 60s
 
   gitea_proxy:
     container_name: gitea-proxy
@@ -254,9 +255,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:3000/api/healthz" ]
-      interval: 5s
+      interval: 2s
       timeout: 10s
-      retries: 5
+      retries: 15
+      start_period: 30s
 
   studio_repositories_runner:
     container_name: gitea-runner
@@ -289,9 +291,10 @@ services:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U designer_admin -d designerdb" ]
-      interval: 10s
+      interval: 2s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 20s
 
   database_migrations:
     container_name: db-database_migrations
@@ -310,6 +313,8 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
+    # Developer tooling: only started with `--profile tools` (setup.js adds it outside CI).
+    profiles: ['tools']
     ports:
       - "81:80"
     environment:
@@ -334,6 +339,8 @@ services:
   redis-commander:
     container_name: redis-commander
     image: rediscommander/redis-commander:latest
+    # Developer tooling: only started with `--profile tools` (setup.js adds it outside CI).
+    profiles: ['tools']
     restart: always
     environment:
         - REDIS_HOSTS=redis

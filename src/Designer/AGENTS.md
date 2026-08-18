@@ -26,6 +26,7 @@ users, OAuth client id/secret) and prepares the stack. Then, from `src/Designer`
 ```bash
 docker compose up -d --build            # full stack → http://studio.localhost
 docker compose up -d --build <service>  # rebuild one service (e.g. studio_designer)
+docker compose --profile tools up -d    # adds the dev tooling (pgadmin, redis-commander)
 ```
 
 Log in as `localgiteaadmin`; the generated password is in the root `.env` (`GITEA_ADMIN_PASS`). To

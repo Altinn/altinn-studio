@@ -1,6 +1,8 @@
 const giteaApi = require('./utils/gitea-api.js');
 const waitFor = require('./utils/wait-for.js');
 const runCommand = require('./utils/run-command.js');
+const runCommandAsync = require('./utils/run-command-async.js');
+const mapLimit = require('./utils/map-limit.js');
 const ensureDotEnv = require('./utils/ensure-dot-env.js');
 const dnsIsOk = require('./utils/check-if-dns-is-correct.js');
 const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
@@ -8,20 +10,49 @@ const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 const waitForHealthy = require('./utils/wait-for-healthy.js');
 
-const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
-const buildAndStartComposeService = (service) =>
-  runCommand(`docker compose up -d ${service} --build`);
+// Lets compose delegate builds to buildx bake, which builds the services in parallel instead of one
+// after another. Older compose versions ignore the variable.
+process.env.COMPOSE_BAKE = process.env.COMPOSE_BAKE ?? 'true';
 
-const createUser = (username, password, admin) =>
+// pgadmin and redis-commander are developer tooling behind the "tools" compose profile. CI has no
+// use for them, and pulling and starting them is pure overhead there.
+const composeProfiles = process.env.CI === 'true' ? [] : ['--profile', 'tools'];
+const compose = (...args) => ['docker compose', ...composeProfiles, ...args].join(' ');
+
+// Everything the Gitea provisioning below needs. Starting them in one compose call lets compose
+// build them in parallel, instead of once per invocation.
+const bootstrapServices = ['studio_db', 'studio_repositories', 'fake_ansattporten'];
+
+const startBootstrapServices = () =>
+  runCommand(compose('up', '-d', '--build', ...bootstrapServices));
+
+// The Designer image (full frontend build + dotnet publish) is by far the slowest step, and it does
+// not depend on any of the Gitea provisioning. Building it in the background means the two overlap.
+const buildRemainingServices = () => runCommandAsync('docker compose build');
+
+const startEverything = () => runCommand(compose('up', '-d', '--remove-orphans'));
+
+const userCreateCommand = (username, password, admin) =>
+  [
+    `gitea admin user create`,
+    `--username ${username}`,
+    `--password ${password}`,
+    `--email ${username}@digdir.no`,
+    admin ? `--admin` : undefined,
+    `--must-change-password=false`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+// One docker exec instead of one per user: the exec overhead dominates the actual work here.
+// Creating a user that already exists fails, which is expected when the setup is re-run.
+const createUsers = (env) =>
   runCommand(
-    [
-      `docker exec studio-repositories gitea admin user create`,
-      `--username ${username}`,
-      `--password ${password}`,
-      `--email ${username}@digdir.no`,
-      admin ? `--admin` : undefined,
-      `--must-change-password=false`,
-    ].join(' '),
+    `docker exec studio-repositories sh -c '${[
+      userCreateCommand(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true),
+      userCreateCommand(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false),
+    ].join('; ')}'`,
+    { allowFailure: true },
   );
 
 const createOrganization = (user, pass, orgShortName, orgFullName, orgDescription) =>
@@ -36,6 +67,7 @@ const createOrganization = (user, pass, orgShortName, orgFullName, orgDescriptio
       description: orgDescription,
     },
   });
+
 const createTestDepTeams = async (env) => {
   const allTeams = require(path.resolve(__dirname, 'data', 'gitea-teams.json'));
 
@@ -46,23 +78,22 @@ const createTestDepTeams = async (env) => {
     pass: env.GITEA_ADMIN_PASS,
   });
 
-  for (const team of allTeams) {
-    const existing = existingTeams.find((t) => t.name === team.name);
-    if (!existing) {
-      await giteaApi({
-        path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
-        method: 'POST',
-        user: env.GITEA_ADMIN_USER,
-        pass: env.GITEA_ADMIN_PASS,
-        body: Object.assign(
-          {
-            units: ['repo.code', 'repo.issues', 'repo.pulls', 'repo.releases'],
-          },
-          team,
-        ),
-      });
-    }
-  }
+  const missingTeams = allTeams.filter((team) => !existingTeams.some((t) => t.name === team.name));
+
+  await mapLimit(missingTeams, (team) =>
+    giteaApi({
+      path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+      method: 'POST',
+      user: env.GITEA_ADMIN_USER,
+      pass: env.GITEA_ADMIN_PASS,
+      body: Object.assign(
+        {
+          units: ['repo.code', 'repo.issues', 'repo.pulls', 'repo.releases'],
+        },
+        team,
+      ),
+    }),
+  );
 };
 
 const createOidcClientIfNotExists = async (env) => {
@@ -96,6 +127,28 @@ const createOidcClientIfNotExists = async (env) => {
   return env;
 };
 
+const testDepTeamMemberships = [
+  'Owners',
+  'Deploy-TT02',
+  'Devs',
+  'Deploy-AT21',
+  'Deploy-AT22',
+  'Resources',
+  'Resources-Publish-AT21',
+  'Resources-Publish-AT22',
+  'Resources-Publish-AT23',
+  'Resources-Publish-AT24',
+  'Resources-Publish-TT02',
+  'AccessLists-AT21',
+  'AccessLists-AT22',
+  'AccessLists-AT23',
+  'AccessLists-AT24',
+  'AccessLists-TT02',
+  'Admin-TT02',
+  'Admin-AT21',
+  'Admin-AT22',
+];
+
 const addUserToSomeTestDepTeams = async (env) => {
   const teams = await giteaApi({
     path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
@@ -104,66 +157,25 @@ const addUserToSomeTestDepTeams = async (env) => {
     pass: env.GITEA_ADMIN_PASS,
   });
 
-  for (const teamName of [
-    'Owners',
-    'Deploy-TT02',
-    'Devs',
-    'Deploy-AT21',
-    'Deploy-AT22',
-    'Resources',
-    'Resources-Publish-AT21',
-    'Resources-Publish-AT22',
-    'Resources-Publish-AT23',
-    'Resources-Publish-AT24',
-    'Resources-Publish-TT02',
-    'AccessLists-AT21',
-    'AccessLists-AT22',
-    'AccessLists-AT23',
-    'AccessLists-AT24',
-    'AccessLists-TT02',
-    'Admin-TT02',
-    'Admin-AT21',
-    'Admin-AT22',
-  ]) {
-    const existing = teams.find((t) => t.name === teamName);
+  const memberships = [env.GITEA_ADMIN_USER, env.GITEA_CYPRESS_USER].flatMap((username) =>
+    testDepTeamMemberships.map((teamName) => {
+      const team = teams.find((t) => t.name === teamName);
+      if (!team) {
+        throw new Error(`Team ${teamName} does not exist in org ${env.GITEA_ORG_USER}`);
+      }
+      return { teamId: team.id, username };
+    }),
+  );
 
-    await giteaApi({
-      path: `/api/v1/teams/${existing.id}/members/${env.GITEA_ADMIN_USER}`,
+  // These are independent of each other, so there is no reason to do them one at a time.
+  await mapLimit(memberships, ({ teamId, username }) =>
+    giteaApi({
+      path: `/api/v1/teams/${teamId}/members/${username}`,
       method: 'PUT',
       user: env.GITEA_ADMIN_USER,
       pass: env.GITEA_ADMIN_PASS,
-    });
-  }
-  for (const teamName of [
-    'Owners',
-    'Deploy-TT02',
-    'Devs',
-    'Deploy-AT21',
-    'Deploy-AT22',
-    'Resources',
-    'Resources-Publish-AT21',
-    'Resources-Publish-AT22',
-    'Resources-Publish-AT23',
-    'Resources-Publish-AT24',
-    'Resources-Publish-TT02',
-    'AccessLists-AT21',
-    'AccessLists-AT22',
-    'AccessLists-AT23',
-    'AccessLists-AT24',
-    'AccessLists-TT02',
-    'Admin-TT02',
-    'Admin-AT21',
-    'Admin-AT22',
-  ]) {
-    const existing = teams.find((t) => t.name === teamName);
-
-    await giteaApi({
-      path: `/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,
-      method: 'PUT',
-      user: env.GITEA_ADMIN_USER,
-      pass: env.GITEA_ADMIN_PASS,
-    });
-  }
+    }),
+  );
 };
 
 const createContentRepo = async (user, pass, org) => {
@@ -181,56 +193,59 @@ const createContentRepo = async (user, pass, org) => {
     },
   });
 
-  await giteaApi({
-    path: `/api/v1/repos/${org}/${repo}/contents/${filePathCodeList}`,
-    method: 'POST',
-    user,
-    pass,
-    body: {
-      content: Buffer.from(
-        `[\n  {\n    "label": "someLabel",\n    "value": "someValue"\n  }\n]`,
-      ).toString('base64'),
-    },
-  });
-
-  await giteaApi({
-    path: `/api/v1/repos/${org}/${repo}/contents/${filePathTexts}`,
-    method: 'POST',
-    user,
-    pass,
-    body: {
-      content: Buffer.from(
-        `{\n  "language": "nb",\n  "resources": [\n    {\n      "id": "test",\n      "value": "test"\n    }\n  ]\n}`,
-      ).toString('base64'),
-    },
-  });
+  await Promise.all([
+    giteaApi({
+      path: `/api/v1/repos/${org}/${repo}/contents/${filePathCodeList}`,
+      method: 'POST',
+      user,
+      pass,
+      body: {
+        content: Buffer.from(
+          `[\n  {\n    "label": "someLabel",\n    "value": "someValue"\n  }\n]`,
+        ).toString('base64'),
+      },
+    }),
+    giteaApi({
+      path: `/api/v1/repos/${org}/${repo}/contents/${filePathTexts}`,
+      method: 'POST',
+      user,
+      pass,
+      body: {
+        content: Buffer.from(
+          `{\n  "language": "nb",\n  "resources": [\n    {\n      "id": "test",\n      "value": "test"\n    }\n  ]\n}`,
+        ).toString('base64'),
+      },
+    }),
+  ]);
 };
 
 const setupEnvironment = async (env) => {
-  buildAndStartComposeService('studio_db');
-  buildAndStartComposeService('studio_repositories');
-  buildAndStartComposeService('fake_ansattporten');
+  startBootstrapServices();
+
+  const remainingBuilds = buildRemainingServices();
+  remainingBuilds.catch(() => {}); // rejection is handled where the build is awaited, below
+
   await waitForHealthy('studio-repositories');
 
-  createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
-  createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
+  createUsers(env);
   createFakeAnsattportenAuthSource();
-  linkAdminToFakeAnsattporten();
-  linkCypressUserToFakeAnsattporten(env.GITEA_CYPRESS_USER);
-  await createOrganization(
-    env.GITEA_ADMIN_USER,
-    env.GITEA_ADMIN_PASS,
-    env.GITEA_ORG_USER,
-    'Testdepartementet',
-    'Internt organisasjon for test av løsning',
-  );
-  await createOrganization(
-    env.GITEA_ADMIN_USER,
-    env.GITEA_ADMIN_PASS,
-    'als',
-    'Altinn Studio',
-    'Altinn Studio organization',
-  );
+  linkUsersToFakeAnsattporten(env.GITEA_CYPRESS_USER);
+  await Promise.all([
+    createOrganization(
+      env.GITEA_ADMIN_USER,
+      env.GITEA_ADMIN_PASS,
+      env.GITEA_ORG_USER,
+      'Testdepartementet',
+      'Internt organisasjon for test av løsning',
+    ),
+    createOrganization(
+      env.GITEA_ADMIN_USER,
+      env.GITEA_ADMIN_PASS,
+      'als',
+      'Altinn Studio',
+      'Altinn Studio organization',
+    ),
+  ]);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
   await createContentRepo(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, env.GITEA_ORG_USER);
@@ -240,6 +255,8 @@ const setupEnvironment = async (env) => {
   const newEnv = await createPersonalAccessToken(envWithOidcClient);
 
   await createCypressEnvFile(env);
+
+  await remainingBuilds;
 
   return newEnv;
 };
@@ -263,15 +280,19 @@ const createFakeAnsattportenAuthSource = () => {
   );
 };
 
-const linkAdminToFakeAnsattporten = () =>
-  runCommand(
-    `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-29922149761', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = 'localgiteaadmin' ON CONFLICT DO NOTHING;"`,
-  );
+// Both links in one psql call: the statements are idempotent and independent, and the docker exec
+// round trip costs more than the inserts themselves.
+const linkUsersToFakeAnsattporten = (cypressUser) => {
+  const link = (externalId, lowerName) =>
+    `INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT '${externalId}', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = '${lowerName}' ON CONFLICT DO NOTHING;`;
 
-const linkCypressUserToFakeAnsattporten = (cypressUser) =>
   runCommand(
-    `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-10866898516', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = '${cypressUser.toLowerCase()}' ON CONFLICT DO NOTHING;"`,
+    `docker exec studio-db psql -U gitea -d giteadb -c "${[
+      link('sub-29922149761', 'localgiteaadmin'),
+      link('sub-10866898516', cypressUser.toLowerCase()),
+    ].join(' ')}"`,
   );
+};
 
 const setupRunnersToken = async (env) => {
   const runnersToken = await giteaApi({
@@ -313,7 +334,7 @@ const script = async () => {
     writeEnvFile(result);
   }
 
-  startingDockerCompose();
+  startEverything();
   await waitFor('http://studio.localhost', 120);
 
   process.exit(0);

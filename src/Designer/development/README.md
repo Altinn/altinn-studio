@@ -11,6 +11,10 @@ Then, for instance, it will update passwords and ownership in Gitea for that use
 node ./setup.js
 ```
 
+The script builds the Designer image in the background while it provisions Gitea, so the two overlap.
+Outside CI it also starts the `tools` compose profile (`pgadmin`, `redis-commander`); CI skips it, as
+detected through the `CI` environment variable.
+
 ## Your local environment variables
 
 These are created by the script and are found at the root in the `.env`-file.

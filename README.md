@@ -71,6 +71,10 @@ The development environment consist of several services defined in [compose.yaml
 - `redis` which is a redis cache used by designer.
 - `redis-commander` which is a ui for redis cache.
 
+`pgadmin` and `redis-commander` are developer tooling and belong to the `tools` compose profile, so they
+are not started by a plain `docker compose up`. Start them with `docker compose --profile tools up -d`
+(`yarn setup` does this for you outside CI).
+
 Run all parts of the solution in containers (Make sure docker is running), with docker compose as follows:
 
 ```bash

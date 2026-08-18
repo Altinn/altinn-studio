@@ -54,7 +54,10 @@ ENV PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD}
 
 RUN yarn --immutable
 
-COPY . .
+# Only the sources the frontend build actually reads. Copying the whole context here would let
+# unrelated changes (Designer backend, app templates) invalidate this expensive layer.
+COPY src/Designer/frontend ./src/Designer/frontend
+COPY src/common/ts ./src/common/ts
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
