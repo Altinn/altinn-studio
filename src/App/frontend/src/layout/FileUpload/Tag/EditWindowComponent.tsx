@@ -40,7 +40,7 @@ export function EditWindowComponent({
   options,
   isFetching,
 }: EditWindowProps): React.JSX.Element {
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'FileUploadWithTag');
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'FileUpload');
   const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;

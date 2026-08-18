@@ -38,9 +38,7 @@ export function validateMissingTags(attachments: IAttachment[], tagKey: string |
   return validations;
 }
 
-export function validateMissingTagsForNode(
-  ctx: ComponentValidationContext<'FileUploadWithTag'>,
-): ComponentValidation[] {
+export function validateMissingTagsForNode(ctx: ComponentValidationContext<'FileUpload'>): ComponentValidation[] {
   return validateMissingTags(
     attachmentSelector(
       makeAttachmentNode(ctx.baseComponentId, ctx.component),

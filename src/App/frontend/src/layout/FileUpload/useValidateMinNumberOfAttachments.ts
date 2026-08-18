@@ -26,7 +26,7 @@ export function validateMinNumberOfAttachments(
   };
 }
 
-export function validateMinNumberOfAttachmentsForNode<T extends 'FileUpload' | 'FileUploadWithTag'>(
+export function validateMinNumberOfAttachmentsForNode<T extends 'FileUpload'>(
   ctx: ComponentValidationContext<T>,
 ): ComponentValidation[] {
   const component = ctx.component as { id: string; minNumberOfAttachments?: unknown };
