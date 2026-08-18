@@ -1,6 +1,11 @@
 services:
   altinity-agents:
-    build: .
+    # Build from the repo root so the image can also compile the bundled
+    # studioctl-server (see dockerfile). dockerfile.dockerignore scopes the
+    # context.
+    build:
+      context: ../../..
+      dockerfile: src/AI/agents/dockerfile
     image: altinity-agents
     container_name: altinity-agents
     ports:

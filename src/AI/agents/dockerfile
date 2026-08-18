@@ -1,26 +1,66 @@
+# syntax=docker/dockerfile:1
+
+# --- Build the bundled studioctl-server (unmodified) --------------------------
+# studioctl-server carries the official v8->v9 app upgrade; the agents
+# `upgrade_app_to_v9` tool calls its HTTP endpoint over a unix socket. Built
+# from the repo root context so the .NET project and its shared sources are
+# reachable. No studioctl source is modified.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS dotnet-build
+WORKDIR /src
+# Central package-management props (MSBuild walks up from the project to src/cli).
+COPY src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/
+# Shared sources linked into the project via <Compile Include="../../Runtime/...">.
+COPY src/Runtime/common/dotnet/Altinn.Studio.Runtime.Common ./src/Runtime/common/dotnet/Altinn.Studio.Runtime.Common
+COPY src/cli/studioctl-server ./src/cli/studioctl-server
+# Skip dev-time format/analyzer checks (CSharpier, Sonar): we build the
+# unmodified sources only to get the runtime artifact, and CSharpier's check
+# trips on CRLF line endings from a Windows checkout. Neither affects the
+# compiled output.
+RUN dotnet publish src/cli/studioctl-server -c Release -o /publish \
+    -p:CSharpier_Bypass=true -p:RunAnalyzers=false
+
+# --- Agents runtime image -----------------------------------------------------
 FROM python:3.14-slim-bookworm@sha256:9ab8d9c8514b44f90cf0029dd42fdd7e9e211e639c8b995304cc04568dee900f
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# git: repo operations. curl + ca-certificates: fetch the .NET SDK installer.
+# bash: dotnet-install.sh requires it (the slim image only ships dash).
+# libicu + libssl: .NET runtime dependencies on Debian.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git curl ca-certificates bash libicu72 libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# The v8->v9 upgrade shells out to `dotnet restore`, so the image needs the full
+# .NET SDK at runtime (not just the runtime). `dotnet --version` fails the build
+# early if the SDK can't run (e.g. a missing native dependency).
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+    && bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet \
+    && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+    && rm /tmp/dotnet-install.sh \
+    && dotnet --version
 
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinn.studio"
 
-COPY requirements.txt ./
+COPY src/AI/agents/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install --no-cache-dir "playwright>=1.49.0" && \
     playwright install --with-deps chromium
 
-COPY agents/ ./agents/
-COPY api/ ./api/
-COPY services/ ./services/
-COPY shared/ ./shared/
+COPY src/AI/agents/agents/ ./agents/
+COPY src/AI/agents/api/ ./api/
+COPY src/AI/agents/services/ ./services/
+COPY src/AI/agents/shared/ ./shared/
+COPY --from=dotnet-build /publish /opt/studioctl-server
+COPY src/AI/agents/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 8071
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8071"]
+# Starts studioctl-server in the background, then execs uvicorn (PID 1).
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
