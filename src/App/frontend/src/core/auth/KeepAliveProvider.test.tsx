@@ -19,7 +19,7 @@ describe('KeepAliveProvider', () => {
 
   beforeEach(() => {
     setLocation({ href: appUrl });
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
