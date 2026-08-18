@@ -1,3 +1,5 @@
+@value mediaSmUp, mediaMdUp, mediaLgUp from './breakpoints.module.css';
+
 .container {
   width: 100%;
   display: flex;
@@ -150,7 +152,7 @@
 }
 
 /* Small (sm breakpoint) */
-@media (min-width: 600px) {
+@media mediaSmUp {
   .col-sm-1 {
     flex-grow: 0;
     max-width: 8.33%;
@@ -214,7 +216,7 @@
 }
 
 /* Medium (md breakpoint) */
-@media (min-width: 1025px) {
+@media mediaMdUp {
   .col-md-1 {
     flex-grow: 0;
     max-width: 8.33%;
@@ -278,7 +280,7 @@
 }
 
 /* Large (lg breakpoint) */
-@media (min-width: 1440px) {
+@media mediaLgUp {
   .col-lg-1 {
     flex-grow: 0;
     max-width: 8.33%;
