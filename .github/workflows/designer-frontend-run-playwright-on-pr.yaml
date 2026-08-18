@@ -28,7 +28,11 @@ concurrency:
 jobs:
   playwright-tests:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    name: Playwright
+    strategy:
+      fail-fast: false  # one app template failing must not mask the state of the other
+      matrix:
+        template: [v8, v9]
+    name: Playwright (${{ matrix.template }})
     timeout-minutes: 35
     runs-on: self-hosted-single
 
@@ -62,7 +66,9 @@ jobs:
           node src/Designer/development/setup.js
 
       # Co-located with Playwright setup to reuse the compose stack rather than booting it again in a dedicated workflow.
+      # One template is enough - the runner registration is identical in both.
       - name: Verify gitea-runner registered
+        if: matrix.template == 'v8'
         run: |
           if ! docker logs gitea-runner 2>&1 | grep -qE "registered successfully|listening to tasks"; then
             echo "::error::gitea-runner did not register"
@@ -79,6 +85,7 @@ jobs:
         working-directory: src/Designer/frontend/testing/playwright
         env:
           environment: local
+          PLAYWRIGHT_APP_TEMPLATES: ${{ matrix.template }}
         run: |
           yarn setup:local:env
           yarn playwright:test:all
@@ -87,5 +94,5 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: failure()
         with:
-          name: playwright-screenshots
+          name: playwright-screenshots-${{ matrix.template }}
           path: src/Designer/frontend/testing/playwright/test-results

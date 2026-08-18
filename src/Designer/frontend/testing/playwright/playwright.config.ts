@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, type Project } from '@playwright/test';
 import { config } from 'dotenv';
 import type { ExtendedTestOptions } from './extenders/testExtend';
 import { AppNames } from './enum/AppNames';
@@ -6,6 +6,30 @@ import { TestNames } from './enum/TestNames';
 import { AppTemplate } from './enum/AppTemplate';
 
 config();
+
+// CI runs one job per app template, so each job only spins up the projects for its own template.
+// Projects without an explicit template (setup, login/logout) always run.
+const selectedTemplates: string[] = (
+  process.env.PLAYWRIGHT_APP_TEMPLATES ?? `${AppTemplate.V8},${AppTemplate.V9}`
+)
+  .split(',')
+  .map((template) => template.trim())
+  .filter(Boolean);
+
+const selectProjects = (
+  projects: Array<Project<ExtendedTestOptions>>,
+): Array<Project<ExtendedTestOptions>> => {
+  const selectedProjects = projects.filter(
+    (project) =>
+      !project.use?.testAppTemplate || selectedTemplates.includes(project.use.testAppTemplate),
+  );
+  const selectedNames = new Set(selectedProjects.map((project) => project.name));
+
+  return selectedProjects.map((project) => ({
+    ...project,
+    dependencies: project.dependencies?.filter((dependency) => selectedNames.has(dependency)),
+  }));
+};
 
 export default defineConfig<ExtendedTestOptions>({
   use: {
@@ -22,7 +46,7 @@ export default defineConfig<ExtendedTestOptions>({
   workers: 1, // Github actions always use only 1, so we set to 1 locally as well
   reporter: 'html',
 
-  projects: [
+  projects: selectProjects([
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
     {
       name: TestNames.CREATE_APP_ONLY,
@@ -346,5 +370,5 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-  ],
+  ]),
 });
