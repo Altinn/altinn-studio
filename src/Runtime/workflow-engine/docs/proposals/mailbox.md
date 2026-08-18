@@ -688,7 +688,70 @@ Engine first (steps 1–6), then the app library (7–10), then measurement and 
 engine step is independently green because the engine surfaces are additive: nothing existing
 changes behavior until the app declares a mailbox.
 
-#### Step 1 — Engine: the mailbox — schema, mint, read, close — `todo`
+#### Step 1 — Engine: the mailbox — schema, mint, read, close — `done`
+
+Landed as jj change `vrymvwoqpmrn` — 30 files, +2776/−6, all under `src/Runtime/workflow-engine`.
+Engine suite **705 → 709**; host 76 unchanged, and no wire-contract regeneration was needed (no
+`EngineContractTypes`-reachable type moved — verified, not assumed). Three review rounds; the
+migration is a single pair, regenerated in place rather than stacked, since nothing is released.
+
+Four decisions worth knowing, each reached by argument rather than default:
+
+- **`DELETE` answers `202` effecting / `200` replay / `404` missing.** The first draft answered
+  `200` for both on the reasoning that a fully-applied close has nothing "accepted" to report;
+  `abandon` disproves it — a synchronous compare-and-set that still answers `202`. The repo's rule
+  is _`202` means this call effected the state change_, which the mint already encodes as `201`/`200`.
+- **The mint is the one mutation that does not lock first**, because the row is what it creates; the
+  unique index serializes it. It is one statement whose CTE order _is_ the semantics (`existing`
+  consulted unconditionally, so a replay is answered even at the cap; `open_count` gating only new
+  rows; `ON CONFLICT DO UPDATE` so a losing racer gets the winner's row), verified against a real
+  Postgres in all three interleavings. The caller distinguishes mint from replay by whether the
+  returned id is the one it generated — which survives `ExecuteWithRetry` re-execution after an
+  unacknowledged commit, where a literal `minted` flag would not.
+- **The open-mailboxes-per-collection cap is best-effort, not exact**, because `open_count` is
+  evaluated in the mint's own snapshot: concurrent mints of different keys overshoot by up to the
+  in-flight mint count, never runaway. Documented as best-effort in all four places and pinned
+  _deterministically_ (an uncommitted hand-inserted mailbox forces the overshoot) rather than by
+  racing — a test asserting that a race reproduces is flaky on a loaded box, and would fail the build
+  if the cap were ever made exact, which would be an improvement.
+- **`MaxMailboxTimeout = 21d`**, derived against the receiver-enqueue anchor:
+  `21d (park) + 1min (sweep) + 14d (wait) + 60d (retention resume) + 14d (second wait) + 1d (retry
+ladder) = 110d 1min`, against a ≥114d floor from the operator's rotation window — margin ≈4d, and
+  3× v2's inherited-token ceiling, as the motivation predicted. Two terms v2 had to carry are gone,
+  and v2's _uncounted_ link-wait term is inside the bound by construction.
+
+What steps 2–6 inherit:
+
+- **Validation belongs in `Engine`, before the database.** `varchar(200)` overflow raises SQLSTATE
+  22001, which `EngineRepository.Resilience.cs` classifies as _transient_ — so an unvalidated
+  over-long key retried for 30s and logged a false "Database down?" before answering `500`. Mint
+  validation now lives in `Engine.ValidateMailboxRequest` behind `MailboxMintResult.Invalid`;
+  step 2's delivery `idempotencyKey` needs the same treatment, reusing `MaxMailboxKeyLength`.
+- **`ck_mailboxes_disposal_is_complete`** is biconditional: open ⇒ both disposal fields null,
+  disposed ⇒ both non-null. Any future writer of `status` (steps 4 and 5) must write
+  `disposed_reason` and `disposed_at` in the same statement.
+- **`CloseMailbox` already takes a `MailboxDisposedReason`** and opens a transaction whose first
+  statement is `SELECT … FOR UPDATE`. That is where step 4's waiter release goes, and step 5's sweep
+  calls the same method with `Deadline`.
+- **`unconsumedDeliveries` is derived** as `max(0, nextIdx − nextSeq)` — exact for the plan's
+  definition given gapless logs. Step 2 should validate it against real delivery rows, not replace it.
+- Both fixtures' `TRUNCATE` lists include `engine.mailboxes`; steps 2–3 must add
+  `mailbox_deliveries` and `mailbox_waiters`.
+
+Gaps left open deliberately, each pinned by a characterization test rather than a comment: `DELETE`
+releases no receivers (step 4); the deadline is stamped but unenforced and mailboxes sit outside
+retention (step 5, pinned by a test that runs all four existing sweeps against an overdue mailbox);
+no dashboard rendering (step 5); a mailbox minted without a `collectionKey` is uncapped.
+
+Residuals recorded and not actioned: one clause in the cap test's comment over-claims (an
+advisory-lock exact cap would leave it green, though it could not slip past the four "best-effort"
+doc sites); the CHECK test's second assertion checks `SqlState` but not the constraint name; the
+`timeout` column is derivable from `deadline − created_at` (spec-mandated); `ReadMailbox`'s
+positional offsets are coupled to `MailboxColumns` by convention with no test against a one-sided
+reorder. **Unrelated pre-existing landmine found:** `DbMaintenanceService.PurgeExpiredWorkflows`
+loops `while (deleted >= settings.BatchSize)`, which never terminates when `BatchSize == 0` — and
+`PostgresFixture` ships exactly that, since it builds `EngineSettings` with no `Retention` block. It
+hung a test run for ten minutes. Production is protected only indirectly, by `ValidateEngineSettings`.
 
 Paths: `src/Runtime/workflow-engine` (`WorkflowEngine.Data` entities/migrations/repository/SQL,
 `WorkflowEngine.Models`, `WorkflowEngine.Core/Endpoints`, `WorkflowEngine.Telemetry`, `tests/`).
@@ -715,7 +778,7 @@ release half of closure (step 4), the deadline sweep (step 5), retention (step 5
 step closes for deliveries and nothing else — there are no receivers in the engine's model yet.
 Record that gap with a characterization test rather than a comment, in v2's style.
 
-#### Step 2 — Engine: delivery ingestion — `todo`
+#### Step 2 — Engine: delivery ingestion — `in progress`
 
 Paths: as step 1.
 
@@ -789,6 +852,13 @@ cutoff purges with its deliveries and waiters, children first, in the existing m
 Dashboard: a mailbox renders under its collection with deadline, both counters, per-position state,
 and its receivers linked. Metric: `engine.mailboxes.deliveries.unconsumed`.
 
+**Carried from step 1:** the `MaxMailboxTimeout` derivation and
+`CallbackTokenLifetimeInvariantTests` both charge the sweep term against
+`EngineSettings.MaintenanceInterval` (1 min) only because no mailbox sweep existed yet. If this step
+gives the closure sweep its own, coarser cadence setting, **repoint that term in both places** — a
+slower sweep lets a receiver park past the bound while every assertion stays green. Both files say so
+at the point of use; they are the grep targets.
+
 Reasonable split if the dashboard proves large: 5a sweep + retention, 5b dashboard. Take it via
 `BLOCKED_FOR_SCOPE_SPLIT` rather than by growing the revision.
 
@@ -818,6 +888,13 @@ whose callback enqueues receive workflow 1 as a collection head. No `WaitingReas
 Mine `kotqmwtq` for the pairing and expansion mechanics; the address shape differs, so copy
 structure, not semantics. The `ServiceTaskPipeline` mutability that existed only to serve
 `WithReplyFrom` should not be re-created — build the immutable shape v2's residual asked for.
+
+**Wire contract, carried from step 1:** the mailbox DTOs are deliberately outside the drift guard
+until an app consumer exists. This step must add `MailboxCreateRequest`/`MailboxResponse` to
+`EngineContractTypes` and regenerate the snapshot — and because `MailboxStatus` and
+`MailboxDisposedReason` are **new enums**, `AppWireContractTests`' directionality rule forces the app
+to model their members in this same step (enum `Kind` is compared as an exact string; a nullable
+field may be omitted, an enum member may not).
 
 #### Step 8 — App-lib: the receive handler and the relay saga — `todo`
 
