@@ -1,5 +1,4 @@
 import React from 'react';
-import { Fieldset } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -12,7 +11,14 @@ import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton, StudioHelpText, StudioSwitch, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioDivider,
+  StudioFieldset,
+  StudioHelpText,
+  StudioSwitch,
+  StudioTextfield,
+} from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -80,25 +86,27 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
   }
 
   return (
-    <Fieldset
-      className={classes.root}
-      description={t('schema_editor.custom_props_help')}
-      legend={t('schema_editor.custom_props')}
-    >
-      {Object.keys(custom).map((key) => (
-        <div key={key} className={classes.listItem}>
-          <span className={classes.data}>
-            <span>{renderKey(key)}</span>
-            <span>{renderInput(key)}</span>
-          </span>
-          <StudioButton
-            icon={<TrashIcon />}
-            onClick={() => deleteCustomProperty(key)}
-            title={t('general.delete')}
-          />
-        </div>
-      ))}
-    </Fieldset>
+    <>
+      <StudioDivider />
+      <StudioFieldset
+        description={t('schema_editor.custom_props_help')}
+        legend={t('schema_editor.custom_props')}
+      >
+        {Object.keys(custom).map((key) => (
+          <div key={key} className={classes.listItem}>
+            <span className={classes.data}>
+              <span>{renderKey(key)}</span>
+              <span>{renderInput(key)}</span>
+            </span>
+            <StudioButton
+              icon={<TrashIcon />}
+              onClick={() => deleteCustomProperty(key)}
+              title={t('general.delete')}
+            />
+          </div>
+        ))}
+      </StudioFieldset>
+    </>
   );
 };
 
