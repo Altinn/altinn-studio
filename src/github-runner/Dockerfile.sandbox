@@ -1,0 +1,21 @@
+FROM ghcr.io/altinn/altinn-studio/github-runner:latest
+
+LABEL org.opencontainers.image.source="https://github.com/Altinn/altinn-studio"
+LABEL org.opencontainers.image.description="Altinn Studio GitHub Actions runner guest for Microsandbox"
+
+ARG KUBECTL_VERSION=1.35.7
+
+USER root
+
+COPY run-sandbox.sh /usr/local/bin/altinn-github-runner-sandbox
+RUN KUBECTL_SHA256="$(curl -fsSL \
+      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256")" \
+    && curl -fsSL \
+      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+      -o /tmp/kubectl \
+    && echo "${KUBECTL_SHA256}  /tmp/kubectl" | sha256sum -c - \
+    && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
+    && rm -f /tmp/kubectl \
+    && chmod 0755 /usr/local/bin/altinn-github-runner-sandbox
+
+ENTRYPOINT ["/usr/local/bin/altinn-github-runner-sandbox"]
