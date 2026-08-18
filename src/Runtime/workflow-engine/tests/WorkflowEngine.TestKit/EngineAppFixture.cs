@@ -129,7 +129,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
 
         await using var context = GetDbContext();
         await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys, engine.mailboxes CASCADE"
+            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys, engine.mailboxes, engine.mailbox_deliveries CASCADE"
         );
 
         // Start a fresh instance of WireMock, recycling the port (which has already been sent to the factory)

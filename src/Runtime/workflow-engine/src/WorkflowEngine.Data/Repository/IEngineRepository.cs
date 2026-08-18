@@ -326,4 +326,31 @@ internal interface IEngineRepository
         DateTimeOffset now,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Appends one message to a mailbox's deliveries log at the next gapless position, taking the
+    /// mailbox's row lock as the transaction's first act.
+    /// </summary>
+    /// <remarks>
+    /// Idempotent on <c>(mailboxId, idempotencyKey)</c>, and the lookup runs <em>before</em> the refusals:
+    /// a message the mailbox already holds is reported as
+    /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox has closed or its log has
+    /// filled, because the engine kept it and a caller must never be told to dead-letter a message that
+    /// is sitting at a position waiting to be read. Refusals — closed mailbox, or a log already at
+    /// <paramref name="maxLogLength"/> — write nothing, so they leave no key claimed and repeat
+    /// identically.
+    /// <para>
+    /// Payload size is not checked here: it needs no row state, and refusing it before the database is
+    /// what keeps an oversized delivery from costing a connection and a transaction.
+    /// </para>
+    /// </remarks>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string payload,
+        DateTimeOffset now,
+        int maxLogLength,
+        CancellationToken cancellationToken = default
+    );
 }

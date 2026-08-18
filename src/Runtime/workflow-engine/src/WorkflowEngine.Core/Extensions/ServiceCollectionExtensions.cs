@@ -187,6 +187,12 @@ public static class OptionsBuilderExtensions
                 if (config.MaxOpenMailboxesPerCollection <= 0)
                     config.MaxOpenMailboxesPerCollection = Defaults.EngineSettings.MaxOpenMailboxesPerCollection;
 
+                if (config.MaxMailboxPayloadSize <= 0)
+                    config.MaxMailboxPayloadSize = Defaults.EngineSettings.MaxMailboxPayloadSize;
+
+                if (config.MaxMailboxLogLength <= 0)
+                    config.MaxMailboxLogLength = Defaults.EngineSettings.MaxMailboxLogLength;
+
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
@@ -302,6 +308,16 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.MaxOpenMailboxesPerCollection > 0,
                 $"{ns}.{nameof(EngineSettings.MaxOpenMailboxesPerCollection)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxMailboxPayloadSize > 0,
+                $"{ns}.{nameof(EngineSettings.MaxMailboxPayloadSize)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxMailboxLogLength > 0,
+                $"{ns}.{nameof(EngineSettings.MaxMailboxLogLength)} must be greater than zero."
             );
 
             builder.Validate(

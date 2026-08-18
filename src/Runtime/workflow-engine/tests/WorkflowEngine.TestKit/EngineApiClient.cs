@@ -427,6 +427,45 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Delivers a message into a mailbox and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> DeliverToMailboxRaw(
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        string? ns = null
+    ) => _client.PostAsJsonAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}/deliveries", request);
+
+    /// <summary>
+    /// Delivers a message into a mailbox from raw JSON and returns the raw
+    /// <see cref="HttpResponseMessage"/>. Used to exercise binding and validation directly.
+    /// </summary>
+    public async Task<HttpResponseMessage> DeliverToMailboxRaw(Guid mailboxId, string jsonRequest, string? ns = null)
+    {
+        using var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+        return await _client.PostAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}/deliveries", content);
+    }
+
+    /// <summary>
+    /// Delivers a message into a mailbox and asserts a 2xx response — 202 when this call appended it,
+    /// 200 on an idempotent replay. Use <see cref="DeliverToMailboxRaw(Guid, MailboxDeliveryRequest, string?)"/>
+    /// when the distinction is what the test is about. Throws on failure.
+    /// </summary>
+    public async Task<MailboxDeliveryResponse> DeliverToMailbox(
+        Guid mailboxId,
+        string idempotencyKey,
+        string payload = "{}",
+        string? ns = null
+    )
+    {
+        using var response = await DeliverToMailboxRaw(
+            mailboxId,
+            new MailboxDeliveryRequest { IdempotencyKey = idempotencyKey, Payload = payload },
+            ns
+        );
+        return await AssertSuccessAndDeserialize<MailboxDeliveryResponse>(response);
+    }
+
+    /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches
     /// <paramref name="expectedStatus"/> or the <paramref name="timeout"/> expires.
     /// </summary>

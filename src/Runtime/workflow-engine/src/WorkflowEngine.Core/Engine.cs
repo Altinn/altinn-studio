@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
@@ -82,6 +83,24 @@ internal interface IEngine
     /// reported as it stands, carrying the reason and instant of the close that actually happened.
     /// </summary>
     Task<MailboxCloseResult> CloseMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delivers one message into a mailbox, appending it to the deliveries log at the next gapless
+    /// position. Idempotent on the caller's key within the mailbox.
+    /// </summary>
+    /// <remarks>
+    /// Validates the request itself and answers <see cref="MailboxDeliveryResult.Invalid"/> or
+    /// <see cref="MailboxDeliveryResult.PayloadTooLarge"/> before the database when it is inadmissible —
+    /// an idempotency key that is empty, whitespace, or longer than the 200 characters the schema stores,
+    /// or a payload above <see cref="EngineSettings.MaxMailboxPayloadSize"/>. A caller need not
+    /// pre-validate.
+    /// </remarks>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDeliveryRequest request,
+        CancellationToken cancellationToken = default
+    );
 }
 
 /// <summary>
@@ -544,6 +563,88 @@ internal sealed class Engine(
 
         return result;
     }
+
+    /// <summary>
+    /// Validates a delivery request before it can reach the database.
+    /// </summary>
+    /// <remarks>
+    /// The key's length has to be caught here for the reason
+    /// <see cref="ValidateMailboxRequest"/> documents: <c>idempotency_key</c> is <c>varchar(200)</c>, and
+    /// Postgres answers an over-long value with SQLSTATE 22001, which the repository's retry classifier
+    /// reads as transient. The payload cap is checked here for a different reason — it needs no row
+    /// state, so refusing early is what keeps an oversized delivery from spending a database connection
+    /// and a transaction on an answer that was knowable from the request alone.
+    /// </remarks>
+    private MailboxDeliveryResult? ValidateMailboxDeliveryRequest(MailboxDeliveryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+            return new MailboxDeliveryResult.Invalid("IdempotencyKey cannot be empty or whitespace.");
+
+        if (request.IdempotencyKey.Length > MaxMailboxKeyLength)
+            return new MailboxDeliveryResult.Invalid(
+                $"IdempotencyKey '{request.IdempotencyKey[..50]}...' is {request.IdempotencyKey.Length} characters, maximum is {MaxMailboxKeyLength}."
+            );
+
+        // Not redundant with the property being declared required: `required` makes the property appear
+        // in the JSON, not be non-null in it, and an explicit null binds straight through.
+        if (request.Payload is null)
+            return new MailboxDeliveryResult.Invalid("Payload is required.");
+
+        var payloadSize = Encoding.UTF8.GetByteCount(request.Payload);
+        if (payloadSize > _settings.MaxMailboxPayloadSize)
+            return new MailboxDeliveryResult.PayloadTooLarge(
+                $"The delivery's payload is {payloadSize} bytes, maximum is {_settings.MaxMailboxPayloadSize}. "
+                    + "Store large content externally and let the delivery carry a reference."
+            );
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDeliveryRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var result =
+            ValidateMailboxDeliveryRequest(request)
+            ?? await repository.DeliverToMailbox(
+                mailboxId,
+                ns,
+                request.IdempotencyKey,
+                request.Payload,
+                timeProvider.GetUtcNow(),
+                _settings.MaxMailboxLogLength,
+                cancellationToken
+            );
+
+        // Counted for every outcome, the pre-lock refusals included, so a storm of oversized or
+        // misaddressed forwards is visible in the mailbox metrics and not only in HTTP status codes.
+        Metrics.MailboxDeliveriesReceived.Add(1, ("outcome", MailboxDeliveryOutcomeTag(result)));
+
+        return result;
+    }
+
+    /// <summary>
+    /// The <c>outcome</c> tag value for one delivery result. Internal rather than private so
+    /// <c>MailboxDeliveryOutcomeTagTests</c> can cover every case directly — reaching the rarer ones
+    /// through the endpoint costs a filled log or a malformed request each, and one of them would
+    /// otherwise go untested.
+    /// </summary>
+    internal static string MailboxDeliveryOutcomeTag(MailboxDeliveryResult result) =>
+        result switch
+        {
+            MailboxDeliveryResult.Accepted => "accepted",
+            MailboxDeliveryResult.Duplicate => "duplicate",
+            MailboxDeliveryResult.NotFound => "not_found",
+            MailboxDeliveryResult.Closed => "closed",
+            MailboxDeliveryResult.LogFull => "log_full",
+            MailboxDeliveryResult.PayloadTooLarge => "too_large",
+            MailboxDeliveryResult.Invalid => "invalid",
+            _ => throw new UnreachableException(),
+        };
 
     /// <summary>
     /// Validates that all command types in the request are known to the registry

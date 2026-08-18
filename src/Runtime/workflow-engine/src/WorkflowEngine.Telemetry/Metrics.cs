@@ -311,6 +311,24 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of messages offered to the delivery endpoint, tagged with <c>outcome</c>:
+    /// <c>accepted</c> (appended at a new position), <c>duplicate</c> (an idempotent replay of a message
+    /// the mailbox already holds), <c>not_found</c>, <c>closed</c> (too late — the mailbox closed by
+    /// request or at its deadline), <c>log_full</c>, <c>too_large</c>, <c>invalid</c>.
+    /// </summary>
+    /// <remarks>
+    /// Counted for <em>every</em> outcome, including the ones refused before the mailbox row is ever
+    /// locked, so a storm of oversized or malformed forwards is visible here and not only in HTTP
+    /// metrics. <c>accepted</c> against <see cref="MailboxesCreated"/> is messages-per-exchange; the rest
+    /// are forwarder problems, each with a distinct fix — and <c>closed</c> in particular is the one to
+    /// watch, since it means a counterparty answered after the exchange had given up on it.
+    /// </remarks>
+    public static readonly Counter<long> MailboxDeliveriesReceived = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.received",
+        description: "Number of messages offered to the mailbox delivery endpoint, tagged with the outcome"
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(

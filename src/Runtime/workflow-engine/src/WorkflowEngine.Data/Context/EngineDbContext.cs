@@ -29,6 +29,11 @@ internal sealed class EngineDbContext : DbContext
     /// </summary>
     public DbSet<MailboxEntity> Mailboxes { get; set; }
 
+    /// <summary>
+    /// Gets or sets the mailbox delivery entities stored in the database.
+    /// </summary>
+    public DbSet<MailboxDeliveryEntity> MailboxDeliveries { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -182,6 +187,29 @@ internal sealed class EngineDbContext : DbContext
                         + $"OR (status = '{MailboxStatusMap.Disposed}' AND disposed_reason IS NOT NULL AND disposed_at IS NOT NULL)"
                 );
             });
+        });
+
+        // Configure MailboxDelivery entity
+        modelBuilder.Entity<MailboxDeliveryEntity>(entity =>
+        {
+            // The position is the address: this is the key the receiving workflow reads its delivery by,
+            // so it is the primary key rather than a surrogate id with an index beside it.
+            entity.HasKey(e => new { e.MailboxId, e.Idx });
+
+            // What makes an at-least-once forwarder's resend idempotent. Ingestion holds the mailbox row
+            // lock while it looks a key up and appends, so this index is the schema's guarantee rather
+            // than the mechanism the happy path relies on — it is what would catch a future writer that
+            // appended without taking the lock.
+            entity.HasIndex(e => new { e.MailboxId, e.IdempotencyKey }).IsUnique();
+
+            // No cascade: a mailbox with deliveries cannot be deleted out from under them. Retention
+            // purges children first, deliberately and in that order, so an accidental delete of a mailbox
+            // fails loudly instead of silently taking the exchange's messages with it.
+            entity
+                .HasOne<MailboxEntity>()
+                .WithMany()
+                .HasForeignKey(e => e.MailboxId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         SnakeCaseNamingConvention.Apply(modelBuilder);

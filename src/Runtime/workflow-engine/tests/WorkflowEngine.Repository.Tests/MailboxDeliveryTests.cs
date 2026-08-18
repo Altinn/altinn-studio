@@ -1,0 +1,638 @@
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Models;
+using WorkflowEngine.Repository.Tests.Fixtures;
+
+namespace WorkflowEngine.Repository.Tests;
+
+/// <summary>
+/// Covers delivery ingestion against a real database: the gapless log, the idempotency rule and the
+/// order it is applied in, the refusals, and the schema that backs all three.
+/// </summary>
+[Collection(PostgresCollection.Name)]
+public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifetime
+{
+    private const string Ns = "test-ns";
+    private const int LogCap = 100;
+
+    public async ValueTask InitializeAsync() => await fixture.Reset();
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private static async Task<MailboxResponse> MintMailbox(EngineRepository repository, string key = "mailbox-key")
+    {
+        var result = await repository.MintMailbox(
+            Guid.CreateVersion7(),
+            Ns,
+            key,
+            collectionKey: null,
+            TimeSpan.FromHours(1),
+            DateTimeOffset.UtcNow,
+            maxOpenPerCollection: 100,
+            TestContext.Current.CancellationToken
+        );
+
+        return Assert.IsType<MailboxMintResult.Minted>(result).Mailbox;
+    }
+
+    private static Task<MailboxDeliveryResult> Deliver(
+        EngineRepository repository,
+        Guid mailboxId,
+        string key,
+        string payload = "{}",
+        DateTimeOffset? now = null,
+        int logCap = LogCap,
+        string ns = Ns
+    ) =>
+        repository.DeliverToMailbox(
+            mailboxId,
+            ns,
+            key,
+            payload,
+            now ?? DateTimeOffset.UtcNow,
+            logCap,
+            TestContext.Current.CancellationToken
+        );
+
+    private static MailboxDeliveryResponse AssertAccepted(MailboxDeliveryResult result) =>
+        Assert.IsType<MailboxDeliveryResult.Accepted>(result).Delivery;
+
+    #region The gapless log
+
+    [Fact]
+    public async Task DeliverToMailbox_OpenMailbox_AppendsAtTheNextPositionAndAdvancesTheCounter()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var now = DateTimeOffset.UtcNow;
+
+        // Act
+        var first = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", """{"a":1}""", now));
+        var second = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-2", """{"a":2}""", now));
+
+        // Assert — positions start at zero and are handed out in arrival order.
+        Assert.Equal(0L, first.Idx);
+        Assert.Equal(1L, second.Idx);
+        Assert.Equal(mailbox.Id, first.MailboxId);
+        Assert.Equal("msg-1", first.IdempotencyKey);
+        Assert.Equal(now, first.AcceptedAt, TimeSpan.FromMilliseconds(1));
+
+        // The counter is the next position, so after two deliveries it names the third.
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.NotNull(afterwards);
+        Assert.Equal(2L, afterwards.NextIdx);
+        Assert.Equal(0L, afterwards.NextSeq);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_StoresThePayloadVerbatim()
+    {
+        // The engine never parses a payload, so nothing it does to one is a transformation the sender
+        // and receiver did not agree on. Pinned with content that a well-meaning normalizer would touch.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        const string Payload = """  {"æøå": "  spaced  ", "n": 1.500}  """;
+
+        var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", Payload));
+
+        await using var context = fixture.CreateDbContext();
+        var row = await context.MailboxDeliveries.SingleAsync(
+            d => d.MailboxId == mailbox.Id && d.Idx == accepted.Idx,
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(Payload, row.Payload);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_EmptyPayload_IsAccepted()
+    {
+        // A characterization test for a deliberate choice: the engine has no opinion about a payload's
+        // contents, and a message can carry its whole meaning in the fact that it arrived. Refusing an
+        // empty body would be the engine inventing a rule about a format it does not read.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", payload: ""));
+
+        Assert.Equal(0L, accepted.Idx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_ConcurrentDeliveries_AssignEveryPositionExactlyOnce()
+    {
+        // Gaplessness is the property the whole rendezvous is built on: a receiver enqueued at seq n
+        // reads position n, so a skipped or duplicated position would make a receiver read the wrong
+        // message or none at all. Proved by racing rather than asserted, because the only thing that
+        // makes it true is that the mailbox row lock serializes the counter's increment with the insert
+        // that consumes it.
+        //
+        // Sixteen concurrent calls through one repository: its data source hands each of them its own
+        // pooled connection, so these race on real connections without needing sixteen repositories.
+        const int Count = 16;
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var results = await Task.WhenAll(
+            Enumerable.Range(0, Count).Select(i => Deliver(repository, mailbox.Id, $"msg-{i}"))
+        );
+
+        var positions = results.Select(AssertAccepted).Select(d => d.Idx).Order().ToArray();
+        Assert.Equal(Enumerable.Range(0, Count).Select(i => (long)i), positions);
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.NotNull(afterwards);
+        Assert.Equal((long)Count, afterwards.NextIdx);
+    }
+
+    #endregion
+
+    #region Idempotency — accepted versus kept
+
+    [Fact]
+    public async Task DeliverToMailbox_ReplayedKey_ReturnsTheOriginalDeliveryAndAppendsNothing()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var accepted = AssertAccepted(
+            await Deliver(repository, mailbox.Id, "msg-1", """{"v":1}""", DateTimeOffset.UtcNow.AddMinutes(-5))
+        );
+
+        // Act — the same key, now with a different payload and a later clock.
+        var replay = await Deliver(repository, mailbox.Id, "msg-1", """{"v":2}""", DateTimeOffset.UtcNow);
+
+        // Assert — the position and the instant are the original's. A forwarder retrying a transport
+        // failure must not be able to move a message it already delivered.
+        var duplicate = Assert.IsType<MailboxDeliveryResult.Duplicate>(replay).Delivery;
+        Assert.Equal(accepted.Idx, duplicate.Idx);
+        Assert.Equal(accepted.AcceptedAt, duplicate.AcceptedAt);
+
+        await using var context = fixture.CreateDbContext();
+        var row = await context.MailboxDeliveries.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal("""{"v":1}""", row.Payload);
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.NotNull(afterwards);
+        Assert.Equal(1L, afterwards.NextIdx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_ReplayedKeyAfterTheMailboxClosed_StillReplaysTheDelivery()
+    {
+        // The "accepted versus kept" rule, and the reason the idempotency lookup runs before the closed
+        // check rather than after it. The message is sitting at position 0 waiting to be read; telling a
+        // retrying forwarder it was too late would have it dead-letter a message the engine holds.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Request,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        var replay = await Deliver(repository, mailbox.Id, "msg-1");
+
+        var duplicate = Assert.IsType<MailboxDeliveryResult.Duplicate>(replay).Delivery;
+        Assert.Equal(accepted.Idx, duplicate.Idx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_ReplayedKeyOnAFullLog_StillReplaysTheDelivery()
+    {
+        // The same rule against the other refusal. A cap that is reached after a message was accepted
+        // says nothing about that message.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", logCap: 1));
+
+        var replay = await Deliver(repository, mailbox.Id, "msg-1", logCap: 1);
+
+        var duplicate = Assert.IsType<MailboxDeliveryResult.Duplicate>(replay).Delivery;
+        Assert.Equal(accepted.Idx, duplicate.Idx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_SameKeyConcurrently_AppendsExactlyOneDelivery()
+    {
+        // Arrange — one repository, whose data source gives each concurrent call its own connection.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        // Act
+        var results = await Task.WhenAll(
+            Enumerable.Range(0, 8).Select(_ => Deliver(repository, mailbox.Id, "contested"))
+        );
+
+        // Assert — the mailbox lock serializes the read-then-append, so exactly one call finds no
+        // delivery to replay and the rest are handed the one it made.
+        Assert.Single(results.OfType<MailboxDeliveryResult.Accepted>());
+
+        var positions = results
+            .Select(r =>
+                r switch
+                {
+                    MailboxDeliveryResult.Accepted a => a.Delivery.Idx,
+                    MailboxDeliveryResult.Duplicate d => d.Delivery.Idx,
+                    _ => throw new InvalidOperationException($"Unexpected delivery result {r}."),
+                }
+            )
+            .Distinct()
+            .ToList();
+        Assert.Equal([0L], positions);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(1, await context.MailboxDeliveries.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_KeysAreScopedToOneMailbox()
+    {
+        // Arrange — two mailboxes, one forwarder key.
+        var repository = fixture.CreateRepository();
+        var first = await MintMailbox(repository, "mailbox-a");
+        var second = await MintMailbox(repository, "mailbox-b");
+
+        // Act
+        var a = AssertAccepted(await Deliver(repository, first.Id, "msg-1"));
+        var b = AssertAccepted(await Deliver(repository, second.Id, "msg-1"));
+
+        // Assert — a key deduplicates within its own mailbox, not across the namespace: two exchanges
+        // relayed from the same source must not shadow each other's messages.
+        Assert.Equal(0L, a.Idx);
+        Assert.Equal(0L, b.Idx);
+        Assert.NotEqual(a.MailboxId, b.MailboxId);
+    }
+
+    #endregion
+
+    #region Refusals
+
+    [Fact]
+    public async Task DeliverToMailbox_ClosedMailbox_IsRefusedAndWritesNothing()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var closedAt = DateTimeOffset.UtcNow;
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Deadline,
+            closedAt,
+            TestContext.Current.CancellationToken
+        );
+
+        // Act
+        var refused = await Deliver(repository, mailbox.Id, "msg-1");
+
+        // Assert — the refusal carries the mailbox as it stands, because "too late" is only actionable
+        // for a forwarder if it also says how the exchange ended.
+        var closed = Assert.IsType<MailboxDeliveryResult.Closed>(refused).Mailbox;
+        Assert.Equal(MailboxStatus.Disposed, closed.Status);
+        Assert.Equal(MailboxDisposedReason.Deadline, closed.DisposedReason);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.MailboxDeliveries.CountAsync(TestContext.Current.CancellationToken));
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.NotNull(afterwards);
+        Assert.Equal(0L, afterwards.NextIdx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_LogAtItsCap_IsRefusedAndWritesNothing()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        for (int i = 0; i < 3; i++)
+            AssertAccepted(await Deliver(repository, mailbox.Id, $"msg-{i}", logCap: 3));
+
+        // Act
+        var refused = await Deliver(repository, mailbox.Id, "msg-3", logCap: 3);
+
+        // Assert
+        Assert.Equal(3L, Assert.IsType<MailboxDeliveryResult.LogFull>(refused).LogLength);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(3, await context.MailboxDeliveries.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_RefusedDelivery_LeavesItsIdempotencyKeyFree()
+    {
+        // The structural simplification over an ingestion path that inserts first and refuses second:
+        // because a refusal writes nothing, there is no key to release afterwards, and the same key can
+        // be offered again the moment the reason for the refusal is gone. A design that claimed the key
+        // on the refused attempt would answer the retry below with a replay of a delivery that never
+        // happened.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        AssertAccepted(await Deliver(repository, mailbox.Id, "msg-0", logCap: 1));
+        Assert.IsType<MailboxDeliveryResult.LogFull>(await Deliver(repository, mailbox.Id, "msg-1", logCap: 1));
+
+        // The same key again, now that the log has room.
+        var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", logCap: 5));
+
+        Assert.Equal(1L, accepted.Idx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_RefusalRepeats()
+    {
+        // The other half of "accepted versus kept": what the engine refused, it keeps refusing. Nothing
+        // about the first refusal makes the second one an idempotent replay.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Request,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.IsType<MailboxDeliveryResult.Closed>(await Deliver(repository, mailbox.Id, "msg-1"));
+        Assert.IsType<MailboxDeliveryResult.Closed>(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.MailboxDeliveries.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_UnknownIdOrForeignNamespace_ReturnsNotFound()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        // Act + Assert — the namespace is part of the address, not a filter applied afterwards.
+        Assert.IsType<MailboxDeliveryResult.NotFound>(await Deliver(repository, Guid.CreateVersion7(), "msg-1"));
+        Assert.IsType<MailboxDeliveryResult.NotFound>(await Deliver(repository, mailbox.Id, "msg-1", ns: "other-ns"));
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.MailboxDeliveries.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    #endregion
+
+    #region The mailbox row is the serialization point
+
+    [Fact]
+    public async Task DeliverToMailbox_CannotEvenReplayADeliveryWhileTheMailboxRowLockIsHeldElsewhere()
+    {
+        // The structural half of the lock-first discipline, exercised through the one verdict that does
+        // not need the row: a replay is decided entirely from the deliveries table. A read-before-lock
+        // implementation would answer it from its own snapshot without ever blocking, so this test is
+        // red for that implementation and green for this one. (Racing an *append* instead would prove
+        // nothing — an append has to touch the locked row whatever the lookup order, so it blocks either
+        // way.)
+        //
+        // Hence the delivery below the lock is a replay of a message the mailbox already holds.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
+        await blocker.OpenAsync(TestContext.Current.CancellationToken);
+        await using var blockingTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
+        await using (
+            var lockCmd = new NpgsqlCommand(
+                "SELECT id FROM engine.mailboxes WHERE id = @id FOR UPDATE",
+                blocker,
+                blockingTx
+            )
+        )
+        {
+            lockCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await lockCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var replay = Deliver(repository, mailbox.Id, "msg-1");
+
+        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        Assert.False(
+            replay.IsCompleted,
+            "DeliverToMailbox answered a replay while the mailbox row lock was held, so it decided before locking."
+        );
+
+        await blockingTx.RollbackAsync(TestContext.Current.CancellationToken);
+
+        var duplicate = Assert.IsType<MailboxDeliveryResult.Duplicate>(await replay).Delivery;
+        Assert.Equal(accepted.Idx, duplicate.Idx);
+    }
+
+    [Fact]
+    public async Task DeliverToMailbox_RacingAClose_IsSerializedByTheMailboxRowLock()
+    {
+        // The delivery-versus-closure race, in the interleaving the lock makes decidable: the close holds
+        // the row lock, so the delivery cannot slip in beside it and be accepted into a mailbox that is
+        // closing. Whichever order the lock grants, the outcome is one of exactly two — accepted into an
+        // open mailbox, or refused as too late — never accepted and silently stranded.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
+        await blocker.OpenAsync(TestContext.Current.CancellationToken);
+        await using var closingTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
+
+        // Stands in for the close's own first act, holding the same row lock the close takes.
+        await using (
+            var closeCmd = new NpgsqlCommand(
+                """
+                UPDATE engine.mailboxes
+                SET status = 'disposed', disposed_reason = 'request', disposed_at = now()
+                WHERE id = @id
+                """,
+                blocker,
+                closingTx
+            )
+        )
+        {
+            closeCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await closeCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var delivery = Deliver(repository, mailbox.Id, "msg-1");
+        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        Assert.False(delivery.IsCompleted, "The delivery decided its outcome while the close held the row lock.");
+
+        await closingTx.CommitAsync(TestContext.Current.CancellationToken);
+
+        // Closure-first: the delivery sees the committed close and is refused, having written nothing.
+        Assert.IsType<MailboxDeliveryResult.Closed>(await delivery);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.MailboxDeliveries.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    #endregion
+
+    #region Schema
+
+    [Fact]
+    public async Task DeliveryPositions_AreUniquePerMailbox()
+    {
+        // Pins the primary key. Ingestion assigns positions under the mailbox row lock, so a collision is
+        // unreachable through the repository — which is exactly why the schema is worth an explicit test:
+        // the step that adds receiver enqueue writes to the same counters, and the position is the
+        // address a receiver reads its delivery by. Two rows at one position would make that read
+        // ambiguous.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        await using var context = fixture.CreateDbContext();
+        var collision = await Assert.ThrowsAsync<PostgresException>(async () =>
+            await context.Database.ExecuteSqlAsync(
+                $"""
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                VALUES ({mailbox.Id}, 0, 'other-key', 'x', now())
+                """,
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, collision.SqlState);
+        Assert.Contains("pk_mailbox_deliveries", collision.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task DeliveryKeys_AreUniquePerMailbox()
+    {
+        // Pins the unique index behind the idempotency rule. Same reasoning: the repository holds the
+        // mailbox row lock across the lookup and the append, so this is the schema's guarantee against a
+        // future writer that appends without taking it.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        await using var context = fixture.CreateDbContext();
+        var collision = await Assert.ThrowsAsync<PostgresException>(async () =>
+            await context.Database.ExecuteSqlAsync(
+                $"""
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                VALUES ({mailbox.Id}, 1, 'msg-1', 'x', now())
+                """,
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, collision.SqlState);
+        Assert.Contains(
+            "ix_mailbox_deliveries_mailbox_id_idempotency_key",
+            collision.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task Deliveries_CannotOutliveOrPrecedeTheirMailbox()
+    {
+        // Pins the foreign key in both directions. A delivery addressed to a mailbox that does not exist
+        // is refused, and a mailbox holding deliveries cannot be deleted out from under them — the
+        // retention sweep that eventually purges both has to delete children first, deliberately, rather
+        // than discover the order by accident.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        await using var context = fixture.CreateDbContext();
+
+        var orphan = await Assert.ThrowsAsync<PostgresException>(async () =>
+            await context.Database.ExecuteSqlAsync(
+                $"""
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                VALUES ({Guid.CreateVersion7()}, 0, 'msg-1', 'x', now())
+                """,
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, orphan.SqlState);
+
+        // RESTRICT rather than NO ACTION, so the refusal is immediate and reports its own SQLSTATE — the
+        // delete cannot be deferred to commit time and cannot be satisfied by deleting the children
+        // later in the same transaction. That is the stricter of the two on purpose: the purge should
+        // spell its order out rather than rely on constraint timing to rescue it.
+        var orphaning = await Assert.ThrowsAsync<PostgresException>(async () =>
+            await context.Database.ExecuteSqlAsync(
+                $"DELETE FROM engine.mailboxes WHERE id = {mailbox.Id}",
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(PostgresErrorCodes.RestrictViolation, orphaning.SqlState);
+        Assert.Contains("fk_mailbox_deliveries_mailboxes_mailbox_id", orphaning.Message, StringComparison.Ordinal);
+    }
+
+    #endregion
+
+    #region The unconsumed count
+
+    [Fact]
+    public async Task UnconsumedDeliveries_MatchesTheDeliveriesNoReceiverCouldHaveRead()
+    {
+        // The derived count validated against the rows it claims to describe. It is computed from the two
+        // counters rather than counted, which is exact only because both logs are gapless: with no
+        // receivers enqueued yet, every delivery that exists is one nobody read, so the derivation must
+        // equal the row count exactly.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        await using var context = fixture.CreateDbContext();
+
+        for (int i = 1; i <= 4; i++)
+        {
+            AssertAccepted(await Deliver(repository, mailbox.Id, $"msg-{i}"));
+
+            var read = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+            Assert.NotNull(read);
+
+            var rows = await context.MailboxDeliveries.CountAsync(
+                d => d.MailboxId == mailbox.Id,
+                TestContext.Current.CancellationToken
+            );
+            Assert.Equal(i, rows);
+            Assert.Equal((long)rows, read.UnconsumedDeliveries);
+            Assert.Equal((long)rows, read.NextIdx);
+        }
+
+        // A replay consumes no position, so it moves neither the rows nor the count.
+        Assert.IsType<MailboxDeliveryResult.Duplicate>(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        var afterReplay = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.NotNull(afterReplay);
+        Assert.Equal(4L, afterReplay.UnconsumedDeliveries);
+    }
+
+    #endregion
+
+    #region Gaps later steps close
+
+    [Fact]
+    public async Task AcceptedDelivery_SitsAtItsPositionAndWakesNobody()
+    {
+        // A characterization test for the gap the rendezvous closes later. In this step a delivery is
+        // durable and addressable and that is all it is: there is no waiter registry for it to release, so
+        // the receivers log never moves and the message counts as unconsumed no matter how long it waits.
+        // The step that adds the wake is the one that must make this test's second half stop being true —
+        // by giving a receiver a position to be released at, not by making acceptance do anything else.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.NotNull(afterwards);
+        Assert.Equal(1L, afterwards.NextIdx);
+        Assert.Equal(0L, afterwards.NextSeq);
+        Assert.Equal(1L, afterwards.UnconsumedDeliveries);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    #endregion
+}

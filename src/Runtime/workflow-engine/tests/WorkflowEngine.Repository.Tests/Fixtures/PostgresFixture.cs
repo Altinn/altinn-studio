@@ -18,8 +18,8 @@ public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:18").Build();
     private readonly ConcurrencyLimiter _limiter = new(50, 50, 5);
-    private readonly List<NpgsqlDataSource> _dataSources = [];
     private readonly List<IDisposable> _disposables = [];
+    private NpgsqlDataSource? _dataSource;
 
     private readonly IOptions<EngineSettings> _settings = Options.Create(
         new EngineSettings
@@ -49,12 +49,35 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal EngineSettings Settings => _settings.Value;
 
+    /// <summary>
+    /// The one connection pool everything this fixture builds shares.
+    /// </summary>
+    /// <remarks>
+    /// One pool for the whole collection, deliberately. An <see cref="NpgsqlDataSource"/> owns a private
+    /// pool that lives until it is disposed, so building one per <c>CreateRepository</c> call would retain
+    /// an identical pool per call site — and this collection has over a hundred of them against a
+    /// container that allows a hundred connections. The failure mode is the nastiest kind: whichever test
+    /// class happens to run when the limit is reached goes red with <c>53300: sorry, too many clients
+    /// already</c>, so the class that broke it is never the class that reports it.
+    /// <para>
+    /// Nothing the factory methods below vary needs a data source of its own: the interceptor lives on
+    /// <see cref="DbContextOptions"/>, the settings and the time provider on the repository, and a shared
+    /// pool still hands each concurrent caller its own connection. <see cref="DbMaintenanceService"/> is
+    /// safe to hand it to as well — it opens connections and creates commands, and never disposes the
+    /// data source it is given.
+    /// </para>
+    /// </remarks>
+    private NpgsqlDataSource DataSource =>
+        _dataSource ?? throw new InvalidOperationException("The fixture has not been initialized yet.");
+
     public async ValueTask InitializeAsync()
     {
         await _container.StartAsync();
 
         var migrationService = new DbMigrationService(NullLogger<DbMigrationService>.Instance);
         await migrationService.Migrate(ConnectionString);
+
+        _dataSource = NpgsqlDataSource.Create(ConnectionString);
     }
 
     public async ValueTask DisposeAsync()
@@ -62,9 +85,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         foreach (var d in _disposables)
             d.Dispose();
         _disposables.Clear();
-        foreach (var ds in _dataSources)
-            await ds.DisposeAsync();
-        _dataSources.Clear();
+        if (_dataSource is not null)
+            await _dataSource.DisposeAsync();
         _limiter.Dispose();
         await _container.DisposeAsync();
     }
@@ -78,13 +100,11 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal EngineRepository CreateRepository()
     {
-        var dataSource = NpgsqlDataSource.Create(ConnectionString);
-        _dataSources.Add(dataSource);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
         var sqlBulkInserter = new SqlBulkInserter(factory);
         return new EngineRepository(
-            dataSource,
+            DataSource,
             factory,
             _settings,
             _limiter,
@@ -96,13 +116,11 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal EngineRepository CreateRepository(IOptions<EngineSettings> settings)
     {
-        var dataSource = NpgsqlDataSource.Create(ConnectionString);
-        _dataSources.Add(dataSource);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
         var sqlBulkInserter = new SqlBulkInserter(factory);
         return new EngineRepository(
-            dataSource,
+            DataSource,
             factory,
             settings,
             _limiter,
@@ -118,8 +136,6 @@ public sealed class PostgresFixture : IAsyncLifetime
         TimeProvider? timeProvider = null
     )
     {
-        var dataSource = NpgsqlDataSource.Create(ConnectionString);
-        _dataSources.Add(dataSource);
         var options = new DbContextOptionsBuilder<EngineDbContext>()
             .UseNpgsql(ConnectionString)
             .AddInterceptors(interceptor)
@@ -127,7 +143,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
         var sqlBulkInserter = new SqlBulkInserter(factory);
         return new EngineRepository(
-            dataSource,
+            DataSource,
             factory,
             settings ?? _settings,
             _limiter,
@@ -139,12 +155,10 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal DbMaintenanceService CreateMaintenanceService(TimeProvider? timeProvider = null)
     {
-        var dataSource = NpgsqlDataSource.Create(ConnectionString);
-        _dataSources.Add(dataSource);
         var service = new DbMaintenanceService(
             NullLogger<DbMaintenanceService>.Instance,
             timeProvider ?? TimeProvider.System,
-            dataSource,
+            DataSource,
             _settings,
             _limiter
         );
@@ -176,7 +190,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     {
         await using var context = CreateDbContext();
         await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys, engine.mailboxes CASCADE"
+            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys, engine.mailboxes, engine.mailbox_deliveries CASCADE"
         );
     }
 }

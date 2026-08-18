@@ -209,6 +209,40 @@ internal static class EngineEndpoints
                 """
             );
 
+        mailboxGroup
+            .MapPost("/{mailboxId:guid}/deliveries", EngineRequestHandlers.DeliverToMailbox)
+            .WithName("DeliverToMailbox")
+            .WithSummary("Deliver to mailbox")
+            .WithDescription(
+                """
+                Delivers one message into a mailbox, appending it to the mailbox's log at the next gapless
+                position. The engine stores the payload verbatim and never parses it.
+
+                The caller supplies an idempotencyKey unique within the mailbox — pass the source's own
+                message id — so an at-least-once forwarder that sends the same message twice gets one
+                delivery at one position rather than two. The key is limited to 200 characters and may not
+                be empty or whitespace.
+
+                202 Accepted when this call appended the delivery (the assigned idx is returned), and
+                200 OK when the key had already delivered a message into this mailbox, returning it at the
+                position it has held since. Treat the two alike: both mean the message is durably held.
+
+                Acceptance is not consumption. A message with no receiver yet simply sits at its position
+                until one is enqueued for it, so an early delivery is first-class and there is no "too
+                early" answer.
+
+                404 Not Found when no mailbox with that id exists in the namespace, 409 Conflict when the
+                mailbox is closed — by request or at its deadline, and always meaning too late, so it can
+                be logged or dead-lettered without inspecting anything else — 413 when the payload exceeds
+                the configured cap, and 429 when the mailbox's log has reached its length cap.
+
+                A refusal stores nothing, so the idempotency key stays free: the same key may be offered
+                again, and a repeat of a refused delivery is refused identically. The converse holds too —
+                a delivery the mailbox accepted replays as 200 even after the mailbox has closed, because
+                the engine kept it and it is still waiting to be read.
+                """
+            );
+
         return app;
     }
 }
@@ -767,4 +801,67 @@ internal static class EngineRequestHandlers
             _ => throw new UnreachableException(),
         };
     }
+
+    public static async Task<
+        Results<Accepted<MailboxDeliveryResponse>, Ok<MailboxDeliveryResponse>, NotFound, ProblemHttpResult>
+    > DeliverToMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromBody] MailboxDeliveryRequest request,
+        [FromServices] IEngine engine,
+        [FromServices] IOptions<EngineSettings> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "deliver-to-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.DeliverToMailbox(mailboxId, ns, request, cancellationToken);
+
+        return result switch
+        {
+            MailboxDeliveryResult.Accepted accepted => TypedResults.Accepted((string?)null, accepted.Delivery),
+            MailboxDeliveryResult.Duplicate duplicate => TypedResults.Ok(duplicate.Delivery),
+            MailboxDeliveryResult.NotFound => TypedResults.NotFound(),
+
+            // The reason and instant are in the detail rather than left to be inferred: a dead-letter
+            // record that says "closed at its deadline" is actionable, one that says "409" is not.
+            MailboxDeliveryResult.Closed closed => TypedResults.Problem(
+                detail: $"Mailbox {mailboxId} was closed {DescribeDisposal(closed.Mailbox.DisposedReason)} "
+                    + $"at {closed.Mailbox.DisposedAt:O} and no longer accepts deliveries.",
+                statusCode: StatusCodes.Status409Conflict
+            ),
+            MailboxDeliveryResult.LogFull full => TypedResults.Problem(
+                detail: $"Mailbox {mailboxId} already holds {full.LogLength} deliveries, the maximum of "
+                    + $"{settings.Value.MaxMailboxLogLength}.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            ),
+            MailboxDeliveryResult.PayloadTooLarge tooLarge => TypedResults.Problem(
+                detail: tooLarge.Message,
+                statusCode: StatusCodes.Status413PayloadTooLarge
+            ),
+            MailboxDeliveryResult.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>
+    /// Renders a mailbox's disposal reason for a caller's error detail. Exhaustive on purpose: a reason
+    /// added later must fail loudly here rather than silently read as one of the existing two.
+    /// </summary>
+    private static string DescribeDisposal(MailboxDisposedReason? reason) =>
+        reason switch
+        {
+            MailboxDisposedReason.Request => "by request",
+            MailboxDisposedReason.Deadline => "at its deadline",
+
+            // The schema's ck_mailboxes_disposal_is_complete makes a disposed mailbox without a reason
+            // unrepresentable, so null here means the row was read as open and reported as closed.
+            null => throw new UnreachableException("A closed mailbox always carries its disposal reason."),
+            _ => throw new UnreachableException($"Unknown mailbox disposal reason {reason}."),
+        };
 }

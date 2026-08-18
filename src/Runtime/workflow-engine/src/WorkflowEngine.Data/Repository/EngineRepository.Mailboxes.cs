@@ -18,6 +18,13 @@ internal sealed partial class EngineRepository
         m.status, m.disposed_reason, m.next_idx, m.next_seq, m.created_at, m.disposed_at
         """;
 
+    /// <summary>
+    /// The delivery columns every delivery read projects. <c>payload</c> is deliberately absent: nothing
+    /// on the ingestion path needs the body back, and it is the one column large enough for reading it
+    /// needlessly to cost something.
+    /// </summary>
+    private const string MailboxDeliveryColumns = "d.mailbox_id, d.idx, d.idempotency_key, d.accepted_at";
+
     /// <inheritdoc/>
     public async Task<MailboxMintResult> MintMailbox(
         Guid mailboxId,
@@ -292,6 +299,169 @@ internal sealed partial class EngineRepository
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string payload,
+        DateTimeOffset now,
+        int maxLogLength,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.DeliverToMailbox");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            MailboxDeliveryResult result = new MailboxDeliveryResult.NotFound();
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    await using var tx = await conn.BeginTransactionAsync(ct);
+
+                    // The mailbox row lock is this transaction's first act. Everything below decides on
+                    // state carried by that row — its status and its next position — so reading any of it
+                    // before the lock would be reading a snapshot that another delivery, an enqueue, or a
+                    // close is free to invalidate before this transaction writes.
+                    const string lockSql = $"""
+                        SELECT {MailboxColumns}
+                        FROM engine.mailboxes m
+                        WHERE m.id = @id AND m.namespace = @ns
+                        FOR UPDATE
+                        """;
+
+                    MailboxResponse? locked;
+                    await using (var lockCmd = new NpgsqlCommand(lockSql, conn, tx))
+                    {
+                        lockCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
+                        lockCmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+
+                        await using var reader = await lockCmd.ExecuteReaderAsync(ct);
+                        locked = await reader.ReadAsync(ct) ? ReadMailbox(reader) : null;
+                    }
+
+                    if (locked is null)
+                    {
+                        await tx.RollbackAsync(ct);
+                        result = new MailboxDeliveryResult.NotFound();
+                        return;
+                    }
+
+                    // Looked up before the refusals below, and the order is the "accepted versus kept"
+                    // rule in code: what the engine kept, it keeps answering for. A resend of a message
+                    // that was accepted while the mailbox was open is a replay even now that the mailbox
+                    // is closed or its log is full — reporting it as a refusal would make a forwarder
+                    // dead-letter a message that is already sitting at its position waiting to be read.
+                    //
+                    // The same lookup is what makes ExecuteWithRetry safe to re-run this whole delegate
+                    // over: a retry after a commit whose acknowledgement was lost finds the delivery its
+                    // own first attempt made and answers Duplicate. That is not a compromise but the
+                    // literal truth — the engine kept the message, and a replay is what a replay is told.
+                    const string existingSql = $"""
+                        SELECT {MailboxDeliveryColumns}
+                        FROM engine.mailbox_deliveries d
+                        WHERE d.mailbox_id = @id AND d.idempotency_key = @key
+                        """;
+
+                    MailboxDeliveryResponse? existing;
+                    await using (var existingCmd = new NpgsqlCommand(existingSql, conn, tx))
+                    {
+                        existingCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
+                        existingCmd.Parameters.Add(new NpgsqlParameter<string>("key", idempotencyKey));
+
+                        await using var reader = await existingCmd.ExecuteReaderAsync(ct);
+                        existing = await reader.ReadAsync(ct) ? ReadMailboxDelivery(reader) : null;
+                    }
+
+                    if (existing is not null)
+                    {
+                        await tx.RollbackAsync(ct);
+                        result = new MailboxDeliveryResult.Duplicate(existing);
+                        return;
+                    }
+
+                    // Every path from here that is not an append rolls back, which is what makes "a
+                    // refused delivery inserts nothing" true of the transaction and not merely of the
+                    // statements this code chose to skip. It is also why no idempotency key needs
+                    // releasing afterwards: a refusal never claimed one.
+                    if (locked.Status == MailboxStatus.Disposed)
+                    {
+                        await tx.RollbackAsync(ct);
+                        result = new MailboxDeliveryResult.Closed(locked);
+                        return;
+                    }
+
+                    if (locked.NextIdx >= maxLogLength)
+                    {
+                        await tx.RollbackAsync(ct);
+                        result = new MailboxDeliveryResult.LogFull(locked.NextIdx);
+                        return;
+                    }
+
+                    // The position comes from the row's own counter rather than from the value read
+                    // above, so the log is gapless by construction: the increment and the insert that
+                    // consumes it are one statement, and the mailbox lock serializes the statement.
+                    const string appendSql = $"""
+                        WITH bumped AS (
+                            UPDATE engine.mailboxes
+                            SET next_idx = next_idx + 1
+                            WHERE id = @id
+                            RETURNING next_idx - 1 AS idx
+                        )
+                        INSERT INTO engine.mailbox_deliveries AS d (
+                            mailbox_id, idx, idempotency_key, payload, accepted_at
+                        )
+                        SELECT @id, bumped.idx, @key, @payload, @now FROM bumped
+                        RETURNING {MailboxDeliveryColumns}
+                        """;
+
+                    await using (var appendCmd = new NpgsqlCommand(appendSql, conn, tx))
+                    {
+                        appendCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
+                        appendCmd.Parameters.Add(new NpgsqlParameter<string>("key", idempotencyKey));
+                        appendCmd.Parameters.Add(new NpgsqlParameter<string>("payload", payload));
+                        appendCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+
+                        await using var reader = await appendCmd.ExecuteReaderAsync(ct);
+
+                        // Unreachable for the same reason the close's equivalent is: the mailbox row's
+                        // lock is held, so its counter cannot vanish between the read above and this
+                        // statement. Kept loud rather than silently answering NotFound, and carrying the
+                        // same known misclassification — RetryErrorHandler treats
+                        // InvalidOperationException as transient, so this would retry to the command
+                        // timeout and then be logged as a suspected database outage. Correcting it means
+                        // widening the classifier's abort set, a shared decision for every repository
+                        // operation rather than one this call site should take.
+                        if (!await reader.ReadAsync(ct))
+                            throw new InvalidOperationException(
+                                $"Mailbox {mailboxId} vanished while its row lock was held."
+                            );
+
+                        result = new MailboxDeliveryResult.Accepted(ReadMailboxDelivery(reader));
+                    }
+
+                    await tx.CommitAsync(ct);
+                },
+                cancellationToken
+            );
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedMailboxOperation("deliver to", mailboxId, ex.Message, ex);
+            throw;
+        }
+    }
+
     /// <summary>
     /// Projects one row of <see cref="MailboxColumns"/> into its response shape.
     /// </summary>
@@ -312,6 +482,22 @@ internal sealed partial class EngineRepository
             NextSeq = reader.GetInt64(9),
             CreatedAt = reader.GetFieldValue<DateTimeOffset>(10),
             DisposedAt = reader.IsDBNull(11) ? null : reader.GetFieldValue<DateTimeOffset>(11),
+        };
+#pragma warning restore CA1849, S6966
+    }
+
+    /// <summary>
+    /// Projects one row of <see cref="MailboxDeliveryColumns"/> into its response shape.
+    /// </summary>
+    private static MailboxDeliveryResponse ReadMailboxDelivery(NpgsqlDataReader reader)
+    {
+#pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is already buffered
+        return new MailboxDeliveryResponse
+        {
+            MailboxId = reader.GetGuid(0),
+            Idx = reader.GetInt64(1),
+            IdempotencyKey = reader.GetString(2),
+            AcceptedAt = reader.GetFieldValue<DateTimeOffset>(3),
         };
 #pragma warning restore CA1849, S6966
     }
@@ -371,4 +557,60 @@ internal abstract record MailboxCloseResult
     /// No mailbox with that id exists in the namespace.
     /// </summary>
     internal sealed record NotFound : MailboxCloseResult;
+}
+
+/// <summary>
+/// Outcome of delivering a message into a mailbox.
+/// </summary>
+/// <remarks>
+/// Two of these outcomes are successes and the rest are refusals, and the line between them is the
+/// design's <em>accepted versus kept</em> rule: what the engine kept it keeps answering
+/// <see cref="Duplicate"/> for, whatever has happened to the mailbox since; what it refused it keeps
+/// refusing. A refusal writes nothing at all, so nothing needs releasing when one is repeated.
+/// </remarks>
+internal abstract record MailboxDeliveryResult
+{
+    private MailboxDeliveryResult() { }
+
+    /// <summary>
+    /// This call appended the delivery, which now holds the position it reports.
+    /// </summary>
+    internal sealed record Accepted(MailboxDeliveryResponse Delivery) : MailboxDeliveryResult;
+
+    /// <summary>
+    /// The idempotency key had already delivered a message into this mailbox, and it is returned at the
+    /// position it has held since. Answered even on a closed or full mailbox.
+    /// </summary>
+    internal sealed record Duplicate(MailboxDeliveryResponse Delivery) : MailboxDeliveryResult;
+
+    /// <summary>
+    /// No mailbox with that id exists in the namespace.
+    /// </summary>
+    internal sealed record NotFound : MailboxDeliveryResult;
+
+    /// <summary>
+    /// The mailbox is closed, so the message is too late. Carries the mailbox so the caller can report
+    /// <em>how</em> it closed — by request or at its deadline — which is what makes a dead-letter record
+    /// worth reading.
+    /// </summary>
+    internal sealed record Closed(MailboxResponse Mailbox) : MailboxDeliveryResult;
+
+    /// <summary>
+    /// The mailbox's deliveries log already holds <see cref="EngineSettings.MaxMailboxLogLength"/>
+    /// positions, so nothing was appended.
+    /// </summary>
+    internal sealed record LogFull(long LogLength) : MailboxDeliveryResult;
+
+    /// <summary>
+    /// The payload exceeds <see cref="EngineSettings.MaxMailboxPayloadSize"/>. Refused before the
+    /// database, so an oversized delivery costs a byte count and nothing else.
+    /// </summary>
+    internal sealed record PayloadTooLarge(string Message) : MailboxDeliveryResult;
+
+    /// <summary>
+    /// The request could not be delivered from. Never reaches the database: the delivery's
+    /// <c>idempotency_key</c> is <c>varchar(200)</c>, and an over-long one would otherwise surface as a
+    /// transient-looking database error and be retried to the command timeout instead of being answered.
+    /// </summary>
+    internal sealed record Invalid(string Message) : MailboxDeliveryResult;
 }
