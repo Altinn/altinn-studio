@@ -5,7 +5,7 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
-import { Alert, Checkbox } from '@digdir/designsystemet-react';
+import { Checkbox } from '@digdir/designsystemet-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
@@ -21,7 +21,13 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioProperty, StudioSwitch, StudioTextfield, StudioParagraph } from '@studio/components';
+import {
+  StudioProperty,
+  StudioSwitch,
+  StudioTextfield,
+  StudioParagraph,
+  StudioAlert,
+} from '@studio/components';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -240,8 +246,8 @@ export const EditFormContainer = ({
       )}
     </StudioProperty.Group>
   ) : (
-    <Alert severity='info'>
+    <StudioAlert data-color='info'>
       <StudioParagraph data-size='sm'>{t('ux_editor.container_not_editable_info')}</StudioParagraph>
-    </Alert>
+    </StudioAlert>
   );
 };
