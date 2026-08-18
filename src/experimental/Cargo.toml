@@ -23,14 +23,14 @@ clap = { version = "4.6.6", features = ["derive"] }
 futures-core = "0.3.34"
 futures-util = "0.3.34"
 ignore = "0.4.33"
-microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", branch = "feat/embedded-local-backend", default-features = false, features = ["net"] }
-microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", branch = "feat/embedded-local-backend", package = "microsandbox-image" }
-microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", branch = "feat/embedded-local-backend", package = "microsandbox-network" }
+microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", default-features = false, features = ["net"] }
+microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", package = "microsandbox-image" }
+microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", package = "microsandbox-network" }
 # Microsandbox does not ship its embedded sandbox agent in the crate.
 # Enabling this transitive feature downloads only that build artifact into
 # Cargo's output directory; the host runtime is installed automatically on
 # first use into the control-plane home.
-microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", branch = "feat/embedded-local-backend", default-features = false, features = ["prebuilt"] }
+microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", default-features = false, features = ["prebuilt"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_yaml_ng = "0.10.0"
