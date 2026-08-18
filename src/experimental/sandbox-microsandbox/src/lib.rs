@@ -18,5 +18,5 @@ mod platform;
 mod state;
 mod volumes;
 
-pub use backend::MicrosandboxProvider;
+pub use backend::{MicrosandboxProvider, MicrosandboxProviderBuilder};
 pub use network_backend::{MicrosandboxNetworkBackend, SecretBinding};
