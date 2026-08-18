@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-format.yaml'
       - '!**/AGENTS.md'

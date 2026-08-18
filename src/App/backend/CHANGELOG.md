@@ -20,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the status model's helper types are now nested inside `Statuses`: `Content` is `Statuses.Entry`, `Sort` is `Statuses.SortInfo`, and `Pageable` is `Statuses.PageInfo`. `Statuses` itself keeps its name, and the JSON on the wire is unchanged. `studioctl app upgrade v9` reports the usages to qualify.
 - eFormidling now fails at startup, rather than at the first shipment, when `EFormidlingClientSettings.BaseUrl` is missing for an environment where an eFormidling task is enabled. An app that registers its own `IEFormidlingService` is not asked for one. A `BaseUrl` without a trailing slash also no longer silently drops its last path segment from every request.
 - The eFormidling client emits telemetry, like the app's other HTTP clients, and no longer logs whole response bodies at debug level.
+- Breaking: `IDataClient.GetBinaryData` now throws `PlatformHttpException` when the data element does not exist, instead of returning `null` from a method whose signature says it never does. Its sibling `GetBinaryDataStream` already behaved this way. If your app relied on the `null` to detect a missing data element, catch `PlatformHttpException` and check for `HttpStatusCode.NotFound` instead. Code that did not check for `null` — the common case — now gets a clear error naming the failed request rather than a `NullReferenceException` further along.
 
 ### Fixed
 
@@ -32,6 +33,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: eight `IEFormidlingClient` members that nothing was calling — `GetCapabilities`, `GetAllConversations`, `GetConversationById`, `GetConversationByMessageId`, `GetAllMessageStatuses`, `FindOutGoingMessages`, `SubscribeeFormidling` and `UnSubscribeeFormidling` — along with the `Capabilities`, `Conversation` and `CreateSubscription` models only they used. What a shipment is made of remains: `CreateMessage`, `UploadAttachment`, `SendMessage` and `GetMessageStatusById`. Call the integrasjonspunkt's REST API directly if you need any of the rest.
 - Breaking: `Altinn.EFormidlingClient.Extensions.HttpClientExtension`, whose `GetAsync`/`PostAsync`/`PutAsync`/`DeleteAsync` overloads took a dictionary of request headers. There is no replacement, and `Altinn.App.Core.Extensions.HttpClientExtension` is a different type with different overloads, not a substitute. If your app used these for its own HTTP calls, build the `HttpRequestMessage`, add the headers to it, and call `HttpClient.SendAsync`. `studioctl app upgrade v9` reports the files to change.
+- Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. Use `Altinn.App.Core.Internal.Data.IDataClient` instead.
 
 ## [9.0.0-preview.4] - 2026-08-11
 

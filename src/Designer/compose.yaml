@@ -142,7 +142,6 @@ services:
       - StudioOidcLoginSettings:AuthorizationDetails:0:OrganizationForm=enterprise
       - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
-      - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true
@@ -300,8 +299,8 @@ services:
       studio_db:
         condition: service_healthy
     build:
-      context: ./backend
-      dockerfile: Migrations.Dockerfile
+      context: ..
+      dockerfile: Designer/backend/Migrations.Dockerfile
     environment:
       - PGHOST=studio_db
       - PGPORT=5432

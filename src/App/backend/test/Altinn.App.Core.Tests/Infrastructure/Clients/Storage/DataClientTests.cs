@@ -420,7 +420,9 @@ public class DataClientTests
 
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
-    public async Task GetBinaryData_returns_empty_stream_when_storage_returns_notfound(AuthenticationTestCase? testCase)
+    public async Task GetBinaryData_throws_PlatformHttpException_when_storage_returns_notfound(
+        AuthenticationTestCase? testCase
+    )
     {
         var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
         var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
@@ -442,13 +444,15 @@ public class DataClientTests
             $"{ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}",
             UriKind.RelativeOrAbsolute
         );
-        var response = await fixture.DataClient.GetBinaryData(
-            instanceIdentifier.InstanceOwnerPartyId,
-            instanceIdentifier.InstanceGuid,
-            dataGuid,
-            authenticationMethod: testCase?.AuthenticationMethod
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await fixture.DataClient.GetBinaryData(
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                dataGuid,
+                authenticationMethod: testCase?.AuthenticationMethod
+            )
         );
-        response.Should().BeNull();
+        actual.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         invocations.Should().Be(1);
         AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
     }
@@ -566,13 +570,14 @@ public class DataClientTests
             }
         );
 
-        var stream = await fixture.DataClient.GetBinaryData(
-            instanceIdentifier.InstanceOwnerPartyId,
-            instanceIdentifier.InstanceGuid,
-            dataGuid
+        await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await fixture.DataClient.GetBinaryData(
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                dataGuid
+            )
         );
 
-        Assert.Null(stream);
         Assert.NotNull(content);
         Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
     }

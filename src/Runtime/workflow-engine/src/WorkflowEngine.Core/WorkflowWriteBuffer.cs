@@ -1,5 +1,5 @@
 using System.Threading.Channels;
-using Altinn.Studio.Runtime.Common;
+using Altinn.Studio.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

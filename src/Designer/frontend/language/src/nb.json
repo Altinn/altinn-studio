@@ -1435,6 +1435,8 @@
   "schema_editor.description": "Tekst",
   "schema_editor.descriptive_fields": "Beskrivende felter",
   "schema_editor.disable_deletion_info_for_used_definition": "Du kan ikke slette en definisjon som er i bruk.",
+  "schema_editor.duplicate": "Kopier",
+  "schema_editor.duplicate_field": "Kopier felt",
   "schema_editor.empty_node": "Dette elementet er tomt.",
   "schema_editor.enum_empty": "Listen er tom - alle verdier vil bli godtatt.",
   "schema_editor.enum_error_duplicate": "Verdiene må være unike.",

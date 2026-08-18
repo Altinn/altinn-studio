@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; the renamed Standard Business Document `Arkivmelding`; and references the namespace rewrite cannot reach — an aliased `using X = Altinn.Common.EFormidlingClient;`, one written with `global::`, or a name written out in full — since it only rewrites plain `using` directives matched by name. Each is reported separately, with the fix to apply.
+- Added option --allow-dirty to upgrade script. `studioctl app upgrade --allow-dirty` allows updating when the repository contains modified or untracked files.
 
 ### Changed
 

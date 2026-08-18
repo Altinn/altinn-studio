@@ -62,6 +62,4 @@ export type EmptyThreadTexts = {
 
 export type TextAreaTexts = {
   placeholder: string;
-  wait: string;
-  waitingForConnection: string;
 };
