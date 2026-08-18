@@ -94,15 +94,15 @@ public class BranchController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new branch in the repository
+    /// Creates a new branch and checks it out in a single operation
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="request">The branch creation request</param>
-    /// <returns>The created branch</returns>
+    /// <returns>The updated repository status</returns>
     [HttpPost]
-    [Route("")]
-    public async Task<ActionResult<Branch>> CreateBranch(
+    [Route("create-and-checkout")]
+    public async Task<ActionResult<RepoStatus>> CreateAndCheckoutBranch(
         string org,
         string repository,
         [FromBody] CreateBranchRequest request
@@ -123,13 +123,11 @@ public class BranchController : ControllerBase
         }
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
-        );
-        var branch = await _branchService.CreateBranch(editingContext, request.BranchName);
-        return Ok(branch);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+        RepoStatus repoStatus = await _branchService.CreateAndCheckoutBranch(authenticatedContext, request.BranchName);
+        return Ok(repoStatus);
     }
 
     /// <summary>
@@ -154,9 +152,6 @@ public class BranchController : ControllerBase
             DeleteBranchResult.Success => NoContent(),
             DeleteBranchResult.InvalidBranchName => BadRequest($"{branchName} is an invalid branch name."),
             DeleteBranchResult.DefaultBranchProtected => BadRequest("Cannot delete the default branch."),
-            DeleteBranchResult.CheckedOutBranchProtected => BadRequest(
-                "Cannot delete the currently checked out branch."
-            ),
             _ => StatusCode(500),
         };
     }
@@ -199,22 +194,39 @@ public class BranchController : ControllerBase
     }
 
     /// <summary>
-    /// Discards all local changes in the repository
+    /// Discards all local changes and checks out the target branch in a single operation
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
+    /// <param name="request">The checkout request</param>
     /// <returns>The updated repository status</returns>
     [HttpPost]
-    [Route("discard-changes")]
-    public ActionResult<RepoStatus> DiscardLocalChanges(string org, string repository)
+    [Route("discard-and-checkout")]
+    public async Task<ActionResult<RepoStatus>> DiscardAndCheckoutBranch(
+        string org,
+        string repository,
+        [FromBody] CheckoutBranchRequest request
+    )
     {
+        if (string.IsNullOrWhiteSpace(request?.BranchName))
+        {
+            return BadRequest("Branch name is required");
+        }
+
+        try
+        {
+            Guard.AssertValidRepoBranchName(request.BranchName);
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest($"{request.BranchName} is an invalid branch name.");
+        }
+
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repository,
-            developer
-        );
-        var repoStatus = _branchService.DiscardLocalChanges(editingContext);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+        RepoStatus repoStatus = _branchService.DiscardChangesAndCheckout(authenticatedContext, request.BranchName);
         return Ok(repoStatus);
     }
 }

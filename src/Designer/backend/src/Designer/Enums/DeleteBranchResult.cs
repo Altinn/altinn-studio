@@ -5,5 +5,4 @@ public enum DeleteBranchResult
     Success,
     InvalidBranchName,
     DefaultBranchProtected,
-    CheckedOutBranchProtected,
 }

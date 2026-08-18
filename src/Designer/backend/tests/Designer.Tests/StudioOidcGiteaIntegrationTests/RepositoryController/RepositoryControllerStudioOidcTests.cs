@@ -185,7 +185,7 @@ public class RepositoryControllerStudioOidcTests
         await CreateAppUsingDesigner(org, targetRepo);
 
         using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
-            await HttpClient.GetAsync($"designer/api/{org}/{targetRepo}/branches/branch?branch=master")
+            await HttpClient.GetAsync($"designer/api/{org}/{targetRepo}/branches/master")
         );
         var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch>();
         Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);

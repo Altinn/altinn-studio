@@ -1,10 +1,10 @@
 import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
-  branchesPath,
   checkoutBranchPath,
   branchPath,
-  discardChangesPath,
+  createAndCheckoutBranchPath,
+  discardAndCheckoutBranchPath,
   copyAppPath,
   createRepoPath,
   deploymentsPath,
@@ -107,7 +107,7 @@ import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '../types/Policy';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
-import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
+import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
@@ -258,10 +258,10 @@ export const createOrgTextResources = async (org: string, language: string, payl
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
 
 // Branches:
-export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
 export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
+export const createAndCheckoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(createAndCheckoutBranchPath(org, app), { branchName });
 export const deleteBranch = async (org: string, app: string, branchName: string): Promise<void> => del(branchPath(org, app, branchName));
-export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
+export const discardChangesAndCheckout = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(discardAndCheckoutBranchPath(org, app), { branchName });
 
 // User settings
 export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);

@@ -56,7 +56,6 @@ public class DeleteBranchTests
 
     [Theory]
     [InlineData("ttd", "apps-test", "master", DeleteBranchResult.DefaultBranchProtected)]
-    [InlineData("ttd", "apps-test", "current-branch", DeleteBranchResult.CheckedOutBranchProtected)]
     [InlineData("ttd", "apps-test", "invalid-branch", DeleteBranchResult.InvalidBranchName)]
     public async Task DeleteBranch_ProtectedOrInvalid_ReturnsBadRequest(
         string org,

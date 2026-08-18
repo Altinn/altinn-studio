@@ -133,10 +133,11 @@ export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/val
 
 // Repositories
 export const branchPath = (org, app, branchName) => `${apiBasePath}/${org}/${app}/branches/${branchName}`; // Get, Delete
-export const branchesPath = (org, app) => `${apiBasePath}/${org}/${app}/branches`; // Get, Post
+export const branchesPath = (org, app) => `${apiBasePath}/${org}/${app}/branches`; // Get
 export const checkoutBranchPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/checkout`; // Post
+export const createAndCheckoutBranchPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/create-and-checkout`; // Post
 export const currentBranchPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/current`; // Get
-export const discardChangesPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/discard-changes`; // Post
+export const discardAndCheckoutBranchPath = (org, app) => `${apiBasePath}/${org}/${app}/branches/discard-and-checkout`; // Post
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${apiBasePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,

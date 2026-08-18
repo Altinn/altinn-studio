@@ -1,26 +1,26 @@
 import { renderHook, act } from '@testing-library/react';
 import { useBranchOperations } from './useBranchOperations';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
-import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBranchMutation';
-import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useCreateAndCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCreateAndCheckoutBranchMutation';
+import { useDiscardAndCheckoutBranchMutation } from 'app-shared/hooks/mutations/useDiscardAndCheckoutBranchMutation';
 import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { uncommittedChangesErrorMock } from '../../test/mocks/branchingMocks';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
-jest.mock('app-shared/hooks/mutations/useCreateBranchMutation');
-jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
+jest.mock('app-shared/hooks/mutations/useCreateAndCheckoutBranchMutation');
+jest.mock('app-shared/hooks/mutations/useDiscardAndCheckoutBranchMutation');
 jest.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
 
 const mockUseCheckoutBranchMutation = jest.mocked(useCheckoutBranchMutation);
-const mockUseCreateBranchMutation = jest.mocked(useCreateBranchMutation);
-const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
+const mockUseCreateAndCheckoutBranchMutation = jest.mocked(useCreateAndCheckoutBranchMutation);
+const mockUseDiscardAndCheckoutBranchMutation = jest.mocked(useDiscardAndCheckoutBranchMutation);
 const mockUseDeleteBranchMutation = jest.mocked(useDeleteBranchMutation);
 
 const checkoutBranchMutate = jest.fn();
-const createBranchMutate = jest.fn();
-const discardChangesMutate = jest.fn();
+const createAndCheckoutMutate = jest.fn();
+const discardAndCheckoutMutate = jest.fn();
 const deleteBranchMutate = jest.fn();
 
 const { reload: originalReload } = window.location;
@@ -31,12 +31,12 @@ describe('useBranchOperations', () => {
       mutate: checkoutBranchMutate,
       isPending: false,
     } as any);
-    mockUseCreateBranchMutation.mockReturnValue({
-      mutate: createBranchMutate,
+    mockUseCreateAndCheckoutBranchMutation.mockReturnValue({
+      mutate: createAndCheckoutMutate,
       isPending: false,
     } as any);
-    mockUseDiscardChangesMutation.mockReturnValue({
-      mutate: discardChangesMutate,
+    mockUseDiscardAndCheckoutBranchMutation.mockReturnValue({
+      mutate: discardAndCheckoutMutate,
       isPending: false,
     } as any);
     mockUseDeleteBranchMutation.mockReturnValue({
@@ -98,21 +98,19 @@ describe('useBranchOperations', () => {
   });
 
   describe('checkoutNewBranch', () => {
-    it('should create branch, checkout, and reload on success', () => {
-      createBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
-      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+    it('should create, checkout, and reload on success', () => {
+      createAndCheckoutMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
 
       const { result } = renderHook(() => useBranchOperations(org, app));
 
       act(() => result.current.checkoutNewBranch('new-feature'));
 
-      expect(createBranchMutate).toHaveBeenCalledWith('new-feature', expect.any(Object));
-      expect(checkoutBranchMutate).toHaveBeenCalledWith('new-feature', expect.any(Object));
+      expect(createAndCheckoutMutate).toHaveBeenCalledWith('new-feature', expect.any(Object));
       expect(window.location.reload).toHaveBeenCalled();
     });
 
-    it('should set generic error when create fails', () => {
-      createBranchMutate.mockImplementation((_branch, options) =>
+    it('should set generic error when a non-conflict error occurs', () => {
+      createAndCheckoutMutate.mockImplementation((_branch, options) =>
         options?.onError?.(createAxiosError(500)),
       );
 
@@ -123,12 +121,11 @@ describe('useBranchOperations', () => {
       expect(result.current.createError).toBe(
         textMock('branching.new_branch_dialog.error_generic'),
       );
-      expect(checkoutBranchMutate).not.toHaveBeenCalled();
+      expect(result.current.uncommittedChangesError).toBeNull();
     });
 
-    it('should set uncommittedChangesError when checkout fails with 409 and data', () => {
-      createBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
-      checkoutBranchMutate.mockImplementation((_branch, options) =>
+    it('should set uncommittedChangesError when a 409 conflict with data occurs', () => {
+      createAndCheckoutMutate.mockImplementation((_branch, options) =>
         options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
       );
 
@@ -141,10 +138,9 @@ describe('useBranchOperations', () => {
     });
 
     it('should reset createError when retrying', () => {
-      createBranchMutate
+      createAndCheckoutMutate
         .mockImplementationOnce((_branch, options) => options?.onError?.(createAxiosError(500)))
         .mockImplementationOnce((_branch, options) => options?.onSuccess?.());
-      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
 
       const { result } = renderHook(() => useBranchOperations(org, app));
 
@@ -157,22 +153,19 @@ describe('useBranchOperations', () => {
   });
 
   describe('discardChangesAndCheckout', () => {
-    it('should discard changes, checkout, and reload on success', () => {
-      discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
-      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+    it('should discard, checkout, and reload on success', () => {
+      discardAndCheckoutMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
 
       const { result } = renderHook(() => useBranchOperations(org, app));
 
       act(() => result.current.discardChangesAndCheckout('target-branch'));
 
-      expect(discardChangesMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
-      expect(checkoutBranchMutate).toHaveBeenCalledWith('target-branch', expect.any(Object));
+      expect(discardAndCheckoutMutate).toHaveBeenCalledWith('target-branch', expect.any(Object));
       expect(window.location.reload).toHaveBeenCalled();
     });
 
     it('should set uncommittedChangesError when checkout fails with 409', () => {
-      discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
-      checkoutBranchMutate.mockImplementation((_branch, options) =>
+      discardAndCheckoutMutate.mockImplementation((_branch, options) =>
         options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
       );
 
@@ -186,17 +179,13 @@ describe('useBranchOperations', () => {
   });
 
   describe('deleteCurrentBranch', () => {
-    it('should discard changes, checkout master, delete branch, then reload', () => {
-      discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
-      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+    it('should delete the branch and reload on success', () => {
       deleteBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
 
       const { result } = renderHook(() => useBranchOperations(org, app));
 
       act(() => result.current.deleteCurrentBranch('feature-branch'));
 
-      expect(discardChangesMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
-      expect(checkoutBranchMutate).toHaveBeenCalledWith('master', expect.any(Object));
       expect(deleteBranchMutate).toHaveBeenCalledWith('feature-branch', expect.any(Object));
       expect(window.location.reload).toHaveBeenCalled();
     });
@@ -225,8 +214,8 @@ describe('useBranchOperations', () => {
     });
 
     it('should return true when any mutation is pending', () => {
-      mockUseCreateBranchMutation.mockReturnValue({
-        mutate: createBranchMutate,
+      mockUseCreateAndCheckoutBranchMutation.mockReturnValue({
+        mutate: createAndCheckoutMutate,
         isPending: true,
       } as any);
 

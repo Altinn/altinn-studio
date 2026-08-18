@@ -56,7 +56,7 @@ public class BranchService(
         CurrentBranchInfo currentBranch = GetCurrentBranch(editingContext);
         if (currentBranch.BranchName == branchName)
         {
-            return DeleteBranchResult.CheckedOutBranchProtected;
+            DiscardLocalChanges(editingContext);
         }
 
         DeleteRemoteBranchIfExists(authenticatedContext, branchName);
@@ -65,19 +65,22 @@ public class BranchService(
         return DeleteBranchResult.Success;
     }
 
-    public async Task<RepositoryClient.Model.Branch> CreateBranch(
-        AltinnRepoEditingContext editingContext,
+    public async Task<RepoStatus> CreateAndCheckoutBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     )
     {
-        using var activity = StartActivity(editingContext);
-        activity?.SetTag("branch", branchName);
-        return await ExecuteWithTelemetryAsync(
-            activity,
-            (editingContext, branchName),
-            static (self, ctx) =>
-                self._giteaClient.CreateBranch(ctx.editingContext.Org, ctx.editingContext.Repo, ctx.branchName)
-        );
+        await CreateBranch(authenticatedContext.RepoEditingContext, branchName);
+        return CheckoutBranchWithValidation(authenticatedContext, branchName);
+    }
+
+    public RepoStatus DiscardChangesAndCheckout(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string targetBranch
+    )
+    {
+        DiscardLocalChanges(authenticatedContext.RepoEditingContext);
+        return CheckoutBranchWithValidation(authenticatedContext, targetBranch);
     }
 
     public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext)
@@ -154,33 +157,6 @@ public class BranchService(
                 RepoStatus updatedRepoStatus = self._sourceControl.RepositoryStatus(editingContext);
                 SetRepositoryStatusTag(ctx.activity, updatedRepoStatus.RepositoryStatus);
                 return updatedRepoStatus;
-            }
-        );
-    }
-
-    public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext)
-    {
-        using var activity = StartActivity(editingContext);
-        return ExecuteWithTelemetry(
-            activity,
-            (activity, editingContext),
-            static (self, ctx) =>
-            {
-                string localPath = self._repositorySettings.GetServicePath(
-                    ctx.editingContext.Org,
-                    ctx.editingContext.Repo,
-                    ctx.editingContext.Developer
-                );
-
-                using (var repo = new LibGit2Sharp.Repository(localPath))
-                {
-                    repo.Reset(ResetMode.Hard, repo.Head.Tip);
-                    repo.RemoveUntrackedFiles();
-                }
-
-                RepoStatus repoStatus = self._sourceControl.RepositoryStatus(ctx.editingContext);
-                SetRepositoryStatusTag(ctx.activity, repoStatus.RepositoryStatus);
-                return repoStatus;
             }
         );
     }
@@ -286,6 +262,48 @@ public class BranchService(
                 string pushRefSpec = $":refs/heads/{ctx.branchName}";
                 repo.Network.Push(remote, pushRefSpec, options);
                 ctx.activity?.SetTag("branch.deleted", true);
+            }
+        );
+    }
+
+    private async Task<RepositoryClient.Model.Branch> CreateBranch(
+        AltinnRepoEditingContext editingContext,
+        string branchName
+    )
+    {
+        using var activity = StartActivity(editingContext);
+        activity?.SetTag("branch", branchName);
+        return await ExecuteWithTelemetryAsync(
+            activity,
+            (editingContext, branchName),
+            static (self, ctx) =>
+                self._giteaClient.CreateBranch(ctx.editingContext.Org, ctx.editingContext.Repo, ctx.branchName)
+        );
+    }
+
+    private RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext)
+    {
+        using var activity = StartActivity(editingContext);
+        return ExecuteWithTelemetry(
+            activity,
+            (activity, editingContext),
+            static (self, ctx) =>
+            {
+                string localPath = self._repositorySettings.GetServicePath(
+                    ctx.editingContext.Org,
+                    ctx.editingContext.Repo,
+                    ctx.editingContext.Developer
+                );
+
+                using (var repo = new LibGit2Sharp.Repository(localPath))
+                {
+                    repo.Reset(ResetMode.Hard, repo.Head.Tip);
+                    repo.RemoveUntrackedFiles();
+                }
+
+                RepoStatus repoStatus = self._sourceControl.RepositoryStatus(ctx.editingContext);
+                SetRepositoryStatusTag(ctx.activity, repoStatus.RepositoryStatus);
+                return repoStatus;
             }
         );
     }
