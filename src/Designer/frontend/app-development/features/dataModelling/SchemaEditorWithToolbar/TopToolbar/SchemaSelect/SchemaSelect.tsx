@@ -4,7 +4,6 @@ import {
   groupMetadataOptions,
 } from '../../../../../utils/metadataUtils';
 import type { MetadataOption } from '../../../../../types/MetadataOption';
-import { NativeSelect } from '@digdir/designsystemet-react';
 import classes from './SchemaSelect.module.css';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
