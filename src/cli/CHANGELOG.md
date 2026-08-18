@@ -23,6 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl env up` now starts a workflow engine that matches the v9 app libraries. The pinned engine image predated a change to the app callback contract, so an app on `Altinn.App.Api`/`Altinn.App.Core` `9.0.0-preview.4` failed as soon as an instance was created, with `AppCommand failed with client error BadRequest` and a complaint about a missing `executionReferenceTime` property. Apps on earlier v9 previews were unaffected and stay working.
 - Relax rules for validating Altinn.App.Api and Altinn.App.Core nuget versions to allow missing Core reference and range versions `8.*`, `[8.11.3]` and `[8.0,9.0)`
 
 ## [0.1.0-preview.21] - 2026-08-11
