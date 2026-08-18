@@ -2,8 +2,7 @@ import type { ReactNode } from 'react';
 import classes from './BPMNViewerErrorAlert.module.css';
 import type { BpmnViewerError } from '../../../../types/BpmnViewerError';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
-import { StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 
 interface ErrorMessage {
   heading: string;
@@ -51,12 +50,12 @@ export const BPMNViewerErrorAlert = ({ bpmnViewerError }: BPMNViewerErrorAlertPr
 
   return (
     <div className={classes.alertContainer}>
-      <Alert severity='warning'>
+      <StudioAlert data-color='warning'>
         <StudioHeading data-size='md' spacing>
           {errorToDisplay.heading}
         </StudioHeading>
         <StudioParagraph>{errorToDisplay.body}</StudioParagraph>
-      </Alert>
+      </StudioAlert>
     </div>
   );
 };

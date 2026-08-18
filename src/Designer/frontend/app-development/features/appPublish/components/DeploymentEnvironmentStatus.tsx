@@ -1,7 +1,12 @@
 import React, { type JSX } from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
-import { Alert } from '@digdir/designsystemet-react';
-import { StudioLink, StudioParagraph, StudioSpinner, StudioHeading } from '@studio/components';
+import {
+  StudioLink,
+  StudioParagraph,
+  StudioSpinner,
+  StudioHeading,
+  StudioAlert,
+} from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
@@ -45,7 +50,7 @@ export const DeploymentEnvironmentStatus = ({
   }) => {
     const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
     return (
-      <Alert severity={severity} className={classes.alert}>
+      <StudioAlert data-color={severity} className={classes.alert}>
         <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
         </StudioHeading>
@@ -55,7 +60,7 @@ export const DeploymentEnvironmentStatus = ({
 
         {content}
         {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
-      </Alert>
+      </StudioAlert>
     );
   };
 
