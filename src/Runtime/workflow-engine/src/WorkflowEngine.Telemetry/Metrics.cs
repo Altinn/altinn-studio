@@ -291,6 +291,26 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of mailboxes minted. Counts creations only: an idempotent replay returns a mailbox that
+    /// already exists and creates nothing, so counting it would overstate how many exchanges are open.
+    /// </summary>
+    public static readonly Counter<long> MailboxesCreated = Meter.CreateCounter<long>(
+        "engine.mailboxes.created",
+        description: "Number of mailboxes minted (idempotent replays excluded — they create nothing)"
+    );
+
+    /// <summary>
+    /// Counter of mailboxes closed for deliveries, tagged <c>reason</c> (<c>request</c> when a caller
+    /// closed it, <c>deadline</c> when the engine did). Counts the close that actually happened, so an
+    /// idempotent repeat does not count twice; the two tag values together with
+    /// <see cref="MailboxesCreated"/> are what show whether exchanges conclude on their own or age out.
+    /// </summary>
+    public static readonly Counter<long> MailboxesClosed = Meter.CreateCounter<long>(
+        "engine.mailboxes.closed",
+        description: "Number of mailboxes closed for deliveries, tagged by reason (request or deadline)"
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(

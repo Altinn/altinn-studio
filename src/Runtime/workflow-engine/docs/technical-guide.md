@@ -20,6 +20,7 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Resume](#resume)
     - [Abandon](#abandon)
     - [Nudge](#nudge)
+    - [Mailboxes](#mailboxes)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
     - [Dashboard](#dashboard)
@@ -505,6 +506,94 @@ the goal state already held), `409 Conflict` when it is not parked at all, and `
 does not exist. The dashboard's *Retry now* / *Check now* buttons drive the same operation through
 `POST /dashboard/nudge`.
 
+## Mailboxes
+
+A **mailbox** is a durable inbox that external messages can be delivered into: an address of its own,
+minted on demand, that an app can hand to a counterparty as the place to reply to. It is not a
+workflow — it holds no steps, runs nothing, and consumes no worker — and it lives in its own tables
+rather than as columns on `engine.workflows`.
+
+```http
+POST /api/v1/{namespace}/mailboxes
+```
+
+The engine, not the caller, owns the id: a caller identifies its mint attempt by an
+`idempotencyKey` unique within the namespace, and replaying that key returns the mailbox it already
+minted instead of forking a second one. That matters because the id is typically published — embedded
+in an outbound message as the reply address — before the step that minted it has finished, so a
+retried step must land back on the same mailbox. The id is unguessable but is **not a secret**;
+integrity of anything delivered into the mailbox is the sender's envelope's job, not the id's.
+
+### The deadline is stamped once, at mint
+
+The required `timeout` is not a per-operation budget. The engine converts it, once, into the
+mailbox's single absolute `deadline` (`createdAt + timeout`) and everything about the mailbox's
+lifetime is measured against that instant — it never moves, and no later operation re-arms it.
+`EngineSettings.MaxMailboxTimeout` caps how far out a caller may put it; the derivation of that cap
+is written down on the setting itself, and pinned by `CallbackTokenLifetimeInvariantTests`.
+
+### Two counters, and what they mean
+
+Every mailbox carries two gapless positions:
+
+| Counter   | Meaning                                          |
+| --------- | ------------------------------------------------ |
+| `nextIdx` | the next position the deliveries log will assign |
+| `nextSeq` | the next position the receivers log will assign  |
+
+Read together they answer the operational question a mailbox exists to raise:
+`unconsumedDeliveries` — how many messages arrived at positions no receiver was ever enqueued for. It
+is derived from the counters rather than counted from rows, which is exact because both logs are
+gapless and neither is pruned piecemeal.
+
+### Closing is terminal, idempotent, and says why
+
+```http
+DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
+```
+
+Closing means exactly one thing: **the mailbox is closed for deliveries**. Nothing reopens it. The
+close records `disposedReason` explicitly — `request` when a caller closed it, `deadline` when the
+engine did — rather than leaving a consumer to infer intent from timestamps, because the two read
+very differently in a conclusion written for a human ("the counterparty never answered in time"
+versus "the exchange was closed").
+
+The effecting close answers `202 Accepted`; a repeat — or a close that lost the race to the
+mailbox's own deadline — answers `200 OK` reporting the **original** `disposedAt` and
+`disposedReason`. That is the engine-wide convention: `202` means _this call_ effected the state
+change, `200` means it had already happened. Whoever closed it first wins outright.
+
+### The mailbox row is its own serialization point
+
+Every operation that changes mailbox state takes the mailbox row's lock as **the first act of its
+transaction**, before reading anything it decides on. This is why concurrent closes collapse onto a
+single disposal with a single timestamp instead of each writing its own, and it is the discipline
+every future mailbox operation inherits. The one compound lock order is **mailbox row → workflow
+row**; nothing takes them in the reverse order, so the ordering is acyclic by inspection.
+
+The mint is the single exception, and only because it has no row to lock: the row is what it
+creates. The unique index on `(namespace, idempotencyKey)` serializes it instead — concurrent mints
+of one key contend there, exactly one inserts, and the losers are handed the winner's mailbox.
+
+### Limits
+
+`MaxOpenMailboxesPerCollection` bounds how many mailboxes one workflow collection may hold open at
+once; a mint past it is refused with `429 Too Many Requests` rather than silently closing something,
+because the engine cannot know which of the open exchanges the app considers finished. The cap is
+scoped to a collection, so a mailbox minted without a `collectionKey` is not counted against it.
+
+It is a **best-effort resource guard, not an exact bound.** The count is evaluated against the
+snapshot the mint statement runs on, so mints in flight at the same instant can each see room and the
+collection can settle slightly above the configured number — by at most one per concurrently in-flight
+mint, never runaway, and the next sequential mint is refused as normal. Making it exact would mean
+serializing every mint behind a lock, which costs more than a resource guard is worth. Do not assert
+on it as an invariant.
+
+Both keys are `varchar(200)`: `idempotencyKey` must be non-empty and at most 200 characters, and
+`collectionKey`, when supplied, likewise. These are validated before the mint reaches the database —
+an over-long value would otherwise come back as a transient-looking database error and be retried to
+the command timeout instead of being answered.
+
 ## Dependency Graphs
 
 ### Within a Single Request (DAG)
@@ -861,6 +950,85 @@ GET /api/v1/{namespace}/collections/{key}
     "updatedAt": "2026-03-19T10:00:05+00:00"
 }
 ```
+
+### Mint Mailbox
+
+Mints a [mailbox](#mailboxes). Idempotent on `(namespace, idempotencyKey)`.
+
+```http
+POST /api/v1/{namespace}/mailboxes
+```
+
+```json
+{
+    "idempotencyKey": "Task_1:SendToArchive",
+    "timeout": "2.00:00:00",
+    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+    "id": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
+    "namespace": "ttd:my-app",
+    "idempotencyKey": "Task_1:SendToArchive",
+    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "timeout": "2.00:00:00",
+    "deadline": "2026-03-21T10:00:00+00:00",
+    "status": "Open",
+    "nextIdx": 0,
+    "nextSeq": 0,
+    "unconsumedDeliveries": 0,
+    "createdAt": "2026-03-19T10:00:00+00:00"
+}
+```
+
+Returns `200 OK` with the existing mailbox when the idempotency key already minted one — answered
+even when the collection is at its cap, since a replay creates nothing. `400 Bad Request` for a key
+that is empty, whitespace, or over 200 characters, or a `timeout` that is not positive or exceeds
+`MaxMailboxTimeout`. `429 Too Many Requests` when the collection already holds
+`MaxOpenMailboxesPerCollection` open mailboxes — a best-effort guard, so treat it as a signal to back
+off rather than as proof of an exact count.
+
+### Get Mailbox
+
+```http
+GET /api/v1/{namespace}/mailboxes/{mailboxId}
+```
+
+**Response (200 OK):** the same shape as the mint returns — status, deadline, both counters, and the
+unconsumed-delivery count. `404 Not Found` when no mailbox with that id exists in the namespace.
+
+### Close Mailbox
+
+```http
+DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "id": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
+    "namespace": "ttd:my-app",
+    "idempotencyKey": "Task_1:SendToArchive",
+    "timeout": "2.00:00:00",
+    "deadline": "2026-03-21T10:00:00+00:00",
+    "status": "Disposed",
+    "disposedReason": "Request",
+    "nextIdx": 0,
+    "nextSeq": 0,
+    "unconsumedDeliveries": 0,
+    "createdAt": "2026-03-19T10:00:00+00:00",
+    "disposedAt": "2026-03-19T10:04:00+00:00"
+}
+```
+
+Terminal and idempotent: `202 Accepted` when this call closed the mailbox, `200 OK` when it was
+already closed — reporting the **original** `disposedAt` and `disposedReason` rather than this call's.
+`404 Not Found` when no mailbox with that id exists in the namespace.
 
 ## Health Checks
 

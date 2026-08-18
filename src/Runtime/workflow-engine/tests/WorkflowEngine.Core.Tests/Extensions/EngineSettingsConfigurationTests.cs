@@ -75,6 +75,42 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
+
+        // Mailboxes
+        Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
+        Assert.Equal(100, settings.MaxOpenMailboxesPerCollection);
+    }
+
+    [Fact]
+    public void MailboxSettings_BindFromJson_AndZeroesGetDefaulted()
+    {
+        var configured = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "maxMailboxTimeout": "3.00:00:00",
+                "maxOpenMailboxesPerCollection": 7
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(3), configured.MaxMailboxTimeout);
+        Assert.Equal(7, configured.MaxOpenMailboxesPerCollection);
+
+        var zeroed = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "maxMailboxTimeout": "00:00:00",
+                "maxOpenMailboxesPerCollection": 0
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(21), zeroed.MaxMailboxTimeout);
+        Assert.Equal(100, zeroed.MaxOpenMailboxesPerCollection);
     }
 
     [Fact]

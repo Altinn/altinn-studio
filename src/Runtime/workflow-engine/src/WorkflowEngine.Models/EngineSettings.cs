@@ -120,6 +120,84 @@ public sealed record EngineSettings
     public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
+    /// The largest timeout a caller may request when minting a mailbox. The engine stamps the mailbox's
+    /// absolute deadline as <c>now + timeout</c> at mint, so this is the longest a single exchange can
+    /// stay open, and mint requests above it are rejected.
+    /// </summary>
+    /// <remarks>
+    /// Load-bearing for the same cross-component invariant as <see cref="MaxStepWaitBudget"/>, but
+    /// anchored differently, and that difference is the whole reason this number can be as large as it
+    /// is. AppCommand callback tokens are minted once at <em>enqueue</em> and never refresh, valid until
+    /// their signing app-code expires. A receive workflow is enqueued as its own workflow, so it parks on
+    /// a token minted at <em>its own</em> enqueue — not on an ancestor's inherited one. The lifetime the
+    /// token must cover is therefore the receiver's, measured from the receiver's enqueue:
+    /// <list type="bullet">
+    ///   <item>the park: at most the mailbox's whole remaining lifetime, which is at most this cap for a
+    ///         receiver enqueued at mint — 21d</item>
+    ///   <item>the closure sweep's coarseness, since the mailbox closes at its deadline plus at most one
+    ///         cadence — <see cref="MaintenanceInterval"/>, 1min. <strong>This term must track whatever
+    ///         cadence the mailbox closure sweep actually runs on.</strong> No such sweep exists yet, so
+    ///         it is charged against the maintenance interval; a sweep introduced on its own, coarser
+    ///         setting has to replace this term here and in the tripwire test, or the bound silently
+    ///         stops covering the wait it is meant to bound</item>
+    ///   <item>the released receiver's own wait, its steps being ordinary steps that may defer —
+    ///         <see cref="MaxStepWaitBudget"/>, 14d</item>
+    ///   <item>a failure, then a resume at the terminal-retention edge replaying the original token —
+    ///         <see cref="RetentionSettings.RetentionPeriod"/>, 60d</item>
+    ///   <item>the resumed run's own full wait — <see cref="MaxStepWaitBudget"/> again, 14d</item>
+    ///   <item>the final retry ladder — <see cref="RetryStrategy.MaxDuration"/> of
+    ///         <see cref="DefaultStepRetryStrategy"/>, 24h</item>
+    /// </list>
+    /// which totals 110d and a minute against a floor of ≥114d of remaining validity at enqueue
+    /// (operator app-code rotation policy in
+    /// <c>src/Runtime/operator/internal/controller/appcodesync/controller.go</c>: 186d acceptance, 72d
+    /// rotation). <c>CallbackTokenLifetimeInvariantTests</c> pins that arithmetic, so raising this cap —
+    /// or the wait budget, or retention — fails loudly instead of silently minting exchanges whose
+    /// receivers cannot authenticate weeks later.
+    /// <para>
+    /// Two terms an inherited-token design has to carry are absent here, and they are what buys the
+    /// headroom: no wait spent by an ancestor before the receiver existed, and no second exchange, since
+    /// a relay's next hop is a <em>new</em> receiver with a <em>new</em> token. The receiver's own wait
+    /// clock, by the same token, is inside this arithmetic rather than an uncounted term beside it.
+    /// The one looseness that remains predates mailboxes entirely: the wait budget is per step, so a
+    /// receiver with several deferring steps spends more than the one budget counted above.
+    /// </para>
+    /// </remarks>
+    [JsonPropertyName("maxMailboxTimeout")]
+    public TimeSpan MaxMailboxTimeout { get; set; } = TimeSpan.FromDays(21);
+
+    /// <summary>
+    /// The number of simultaneously open mailboxes a single workflow collection should hold, as a
+    /// <strong>best-effort</strong> resource guard. A mint that would exceed it is rejected with
+    /// <c>429 Too Many Requests</c>.
+    /// </summary>
+    /// <remarks>
+    /// An aggregate bound on what one instance's exchanges can cost the engine: every open mailbox can
+    /// accumulate deliveries and park receivers that hold admission budget while unfetchable, and nothing
+    /// else limits how many an app mints. Reaching it is a <c>429</c> rather than a silent close, because
+    /// the engine cannot know which of the open exchanges the app considers finished.
+    /// <para>
+    /// <strong>It is not an exact bound, by design.</strong> The count is evaluated against the snapshot
+    /// the mint statement runs on, so mints in flight at the same instant can each see room and the
+    /// collection can settle slightly above this number — by at most one per concurrently in-flight mint,
+    /// never unboundedly, and the very next sequential mint is refused. Making it exact would mean
+    /// serializing every mint behind a lock, which costs more than a resource guard is worth. Treat this
+    /// as "roughly this many, and never runaway", not as an invariant to assert on.
+    /// </para>
+    /// <para>
+    /// The cap is scoped to a collection, so it does not apply to a mailbox minted without a
+    /// <c>collectionKey</c> — there is no collection to bound. The app library always supplies one.
+    /// </para>
+    /// <para>
+    /// The default of 100 is generous for the shape this exists for: a task that awaits a reply mints one
+    /// mailbox, and an instance runs a handful of such tasks. An app needing hundreds of concurrent
+    /// mailboxes under one instance wants a different decomposition, not a larger cap.
+    /// </para>
+    /// </remarks>
+    [JsonPropertyName("maxOpenMailboxesPerCollection")]
+    public int MaxOpenMailboxesPerCollection { get; set; } = 100;
+
+    /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
     [JsonPropertyName("defaultStepRetryStrategy")]
