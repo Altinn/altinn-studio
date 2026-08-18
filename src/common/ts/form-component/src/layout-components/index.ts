@@ -4,6 +4,7 @@ export * from './Address';
 export * from './Alert';
 export * from './AttachmentList';
 export * from './Audio';
+export * from './Button';
 export * from './ButtonGroup';
 export * from './Date';
 export * from './Datepicker';

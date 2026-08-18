@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@app/form-component';
+import { ButtonLayout } from '@app/form-component';
 
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
@@ -11,12 +11,17 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
 import { ProcessTaskType } from 'src/types';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import type { AttachmentState } from 'src/features/attachments/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
+
+const PENDING_STATUS_MESSAGES: Partial<Record<AttachmentState, string>> = {
+  Pending: 'general.wait_for_attachments_scanning',
+  uploading: 'general.wait_for_attachments',
+};
 
 export type IButtonProvidedProps =
   | (PropsFromGenericComponent<'Button'> & CompInternal<'Button'>)
@@ -26,6 +31,7 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   const item = useItemWhenType(baseComponentId, 'Button');
   const mode = item.type === 'Button' ? item.mode : undefined;
   const { langAsString } = useLanguage();
+  const { innerGrid } = useComponentStructureData(baseComponentId);
   const props: IButtonProvidedProps = { baseComponentId, ...componentProps, ...item };
 
   const currentTaskType = useTaskTypeFromBackend();
@@ -71,28 +77,22 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
+  const statusMessageKey = attachmentState.hasPending ? PENDING_STATUS_MESSAGES[attachmentState.state] : undefined;
+  const statusMessage = statusMessageKey ? langAsString(statusMessageKey) : undefined;
+
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <Button
-        style={item?.position ? { ...alignStyle(item?.position) } : {}}
-        textAlign={item.textAlign}
-        size={item.size}
-        fullWidth={item.fullWidth}
-        id={item.id}
-        onClick={submitTask}
-        isLoading={isProcessingNext || isConfirming}
-        loadingLabel={langAsString('general.loading')}
-        disabled={disabled}
-        color='success'
-      >
-        <Lang id={item.textResourceBindings?.title} />
-      </Button>
-      {attachmentState.hasPending && attachmentState.state !== 'Infected' && (
-        <span style={{ position: 'absolute' }}>
-          {attachmentState.state === 'Pending' && langAsString('general.wait_for_attachments_scanning')}
-          {attachmentState.state === 'uploading' && langAsString('general.wait_for_attachments')}
-        </span>
-      )}
-    </ComponentStructureWrapper>
+    <ButtonLayout
+      componentId={item.id}
+      title={item.textResourceBindings?.title}
+      size={item.size}
+      fullWidth={item.fullWidth}
+      textAlign={item.textAlign}
+      position={item.position}
+      disabled={disabled}
+      isLoading={isProcessingNext || isConfirming}
+      onClick={submitTask}
+      statusMessage={statusMessage}
+      innerGrid={innerGrid}
+    />
   );
 };
