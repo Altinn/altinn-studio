@@ -1,5 +1,8 @@
 FROM ghcr.io/actions/actions-runner:2.335.1@sha256:08c30b0a7105f64bddfc485d2487a22aa03932a791402393352fdf674bda2c29
 
+LABEL org.opencontainers.image.source="https://github.com/Altinn/altinn-studio"
+LABEL org.opencontainers.image.description="Altinn Studio self-hosted GitHub Actions runner"
+
 ARG GO_VERSION=1.26.4
 ARG NODE_CHANNEL=22
 ARG YARN_CHANNEL=stable

@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
     paths:
+      - 'src/experimental/Cargo.lock'
+      - 'src/experimental/Cargo.toml'
+      - 'src/experimental/sandbox/**'
+      - 'src/experimental/sandbox-authorization/**'
+      - 'src/experimental/sandbox-microsandbox/**'
       - 'src/github-runner/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
@@ -23,6 +28,10 @@ jobs:
     name: Push GitHub runners as OCI artifact
     runs-on: ubuntu-latest
     environment: dev
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
@@ -38,10 +47,20 @@ jobs:
         run: |
           SHA="${GITHUB_SHA::10}"
           {
-            echo "short-sha=$SHA"
-            echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
+            echo "short-sha=${SHA}"
+            echo "base-ghcr-image=ghcr.io/altinn/altinn-studio/github-runner:${SHA}"
+            echo "base-ghcr-latest=ghcr.io/altinn/altinn-studio/github-runner:latest"
+            echo "guest-ghcr-repository=ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest"
+            echo "guest-ghcr-image=ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest:${SHA}"
+            echo "guest-ghcr-latest=ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest:latest"
+            echo "coordinator-ghcr-repository=ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator"
+            echo "coordinator-ghcr-image=ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator:${SHA}"
+            echo "coordinator-ghcr-latest=ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator:latest"
             echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/github-runners-repo:${SHA}"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: az login
         uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
@@ -63,21 +82,117 @@ jobs:
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: docker build
-        run: docker build --build-arg GO_VERSION=${{ steps.go-version.outputs.version }} -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
+      - name: Build and publish base image
+        id: base-image
+        env:
+          GHCR_IMAGE: ${{ steps.vars.outputs.base-ghcr-image }}
+          GHCR_LATEST: ${{ steps.vars.outputs.base-ghcr-latest }}
+          GO_VERSION: ${{ steps.go-version.outputs.version }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-base-build.json"
+          docker buildx build \
+            --build-arg "GO_VERSION=${GO_VERSION}" \
+            --file Dockerfile \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${GHCR_IMAGE}" \
+            --tag "${GHCR_LATEST}" \
+            .
 
-      - name: push image
-        run: docker push ${{ steps.vars.outputs.image-repo }}
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected base image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish sandbox guest image
+        id: guest-image
+        env:
+          IMAGE: ${{ steps.vars.outputs.guest-ghcr-image }}
+          LATEST: ${{ steps.vars.outputs.guest-ghcr-latest }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-sandbox-guest-build.json"
+          docker buildx build \
+            --file Dockerfile.sandbox \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --pull \
+            --push \
+            --tag "${IMAGE}" \
+            --tag "${LATEST}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected guest image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish sandbox coordinator image
+        id: coordinator-image
+        working-directory: ${{ github.workspace }}/src
+        env:
+          IMAGE: ${{ steps.vars.outputs.coordinator-ghcr-image }}
+          LATEST: ${{ steps.vars.outputs.coordinator-ghcr-latest }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-sandbox-coordinator-build.json"
+          docker buildx build \
+            --file github-runner/Dockerfile.coordinator \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE}" \
+            --tag "${LATEST}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected coordinator image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: patch base with image tag
         working-directory: src/github-runner/infra/kustomize/base
         run: |
-          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE="${{ steps.vars.outputs.base-ghcr-image }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
           for file in scaledjob.yaml scaledjob-single.yaml; do
             yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
             yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
           done
+
+      - name: Pin sandbox images by digest
+        working-directory: src/github-runner/infra/kustomize/base
+        env:
+          COORDINATOR_DIGEST: ${{ steps.coordinator-image.outputs.digest }}
+          COORDINATOR_REPOSITORY: ${{ steps.vars.outputs.coordinator-ghcr-repository }}
+          GUEST_DIGEST: ${{ steps.guest-image.outputs.digest }}
+          GUEST_REPOSITORY: ${{ steps.vars.outputs.guest-ghcr-repository }}
+          IMAGE_TAG: ${{ steps.vars.outputs.short-sha }}
+        run: |
+          COORDINATOR_IMAGE="${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}"
+          GUEST_IMAGE="${GUEST_REPOSITORY}@${GUEST_DIGEST}"
+          export COORDINATOR_IMAGE GUEST_IMAGE IMAGE_TAG
+
+          yq -i '
+            .metadata.annotations["altinn.studio/image"] = strenv(COORDINATOR_IMAGE) |
+            .metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG) |
+            .metadata.annotations["altinn.studio/guest-image"] = strenv(GUEST_IMAGE) |
+            .metadata.annotations["altinn.studio/guest-image-tag"] = strenv(IMAGE_TAG)
+          ' scaledjob-sandbox.yaml
+
+          test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob-sandbox.yaml)" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/guest-image"]' scaledjob-sandbox.yaml)" = "${GUEST_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/guest-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
+
+          RENDERED="$(kubectl kustomize .)"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .env[] | select(.name == "SANDBOX_GUEST_IMAGE") | .value' <<< "${RENDERED}")" = "${GUEST_IMAGE}"
 
       - name: push artifact
         working-directory: src/github-runner/infra/kustomize

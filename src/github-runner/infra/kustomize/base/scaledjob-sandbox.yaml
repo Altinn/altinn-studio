@@ -1,0 +1,156 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: github-runners-sandbox
+  labels:
+    app.kubernetes.io/name: github-runner
+    app.kubernetes.io/component: runner-sandbox
+  annotations:
+    altinn.studio/image: ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator:latest
+    altinn.studio/image-tag: latest
+    altinn.studio/guest-image: ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest:latest
+    altinn.studio/guest-image-tag: latest
+spec:
+  maxReplicaCount: 16
+  minReplicaCount: 0
+  pollingInterval: 30
+  rollout:
+    strategy: gradual
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTargetRef:
+    parallelism: 1
+    completions: 1
+    backoffLimit: 0
+    ttlSecondsAfterFinished: 300
+    activeDeadlineSeconds: 7200
+    template:
+      metadata:
+        annotations:
+          cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+        labels:
+          app.kubernetes.io/name: github-runner
+          app.kubernetes.io/component: runner-sandbox
+      spec:
+        automountServiceAccountToken: false
+        restartPolicy: Never
+        terminationGracePeriodSeconds: 120
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+          - name: coordinator
+            image: ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator:latest
+            imagePullPolicy: Always
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+            env:
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: SANDBOX_PROVIDER_HOME
+                value: /var/lib/altinn/sandbox-provider
+              - name: MICROSANDBOX_CACHE_HOME
+                value: /var/cache/altinn/microsandbox
+              - name: SANDBOX_GUEST_IMAGE
+                value: ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest:latest
+              - name: SANDBOX_CPUS
+                value: "4"
+              - name: SANDBOX_MEMORY
+                value: 12Gi
+              - name: SANDBOX_ROOT_FILESYSTEM
+                value: 100Gi
+              - name: GITHUB_API_URL
+                value: https://api.github.com
+              - name: GITHUB_SERVER_URL
+                value: https://github.com
+              - name: GITHUB_OWNER
+                value: Altinn
+              - name: GITHUB_REPOSITORY
+                value: altinn-studio
+              - name: RUNNER_SCOPE
+                value: repo
+              - name: RUNNER_LABELS
+                value: self-hosted-sandbox
+              - name: RUNNER_GROUP
+                value: Default
+              - name: RUNNER_WORKDIR
+                value: /home/runner/_work
+              - name: RUNNER_CLAIM_TIMEOUT_SECONDS
+                value: "600"
+              - name: APP_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: appId
+              - name: APP_INSTALLATION_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: installationId
+              - name: APP_PRIVATE_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: appPrivateKey
+            resources:
+              requests:
+                cpu: "4"
+                memory: 14Gi
+                ephemeral-storage: 120Gi
+                devices.altinn.studio/kvm: "1"
+              limits:
+                cpu: "4"
+                memory: 14Gi
+                ephemeral-storage: 120Gi
+                devices.altinn.studio/kvm: "1"
+            volumeMounts:
+              - name: provider-home
+                mountPath: /var/lib/altinn/sandbox-provider
+              - name: microsandbox-cache
+                mountPath: /var/cache/altinn/microsandbox
+              - name: tmp
+                mountPath: /tmp
+        volumes:
+          - name: provider-home
+            emptyDir:
+              sizeLimit: 120Gi
+          - name: microsandbox-cache
+            hostPath:
+              path: /var/lib/altinn/microsandbox-cache
+              type: DirectoryOrCreate
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+        nodeSelector:
+          purpose: sandbox
+          kubernetes.io/arch: amd64
+        tolerations:
+          - key: purpose
+            operator: Equal
+            value: sandbox
+            effect: NoSchedule
+  triggers:
+    - type: github-runner
+      metadata:
+        githubApiURL: https://api.github.com
+        owner: Altinn
+        runnerScope: repo
+        repos: altinn-studio
+        labels: self-hosted-sandbox
+        noDefaultLabels: "true"
+        enableEtags: "false"
+        applicationIDFromEnv: APP_ID
+        installationIDFromEnv: APP_INSTALLATION_ID
+        targetWorkflowQueueLength: "1"
+      authenticationRef:
+        name: github-runner-auth
