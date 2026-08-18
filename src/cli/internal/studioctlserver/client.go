@@ -195,7 +195,7 @@ const (
 	AppUpgradeExitManualRequired     = 3 // Applied, but something is left for the user to finish by hand.
 )
 
-// Indicates whether the upgrade hit a hard error. Any non-zero code that is not the manual-action signal counts as failure
+// Failed indicates whether the upgrade hit a hard error. Any non-zero code that is not the manual-action signal counts as failure.
 // Mirrors V8Tov9Upgrade.IsError.
 func (r AppUpgradeResult) Failed() bool {
 	return r.ExitCode != AppUpgradeExitSuccess && r.ExitCode != AppUpgradeExitManualRequired
