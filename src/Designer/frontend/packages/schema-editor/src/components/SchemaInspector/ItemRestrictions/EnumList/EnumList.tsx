@@ -41,7 +41,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
     const newEnumList = [...enumList, ''];
     setEnumList(newEnumList);
   };
-  console.log('heheheeh');
+
   const update = (newEnumList: string[]) => {
     const duplicates: string[] = findDuplicateValues(newEnumList);
 
