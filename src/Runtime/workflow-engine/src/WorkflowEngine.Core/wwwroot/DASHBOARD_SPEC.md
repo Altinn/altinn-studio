@@ -581,6 +581,56 @@ over the members, so a group matches when any member matches (status chips count
 workflows). The expanded cards inside a group are not matched individually (`:scope >` selectors
 in `applyFilter`).
 
+**Mailbox blocks:** a group that has mailboxes closes with one block per mailbox, oldest-minted first
+so the exchanges read in the same direction as the spine above them. A group with no mailbox — nearly
+every group — renders nothing at all, and a collection with an unshown older tail (the endpoint's
+per-collection window was full) carries a `⋯ older mailboxes not shown` line above its blocks, over
+that group and no other.
+
+Each block is a header and a row of position chips:
+
+- **Header** — the mailbox id abbreviated (full id in the tooltip, alongside the mint instant), the
+  mint idempotency key, an `open` / `closed · request` / `closed · deadline` pill, both log counters
+  as `idx N · seq N`, an amber `N unconsumed` badge when accepted messages were never enqueued for,
+  and the deadline. An open mailbox counts down to its deadline live (`closes in 20d 4h`, turning red
+  and counting up as `overdue …` past it); a closed one says when it closed instead. The absolute
+  deadline follows either way, as an ordinary timestamp honoring the UTC and show-timestamps
+  settings — whether a closed mailbox was closed _at_ its deadline or long before it is the difference
+  between an exchange that timed out and one that concluded.
+- **Position chips** — one per position, numbered, colored by state: `delivered` amber (a message
+  standing unconsumed), `consumed` green, `waiting` dashed cyan (borrowing the `Held` pill's chrome,
+  since that is the workflow status on the other side of the same rendezvous), `closed` dashed gray.
+  Everything else about the position — the source's message id, the accept/park/release/claim
+  instants, the park duration — is in the chip's tooltip. A `waiting` chip carries a live count-up
+  from `heldAt`, because the server deliberately sends no `parkedForSeconds` while the wait is still
+  running; a settled receiver that did park shows the duration it was sent. A mailbox with no
+  positions says `no messages and no receivers yet`.
+- **The link into the spine** — a chip whose receive workflow is one of the rows this group actually
+  rendered is clickable and reveals that row (scroll + `rel-flash`, the relation chips' behavior). A
+  chip whose receiver exists but is outside the window says so in its tooltip rather than pretending
+  to be a link, and a `delivered` position — which by definition has no receiver — says that instead.
+
+**Freshness:** the blocks are fetched, not streamed. Each render pass records the collections it
+drew and asks for their mailboxes as one batch per namespace, chunked so the key list always fits
+inside the server's request line, and re-renders only when the answer actually differs — which is
+what keeps the re-render it can trigger from feeding itself. How often a collection is re-asked
+depends on what is known about it: **3s** for one holding mailboxes, one whose members include a
+receive workflow (`mailboxId` on the card), or one never read successfully; **60s** for one that
+answered "no mailboxes", which is nearly every collection and would otherwise put the endpoint's
+three-table read back on a loop. A failed request is never remembered as an empty answer.
+
+Once the dashboard has any evidence of mailboxes at all, the collections on screen are additionally
+re-read on a **5s** timer under the same TTLs, because an exchange advances without any workflow
+changing: a message that arrives before its receiver is enqueued is a row, not a workflow, so no
+SSE-driven pass would ever come. The timer walks the last render pass's collections rather than the
+mailbox blocks in the DOM — a collection whose blocks are missing is exactly the one that has to be
+asked again — and never starts at all on a deployment that has never minted a mailbox.
+
+Mailboxes are cached per namespace **and** collection key. Both chains surfaces group by collection
+key alone, so a group can hold two namespaces' workflows; each namespace present is asked for its own
+mailboxes and its blocks are drawn under the same group, rather than one member's namespace standing
+in for all of them.
+
 **Query-mode differences:** query results are a filtered subset of each collection
 (status/time/search + page boundaries), so group counts read "N matching" instead of
 "N workflows" — with "N matching of M" once the history graph is loaded — and there is no live

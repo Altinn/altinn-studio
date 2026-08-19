@@ -15,6 +15,15 @@ export const esc = (s) => {
 export const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
+ * Escape a value for a double-quoted HTML attribute in generated markup. `esc()` escapes the text
+ * layer but leaves quotes intact, which is right for element content and not for `attr="…"`: a
+ * double quote in a caller-supplied value — a collection key, a forwarding system's message id —
+ * ends the attribute, and the rest of the value is then parsed as attributes of its own.
+ * @param {string|null|undefined} s
+ */
+export const escAttr = (s) => esc(String(s ?? '')).replace(/"/g, '&quot;');
+
+/**
  * Escape a value for use as a single-quoted string argument inside an inline `onclick`
  * attribute. `esc()` alone HTML-escapes but leaves quotes intact, so an apostrophe in a
  * caller-controlled value (namespace, collection key, step names) would terminate the JS
@@ -62,6 +71,20 @@ export const formatElapsed = (seconds) => {
     if (seconds < 60) return `${seconds.toFixed(1)}s`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
     return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+};
+
+/**
+ * Span label for durations that can run to days — a mailbox deadline is a day-scale promise, where
+ * `formatElapsed` tops out at hours and reads `504h 0m`. Delegates below an hour, so a sub-second
+ * wake still reads as `0.4s` and every duration on the dashboard is formatted the one way.
+ * @param {number} seconds
+ */
+export const formatSpan = (seconds) => {
+    if (!Number.isFinite(seconds)) return '';
+    if (seconds < 3600) return formatElapsed(seconds);
+    const hours = Math.floor(seconds / 3600);
+    if (hours < 24) return `${hours}h ${Math.floor((seconds % 3600) / 60)}m`;
+    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
 };
 
 /* ── Timestamp formatting & UTC toggle ─────────────────────────────────── */

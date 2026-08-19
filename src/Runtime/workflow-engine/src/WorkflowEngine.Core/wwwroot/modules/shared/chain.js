@@ -5,7 +5,7 @@
 
 import { state, workflowData, parseTransition } from '../core/state.js';
 import { esc, escJsArg, formatElapsed } from '../core/helpers.js';
-import { buildCardHTML, setCardFilterData } from './cards.js';
+import { buildCardHTML, revealCard, revealFirstVisible, setCardFilterData } from './cards.js';
 
 /** @typedef {import('../core/state.js').Workflow} Workflow */
 /** @typedef {{ from: string, to: string, kind: string }} ChainEdge */
@@ -99,6 +99,15 @@ const nodeHTML = (wf, isSide, isRoot) => {
         `</div>`
     );
 };
+
+/**
+ * Scroll to and flash a workflow's collapsed chain row. Falls back to `revealCard`, which covers the
+ * row already expanded to its full card and the same workflow rendered in another section.
+ * @param {string} wfId
+ * @returns {boolean} true when something was revealed
+ */
+export const revealChainRow = (wfId) =>
+    revealFirstVisible(`[data-chainwf="${CSS.escape(wfId)}"]`) || revealCard(wfId);
 
 /** Gaps between transitions shorter than this are noise, not story. */
 const GAP_THRESHOLD_MS = 1000;

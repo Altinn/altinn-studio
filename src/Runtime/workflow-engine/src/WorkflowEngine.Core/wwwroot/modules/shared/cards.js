@@ -255,24 +255,35 @@ const sideChainBadgeHTML = (wf) =>
         ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
         : '';
 
+/** How long `.rel-flash` runs; kept next to the only code that adds and removes it. */
+const FLASH_MS = 1600;
+
+/**
+ * Scroll to and flash the first visible element matching a selector. Shared by everything that
+ * points at a workflow from somewhere else on the page — relation chips, mailbox position chips.
+ * @param {string} selector
+ * @returns {boolean} true when something was revealed
+ */
+export const revealFirstVisible = (selector) => {
+    for (const el of document.querySelectorAll(selector)) {
+        const target = /** @type {HTMLElement} */ (el);
+        if (target.offsetParent === null) continue;
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.remove('rel-flash');
+        void target.offsetWidth; // restart the animation when flashing the same element twice
+        target.classList.add('rel-flash');
+        setTimeout(() => target.classList.remove('rel-flash'), FLASH_MS);
+        return true;
+    }
+    return false;
+};
+
 /**
  * Scroll to and flash a workflow's card if one is rendered and visible in any section.
  * @param {string} wfId
  * @returns {boolean} true when a card was revealed
  */
-export const revealCard = (wfId) => {
-    for (const el of document.querySelectorAll(`[data-wfkey="${wfId}"]`)) {
-        const card = /** @type {HTMLElement} */ (el);
-        if (card.offsetParent === null) continue;
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.remove('rel-flash');
-        void card.offsetWidth; // restart the animation when flashing the same card twice
-        card.classList.add('rel-flash');
-        setTimeout(() => card.classList.remove('rel-flash'), 1600);
-        return true;
-    }
-    return false;
-};
+export const revealCard = (wfId) => revealFirstVisible(`[data-wfkey="${CSS.escape(wfId)}"]`);
 
 /**
  * Re-render every card showing this workflow (a workflow can appear in multiple sections),
