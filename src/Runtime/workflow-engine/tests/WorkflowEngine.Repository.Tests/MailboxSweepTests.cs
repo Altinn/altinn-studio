@@ -16,7 +16,7 @@ namespace WorkflowEngine.Repository.Tests;
 /// <summary>
 /// Covers the two sweeps a mailbox's lifetime needs: the closure sweep that makes the deadline a promise
 /// rather than a column, and the retention purge that eventually takes a closed mailbox away with its
-/// deliveries and waiters.
+/// deliveries and receiver registrations.
 /// </summary>
 /// <remarks>
 /// Both are claim-and-act loops over rows other transactions are free to be holding, so the properties
@@ -105,9 +105,9 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(second));
 
         await using var context = fixture.CreateDbContext();
-        var waiters = await context.MailboxWaiters.Where(w => w.MailboxId == mailbox.Id).ToListAsync(Ct);
-        Assert.Equal(2, waiters.Count);
-        Assert.All(waiters, waiter => Assert.NotNull(waiter.ReleasedAt));
+        var registrations = await context.MailboxReceivers.Where(w => w.MailboxId == mailbox.Id).ToListAsync(Ct);
+        Assert.Equal(2, registrations.Count);
+        Assert.All(registrations, r => Assert.NotNull(r.ReleasedAt));
     }
 
     [Fact]
@@ -405,7 +405,7 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     #region Retention
 
     [Fact]
-    public async Task Retention_PurgesAClosedMailbox_WithItsDeliveriesAndWaiters()
+    public async Task Retention_PurgesAClosedMailbox_WithItsDeliveriesAndRegistrations()
     {
         var repository = fixture.CreateRepository();
         var longAgo = Now - _retention.RetentionPeriod - TimeSpan.FromDays(1);
@@ -419,7 +419,7 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Null(await repository.GetMailbox(mailbox.Id, Ns, Ct));
         await using var context = fixture.CreateDbContext();
         Assert.Equal(0, await context.MailboxDeliveries.CountAsync(Ct));
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(Ct));
+        Assert.Equal(0, await context.MailboxReceivers.CountAsync(Ct));
     }
 
     [Fact]
@@ -477,16 +477,16 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         );
         Assert.Equal(PostgresErrorCodes.RestrictViolation, withDeliveries.SqlState);
 
-        // And again with only the waiter left, so the second foreign key is shown to be RESTRICT too
+        // And again with only the registration left, so the second foreign key is shown to be RESTRICT too
         // rather than inferred from the first one having fired.
         await context.Database.ExecuteSqlAsync(
             $"DELETE FROM engine.mailbox_deliveries WHERE mailbox_id = {mailbox.Id}",
             Ct
         );
-        var withWaiters = await Assert.ThrowsAsync<PostgresException>(async () =>
+        var withRegistrations = await Assert.ThrowsAsync<PostgresException>(async () =>
             await context.Database.ExecuteSqlAsync($"DELETE FROM engine.mailboxes WHERE id = {mailbox.Id}", Ct)
         );
-        Assert.Equal(PostgresErrorCodes.RestrictViolation, withWaiters.SqlState);
+        Assert.Equal(PostgresErrorCodes.RestrictViolation, withRegistrations.SqlState);
 
         // The order the purge actually uses is the one that works.
         await fixture.CreateMaintenanceService().PurgeExpiredMailboxes(Now, _retention, Ct);
@@ -494,10 +494,11 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Retention_LeavesAPurgedReceiversWaiter_UntilItsMailboxGoes()
+    public async Task Retention_LeavesAPurgedReceiversRegistration_UntilItsMailboxGoes()
     {
-        // Receive workflows purge under the workflow sweep, independently and possibly first, so a waiter
-        // can outlive the workflow it names. That dangles nothing — mailbox_waiters.workflow_id
+        // Receive workflows purge under the workflow sweep, independently and possibly first, so a
+        // registration
+        // can outlive the workflow it names. That dangles nothing — mailbox_receivers.workflow_id
         // deliberately carries no foreign key, and the row is a record of a rendezvous that already
         // happened — and the mailbox purge is what eventually takes it.
         var repository = fixture.CreateRepository();
@@ -520,14 +521,14 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         await using (var context = fixture.CreateDbContext())
         {
             Assert.False(await context.Workflows.AnyAsync(w => w.Id == receiver, Ct));
-            Assert.True(await context.MailboxWaiters.AnyAsync(w => w.WorkflowId == receiver, Ct));
+            Assert.True(await context.MailboxReceivers.AnyAsync(w => w.WorkflowId == receiver, Ct));
         }
 
         await maintenance.PurgeExpiredMailboxes(Now, _retention, Ct);
 
         await using (var context = fixture.CreateDbContext())
         {
-            Assert.False(await context.MailboxWaiters.AnyAsync(Ct));
+            Assert.False(await context.MailboxReceivers.AnyAsync(Ct));
             Assert.False(await context.Mailboxes.AnyAsync(Ct));
         }
     }

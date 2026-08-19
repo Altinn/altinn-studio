@@ -317,7 +317,8 @@ internal sealed class DbMaintenanceService(
     private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
 
     /// <summary>
-    /// Purges closed mailboxes past the retention cutoff, together with their deliveries and waiters.
+    /// Purges closed mailboxes past the retention cutoff, together with their deliveries and receiver
+    /// registrations.
     /// </summary>
     /// <remarks>
     /// Mailboxes are not workflows, so <see cref="PurgeExpiredWorkflows"/> never sees them and they need a
@@ -333,9 +334,9 @@ internal sealed class DbMaintenanceService(
     /// </para>
     /// <para>
     /// The receive workflows that read those deliveries purge independently, under the workflow sweep, and
-    /// nothing here waits for them: a purged receiver leaves behind a released waiter row whose
+    /// nothing here waits for them: a purged receiver leaves behind a registry row whose
     /// <c>workflow_id</c> points at nothing, which is why that column deliberately carries no foreign key.
-    /// The waiter is a record of a rendezvous that already happened, and it goes when its mailbox does.
+    /// The row is a record of a rendezvous that already happened, and it goes when its mailbox does.
     /// </para>
     /// </remarks>
     internal async Task PurgeExpiredMailboxes(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
@@ -642,7 +643,7 @@ internal sealed class DbMaintenanceService(
                 DELETE FROM engine.mailbox_deliveries
                 WHERE mailbox_id = ANY(@mailboxIds)
             )
-            DELETE FROM engine.mailbox_waiters
+            DELETE FROM engine.mailbox_receivers
             WHERE mailbox_id = ANY(@mailboxIds)
             """;
 
@@ -741,7 +742,7 @@ internal static partial class DbMaintenanceServiceLogs
 
     [LoggerMessage(
         LogLevel.Information,
-        "Retention: deleted {Count} closed mailbox(es) with their deliveries and waiters"
+        "Retention: deleted {Count} closed mailbox(es) with their deliveries and receiver registrations"
     )]
     internal static partial void RetentionDeletedMailboxes(this ILogger<DbMaintenanceService> logger, int count);
 

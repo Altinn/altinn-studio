@@ -35,9 +35,9 @@ internal sealed class EngineDbContext : DbContext
     public DbSet<MailboxDeliveryEntity> MailboxDeliveries { get; set; }
 
     /// <summary>
-    /// Gets or sets the mailbox waiter entities stored in the database.
+    /// Gets or sets the mailbox receiver registrations stored in the database.
     /// </summary>
-    public DbSet<MailboxWaiterEntity> MailboxWaiters { get; set; }
+    public DbSet<MailboxReceiverEntity> MailboxReceivers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -233,15 +233,16 @@ internal sealed class EngineDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Configure MailboxWaiter entity
-        modelBuilder.Entity<MailboxWaiterEntity>(entity =>
+        // Configure MailboxReceiver entity
+        modelBuilder.Entity<MailboxReceiverEntity>(entity =>
         {
-            // The wake's key: a delivery landing at a position asks who is waiting there.
+            // The wake's key: a delivery landing at a position asks who, if anyone, is waiting there.
             entity.HasKey(e => new { e.MailboxId, e.Seq });
 
             // The executor's key, and the schema's statement that one receive workflow consumes exactly
-            // one position. A second registration for the same workflow is a bug in the enqueue plan, and
-            // this is what makes it fail loudly instead of silently double-consuming the log.
+            // one position. Total rather than partial, now that every receiver registers: a second
+            // registration for the same workflow is a bug in the enqueue plan, and this is what makes it
+            // fail loudly instead of silently double-consuming the log.
             entity.HasIndex(e => e.WorkflowId).IsUnique();
 
             // No cascade, matching mailbox_deliveries: retention purges a mailbox's children first,

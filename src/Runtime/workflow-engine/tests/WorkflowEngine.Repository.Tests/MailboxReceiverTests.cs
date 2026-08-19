@@ -108,10 +108,168 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             .SingleAsync(TestContext.Current.CancellationToken);
     }
 
+    /// <summary>
+    /// The registry row's system transaction id — the version stamp PostgreSQL writes on every row
+    /// version. Two reads returning the same value is proof the row was not written between them, which
+    /// an equality check on its columns is not: an <c>UPDATE</c> that happens to write the values already
+    /// there still produces a new version, and that is exactly the kind of near-miss a release-guard
+    /// regression would produce.
+    /// </summary>
+    private async Task<uint> RegistrationVersion(Guid workflowId)
+    {
+        await using var conn = new NpgsqlConnection(fixture.ConnectionString);
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
+        await using var cmd = new NpgsqlCommand(
+            "SELECT xmin::text::bigint FROM engine.mailbox_receivers WHERE workflow_id = @id",
+            conn
+        );
+        cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+        return (uint)(long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
+    }
+
+    #region The registry holds every receiver
+
+    [Fact]
+    public async Task Enqueue_MixedBirthsInOneFlush_LeaveOneRegistrationEachAndAgreeWithTheCounter()
+    {
+        // All three births in one flush against one mailbox, which is the arrangement that would expose
+        // an off-by-one between the positions the plan hands out, the rows it writes, and the counter it
+        // advances. Delivery at 0 and 1 makes the first two receivers born with a message; the third
+        // finds nothing and parks.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+        await Deliver(repository, mailbox.Id, "msg-2");
+
+        var result = Assert.Single(
+            await Enqueue(
+                repository,
+                [Receiver(mailbox.Id, "first"), Receiver(mailbox.Id, "second"), Receiver(mailbox.Id, "third")]
+            )
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        var workflowIds = result.WorkflowIds!;
+        Assert.Equal(3, workflowIds.Length);
+
+        await using var context = fixture.CreateDbContext();
+        var registry = await context
+            .MailboxReceivers.Where(r => r.MailboxId == mailbox.Id)
+            .OrderBy(r => r.Seq)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        // One row per receiver, gapless from zero, in the order the request listed them.
+        Assert.Equal(3, registry.Count);
+        Assert.Equal([0L, 1L, 2L], registry.Select(r => r.Seq));
+        Assert.Equal(workflowIds, registry.Select(r => r.WorkflowId));
+
+        // Two born with a message, one parked — and held_at is the only thing that says which.
+        Assert.Null(registry[0].HeldAt);
+        Assert.Null(registry[1].HeldAt);
+        Assert.NotNull(registry[2].HeldAt);
+        Assert.NotNull(registry[0].ReleasedAt);
+        Assert.NotNull(registry[1].ReleasedAt);
+        Assert.Null(registry[2].ReleasedAt);
+
+        Assert.Equal(
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Enqueued, PersistentItemStatus.Held],
+            await Task.WhenAll(workflowIds.Select(StatusOf))
+        );
+
+        // The counter is the registry's length, which is what makes "position n exists whenever n+1
+        // does" true of the receivers log and not merely of the plan that wrote it.
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.Equal(registry.Count, afterwards!.NextSeq);
+    }
+
+    [Fact]
+    public async Task AReceiverBornRunnable_IsUntouchedByTheWakeAndByTheClosureRelease()
+    {
+        // The property that lets a registry holding every receiver coexist with step 4's releases
+        // untouched. Both of them walk this table, and both must pass a born-runnable row by without
+        // writing to it — a release that reached one would move a workflow that is already running, or
+        // overwrite the birth instant its position was frozen at.
+        //
+        // Proved on the row version rather than on the column values, so an UPDATE that rewrote the same
+        // values would still fail it.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+
+        // Position 0: born with the delivery. Position 1: born held, and the thing the wake below is for.
+        var runnable = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0")).WorkflowIds!
+        );
+        var parked = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1")).WorkflowIds!
+        );
+        Assert.Equal(PersistentItemStatus.Held, await StatusOf(parked));
+
+        var versionAtBirth = await RegistrationVersion(runnable);
+
+        // The wake, which releases position 1 and must not look at position 0.
+        await Deliver(repository, mailbox.Id, "msg-2");
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(parked));
+        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+
+        // The closure release, which takes every parked receiver the mailbox has — and by then there are
+        // none, so it must write nothing at all here.
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Request,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+    }
+
+    [Fact]
+    public async Task TheClosureRelease_PassesOverARunnableRegistrationToReachAParkedOne()
+    {
+        // The same guard under the arrangement that actually exercises it: a closure release with work to
+        // do, running over a table that holds both kinds of row. It must release the held one and leave
+        // the runnable one exactly as the flush wrote it.
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+
+        var runnable = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0")).WorkflowIds!
+        );
+        var parked = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1")).WorkflowIds!
+        );
+
+        var versionAtBirth = await RegistrationVersion(runnable);
+
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Deadline,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(parked));
+
+        await using var context = fixture.CreateDbContext();
+        var released = await context.MailboxReceivers.SingleAsync(
+            r => r.WorkflowId == parked,
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(released.ReleasedAt);
+
+        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+    }
+
+    #endregion
+
     #region The three births
 
     [Fact]
-    public async Task Enqueue_WhenADeliveryAlreadySitsAtItsPosition_IsBornRunnableAndRegistersNoWaiter()
+    public async Task Enqueue_WhenADeliveryAlreadySitsAtItsPosition_IsBornRunnableAndAlreadyReleased()
     {
         // Arrange — the early-delivery case, which is first-class: a message may arrive long before
         // anyone is enqueued to read it.
@@ -122,14 +280,23 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         // Act
         var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
 
-        // Assert — runnable at birth, because its truth is already frozen. Nothing to wait for means no
-        // waiter row, which is what keeps the wake's statement a lookup over a small table.
+        // Assert — runnable at birth, because its truth is already frozen. It registers all the same:
+        // the position is the address the executor reads its delivery by, and a receiver whose position
+        // is recorded nowhere is one the executor would have to answer "no delivery" for while its
+        // message sits at that very position. Born released and never held, so no release will match it.
         Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
         var workflowId = Assert.Single(result.WorkflowIds!);
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
 
         await using var context = fixture.CreateDbContext();
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(TestContext.Current.CancellationToken));
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(mailbox.Id, registration.MailboxId);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
+        Assert.Null(registration.ClaimedAt);
+
         Assert.Equal(1L, (await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken))!.NextSeq);
     }
 
@@ -154,10 +321,18 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         // exchange in the app's own words. Refusing it would make the saga need a "mailbox was closed"
         // error branch that this design deliberately does not have.
         Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
-        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(Assert.Single(result.WorkflowIds!)));
+        var workflowId = Assert.Single(result.WorkflowIds!);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
 
+        // The closing-signal birth registers exactly as the delivered one does — released at birth,
+        // never held. What tells the two apart is the deliveries log, which the executor re-reads at
+        // every attempt, not anything recorded here.
         await using var context = fixture.CreateDbContext();
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(TestContext.Current.CancellationToken));
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
     }
 
     [Fact]
@@ -194,7 +369,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task Enqueue_AgainstAnOpenMailboxWithNoDelivery_IsBornHeldAndRegistersAWaiter()
+    public async Task Enqueue_AgainstAnOpenMailboxWithNoDelivery_IsBornHeldAndRegistersUnreleased()
     {
         // Arrange
         var repository = fixture.CreateRepository();
@@ -208,11 +383,14 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         Assert.Equal(PersistentItemStatus.Held, await StatusOf(workflowId));
 
         await using var context = fixture.CreateDbContext();
-        var waiter = await context.MailboxWaiters.SingleAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(mailbox.Id, waiter.MailboxId);
-        Assert.Equal(0L, waiter.Seq);
-        Assert.Equal(workflowId, waiter.WorkflowId);
-        Assert.Null(waiter.ReleasedAt);
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(mailbox.Id, registration.MailboxId);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+
+        // The one row shape a release acts on: held, and not yet released.
+        Assert.NotNull(registration.HeldAt);
+        Assert.Null(registration.ReleasedAt);
 
         // A held row has no schedule and no lease: the release is transactional with its cause, so
         // nothing here is allowed to look like a timer.
@@ -227,8 +405,8 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task Enqueue_OrdinaryWorkflow_TouchesNoMailboxState()
     {
-        // The non-mailbox hot path pays for one nullable column and nothing else — no lock, no waiter,
-        // no counter. Worth pinning, because the flush now has a mailbox half that must stay dormant.
+        // The non-mailbox hot path pays for one nullable column and nothing else — no lock, no registry
+        // row, no counter. Worth pinning, because the flush now has a mailbox half that must stay dormant.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -241,7 +419,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         Assert.Equal(0L, afterwards!.NextSeq);
 
         await using var context = fixture.CreateDbContext();
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(0, await context.MailboxReceivers.CountAsync(TestContext.Current.CancellationToken));
         Assert.Null(
             await context.Workflows.Select(w => w.MailboxId).SingleAsync(TestContext.Current.CancellationToken)
         );
@@ -267,7 +445,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
 
         await using var context = fixture.CreateDbContext();
         var seqs = await context
-            .MailboxWaiters.OrderBy(w => w.Seq)
+            .MailboxReceivers.OrderBy(w => w.Seq)
             .Select(w => w.Seq)
             .ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal([0L, 1L], seqs);
@@ -293,7 +471,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
 
         await using var context = fixture.CreateDbContext();
         var seqs = await context
-            .MailboxWaiters.OrderBy(w => w.Seq)
+            .MailboxReceivers.OrderBy(w => w.Seq)
             .Select(w => w.Seq)
             .ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal(Enumerable.Range(0, Receivers).Select(i => (long)i), seqs);
@@ -312,7 +490,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         await Enqueue(repository, [Receiver(first.Id, "a1"), Receiver(second.Id, "b1"), Receiver(first.Id, "a2")]);
 
         await using var context = fixture.CreateDbContext();
-        var byMailbox = await context.MailboxWaiters.ToListAsync(TestContext.Current.CancellationToken);
+        var byMailbox = await context.MailboxReceivers.ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal([0L, 1L], byMailbox.Where(w => w.MailboxId == first.Id).Select(w => w.Seq).Order());
         Assert.Equal([0L], byMailbox.Where(w => w.MailboxId == second.Id).Select(w => w.Seq));
     }
@@ -417,7 +595,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         Assert.Equal(0L, afterwards!.NextSeq);
 
         await using var context = fixture.CreateDbContext();
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(0, await context.MailboxReceivers.CountAsync(TestContext.Current.CancellationToken));
         Assert.Equal(0, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));
         Assert.Equal(0, await context.IdempotencyKeys.CountAsync(TestContext.Current.CancellationToken));
     }
@@ -654,16 +832,21 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         var workflowId = Assert.Single(Assert.Single(await enqueue).WorkflowIds!);
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
 
+        // Registered at its position and released at birth — never held, so the wake that follows this
+        // delivery has nothing to find and nothing to do.
         await using var context = fixture.CreateDbContext();
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(TestContext.Current.CancellationToken));
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
     }
 
     [Fact]
-    public async Task Enqueue_EnqueueFirst_LeavesAWaiterForTheDeliveryToFind()
+    public async Task Enqueue_EnqueueFirst_LeavesAHeldRegistrationForTheDeliveryToFind()
     {
         // Interleaving two, and there is no third. The receiver takes the lock first, so it is born held
-        // with a waiter row registered; a delivery for that position can only reach the mailbox after
-        // this transaction commits, and therefore always finds the waiter.
+        // and registers unreleased; a delivery for that position can only reach the mailbox after this
+        // transaction commits, and therefore always finds it.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -673,15 +856,16 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         await Deliver(repository, mailbox.Id, "msg-1");
 
         await using var context = fixture.CreateDbContext();
-        var waiter = await context.MailboxWaiters.SingleAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(0L, waiter.Seq);
-        Assert.Equal(workflowId, waiter.WorkflowId);
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+        Assert.NotNull(registration.HeldAt);
 
-        // And finding the waiter is what wakes it: the delivery releases the receiver in its own
-        // transaction and stamps the instant on the waiter row. The rendezvous itself, along with the
-        // interleavings and the atomicity proof, lives in MailboxRendezvousTests — asserted here only far
-        // enough to show that the waiter this step registers is the thing the wake consumes.
-        Assert.NotNull(waiter.ReleasedAt);
+        // And finding it is what wakes it: the delivery releases the receiver in its own transaction and
+        // stamps the instant on the registry row. The rendezvous itself, along with the interleavings and
+        // the atomicity proof, lives in MailboxRendezvousTests — asserted here only far enough to show
+        // that the row this step registers is the thing the wake consumes.
+        Assert.NotNull(registration.ReleasedAt);
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
     }
 
@@ -726,8 +910,13 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         var workflowId = Assert.Single(Assert.Single(await enqueue).WorkflowIds!);
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
 
+        // Released at birth rather than held: the closure release already ran, under the lock this
+        // enqueue was waiting on, so a receiver registered as held here would be one nothing could ever
+        // release again.
         await using var context = fixture.CreateDbContext();
-        Assert.Equal(0, await context.MailboxWaiters.CountAsync(TestContext.Current.CancellationToken));
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
     }
 
     #endregion
@@ -800,7 +989,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     #region Schema
 
     [Fact]
-    public async Task WaiterPositions_AreUniquePerMailbox()
+    public async Task RegistryPositions_AreUniquePerMailbox()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -812,7 +1001,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = new NpgsqlCommand(
                 """
-                INSERT INTO engine.mailbox_waiters (mailbox_id, seq, workflow_id, released_at)
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, released_at)
                 VALUES (@id, 0, gen_random_uuid(), NULL)
                 """,
                 conn
@@ -840,7 +1029,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = new NpgsqlCommand(
                 """
-                INSERT INTO engine.mailbox_waiters (mailbox_id, seq, workflow_id, released_at)
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, released_at)
                 VALUES (@id, 99, @workflowId, NULL)
                 """,
                 conn
@@ -854,7 +1043,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task AMailboxWithWaitersCannotBeDeleted()
+    public async Task AMailboxWithRegistrationsCannotBeDeleted()
     {
         // The same non-cascading foreign key mailbox_deliveries carries, for the same reason: retention
         // purges children first, explicitly, and an accidental delete should fail loudly rather than

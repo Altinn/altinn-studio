@@ -27,51 +27,54 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// The one statement that ever releases a parked receiver — v2's <c>Held</c>-release, joined through
-    /// the waiter registry — used by both of the design's exactly two releases: the wake, which passes the
-    /// position a delivery just landed at, and the closure release, which passes none and takes every
-    /// waiter the mailbox has.
+    /// the receivers registry — used by both of the design's exactly two releases: the wake, which passes
+    /// the position a delivery just landed at, and the closure release, which passes none and takes every
+    /// receiver the mailbox still holds parked.
     /// </summary>
     /// <remarks>
     /// <para>
     /// One statement rather than two so the status transition and the <c>released_at</c> stamp cannot
-    /// diverge: a receiver is runnable exactly when its waiter says it was released. It is also the whole
-    /// compound lock acquisition in the design — the caller already holds the mailbox row, and this takes
-    /// the workflow rows — so the order <c>mailbox row → workflow row</c> is a property of this statement
-    /// existing only here.
+    /// diverge: a receiver is runnable exactly when its registry row says it was released. It is also
+    /// the whole compound lock acquisition in the design — the caller already holds the mailbox row, and
+    /// this takes the workflow rows — so the order <c>mailbox row → workflow row</c> is a property of
+    /// this statement existing only here.
     /// </para>
     /// <para>
     /// The <c>@seq IS NULL</c> disjunction is what makes it one routine instead of two near-copies. It
-    /// costs nothing: a mailbox holds at most <c>MaxMailboxLogLength</c> waiters, and <c>mailbox_id</c>
-    /// alone is the leading column of the waiters' primary key, so both shapes are an index scan over a
-    /// handful of rows.
+    /// costs nothing: a mailbox holds at most <c>MaxMailboxLogLength</c> registry rows, and
+    /// <c>mailbox_id</c> alone is the leading column of their primary key, so both shapes are an index
+    /// scan over a handful of rows.
     /// </para>
     /// <para>
     /// <c>released_at IS NULL</c> and <c>status = @held</c> are both guards rather than filters, and they
     /// guard different things. The stamp keeps the first release's instant when a second release looks at
     /// the same row; the status keeps a release from resurrecting a receiver that has since been claimed,
-    /// run, or settled. Neither can fire in a correct engine — a closed mailbox refuses deliveries, so
-    /// nothing can wake a waiter the closure released — and both are cheap enough that proving that by
-    /// inspection is not worth the risk of being wrong.
+    /// run, or settled. Between them they are also what makes a registry that holds <em>every</em>
+    /// receiver safe to run this over: a receiver born runnable arrives already stamped and already
+    /// <c>Enqueued</c>, so each guard excludes it independently and neither release can touch it. Neither
+    /// guard can fire in a correct engine — a closed mailbox refuses deliveries, so nothing can wake a
+    /// receiver the closure released — and both are cheap enough that proving that by inspection is not
+    /// worth the risk of being wrong.
     /// </para>
     /// </remarks>
-    private const string ReleaseMailboxWaitersSql = """
+    private const string ReleaseMailboxReceiversSql = """
         WITH released AS (
             UPDATE engine.workflows AS w
             SET status = @enqueued,
                 backoff_until = NULL,
                 updated_at = @now
-            FROM engine.mailbox_waiters AS mw
-            WHERE mw.mailbox_id = @mailbox_id
-              AND (@seq IS NULL OR mw.seq = @seq)
-              AND mw.released_at IS NULL
-              AND w.id = mw.workflow_id
+            FROM engine.mailbox_receivers AS mr
+            WHERE mr.mailbox_id = @mailbox_id
+              AND (@seq IS NULL OR mr.seq = @seq)
+              AND mr.released_at IS NULL
+              AND w.id = mr.workflow_id
               AND w.status = @held
             RETURNING w.id
         )
-        UPDATE engine.mailbox_waiters AS mw
+        UPDATE engine.mailbox_receivers AS mr
         SET released_at = @now
         FROM released
-        WHERE mw.workflow_id = released.id
+        WHERE mr.workflow_id = released.id
         """;
 
     /// <summary>
@@ -79,14 +82,14 @@ internal sealed partial class EngineRepository
     /// </summary>
     /// <param name="conn">A connection whose transaction already holds the mailbox's row lock.</param>
     /// <param name="tx">The transaction the release must be part of — the delivery's, or the closure's.</param>
-    /// <param name="mailboxId">The mailbox whose waiters are released.</param>
+    /// <param name="mailboxId">The mailbox whose parked receivers are released.</param>
     /// <param name="seq">
     /// The single position to release, or <c>null</c> to release every parked receiver. The wake passes
     /// the <c>idx</c> the delivery took; the closure release passes <c>null</c>.
     /// </param>
-    /// <param name="now">The release instant, stamped on both the workflow and the waiter.</param>
+    /// <param name="now">The release instant, stamped on both the workflow and the registry row.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    private static async Task<int> ReleaseMailboxWaiters(
+    private static async Task<int> ReleaseMailboxReceivers(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
         Guid mailboxId,
@@ -95,7 +98,7 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
-        await using var cmd = new NpgsqlCommand(ReleaseMailboxWaitersSql, conn, tx);
+        await using var cmd = new NpgsqlCommand(ReleaseMailboxReceiversSql, conn, tx);
         cmd.Parameters.Add(new NpgsqlParameter<Guid>("mailbox_id", mailboxId));
         cmd.Parameters.Add(
             new NpgsqlParameter("seq", NpgsqlDbType.Bigint) { Value = seq.HasValue ? seq.Value : DBNull.Value }
@@ -108,30 +111,30 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// The wake: releases the receiver standing at <paramref name="seq"/>, if one is, and returns whether
-    /// it did. At most one receiver can be waiting there — <c>(mailbox_id, seq)</c> is the waiters' primary
+    /// it did. At most one receiver can stand there — <c>(mailbox_id, seq)</c> is the registry's primary
     /// key — so the answer is a yes or a no rather than a count.
     /// </summary>
-    private static async Task<bool> ReleaseWaiterAt(
+    private static async Task<bool> ReleaseReceiverAt(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
         Guid mailboxId,
         long seq,
         DateTimeOffset now,
         CancellationToken cancellationToken
-    ) => await ReleaseMailboxWaiters(conn, tx, mailboxId, seq, now, cancellationToken) > 0;
+    ) => await ReleaseMailboxReceivers(conn, tx, mailboxId, seq, now, cancellationToken) > 0;
 
     /// <summary>
     /// The closure release: releases every receiver still parked on the mailbox and returns how many
     /// there were. Every one of them, not the next one — a closed mailbox accepts no further deliveries,
     /// so all their truths were frozen at the same instant.
     /// </summary>
-    private static Task<int> ReleaseAllWaiters(
+    private static Task<int> ReleaseAllParkedReceivers(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
         Guid mailboxId,
         DateTimeOffset now,
         CancellationToken cancellationToken
-    ) => ReleaseMailboxWaiters(conn, tx, mailboxId, seq: null, now, cancellationToken);
+    ) => ReleaseMailboxReceivers(conn, tx, mailboxId, seq: null, now, cancellationToken);
 
     /// <summary>
     /// Signals the processor that a release made work runnable.
@@ -418,7 +421,8 @@ internal sealed partial class EngineRepository
     /// no-op rather than two half-closures.
     /// <para>
     /// Releasing under the same lock is what makes closure safe against an in-flight receiver enqueue:
-    /// the enqueue either got the lock first, in which case its waiter is in the set released here, or it
+    /// the enqueue either got the lock first, in which case its registry row is in the set released
+    /// here, or it
     /// waits and then reads a disposed mailbox and is born runnable with the closing signal. There is no
     /// interleaving that parks a receiver on a closed mailbox, which would be a receiver nothing could
     /// ever release.
@@ -435,7 +439,8 @@ internal sealed partial class EngineRepository
     {
         // Whoever closed it first wins, including the deadline sweep: the replay reports the original
         // reason and instant rather than overwriting them with this call's. It releases nothing either,
-        // and cannot need to — the first close released every waiter that existed, and an enqueue against
+        // and cannot need to — the first close released every parked receiver that existed, and an
+        // enqueue against
         // a closed mailbox parks no new one.
         if (locked.Status == MailboxStatus.Disposed)
             return new MailboxCloseResult.AlreadyClosed(locked);
@@ -470,7 +475,7 @@ internal sealed partial class EngineRepository
             closed = ReadMailbox(reader);
         }
 
-        var released = await ReleaseAllWaiters(conn, tx, locked.Id, now, cancellationToken);
+        var released = await ReleaseAllParkedReceivers(conn, tx, locked.Id, now, cancellationToken);
 
         if (released > 0)
             await NotifyStatusChanged(conn, tx, cancellationToken);
@@ -850,7 +855,7 @@ internal sealed partial class EngineRepository
                     // a receiver already registered at this position and is released here, or none has
                     // yet and the enqueue's own `seq < next_idx` comparison — taken under this same lock —
                     // will find the message waiting for it.
-                    var released = await ReleaseWaiterAt(conn, tx, mailboxId, appended.Idx, now, ct);
+                    var released = await ReleaseReceiverAt(conn, tx, mailboxId, appended.Idx, now, ct);
 
                     if (released)
                         await NotifyStatusChanged(conn, tx, ct);

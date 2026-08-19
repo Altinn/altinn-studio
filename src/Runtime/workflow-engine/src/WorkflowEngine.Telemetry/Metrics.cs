@@ -374,8 +374,8 @@ public static class Metrics
     /// balance sheet: every receiver born held is eventually released by one cause or the other, so a
     /// persistent gap means receivers are parked on mailboxes whose deadline has not come round yet, and
     /// a <c>closed</c> share that climbs means exchanges are ending without their last message. Counted
-    /// once per receiver — both release paths skip a waiter that already carries a release stamp — so the
-    /// number is receivers released, not release statements executed.
+    /// once per receiver — both release paths skip a registry row that already carries a release stamp
+    /// — so the number is receivers released, not release statements executed.
     /// </remarks>
     public static readonly Counter<long> MailboxReceiversReleased = Meter.CreateCounter<long>(
         "engine.mailboxes.receivers.released",
@@ -391,9 +391,11 @@ public static class Metrics
     /// timer, so the release is the only thing that can make it runnable, and this measures the gap
     /// between "the engine decided it may run" and "the engine actually picked it up" — the part
     /// <c>NOTIFY</c> accelerates and the fetch cycle bounds. Recorded once per release, by the first
-    /// claim: the fetch stamps the waiter's <c>claimed_at</c> under <c>claimed_at IS NULL</c>, so a
+    /// claim: the fetch stamps the registry's <c>claimed_at</c> under <c>claimed_at IS NULL</c>, so a
     /// receiver that fails and retries reports its wake latency once instead of reporting its whole
-    /// retry ladder. A receiver born runnable was never woken and is never recorded here. Clamped at
+    /// retry ladder. A receiver born runnable was never woken and is never recorded here — every receiver
+    /// registers its position, so that exclusion is the registry's <c>held_at</c> doing it explicitly
+    /// rather than a row simply not existing. Clamped at
     /// zero: the release and the claim are timed on two pods' clocks, and clock skew belongs in a
     /// clock-skew alert rather than in this histogram's lower tail.
     /// </remarks>
