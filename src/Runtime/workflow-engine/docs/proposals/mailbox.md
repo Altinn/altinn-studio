@@ -1102,7 +1102,12 @@ nothing to attach to here. Retention: a `disposed` mailbox past the cutoff purge
 and waiters, children first, in the existing maintenance sweep. Metric:
 `engine.mailboxes.deliveries.unconsumed`.
 
-#### Step 5b — Engine: the dashboard — `todo`
+#### Step 5b — Engine: the dashboard — `todo` (deferred until after step 6)
+
+**Order changed by the orchestrator (2026-08-19):** step 6 runs first. 5b is fully unblocked by
+[step 5c](#step-5c--engine-register-every-receivers-position--done) and nothing depends on it, while
+step 6 is the last engine piece the app-lib steps 7–10 all wait on. Observability follows the
+contract.
 
 Paths: `src/Runtime/workflow-engine` (`DashboardEndpoints`, `DashboardMapper`, `wwwroot`, a new
 repository read).
@@ -1122,7 +1127,75 @@ either a new endpoint or a new SSE fingerprint; and `modules/shared/chain-groups
 that owns the collection level, with `mailboxCache` slotting beside its existing `historyCache` and
 reusing its re-render hooks.
 
-#### Step 5c — Engine: register every receiver's position — `in progress`
+#### Step 5c — Engine: register every receiver's position — `done`
+
+Landed as jj change `pppxksoy` — 20 files, +906/−309. Engine suite **850 → 866**; host 76. Two review
+rounds. The hole is closed: `SELECT seq FROM engine.mailbox_receivers WHERE workflow_id = @id` now
+returns exactly one row for **any** receive workflow, so step 6's specified read works for a receiver
+born runnable exactly as it does for a woken one, and `UNIQUE (workflow_id)` is a total index rather
+than a partial one.
+
+**The decision had a consequence the scoping missed, and the worker caught it.** Step 4's claim stamp
+filters `released_at IS NOT NULL AND claimed_at IS NULL`; under the old shape a born-runnable receiver
+had no row and was excluded _by accident_. Once every receiver registers, that filter would have begun
+recording **birth → first claim** as wake latency — an ordinary fetch cycle, not a wake, and in the
+common early-delivery case most of the samples. The histogram that exists to prove the wake works
+would have been measuring the poll loop. Hence `held_at`: the projection returns
+`CASE WHEN mr.held_at IS NOT NULL THEN mr.released_at END`, so `claimed_at` is still stamped for every
+receiver (it means what it says) and only the _measurement_ is withheld.
+
+**The table was renamed `engine.mailbox_waiters` → `engine.mailbox_receivers`**, at the last moment it
+was cheap. "Waiter" is not a name a doc comment can repair once most rows describe receivers that never
+waited — it sat in the primary key's meaning, the entity, the release SQL, six test files, both
+fixtures, and this plan's own "read the waiter's `seq`", which would have kept steering step 6 wrong.
+Exactly one "waiters" deliberately survives, in the sentence saying the registry is _not_ a queue of
+waiters.
+
+**The migration is hand-written, and it had to be.** EF's scaffolder emits `DropTable` + `CreateTable`
+for a rename — it sees one entity vanish and another appear — which would take every in-flight
+rendezvous with it (reproduced by re-scaffolding, so this is established, not feared). The replacement
+is `RenameTable` + `RenameIndex` + three `RENAME CONSTRAINT` + `AddColumn` + a backfill, verified
+against a real PostgreSQL 18 by `pg_class.oid` being identical before `Up`, after `Up`, and after
+`Down`, with seeded rows — including an orphan whose receiver had been purged — surviving both
+directions.
+
+**Two lessons worth carrying to every later migration.** First: **a migration has two consumers.** The
+five raw `Sql()` blocks omitted their statement terminators, which the `Migrator` path tolerates
+(it batches per command) but `dotnet ef migrations script` does not — the generated script aborted at
+the _second_ raw statement, after the table rename had already been issued. The runtime verification
+was clean precisely because it exercised the wrong consumer. Second, the fix was generalized rather
+than patched: `MigrationOperationTests` now asserts over **all** migrations, `Up` and `Down`, that
+every `SqlOperation.Sql` ends with `;`, and that the rename migration contains no
+`DropTable`/`CreateTable`. Verified auto-discovering: a new migration dropped into the tree was picked
+up with no edit to the test, and an unterminated statement in an unrelated older migration failed that
+migration's case alone.
+
+What steps 5b and 6 inherit:
+
+- **Step 6 must not read `held_at` to decide the callback.** It records how the receiver was born, not
+  whether a delivery exists; delivery existence is re-derived from `mailbox_deliveries` at every
+  attempt, which is what keeps the frozen-meaning rule structural. `held_at` is for the histogram and
+  per-position state only.
+- **Step 4's folding suggestion is cheaper now but carries a condition.** Its note said the fetch
+  issues a no-op `UPDATE` for receivers born runnable "which have no waiter row" — no longer true; the
+  statement now matches every claimed receiver. If step 6 folds the claim stamp into the executor's
+  registry read, it **must carry the `held_at` projection guard with it**, or the histogram regresses
+  silently.
+- **Step 5b has per-position state from one table**: `held_at IS NOT NULL AND released_at IS NULL` is
+  "waiting"; `held_at IS NULL` is "ran straight away", which the workflow status alone cannot say once
+  the receiver has settled. `released_at - held_at` (park duration) is derivable and nothing exposes
+  it — 5b's call.
+- **5b should add `CHECK (held_at IS NOT NULL OR released_at IS NOT NULL)`** when it next touches the
+  table. The invariant lives only in doc comments today; the constraint would have caught the
+  test-fidelity defect review found here at insert time. It forces two schema tests to change, which is
+  why it did not land in this revision.
+
+Residuals: the release's two guards are asymmetric — the status guard alone covers every state the
+suite can construct, `released_at IS NULL` alone does not — so the "untouched by the release" tests
+redden only when both are removed; the docs' framing of them as independent peers is true for
+born-runnable rows specifically. PostgreSQL's auto-generated `NOT NULL` constraint names keep the old
+table's prefix after the rename; EF never models those names, so renaming them would mean betting on an
+undocumented naming scheme for no functional gain — deliberately left.
 
 Paths: `src/Runtime/workflow-engine`.
 
@@ -1158,7 +1231,7 @@ Pin: every birth state leaves exactly one registry row with the right `seq`; a r
 is never touched by the wake or the closure release (mutation-test it, do not assert it); and the
 counters still agree with the registry after mixed births.
 
-#### Step 6 — Engine + host: the delivery callback contract — `todo`
+#### Step 6 — Engine + host: the delivery callback contract — `in progress`
 
 Paths: `src/Runtime/workflow-engine` (executor), `src/Runtime/workflow-engine-app` (`AppCommand`
 shapes, wire-contract snapshot), and the app-lib DTO copies the guard forces.
