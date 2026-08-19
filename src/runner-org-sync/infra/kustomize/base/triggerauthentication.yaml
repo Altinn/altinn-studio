@@ -1,4 +1,4 @@
-# KEDA TriggerAuthentication for the github-runner scaler.
+# KEDA TriggerAuthentication for the metrics-api scaler.
 #
 # The .name + .secretTargetRef[0].name + .secretTargetRef[0].key fields here
 # are pinned to the same values runner-org-sync writes via env on its CronJob
@@ -12,6 +12,6 @@ metadata:
   name: keda-gitea-auth
 spec:
   secretTargetRef:
-    - parameter: personalAccessToken
+    - parameter: token
       name: keda-gitea-pat
       key: token
