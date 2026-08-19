@@ -1436,11 +1436,80 @@ internal sealed partial class EngineRepository
             .Where(w => ids.Contains(w.Id))
             .ToListAsync(cancellationToken);
 
+        await RecordWakeToClaimLatency(context, entities, now, cancellationToken);
+
         var workflows = entities.Select(x => x.ToDomainModel()).ToList();
 
         Metrics.DbOperationsSucceeded.Add(1);
 
         return workflows;
+    }
+
+    /// <summary>
+    /// Records how long each just-claimed mailbox receiver waited between its release and this claim, and
+    /// stamps the waiters so no later claim of the same receiver is timed again.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The claim query above is untouched — this runs after it, on the ids it already returned, and only
+    /// when the batch actually contains a receiver. A batch of ordinary workflows returns here before
+    /// issuing any SQL at all, which is the same discipline the enqueue flush follows: the mailbox
+    /// feature costs the hot path a null check and nothing else until an app declares a mailbox.
+    /// </para>
+    /// <para>
+    /// <c>claimed_at IS NULL</c> is what makes the measurement once-per-release rather than
+    /// once-per-attempt. Without it a receiver that fails and works its way up the retry ladder would
+    /// report the whole ladder as wake latency on every claim, and the upper percentiles of a metric
+    /// whose entire job is to show a sub-second gap would be measuring something else.
+    /// </para>
+    /// <para>
+    /// It shares the failure class of the entity load beside it: both are post-claim statements on the
+    /// same connection, and a failure in either loses the batch to the stale-workflow sweep rather than
+    /// corrupting anything. That is why it is written plainly instead of being wrapped in a swallow —
+    /// the fetch already tolerates exactly this.
+    /// </para>
+    /// <para>
+    /// The duration is clamped at zero, for the same reason <c>WorkflowHandler.AttemptAnchor</c> clamps:
+    /// the two ends of it are read from two clocks. <c>released_at</c> was stamped by whichever pod took
+    /// the delivery or ran the close, and <c>now</c> is this pod's, so ordinary NTP skew can put the
+    /// release marginally in this pod's future. A negative sample is not a signal about the wake, and a
+    /// histogram is the wrong place to discover clock drift.
+    /// </para>
+    /// </remarks>
+    private static async Task RecordWakeToClaimLatency(
+        EngineDbContext context,
+        List<WorkflowEntity> claimed,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        List<Guid>? receiverIds = null;
+        foreach (var entity in claimed)
+        {
+            if (entity.MailboxId is not null)
+                (receiverIds ??= []).Add(entity.Id);
+        }
+
+        if (receiverIds is null)
+            return;
+
+        var ids = receiverIds.ToArray();
+
+        var releasedAt = await context
+            .Database.SqlQuery<DateTimeOffset>(
+                $"""
+                UPDATE engine.mailbox_waiters mw
+                SET claimed_at = {now}
+                WHERE mw.workflow_id = ANY({ids})
+                  AND mw.released_at IS NOT NULL
+                  AND mw.claimed_at IS NULL
+                RETURNING mw.released_at AS "Value"
+                """
+            )
+            .ToListAsync(cancellationToken);
+
+        foreach (var released in releasedAt)
+            Metrics.MailboxReceiverWakeLatency.Record(Math.Max(0, (now - released).TotalSeconds));
     }
 
     /// <inheritdoc/>

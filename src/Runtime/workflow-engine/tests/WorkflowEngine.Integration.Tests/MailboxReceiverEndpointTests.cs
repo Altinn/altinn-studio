@@ -67,17 +67,17 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     }
 
     [Fact]
-    public async Task Enqueue_HeldReceiver_StaysHeldWhileTheEngineRuns()
+    public async Task Enqueue_HeldReceiver_StaysHeldUntilSomethingReleasesIt()
     {
-        // A characterization test for what this step deliberately does not do. The engine is live in this
-        // fixture — workers are fetching, sweeps are running — and a held receiver is still untouched
-        // afterwards, because nothing releases it: the wake belongs to the next step, so a delivery
-        // landing at its position changes the log and not the receiver.
+        // Held means unfetchable, and the engine is live in this fixture — workers fetching, sweeps
+        // running — so a receiver whose position holds no message and whose mailbox is open stays exactly
+        // where it was put. Nothing times out, nothing polls, and nothing claims it; the only two things
+        // that ever will are its delivery and the mailbox closing, both covered in
+        // MailboxRendezvousEndpointTests.
         var mailbox = await MintMailbox();
         var accepted = await _client.Enqueue(_helpers.CreateEnqueueRequest(Receiver(mailbox.Id)));
         var workflowId = Assert.Single(accepted.Workflows).DatabaseId;
 
-        await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
         var status = await _client.GetWorkflow(workflowId);

@@ -662,6 +662,50 @@ runnable has nothing to wait for, so it registers nothing.
 Metric: `engine.mailboxes.receivers.created`, tagged `birth` (`delivered`/`closed`/`held`) — the one
 number that separates "the relay is running" from "the relay is parked".
 
+### The rendezvous: exactly two things release a parked receiver
+
+A held receiver waits for one of exactly two events, and each of them is written in the same
+transaction as its cause:
+
+- **the wake** — a delivery lands at the receiver's position, inside the delivery's own transaction;
+- **the closure release** — the mailbox closes, by request or at its deadline, inside the close's own
+  transaction.
+
+Both run the same statement, which releases `Held` → `Enqueued` with a null backoff (so the receiver
+sorts to the front of the fetch order) and stamps `released_at` on the waiter row. The wake names one
+position; the closure release names none and takes every parked receiver the mailbox has. Both skip a
+waiter that already carries a stamp, so a receiver is released once and the instant recorded is the
+release that actually made it runnable.
+
+**The wake is transactional with the delivery insert, and that is the design's load-bearing
+property.** A held receiver has no timer of its own, so a state in which the message is durable while
+its wake is lost would park the receiver until the mailbox's deadline with its answer sitting one row
+away. Sharing the transaction makes that state one the database cannot hold. It is verified by
+transaction id (`xmin`) rather than by observation — a test that merely watches the two rows stays
+green when the transaction is split, which is exactly the regression worth catching.
+
+Both releases take the workflow rows while already holding the mailbox row: the compound order
+**mailbox row → workflow row**, and the only compound acquisition in the feature.
+
+After the release commits, one `NOTIFY status_changed` tells the processor there is work. The
+notification is issued inside the releasing transaction, which PostgreSQL queues until commit and
+drops on rollback — so it is sent exactly when the release is durable, and a post-`COMMIT` statement
+that could fail on an already-committed transaction is avoided. **It remains acceleration and never
+correctness**: a release that commits and is never announced is claimed on the next fetch cycle, and
+nothing downstream of the release depends on the signal arriving.
+
+Metrics: `engine.mailboxes.receivers.released`, tagged `cause` (`delivered`/`closed`) — read against
+the `held` births it is the relay's balance sheet — and `engine.mailboxes.receivers.wake_latency`, the
+seconds between a release and the first claim of the receiver it released. The latency is recorded
+once per release: the fetch stamps the waiter's `claimed_at` under `claimed_at IS NULL`, so a receiver
+that fails and climbs its retry ladder reports its wake latency once rather than reporting the ladder.
+A receiver born runnable registers no waiter and is never measured.
+
+> **What a released receiver does today.** It becomes an ordinary runnable workflow and its steps
+> execute in order. The executor does not yet read the delivery: `mailbox_id` is a column nothing
+> consults at execution time, and the first step is called exactly as any other step would be.
+> Attaching the delivery — or the no-delivery callback carrying `disposedReason` — is still to come.
+
 ### Closing is terminal, idempotent, and says why
 
 ```http
@@ -678,6 +722,17 @@ The effecting close answers `202 Accepted`; a repeat — or a close that lost th
 mailbox's own deadline — answers `200 OK` reporting the **original** `disposedAt` and
 `disposedReason`. That is the engine-wide convention: `202` means _this call_ effected the state
 change, `200` means it had already happened. Whoever closed it first wins outright.
+
+Closing is also a release: under the same row lock, **every** parked receiver goes `Held` →
+`Enqueued` and runs the no-delivery path, so the exchange concludes through the app's own conclusion
+path rather than through an engine-written status. Every one of them, not the next one — the mailbox
+accepts no further deliveries, so all their truths were frozen at the same instant. A repeat close
+releases nothing and cannot need to: the first close released every waiter that existed, and an
+enqueue against a closed mailbox is born runnable rather than parked.
+
+The response reports `unconsumedDeliveries` — accepted positions no receiver was ever enqueued for,
+messages that arrived while the app was concluding or past the relay's last hop. The rows themselves
+stay readable until retention, so an operator can see what turned up too late.
 
 ### The mailbox row is its own serialization point
 
