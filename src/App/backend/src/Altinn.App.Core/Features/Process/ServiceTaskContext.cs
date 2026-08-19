@@ -109,12 +109,85 @@ public sealed record ServiceTaskContext
     internal string? MailboxUnavailableReason { get; init; }
 
     /// <summary>
+    /// The message this execution is answering, on the conclusion of a pipeline that declared
+    /// <see cref="ServiceTaskPipeline.WithReplyFrom"/>. <c>null</c> means exactly one thing:
+    /// <em>the mailbox is closed and no message can ever reach this execution — conclude the
+    /// exchange</em>; <see cref="ReplyClosedReason"/> says why it closed, for the wording.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Available on the conclusion of a declaring pipeline and <strong>nowhere else</strong> —
+    /// reading it from a stage, or from a task that declares no mailbox, throws
+    /// <see cref="InvalidOperationException"/> naming where it <em>is</em> available. It throws
+    /// rather than answering <c>null</c> on purpose: <c>null</c> already means "the exchange is
+    /// over, conclude it", so an execution that can never carry a message must not be able to
+    /// impersonate one that lost its mailbox.
+    /// </para>
+    /// <para>
+    /// The two cases are told apart by the engine, not guessed from an empty body: a sender that
+    /// delivers an empty message produces a <see cref="ServiceTaskReply"/> whose
+    /// <see cref="ServiceTaskReply.Payload"/> is empty, never a <c>null</c> here. So
+    /// <c>if (context.Reply is not { } reply)</c> is the closing signal and nothing else — answer it
+    /// with a verdict (<see cref="ServiceTaskResult.Success"/> for a degraded-but-acceptable
+    /// outcome, <see cref="ServiceTaskResult.FailedPermanent"/> naming what never arrived) and never
+    /// with <see cref="ServiceTaskResult.AwaitNextReply"/>.
+    /// </para>
+    /// <para>
+    /// Whether a message stands at this execution's position is settled before the execution can
+    /// first run, so every attempt, retry and operational resume reads the same answer.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// This execution does not answer a mailbox message.
+    /// </exception>
+    public ServiceTaskReply? Reply =>
+        ReplyUnavailableReason is { } reason ? throw new InvalidOperationException(reason) : ReplyOrDefault;
+
+    /// <summary>
+    /// Why the mailbox closed, on the execution where <see cref="Reply"/> is <c>null</c>;
+    /// <c>null</c> whenever <see cref="Reply"/> carries a message. Exactly one of the two is present.
+    /// </summary>
+    /// <remarks>
+    /// For the conclusion's wording only — both reasons demand the same response. Throws wherever
+    /// <see cref="Reply"/> throws, and for the same reason.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// This execution does not answer a mailbox message.
+    /// </exception>
+    public MailboxClosedReason? ReplyClosedReason =>
+        ReplyUnavailableReason is { } reason
+            ? throw new InvalidOperationException(reason)
+            : MailboxClosedReasonOrDefault;
+
+    /// <summary>
+    /// The message handed to this execution, or <c>null</c> when the mailbox closed without one. The
+    /// nullable half of <see cref="Reply"/> that carries no "this execution answers nothing"
+    /// meaning, kept internal so app code has exactly one way to read a message.
+    /// </summary>
+    internal ServiceTaskReply? ReplyOrDefault { get; init; }
+
+    /// <summary>
+    /// The closure reason behind a <c>null</c> <see cref="ReplyOrDefault"/> on an execution that
+    /// answers a mailbox. Set exactly when this execution answers a mailbox and no message stands at
+    /// its position.
+    /// </summary>
+    internal MailboxClosedReason? MailboxClosedReasonOrDefault { get; init; }
+
+    /// <summary>
+    /// Why <see cref="Reply"/> and <see cref="ReplyClosedReason"/> are unavailable — non-null exactly
+    /// when this execution does not answer a mailbox message, which is every stage and every
+    /// conclusion of a task that declares no mailbox.
+    /// </summary>
+    internal string? ReplyUnavailableReason { get; init; }
+
+    /// <summary>
     /// Replaces the record's synthesized member printer, which would otherwise read every public
-    /// property — including <see cref="Mailbox"/>, whose getter throws in every execution that is not
-    /// the declaring stage. That is almost every execution, so the synthesized <c>ToString</c> would
-    /// throw from a debug log, a debugger watch, or an assertion-failure message, with a reason that
-    /// is misleading out of that context. Here <see cref="Mailbox"/> prints as its address or
-    /// <c>&lt;none&gt;</c>, and never throws.
+    /// property — including <see cref="Mailbox"/>, <see cref="Reply"/> and
+    /// <see cref="ReplyClosedReason"/>, whose getters throw in every execution they are not meant
+    /// for. That is almost every execution, so the synthesized <c>ToString</c> would throw from a
+    /// debug log, a debugger watch, or an assertion-failure message, with a reason that is
+    /// misleading out of that context. Here each of the three prints from its non-throwing internal
+    /// half, so this method must only ever read those.
     /// </summary>
     private bool PrintMembers(StringBuilder builder)
     {
@@ -128,6 +201,23 @@ public sealed record ServiceTaskContext
         builder.Append(", Attempt = ").Append(Attempt);
         builder.Append(", Wait = ").Append(Wait);
         builder.Append(", Mailbox = ").Append(MailboxOrDefault is { } mailbox ? mailbox.ToString() : "<none>");
+        builder.Append(", Reply = ").Append(DescribeReply());
         return true;
+    }
+
+    /// <summary>
+    /// The message, the closure that stands in for one, or the fact that this execution answers no
+    /// mailbox at all — read only from the internal halves, never from the throwing getters.
+    /// </summary>
+    private string DescribeReply()
+    {
+        if (ReplyUnavailableReason is not null)
+        {
+            return "<none>";
+        }
+
+        return ReplyOrDefault is { } reply
+            ? reply.ToString()
+            : $"<closed: {MailboxClosedReasonOrDefault?.ToString() ?? "unknown"}>";
     }
 }

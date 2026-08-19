@@ -2004,6 +2004,11 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
+    public enum MailboxClosedReason
+    {
+        Request = 0,
+        Deadline = 1,
+    }
     public sealed class MailboxOptions : System.IEquatable<Altinn.App.Core.Features.Process.MailboxOptions>
     {
         public MailboxOptions() { }
@@ -2068,6 +2073,7 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset? Deadline { get; init; }
         public int RetryCount { get; init; }
     }
+    public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
@@ -2076,6 +2082,8 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset ExecutionReferenceTime { get; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskMailbox Mailbox { get; }
+        public Altinn.App.Core.Features.Process.ServiceTaskReply? Reply { get; }
+        public Altinn.App.Core.Features.Process.MailboxClosedReason? ReplyClosedReason { get; }
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
         public required System.Guid WorkflowId { get; init; }
@@ -2106,9 +2114,18 @@ namespace Altinn.App.Core.Features.Process
         public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(string name, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
+    public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
+    {
+        public ServiceTaskReply() { }
+        public required System.DateTimeOffset AcceptedAt { get; init; }
+        public required string IdempotencyKey { get; init; }
+        public required string Payload { get; init; }
+        public required long Position { get; init; }
+    }
     public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
         protected ServiceTaskResult() { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
         public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
@@ -4172,6 +4189,28 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         [System.Text.Json.Serialization.JsonPropertyName("userId")]
         public int? UserId { get; init; }
     }
+    public sealed class AppCallbackMailbox : System.IEquatable<Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox>
+    {
+        public AppCallbackMailbox() { }
+        [System.Text.Json.Serialization.JsonPropertyName("delivery")]
+        public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailboxDelivery? Delivery { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("disposedReason")]
+        public Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason? DisposedReason { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public required System.Guid Id { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("seq")]
+        public required long Seq { get; init; }
+    }
+    public sealed class AppCallbackMailboxDelivery : System.IEquatable<Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailboxDelivery>
+    {
+        public AppCallbackMailboxDelivery() { }
+        [System.Text.Json.Serialization.JsonPropertyName("acceptedAt")]
+        public required System.DateTimeOffset AcceptedAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("idempotencyKey")]
+        public required string IdempotencyKey { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        public required string Payload { get; init; }
+    }
     public sealed class AppCallbackPayload : System.IEquatable<Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackPayload>
     {
         public AppCallbackPayload() { }
@@ -4189,6 +4228,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public System.DateTimeOffset? FirstDeferredAt { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("lockToken")]
         public required string LockToken { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
+        public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
         public string? Payload { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("retryCount")]
@@ -4201,6 +4242,15 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public System.DateTimeOffset? WaitDeadline { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("workflowId")]
         public required System.Guid WorkflowId { get; init; }
+    }
+}
+namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine
+{
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason>))]
+    public enum MailboxDisposedReason
+    {
+        Request = 0,
+        Deadline = 1,
     }
 }
 namespace Altinn.App.Core.Models

@@ -75,4 +75,64 @@ public class ServiceTaskContextTests
         Assert.Contains(mailbox.Id.ToString(), rendered, StringComparison.Ordinal);
         Assert.DoesNotContain("<none>", rendered, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ToString_WithNoReply_DoesNotThrowAndReadsNone()
+    {
+        // Reply and ReplyClosedReason have the same shape as Mailbox — computed getters that throw
+        // wherever they do not apply — so the hand-written PrintMembers must never read them either.
+        // This is the obligation the mailbox stack has carried since the mint landed: a synthesized
+        // ToString would throw from a debug log on every ordinary service-task execution.
+        var context = CreateContext(waitDeadline: null) with
+        {
+            ReplyUnavailableReason = "this task is not answered by a message",
+        };
+
+        string? rendered = null;
+        Exception? thrown = Record.Exception(() => rendered = context.ToString());
+
+        Assert.Null(thrown);
+        Assert.NotNull(rendered);
+        Assert.Contains("Reply = <none>", rendered, StringComparison.Ordinal);
+        // The properties themselves still throw — the fix must not degrade into non-throwing getters.
+        Assert.Throws<InvalidOperationException>(() => context.Reply);
+        Assert.Throws<InvalidOperationException>(() => context.ReplyClosedReason);
+    }
+
+    [Fact]
+    public void ToString_WithAReply_RendersTheMessage()
+    {
+        var context = CreateContext(waitDeadline: null) with
+        {
+            ReplyOrDefault = new ServiceTaskReply
+            {
+                Payload = "<receipt/>",
+                IdempotencyKey = "source-message-7",
+                AcceptedAt = DateTimeOffset.UtcNow,
+                Position = 2,
+            },
+        };
+
+        string rendered = context.ToString();
+
+        Assert.Contains("source-message-7", rendered, StringComparison.Ordinal);
+        Assert.Null(context.ReplyClosedReason);
+    }
+
+    [Fact]
+    public void ToString_WithAClosedMailbox_RendersTheClosure()
+    {
+        // The third state: this execution answers a mailbox, but no message stands at its position.
+        // Reply is null — the instruction to conclude — and the reason is available for the wording.
+        var context = CreateContext(waitDeadline: null) with
+        {
+            MailboxClosedReasonOrDefault = MailboxClosedReason.Deadline,
+        };
+
+        string rendered = context.ToString();
+
+        Assert.Contains("Reply = <closed: Deadline>", rendered, StringComparison.Ordinal);
+        Assert.Null(context.Reply);
+        Assert.Equal(MailboxClosedReason.Deadline, context.ReplyClosedReason);
+    }
 }

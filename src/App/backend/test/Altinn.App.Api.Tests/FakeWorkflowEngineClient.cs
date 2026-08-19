@@ -371,6 +371,38 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult<MailboxMintResult>(new MailboxMintResult.Minted(mailbox));
     }
 
+    /// <summary>
+    /// Closes a mailbox, terminal and idempotent as the engine is: a repeat close reports the
+    /// original closure rather than overwriting it. Returns <c>null</c> for an id this fake never
+    /// minted, which is the engine's <c>404</c>.
+    /// </summary>
+    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    {
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id != mailboxId || !string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                return Task.FromResult<MailboxResponse?>(mailbox);
+            }
+
+            MailboxResponse closed = mailbox with
+            {
+                Status = MailboxStatus.Disposed,
+                DisposedReason = MailboxDisposedReason.Request,
+                DisposedAt = DateTimeOffset.UtcNow,
+            };
+            _mailboxesByIdempotencyKey.TryUpdate(key, closed, mailbox);
+            return Task.FromResult<MailboxResponse?>(closed);
+        }
+
+        return Task.FromResult<MailboxResponse?>(null);
+    }
+
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)
     {
         lock (_gate)

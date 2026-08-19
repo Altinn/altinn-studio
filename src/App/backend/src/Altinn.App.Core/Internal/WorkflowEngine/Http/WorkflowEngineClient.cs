@@ -255,6 +255,44 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         return new MailboxMintResult.Minted(mailbox);
     }
 
+    /// <inheritdoc />
+    public async Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, url);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+
+        // A 404 is the mailbox not being there at all — purged after retention, or an id that was
+        // never minted in this namespace. Modeled rather than thrown because the caller's only
+        // sensible answer is "nothing left to close, carry on": retrying cannot conjure the mailbox,
+        // and a closed exchange is exactly what the caller wanted.
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogWarning(
+                "Workflow engine reported no mailbox to close. URL: {Url}. The mailbox was purged, or it was never "
+                    + "minted in this namespace.",
+                url
+            );
+            return null;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string body = await response.Content.ReadAsStringAsync(ct);
+            _logger.LogError(
+                "Workflow engine mailbox close failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
+                response.StatusCode,
+                url,
+                body
+            );
+        }
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<MailboxResponse>(ct)
+            ?? throw new InvalidOperationException("The expected mailbox was not found in the close response content.");
+    }
+
     /// <summary>
     /// The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one. The engine
     /// puts the actionable sentence there — which value was rejected and why — and it is the only

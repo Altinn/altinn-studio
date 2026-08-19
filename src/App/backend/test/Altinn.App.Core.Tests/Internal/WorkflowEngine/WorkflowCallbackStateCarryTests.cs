@@ -107,6 +107,31 @@ public class WorkflowCallbackStateCarryTests
     }
 
     [Fact]
+    public async Task Capture_AfterTheExchangeConcluded_DropsTheMailbox()
+    {
+        // The conclusion has to un-say what the blob has said since the declaring stage. The workflow
+        // a conclusion starts inherits this very blob, and its own service task may open a mailbox —
+        // a blob still naming the finished exchange's would make that mint refuse, failing the next
+        // transition permanently and blaming an exchange that ended days earlier.
+        WorkflowCallbackStateService service = CreateService();
+        var concluding = new WorkflowCallbackStateCarry();
+        concluding.RecordMailbox(_mailboxId);
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        // Still carried while the exchange is open...
+        string whileOpen = await service.CaptureState(unitOfWork, concluding);
+        (_, WorkflowCallbackStateCarry open) = await service.RestoreState(_instanceId, whileOpen, "nb");
+        Assert.Equal(_mailboxId, open.MailboxId);
+
+        // ...and gone the moment the handler concludes.
+        concluding.RecordMailboxConcluded();
+        string afterConclusion = await service.CaptureState(unitOfWork, concluding);
+
+        (_, WorkflowCallbackStateCarry carried) = await service.RestoreState(_instanceId, afterConclusion, "nb");
+        Assert.Null(carried.MailboxId);
+    }
+
+    [Fact]
     public async Task Restore_OfABlobWrittenBeforeMailboxesExisted_CarriesNothing()
     {
         // Blobs already in flight have no mailbox field at all; they must restore, not fail.

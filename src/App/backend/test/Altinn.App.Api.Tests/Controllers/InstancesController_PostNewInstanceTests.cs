@@ -979,6 +979,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             MailboxCreateRequest request,
             CancellationToken ct = default
         ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
     }
 
     private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
@@ -1091,6 +1094,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             MailboxCreateRequest request,
             CancellationToken ct = default
         ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
     }
 }
 

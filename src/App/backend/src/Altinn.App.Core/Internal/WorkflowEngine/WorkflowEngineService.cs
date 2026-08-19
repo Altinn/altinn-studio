@@ -146,6 +146,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     ) =>
         EnqueueDependentWorkflow(
@@ -156,6 +157,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             collectionKey,
             state,
             actor,
+            idempotencyKey,
             ct
         );
 
@@ -338,13 +340,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey,
         CancellationToken ct
     )
     {
         (Guid workflowId, _) = await CreateAndEnqueueWorkflow(
             instance,
             processStateChange,
-            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
+            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
             lockToken,
             state,
             actor: actor,

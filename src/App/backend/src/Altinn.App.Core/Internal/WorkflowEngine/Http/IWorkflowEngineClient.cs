@@ -98,4 +98,20 @@ internal interface IWorkflowEngineClient
     /// Every other unsuccessful status throws.
     /// </returns>
     Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Closes a mailbox for further messages. Terminal and idempotent: nothing reopens a mailbox, and
+    /// a repeat close — including one that lost the race to the mailbox's own deadline — reports the
+    /// original closure rather than overwriting it.
+    /// </summary>
+    /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
+    /// <param name="mailboxId">The mailbox to close</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>
+    /// The closed mailbox (<c>202</c> when this call closed it, <c>200</c> when it was already
+    /// closed — the two are deliberately not distinguished), or <see langword="null"/> when no
+    /// mailbox with that id exists in the namespace (<c>404</c>). Every other unsuccessful status
+    /// throws, so it rides the caller's retry ladder.
+    /// </returns>
+    Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default);
 }
