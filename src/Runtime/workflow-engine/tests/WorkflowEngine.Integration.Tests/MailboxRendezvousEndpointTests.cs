@@ -15,7 +15,7 @@ namespace WorkflowEngine.Integration.Tests;
 /// What a released receiver <em>does</em> today is deliberately ordinary, and pinned here as such: it is
 /// an ordinary workflow whose steps execute in order, and the engine does not yet hand its first step the
 /// delivery. <c>mailbox_id</c> is a column nothing reads at execution time. Step 6 gives the executor the
-/// waiter's position and the delivery at it; until then, "released" means exactly "runnable".
+/// registration's position and the delivery at it; until then, "released" means exactly "runnable".
 /// </remarks>
 [Collection(EngineAppCollection.Name)]
 public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
@@ -191,6 +191,34 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
         );
     }
 
+    [Fact]
+    public async Task WakeToClaimLatencyIsNotRecordedForAReceiverThatNeverWaited()
+    {
+        // The other half of the same measurement, and the half that only became assertable once every
+        // receiver started registering its position. A receiver born with its delivery is claimed and run
+        // exactly like a woken one, and its registry row carries a release stamp just as one does — so
+        // the only thing keeping it out of this histogram is `held_at`, and nothing else here would
+        // notice if that stopped working.
+        //
+        // It matters because the birth case is the common one whenever a counterparty answers before the
+        // relay's next hop is enqueued. Timing those would fill a histogram built to show a sub-second
+        // wake with ordinary fetch-cycle latency, and the percentile that ops watches would stop meaning
+        // anything.
+        var mailbox = await MintMailbox();
+        await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
+
+        using var collector = new TelemetryCollector();
+
+        var accepted = await _client.Enqueue(
+            _helpers.CreateEnqueueRequest(Receiver(mailbox.Id, "/receive")),
+            idempotencyKey: "born-runnable"
+        );
+        var receiver = Assert.Single(accepted.Workflows).DatabaseId;
+        await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Completed);
+
+        Assert.Empty(collector.GetMeasurements("engine.mailboxes.receivers.wake_latency"));
+    }
+
     #endregion
 
     /// <summary>
@@ -205,17 +233,17 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
             WITH released AS (
                 UPDATE engine.workflows AS w
                 SET status = {(int)PersistentItemStatus.Enqueued}, backoff_until = NULL, updated_at = now()
-                FROM engine.mailbox_waiters AS mw
-                WHERE mw.workflow_id = {receiverId}
-                  AND mw.released_at IS NULL
-                  AND w.id = mw.workflow_id
+                FROM engine.mailbox_receivers AS mr
+                WHERE mr.workflow_id = {receiverId}
+                  AND mr.released_at IS NULL
+                  AND w.id = mr.workflow_id
                   AND w.status = {(int)PersistentItemStatus.Held}
                 RETURNING w.id
             )
-            UPDATE engine.mailbox_waiters AS mw
+            UPDATE engine.mailbox_receivers AS mr
             SET released_at = now()
             FROM released
-            WHERE mw.workflow_id = released.id
+            WHERE mr.workflow_id = released.id
             """,
             TestContext.Current.CancellationToken
         );

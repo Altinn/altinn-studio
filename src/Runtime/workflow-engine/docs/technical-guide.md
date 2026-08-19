@@ -621,7 +621,7 @@ see [serialization point](#the-mailbox-row-is-its-own-serialization-point) — a
 | ----------------------------------------------- | --------------------------------------------- |
 | A delivery already sits there (`seq < nextIdx`) | `Enqueued`, runnable, with that message       |
 | No delivery, and the mailbox is closed          | `Enqueued`, runnable, with the closing signal |
-| Neither                                         | `Held`, with a waiter row registered          |
+| Neither                                         | `Held`, and its registration marked held      |
 
 The first row wins over the second, which is the case that looks wrong and is not: **an accepted
 delivery outranks closure.** A receiver enqueued against a closed mailbox still gets the message
@@ -653,11 +653,22 @@ release is transactional with its cause, and the mailbox's deadline is what boun
 gate changes and retention never purges a receiver that is still waiting. The cost of that is stated
 plainly: a held receiver consumes admission budget for as long as its mailbox stays open.
 
-The receiver's position lives on its waiter row rather than on the workflow, keyed by
+The receiver's position lives in `engine.mailbox_receivers` rather than on the workflow, keyed by
 `(mailbox_id, seq)` for the release's read and `UNIQUE (workflow_id)` for the executor's. The
 workflow row carries one nullable column, `mailbox_id` — the executor's discriminator and the marker
-ops reads a held row by. A waiter row exists **only** for a receiver that had to park: one born
-runnable has nothing to wait for, so it registers nothing.
+ops reads a held row by.
+
+**Every receiver registers, whatever state it was born in.** The registry is positional, not a queue
+of waiters: the position is the address the executor reads its delivery by, so a receiver born
+runnable needs it recorded exactly as much as one that parked — and leaving it out would have the
+executor find no position for a receiver whose message is sitting at that position, and hand it the
+closing signal instead — the one thing
+[the frozen-meaning rule](#the-receivers-meaning-is-frozen-before-it-can-run) forbids outright.
+
+`held_at` is the row's one structural distinction, and it is load-bearing twice. Stamped, the receiver
+parked, and the unreleased subset of those is exactly the set the wake and the closure release walk.
+Null, it was born runnable and `released_at` carries its birth instant, so no release will ever match
+it — the release statement's two guards each exclude it independently.
 
 Metric: `engine.mailboxes.receivers.created`, tagged `birth` (`delivered`/`closed`/`held`) — the one
 number that separates "the relay is running" from "the relay is parked".
@@ -672,10 +683,12 @@ transaction as its cause:
   transaction.
 
 Both run the same statement, which releases `Held` → `Enqueued` with a null backoff (so the receiver
-sorts to the front of the fetch order) and stamps `released_at` on the waiter row. The wake names one
-position; the closure release names none and takes every parked receiver the mailbox has. Both skip a
-waiter that already carries a stamp, so a receiver is released once and the instant recorded is the
-release that actually made it runnable.
+sorts to the front of the fetch order) and stamps `released_at` on the registry row. The wake names
+one position; the closure release names none and takes every parked receiver the mailbox has. Both
+skip a row that already carries a stamp, and both require the workflow to still be `Held` — two
+independent guards, and between them what makes a registry holding every receiver safe to run these
+over: a born-runnable row is already stamped and already `Enqueued`, so either guard alone is enough
+to pass it by.
 
 **The wake is transactional with the delivery insert, and that is the design's load-bearing
 property.** A held receiver has no timer of its own, so a state in which the message is durable while
@@ -697,9 +710,12 @@ nothing downstream of the release depends on the signal arriving.
 Metrics: `engine.mailboxes.receivers.released`, tagged `cause` (`delivered`/`closed`) — read against
 the `held` births it is the relay's balance sheet — and `engine.mailboxes.receivers.wake_latency`, the
 seconds between a release and the first claim of the receiver it released. The latency is recorded
-once per release: the fetch stamps the waiter's `claimed_at` under `claimed_at IS NULL`, so a receiver
-that fails and climbs its retry ladder reports its wake latency once rather than reporting the ladder.
-A receiver born runnable registers no waiter and is never measured.
+once per release: the fetch stamps the registry's `claimed_at` under `claimed_at IS NULL`, so a
+receiver that fails and climbs its retry ladder reports its wake latency once rather than reporting the
+ladder. A receiver born runnable is stamped like any other — `claimed_at` means what it says — but
+records no sample, because `held_at IS NULL` says there was no wake to time. Without that exclusion the
+histogram would fill with ordinary fetch-cycle latency in the common early-delivery case and stop
+showing the sub-second gap it exists for.
 
 > **What a released receiver does today.** It becomes an ordinary runnable workflow and its steps
 > execute in order. The executor does not yet read the delivery: `mailbox_id` is a column nothing
@@ -727,7 +743,7 @@ Closing is also a release: under the same row lock, **every** parked receiver go
 `Enqueued` and runs the no-delivery path, so the exchange concludes through the app's own conclusion
 path rather than through an engine-written status. Every one of them, not the next one — the mailbox
 accepts no further deliveries, so all their truths were frozen at the same instant. A repeat close
-releases nothing and cannot need to: the first close released every waiter that existed, and an
+releases nothing and cannot need to: the first close released every parked receiver that existed, and an
 enqueue against a closed mailbox is born runnable rather than parked.
 
 The response reports `unconsumedDeliveries` — accepted positions no receiver was ever enqueued for,
@@ -781,10 +797,10 @@ alert, not a garbage-collection policy.
 
 ### Retention
 
-A **closed** mailbox past the retention cutoff is purged with its deliveries and waiters, in the
-existing maintenance sweep. Age alone is not enough: an open mailbox is an exchange in progress
-whatever its timestamps say, and if it is past its deadline the closure sweep is what owes it an
-answer.
+A **closed** mailbox past the retention cutoff is purged with its deliveries and receiver
+registrations, in the existing maintenance sweep. Age alone is not enough: an open mailbox is an
+exchange in progress whatever its timestamps say, and if it is past its deadline the closure sweep is
+what owes it an answer.
 
 The children go first, and that order is enforced by the schema rather than by the code that happens
 to implement it — both child tables reference `engine.mailboxes` with `ON DELETE RESTRICT`, the only
@@ -792,8 +808,8 @@ non-cascade foreign keys in the schema, so a purge written in the wrong order ra
 instead of quietly taking rows with it.
 
 Receive workflows purge independently, under the workflow sweep, and nothing waits for them: a purged
-receiver leaves behind a released waiter row whose `workflow_id` points at nothing, which is why that
-column deliberately carries no foreign key. The waiter is a record of a rendezvous that already
+receiver leaves behind a registry row whose `workflow_id` points at nothing, which is why that
+column deliberately carries no foreign key. The row is a record of a rendezvous that already
 happened, and it goes when its mailbox does.
 
 ### The mailbox row is its own serialization point

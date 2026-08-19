@@ -703,20 +703,45 @@ internal sealed partial class EngineRepository
         }
     }
 
-    /// <summary>One receiver's registration at the position the flush handed it.</summary>
-    private readonly record struct MailboxWaiterInsert(Guid MailboxId, long Seq, Guid WorkflowId);
+    /// <summary>
+    /// One receiver's registration at the position the flush handed it.
+    /// </summary>
+    /// <param name="MailboxId">The mailbox the receiver reads from.</param>
+    /// <param name="Seq">The position the flush handed it.</param>
+    /// <param name="WorkflowId">The receive workflow standing at that position.</param>
+    /// <param name="HeldAt">
+    /// The birth instant when the receiver parked, <c>null</c> when it was born runnable — the registry's
+    /// one structural distinction, and what keeps the wake-to-claim histogram measuring a wake.
+    /// </param>
+    /// <param name="ReleasedAt">
+    /// The birth instant when the receiver was born runnable, <c>null</c> when it parked and is waiting
+    /// for a release to stamp it. Exactly one of the two is set; a row with both null would be a receiver
+    /// that neither waited nor became runnable.
+    /// </param>
+    private readonly record struct MailboxReceiverRegistration(
+        Guid MailboxId,
+        long Seq,
+        Guid WorkflowId,
+        DateTimeOffset? HeldAt,
+        DateTimeOffset? ReleasedAt
+    );
 
     /// <summary>What one flush decided about the mailbox receivers it was handed.</summary>
     /// <param name="RejectedRequestIndices">
     /// Request indices whose receiver could not be born. Already removed from the batch's new-request set
     /// and already given a result; their idempotency keys must be released before the transaction commits.
     /// </param>
-    /// <param name="Waiters">The rows to register — only for receivers that were born parked.</param>
+    /// <param name="Registrations">
+    /// One row per receiver the flush created, whatever state it was born in. Not only the parked ones:
+    /// the position is what the executor reads its delivery by, so a receiver born runnable needs it
+    /// recorded just as much — and recording only the parked ones would leave a running receiver's
+    /// position nowhere in the database.
+    /// </param>
     /// <param name="SeqAdvances">Per mailbox, how many positions this flush consumed.</param>
     /// <param name="Births">What to count once the transaction commits.</param>
     private sealed record MailboxReceiverPlan(
         List<int> RejectedRequestIndices,
-        List<MailboxWaiterInsert> Waiters,
+        List<MailboxReceiverRegistration> Registrations,
         Dictionary<Guid, long> SeqAdvances,
         MailboxBirthCounts Births
     )
@@ -737,9 +762,10 @@ internal sealed partial class EngineRepository
     /// There are exactly two orders in which a delivery and its receiver's enqueue can interleave, and
     /// the lock decides between them rather than leaving a third: whichever transaction takes the row
     /// lock first commits first. Delivery first, and this read sees a <c>next_idx</c> already past the
-    /// receiver's position, so the receiver is born runnable with that delivery and registers no waiter.
-    /// Enqueue first, and the waiter row exists before the delivery's transaction can take the lock, so
-    /// the wake finds it. A receiver cannot be born parked <em>after</em> a delivery for its position was
+    /// receiver's position, so the receiver is born runnable with that delivery and registers already
+    /// released. Enqueue first, and its registry row exists — held, unreleased — before the delivery's
+    /// transaction can take the lock, so the wake finds it. A receiver cannot be born parked
+    /// <em>after</em> a delivery for its position was
     /// accepted, because being born requires this lock, which the delivering transaction holds until it
     /// commits.
     /// </remarks>
@@ -814,7 +840,8 @@ internal sealed partial class EngineRepository
     /// <see cref="PersistentItemStatus.Enqueued"/> with its delivery when one already sits at its
     /// position; born <see cref="PersistentItemStatus.Enqueued"/> with the closing signal when the
     /// mailbox is closed and no delivery can arrive; and born <see cref="PersistentItemStatus.Held"/>
-    /// otherwise, registering a waiter. The first case takes precedence over the second, which is the one
+    /// otherwise. All three register their position; only the third registers as held, and only a held
+    /// registration is ever released. The first case takes precedence over the second, which is the one
     /// that looks wrong and is not: <strong>an accepted delivery outranks closure</strong>, so a saga
     /// replaying after the deadline drains the backlog it was promised instead of dropping it.
     /// <para>
@@ -841,8 +868,13 @@ internal sealed partial class EngineRepository
             return MailboxReceiverPlan.Empty;
 
         var cap = settings.Value.MaxMailboxLogLength;
+
+        // One clock read for the whole flush, from the engine's own time provider rather than the
+        // callers' metadata: these stamps are compared against release and claim instants the engine
+        // writes, so they have to come from the same clock those do.
+        var now = timeProvider.GetUtcNow();
         var rejected = new List<int>();
-        var waiters = new List<MailboxWaiterInsert>();
+        var registrations = new List<MailboxReceiverRegistration>();
         var advances = new Dictionary<Guid, long>(mailboxes.Count);
         long bornDelivered = 0;
         long bornClosed = 0;
@@ -908,10 +940,15 @@ internal sealed partial class EngineRepository
 
                 if (hasDelivery || mailbox.IsDisposed)
                 {
-                    // Runnable at birth: its truth is already frozen, so there is nothing to wait for and
-                    // no waiter row to register. Which of the two it is, the executor re-derives from the
-                    // deliveries table at every attempt rather than from anything written here.
+                    // Runnable at birth: its truth is already frozen, so there is nothing to wait for.
+                    // It still registers — the position is what the executor reads its delivery by, and
+                    // leaving it unrecorded is what would make the executor answer "no delivery" for a
+                    // message sitting at that very position. Born released, never held, so no release
+                    // statement will ever match the row. Which of the two births it was, the executor
+                    // re-derives from the deliveries table at every attempt rather than from anything
+                    // written here.
                     entity.Status = PersistentItemStatus.Enqueued;
+                    registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, null, now));
 
                     if (hasDelivery)
                         bornDelivered++;
@@ -921,7 +958,7 @@ internal sealed partial class EngineRepository
                 else
                 {
                     entity.Status = PersistentItemStatus.Held;
-                    waiters.Add(new MailboxWaiterInsert(mailboxId, seq, entity.Id));
+                    registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, now, null));
                     bornHeld++;
                 }
 
@@ -936,7 +973,7 @@ internal sealed partial class EngineRepository
 
         return new MailboxReceiverPlan(
             rejected,
-            waiters,
+            registrations,
             advances,
             new MailboxBirthCounts(bornDelivered, bornClosed, bornHeld)
         );
@@ -974,8 +1011,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Writes the rendezvous half of the flush: the waiter rows for receivers born parked, and the
-    /// advance of each mailbox's receivers counter by the number of positions the flush consumed.
+    /// Writes the rendezvous half of the flush: a registry row for every receiver the flush created, and
+    /// the advance of each mailbox's receivers counter by the number of positions the flush consumed.
     /// </summary>
     /// <remarks>
     /// The counter is advanced relative to its own current value rather than set to the value the plan
@@ -1008,25 +1045,32 @@ internal sealed partial class EngineRepository
             await advanceCmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        if (plan.Waiters.Count == 0)
+        if (plan.Registrations.Count == 0)
             return;
 
-        var (waiterMailboxIds, seqs, workflowIds) = plan
-            .Waiters.Select(w => (w.MailboxId, w.Seq, w.WorkflowId))
+        var (registryMailboxIds, seqs, workflowIds, heldAt, releasedAt) = plan
+            .Registrations.Select(r => (r.MailboxId, r.Seq, r.WorkflowId, r.HeldAt, r.ReleasedAt))
             .ToArray()
             .Unzip();
 
-        const string waiterSql = """
-            INSERT INTO engine.mailbox_waiters (mailbox_id, seq, workflow_id, released_at)
-            SELECT mailbox_id, seq, workflow_id, NULL
-            FROM unnest(@mailbox_ids, @seqs, @workflow_ids) AS t(mailbox_id, seq, workflow_id)
+        const string registrySql = """
+            INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+            SELECT mailbox_id, seq, workflow_id, held_at, released_at, NULL
+            FROM unnest(@mailbox_ids, @seqs, @workflow_ids, @held_at, @released_at)
+                AS t(mailbox_id, seq, workflow_id, held_at, released_at)
             """;
 
-        await using var waiterCmd = new NpgsqlCommand(waiterSql, conn);
-        waiterCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", waiterMailboxIds));
-        waiterCmd.Parameters.Add(new NpgsqlParameter<long[]>("seqs", seqs));
-        waiterCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("workflow_ids", workflowIds));
-        await waiterCmd.ExecuteNonQueryAsync(cancellationToken);
+        await using var registryCmd = new NpgsqlCommand(registrySql, conn);
+        registryCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", registryMailboxIds));
+        registryCmd.Parameters.Add(new NpgsqlParameter<long[]>("seqs", seqs));
+        registryCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("workflow_ids", workflowIds));
+        registryCmd.Parameters.Add(
+            new NpgsqlParameter("held_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = heldAt }
+        );
+        registryCmd.Parameters.Add(
+            new NpgsqlParameter("released_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = releasedAt }
+        );
+        await registryCmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>
@@ -1447,7 +1491,7 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// Records how long each just-claimed mailbox receiver waited between its release and this claim, and
-    /// stamps the waiters so no later claim of the same receiver is timed again.
+    /// stamps the registry so no later claim of the same receiver is timed again.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -1461,6 +1505,15 @@ internal sealed partial class EngineRepository
     /// once-per-attempt. Without it a receiver that fails and works its way up the retry ladder would
     /// report the whole ladder as wake latency on every claim, and the upper percentiles of a metric
     /// whose entire job is to show a sub-second gap would be measuring something else.
+    /// </para>
+    /// <para>
+    /// <c>held_at IS NOT NULL</c> is what keeps the histogram about the <em>wake</em>. Every receiver
+    /// registers its position, including one born runnable — which was released at birth and never
+    /// waited for anything, so the gap between its release and its claim is an ordinary fetch cycle, not
+    /// a wake. Timing those would swamp a metric built to show a sub-second gap with the poll interval,
+    /// and in the common early-delivery case they would be most of the samples. The claim is still
+    /// stamped for them, because <c>claimed_at</c> means what it says; only the measurement is skipped,
+    /// which is why the filtering happens in the projection rather than in the <c>WHERE</c>.
     /// </para>
     /// <para>
     /// It shares the failure class of the entity load beside it: both are post-claim statements on the
@@ -1496,20 +1549,23 @@ internal sealed partial class EngineRepository
         var ids = receiverIds.ToArray();
 
         var releasedAt = await context
-            .Database.SqlQuery<DateTimeOffset>(
+            .Database.SqlQuery<DateTimeOffset?>(
                 $"""
-                UPDATE engine.mailbox_waiters mw
+                UPDATE engine.mailbox_receivers mr
                 SET claimed_at = {now}
-                WHERE mw.workflow_id = ANY({ids})
-                  AND mw.released_at IS NOT NULL
-                  AND mw.claimed_at IS NULL
-                RETURNING mw.released_at AS "Value"
+                WHERE mr.workflow_id = ANY({ids})
+                  AND mr.released_at IS NOT NULL
+                  AND mr.claimed_at IS NULL
+                RETURNING CASE WHEN mr.held_at IS NOT NULL THEN mr.released_at END AS "Value"
                 """
             )
             .ToListAsync(cancellationToken);
 
         foreach (var released in releasedAt)
-            Metrics.MailboxReceiverWakeLatency.Record(Math.Max(0, (now - released).TotalSeconds));
+        {
+            if (released is { } releaseInstant)
+                Metrics.MailboxReceiverWakeLatency.Record(Math.Max(0, (now - releaseInstant).TotalSeconds));
+        }
     }
 
     /// <inheritdoc/>
