@@ -90,8 +90,8 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     public async Task Enqueue_ReceiverForAClosedMailbox_IsAcceptedAndRunnable()
     {
         // Accepted, not refused — and runnable, so it actually executes here rather than parking. The
-        // step it runs is an ordinary webhook: this step gives the executor no delivery to read, which is
-        // step 6's work, so the point being pinned is only that the workflow was born able to run.
+        // step it runs is an ordinary webhook, deliberately: what a receive step is handed is pinned in
+        // MailboxReceiptEndpointTests, and the point here is only that the workflow was born able to run.
         var mailbox = await MintMailbox();
         await _client.CloseMailbox(mailbox.Id);
 

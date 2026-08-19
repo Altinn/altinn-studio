@@ -84,6 +84,51 @@
       }
     ]
   },
+  "AppCallbackMailbox": {
+    "Name": "AppCallbackMailbox",
+    "Fields": [
+      {
+        "Name": "delivery",
+        "Kind": "object<AppCallbackMailboxDelivery>",
+        "Nullable": true
+      },
+      {
+        "Name": "disposedReason",
+        "Kind": "enum<string>{Request=0,Deadline=1}",
+        "Nullable": true
+      },
+      {
+        "Name": "id",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "seq",
+        "Kind": "long",
+        "Nullable": false
+      }
+    ]
+  },
+  "AppCallbackMailboxDelivery": {
+    "Name": "AppCallbackMailboxDelivery",
+    "Fields": [
+      {
+        "Name": "acceptedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "payload",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
   "AppCallbackPayload": {
     "Name": "AppCallbackPayload",
     "Fields": [
@@ -121,6 +166,11 @@
         "Name": "lockToken",
         "Kind": "string",
         "Nullable": false
+      },
+      {
+        "Name": "mailbox",
+        "Kind": "object<AppCallbackMailbox>",
+        "Nullable": true
       },
       {
         "Name": "payload",

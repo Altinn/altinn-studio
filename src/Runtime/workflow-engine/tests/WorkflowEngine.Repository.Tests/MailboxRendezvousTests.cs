@@ -558,7 +558,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         // with bookkeeping and solves it structurally instead — a receiver released by closure runs on a
         // mailbox that refuses every further delivery, so its position can never be filled, and every
         // attempt and retry re-derives the same absence from the same rows. Pinned here as a property of
-        // the database; step 6 owns the executor side of it.
+        // the database; MailboxReceiptTests pins the executor's side of the same absence.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
