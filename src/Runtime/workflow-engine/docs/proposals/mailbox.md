@@ -778,7 +778,54 @@ release half of closure (step 4), the deadline sweep (step 5), retention (step 5
 step closes for deliveries and nothing else — there are no receivers in the engine's model yet.
 Record that gap with a characterization test rather than a comment, in v2's style.
 
-#### Step 2 — Engine: delivery ingestion — `in progress`
+#### Step 2 — Engine: delivery ingestion — `done`
+
+Landed as jj change `porzwtus` — 25 files, +2151/−22, all under `src/Runtime/workflow-engine`.
+Engine suite **709 → 758**; host 76 unchanged, no wire-contract regeneration. Two review rounds.
+
+**The lock-first discipline was verified by experiment, not by reading** — the property this whole
+design rests on, so it is worth recording how it was established. Against a real PostgreSQL: the
+transaction's first statement is `SELECT … FOR UPDATE`, and it reads status, `next_idx` and the
+disposal fields in that same statement, so there is no pre-lock read to decide on; EPQ re-read
+returns the _updated_ row after a concurrent close commits, where a read-before-lock implementation
+would have read `open`. Two further facts fell out, both useful to steps 3–5:
+
+- **The counter does not need the explicit lock.** The append is one statement —
+  `WITH bumped AS (UPDATE engine.mailboxes SET next_idx = next_idx + 1 … RETURNING next_idx - 1 AS idx)
+INSERT … SELECT … FROM bumped` — and the `UPDATE`-inside-CTE serializes appends on its own, with a
+  loser's rollback leaving no gap and no reused position. The row lock is what makes the **status and
+  log-full decisions** safe, which is exactly the rationale the design states.
+- **The idempotency lookup runs before the closed and log-full checks**, under the lock. That
+  ordering _is_ the accepted-versus-kept rule: it changes only what an already-stored delivery is
+  told, and the closed check still gates every append. Reordering it would make a forwarder
+  dead-letter a message the engine holds.
+
+What steps 3–6 inherit:
+
+- **`MaxMailboxLogLength` (100) bounds both logs.** Step 2 applies it to `next_idx`; **step 3 applies
+  the same number to `next_seq`.**
+- **The FK is `RESTRICT`, not cascade** — the only non-cascade FK in the schema, where every purge in
+  `DbMaintenanceService` otherwise relies on cascade. Deliberate: the proposal mandates children-first
+  purge order, and an explicit order that fails loudly (SQLSTATE `23001`) beats a silent cascade.
+  **Step 5's retention purge must delete children first.**
+- **`PostgresFixture` now shares one `NpgsqlDataSource`.** Every `CreateRepository*` overload
+  previously built a private pool retained until fixture disposal — 152 call sites against a
+  `max_connections = 100` container, which surfaced as `53300: too many clients` failing ~18
+  _unrelated_ tests. Fixed at the source with zero test edits; the Repository suite went from
+  exhausting connections to 10s. Steps 3–5 add repository test classes freely; use
+  `fixture.CreateRepository()`.
+- `Engine.MailboxDeliveryOutcomeTag` is `internal` (on an already-internal class, so no public surface
+  moved) and pinned by an exhaustive mapping test; follow that split — wiring proved once end to end,
+  pure mappings proved exhaustively.
+
+Deliberately left undone, pinned by `AcceptedDelivery_SitsAtItsPositionAndWakesNobody`: an accepted
+delivery moves `nextIdx` and wakes nobody. **Step 4 must make the second half stop being true by
+giving a receiver a position to be released at — not by making acceptance do more work.**
+
+Residuals carried: the `429` test costs 100 real deliveries (accepted); `MailboxDeliveryColumns` keeps
+the positional coupling step 1 recorded for `MailboxColumns`; `EveryDeliveryOutcome_IsCovered`'s
+`IsSealed` filter would silently skip a future non-sealed variant (one-line fix for whoever is next
+in that file).
 
 Paths: as step 1.
 
@@ -797,7 +844,7 @@ pre-lock rejections.
 **Out of scope:** the wake (no waiters exist yet — step 4), admission/backpressure (decision 6
 above).
 
-#### Step 3 — Engine: receive workflows — `Held`, the declaration, and seq assignment — `todo`
+#### Step 3 — Engine: receive workflows — `Held`, the declaration, and seq assignment — `in progress`
 
 Paths: `src/Runtime/workflow-engine`, `src/Runtime/workflow-engine-app` (wire contract), and the
 app-lib DTO copies in `src/App/backend` that the directional guard forces (`Held` is a new enum
@@ -815,7 +862,9 @@ looks wrong and is not: **a delivery at `seq` outranks closure**, so a receiver 
 
 Pin here: the lock-order half of the invariant table (mailbox row taken first, in the enqueue path),
 gapless `seq` under concurrent enqueues, and the delivery-versus-enqueue race in both interleavings
-with no third.
+with no third. Note that `seq` assignment happens inside the enqueue flush, which is a different
+transaction shape from step 2's endpoint — the lock must still be that transaction's first act on
+mailbox state.
 
 **Out of scope:** the wake and the closure release (step 4), anything the executor does with the
 delivery (step 6). A `Held` receiver in this step simply never wakes; say so in the step's notes.
@@ -829,7 +878,14 @@ waiter at `seq = idx`, stamp `released_at`, one `NOTIFY status_changed` after co
 release inside `DELETE`, under the same lock: `Held` → `Enqueued` for every parked receiver, waiters
 stamped, unconsumed deliveries counted and reported in the response. This is the step where
 [Races and locking](#races-and-locking) becomes real: **every row of that table gets a test**, and
-the compound lock order mailbox → workflow is asserted rather than described. Metrics:
+the compound lock order mailbox → workflow is asserted rather than described. Two items are carried
+here from earlier reviews and belong to that sweep: the **symmetric delivery-versus-closure
+interleaving** (a close blocking behind an in-flight delivery — step 2 pinned only closure-first under
+contention), and step 1's `CloseMailbox_CannotEvenReadTheMailboxWhileItsRowLockIsHeldElsewhere`, which
+does **not** discriminate — it holds no state that a read-before-lock implementation could answer from
+without blocking, so it passes either way. Step 2's fix is the model: give the racing call a verdict
+reachable from an _unlocked_ table (a replay decided entirely from `mailbox_deliveries`), so a
+read-before-lock implementation answers immediately and the test goes red. Metrics:
 `engine.mailboxes.receivers.released` tagged `delivered`/`closed`, and the wake-to-claim latency
 histogram.
 
