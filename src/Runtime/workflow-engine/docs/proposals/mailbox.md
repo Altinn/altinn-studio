@@ -1700,7 +1700,110 @@ today still expands with its conclusion as an ordinary Main step and nothing enq
 address the stage publishes has nobody listening on it. The app CHANGELOG entry says as much and must be
 completed here and in step 8 before release.
 
-#### Step 8 — App-lib: the receive handler and the relay saga — `in progress`
+#### Step 8 — App-lib: the receive handler and the relay saga — `done`
+
+Landed as jj change `tzwuslyn` — 34 files, +3663/−36, all under `src/App/backend`.
+`Altinn.App.Core.Tests` **3171 → 3213** (`--filter ~WorkflowEngine` 308 → 347), Api 497 → **505**, Fiks
+183, engine 939 and host 81 unmoved, **no wire regeneration** (all three public callback types were
+already in the committed snapshot from engine step 6). Two review rounds, seventeen mutations.
+
+**This is the step the design's honesty rests on, and both of its hard calls were made by departing
+from instructions — correctly, and with the departure flagged rather than buried.**
+
+**The saga lives in one place.** `MailboxRelay.Decide` maps the verdict; `MailboxRelay.Continue`
+performs it — and `Continue` runs from the **callback controller after the save and re-capture**, not
+inside the command, because whatever it starts must begin on the state the handler _published_: a
+successor started on the incoming blob would not see its predecessor's data elements or their
+Storage-assigned ids. Review traced the failure paths: a relay throw after `SaveChanges` 500s and the
+retried step still sees **its delivery**, because the engine returns `Delivered` whenever a delivery row
+exists regardless of mailbox status — so close-succeeded-then-enqueue-failed replays correctly.
+
+**Invariant 1 — `DELETE` before the after-enqueue.** Both calls in one method. Swapping them reddens
+`Conclusion_ClosesTheMailboxBeforeEnqueueingTheAfterWorkflow` **alone out of 350**, which is exactly the
+plan's point: the wrong ordering compiles and passes everything else.
+
+**Invariant 2 — at most one concludes.** Structural, not conventional: `MailboxContinuation` is
+`internal` with a private base constructor and two sealed nested records, so `AwaitNextMessage` carries
+no way to close and `Conclude` none to enqueue a successor. An app author cannot construct one at all; a
+third state can only be added by editing that file.
+
+**Invariant 3 — every mid-callback call keyed off the executing step** — and the guard for it was the
+round's sharpest lesson. The relay first derived its keys from `StepId` **without** the `Guid.Empty`
+refusal both sibling call sites enforce. `AppCallbackPayload.StepId` is deliberately not `required`, so
+an engine predating the field sends `Guid.Empty` — and since engine idempotency is `(namespace, key)`
+with namespace = the whole application, **every** successor in the app would have enqueued under one
+constant key: first wins, every other concurrent exchange silently stalls, no error anywhere. Narrow to
+reach (it needs an engine rollback while a receiver is `Held`) but the relay is the one place a wrong key
+does cross-_exchange_ damage.
+
+The orchestrator asked for the guard "before any continuation is minted". **That instruction was wrong**,
+and the worker said so: because `Decide` refuses before a continuation exists, a blanket guard on
+`FailedPermanent` would have suppressed the `Conclude` continuation itself — taking the mailbox close
+down with it and abandoning it open for the rest of its 21 days, strictly worse than the collision it
+prevents. The guard is therefore narrow: only `AwaitNextReply` and an auto-advancing `Success`, the two
+verdicts that make a keyed call. Review verified the premise independently — `Idempotency-Key` is added
+at exactly one site in the whole client, inside `EnqueueWorkflows`, and the engine's `MapDelete` accepts
+no such parameter, so the close is intrinsically keyless — and the narrowness is pinned in **both**
+directions, with a mutation that widens the guard reddening the narrowness test alone.
+
+**Invariant 4 — frontier never empty**, and the round's best piece of evidence. The first version of the
+successor enqueue omitted the transition's process-next labels while its comment and test both claimed
+"the same shape" as receiver 1. That left a read-path regression (a failed hop ≥ 1 reporting a null
+target task) and a latent hole: the reader's lookup filters on labels the successor did not carry, so
+with Main and receiver 1 gone the collection key set is empty and `GetCurrentTaskWorkflowState` returns
+**`Unblocked`** — the silent early execution this invariant exists to prevent.
+
+The fix went past what was asked. Rather than assert the labels on the enqueue argument, the worker made
+the test harness **model the engine's per-label AND filter** and added
+`ASuccessorReceiver_HoldsTheFrontierAloneOnceTheEarlierWorkflowsArePurged`, which purges Main and
+receiver 1 and asserts the frontier still holds. Dropping the labels now reddens that test with the
+frontier message **while the multi-hop walk stays green** — proving the walk had been right for a reason
+unrelated to the successor. A latent finding became an executable one. Review re-certified the harness
+against `ComputeNewHeads`/`ComputeHeadDependencyEdges` and re-ran all three earlier frontier mutations
+unchanged.
+
+Decisions worth carrying: **re-sign per hop rather than re-check** the app-code bound — re-capturing
+re-signs with whatever code is current then, which is the only mechanism that can extend an exchange past
+the code that opened it, whereas a re-check could only refuse earlier and would need the deadline to
+answer a question with no useful answer; the residual (a hop signed just before a rotation dies with the
+old code) is unchanged either way. `processNextSourceId` is **deliberately omitted** from the successor —
+unrecoverable at a later hop, answering a lookup no receiver is the answer to, and arguably more truthful
+than receiver 1's inherited value, which claims the receiver departs a task it never departs. The
+**lock token is carried verbatim** into a days-long receiver, as every other workflow this app-lib
+enqueues does, recorded in a named test rather than inherited silently. And a **trap found while wiring
+the second carried value**: the after-workflow inherits the conclusion's blob, so a blob still naming the
+finished mailbox would make the _next_ transition's `WithReplyFrom` hit `RecordMailbox`'s one-mailbox
+guard — as a retry ladder that can never succeed, days later. A conclusion now drops the id, via a second
+**named** method (`RecordMailboxConcluded`), never a general setter.
+
+`AppCallbackMailbox`, `AppCallbackMailboxDelivery` and `MailboxDisposedReason` are public — forced by the
+pre-existing public `AppCallbackPayload` (accessibility chain plus MVC/STJ binding), not by the wire
+guard as first claimed; review checked all three alternatives and found none workable.
+
+**The feature is usable end to end for the first time, and step 8 wrote the CHANGELOG entry** 7a's was
+deleted for — including `MailboxTimeoutOutlivesAppCode`, the one declaration-time refusal an author can
+trip.
+
+What steps 9–10 inherit: `ServiceTaskReply.IdempotencyKey` is the source's own message id and the
+documented dedup key for handler side effects; step 10 gets `context.Reply`/`context.ReplyClosedReason`
+and the full result vocabulary with no Fiks-specific change to `MailboxRelay`; `RelayProbeTask` in
+`WorkflowEngineCallbackControllerMailboxTests` is a ready harness for driving a reply handler through the
+real callback.
+
+Residuals: `FailedPermanent` from a receive handler **discards data changes**, like every permanent
+failure in this app-lib and unlike v2, where the verdict rode a 200 because the engine applied it
+atomically — documented, with the guidance that a conclusion needing to _record_ something answers
+`Success`; the frontier walk seeds receiver 1 rather than driving 7b's enqueue, so it pins step 8's half
+only; the harness's `ListWorkflows` ignores the `collectionKey`/`statuses` filters and leaves `IsHead`
+unset, unreached today but needed by any future test driving `ResolveWorkflowTaskStatus` through it; and
+two single-test flakes in runs overlapping Docker-backed suites, unreproduced serially and their names
+not captured — run under TRX next time.
+
+**A trap recurred and is worth restating: a filter that silently matches nothing reads exactly like a
+pass.** The worker's "nothing outside `src/App/backend`" check ran with the working directory still at
+`src/App/backend`, so `jj st` printed repo-relative paths, the filter matched nothing, and the check
+reported clean while two generated files were CRLF-drifted. Same failure mode as `prettier --check`
+against a path matching no files. Run both from the repo root.
 
 Paths: `src/App/backend`.
 
@@ -1714,7 +1817,7 @@ concluder, every mid-callback call keyed off the executing step id — and the
 walks a multi-hop relay asserting the frontier at every step boundary. These are the tests the whole
 design's honesty rests on; write them first.
 
-#### Step 9 — App-lib: forwarder rework — `todo`
+#### Step 9 — App-lib: forwarder rework — `in progress`
 
 Paths: `src/App/backend`.
 
