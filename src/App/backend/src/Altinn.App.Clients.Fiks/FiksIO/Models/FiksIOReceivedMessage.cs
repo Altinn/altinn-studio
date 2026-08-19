@@ -8,6 +8,13 @@ namespace Altinn.App.Clients.Fiks.FiksIO.Models;
 /// <summary>
 /// Represents a received Fiks IO message (inbound).
 /// </summary>
+/// <remarks>
+/// A message is normally <em>live</em>: it arrived on the Fiks IO connection this process holds, so its
+/// streams can be read and its <see cref="Responder"/> can answer the sender. A message handed to code
+/// that runs after the fact — a service task's reply handler, which may run on another pod days later —
+/// is <em>replayed</em> instead: every value the message carried is still there, but nothing that needs
+/// the connection works. See <see cref="Replay"/>.
+/// </remarks>
 public sealed record FiksIOReceivedMessage
 {
     /// <summary>
@@ -18,7 +25,27 @@ public sealed record FiksIOReceivedMessage
     /// <summary>
     /// A responder instance that can be used to respond to the message.
     /// </summary>
+    /// <remarks>
+    /// Usable only while the message is live. On a replayed message every member throws
+    /// <see cref="InvalidOperationException"/>: the Fiks IO channel settled this message when it was
+    /// received, and the connection it would answer on belongs to that moment. <see cref="IsReplayed"/>
+    /// answers that question without provoking the exception.
+    /// </remarks>
     public FiksIOMessageResponder Responder { get; init; }
+
+    /// <summary>
+    /// Indicates whether this message is being read away from the Fiks IO connection it arrived on.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="false"/> for a message handed to a Fiks IO subscriber as it arrives — everything
+    /// works, including <see cref="Responder"/> and the stream members. <see langword="true"/> for one
+    /// replayed later, for instance in a service task's reply handler: every value the message carried
+    /// is still there, but the members that would need the connection throw
+    /// <see cref="InvalidOperationException"/>. <strong>Ask this rather than catching that</strong> —
+    /// code that runs in both places can branch on it, and a long exchange is a bad place to discover
+    /// the difference.
+    /// </remarks>
+    public bool IsReplayed => Message.IsReplayed;
 
     /// <summary>
     /// Indicates whether this message is an error response or not.
@@ -29,6 +56,11 @@ public sealed record FiksIOReceivedMessage
     /// <summary>
     /// Indicates whether this message is a receipt response or not.
     /// </summary>
+    /// <remarks>
+    /// Offered for app code that consumes Fiks IO messages itself. The runtime does not use it: the Fiks
+    /// IO subscriber delivers every message into the waiting mailbox without classifying it, and the Fiks
+    /// Arkiv service task classifies the delivered message rather than this wrapper.
+    /// </remarks>
     public bool IsReceiptResponse =>
         string.IsNullOrWhiteSpace(Message.MessageType) || FiksIOConstants.IsReceiptType(Message.MessageType);
 
@@ -37,6 +69,25 @@ public sealed record FiksIOReceivedMessage
         Message = new FiksIOReceivedMessageContent(mottattMeldingArgs.Melding);
         Responder = new FiksIOMessageResponder(mottattMeldingArgs.SvarSender);
     }
+
+    private FiksIOReceivedMessage(FiksIOReplayedMessage replayed)
+    {
+        Message = new FiksIOReceivedMessageContent(replayed);
+        Responder = new FiksIOMessageResponder();
+    }
+
+    /// <summary>
+    /// Rebuilds a message that was received earlier, for code that reads it away from the Fiks IO
+    /// connection it arrived on.
+    /// </summary>
+    /// <remarks>
+    /// Everything the message carried — its ids, its type, its headers and its decrypted payloads — is
+    /// answered from the replayed values. The members that would need the live connection
+    /// (<see cref="FiksIOReceivedMessageContent.GetEncryptedStream"/> and its siblings, and every
+    /// member of <see cref="Responder"/>) throw <see cref="InvalidOperationException"/> rather than
+    /// answering with something invented.
+    /// </remarks>
+    internal static FiksIOReceivedMessage Replay(FiksIOReplayedMessage replayed) => new(replayed);
 }
 
 /// <summary>
@@ -45,105 +96,143 @@ public sealed record FiksIOReceivedMessage
 public sealed record FiksIOReceivedMessageContent
 {
     /// <summary>
+    /// Indicates whether this content is replayed rather than read from the live Fiks IO connection —
+    /// see <see cref="FiksIOReceivedMessage.IsReplayed"/>, which forwards this.
+    /// </summary>
+    public bool IsReplayed => _replayed is not null;
+
+    /// <summary>
     /// Indicates whether the message has a payload or not.
     /// </summary>
-    public bool HasPayload => _mottattMelding.HasPayload;
+    public bool HasPayload => _replayed is { } replayed ? replayed.Payloads?.Count > 0 : _live.HasPayload;
 
     /// <summary>
     /// The ID of the message this is a reply to, if any.
     /// </summary>
-    public Guid? InReplyToMessage => _mottattMelding.SvarPaMelding;
+    public Guid? InReplyToMessage => _replayed is { } replayed ? replayed.InReplyToMessage : _live.SvarPaMelding;
 
     /// <summary>
     /// The correlation ID for this message, if any.
     /// </summary>
-    public string? CorrelationId => _mottattMelding.KlientKorrelasjonsId?.FromUrlSafeBase64();
+    public string? CorrelationId =>
+        _replayed is { } replayed ? replayed.CorrelationId : _live.KlientKorrelasjonsId?.FromUrlSafeBase64();
 
     /// <summary>
     /// The message ID.
     /// </summary>
-    public Guid MessageId => _mottattMelding.MeldingId;
+    public Guid MessageId => _replayed?.MessageId ?? _live.MeldingId;
 
     /// <summary>
     /// Sender's reference to this message.
     /// </summary>
-    public Guid? SendersReference => _mottattMelding.KlientMeldingId;
+    public Guid? SendersReference => _replayed is { } replayed ? replayed.SendersReference : _live.KlientMeldingId;
 
     /// <summary>
     /// The message type (e.g. no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett.kvittering)
     /// </summary>
-    public string MessageType => _mottattMelding.MeldingType;
+    public string MessageType => _replayed?.MessageType ?? _live.MeldingType;
 
     /// <summary>
     /// The sender's account ID.
     /// </summary>
-    public Guid Sender => _mottattMelding.AvsenderKontoId;
+    public Guid Sender => _replayed?.Sender ?? _live.AvsenderKontoId;
 
     /// <summary>
     /// The recipient's account ID (e.g. you).
     /// </summary>
-    public Guid Recipient => _mottattMelding.MottakerKontoId;
+    public Guid Recipient => _replayed?.Recipient ?? _live.MottakerKontoId;
 
     /// <summary>
     /// The message lifetime.
     /// </summary>
-    public TimeSpan MessageLifetime => _mottattMelding.Ttl;
+    public TimeSpan MessageLifetime => _replayed?.MessageLifetime ?? _live.Ttl;
 
     /// <summary>
     /// The message headers.
     /// </summary>
-    public Dictionary<string, string> Headers => _mottattMelding.Headere;
+    public Dictionary<string, string> Headers => _replayed is { } replayed ? replayed.Headers ?? [] : _live.Headere;
 
     /// <summary>
     /// Indicates whether this message has been re-sent or not.
     /// </summary>
-    public bool IsReSent => _mottattMelding.Resendt;
+    public bool IsReSent => _replayed?.IsReSent ?? _live.Resendt;
 
     /// <summary>
     /// Write the encrypted stream to a ZIP file.
     /// </summary>
     /// <param name="outPath"></param>
     /// <returns></returns>
-    public Task WriteEncryptedZip(string outPath) => _mottattMelding.WriteEncryptedZip(outPath);
+    public Task WriteEncryptedZip(string outPath) =>
+        _mottattMelding?.WriteEncryptedZip(outPath) ?? throw ReplayedMessageHasNoConnection(nameof(WriteEncryptedZip));
 
     /// <summary>
     /// Write the decrypted stream to a ZIP file.
     /// </summary>
     /// <param name="outPath"></param>
     /// <returns></returns>
-    public Task WriteDecryptedZip(string outPath) => _mottattMelding.WriteDecryptedZip(outPath);
+    public Task WriteDecryptedZip(string outPath) =>
+        _mottattMelding?.WriteDecryptedZip(outPath) ?? throw ReplayedMessageHasNoConnection(nameof(WriteDecryptedZip));
 
     /// <summary>
     /// Gets the encrypted stream.
     /// </summary>
-    public Task<Stream> GetEncryptedStream() => _mottattMelding.EncryptedStream;
+    public Task<Stream> GetEncryptedStream() =>
+        _mottattMelding?.EncryptedStream ?? throw ReplayedMessageHasNoConnection(nameof(GetEncryptedStream));
 
     /// <summary>
     /// Gets the decrypted stream.
     /// </summary>
-    public Task<Stream> GetDecryptedStream() => _mottattMelding.DecryptedStream;
+    public Task<Stream> GetDecryptedStream() =>
+        _mottattMelding?.DecryptedStream ?? throw ReplayedMessageHasNoConnection(nameof(GetDecryptedStream));
 
     /// <summary>
     /// Gets the decrypted payload content as strings. Cached after first call.
     /// </summary>
     public async Task<IReadOnlyList<(string Filename, string Content)>?> GetDecryptedPayloads()
     {
-        if (_decrypedPayloadStrings is null && _mottattMelding.HasPayload)
+        if (_replayed is { } replayed)
+            return replayed.Payloads;
+
+        if (_decrypedPayloadStrings is null && _live.HasPayload)
         {
-            var decryptedPayloads = await _mottattMelding.DecryptedPayloads;
+            var decryptedPayloads = await _live.DecryptedPayloads;
             _decrypedPayloadStrings = decryptedPayloads.Select(x => (x.Filename, x.Payload.ReadToString())).ToList();
         }
 
         return _decrypedPayloadStrings;
     }
 
-    private IMottattMelding _mottattMelding { get; }
+    private IMottattMelding? _mottattMelding { get; }
+    private FiksIOReplayedMessage? _replayed { get; }
+
+    /// <summary>
+    /// The live Fiks IO message this content wraps. Exactly one of the two constructors runs, so this
+    /// is non-null wherever <see cref="_replayed"/> is null — the throw is unreachable and exists only
+    /// so no member has to assert it.
+    /// </summary>
+    private IMottattMelding _live =>
+        _mottattMelding
+        ?? throw new InvalidOperationException(
+            $"{nameof(FiksIOReceivedMessageContent)} carries neither a live nor a replayed message."
+        );
     private IReadOnlyList<(string, string)>? _decrypedPayloadStrings;
 
     internal FiksIOReceivedMessageContent(IMottattMelding mottattMelding)
     {
         _mottattMelding = mottattMelding;
     }
+
+    internal FiksIOReceivedMessageContent(FiksIOReplayedMessage replayed)
+    {
+        _replayed = replayed;
+    }
+
+    private static InvalidOperationException ReplayedMessageHasNoConnection(string member) =>
+        new(
+            $"{nameof(FiksIOReceivedMessageContent)}.{member} needs the live Fiks IO connection the message arrived "
+                + "on, and this message is being replayed after the fact. Its identifiers, headers and decrypted "
+                + $"payloads are available; {nameof(GetDecryptedPayloads)} is what the content is read from here."
+        );
 }
 
 /// <summary>
@@ -166,12 +255,8 @@ public sealed record FiksIOMessageResponder
         CancellationToken cancellationToken = default
     )
     {
-        var response = await _svarSender.Svar(
-            messageType,
-            [.. payload.Select(x => x.ToPayload())],
-            sendersReference,
-            cancellationToken
-        );
+        var response = await RequireSender(nameof(Respond))
+            .Svar(messageType, [.. payload.Select(x => x.ToPayload())], sendersReference, cancellationToken);
         return new FiksIOMessageResponse(response);
     }
 
@@ -188,29 +273,40 @@ public sealed record FiksIOMessageResponder
         CancellationToken cancellationToken = default
     )
     {
-        var response = await _svarSender.Svar(messageType, sendersReference, cancellationToken);
+        var response = await RequireSender(nameof(Respond)).Svar(messageType, sendersReference, cancellationToken);
         return new FiksIOMessageResponse(response);
     }
 
     /// <summary>
     /// Acknowledge that the message has been consumed.
     /// </summary>
-    public async Task Ack() => await _svarSender.AckAsync();
+    public async Task Ack() => await RequireSender(nameof(Ack)).AckAsync();
 
     /// <summary>
     /// Acknowledge that the message could not be consumed.
     /// </summary>
-    public async Task Nack() => await _svarSender.NackAsync();
+    public async Task Nack() => await RequireSender(nameof(Nack)).NackAsync();
 
     /// <summary>
     /// Acknowledge that the message could not be consumed and request to put it back in the queue to be consumed again.
     /// </summary>
-    public async Task NackWithRequeue() => await _svarSender.NackWithRequeueAsync();
+    public async Task NackWithRequeue() => await RequireSender(nameof(NackWithRequeue)).NackWithRequeueAsync();
 
-    private ISvarSender _svarSender { get; init; }
+    private ISvarSender? _svarSender { get; init; }
 
     internal FiksIOMessageResponder(ISvarSender svarSender)
     {
         _svarSender = svarSender;
     }
+
+    /// <summary>Builds the responder of a replayed message, which can respond to nothing.</summary>
+    internal FiksIOMessageResponder() { }
+
+    private ISvarSender RequireSender(string member) =>
+        _svarSender
+        ?? throw new InvalidOperationException(
+            $"{nameof(FiksIOMessageResponder)}.{member} needs the live Fiks IO connection the message arrived on, "
+                + "and this message is being replayed after the fact. The channel settled this message when it was "
+                + "received; anything sent back to the sender now has to be sent as a new message."
+        );
 }

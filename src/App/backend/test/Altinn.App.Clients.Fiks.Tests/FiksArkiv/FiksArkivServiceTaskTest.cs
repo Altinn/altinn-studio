@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
@@ -11,7 +13,11 @@ using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmeldingkvittering;
+using KS.Fiks.Arkiv.Models.V1.Feilmelding;
+using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
@@ -20,10 +26,40 @@ public class FiksArkivServiceTaskTest
 {
     private static readonly Guid _workflowId = Guid.Parse("2f4bd7b5-19f0-4bd0-bd0c-9c7ec6f45a4a");
     private static readonly Guid _workflowStepId = Guid.Parse("9ec7e888-8f05-423c-a54c-572f36b121ef");
+    private static readonly Guid _mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
     private static readonly DateTimeOffset _executionReferenceTime = DateTimeOffset.Parse("2026-05-17T10:15:30+02:00");
 
+    // -------------------------------------------------------------------------------------------
+    // Pipeline shape
+    // -------------------------------------------------------------------------------------------
+
     [Fact]
-    public async Task Execute_CallsGenerateAndSendWithWorkflowMetadata_AndReturnsAutoAdvance()
+    public async Task Define_ComposesTheSendStageAndOpensItsMailbox()
+    {
+        await using var fixture = CreateFixture();
+
+        ServiceTaskPipeline pipeline = fixture.FiksArkivPipeline;
+
+        ServiceTaskStage stage = Assert.Single(pipeline.Stages);
+        Assert.Equal("SendToArchive", stage.Name);
+
+        // The mailbox is what holds the transition open, and it is opened by the stage that sends —
+        // that is the only stage that can publish its address. Its timeout must be an explicit domain
+        // deadline; there is no default to fall back on.
+        ServiceTaskMailboxDeclaration mailbox = Assert.IsType<ServiceTaskMailboxDeclaration>(pipeline.Mailbox);
+        Assert.Equal("SendToArchive", mailbox.StageName);
+        Assert.Equal(TimeSpan.FromDays(7), mailbox.Options.Timeout);
+
+        // Nothing polls here, so no wait budget is declared: the mailbox's deadline bounds the wait.
+        Assert.Null(pipeline.FinalStepOptions);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Send stage
+    // -------------------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task SendToArchive_SendsWithTheMailboxIdAsReplyAddress_AndCompletesTheStage()
     {
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
@@ -32,7 +68,10 @@ public class FiksArkivServiceTaskTest
                 x.GenerateAndSendMessage(
                     "Task_1",
                     "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett",
+                    // klientMeldingId is the idempotency key for this send...
                     _workflowStepId,
+                    // ...and klientKorrelasjonsId is the address the archive echoes.
+                    _mailboxId,
                     _executionReferenceTime,
                     dataMutator.Object,
                     It.IsAny<CancellationToken>()
@@ -47,27 +86,24 @@ public class FiksArkivServiceTaskTest
             services.AddSingleton(host.Object);
         });
 
-        ServiceTaskResult result = await fixture.FiksArkivServiceTask.Execute(
-            CreateContext(dataMutator.Object, _workflowStepId)
-        );
+        ServiceTaskStageResult result = await SendStage(fixture)(CreateSendContext(dataMutator.Object));
 
-        var successResult = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(successResult.AutoAdvanceProcess);
-        Assert.Null(successResult.Action);
+        Assert.IsType<CompletedServiceTaskStageResult>(result);
         host.Verify();
     }
 
     [Fact]
-    public async Task Execute_SameStepRetryUsesSameGuid_DifferentStepUsesDifferentGuid()
+    public async Task SendToArchive_SameStageRetryUsesSameIdentities_ANewPassUsesNewOnes()
     {
         var instance = CreateInstance();
         var dataMutator = InstanceDataMutatorMockFactory(instance);
         var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
-        var receivedReferences = new List<Guid>();
+        var received = new List<(Guid SendersReference, Guid ReplyAddress)>();
         host.Setup(x =>
                 x.GenerateAndSendMessage(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<DateTimeOffset>(),
                     dataMutator.Object,
@@ -79,10 +115,11 @@ public class FiksArkivServiceTaskTest
                     string _,
                     string _,
                     Guid sendersReference,
+                    Guid replyAddress,
                     DateTimeOffset _,
                     IInstanceDataMutator _,
                     CancellationToken _
-                ) => receivedReferences.Add(sendersReference)
+                ) => received.Add((sendersReference, replyAddress))
             )
             .ReturnsAsync(TestHelpers.GetFiksIOMessageResponse());
 
@@ -92,134 +129,21 @@ public class FiksArkivServiceTaskTest
             services.AddSingleton(host.Object);
         });
 
-        Guid laterWorkflowStepId = Guid.Parse("76aec9b6-ea01-41ed-bad2-828cdf7f2bb2");
-        await fixture.FiksArkivServiceTask.Execute(CreateContext(dataMutator.Object, _workflowStepId));
-        await fixture.FiksArkivServiceTask.Execute(CreateContext(dataMutator.Object, _workflowStepId));
-        await fixture.FiksArkivServiceTask.Execute(CreateContext(dataMutator.Object, laterWorkflowStepId));
+        Guid laterMailboxId = Guid.Parse("76aec9b6-ea01-41ed-bad2-828cdf7f2bb2");
+        Guid laterStepId = Guid.Parse("2b0e0f8c-24a1-4d6a-9d3e-6a3b2f1c0d97");
+        var send = SendStage(fixture);
+        await send(CreateSendContext(dataMutator.Object));
+        await send(CreateSendContext(dataMutator.Object));
+        await send(CreateSendContext(dataMutator.Object, stepId: laterStepId, mailboxId: laterMailboxId));
 
-        Assert.Equal([_workflowStepId, _workflowStepId, laterWorkflowStepId], receivedReferences);
-    }
-
-    [Fact]
-    public async Task Execute_WithRealHost_SameStepRetryUsesSameGuid_DifferentStepUsesDifferentGuid()
-    {
-        Guid recipientAccount = Guid.Parse("120ec76a-c73b-43f7-957b-1450422c32b3");
-        Guid laterWorkflowStepId = Guid.Parse("76aec9b6-ea01-41ed-bad2-828cdf7f2bb2");
-        var settings = new FiksArkivSettings
-        {
-            Receipt = new FiksArkivReceiptSettings
-            {
-                ArchiveRecord = new FiksArkivDataTypeSettings { DataType = "archive-record-type" },
-                ConfirmationRecord = new FiksArkivDataTypeSettings { DataType = "confirmation-record-type" },
-            },
-            Recipient = new FiksArkivRecipientSettings
-            {
-                FiksAccount = new FiksArkivBindableValue<Guid?> { Value = recipientAccount },
-                Identifier = new FiksArkivBindableValue<string> { Value = "recipient-id" },
-                Name = new FiksArkivBindableValue<string> { Value = "Recipient Name" },
-                OrganizationNumber = new FiksArkivBindableValue<string> { Value = "123456789" },
-            },
-            Documents = new FiksArkivDocumentSettings
-            {
-                PrimaryDocument = new FiksArkivDataTypeSettings
-                {
-                    DataType = "primary-document",
-                    Filename = "primary.pdf",
-                },
-                Attachments = [],
-            },
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
-        };
-        var primaryDocument = new DataElement
-        {
-            Id = "1d8728dd-35cb-4d09-8e45-e3dbb3b37ae7",
-            DataType = "primary-document",
-            ContentType = "application/pdf",
-            Filename = "primary.pdf",
-        };
-        var instance = CreateInstance();
-        instance.AppId = "ttd/unit-testing";
-        instance.InstanceOwner = new InstanceOwner { PartyId = "12345" };
-        instance.Data = [primaryDocument];
-        var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
-        var fiksIOClient = new Mock<IFiksIOClient>(MockBehavior.Strict);
-        var sentReferences = new List<Guid>();
-
-        dataMutator.Setup(x => x.Instance).Returns(instance);
-        dataMutator.Setup(x => x.TaskId).Returns("Task_1");
-        dataMutator.Setup(x => x.Language).Returns((string?)null);
-        dataMutator.Setup(x => x.GetBinaryData(primaryDocument)).ReturnsAsync("primary-data"u8.ToArray());
-        dataMutator
-            .Setup(x =>
-                x.AddBinaryDataElement(
-                    "archive-record-type",
-                    "application/xml",
-                    "archive-record-type.xml",
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    "Task_1",
-                    It.IsAny<List<KeyValueEntry>?>()
-                )
-            )
-            .Returns((BinaryDataChange)null!);
-        fiksIOClient
-            .Setup(x => x.SendMessage(It.IsAny<FiksIOMessageRequest>(), It.IsAny<CancellationToken>()))
-            .Callback(
-                (FiksIOMessageRequest request, CancellationToken _) => sentReferences.Add(request.SendersReference)
-            )
-            .ReturnsAsync(TestHelpers.GetFiksIOMessageResponse());
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("ComposedFiksArkivSettings");
-                services.AddSingleton(fiksIOClient.Object);
-            },
-            [("ComposedFiksArkivSettings", settings)],
-            useDefaultFiksArkivSettings: false
-        );
-        fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
-                new ApplicationMetadata("ttd/unit-testing")
-                {
-                    Title = new Dictionary<string, string?> { ["nb"] = "Unit testing" },
-                }
-            );
-        fixture
-            .AuthenticationContextMock.Setup(x => x.Current)
-            .Returns(TestAuthentication.GetServiceOwnerAuthentication());
-        fixture.PartyClientMock.Setup(x => x.GetParty(12345, null)).ReturnsAsync((Party?)null);
-        fixture
-            .LayoutStateInitializerMock.Setup(x => x.Init(dataMutator.Object, "Task_1", null, null))
-            .ReturnsAsync(
-                new LayoutEvaluatorState(
-                    dataMutator.Object,
-                    null,
-                    fixture.TranslationServiceMock.Object,
-                    new FrontEndSettings()
-                )
-            );
-
-        ServiceTaskResult[] results =
-        [
-            await fixture.FiksArkivServiceTask.Execute(CreateContext(dataMutator.Object, _workflowStepId)),
-            await fixture.FiksArkivServiceTask.Execute(CreateContext(dataMutator.Object, _workflowStepId)),
-            await fixture.FiksArkivServiceTask.Execute(CreateContext(dataMutator.Object, laterWorkflowStepId)),
-        ];
-
-        Assert.All(
-            results,
-            result => Assert.False(result is ServiceTaskFailedResult, (result as ServiceTaskFailedResult)?.ErrorMessage)
-        );
-        Assert.Equal([_workflowStepId, _workflowStepId, laterWorkflowStepId], sentReferences);
-        fiksIOClient.Verify(
-            x => x.SendMessage(It.IsAny<FiksIOMessageRequest>(), It.IsAny<CancellationToken>()),
-            Times.Exactly(3)
+        Assert.Equal(
+            [(_workflowStepId, _mailboxId), (_workflowStepId, _mailboxId), (laterStepId, laterMailboxId)],
+            received
         );
     }
 
     [Fact]
-    public async Task Execute_InvalidWorkflowIdentity_ReturnsPermanentFailureWithoutHostOrMutatorSideEffects()
+    public async Task SendToArchive_WithoutAStepId_ReturnsPermanentFailureWithoutHostOrMutatorSideEffects()
     {
         var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
         var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
@@ -228,89 +152,797 @@ public class FiksArkivServiceTaskTest
             services.AddFiksArkiv();
             services.AddSingleton(host.Object);
         });
-        ServiceTaskResult result = await fixture.FiksArkivServiceTask.Execute(
-            CreateContext(dataMutator.Object, Guid.Empty)
+
+        ServiceTaskStageResult result = await SendStage(fixture)(
+            CreateSendContext(dataMutator.Object, stepId: Guid.Empty)
         );
 
-        var failedResult = Assert.IsType<ServiceTaskFailedResult>(result);
-        Assert.Equal(FailureKind.Permanent, failedResult.Kind);
-        Assert.Contains("did not supply a step id", failedResult.ErrorMessage);
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("did not supply a step id", failed.ErrorMessage);
         host.VerifyNoOtherCalls();
         dataMutator.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Execute_FailedSend_WhenMoveToNextTask_ReturnsSuccessWithAction()
+    public async Task SendToArchive_WithoutAMailboxAddress_ReturnsPermanentFailureWithoutHostOrMutatorSideEffects()
+    {
+        var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+        var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
+        await using var fixture = TestFixture.Create(services =>
+        {
+            services.AddFiksArkiv();
+            services.AddSingleton(host.Object);
+        });
+
+        ServiceTaskStageResult result = await SendStage(fixture)(
+            CreateSendContext(dataMutator.Object, mailboxId: Guid.Empty)
+        );
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("has no address", failed.ErrorMessage);
+        host.VerifyNoOtherCalls();
+        dataMutator.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task SendToArchive_OutsideItsOwnStage_CannotReadAMailboxAtAll()
+    {
+        // The mailbox is readable in the declaring stage and nowhere else, so a send that ran anywhere
+        // else could not address itself — which is the platform guarantee this task's reply routing
+        // rests on. Pinned here because nothing else in this suite would notice it moving.
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture();
+
+        ServiceTaskContext conclusionContext = CreateReplyContext(dataMutator.Object);
+
+        Assert.Throws<InvalidOperationException>(() => conclusionContext.Mailbox);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendToArchive_FailedSend_ReturnsRetryableFailureRegardlessOfMoveToNextTask(bool moveToNextTask)
+    {
+        // MoveToNextTask does not divert a failure to hand the message over: a stage cannot advance the
+        // process, and advancing past a send that never happened would leave nothing waiting for a
+        // receipt that can never arrive. The setting still governs how an error *from the archive*
+        // concludes the task (see HandleArchiveReply_ErrorMessage_* below).
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+        };
+        var instance = CreateInstance();
+        var dataMutator = InstanceDataMutatorMockFactory(instance);
+        var host = FailingHostMockFactory(new TimeoutException("Fiks unavailable"));
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(host.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        ServiceTaskStageResult result = await SendStage(fixture)(CreateSendContext(dataMutator.Object));
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Equal(FailureKind.Retryable, failed.Kind);
+        Assert.Equal("Fiks unavailable", failed.ErrorMessage);
+        host.Verify();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendToArchive_CutOffAtTheExecutionDeadline_FailsRatherThanReportingSuccess(bool moveToNextTask)
+    {
+        // The engine cancels the attempt's token at its execution deadline. Such an attempt may or may
+        // not have shipped the record, so it must never be reported as a conclusion: swept into the
+        // generic catch it would have been classified as an archiving failure, and — before the setting
+        // was narrowed — advanced the process with nothing archived.
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
+        };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var host = FailingHostMockFactory(new OperationCanceledException("attempt deadline"));
+        await using var fixture = TestFixture.Create(
+            services =>
+            {
+                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                services.AddSingleton(host.Object);
+            },
+            [("CustomFiksArkivSettings", settings)]
+        );
+
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+
+        ServiceTaskStageResult result = await SendStage(fixture)(
+            CreateSendContext(dataMutator.Object, cancellationToken: cancelled.Token)
+        );
+
+        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        Assert.Equal(FailureKind.Retryable, failed.Kind);
+        Assert.Contains("cut off at this attempt's execution deadline", failed.ErrorMessage);
+        host.Verify();
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Reply handler — the closing signal
+    // -------------------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData(MailboxClosedReason.Deadline, "stayed open for 7 days")]
+    [InlineData(MailboxClosedReason.Request, "was closed before a receipt arrived")]
+    public async Task HandleArchiveReply_ClosingSignal_FailsInItsOwnWords(
+        MailboxClosedReason reason,
+        string expectedWording
+    )
+    {
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);
+        await using var fixture = CreateFixture(responseHandler: responseHandler);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, closedReason: reason)
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("never confirmed the record", failed.ErrorMessage);
+        Assert.Contains(expectedWording, failed.ErrorMessage);
+        Assert.Contains("manual follow-up", failed.ErrorMessage);
+        // Nothing is recorded on this path, so a permanent verdict (which, from a reply handler, does
+        // save) has nothing to save — and there is no message to hand to the app's response handler.
+        dataMutator.VerifyNoOtherCalls();
+        responseHandler.VerifyNoOtherCalls();
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Reply handler — a message was delivered
+    // -------------------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task HandleArchiveReply_Acknowledgement_CompletesAndKeepsTheMailboxOpen()
+    {
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var loggerMock = new Mock<ILogger<FiksArkivServiceTask>>();
+        await using var fixture = CreateFixture(logger: loggerMock);
+        ServiceTaskReply reply = ReplyFactory(
+            FiksArkivMeldingtype.ArkivmeldingOpprettMottatt,
+            payloads: [("mottatt.xml", "<mottatt />")]
+        );
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: reply)
+        );
+
+        Assert.IsType<ServiceTaskAwaitNextReplyResult>(result);
+        // A known acknowledgement is ordinary progress, not something to alert on.
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Information, "has received the record", loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_UnknownMessageType_CompletesAndKeepsTheMailboxOpen()
+    {
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var loggerMock = new Mock<ILogger<FiksArkivServiceTask>>();
+        await using var fixture = CreateFixture(logger: loggerMock);
+        ServiceTaskReply reply = ReplyFactory("no.ks.fiks.arkiv.v1.something.we.do.not.model");
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: reply)
+        );
+
+        Assert.IsType<ServiceTaskAwaitNextReplyResult>(result);
+        // A message type the task does not model cannot conclude the exchange and still spends one of
+        // the mailbox's positions, so it is worth an operator's attention — unlike a known
+        // acknowledgement.
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Warning, "is not a type this task models", loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_Receipt_SavesTheConfirmationRecordAndConcludes()
+    {
+        var existingReceipt = new DataElement
+        {
+            Id = "05c4b1cf-9a4e-4a7c-9b3f-1f2e3d4c5b6a",
+            DataType = "fiks-receipt",
+            Filename = "fiks-receipt.xml",
+        };
+        var instance = CreateInstance();
+        instance.Data = [existingReceipt];
+        var dataMutator = InstanceDataMutatorMockFactory(instance);
+        ReadOnlyMemory<byte>? savedReceipt = null;
+        dataMutator.Setup(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>())).Verifiable(Times.Once);
+        dataMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    "fiks-receipt",
+                    "application/xml",
+                    "fiks-receipt.xml",
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    "Task_1",
+                    It.IsAny<List<KeyValueEntry>?>()
+                )
+            )
+            .Callback(
+                (string _, string _, string _, ReadOnlyMemory<byte> data, string? _, List<KeyValueEntry>? _) =>
+                    savedReceipt = data
+            )
+            .Returns((BinaryDataChange)null!)
+            .Verifiable(Times.Once);
+
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        // The default settings mark the instance complete, which the receipt path does before concluding.
+        instanceClient
+            .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        await using var fixture = CreateFixture(instanceClient: instanceClient);
+
+        ServiceTaskReply reply = ReceiptReplyFactory(SuccessfulArchiveReceipt());
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: reply)
+        );
+
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("fiks-arkiv-success", success.Action);
+        dataMutator.Verify();
+        instanceClient.Verify();
+        Assert.NotNull(savedReceipt);
+        Assert.Contains("arkivmeldingKvittering", Encoding.UTF8.GetString(savedReceipt.Value.Span));
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_Receipt_WithMarkInstanceComplete_MarksBeforeConcluding()
+    {
+        var settings = SettingsWithReceipt(
+            successHandling: new FiksArkivSuccessHandlingSettings
+            {
+                MoveToNextTask = true,
+                Action = "confirm",
+                MarkInstanceComplete = true,
+            }
+        );
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        AllowAnyBinaryDataElement(dataMutator);
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        await using var fixture = CreateFixture(settings, instanceClient: instanceClient);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptReplyFactory(SuccessfulArchiveReceipt()))
+        );
+
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.Equal("confirm", success.Action);
+        instanceClient.Verify();
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_Receipt_WhenMoveToNextTaskIsDisabled_ConcludesWithoutAutoAdvance()
+    {
+        var settings = SettingsWithReceipt(
+            successHandling: new FiksArkivSuccessHandlingSettings { MoveToNextTask = false }
+        );
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        AllowAnyBinaryDataElement(dataMutator);
+
+        await using var fixture = CreateFixture(settings);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptReplyFactory(SuccessfulArchiveReceipt()))
+        );
+
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_Receipt_WithoutSuccessHandlingConfigured_AdvancesWithNoAction()
+    {
+        // Carried over from the response handler's own suite: an app that configures no successHandling
+        // still expects the task to complete and the process to move on, with the BPMN's default
+        // transition rather than a named action.
+        var settings = SettingsWithReceipt(successHandling: null);
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        AllowAnyBinaryDataElement(dataMutator);
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        await using var fixture = CreateFixture(settings, instanceClient: instanceClient);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptReplyFactory(SuccessfulArchiveReceipt()))
+        );
+
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Null(success.Action);
+        // No successHandling means no completion confirmation either.
+        instanceClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_Receipt_MoveToNextTaskDisabledButMarkComplete_MarksAndStaysPut()
+    {
+        // The fourth corner of the old 2x2: the two successHandling switches are independent.
+        var settings = SettingsWithReceipt(
+            successHandling: new FiksArkivSuccessHandlingSettings
+            {
+                MoveToNextTask = false,
+                MarkInstanceComplete = true,
+            }
+        );
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        AllowAnyBinaryDataElement(dataMutator);
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+        await using var fixture = CreateFixture(settings, instanceClient: instanceClient);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptReplyFactory(SuccessfulArchiveReceipt()))
+        );
+
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+        instanceClient.Verify();
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_ErrorMessage_WithoutErrorHandlingConfigured_FailsPermanently()
+    {
+        // Carried over from the response handler's own suite: with no errorHandling configured the
+        // archive's rejection must not quietly advance the process.
+        var settings = new FiksArkivSettings { ErrorHandling = null };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture(settings);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReplyFactory(FiksArkivMeldingtype.Ikkefunnet))
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("rejected the record", failed.ErrorMessage);
+    }
+
+    [Theory]
+    [InlineData(FiksArkivMeldingtype.Ugyldigforespørsel)]
+    [InlineData(FiksArkivMeldingtype.Serverfeil)]
+    [InlineData(FiksArkivMeldingtype.Ikkefunnet)]
+    public async Task HandleArchiveReply_ErrorMessage_WhenMoveToNextTask_ConcludesDownTheConfiguredPath(
+        string messageType
+    )
     {
         var settings = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "reject" },
         };
-        var instance = CreateInstance();
-        var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = FailingHostMockFactory();
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(host.Object);
-            },
-            [("CustomFiksArkivSettings", settings)]
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture(settings);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReplyFactory(messageType))
         );
 
-        ServiceTaskResult result = await fixture.FiksArkivServiceTask.Execute(
-            CreateContext(dataMutator.Object, _workflowStepId)
-        );
-
-        var successResult = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(successResult.AutoAdvanceProcess);
-        Assert.Equal("reject", successResult.Action);
-        host.Verify();
+        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(success.AutoAdvanceProcess);
+        Assert.Equal("reject", success.Action);
     }
 
     [Fact]
-    public async Task Execute_FailedSend_WhenNotMoveToNextTask_ReturnsRetryableFailure()
+    public async Task HandleArchiveReply_ErrorMessage_WhenNotMoveToNextTask_FailsPermanently()
     {
         var settings = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
         };
-        var instance = CreateInstance();
-        var dataMutator = InstanceDataMutatorMockFactory(instance);
-        var host = FailingHostMockFactory();
-        await using var fixture = TestFixture.Create(
-            services =>
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture(settings);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReplyFactory(FiksArkivMeldingtype.Serverfeil))
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("rejected the record", failed.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_ReceiptReportingFailure_IsTreatedAsAnError()
+    {
+        // A kvittering that carries MappeFeilet/RegistreringFeilet is an error, not a receipt: it
+        // must not be saved as a confirmation record (the strict mutator mock proves nothing is).
+        var settings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
+        };
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture(settings);
+
+        var failedReceipt = new ArkivmeldingKvittering
+        {
+            MappeFeilet = new Ugyldigforespoersel { Feilmelding = "Saksmappen kunne ikke opprettes" },
+        };
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptReplyFactory(failedReceipt))
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_ReceiptWithoutAReadablePayload_FailsRatherThanAdvancingWithoutEvidence()
+    {
+        // The confirmation record is the artifact this task exists to produce. Advancing without one
+        // (which is what the pre-pipeline code did, behind a LogWarning) leaves the process asserting
+        // an archiving outcome it cannot show. The unreadable message stays available in the mailbox's
+        // record of the delivery, so failing loses nothing and names the problem.
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture();
+        ServiceTaskReply reply = ReplyFactory(
+            FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+            payloads: [("arkivmelding-kvittering.xml", "not xml at all")]
+        );
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: reply)
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("could not be read as an archive receipt", failed.ErrorMessage);
+        // The strict mutator mock proves nothing was staged: the message is read (which needs the
+        // instance) and nothing else happens.
+        dataMutator.VerifyGet(x => x.Instance, Times.AtLeastOnce());
+        dataMutator.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_ReceiptWithNoPayloadsAtAll_FailsTheSameWay()
+    {
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture();
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(
+                dataMutator.Object,
+                reply: ReplyFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering)
+            )
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_UnreadableDeliveredMessage_FailsPermanently()
+    {
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        await using var fixture = CreateFixture();
+        ServiceTaskReply reply = new()
+        {
+            IdempotencyKey = "fiks-io-message-id",
+            Payload = "this is not the JSON the subscriber delivers",
+            AcceptedAt = _executionReferenceTime,
+            Position = 0,
+        };
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: reply)
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("could not be read", failed.ErrorMessage);
+        Assert.Contains("fiks-io-message-id", failed.ErrorMessage);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Reply handler — the app's own response handler
+    // -------------------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt, false)]
+    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering, false)]
+    [InlineData("no.ks.fiks.arkiv.v1.something.we.do.not.model", false)]
+    [InlineData(FiksArkivMeldingtype.Serverfeil, true)]
+    [InlineData(FiksArkivMeldingtype.Ikkefunnet, true)]
+    [InlineData(FiksArkivMeldingtype.Ugyldigforespørsel, true)]
+    public async Task HandleArchiveReply_CallsTheResponseHandlerForEveryMessage(string messageType, bool expectError)
+    {
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        AllowAnyBinaryDataElement(dataMutator);
+        var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);
+        FiksIOReceivedMessage? seenMessage = null;
+        string? seenMethod = null;
+        responseHandler
+            .Setup(x =>
+                x.HandleSuccess(
+                    It.IsAny<Instance>(),
+                    It.IsAny<FiksIOReceivedMessage>(),
+                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    Instance _,
+                    FiksIOReceivedMessage message,
+                    IReadOnlyList<FiksArkivReceivedMessagePayload>? _,
+                    CancellationToken _
+                ) =>
+                {
+                    seenMessage = message;
+                    seenMethod = nameof(IFiksArkivResponseHandler.HandleSuccess);
+                }
+            )
+            .Returns(Task.CompletedTask);
+        responseHandler
+            .Setup(x =>
+                x.HandleError(
+                    It.IsAny<Instance>(),
+                    It.IsAny<FiksIOReceivedMessage>(),
+                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    Instance _,
+                    FiksIOReceivedMessage message,
+                    IReadOnlyList<FiksArkivReceivedMessagePayload>? _,
+                    CancellationToken _
+                ) =>
+                {
+                    seenMessage = message;
+                    seenMethod = nameof(IFiksArkivResponseHandler.HandleError);
+                }
+            )
+            .Returns(Task.CompletedTask);
+
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        instanceClient
+            .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        await using var fixture = CreateFixture(responseHandler: responseHandler, instanceClient: instanceClient);
+
+        await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptOrPlainReply(messageType))
+        );
+
+        Assert.Equal(
+            expectError
+                ? nameof(IFiksArkivResponseHandler.HandleError)
+                : nameof(IFiksArkivResponseHandler.HandleSuccess),
+            seenMethod
+        );
+        Assert.NotNull(seenMessage);
+        Assert.Equal(messageType, seenMessage.Message.MessageType);
+        Assert.Equal(_deliveredMessageId, seenMessage.Message.MessageId);
+        // The handler runs where the Fiks IO connection is long gone, so the message it is handed says
+        // so rather than pretending it can still answer the archive.
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = seenMessage.Message.GetDecryptedStream();
+        });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => seenMessage.Responder.Ack());
+    }
+
+    [Fact]
+    public async Task HandleArchiveReply_AFailingResponseHandler_IsRetryableAndConcludesNothing()
+    {
+        // The message is frozen at its position, so a retry hands the same message to the same handler
+        // — which is what a transient failure of the app's own dependency needs. Concluding the task on
+        // a decision the app never got to make would be the wrong answer, so the receipt is not saved
+        // and the process is not advanced (the strict mutator and client mocks prove both).
+        var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
+        var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
+        var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);
+        responseHandler
+            .Setup(x =>
+                x.HandleSuccess(
+                    It.IsAny<Instance>(),
+                    It.IsAny<FiksIOReceivedMessage>(),
+                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new InvalidOperationException("the app's notification service is down"));
+
+        await using var fixture = CreateFixture(responseHandler: responseHandler, instanceClient: instanceClient);
+
+        ServiceTaskResult result = await fixture.FiksArkivPipeline.Final(
+            CreateReplyContext(dataMutator.Object, reply: ReceiptReplyFactory(SuccessfulArchiveReceipt()))
+        );
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Retryable, failed.Kind);
+        Assert.Contains(nameof(IFiksArkivResponseHandler), failed.ErrorMessage);
+        Assert.Contains("the app's notification service is down", failed.ErrorMessage);
+        dataMutator.VerifyGet(x => x.Instance, Times.AtLeastOnce());
+        dataMutator.VerifyNoOtherCalls();
+        instanceClient.VerifyNoOtherCalls();
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------------------------
+
+    private static Func<ServiceTaskContext, Task<ServiceTaskStageResult>> SendStage(TestFixture fixture) =>
+        fixture.FiksArkivPipeline.Stages.Single(x => x.Name == "SendToArchive").Work;
+
+    private static FiksArkivSettings SettingsWithReceipt(FiksArkivSuccessHandlingSettings? successHandling) =>
+        new()
+        {
+            Receipt = new FiksArkivReceiptSettings
             {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(host.Object);
+                ArchiveRecord = new FiksArkivDataTypeSettings { DataType = "archive-record-type" },
+                ConfirmationRecord = new FiksArkivDataTypeSettings { DataType = "confirmation-record-type" },
             },
-            [("CustomFiksArkivSettings", settings)]
+            SuccessHandling = successHandling,
+        };
+
+    private static TestFixture CreateFixture(
+        FiksArkivSettings? settings = null,
+        Mock<ILogger<FiksArkivServiceTask>>? logger = null,
+        Mock<IFiksArkivResponseHandler>? responseHandler = null,
+        Mock<IFiksArkivInstanceClient>? instanceClient = null
+    )
+    {
+        void Configure(IServiceCollection services)
+        {
+            services.AddSingleton(new Mock<IFiksArkivHost>(MockBehavior.Strict).Object);
+            if (logger is not null)
+                services.AddSingleton(logger.Object);
+            if (responseHandler is not null)
+                services.AddSingleton(responseHandler.Object);
+            if (instanceClient is not null)
+                services.AddSingleton(instanceClient.Object);
+        }
+
+        return settings is null
+            ? TestFixture.Create(services =>
+            {
+                services.AddFiksArkiv();
+                Configure(services);
+            })
+            : TestFixture.Create(
+                services =>
+                {
+                    services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
+                    Configure(services);
+                },
+                [("CustomFiksArkivSettings", settings)]
+            );
+    }
+
+    private static void AllowAnyBinaryDataElement(Mock<IInstanceDataMutator> dataMutator) =>
+        dataMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                )
+            )
+            .Returns((BinaryDataChange)null!);
+
+    private static ArkivmeldingKvittering SuccessfulArchiveReceipt() => new();
+
+    private static ServiceTaskReply ReceiptOrPlainReply(string messageType) =>
+        messageType == FiksArkivMeldingtype.ArkivmeldingOpprettKvittering
+            ? ReceiptReplyFactory(SuccessfulArchiveReceipt())
+            : ReplyFactory(messageType);
+
+    private static ServiceTaskReply ReceiptReplyFactory(ArkivmeldingKvittering receipt) =>
+        ReplyFactory(
+            FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+            payloads: [("arkivmelding-kvittering.xml", Encoding.UTF8.GetString(receipt.SerializeXml().Span))]
         );
 
-        ServiceTaskResult result = await fixture.FiksArkivServiceTask.Execute(
-            CreateContext(dataMutator.Object, _workflowStepId)
-        );
+    private static readonly Guid _deliveredMessageId = Guid.Parse("18b6b0b3-9a4e-4b2a-9e2f-9b1a5e2d4c11");
 
-        var failedResult = Assert.IsType<ServiceTaskFailedResult>(result);
-        Assert.Equal(FailureKind.Retryable, failedResult.Kind);
-        Assert.Equal("Fiks unavailable", failedResult.ErrorMessage);
-        host.Verify();
+    private static ServiceTaskReply ReplyFactory(
+        string messageType,
+        (string Filename, string Content)[]? payloads = null
+    )
+    {
+        var stored = new StoredFiksArkivMessage
+        {
+            MessageId = _deliveredMessageId,
+            MessageType = messageType,
+            CorrelationId = _mailboxId.ToString(),
+            Payloads =
+            [
+                .. (payloads ?? []).Select(x => new StoredFiksArkivPayload
+                {
+                    Filename = x.Filename,
+                    Content = x.Content,
+                }),
+            ],
+        };
+
+        return new ServiceTaskReply
+        {
+            IdempotencyKey = _deliveredMessageId.ToString(),
+            Payload = JsonSerializer.Serialize(stored),
+            AcceptedAt = _executionReferenceTime,
+            Position = 0,
+        };
     }
 
     private static Instance CreateInstance() =>
         new()
         {
             Id = "12345/27fde586-4078-4c16-8c5f-ec406f1b17de",
+            InstanceOwner = new InstanceOwner { PartyId = "12345" },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
 
-    private static ServiceTaskContext CreateContext(IInstanceDataMutator dataMutator, Guid workflowStepId) =>
+    private static ServiceTaskContext CreateSendContext(
+        IInstanceDataMutator dataMutator,
+        Guid? stepId = null,
+        Guid? mailboxId = null,
+        CancellationToken cancellationToken = default
+    ) =>
         new()
         {
             InstanceDataMutator = dataMutator,
             WorkflowId = _workflowId,
-            StepId = workflowStepId,
+            StepId = stepId ?? _workflowStepId,
             ExecutionReferenceTime = _executionReferenceTime,
+            MailboxOrDefault = new ServiceTaskMailbox
+            {
+                Id = mailboxId ?? _mailboxId,
+                Deadline = _executionReferenceTime + TimeSpan.FromDays(7),
+            },
+            ReplyUnavailableReason = "This execution is a stage, not the mailbox's reply handler.",
+            CancellationToken = cancellationToken,
+        };
+
+    private static ServiceTaskContext CreateReplyContext(
+        IInstanceDataMutator dataMutator,
+        ServiceTaskReply? reply = null,
+        MailboxClosedReason? closedReason = null,
+        Guid? stepId = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        new()
+        {
+            InstanceDataMutator = dataMutator,
+            WorkflowId = _workflowId,
+            StepId = stepId ?? _workflowStepId,
+            ExecutionReferenceTime = _executionReferenceTime,
+            MailboxUnavailableReason = "This execution is the reply handler, not the stage that opens the mailbox.",
+            ReplyOrDefault = reply,
+            MailboxClosedReasonOrDefault = reply is null ? closedReason ?? MailboxClosedReason.Deadline : null,
+            CancellationToken = cancellationToken,
         };
 
     private static Mock<IInstanceDataMutator> InstanceDataMutatorMockFactory(Instance instance)
@@ -320,7 +952,7 @@ public class FiksArkivServiceTaskTest
         return dataMutator;
     }
 
-    private static Mock<IFiksArkivHost> FailingHostMockFactory()
+    private static Mock<IFiksArkivHost> FailingHostMockFactory(Exception exception)
     {
         var host = new Mock<IFiksArkivHost>(MockBehavior.Strict);
         host.Setup(x =>
@@ -328,12 +960,13 @@ public class FiksArkivServiceTaskTest
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<DateTimeOffset>(),
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(new TimeoutException("Fiks unavailable"))
+            .ThrowsAsync(exception)
             .Verifiable(Times.Once);
         return host;
     }

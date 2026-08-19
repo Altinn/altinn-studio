@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
@@ -6,6 +7,7 @@ using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -421,40 +423,36 @@ public class FiksArkivHostTest
     }
 
     [Theory]
-    [InlineData(FiksArkivMeldingtype.Ugyldigforespørsel, MessageResponseType.Error)]
-    [InlineData(FiksArkivMeldingtype.Serverfeil, MessageResponseType.Error)]
-    [InlineData(FiksArkivMeldingtype.Ikkefunnet, MessageResponseType.Error)]
-    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt, MessageResponseType.Success)]
-    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering, MessageResponseType.Success)]
-    public async Task ExecuteAsync_RegistersMessageReceivedHandler_ExecutesMessageHandler(
-        string messageType,
-        MessageResponseType messageResponseType
+    [InlineData(FiksArkivMeldingtype.Ugyldigforespørsel)]
+    [InlineData(FiksArkivMeldingtype.Serverfeil)]
+    [InlineData(FiksArkivMeldingtype.Ikkefunnet)]
+    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt)]
+    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering)]
+    public async Task ExecuteAsync_RegistersMessageReceivedHandler_ForwardsEveryMessageIntoTheMailbox(
+        string messageType
     )
     {
-        // Arrange
+        // The subscriber classifies nothing: an error, an acknowledgement and the receipt are all
+        // forwarded the same way, because what a message means is the waiting task's business and the
+        // subscriber has no process state to decide it against.
         var fiksIOClientMock = new Mock<IFiksIOClient>();
-        var fiksArkivResponseHandlerMock = new Mock<IFiksArkivResponseHandler>();
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>();
-        var mottattMeldingMock = new Mock<IMottattMelding>();
-        var svarSenderMock = new Mock<ISvarSender>();
+        var forwarder = RecordingForwarder(out var forwarded);
         var messageId = Guid.NewGuid();
-        var payload = new FiksIOReceivedMessage(
-            new MottattMeldingArgs(mottattMeldingMock.Object, svarSenderMock.Object)
+        var mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
+        var svarSenderMock = new Mock<ISvarSender>();
+        FiksIOReceivedMessage message = ReceivedMessage(
+            messageType,
+            messageId,
+            mailboxId.ToString().ToUrlSafeBase64(),
+            svarSenderMock
         );
-        string? invokedMessageHandler = null;
         MessageReceivedCallback? messageReceivedCallback = null;
-        FiksIOReceivedMessage? forwardedMessage = null;
-        IReadOnlyList<FiksArkivReceivedMessagePayload>? forwardedPayloads = null;
-        Instance? forwardedInstance = null;
-        Instance sourceInstance = new() { Id = $"12345/{Guid.NewGuid()}", AppId = "ttd/unit-testing" };
-        InstanceIdentifier? receivedInstanceIdentifier = null;
 
         await using var fixture = TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
             services.AddSingleton(fiksIOClientMock.Object);
-            services.AddSingleton(fiksArkivResponseHandlerMock.Object);
-            services.AddSingleton(fiksArkivInstanceClientMock.Object);
+            services.AddSingleton(forwarder.Object);
         });
 
         fiksIOClientMock
@@ -467,98 +465,113 @@ public class FiksArkivHostTest
                 }
             )
             .Verifiable(Times.Once);
-        fiksArkivResponseHandlerMock
-            .Setup(x =>
-                x.HandleError(
-                    It.IsAny<Instance>(),
-                    It.IsAny<FiksIOReceivedMessage>(),
-                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Callback(
-                (
-                    Instance instance,
-                    FiksIOReceivedMessage message,
-                    IReadOnlyList<FiksArkivReceivedMessagePayload> payloads,
-                    CancellationToken _
-                ) =>
-                {
-                    forwardedInstance = instance;
-                    forwardedMessage = message;
-                    forwardedPayloads = payloads;
-                    invokedMessageHandler = nameof(IFiksArkivResponseHandler.HandleError);
-                }
-            );
-        fiksArkivResponseHandlerMock
-            .Setup(x =>
-                x.HandleSuccess(
-                    It.IsAny<Instance>(),
-                    It.IsAny<FiksIOReceivedMessage>(),
-                    It.IsAny<IReadOnlyList<FiksArkivReceivedMessagePayload>>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Callback(
-                (
-                    Instance instance,
-                    FiksIOReceivedMessage message,
-                    IReadOnlyList<FiksArkivReceivedMessagePayload> payloads,
-                    CancellationToken _
-                ) =>
-                {
-                    forwardedInstance = instance;
-                    forwardedMessage = message;
-                    forwardedPayloads = payloads;
-                    invokedMessageHandler = nameof(IFiksArkivResponseHandler.HandleSuccess);
-                }
-            );
-        fiksArkivInstanceClientMock
-            .Setup(x => x.GetInstance(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                (InstanceIdentifier instanceIdentifier, CancellationToken _) =>
-                {
-                    receivedInstanceIdentifier = instanceIdentifier;
-                    return sourceInstance;
-                }
-            )
-            .Verifiable(Times.Once);
 
-        mottattMeldingMock.Setup(x => x.MeldingType).Returns(messageType);
-        mottattMeldingMock.Setup(x => x.HasPayload).Returns(true);
-        mottattMeldingMock.Setup(x => x.DecryptedPayloads).ReturnsAsync([new StreamPayload(Stream.Null, "dummy.txt")]);
-        mottattMeldingMock.Setup(x => x.MeldingId).Returns(messageId);
-        mottattMeldingMock
-            .Setup(x => x.KlientKorrelasjonsId)
-            .Returns(fixture.FiksArkivConfigResolver.GetCorrelationId(sourceInstance).ToUrlSafeBase64());
-
-        svarSenderMock.Setup(x => x.AckAsync()).Verifiable(Times.Once);
-
-        // Act
         await fixture.FiksArkivHost.StartAsync(CancellationToken.None);
         await WaitUntil(() => messageReceivedCallback is not null);
-        await messageReceivedCallback!.Invoke(payload);
+        await messageReceivedCallback!.Invoke(message);
 
-        // Assert
-        Assert.NotNull(forwardedMessage);
-        Assert.NotNull(forwardedInstance);
-        Assert.NotNull(receivedInstanceIdentifier);
-        Assert.Equal(sourceInstance, forwardedInstance);
-        Assert.Equal(messageId, forwardedMessage.Message.MessageId);
-        Assert.Equivalent(new InstanceIdentifier(sourceInstance).InstanceGuid, receivedInstanceIdentifier.InstanceGuid);
-        Assert.Equal(messageType, forwardedMessage.Message.MessageType);
-        Assert.NotNull(forwardedPayloads);
-        Assert.Equal(
-            messageResponseType == MessageResponseType.Error
-                ? nameof(IFiksArkivResponseHandler.HandleError)
-                : nameof(IFiksArkivResponseHandler.HandleSuccess),
-            invokedMessageHandler
-        );
+        var delivery = Assert.Single(forwarded);
+        Assert.Equal(mailboxId, delivery.MailboxId);
+        Assert.Equal(fixture.FiksArkivServiceTask.Type, delivery.ServiceTaskType);
+        Assert.Equal(messageId.ToString(), delivery.IdempotencyKey);
+        var stored = JsonSerializer.Deserialize<StoredFiksArkivMessage>(delivery.Payload);
+        Assert.NotNull(stored);
+        Assert.Equal(messageType, stored.MessageType);
+        Assert.Equal(messageId, stored.MessageId);
+        Assert.Equal("dummy.txt", Assert.Single(stored.Payloads!).Filename);
 
         fiksIOClientMock.Verify();
-        fiksArkivInstanceClientMock.Verify();
-        svarSenderMock.Verify();
+        svarSenderMock.Verify(x => x.AckAsync(), Times.Once);
         svarSenderMock.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    // Not decodable at all — what another integration sharing this Fiks IO account routinely produces.
+    [InlineData("@@@")]
+    // Decodable, but not an address.
+    [InlineData("bm90LWEtZ3VpZA")]
+    // An address that addresses nothing.
+    [InlineData("MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw")]
+    public async Task IncomingMessageListener_WithoutAUsableReplyAddress_AcknowledgesWithoutForwarding(
+        string rawCorrelationId
+    )
+    {
+        var forwarder = RecordingForwarder(out var forwarded);
+        var loggerMock = new Mock<ILogger<FiksArkivHost>>();
+        var svarSenderMock = new Mock<ISvarSender>();
+        FiksIOReceivedMessage message = ReceivedMessage(
+            FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+            Guid.NewGuid(),
+            rawCorrelationId,
+            svarSenderMock
+        );
+
+        await using var fixture = TestFixture.Create(services =>
+        {
+            services.AddFiksArkiv();
+            services.AddSingleton(loggerMock.Object);
+            services.AddSingleton(forwarder.Object);
+        });
+
+        await fixture.FiksArkivHost.IncomingMessageListener(message);
+
+        Assert.Empty(forwarded);
+        svarSenderMock.Verify(x => x.AckAsync(), Times.Once);
+        svarSenderMock.Verify(x => x.NackWithRequeueAsync(), Times.Never);
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Error, "no usable correlation id", loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Theory]
+    // Nothing left the app and the next attempt can succeed.
+    [InlineData(ServiceTaskReplyForwardOutcome.EngineUnavailable, true)]
+    [InlineData(ServiceTaskReplyForwardOutcome.SigningUnavailable, true)]
+    // Settled: no amount of redelivery places this message anywhere, so requeuing only loops the queue.
+    [InlineData(ServiceTaskReplyForwardOutcome.Unroutable, false)]
+    [InlineData(ServiceTaskReplyForwardOutcome.Late, false)]
+    [InlineData(ServiceTaskReplyForwardOutcome.PayloadTooLarge, false)]
+    [InlineData(ServiceTaskReplyForwardOutcome.MailboxFull, false)]
+    [InlineData(ServiceTaskReplyForwardOutcome.Rejected, false)]
+    public async Task IncomingMessageListener_RedeliveryFollowsTheForwardingOutcome(
+        ServiceTaskReplyForwardOutcome outcome,
+        bool expectRedelivery
+    )
+    {
+        var mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
+        var forwarder = new Mock<IServiceTaskReplyForwarder>(MockBehavior.Strict);
+        forwarder
+            .Setup(x =>
+                x.ForwardReply(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(
+                new ServiceTaskReplyForwardException(outcome, mailboxId, "key", $"forwarding failed: {outcome}")
+            );
+        var svarSenderMock = new Mock<ISvarSender>();
+        FiksIOReceivedMessage message = ReceivedMessage(
+            FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+            Guid.NewGuid(),
+            mailboxId.ToString().ToUrlSafeBase64(),
+            svarSenderMock
+        );
+
+        await using var fixture = TestFixture.Create(services =>
+        {
+            services.AddFiksArkiv();
+            services.AddSingleton(forwarder.Object);
+        });
+
+        await fixture.FiksArkivHost.IncomingMessageListener(message);
+
+        svarSenderMock.Verify(x => x.NackWithRequeueAsync(), expectRedelivery ? Times.Once : Times.Never);
+        svarSenderMock.Verify(x => x.AckAsync(), expectRedelivery ? Times.Never : Times.Once);
     }
 
     [Theory]
@@ -568,15 +581,16 @@ public class FiksArkivHostTest
     [InlineData("Unknown", true)]
     public async Task MessageReceivedHandler_HandlesErrorIfThrown(string environment, bool shouldAck)
     {
-        // Arrange
-        var fiksArkivResponseHandlerMock = new Mock<IFiksArkivResponseHandler>();
+        // Nothing registered the forwarder, so resolving it throws something that is not a forwarding
+        // verdict — the unrecoverable class. It happens after the message has been read and logged,
+        // which is what makes both log assertions below meaningful.
         var loggerMock = new Mock<ILogger<FiksArkivHost>>();
         var svarSenderMock = new Mock<ISvarSender>();
-        var payload = new FiksIOReceivedMessage(
-            new MottattMeldingArgs(
-                Mock.Of<IMottattMelding>(x => x.KlientKorrelasjonsId == "invalid-base64"), // Triggers parse error
-                svarSenderMock.Object
-            )
+        FiksIOReceivedMessage message = ReceivedMessage(
+            FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+            Guid.NewGuid(),
+            Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192").ToString().ToUrlSafeBase64(),
+            svarSenderMock
         );
 
         await using var fixture = TestFixture.Create(
@@ -584,15 +598,12 @@ public class FiksArkivHostTest
             {
                 services.AddFiksArkiv();
                 services.AddSingleton(loggerMock.Object);
-                services.AddSingleton(fiksArkivResponseHandlerMock.Object);
             },
             hostEnvironment: environment
         );
 
-        // Act
-        await fixture.FiksArkivHost.IncomingMessageListener(payload);
+        await fixture.FiksArkivHost.IncomingMessageListener(message);
 
-        // Assert
         svarSenderMock.Verify(x => x.AckAsync(), shouldAck ? Times.Once : Times.Never);
         loggerMock.Verify(
             TestHelpers.MatchLogEntry(LogLevel.Information, "received message", loggerMock.Object),
@@ -604,10 +615,45 @@ public class FiksArkivHostTest
         );
     }
 
-    public enum MessageResponseType
+    private static Mock<IServiceTaskReplyForwarder> RecordingForwarder(
+        out List<(Guid MailboxId, string ServiceTaskType, string Payload, string IdempotencyKey)> forwarded
+    )
     {
-        Error,
-        Success,
+        var recorded = new List<(Guid, string, string, string)>();
+        forwarded = recorded!;
+        var forwarder = new Mock<IServiceTaskReplyForwarder>(MockBehavior.Strict);
+        forwarder
+            .Setup(x =>
+                x.ForwardReply(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, CancellationToken _) =>
+                    recorded.Add((mailboxId, serviceTaskType, payload, idempotencyKey))
+            )
+            .Returns(Task.CompletedTask);
+        return forwarder;
+    }
+
+    private static FiksIOReceivedMessage ReceivedMessage(
+        string messageType,
+        Guid messageId,
+        string rawCorrelationId,
+        Mock<ISvarSender> svarSenderMock
+    )
+    {
+        var mottattMeldingMock = new Mock<IMottattMelding>();
+        mottattMeldingMock.Setup(x => x.MeldingType).Returns(messageType);
+        mottattMeldingMock.Setup(x => x.MeldingId).Returns(messageId);
+        mottattMeldingMock.Setup(x => x.KlientKorrelasjonsId).Returns(rawCorrelationId);
+        mottattMeldingMock.Setup(x => x.HasPayload).Returns(true);
+        mottattMeldingMock.Setup(x => x.DecryptedPayloads).ReturnsAsync([new StreamPayload(Stream.Null, "dummy.txt")]);
+        return new FiksIOReceivedMessage(new MottattMeldingArgs(mottattMeldingMock.Object, svarSenderMock.Object));
     }
 
     private static async Task WaitUntil(Func<bool> condition, TimeSpan? timeout = null)

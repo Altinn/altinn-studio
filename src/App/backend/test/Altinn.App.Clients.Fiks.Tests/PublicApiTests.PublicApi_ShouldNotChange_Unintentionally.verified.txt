@@ -77,6 +77,7 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv
     public interface IFiksArkivHost
     {
         System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> GenerateAndSendMessage(string taskId, string messageType, System.Guid sendersReference, System.DateTimeOffset executionReferenceTime, Altinn.App.Core.Features.IInstanceDataMutator dataMutator, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> GenerateAndSendMessage(string taskId, string messageType, System.Guid sendersReference, System.Guid replyAddress, System.DateTimeOffset executionReferenceTime, Altinn.App.Core.Features.IInstanceDataMutator dataMutator, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task ValidateConfiguration(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataType> configuredDataTypes, System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Process.Elements.ProcessTask> configuredProcessTasks);
     }
     public interface IFiksArkivPayloadGenerator
@@ -289,6 +290,7 @@ namespace Altinn.App.Clients.Fiks.FiksIO.Models
     {
         public bool IsErrorResponse { get; }
         public bool IsReceiptResponse { get; }
+        public bool IsReplayed { get; }
         public Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessageContent Message { get; init; }
         public Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponder Responder { get; init; }
     }
@@ -299,6 +301,7 @@ namespace Altinn.App.Clients.Fiks.FiksIO.Models
         public System.Collections.Generic.Dictionary<string, string> Headers { get; }
         public System.Guid? InReplyToMessage { get; }
         public bool IsReSent { get; }
+        public bool IsReplayed { get; }
         public System.Guid MessageId { get; }
         public System.TimeSpan MessageLifetime { get; }
         public string MessageType { get; }
