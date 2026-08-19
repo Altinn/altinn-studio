@@ -40,8 +40,6 @@ const getInput = (container: HTMLElement) =>
 
 const getPopover = (container: HTMLElement) => container.querySelector('.ds-popover');
 
-// Selection must flow through the combobox's `comboboxbeforeselect` event — the component
-// deliberately has no click handler on the options (see the comment in MultipleSelectLayout).
 // The `<u-combobox>` custom element does not upgrade in jsdom, so we emulate its contract: the
 // Designsystemet Suggestion listens for `comboboxbeforeselect` whose `detail` is a `<data>`
 // element — a connected one (an existing chip) means "remove", a detached one means "add".

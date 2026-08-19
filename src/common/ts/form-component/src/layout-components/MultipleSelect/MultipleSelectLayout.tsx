@@ -50,11 +50,7 @@ export interface MultipleSelectProps {
   showOptionalMarking?: boolean;
   /** Grid sizing for the label. */
   labelGrid?: IGridStyling;
-  /**
-   * Whether the component is rendered inside a table cell. When true the visible label is suppressed
-   * and an `aria-label` is rendered instead (DS Combobox does not honour `aria-label` on the input
-   * directly — see digdir/designsystemet#3893).
-   */
+  /** Whether the component is rendered inside a table cell. */
   renderedInTable?: boolean;
   /** Whether to render the visible label at all. Defaults to `true`. */
   renderLabel?: boolean;
@@ -62,10 +58,7 @@ export interface MultipleSelectProps {
   innerGrid?: IGridStyling;
   /** Grid sizing for the validation messages. */
   validationGrid?: IGridStyling;
-  /**
-   * Rendered validation messages. The app owns validation, so it passes the already-rendered
-   * messages in rather than this library reaching into app-specific validation state.
-   */
+  /** Rendered validation messages. */
   validationMessages?: ReactNode;
 }
 
@@ -211,10 +204,6 @@ export function MultipleSelect({
           />
           <Suggestion.List>
             <Suggestion.Empty>{lang('form_filler.no_options_found')}</Suggestion.Empty>
-            {/* Selection is driven solely by the combobox's onSelectedChange. Do NOT add an
-                onClick handler to the options: React flushes its update before the click reaches
-                the u-datalist pipeline, which then finds the just-added chip and interprets the
-                same click as a removal — deselecting the value (or falsely alerting). */}
             {options.map((option) => (
               <Suggestion.Option
                 key={option.value}
