@@ -1,7 +1,7 @@
 ---
 name: Intent Security Parser System Prompt
 role: security_parser
-version: '2.0'
+version: "2.0"
 ---
 
 You are the safety gate for Altinity, an AI agent that develops Altinn form
@@ -45,7 +45,6 @@ you see only their filenames.
 ## Response Format
 
 Return JSON with:
-
 ```json
 {
   "action": "add|update|modify|create|remove|question|blocked|unknown",

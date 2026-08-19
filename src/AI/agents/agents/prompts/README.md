@@ -134,33 +134,33 @@ get_prompt_with_langfuse("general_planning")
 get_prompt_with_langfuse("intent_match", local_path="llm-as-a-judge/intent_match")
 ```
 
-| Local file                           | Langfuse prompt name    |
-| ------------------------------------ | ----------------------- |
-| `general_planning.md`                | `general_planning`      |
-| `tool_planning.md`                   | `tool_planning`         |
-| `patch_synthesis.md`                 | `patch_synthesis`       |
-| `templates/general_planning_user.md` | `general_planning_user` |
-| `templates/tool_planning_user.md`    | `tool_planning_user`    |
-| `templates/patch_synthesis_user.md`  | `patch_synthesis_user`  |
+| Local file                               | Langfuse prompt name    |
+| ---------------------------------------- | ----------------------- |
+| `general_planning.md`                    | `general_planning`      |
+| `tool_planning.md`                       | `tool_planning`         |
+| `patch_synthesis.md`                     | `patch_synthesis`       |
+| `templates/general_planning_user.md`     | `general_planning_user` |
+| `templates/tool_planning_user.md`        | `tool_planning_user`    |
+| `templates/patch_synthesis_user.md`      | `patch_synthesis_user`  |
 
 ### LLM-as-a-judge prompts
 
 The files under `llm-as-a-judge/` are NOT loaded by application code.
 Evaluation runs as **Langfuse-managed evaluators** (Evaluation → Evaluators
-in the UI), triggered by trace observations — not from this service. The
+in the UI), triggered by trace observations — not from this service.  The
 local files are kept as the version-controlled source of the evaluator
 prompts: edit the file here, then paste the update into the corresponding
 evaluator in the Langfuse UI.
 
-| Local file                                  | Langfuse evaluator        |
-| ------------------------------------------- | ------------------------- |
-| `llm-as-a-judge/intent_match.md`            | `intent_match`            |
-| `llm-as-a-judge/no_hallucination.md`        | `no_hallucination`        |
-| `llm-as-a-judge/faithful_summary.md`        | `faithful_summary`        |
-| `llm-as-a-judge/no_irrelevant_responses.md` | `no_irrelevant_responses` |
+| Local file                                   | Langfuse evaluator        |
+| -------------------------------------------- | ------------------------- |
+| `llm-as-a-judge/intent_match.md`             | `intent_match`            |
+| `llm-as-a-judge/no_hallucination.md`         | `no_hallucination`        |
+| `llm-as-a-judge/faithful_summary.md`         | `faithful_summary`        |
+| `llm-as-a-judge/no_irrelevant_responses.md`  | `no_irrelevant_responses` |
 
 `implementation_match` is retired: its inputs (implementation plan, patch
-data) no longer exist in the agentic-loop architecture. Implementation
+data) no longer exist in the agentic-loop architecture.  Implementation
 quality is covered by `verify_changes` at runtime and the benchmark
 `rubric_match` evaluator.
 

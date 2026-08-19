@@ -5,7 +5,6 @@ with the current repository (altinn-studio) bind mounted along with Codex/Claude
 from the current users home directory.
 
 Installed tools:
-
 - .NET 10
 - Rust
 - Go

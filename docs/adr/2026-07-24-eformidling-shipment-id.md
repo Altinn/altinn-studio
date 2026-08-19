@@ -13,7 +13,7 @@ shipment-ownership claim (`eFormidlingShipmentWorkflowId` instance data value) g
 
 Later note (Aug 2026): driver B5 - "no changes to the status-check event loop" - lapsed in #19827,
 which deleted that loop and moved the delivery wait into the service task. The decision itself is
-unaffected: the poll queries status by the same instance guid, so _shipment id == instance id_ remains
+unaffected: the poll queries status by the same instance guid, so *shipment id == instance id* remains
 the only correlation the app keeps, and both idempotency layers survive the move unchanged.
 
 ## Problem context
@@ -31,8 +31,8 @@ at-least-once), so this collision moved from an incident to an architectural pro
 ## Decision drivers
 
 - B1: Must not break external consumers. There is a non-zero chance that consumers in the Altinn
-  ecosystem have rigged their receiving/archive systems around the invariant _shipment id ==
-  instance id_ to correlate an eFormidling shipment with the Altinn instance it came from. There is
+  ecosystem have rigged their receiving/archive systems around the invariant *shipment id ==
+  instance id* to correlate an eFormidling shipment with the Altinn instance it came from. There is
   no registry of who depends on this, so the risk cannot be assessed or ruled out - the invariant
   has to be treated as load-bearing.
 - B2: Retries of the same send must never lock the instance permanently.

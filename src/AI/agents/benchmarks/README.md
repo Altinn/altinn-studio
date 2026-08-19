@@ -3,7 +3,7 @@
 Verifies that changes to the agent still produce the same quality by
 running it against a golden dataset in Langfuse and recording a scored
 **dataset run** per agent version. Compare runs side-by-side in
-Langfuse under _Datasets → Benchmarks/large-pdf → Runs_.
+Langfuse under *Datasets → Benchmarks/large-pdf → Runs*.
 
 ## How it works
 
@@ -28,7 +28,7 @@ don't carry every file).
 
 ## The rubric
 
-The dataset item's `expectedOutput` is a _structural_ rubric, not a
+The dataset item's `expectedOutput` is a *structural* rubric, not a
 file listing — page IDs, component IDs and data-model names legitimately
 differ between correct runs:
 
@@ -48,15 +48,15 @@ enumeration), so naming style doesn't matter but missing fields do.
 
 ## Scores
 
-| Score                   | Type    | Meaning                                      |
-| ----------------------- | ------- | -------------------------------------------- |
-| `bench_completed`       | boolean | workflow reached `done` with `success`       |
-| `bench_pages`           | boolean | ordered page count matches the rubric        |
-| `bench_order_integrity` | boolean | `pages.order` ⇔ layout files agree           |
-| `bench_navigation`      | boolean | every ordered page has NavigationButtons/Bar |
-| `bench_field_coverage`  | 0–1     | fraction of expected field titles present    |
-| `bench_input_count`     | 0–1     | input components vs rubric minimum           |
-| `bench_texts_bound`     | 0–1     | text bindings resolving in resource.nb.json  |
+| Score | Type | Meaning |
+| --- | --- | --- |
+| `bench_completed` | boolean | workflow reached `done` with `success` |
+| `bench_pages` | boolean | ordered page count matches the rubric |
+| `bench_order_integrity` | boolean | `pages.order` ⇔ layout files agree |
+| `bench_navigation` | boolean | every ordered page has NavigationButtons/Bar |
+| `bench_field_coverage` | 0–1 | fraction of expected field titles present |
+| `bench_input_count` | 0–1 | input components vs rubric minimum |
+| `bench_texts_bound` | 0–1 | text bindings resolving in resource.nb.json |
 
 ## Usage
 
@@ -72,8 +72,8 @@ BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
 
 `BENCH_REPO_URL` points at a **disposable app repo you own** — the
 benchmark pushes an `altinity_session_*` branch to it per run, so use a
-blank test app, not anything you care about. The URL is as the _agent
-container_ resolves it (`gitea-proxy:81` on the local stack); the org is
+blank test app, not anything you care about. The URL is as the *agent
+container* resolves it (`gitea-proxy:81` on the local stack); the org is
 derived from the URL path.
 
 `AGENT_DESIGNER_API_KEY` must be a **Designer user API key** — the

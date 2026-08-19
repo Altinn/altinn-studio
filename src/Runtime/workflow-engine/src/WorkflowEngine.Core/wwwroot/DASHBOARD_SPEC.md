@@ -78,8 +78,12 @@ Pushes workflow arrays. Uses PG NOTIFY to wake up on changes (2s timeout fallbac
 
 ```json
 {
-    "active": [/* Workflow[] or null */],
-    "recent": [/* Workflow[] or null */]
+    "active": [
+        /* Workflow[] or null */
+    ],
+    "recent": [
+        /* Workflow[] or null */
+    ]
 }
 ```
 
@@ -578,8 +582,7 @@ All dashboard state is encoded in the URL query string via `syncUrl()` / `restor
 TypeDefs in `state.js`:
 
 ```typescript
-type StepStatus =
-    'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled';
+type StepStatus = 'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled';
 type CommandType = 'app' | 'webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate';
 
 interface Step {

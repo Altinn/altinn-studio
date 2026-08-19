@@ -17,7 +17,7 @@ template-generated app still builds.
 
 One complete, independently buildable template per selectable version, in `<id>/src`. The scaffolds are
 full copies on purpose — they will keep diverging, and each must build and be validated on its own. Do
-not factor shared _scaffold_ parts out into a base/overlay.
+not factor shared *scaffold* parts out into a base/overlay.
 
 Build tooling (`Directory.Build.props`, CSharpier config, `.config`, `.vscode`) is shared at this level
 instead. MSBuild and CSharpier search upwards, and none of it is inside `src/`, so it never reaches a
@@ -46,7 +46,7 @@ the last one the template is missing from the image. No backend change — the D
 Users pick the template when creating an application (`appTemplate` on the create-app request, listed by
 `GET designer/api/apptemplates`, behind the `appTemplates` feature flag). Without a choice the Designer
 uses `GeneralSettings.DefaultAppTemplate`. `GeneralSettings.TemplateLocation` points at the folder
-_holding_ the templates and per-template paths are derived from it.
+*holding* the templates and per-template paths are derived from it.
 
 `src/Designer/Dockerfile` runs one release-rsync stage per folder into `Templates/AspNet/<id>/src`. The
 `<id>/src` shape makes the image mirror this folder exactly, so a locally run Designer can point straight
@@ -64,7 +64,7 @@ data model wiring, and the Dockerfile used to build the app image. Optional feat
 
 ## Build & validate
 
-A template _is_ a runnable app skeleton (`<id>/src/App.sln`), so building it is the validation:
+A template *is* a runnable app skeleton (`<id>/src/App.sln`), so building it is the validation:
 
 ```bash
 dotnet build src/App.sln     # from src/App/template/v8 or /v9 — must succeed on main
@@ -80,4 +80,4 @@ both run a `template: [v8, v9]` matrix.
 - Keep the templates minimal and generic — they are a starting point, not a showcase.
 - A change that should apply to every version must be made in each folder. There is no shared layer.
 - Changes that bump the referenced Altinn.App library version or alter the build must be validated
-  end-to-end (build the solution _and_ the image) before landing on `main`.
+  end-to-end (build the solution *and* the image) before landing on `main`.
