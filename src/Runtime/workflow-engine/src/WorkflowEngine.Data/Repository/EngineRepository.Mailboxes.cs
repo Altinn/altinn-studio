@@ -333,6 +333,94 @@ internal sealed partial class EngineRepository
         }
     }
 
+    /// <summary>
+    /// The executor's read of the rendezvous — the receiver's position and the message standing at it,
+    /// in one statement. Deliberately the whole of what a receive workflow's first step is handed.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>It takes no lock and writes nothing</strong>, and neither omission is an oversight. By the
+    /// time a receiver can be fetched, whether a delivery exists at its position is already frozen — it
+    /// was born with the delivery, or the delivery's own transaction released it, or the mailbox closed
+    /// and closed mailboxes refuse deliveries — so there is no state left for a lock to protect and no
+    /// answer worth recording. Recording one would in fact be worse than useless: a stored verdict is
+    /// something that can disagree with the log, and re-deriving is what makes the frozen-meaning rule a
+    /// property of the schema rather than of bookkeeping nobody re-checks.
+    /// </para>
+    /// <para>
+    /// The three tables are joined rather than read in sequence: a unique-index probe on
+    /// <c>workflow_id</c> for the position, then primary-key probes for the delivery and for the
+    /// mailbox's closure reason, in one round trip.
+    /// </para>
+    /// <para>
+    /// <strong>The single snapshot is what makes <see cref="MailboxReceiptResult.Undecided"/> worth
+    /// raising.</strong> The frozen rule already stabilizes the delivery answer, so split statements
+    /// would agree with this one in every legitimate case. What they would lose is the illegitimate
+    /// one: under <c>READ COMMITTED</c> a read that saw no delivery — a genuine invariant violation —
+    /// could then see a concurrent close and report an entirely ordinary closing signal, laundering the
+    /// error through traffic that happens constantly. One statement means the two rows are read at one
+    /// instant and the alarm cannot be silenced by a race.
+    /// </para>
+    /// <para>
+    /// <c>held_at</c> is deliberately not consulted. It records how the receiver was <em>born</em>, not
+    /// whether a delivery exists, and a receiver born runnable is exactly the case whose message is
+    /// already sitting at its position — deciding from it would hand the closing signal to the receiver
+    /// least entitled to it.
+    /// </para>
+    /// </remarks>
+    /// <param name="workflowId">The receive workflow being executed.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task<MailboxReceiptResult> ReadMailboxReceipt(
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.ReadMailboxReceipt");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            MailboxReceiptResult result = new MailboxReceiptResult.Unregistered();
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    const string sql = """
+                        SELECT mr.mailbox_id, mr.seq, m.status, m.disposed_reason,
+                               d.idempotency_key, d.payload, d.accepted_at
+                        FROM engine.mailbox_receivers mr
+                        JOIN engine.mailboxes m ON m.id = mr.mailbox_id
+                        LEFT JOIN engine.mailbox_deliveries d
+                               ON d.mailbox_id = mr.mailbox_id AND d.idx = mr.seq
+                        WHERE mr.workflow_id = @workflow_id
+                        """;
+
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("workflow_id", workflowId));
+
+                    await using var reader = await cmd.ExecuteReaderAsync(ct);
+                    result = await reader.ReadAsync(ct)
+                        ? ReadMailboxReceipt(reader)
+                        : new MailboxReceiptResult.Unregistered();
+                },
+                cancellationToken
+            );
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedMailboxReceiptRead(workflowId, ex.Message, ex);
+            throw;
+        }
+    }
+
     /// <inheritdoc/>
     public async Task<MailboxCloseResult> CloseMailbox(
         Guid mailboxId,
@@ -913,6 +1001,49 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
+    /// Projects the receipt read's one row into the answer the executor acts on. The classification
+    /// lives here, beside the query, because it is a statement about the rows and not about the caller.
+    /// </summary>
+    private static MailboxReceiptResult ReadMailboxReceipt(NpgsqlDataReader reader)
+    {
+#pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is already buffered
+        var mailboxId = reader.GetGuid(0);
+        var seq = reader.GetInt64(1);
+        var status = MailboxStatusMap.FromDbValue(reader.GetString(2));
+
+        if (!reader.IsDBNull(4))
+        {
+            return new MailboxReceiptResult.Resolved(
+                MailboxReceipt.Delivered(
+                    mailboxId,
+                    seq,
+                    new MailboxDelivery
+                    {
+                        IdempotencyKey = reader.GetString(4),
+                        Payload = reader.GetString(5),
+                        AcceptedAt = reader.GetFieldValue<DateTimeOffset>(6),
+                    }
+                )
+            );
+        }
+
+        // No delivery and the mailbox still open: the receiver is running on a truth that is not frozen,
+        // which the rendezvous makes unreachable. Reported rather than smoothed over into the closing
+        // signal, which would tell a handler to conclude an exchange that is still live.
+        if (status != MailboxStatus.Disposed)
+            return new MailboxReceiptResult.Undecided(mailboxId, seq);
+
+        // Read unconditionally: `ck_mailboxes_disposal_is_complete` is biconditional, so a disposed
+        // mailbox always carries its reason. There is nowhere to put a defensive null anyway —
+        // `MailboxReceipt.Closed` takes the reason as a parameter precisely so a receipt carrying
+        // neither a delivery nor a reason cannot be built.
+        return new MailboxReceiptResult.Resolved(
+            MailboxReceipt.Closed(mailboxId, seq, MailboxStatusMap.ReasonFromDbValue(reader.GetString(3)))
+        );
+#pragma warning restore CA1849, S6966
+    }
+
+    /// <summary>
     /// Projects one row of <see cref="MailboxDeliveryColumns"/> into its response shape.
     /// </summary>
     private static MailboxDeliveryResponse ReadMailboxDelivery(NpgsqlDataReader reader)
@@ -927,6 +1058,54 @@ internal sealed partial class EngineRepository
         };
 #pragma warning restore CA1849, S6966
     }
+}
+
+/// <summary>
+/// What the executor's read of the rendezvous found for one receive workflow.
+/// </summary>
+/// <remarks>
+/// Two of the three cases are unreachable in a correct engine and are still modeled, because the
+/// alternative is to encode them as an absent delivery — and an absent delivery is a real answer that
+/// tells a handler to conclude its exchange. A bug that produced one of those states would then be
+/// indistinguishable from the mailbox closing, and would end exchanges quietly instead of loudly.
+/// </remarks>
+internal abstract record MailboxReceiptResult
+{
+    private MailboxReceiptResult() { }
+
+    /// <summary>
+    /// The rendezvous answered: the message at the receiver's position, or the closure that means none
+    /// can ever arrive there.
+    /// </summary>
+    internal sealed record Resolved(MailboxReceipt Receipt) : MailboxReceiptResult;
+
+    /// <summary>
+    /// The workflow holds no position in any mailbox's receivers log. Every receiver registers at
+    /// enqueue, so the reachable cause is that retention purged the mailbox — with its deliveries and
+    /// its registrations — under a receive workflow that outlived it, which takes a resume of a receiver
+    /// that failed longer ago than the retention cutoff.
+    /// </summary>
+    internal sealed record Unregistered : MailboxReceiptResult;
+
+    /// <summary>
+    /// The receiver holds a position, no delivery stands at it, and the mailbox is still open — so
+    /// whether a delivery will exist there is not yet settled, and the receiver is running before its
+    /// truth was frozen. Unreachable through the rendezvous: the only things that make a receiver
+    /// runnable are a delivery at its position and the mailbox closing.
+    /// </summary>
+    /// <remarks>
+    /// The executor fails the step <em>critically</em> on this, and that is a real choice rather than an
+    /// obvious one. Retryable is defensible: the handler is never called, so nothing has acted on the
+    /// bad state and the frozen-meaning hazard never materializes — and the deadline sweep would close
+    /// the mailbox eventually, after which a retry reads a legitimate closing signal and the exchange
+    /// completes. It is rejected because that is self-healing, and an invariant violation that heals
+    /// itself is one nobody ever looks at: the engine would be quietly wrong about its own rendezvous
+    /// for as long as the mailbox had left to live. It would also make the retry ladder load-bearing in
+    /// a design whose whole point is that a parked receiver needs no timer. Failing loudly leaves a
+    /// visible workflow and an operator resume, which re-derives from the same rows and proceeds
+    /// correctly once the mailbox has genuinely closed.
+    /// </remarks>
+    internal sealed record Undecided(Guid MailboxId, long Seq) : MailboxReceiptResult;
 }
 
 /// <summary>

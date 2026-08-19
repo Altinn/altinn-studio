@@ -12,10 +12,10 @@ namespace WorkflowEngine.Integration.Tests;
 /// which of the two causes did it.
 /// </summary>
 /// <remarks>
-/// What a released receiver <em>does</em> today is deliberately ordinary, and pinned here as such: it is
-/// an ordinary workflow whose steps execute in order, and the engine does not yet hand its first step the
-/// delivery. <c>mailbox_id</c> is a column nothing reads at execution time. Step 6 gives the executor the
-/// registration's position and the delivery at it; until then, "released" means exactly "runnable".
+/// The scope here is the release and nothing past it: that a receiver becomes runnable, by which cause,
+/// and that it then executes like any other workflow. What its first step is <em>handed</em> — the message
+/// at its position, or the closing signal — belongs to <c>MailboxReceiptEndpointTests</c>, which is why the
+/// receivers below run plain webhook steps that read nothing.
 /// </remarks>
 [Collection(EngineAppCollection.Name)]
 public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
@@ -62,9 +62,9 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
         // because nothing released it. Now the delivery does, in its own transaction, and the workflow the
         // wake produces is an ordinary runnable workflow — fetched, executed, completed.
         //
-        // And that is precisely as far as this step goes. The step it runs is a plain webhook and it is
-        // called with the payload the enqueue gave it, not with the message that woke it: the executor
-        // does not read deliveries yet (step 6). "Released" means "runnable", nothing more.
+        // Scoped to the release itself: the step it runs is a plain webhook, called with the payload the
+        // enqueue gave it. That the executor also hands a receive step the message that woke it is a
+        // separate claim, tested separately.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueHeldReceiver(mailbox.Id);
 
@@ -222,20 +222,41 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     #endregion
 
     /// <summary>
-    /// Applies the wake's own release statement directly and commits it, with no notification — standing
-    /// in for an engine that crashed in the window between the two.
+    /// The wake's whole transaction with the notification left out: the counter bumped, the message
+    /// appended at the receiver's position, and the receiver released — committed, silently.
     /// </summary>
+    /// <remarks>
+    /// The message half is not decoration. Step 6 gave the executor a read of the deliveries log, so a
+    /// receiver released with nothing at its position on a still-open mailbox is no longer a shortcut for
+    /// "the wake happened and the signal was lost" — it is a state the rendezvous cannot produce, and the
+    /// engine now refuses it rather than running the step. Building the state faithfully is what keeps
+    /// this test about the notification.
+    /// </remarks>
     private async Task ReleaseWithoutNotifying(Guid receiverId)
     {
         await using var context = fixture.GetDbContext();
         await context.Database.ExecuteSqlAsync(
             $"""
-            WITH released AS (
+            WITH bumped AS (
+                UPDATE engine.mailboxes AS m
+                SET next_idx = m.next_idx + 1
+                FROM engine.mailbox_receivers AS mr
+                WHERE mr.workflow_id = {receiverId} AND m.id = mr.mailbox_id
+                RETURNING m.id AS mailbox_id, m.next_idx - 1 AS idx
+            ),
+            delivered AS (
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                SELECT b.mailbox_id, b.idx, 'source-msg-unnotified', 'unnotified', now() FROM bumped b
+                RETURNING mailbox_id, idx
+            ),
+            released AS (
                 UPDATE engine.workflows AS w
                 SET status = {(int)PersistentItemStatus.Enqueued}, backoff_until = NULL, updated_at = now()
-                FROM engine.mailbox_receivers AS mr
+                FROM engine.mailbox_receivers AS mr, delivered AS d
                 WHERE mr.workflow_id = {receiverId}
                   AND mr.released_at IS NULL
+                  AND mr.mailbox_id = d.mailbox_id
+                  AND mr.seq = d.idx
                   AND w.id = mr.workflow_id
                   AND w.status = {(int)PersistentItemStatus.Held}
                 RETURNING w.id

@@ -315,6 +315,17 @@ internal interface IEngineRepository
     Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Reads what the rendezvous produced for a receive workflow: the position it holds, and the message
+    /// standing there or the closure that means none ever will.
+    /// </summary>
+    /// <remarks>
+    /// Takes no lock and writes nothing. Delivery existence at a receiver's position is frozen before the
+    /// receiver can first run, so the answer is stable by construction and every attempt, retry and
+    /// resume re-derives the same one from the same rows.
+    /// </remarks>
+    Task<MailboxReceiptResult> ReadMailboxReceipt(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Closes a mailbox for deliveries, taking its row lock as the transaction's first act.
     /// Idempotent: an already-closed mailbox is returned as it stands, carrying the reason and instant
     /// of the close that actually happened rather than this call's.

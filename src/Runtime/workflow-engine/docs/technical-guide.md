@@ -717,10 +717,95 @@ records no sample, because `held_at IS NULL` says there was no wake to time. Wit
 histogram would fill with ordinary fetch-cycle latency in the common early-delivery case and stop
 showing the sub-second gap it exists for.
 
-> **What a released receiver does today.** It becomes an ordinary runnable workflow and its steps
-> execute in order. The executor does not yet read the delivery: `mailbox_id` is a column nothing
-> consults at execution time, and the first step is called exactly as any other step would be.
-> Attaching the delivery — or the no-delivery callback carrying `disposedReason` — is still to come.
+### The receiver's meaning is frozen before it can run
+
+The message is read at execution, not at enqueue — it may not exist when the receiver is created. That
+late binding would be a hazard in any other engine: a step whose _input_ differs between attempts, so
+an attempt that saw nothing is followed by one that sees a message. The rendezvous removes the hazard
+structurally rather than by recording a verdict. A receiver becomes runnable in exactly three ways,
+and each of them settles the question first:
+
+1. **born with its message** — the enqueue flush found one at its position, open mailbox or closed;
+2. **released by the wake** — inside the delivery's own transaction, so the message exists;
+3. **released by closure** — the mailbox is closed, and a closed mailbox refuses every further
+   delivery, so no message can ever arrive at that position.
+
+So from the instant a receiver is fetchable, **whether a message stands at its position can never
+change again**, and the executor simply looks:
+
+```text
+engine.mailbox_receivers  WHERE workflow_id = …    → the position, seq
+engine.mailbox_deliveries WHERE (mailbox_id, seq)  → present → attach it
+                                                     absent  → the closing signal + disposedReason
+```
+
+One statement: a unique-index probe on `workflow_id` for the position, and two primary-key probes for
+the delivery and the mailbox's closure reason. **Nothing is written and nothing is locked.** There is
+no resolution column and no compare-and-set, because a recorded verdict is a second source of truth
+able to disagree with the log; every attempt, retry and resume re-derives the same answer from the
+same rows instead. Every mailbox _mutation_ takes the mailbox's row lock as its first act — this read
+is on the rendezvous path and still takes none, because there is no state left for a lock to protect
+and taking it would stall a running receiver behind a delivery or a close that cannot change its
+answer.
+
+**The three rows are read at a single instant, and that is what makes the error state trustworthy.**
+The frozen rule already keeps the delivery answer stable, so a split read would give the same verdict
+in every legitimate case. What it would lose is the illegitimate one: under `READ COMMITTED` a read
+that saw "no delivery" — a genuine bug — could then see a close committed one statement later and
+report a perfectly ordinary closing signal, laundering the invariant violation through traffic that
+happens all the time. One snapshot is what keeps the alarm below from being silenceable by a race.
+
+`held_at` is deliberately not consulted. It records how the receiver was _born_, not whether a message
+exists, and a receiver born runnable is exactly the one whose message is already sitting at its
+position.
+
+**A callback with no delivery therefore means exactly one thing: the mailbox is closed and no message
+will ever reach this step.** It carries `disposedReason` — `deadline` or `request` — explicitly rather
+than leaving it to be inferred, purely so the conclusion can be worded ("the archive never confirmed
+before the deadline" reads differently from "the exchange was closed"). Both demand the same response:
+conclude.
+
+Two states would break that reading, and neither is reachable through the rendezvous, so the engine
+fails the step critically rather than reporting them as "no message" — which would tell a handler to
+conclude an exchange on the strength of a bug:
+
+| What the read finds                    | Meaning                                                 |
+| -------------------------------------- | ------------------------------------------------------- |
+| No registration for the workflow       | The mailbox and its whole log were purged underneath it |
+| No message, and the mailbox still open | The receiver is running before its truth was frozen     |
+
+**Critical rather than retryable, and the second row is the one where that is a real choice.** A retry
+would in fact often clear it: the handler is never called, so nothing has acted on the bad state, and
+once the deadline sweep closes the mailbox the next attempt reads a legitimate closing signal. That is
+the argument against it. An invariant violation that heals itself is one nobody ever investigates, and
+the healing would put the retry ladder in the load-bearing path of a rendezvous deliberately built so
+that a parked receiver needs no timer at all. The step lands `Failed` and visible instead, and the
+operator's tool is the ordinary resume — which re-derives the answer from the same rows, so a receiver
+resumed after the mailbox has genuinely closed proceeds exactly as it should.
+
+#### What the app is handed
+
+The `app` command projects the receipt onto its callback as one block, present only on a receive
+workflow's first step:
+
+```json
+{
+    "mailbox": {
+        "id": "018f4e…",
+        "seq": 1,
+        "delivery": {
+            "idempotencyKey": "source-message-42",
+            "payload": "…",
+            "acceptedAt": "2026-08-19T10:11:12Z"
+        },
+        "disposedReason": null
+    }
+}
+```
+
+`delivery` and `disposedReason` are exclusive: exactly one of them is present, which is what lets a
+handler branch once. `idempotencyKey` is the forwarding source's own message id, stable across every
+attempt of the step, so a handler may deduplicate its own side effects on it.
 
 ### Closing is terminal, idempotent, and says why
 

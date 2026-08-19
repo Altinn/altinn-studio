@@ -133,6 +133,17 @@ internal static partial class EngineRepositoryLogs
     );
 
     [LoggerMessage(
+        LogLevel.Error,
+        "Failed to read the mailbox receipt for receive workflow {WorkflowId} after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedMailboxReceiptRead(
+        this ILogger<EngineRepository> logger,
+        Guid workflowId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(
         LogLevel.Warning,
         "Mailbox {MailboxId} closed at its deadline holding {UnconsumedDeliveries} delivered message(s) no receiver was ever enqueued for; they stay readable until retention purges the mailbox"
     )]
