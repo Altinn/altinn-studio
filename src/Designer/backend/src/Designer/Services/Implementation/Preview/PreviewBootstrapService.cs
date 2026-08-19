@@ -242,7 +242,6 @@ public class PreviewBootstrapService(
     /// <inheritdoc />
     public UserProfile GetMockUserProfile()
     {
-        // TODO: return actual current testuser when tenor testusers are available
         return new UserProfile
         {
             UserId = 1024,
@@ -259,7 +258,6 @@ public class PreviewBootstrapService(
     /// <inheritdoc />
     public Party GetMockParty()
     {
-        // TODO: return actual current party when tenor testusers are available
         return new Party
         {
             PartyId = PartyId,
