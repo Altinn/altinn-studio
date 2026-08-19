@@ -2,11 +2,6 @@
 .DEFAULT_GOAL := help
 
 PORTABLE_PACKAGES := -p sandbox -p sandbox-authorization -p agent-runtime-protocol -p agent-runtime -p agent
-MICROSANDBOX_DIR ?= ../../../../private/microsandbox
-MICROSANDBOX_BIN := $(abspath $(MICROSANDBOX_DIR)/target/debug/msb)
-ifeq ($(OS),Windows_NT)
-MICROSANDBOX_BIN := $(MICROSANDBOX_BIN).exe
-endif
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -40,8 +35,7 @@ test-independent: ## Test reusable lower-layer crates independently
 	cargo test --manifest-path agent-runtime/Cargo.toml --all-targets
 
 test-microsandbox: ## Run the real Docker/Microsandbox integration tests
-	cargo build --manifest-path $(MICROSANDBOX_DIR)/Cargo.toml -p microsandbox-cli
-	MSB_PATH=$(MICROSANDBOX_BIN) cargo test -p sandbox-microsandbox --tests -- --ignored
+	cargo test -p sandbox-microsandbox --tests -- --ignored
 
 deps: ## Print the workspace dependency graph
 	cargo tree --workspace
