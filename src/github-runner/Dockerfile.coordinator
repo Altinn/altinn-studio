@@ -36,9 +36,6 @@ RUN runtime_tag="digdir-v${MICROSANDBOX_RUNTIME_VERSION}" \
 # The downloaded Microsandbox runtime currently requires glibc 2.39.
 FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea
 
-LABEL org.opencontainers.image.source="https://github.com/Altinn/altinn-studio"
-LABEL org.opencontainers.image.description="Altinn Studio GitHub runner coordinator"
-
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates libcap-ng0 \
     && rm -rf /var/lib/apt/lists/*
