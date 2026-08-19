@@ -41,13 +41,6 @@ runs:
         cache-key: ${{ inputs.localtest-image-cache-key }}
         require-cache-hit: ${{ inputs.localtest-image-cache-key != '' }}
 
-    - name: Set up LocalTest hostnames
-      if: ${{ inputs.run-localtest == 'true' }}
-      shell: bash
-      run: |
-        sudo --preserve-env=STUDIOCTL_HOME,STUDIOCTL_INTERNAL_DEV \
-          "$(command -v studioctl)" env hosts add
-
     - name: Start localtest
       if: ${{ inputs.run-localtest == 'true' }}
       working-directory: ${{ github.workspace }}
