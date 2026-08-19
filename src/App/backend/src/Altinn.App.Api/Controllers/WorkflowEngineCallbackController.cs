@@ -268,6 +268,25 @@ public class WorkflowEngineCallbackController : ControllerBase
                     failed.ErrorMessage,
                     failed.ExceptionType
                 );
+
+                // A service-owner 403 reads as a platform failure but is a policy gap, and the bare
+                // status code gives nobody a way to find that out. Logged separately so the reason is
+                // spelled out where the app and task are known; the failure is classified and
+                // answered exactly as before.
+                if (failed.ServiceOwnerAuthorizationDenied)
+                {
+                    _logger.LogError(
+                        "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                        ServiceOwnerAuthorizationDiagnostics.Describe(
+                            appId,
+                            currentTaskId,
+                            instanceDataUnitOfWork.Instance.Process?.CurrentTask?.AltinnTaskType
+                        ),
+                        commandKey,
+                        instanceId
+                    );
+                }
+
                 activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
 
                 if (failed.NonRetryable)

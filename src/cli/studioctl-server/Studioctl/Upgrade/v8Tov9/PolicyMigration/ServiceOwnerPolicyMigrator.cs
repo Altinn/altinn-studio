@@ -13,14 +13,18 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PolicyMigration;
 /// Under v8, process transitions were persisted in-app under the end user's token, so many app
 /// policies never granted the org anything beyond instantiate/read. Under v9 the workflow engine
 /// replays each transition as the service owner, which requires at minimum <c>read</c> and
-/// <c>write</c> in any process state plus <c>complete</c> at the end event. The standard Studio
-/// policy template has rules for this ("org can write ... for any states" / "org can complete ...");
-/// this migrator detects apps whose policy lacks the equivalent grants and inserts a single rule
-/// with the missing actions, using a minimal textual diff.
+/// <c>write</c> in any process state plus <c>complete</c> at the end event, and <c>delete</c> when
+/// the app deletes its instances at process end. The standard Studio policy template has rules for
+/// this ("org can write ... for any states" / "org can complete ..."); this migrator detects apps
+/// whose policy lacks the equivalent grants and inserts a single rule with the missing actions,
+/// using a minimal textual diff.
 ///
-/// Task-specific actions (confirm, sign, pay, custom service-task types) are intentionally not
-/// granted automatically - the migrator scans the process and warns about the ones the org likely
-/// also needs.
+/// Task-specific actions (confirm, reject, custom service-task types) are intentionally not granted
+/// automatically - the migrator scans the process and warns about the ones the org likely also
+/// needs. Payment and signing tasks need nothing extra: Storage accepts <c>write</c> for both.
+///
+/// The same requirements are checked at build time by the ALTINNAPP0800 analyzer in
+/// Altinn.App.Analyzers, which is where the authoritative reasoning lives.
 /// </summary>
 internal sealed class ServiceOwnerPolicyMigrator
 {
@@ -33,26 +37,35 @@ internal sealed class ServiceOwnerPolicyMigrator
     private const string TaskAttributeId = "urn:altinn:task";
     private const string EndEventAttributeId = "urn:altinn:end-event";
 
-    /// <summary>Actions the engine needs in any process state (read/write) and at the end event (complete).</summary>
+    /// <summary>
+    /// Actions the engine needs in any process state (read/write) and at the end event (complete).
+    /// <c>complete</c> is required unconditionally rather than only for the task types that mark
+    /// instances complete, so a migrated policy ends up with the same org rules a freshly generated
+    /// v9 app has - and service owners generally want to confirm received instances anyway.
+    /// </summary>
     private static readonly string[] _requiredActions = ["read", "write", "complete"];
 
     /// <summary>
-    /// Task types whose process-next is authorized by the <c>write</c> action (see
-    /// ProcessEngineAuthorizer in app-lib-dotnet). Anything else maps to a dedicated action.
+    /// The actions that allow a process transition out of a task of the given type; Storage permits
+    /// the transition when the service owner holds <em>any</em> of them. Mirrors ProcessAuthorizer in
+    /// altinn-storage and ProcessEngineAuthorizer in app-lib-dotnet (and the equivalent table in the
+    /// ALTINNAPP0800 analyzer). Note that payment and signing accept <c>write</c>, so they need
+    /// nothing beyond the baseline.
     /// </summary>
-    private static readonly string[] _taskTypesCoveredByWrite =
-    [
-        "data",
-        "feedback",
-        "pdf",
-        "eFormidling",
-        "fiksArkiv",
-        "subformPdf",
-    ];
+    private static string[] ProcessNextActionsForTaskType(string taskType) =>
+        taskType switch
+        {
+            "data" or "feedback" or "pdf" or "eFormidling" or "fiksArkiv" or "subformPdf" => ["write"],
+            "payment" => ["pay", "write"],
+            "confirmation" => ["confirm"],
+            "signing" => ["sign", "write"],
+            _ => [taskType],
+        };
 
     private readonly string _projectFolder;
     private readonly List<string> _warnings = new();
     private bool _manualActionRequired;
+    private bool _autoDeleteOnProcessEnd;
 
     public ServiceOwnerPolicyMigrator(string projectFolder)
     {
@@ -125,7 +138,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         if (HasDenyRules(root))
         {
             _manualActionRequired = true;
-            var actionsToVerify = _requiredActions
+            var actionsToVerify = RequiredActions
                 .Concat(processInfo?.TaskSpecificActions.Select(a => a.Action) ?? [])
                 .Distinct(StringComparer.OrdinalIgnoreCase);
             _warnings.Add(
@@ -148,7 +161,7 @@ internal sealed class ServiceOwnerPolicyMigrator
             );
         }
 
-        var missingActions = _requiredActions
+        var missingActions = RequiredActions
             .Where(action =>
                 !IsActionGrantedToOrg(
                     root,
@@ -193,6 +206,12 @@ internal sealed class ServiceOwnerPolicyMigrator
     private MigrationResult Result() => new(_manualActionRequired, _warnings);
 
     /// <summary>
+    /// The baseline actions, plus <c>delete</c> when the app deletes its instances at process end.
+    /// Only valid once the application metadata has been read.
+    /// </summary>
+    private string[] RequiredActions => _autoDeleteOnProcessEnd ? [.. _requiredActions, "delete"] : _requiredActions;
+
+    /// <summary>
     /// Determines the org/app values to check grants for and to use in the inserted rule.
     /// Studio-generated policies use the <c>[ORG]</c>/<c>[APP]</c> template placeholders (substituted
     /// at deploy time); when the policy uses them anywhere, so do we. Otherwise the authoritative
@@ -202,13 +221,15 @@ internal sealed class ServiceOwnerPolicyMigrator
     /// </summary>
     private async Task<(string Org, string App)> ResolveOrgAndAppValues(XElement root)
     {
+        // Read unconditionally: the metadata also tells us whether the app deletes its instances at
+        // process end, which the placeholder shortcut below would otherwise skip.
+        var (metadataOrg, metadataApp) = await GetOrgAndAppFromApplicationMetadata();
+
         var usesPlaceholders =
             HasMatchWithValue(root, OrgAttributeId, ResourceCategory, "[ORG]")
             || HasMatchWithValue(root, AppAttributeId, ResourceCategory, "[APP]");
         if (usesPlaceholders)
             return ("[ORG]", "[APP]");
-
-        var (metadataOrg, metadataApp) = await GetOrgAndAppFromApplicationMetadata();
 
         var org = metadataOrg ?? FindFirstMatchValue(root, OrgAttributeId, ResourceCategory) ?? "[ORG]";
         var app = metadataApp ?? FindFirstMatchValue(root, AppAttributeId, ResourceCategory) ?? "[APP]";
@@ -225,6 +246,12 @@ internal sealed class ServiceOwnerPolicyMigrator
         {
             using var doc = JsonDocument.Parse(await File.ReadAllTextAsync(metadataFile));
             var org = doc.RootElement.TryGetProperty("org", out var orgProp) ? orgProp.GetString() : null;
+
+            // An app that deletes its own instances at process end does so as the service owner, so
+            // the org needs 'delete' too.
+            _autoDeleteOnProcessEnd =
+                doc.RootElement.TryGetProperty("autoDeleteOnProcessEnd", out var autoDeleteProp)
+                && autoDeleteProp.ValueKind == JsonValueKind.True;
 
             // "id" is "org/app"; it is also the org fallback when the dedicated field is missing.
             string? app = null;
@@ -554,7 +581,7 @@ internal sealed class ServiceOwnerPolicyMigrator
     }
 
     /// <summary>
-    /// Warns about task-specific actions (confirm, sign, pay, or the custom task-type name) whose
+    /// Warns about task-specific actions (confirm, reject, or the custom task-type name) whose
     /// transitions the engine replays with a dedicated action but the policy does not grant the org.
     /// Grants scoped to the task(s) of the relevant type count here, since these transitions happen
     /// inside those tasks.
@@ -649,25 +676,28 @@ internal sealed class ServiceOwnerPolicyMigrator
         foreach (var taskType in processDoc.Descendants().Where(e => e.Name.LocalName == "taskType"))
         {
             var type = taskType.Value.Trim();
-            if (type.Length == 0 || _taskTypesCoveredByWrite.Contains(type, StringComparer.OrdinalIgnoreCase))
+            if (type.Length == 0)
                 continue;
 
             // The taskType extension element lives inside the task element, which carries the id.
-            var taskId = taskType
-                .Ancestors()
-                .FirstOrDefault(a => a.Attribute("id") is not null)
-                ?.Attribute("id")
-                ?.Value;
+            var taskElement = taskType.Ancestors().FirstOrDefault(a => a.Attribute("id") is not null);
+            var taskId = taskElement?.Attribute("id")?.Value;
 
-            // Matches ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType in
-            // app-lib-dotnet: confirmation advances with 'confirm' only; signing also uses 'reject'.
-            string[] needed = type switch
-            {
-                "confirmation" => ["confirm"],
-                "signing" => ["sign", "reject"],
-                "payment" => ["pay"],
-                _ => [type],
-            };
+            var needed = new List<string>();
+
+            // A type whose transition accepts 'write' needs nothing beyond the required baseline.
+            // Every mapping that survives that filter names exactly one action today, so warning
+            // about each one separately below matches the any-of semantics; a future multi-action
+            // mapping would over-warn here (the build-time analyzer evaluates any-of properly).
+            var processNextActions = ProcessNextActionsForTaskType(type);
+            if (!processNextActions.Contains("write", StringComparer.OrdinalIgnoreCase))
+                needed.AddRange(processNextActions);
+
+            // A task that declares 'reject' can be abandoned, and Storage authorizes an abandoning
+            // transition with 'reject' regardless of the task's type. A 'serverAction' of the same
+            // name is a user-triggered action, not a process transition, so it does not count.
+            if (taskElement is not null && DeclaresRejectProcessAction(taskElement))
+                needed.Add("reject");
 
             foreach (var action in needed)
             {
@@ -688,6 +718,20 @@ internal sealed class ServiceOwnerPolicyMigrator
             actions.Select(kvp => new TaskSpecificAction(kvp.Key, kvp.Value.TaskTypes, kvp.Value.TaskIds)).ToList()
         );
     }
+
+    /// <summary>
+    /// Whether the task declares <c>reject</c> in its <c>altinn:actions</c> list as a process action.
+    /// A <c>type="serverAction"</c> entry is a user-triggered server action rather than a process
+    /// transition, so it never reaches the abandon flow Storage authorizes with <c>reject</c>.
+    /// </summary>
+    private static bool DeclaresRejectProcessAction(XElement taskElement) =>
+        taskElement
+            .Descendants()
+            .Where(e => e.Name.LocalName == "action" && e.Parent?.Name.LocalName == "actions")
+            .Any(action =>
+                string.Equals(action.Value.Trim(), "reject", StringComparison.OrdinalIgnoreCase)
+                && action.Attributes().All(a => a.Name.LocalName != "type" || a.Value == "processAction")
+            );
 
     /// <summary>A task-specific action the org needs, with the task type(s) and task id(s) that need it.</summary>
     private sealed record TaskSpecificAction(
