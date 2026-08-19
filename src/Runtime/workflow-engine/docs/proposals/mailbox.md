@@ -1102,7 +1102,7 @@ nothing to attach to here. Retention: a `disposed` mailbox past the cutoff purge
 and waiters, children first, in the existing maintenance sweep. Metric:
 `engine.mailboxes.deliveries.unconsumed`.
 
-#### Step 5b — Engine: the dashboard and the mailbox alerts — `in progress`
+#### Step 5b — Engine: the dashboard and the mailbox alerts — **split into 5b-i and 5b-ii**
 
 Ran after step 6 rather than before it (step 6 was the last engine piece steps 7–10 waited on;
 nothing waits on the dashboard). **Two observability gaps from earlier steps are folded in here**,
@@ -1133,6 +1133,58 @@ Two further sizing facts the split turned up: the collection view is built entir
 either a new endpoint or a new SSE fingerprint; and `modules/shared/chain-groups.js` is the module
 that owns the collection level, with `mailboxCache` slotting beside its existing `historyCache` and
 reusing its re-render hooks.
+
+Split taken by the step-5b worker (2026-08-19) under the protocol's scope-split rule, on the shape the
+orchestrator had pre-scoped. The server half turned out to be the larger and more decision-dense one — a
+new three-table read, its own index with a migration, four DTO shapes, an endpoint, two metrics and their
+tests — and it is established the way this stack establishes things: by mutation, against a real
+database. The `wwwroot` half cannot be established that way at all, because the dashboard has no JS test
+infrastructure, so proving it means driving the rendered page against a live engine holding a mailbox in
+each state. Those are two different kinds of work with two different proof standards, and the second one
+is where "dashboard code is where this discipline lapses" bites; keeping them in one revision would have
+meant one of them getting the other's rigor.
+
+#### Step 5b-i — Engine: the mailbox read, the endpoint, and the alerts
+
+The server half: the repository read, the DTOs, the endpoint, and the two folded-in observability gaps.
+Independently green — the endpoint is reachable and tested without a line of rendering.
+
+Paths: `src/Runtime/workflow-engine` (`DashboardEndpoints`, `DashboardMapper`, `MetricsCollector`,
+`WorkflowExecutor`, `EngineDbContext` + one migration, repository, `Metrics`, `AGENTS.md`,
+`DASHBOARD_SPEC.md`, and the `wwwroot/modules/core/state.js` typedef).
+
+`GET /dashboard/mailboxes?collectionKeys=a,b&namespace=…` returns the mailboxes of the named collections
+with their logs laid out position by position, open and closed alike, bounded per collection rather than
+globally. A gauge of mailboxes left open past `deadline` plus one sweep cadence, and a counter on step 6's
+two critical states tagged apart from ordinary execution failures.
+
+#### Step 5b-ii — Engine: rendering the mailbox under its collection
+
+Paths: `src/Runtime/workflow-engine/src/WorkflowEngine.Core/wwwroot`.
+
+The rendering half, against the endpoint 5b-i landed. A mailbox renders under its collection with its
+deadline, both counters, per-position state and its receivers linked; a `Held` receiver renders as `Held`
+and receive workflows are ordinary workflows, so those cost nothing new.
+
+What 5b-i leaves ready, and what it deliberately did not do:
+
+- The payload is documented in `DASHBOARD_SPEC.md` — the four `state` words, `parkedForSeconds`, `heldAt`
+  for the live count-up on a receiver still parked, and `truncatedCollections` for a group whose window
+  the per-collection limit cut.
+- Every workflow card carries `mailboxId`, present only on a receive workflow, so a rendered row can be
+  matched to the mailbox block above it with no second lookup. The `state.js` typedef is in place; no
+  module reads it yet.
+- `modules/shared/chain-groups.js` is still the module that owns the collection level, with `mailboxCache`
+  slotting beside `historyCache` and reusing `rerenderHooks`. One fetch per render pass over the keys of
+  the rendered groups, not one per group.
+- **No CSS, no rendering, and no `wwwroot/AGENTS.md` "Endpoints Used" row** — that table describes what
+  the frontend consumes, so it belongs to this step.
+
+Two things to be honest about while writing it: the dashboard has no JS test infrastructure, so a
+rendering claim is only established by driving the page against a live engine holding a mailbox in each of
+the four position states — and an assertion that would pass against a mailbox rendering nothing does not
+count. Several files under `wwwroot` (including `chain-groups.js` and `AGENTS.md`) are **prettier-dirty at
+the base**: match surrounding style, sweep nothing, and check at line granularity.
 
 #### Step 5c — Engine: register every receiver's position — `done`
 

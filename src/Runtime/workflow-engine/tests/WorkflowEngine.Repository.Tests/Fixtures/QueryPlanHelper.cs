@@ -160,6 +160,32 @@ internal static class QueryPlanHelper
         }
     }
 
+    /// <summary>
+    /// Asserts that the named index is read somewhere in the plan and that the given table is never read
+    /// sequentially. The bitmap-tolerant sibling of <see cref="AssertUsesIndexScan"/>: a query with no
+    /// <c>ORDER BY</c> matching the index has no reason to prefer an ordered Index Scan, and PostgreSQL
+    /// answers it with a Bitmap Index Scan over the same index — which is index-driven, and which
+    /// <see cref="AssertUsesIndexScan"/> rejects. Bitmap Index Scan nodes carry the index name but no
+    /// relation name, so the index is matched on its own and the table's own scan nodes are checked
+    /// separately.
+    /// </summary>
+    public static void AssertUsesIndex(JsonElement plan, string tableName, string indexName)
+    {
+        AssertNoSeqScan(plan, tableName);
+
+        var nodes = GetAllNodes(plan);
+        if (!nodes.Any(n => n.IndexName == indexName))
+        {
+            var actual = string.Join(
+                ", ",
+                nodes.Where(n => n.IndexName is not null).Select(n => $"{n.NodeType}({n.IndexName})")
+            );
+            throw new Xunit.Sdk.XunitException(
+                $"Expected the plan to read \"{indexName}\" but it does not. Indexes read: [{actual}]"
+            );
+        }
+    }
+
     private static void CollectNodes(JsonElement node, List<PlanNode> nodes)
     {
         var nodeType = node.GetProperty("Node Type").GetString()!;

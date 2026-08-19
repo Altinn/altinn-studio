@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using WorkflowEngine.Core.Tests.Fixtures;
@@ -5,6 +7,7 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Extensions;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;
 
@@ -228,8 +231,77 @@ public class WorkflowExecutorMailboxTests
         Assert.Empty(command.Captured);
     }
 
+    [Fact]
+    public async Task Execute_CountsTheTwoCriticalStatesUnderTheirOwnMetric_AndCountsNothingForALegitimateAnswer()
+    {
+        // Both states already log at Error and both already raise the ordinary execution-failed counter,
+        // which is exactly the problem: an app's step failing and the engine being unable to say what a step
+        // was handed arrive under the same number, and they want different people woken up. The tag is what
+        // makes the two distinguishable from each other, and the closing-signal case is what makes the
+        // counter mean "invariant violated" rather than "an exchange ended".
+        var command = new ReceiptCapturingCommand();
+        using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+
+        var unregistered = CreateWorkflow(_mailboxId, CreateStep(0));
+        var undecided = CreateWorkflow(_mailboxId, CreateStep(0));
+        var closed = CreateWorkflow(_mailboxId, CreateStep(0));
+        var ordinary = CreateWorkflow(mailboxId: null, CreateStep(0));
+        SetupReceipt(fixture, unregistered.DatabaseId, new MailboxReceiptResult.Unregistered());
+        SetupReceipt(fixture, undecided.DatabaseId, new MailboxReceiptResult.Undecided(_mailboxId, 3));
+        SetupReceipt(
+            fixture,
+            closed.DatabaseId,
+            new MailboxReceiptResult.Resolved(MailboxReceipt.Closed(_mailboxId, 0, MailboxDisposedReason.Deadline))
+        );
+
+        using var collector = new MeterCollector();
+
+        foreach (var workflow in new[] { unregistered, undecided, closed, ordinary })
+            await executor.Execute(workflow, workflow.Steps[0], TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            new Dictionary<string, long>(StringComparer.Ordinal) { ["unregistered"] = 1, ["undecided"] = 1 },
+            collector.ByTag("engine.mailboxes.rendezvous.violations", "state")
+        );
+    }
+
     private static void SetupReceipt(WorkflowEngineTestFixture fixture, Guid workflowId, MailboxReceiptResult result) =>
         fixture
             .RepositoryMock.Setup(r => r.ReadMailboxReceipt(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
+
+    /// <summary>
+    /// Collects tagged counter measurements from the engine meter. Local rather than the TestKit's
+    /// collector, which this project does not reference.
+    /// </summary>
+    private sealed class MeterCollector : IDisposable
+    {
+        private readonly MeterListener _listener;
+        private readonly ConcurrentBag<(string Name, long Value, KeyValuePair<string, object?>[] Tags)> _taken = [];
+
+        public MeterCollector()
+        {
+            _listener = new MeterListener
+            {
+                InstrumentPublished = (instrument, listener) =>
+                {
+                    if (instrument.Meter.Name == Metrics.Meter.Name)
+                        listener.EnableMeasurementEvents(instrument);
+                },
+            };
+            _listener.SetMeasurementEventCallback<long>(
+                (instrument, measurement, tags, _) => _taken.Add((instrument.Name, measurement, tags.ToArray()))
+            );
+            _listener.Start();
+        }
+
+        public Dictionary<string, long> ByTag(string instrumentName, string tagKey) =>
+            _taken
+                .Where(m => m.Name == instrumentName)
+                .GroupBy(m => (string)m.Tags.Single(t => t.Key == tagKey).Value!)
+                .ToDictionary(g => g.Key, g => g.Sum(m => m.Value), StringComparer.Ordinal);
+
+        public void Dispose() => _listener.Dispose();
+    }
 }

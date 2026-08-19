@@ -253,15 +253,15 @@ Content-Type: application/json; charset=utf-8
       },
       "overallStatus": "Completed",
       "dependencies": {
-        "Guid_3": "Completed",
-        "Guid_2": "Completed"
+        "Guid_2": "Completed",
+        "Guid_3": "Completed"
       },
       "dependents": {
         "Guid_6": "Completed"
       },
       "links": {
-        "Guid_4": "Completed",
-        "Guid_2": "Completed"
+        "Guid_2": "Completed",
+        "Guid_4": "Completed"
       },
       "steps": [
         {
