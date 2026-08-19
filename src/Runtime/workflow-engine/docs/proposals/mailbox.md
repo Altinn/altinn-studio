@@ -1036,7 +1036,60 @@ The sweep and the retention purge, by contrast, are one coherent piece of lifecy
 they carry the `MaxMailboxTimeout` repoint with them. Estimated ~900 hand-written lines for the
 dashboard alone against ~1400 for the sweep half.
 
-#### Step 5a — Engine: the deadline sweep and retention
+#### Step 5a — Engine: the deadline sweep and retention — `done`
+
+Landed as jj change `tzlzmqyk` — 25 files, +2045/−64. Engine suite **827 → 850**; host 76 unchanged.
+Two review rounds.
+
+**The sweep got its own cadence, and that moved a safety bound.** `EngineSettings.MailboxSweepInterval`
+is 5 minutes rather than reusing `MaintenanceInterval`, so the worst case in the `MaxMailboxTimeout`
+derivation is now **110d 5min** against the ≥114d floor — margin ≈3d 23h. Both places step 1 named
+were repointed, and a test pins that the service actually _runs_ on the setting it charges (the
+arithmetic is only true if it does).
+
+**Two defects were found in the safety bound itself, both by review, both now closed:**
+
+1. **The bound and the batch size contradicted each other.** The sweep took one batch of 100 per tick,
+   while three sites in the same revision claimed "deadline plus at most one cadence" — the real gap
+   was `⌈overdue / 100⌉ × cadence`, or roughly four hours to drain a 5,000-mailbox mass timeout. The
+   sweep now **drains within the tick**, using the retention loop's shape with its `Closed > 0` guard,
+   so the claim is true rather than weakened. The guard's own test had to be rewritten before it
+   tested anything: with one poisoned mailbox the pass returns short and the length condition exits
+   the loop regardless, so it only reddened at a shrunk batch size. It now seeds a **full batch** and
+   poisons all of it, and dropping the guard makes it spin for the full 30-second race timeout.
+2. **The tripwire pinned `Defaults` while the property initializer was what actually ran.** Mutating
+   the initializer to 15 minutes left the tripwire green while the effective cadence tripled — the
+   exact failure mode step 1's carried note warned about, relocated rather than closed. The
+   initializer is gone; the normalizer sources from `Defaults`, matching the two neighboring timer
+   settings. The new guard holds the two derivation terms to **different, stated** standards:
+   `MailboxSweepInterval` must carry no initializer at all, while `MaxMailboxTimeout` inherited one
+   from step 1 and is held to the weaker rule that it agree with `Defaults` — which closes step 1's
+   hole too.
+
+**Two partial indexes were added beyond the letter of the step** (`ix_mailboxes_deadline_open`,
+`ix_mailboxes_disposed_at`) and earned their place: measured on a seeded database, the retention scan
+without its index degrades to a sequential scan of 200,000 rows with a 7.8 MB external merge sort
+(6,240 buffers against 23), and the empty-tick deadline scan goes from 4 buffers to 655. The plan's
+"one indexed scan per cadence" was false without them. Both are pinned by `QueryPlanTests`, whose seed
+had to reach 40,000 rows because both queries are `ORDER BY … LIMIT` and an index only wins by
+stopping early — the crossover sits near 5,000–10,000, so the margin runs in the safe direction.
+
+Other decisions: `MailboxDeadlineService` lives in `Data/Services` beside `DbMaintenanceService`
+rather than in Core, since with no enqueue half it needs nothing Core has; the per-mailbox close
+deliberately does **not** use `ExecuteWithRetry`, because a re-run after an unacknowledged commit
+returns nothing against a `status = 'open'` predicate and would lose that pass's counts — the cadence
+is the retry; per-mailbox failures tag `operation="mailboxDeadlineClose"` distinctly from the
+pass-level tag, so an operator can separate one poisoned mailbox from a dead sweep.
+
+Worth knowing: the `23001` purge-order assertion is **PostgreSQL 18+ behavior** — PG 17 raises `23503`
+for both `RESTRICT` and `NO ACTION` — so on this repo's pinned `postgres:18` it is a _stronger_
+discriminator than intended, distinguishing `RESTRICT` from a `NO ACTION` regression. It is coupled to
+that pin, and the test says so.
+
+Residuals: two retention batch loops differ by one guard until step 12 unifies them (the mailbox one
+is the shape that terminates); three tests carry wall-clock thresholds; the documented "an open
+mailbox past its deadline is worth an alert" story still has no gauge to hang an alert on — carried to
+5b.
 
 Paths: `src/Runtime/workflow-engine` (background service, `DbMaintenanceService`, repository).
 
@@ -1049,13 +1102,6 @@ nothing to attach to here. Retention: a `disposed` mailbox past the cutoff purge
 and waiters, children first, in the existing maintenance sweep. Metric:
 `engine.mailboxes.deliveries.unconsumed`.
 
-**Carried from step 1:** the `MaxMailboxTimeout` derivation and
-`CallbackTokenLifetimeInvariantTests` both charge the sweep term against
-`EngineSettings.MaintenanceInterval` (1 min) only because no mailbox sweep existed yet. If this step
-gives the closure sweep its own, coarser cadence setting, **repoint that term in both places** — a
-slower sweep lets a receiver park past the bound while every assertion stays green. Both files say so
-at the point of use; they are the grep targets.
-
 #### Step 5b — Engine: the dashboard — `todo`
 
 Paths: `src/Runtime/workflow-engine` (`DashboardEndpoints`, `DashboardMapper`, `wwwroot`, a new
@@ -1066,20 +1112,51 @@ A mailbox renders under its collection with its deadline, both counters, per-pos
 receive workflows are ordinary workflows, so those cost nothing new. `released_at` and `claimed_at`
 are both written exactly once and are ready for this.
 
-**One design question must be settled before code.** "Its receivers linked" is not fully answerable
-from the schema as it stands: a waiter row exists **only for a receiver that had to park** (step 3's
-landing note), so a receiver born runnable — `delivered` or `closed` birth — has its position
-recorded nowhere. `engine.workflows.mailbox_id` names the mailbox but carries no `seq`. Three
-options, and the choice is the orchestrator's: accept the gap and render those positions without a
-link; infer position from `created_at` order (true in practice, guaranteed by nothing); or add the
-column. Note the recorded alternative in [The receive workflow](#the-receive-workflow) is the same
-question from the other end.
+**The design question the split raised is ANSWERED — and it was not a dashboard question.** See
+[step 5c](#step-5c--engine-register-every-receivers-position--in-progress), which closes it before
+this step or step 6 builds on the gap.
 
 Two further sizing facts the split turned up: the collection view is built entirely from the
 `/dashboard/stream/live` SSE payload with no fetch, so a block that should always be visible needs
 either a new endpoint or a new SSE fingerprint; and `modules/shared/chain-groups.js` is the module
 that owns the collection level, with `mailboxCache` slotting beside its existing `historyCache` and
 reusing its re-render hooks.
+
+#### Step 5c — Engine: register every receiver's position — `in progress`
+
+Paths: `src/Runtime/workflow-engine`.
+
+**A correctness hole, found while triaging 5b's design question and confirmed against the code.** The
+enqueue flush writes a `mailbox_waiters` row **only for a receiver born parked** (`plan.Waiters`); a
+receiver born runnable — with its delivery, or with the closed signal — gets no row, and
+`engine.workflows` carries `mailbox_id` without a `seq`. So **its position is recorded nowhere in the
+database.**
+
+That breaks **step 6**, not merely the dashboard. The executor is specified to read the waiter's `seq`
+by primary key and then `mailbox_deliveries (mailbox_id, seq)` — present → attach the payload, absent
+→ the no-delivery callback. For a receiver born runnable there is no `seq` to read, so it would fall
+through to _absent_ and hand the closing signal to a receiver whose message is sitting at its
+position. That is precisely what
+[the frozen-meaning rule](#the-receivers-meaning-is-frozen-before-it-can-run) forbids: an attempt that
+sees "no delivery" where a delivery exists.
+
+**Decision: register every receiver, stamping `released_at` at birth for the ones born runnable.**
+The wake and the closure release already filter on `released_at IS NULL`, so those rows are skipped
+untouched and **step 4's approved logic needs no change** — verify that rather than assume it. The
+registry then holds `(mailbox_id, seq, workflow_id)` for every receiver, which is exactly what the
+executor needs, what the dashboard needs for per-position state, and what makes `UNIQUE (workflow_id)`
+a total index rather than a partial one.
+
+_Why not the recorded alternative_ (open question 3: `mailbox_seq` on `engine.workflows`): it costs a
+second nullable column on the hot enqueue `COPY` to store what a feature-local table already keys by,
+and the registry row is bounded per mailbox by `MaxMailboxLogLength`. The one honest cost of the
+chosen shape is that "waiter" becomes a misnomer for a row describing a receiver that never waited —
+consider renaming the table to `engine.mailbox_receivers` while nothing is released, or say plainly in
+the entity's docs that it is a positional registry whose unreleased rows are the waiters.
+
+Pin: every birth state leaves exactly one registry row with the right `seq`; a receiver born runnable
+is never touched by the wake or the closure release (mutation-test it, do not assert it); and the
+counters still agree with the registry after mixed births.
 
 #### Step 6 — Engine + host: the delivery callback contract — `todo`
 
