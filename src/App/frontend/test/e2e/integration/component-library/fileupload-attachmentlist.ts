@@ -8,7 +8,7 @@ import { FileScanResults } from 'src/features/attachments/types';
 
 const appFrontend = new AppFrontend();
 
-describe('FileUpload, FileUploadWithTags, AttachmentList test', () => {
+describe('FileUpload with and without tags, AttachmentList test', () => {
   it('shows an infected file inline before revealing the error report on blocked navigation', () => {
     let uploadedDataElementId: string | undefined;
     let scanPolls = 0;
