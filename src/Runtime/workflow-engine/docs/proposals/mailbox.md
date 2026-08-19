@@ -1144,7 +1144,60 @@ each state. Those are two different kinds of work with two different proof stand
 is where "dashboard code is where this discipline lapses" bites; keeping them in one revision would have
 meant one of them getting the other's rigor.
 
-#### Step 5b-i — Engine: the mailbox read, the endpoint, and the alerts
+#### Step 5b-i — Engine: the mailbox read, the endpoint, and the alerts — `done`
+
+Landed as jj change `yqnklxnq` — 27 files, +2967/−77 excluding this document. Engine suite
+**892 → 939**; host 81 unchanged, no wire-contract regeneration (the dashboard DTOs are `internal` to
+Core). Three rounds, sixteen mutations, each reddening exactly its intended test.
+
+**EF Core silently collapses two indexes declared over the same property set — and it did.**
+`HasIndex(e => new { … })` keys the model index by property set, so a second lambda-declared index on
+`(namespace, collection_key)` **reconfigured the mint's partial one** rather than adding a sibling. It
+scaffolded as `RenameIndex` _keeping the filter_, which would have left the engine with the mint's
+index renamed and **no full index at all, every other test green.** Caught by reading the generated
+migration rather than trusting the scaffolder — the same lesson as 5c's drop-and-recreate, and the
+second time in this stack that EF's default output was wrong in a way the suite could not see.
+
+**The fix became a widening, which is better than the workaround it replaced.** Review measured a
+single `(namespace, collection_key, status)` btree against the two-index arrangement and it wins on
+every axis: the mint's `open_count` goes from 4 buffers with a heap fetch to **3 buffers index-only**
+at realistic density (2 at high density), the dashboard read is unchanged, index bytes drop 504 kB →
+312 kB, and each mint maintains one index entry instead of two. It also **removes the trap** rather
+than working around it: three columns is a distinct property set, so the named-overload workaround is
+no longer load-bearing. Deferring would have made the redundancy permanent — this was the last step
+before the schema froze, which is also why 5c's
+`CHECK (held_at IS NOT NULL OR released_at IS NOT NULL)` rides this migration.
+
+**The first bound would have made an operator misread the dashboard.** A _global_ `LIMIT 200` ordered
+newest-first across all requested collections drops the older end globally, so at the endpoint's own
+collection cap **entire collections render with no mailbox block at all** — indistinguishable from
+"this exchange never had a mailbox", and one busy collection starves every other. Replaced with a
+per-collection `LATERAL` bound (100 keys × 10 mailboxes) that **reports what it truncated**:
+`truncatedCollections` names the keys whose window was full, ordered by the caller's own key order.
+The array rather than a boolean is deliberate — the bound is per-collection, so the fact is
+per-collection, and a boolean loses exactly what a card needs to draw "older mailboxes not shown" over
+the right group. The asymmetry with the key cap is principled: extra keys drop silently because the
+caller can compute that from what it sent, while only the server knows there is more mailbox history.
+
+Other decisions: the endpoint is a **fetch, not an SSE fingerprint** — a three-table read on a
+two-second loop would charge every engine for a feature most deployments never use; **four** position
+states, not three, because a receiver the closure released is neither `waiting` (the wait is over) nor
+`consumed` (no message was handed over), and folding it either way misreports how a timed-out exchange
+ends; the overdue gauge counts past `deadline + MailboxSweepInterval`, so **zero is the only healthy
+value** and alerting belongs on persistence rather than a single sample; and the read is one `LATERAL`
+with a `FULL JOIN` rather than a `UNION` plus two re-joins, which halves the child-table work
+(3613 buffers against 6015) for a row-for-row identical result.
+
+**A worker reported one of its own tests as non-discriminating**, which is the behavior this stack
+wants: "every position carries a message or a receiver" cannot distinguish row-derived positions from
+`GREATEST(next_idx, next_seq)`, because the two agree in every state the rendezvous can reach. The
+test is kept for the shapes it does pin, labeled as such, and a separate hand-forced test carries the
+sourcing claim.
+
+What 5b-ii inherits: the payload shape above, documented in `DASHBOARD_SPEC.md`; `mailboxId` on every
+workflow card as the link from a rendered row to its mailbox block; the `state.js` typedef; and
+`heldAt`/`releasedAt` as the two stamps a card counts park duration from — absent both while still
+parked and for a receiver that never parked.
 
 The server half: the repository read, the DTOs, the endpoint, and the two folded-in observability gaps.
 Independently green — the endpoint is reachable and tested without a line of rendering.
@@ -1158,7 +1211,7 @@ with their logs laid out position by position, open and closed alike, bounded pe
 globally. A gauge of mailboxes left open past `deadline` plus one sweep cadence, and a counter on step 6's
 two critical states tagged apart from ordinary execution failures.
 
-#### Step 5b-ii — Engine: rendering the mailbox under its collection
+#### Step 5b-ii — Engine: rendering the mailbox under its collection — `in progress`
 
 Paths: `src/Runtime/workflow-engine/src/WorkflowEngine.Core/wwwroot`.
 
@@ -1458,6 +1511,14 @@ feature revision** — each deserves its own small revision, landed here or earl
    key array can repeat, so a batch containing **three or more** requests sharing one
    `(namespace, key)` throws `ArgumentException`. v2 fixed it with `.Distinct()` plus an
    indexer-based dictionary. Step 3 made it strictly less reachable but did not fix it.
+3. **`dotnet ef migrations script --idempotent` cannot generate a script for this project.**
+   `20260723074600_AddStepDeferral`'s `SwapFetchGateIndex` emits `DROP`/`CREATE INDEX CONCURRENTLY`
+   with `suppressTransaction: true`, and `--idempotent` wraps every migration's statements in a
+   `DO $EF$ BEGIN … END $EF$;` block, where `CONCURRENTLY` is illegal — so the concurrent statements
+   are rejected and the following `ALTER INDEX … RENAME` fails on a staging index that was never
+   created. Confirmed byte-identical to the pre-feature base, so it predates this stack entirely and
+   nothing here aggravates it; the engine migrates at startup, so only script generation is affected.
+   Plain (non-idempotent) script generation works.
 
 Rebuild each revision the way CI does, confirm the suites, confirm `typos`, CSharpier and prettier,
 confirm no generated-file CRLF drift rode along, and update the engine `AGENTS.md`, the app-lib
