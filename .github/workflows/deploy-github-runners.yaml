@@ -80,7 +80,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ env.REGISTRY_NAME }}
+        run: az acr login --name "${REGISTRY_NAME}"
 
       - name: Resolve Go version
         id: go-version
@@ -164,7 +164,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ env.REGISTRY_NAME }}
+        run: az acr login --name "${REGISTRY_NAME}"
 
       - name: Export prepared Sandbox image
         env:
@@ -244,16 +244,17 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ env.REGISTRY_NAME }}
+        run: az acr login --name "${REGISTRY_NAME}"
 
       - name: flux install
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: patch base with image tag
         working-directory: src/github-runner/infra/kustomize/base
+        env:
+          IMAGE: ${{ needs.build-images.outputs.base_image }}
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
         run: |
-          export IMAGE="${{ needs.build-images.outputs.base_image }}"
-          export IMAGE_TAG="${{ needs.build-images.outputs.image_tag }}"
           for file in scaledjob.yaml scaledjob-single.yaml; do
             yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
             yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
@@ -299,8 +300,10 @@ jobs:
 
       - name: push artifact
         working-directory: src/github-runner/infra/kustomize
+        env:
+          CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
         run: |
-          flux push artifact oci://${{ needs.build-images.outputs.config_repo }} \
+          flux push artifact "oci://${CONFIG_REPO}" \
             --provider=azure \
             --reproducible \
             --path="." \
@@ -313,6 +316,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     env:
+      ARTIFACT_TAG: ${{ matrix.environment }}
+      CONFIG_REPO: ${{ needs.push-artifact.outputs.CONFIG_REPO }}
       REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
       matrix:
@@ -326,12 +331,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ env.REGISTRY_NAME }}
+        run: az acr login --name "${REGISTRY_NAME}"
 
       - name: flux install
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: tag artifact
         run: |
-          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
-            --tag ${{ matrix.environment }}
+          flux tag artifact "oci://${CONFIG_REPO}" \
+            --tag "${ARTIFACT_TAG}"
