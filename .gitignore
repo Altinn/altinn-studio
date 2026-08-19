@@ -15,8 +15,6 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
-[Oo]bj/
 msbuild.log
 
 # Cross building rootfs
@@ -343,11 +341,6 @@ release.properties
 .classpath
 .project
 .settings/
-bin/
-!src/experimental/agents/src/bin/
-!src/experimental/agents/src/bin/*.rs
-!src/github-runner/coordinator/src/bin/
-!src/github-runner/coordinator/src/bin/*.rs
 tmp/
 *.tmp
 *.bak
