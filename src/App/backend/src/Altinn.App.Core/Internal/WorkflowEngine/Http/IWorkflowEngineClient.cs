@@ -114,4 +114,26 @@ internal interface IWorkflowEngineClient
     /// throws, so it rides the caller's retry ladder.
     /// </returns>
     Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Delivers one message into a mailbox, appending it to the mailbox's log at the next gapless
+    /// position. Idempotent on <see cref="MailboxDeliveryRequest.IdempotencyKey"/> within the mailbox:
+    /// the same key delivers one message at one position however many times it is offered.
+    /// </summary>
+    /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
+    /// <param name="mailboxId">The mailbox to deliver into</param>
+    /// <param name="request">The delivery: idempotency key and payload</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>
+    /// The engine's status and, on <c>202</c>/<c>200</c>, the delivery it holds. Every documented
+    /// status comes back as a value rather than an exception, because each one means something
+    /// different to the forwarding channel and only the forwarder knows what: see
+    /// <see cref="Features.Process.ServiceTaskReplyForwardOutcome"/>. Only a transport failure throws.
+    /// </returns>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    );
 }

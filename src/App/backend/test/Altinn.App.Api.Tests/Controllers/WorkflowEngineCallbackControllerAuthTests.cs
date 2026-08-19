@@ -40,7 +40,9 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     /// time. The callback controller verifies this signature before trusting any of the blob.
     /// </summary>
     private string SignState(WorkflowCallbackState state) =>
-        Services.GetRequiredService<WorkflowStateSigner>().Sign(JsonSerializer.Serialize(state));
+        Services
+            .GetRequiredService<WorkflowStateSigner>()
+            .Sign(JsonSerializer.Serialize(state), SigningDomain.CallbackState);
 
     private static string CallbackUrl(Guid instanceGuid) =>
         $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/some-command";

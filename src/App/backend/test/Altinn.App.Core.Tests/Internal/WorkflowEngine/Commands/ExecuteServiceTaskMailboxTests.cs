@@ -119,6 +119,13 @@ public class ExecuteServiceTaskMailboxTests
 
         public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 
     /// <summary>
@@ -214,6 +221,7 @@ public class ExecuteServiceTaskMailboxTests
             sp.GetRequiredService<AppImplementationFactory>(),
             client,
             CreateSecretProvider(appCodeLife ?? TimeSpan.FromDays(180)),
+            TestMailboxDeliveryEnvelope.Create(),
             _clock
         );
     }
@@ -257,20 +265,25 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The rendezvous a receive workflow's step is handed: a message standing at its position.
+    /// The rendezvous a receive workflow's step is handed: a message standing at its position, sealed the
+    /// way the forwarder seals one — bound to this mailbox, this service task and this idempotency key —
+    /// because an unsealed payload never reaches a handler at all.
     /// </summary>
-    private static AppCallbackMailbox Delivered(Guid mailboxId, long seq = 0, string payload = "<receipt/>") =>
-        new()
+    private static AppCallbackMailbox Delivered(Guid mailboxId, long seq = 0, string payload = "<receipt/>")
+    {
+        string key = $"source-message-{seq}";
+        return new AppCallbackMailbox
         {
             Id = mailboxId,
             Seq = seq,
             Delivery = new AppCallbackMailboxDelivery
             {
-                IdempotencyKey = $"source-message-{seq}",
-                Payload = payload,
+                IdempotencyKey = key,
+                Payload = TestMailboxDeliveryEnvelope.Create().Wrap(payload, mailboxId, "archiving", key),
                 AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
             },
         };
+    }
 
     private static ExecuteServiceTaskPayload Payload(string? stageName) => new("archiving", stageName);
 

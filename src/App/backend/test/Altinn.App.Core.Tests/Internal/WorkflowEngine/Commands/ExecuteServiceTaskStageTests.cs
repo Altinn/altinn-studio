@@ -48,8 +48,10 @@ public class ExecuteServiceTaskStageTests
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
             Mock.Of<IWorkflowEngineClient>(),
-            // Never consulted: these pipelines declare no mailbox, so the app-code guard is not reached.
-            Mock.Of<IWorkflowCallbackSecretProvider>()
+            // Never consulted: these pipelines declare no mailbox, so neither the app-code guard nor
+            // the delivery envelope is reached.
+            Mock.Of<IWorkflowCallbackSecretProvider>(),
+            TestMailboxDeliveryEnvelope.Create()
         );
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
@@ -15,6 +16,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -29,6 +31,13 @@ public class ExecuteServiceTaskReplyTests
 {
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+
+    /// <summary>
+    /// The real envelope, not a stub: a delivered message only reaches a handler if it opens against
+    /// this mailbox, this service task and this idempotency key, so every test that expects a message
+    /// to arrive must seal it the way the forwarder does.
+    /// </summary>
+    private static readonly MailboxDeliveryEnvelope _envelope = TestMailboxDeliveryEnvelope.Create();
 
     /// <summary>A task answered by a message: one sending stage, and a conclusion that reads it.</summary>
     private sealed class ArchivingTask : IPipelineServiceTask
@@ -127,6 +136,13 @@ public class ExecuteServiceTaskReplyTests
 
         public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 
     private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
@@ -148,7 +164,8 @@ public class ExecuteServiceTaskReplyTests
                     IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
                     ExpiresAt = DateTimeOffset.UtcNow.AddDays(180),
                 }
-            )
+            ),
+            _envelope
         );
     }
 
@@ -189,7 +206,7 @@ public class ExecuteServiceTaskReplyTests
         };
     }
 
-    private static AppCallbackMailbox Delivered(long seq = 0) =>
+    private static AppCallbackMailbox Delivered(long seq = 0, string body = "<receipt>ok</receipt>") =>
         new()
         {
             Id = _mailboxId,
@@ -197,7 +214,7 @@ public class ExecuteServiceTaskReplyTests
             Delivery = new AppCallbackMailboxDelivery
             {
                 IdempotencyKey = "fiks-message-42",
-                Payload = "<receipt>ok</receipt>",
+                Payload = _envelope.Wrap(body, _mailboxId, "archiving", "fiks-message-42"),
                 AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
             },
         };
@@ -235,7 +252,7 @@ public class ExecuteServiceTaskReplyTests
         // signal from an absent payload would conclude an exchange degraded because a forwarder sent
         // nothing.
         var task = new ArchivingTask();
-        AppCallbackMailbox empty = Delivered() with { Delivery = Delivered().Delivery! with { Payload = "" } };
+        AppCallbackMailbox empty = Delivered(body: "");
 
         await CreateCommand(task).Execute(CreateContext(empty), new ExecuteServiceTaskPayload("archiving"));
 
@@ -310,6 +327,161 @@ public class ExecuteServiceTaskReplyTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
         Assert.Null(task.Conclusion);
+    }
+
+    [Fact]
+    public async Task Conclusion_ReadsBackExactlyWhatTheForwarderForwarded()
+    {
+        // The two halves of the envelope meeting, with nothing hand-written between them: the real
+        // forwarder seals a body and submits it, and the payload it actually sent is what the receive
+        // step is handed. Every other test in this file constructs the sealed payload itself, so this is
+        // the one that would catch the two ends binding different things — a forwarder that dropped the
+        // service task type, say, would pass its own tests and this would go red.
+        var mailboxId = Guid.CreateVersion7();
+        const string forwardedBody = """{"status":"mottatt","meldingId":"abc"}""";
+        const string sourceMessageId = "fiks-message-99";
+        MailboxDeliveryRequest? delivered = null;
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(x =>
+                x.DeliverToMailbox(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<MailboxDeliveryRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns<string, Guid, MailboxDeliveryRequest, CancellationToken>(
+                (_, id, request, _) =>
+                {
+                    delivered = request;
+                    return Task.FromResult(
+                        new MailboxDeliveryResult(
+                            HttpStatusCode.Accepted,
+                            new MailboxDeliveryResponse
+                            {
+                                MailboxId = id,
+                                Idx = 0,
+                                IdempotencyKey = request.IdempotencyKey,
+                                AcceptedAt = DateTimeOffset.UtcNow,
+                            },
+                            ErrorDetail: null
+                        )
+                    );
+                }
+            );
+
+        var forwarder = new ServiceTaskReplyForwarder(
+            client.Object,
+            _envelope,
+            new AppIdentifier("ttd", "test-app"),
+            NullLogger<ServiceTaskReplyForwarder>.Instance
+        );
+        await forwarder.ForwardReply(mailboxId, "archiving", forwardedBody, sourceMessageId);
+
+        var task = new ArchivingTask();
+        AppCallbackMailbox receipt = new()
+        {
+            Id = mailboxId,
+            Seq = 0,
+            Delivery = new AppCallbackMailboxDelivery
+            {
+                IdempotencyKey = delivered!.IdempotencyKey,
+                Payload = delivered.Payload,
+                AcceptedAt = new DateTimeOffset(2026, 8, 20, 9, 30, 0, TimeSpan.Zero),
+            },
+        };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(receipt), new ExecuteServiceTaskPayload("archiving"));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Equal(forwardedBody, task.Conclusion!.Reply!.Payload);
+        Assert.Equal(sourceMessageId, task.Conclusion.Reply.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task Conclusion_WithAMessageThisAppNeverSealed_FailsPermanentlyWithoutRunningTheHandler()
+    {
+        // What a party posting straight to the engine's delivery endpoint produces. The handler must
+        // never be handed content nothing vouched for, so the step fails before it runs — permanently,
+        // because the bytes at that position never change and no retry re-derives a different answer.
+        var task = new ArchivingTask();
+        AppCallbackMailbox unsealed = Delivered() with
+        {
+            Delivery = Delivered().Delivery! with { Payload = "<receipt>ok</receipt>" },
+        };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(unsealed), new ExecuteServiceTaskPayload("archiving"));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
+        Assert.Null(task.Conclusion);
+    }
+
+    public static TheoryData<string, Guid, string, string> ForeignSeals =>
+        new()
+        {
+            // Sealed for another mailbox: a message validly forwarded into one exchange, re-delivered
+            // into another exchange of the same app by someone holding engine API credentials.
+            { "mailbox", new Guid("018f4e00-0000-7000-8000-0000000000bb"), "archiving", "fiks-message-42" },
+            // Sealed for another handler: the mailbox is unchanged, so the address binding alone would
+            // not catch it. A receiver enqueued against this mailbox naming a different
+            // mailbox-declaring task would otherwise read this message and conclude this exchange.
+            { "service task", _mailboxId, "someOtherArchivingTask", "fiks-message-42" },
+            // Relabelled: the same captured envelope re-delivered under a fresh idempotency key, which
+            // the engine accepts as a new message — and which the handler is told to deduplicate on.
+            { "idempotency key", _mailboxId, "archiving", "fiks-message-43" },
+        };
+
+    [Theory]
+    [MemberData(nameof(ForeignSeals))]
+    public async Task Conclusion_WithAMessageSealedForSomethingElse_FailsPermanently(
+        string what,
+        Guid sealedForMailbox,
+        string sealedForTask,
+        string sealedForKey
+    )
+    {
+        // Each binding, checked from the receiving end: the three values the envelope covers are all read
+        // from the delivered callback, so opening it is what makes them trustworthy rather than the
+        // opening trusting them.
+        Assert.NotEmpty(what);
+        var task = new ArchivingTask();
+        AppCallbackMailbox foreign = Delivered() with
+        {
+            Delivery = Delivered().Delivery! with
+            {
+                Payload = _envelope.Wrap("<receipt>ok</receipt>", sealedForMailbox, sealedForTask, sealedForKey),
+            },
+        };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(foreign), new ExecuteServiceTaskPayload("archiving"));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
+        Assert.Null(task.Conclusion);
+    }
+
+    [Fact]
+    public async Task Conclusion_OnAClosedMailbox_NeedsNoEnvelope()
+    {
+        // The closing signal carries no message, so there is nothing to open — and the conclusion must
+        // still run. A guard that demanded an envelope on every rendezvous would strand every exchange
+        // that ends by deadline or by request.
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), new ExecuteServiceTaskPayload("archiving"));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(task.Conclusion);
+        Assert.Null(task.Conclusion!.Reply);
     }
 
     [Fact]

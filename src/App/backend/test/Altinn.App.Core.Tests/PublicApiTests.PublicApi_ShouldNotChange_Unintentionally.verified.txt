@@ -2004,6 +2004,10 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
+    public interface IServiceTaskReplyForwarder
+    {
+        System.Threading.Tasks.Task ForwardReply(System.Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, System.Threading.CancellationToken cancellationToken = default);
+    }
     public enum MailboxClosedReason
     {
         Request = 0,
@@ -2121,6 +2125,24 @@ namespace Altinn.App.Core.Features.Process
         public required string IdempotencyKey { get; init; }
         public required string Payload { get; init; }
         public required long Position { get; init; }
+    }
+    public sealed class ServiceTaskReplyForwardException : Altinn.App.Core.Exceptions.AltinnException
+    {
+        public ServiceTaskReplyForwardException(Altinn.App.Core.Features.Process.ServiceTaskReplyForwardOutcome outcome, System.Guid mailboxId, string? idempotencyKey, string message, System.Exception? innerException = null) { }
+        public string? IdempotencyKey { get; }
+        public bool IsTransient { get; }
+        public System.Guid MailboxId { get; }
+        public Altinn.App.Core.Features.Process.ServiceTaskReplyForwardOutcome Outcome { get; }
+    }
+    public enum ServiceTaskReplyForwardOutcome
+    {
+        Unroutable = 0,
+        Late = 1,
+        PayloadTooLarge = 2,
+        MailboxFull = 3,
+        Rejected = 4,
+        EngineUnavailable = 5,
+        SigningUnavailable = 6,
     }
     public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {

@@ -110,7 +110,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
             ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
-            State = signer.Sign(JsonSerializer.Serialize(incoming)),
+            State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
 
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
@@ -126,7 +126,9 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
         );
         Assert.NotNull(callbackResponse?.State);
 
-        var returned = JsonSerializer.Deserialize<WorkflowCallbackState>(signer.Verify(callbackResponse.State))!;
+        var returned = JsonSerializer.Deserialize<WorkflowCallbackState>(
+            signer.Verify(callbackResponse.State, SigningDomain.CallbackState)
+        )!;
         return (returned, probe);
     }
 

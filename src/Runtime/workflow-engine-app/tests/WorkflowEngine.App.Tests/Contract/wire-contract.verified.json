@@ -414,6 +414,46 @@
       }
     ]
   },
+  "MailboxDeliveryRequest": {
+    "Name": "MailboxDeliveryRequest",
+    "Fields": [
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "payload",
+        "Kind": "string",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxDeliveryResponse": {
+    "Name": "MailboxDeliveryResponse",
+    "Fields": [
+      {
+        "Name": "acceptedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "idx",
+        "Kind": "long",
+        "Nullable": false
+      },
+      {
+        "Name": "mailboxId",
+        "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
   "MailboxReference": {
     "Name": "MailboxReference",
     "Fields": [

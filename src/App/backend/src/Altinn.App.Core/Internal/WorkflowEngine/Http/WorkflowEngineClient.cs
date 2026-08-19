@@ -294,6 +294,59 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
+    /// How much of a refused delivery's response body travels back for diagnostics. The engine answers
+    /// with ProblemDetails, so the useful part is at the front.
+    /// </summary>
+    private const int MaxErrorDetailLength = 512;
+
+    /// <inheritdoc />
+    public async Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}/deliveries";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = JsonContent.Create(request);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+
+        if (response.StatusCode is HttpStatusCode.Accepted or HttpStatusCode.OK)
+        {
+            // The status is the outcome; the body only names the position the engine assigned, for
+            // diagnostics. An unreadable body must therefore not turn an accepted message into a
+            // reported failure — the caller would forward again, and the redelivery is at best wasted
+            // work.
+            MailboxDeliveryResponse? body = null;
+            try
+            {
+                body = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(ct);
+            }
+            catch (Exception ex) when (ex is JsonException or NotSupportedException)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Workflow engine accepted the delivery into mailbox {MailboxId} with {StatusCode}, but its "
+                        + "response body could not be read. The message is delivered; only its position is unknown.",
+                    mailboxId,
+                    (int)response.StatusCode
+                );
+            }
+
+            return new MailboxDeliveryResult(response.StatusCode, body, ErrorDetail: null);
+        }
+
+        string errorBody = await response.Content.ReadAsStringAsync(ct);
+        return new MailboxDeliveryResult(
+            response.StatusCode,
+            Body: null,
+            ErrorDetail: errorBody.Length > MaxErrorDetailLength ? errorBody[..MaxErrorDetailLength] : errorBody
+        );
+    }
+
+    /// <summary>
     /// The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one. The engine
     /// puts the actionable sentence there — which value was rejected and why — and it is the only
     /// part worth forwarding into a failure message.

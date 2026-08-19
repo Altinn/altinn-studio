@@ -26,6 +26,93 @@ public class WorkflowStateSignerTests
             ExpiresAt = expiresAt ?? DateTimeOffset.UtcNow.AddDays(186),
         };
 
+    /// <summary>
+    /// Known-answer vectors for the callback state blob's signature: secret, payload, and the Base64
+    /// HMAC-SHA256 an independent implementation produces for the pair.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// They pin the state domain as <em>underived</em>: these signatures are computed under the app-code
+    /// directly (<c>HMAC(code, payload)</c>), so the domain separation introduced for forwarded messages
+    /// must leave <see cref="SigningPurpose.CallbackState"/> tagless — which is exactly what lets state
+    /// blobs signed by an earlier build still verify. Deriving a key for it would fail every vector here
+    /// at once, which is the point: a sign-then-verify round-trip would agree with itself after any such
+    /// change, and every in-flight transition would break at its next callback.
+    /// </para>
+    /// <para>
+    /// The long-secret vector additionally pins behaviour past HMAC-SHA256's 64-byte block, where the
+    /// key is hashed before use.
+    /// </para>
+    /// </remarks>
+    public static TheoryData<string, string, string> GoldenVectors =>
+        new()
+        {
+            {
+                "secret-code-long-enough-for-hmac",
+                """{"instance":{"id":"501337/abc"},"formData":[]}""",
+                "y9yRyhUFbu53bVAHah7WGENvZ8TCUrf/nLKZIBxdoEs="
+            },
+            { "secret-code-long-enough-for-hmac", "", "ShrD7feAxlztge8964fvlXSP7ZtYme9aZsLe+lWwc2o=" },
+            {
+                "secret-code-long-enough-for-hmac",
+                """{"instance":{"id":"501337/abc"},"formData":[{"æøå":"Blåbær"}]}""",
+                "WkcPi6ADszCsTXgVh1NobAG9KDStbpDcbyNVeUMBEiQ="
+            },
+            {
+                // 65 bytes: one past the block size, so HMAC hashes the key first.
+                "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+                """{"instance":{"id":"501337/abc"},"formData":[]}""",
+                "AjUEgN/F6HFUKtkBrogharT7L6WdlmoC0OnP9GKLZ3E="
+            },
+        };
+
+    [Theory]
+    [MemberData(nameof(GoldenVectors))]
+    public void Sign_ReproducesTheKnownSignature(string code, string payload, string expected)
+    {
+        _secretProviderMock.Setup(x => x.GetSigningSecret()).Returns(Code("id-1", code));
+        var sut = CreateSut();
+
+        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(payload, SigningDomain.CallbackState))!;
+
+        Assert.Equal(expected, envelope.Signature);
+    }
+
+    [Theory]
+    [MemberData(nameof(GoldenVectors))]
+    public void Verify_AcceptsAnEnvelopeCarryingTheKnownSignature(string code, string payload, string expected)
+    {
+        // The other half of the compatibility claim: a blob an earlier build produced — here hand-built
+        // from the vector rather than signed by this one — must still open, mid-transition.
+        _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([Code("id-1", code)]);
+        var sut = CreateSut();
+
+        string envelope = JsonSerializer.Serialize(
+            new SignedWorkflowState
+            {
+                Payload = payload,
+                Signature = expected,
+                SecretId = "id-1",
+            }
+        );
+
+        Assert.Equal(payload, sut.Verify(envelope, SigningDomain.CallbackState));
+    }
+
+    [Fact]
+    public void Sign_WithADefaultDomain_Throws()
+    {
+        // SigningDomain is a struct, so `default` is reachable — an uninitialized field, an unassigned
+        // element. It must lead nowhere rather than into the state-blob domain, which is the whole
+        // reason SigningPurpose.Unspecified occupies the enum's default slot.
+        _secretProviderMock
+            .Setup(x => x.GetSigningSecret())
+            .Returns(Code("id-1", "secret-code-long-enough-for-hmac"));
+        var sut = CreateSut();
+
+        Assert.Throws<InvalidOperationException>(() => sut.Sign(Payload, default));
+    }
+
     [Fact]
     public void SignThenVerify_RoundTrips_ReturnsOriginalPayload()
     {
@@ -34,8 +121,8 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([code]);
         var sut = CreateSut();
 
-        string envelope = sut.Sign(Payload);
-        string restored = sut.Verify(envelope);
+        string envelope = sut.Sign(Payload, SigningDomain.CallbackState);
+        string restored = sut.Verify(envelope, SigningDomain.CallbackState);
 
         Assert.Equal(Payload, restored);
     }
@@ -47,7 +134,7 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetSigningSecret()).Returns(code);
         var sut = CreateSut();
 
-        string envelopeJson = sut.Sign(Payload);
+        string envelopeJson = sut.Sign(Payload, SigningDomain.CallbackState);
         var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(envelopeJson);
 
         Assert.NotNull(envelope);
@@ -65,7 +152,7 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([code]);
         var sut = CreateSut();
 
-        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(Payload))!;
+        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(Payload, SigningDomain.CallbackState))!;
         // Keep the original (valid) signature but swap in a different payload.
         string tampered = JsonSerializer.Serialize(
             envelope with
@@ -74,7 +161,7 @@ public class WorkflowStateSignerTests
             }
         );
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(tampered));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(tampered, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -85,11 +172,11 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([code]);
         var sut = CreateSut();
 
-        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(Payload))!;
+        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(Payload, SigningDomain.CallbackState))!;
         // Valid Base64 of the wrong length/content — must be rejected, not throw on decode.
         string tampered = JsonSerializer.Serialize(envelope with { Signature = Convert.ToBase64String(new byte[32]) });
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(tampered));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(tampered, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -100,10 +187,10 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([code]);
         var sut = CreateSut();
 
-        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(Payload))!;
+        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(sut.Sign(Payload, SigningDomain.CallbackState))!;
         string tampered = JsonSerializer.Serialize(envelope with { Signature = "!!!not-base64!!!" });
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(tampered));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(tampered, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -115,9 +202,9 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([Code("id-other", "other-code-long-enough")]);
         var sut = CreateSut();
 
-        string envelope = sut.Sign(Payload);
+        string envelope = sut.Sign(Payload, SigningDomain.CallbackState);
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -137,7 +224,7 @@ public class WorkflowStateSignerTests
             }
         );
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -147,7 +234,7 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([code]);
         var sut = CreateSut();
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify("not json at all"));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify("not json at all", SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -160,9 +247,9 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([signingCode]);
         var sut = CreateSut(new FakeTimeProvider(now));
 
-        string envelope = sut.Sign(Payload);
+        string envelope = sut.Sign(Payload, SigningDomain.CallbackState);
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -175,9 +262,9 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([signingCode]);
         var sut = CreateSut(new FakeTimeProvider(now));
 
-        string envelope = sut.Sign(Payload);
+        string envelope = sut.Sign(Payload, SigningDomain.CallbackState);
 
-        Assert.Equal(Payload, sut.Verify(envelope));
+        Assert.Equal(Payload, sut.Verify(envelope, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -191,9 +278,9 @@ public class WorkflowStateSignerTests
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([newCode, oldCode]);
         var sut = CreateSut();
 
-        string envelope = sut.Sign(Payload);
+        string envelope = sut.Sign(Payload, SigningDomain.CallbackState);
 
-        Assert.Equal(Payload, sut.Verify(envelope));
+        Assert.Equal(Payload, sut.Verify(envelope, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -206,9 +293,9 @@ public class WorkflowStateSignerTests
             .Returns([Code("id-1", "rotated-secret-long-enough-ok")]);
         var sut = CreateSut();
 
-        string envelope = sut.Sign(Payload);
+        string envelope = sut.Sign(Payload, SigningDomain.CallbackState);
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope, SigningDomain.CallbackState));
     }
 
     [Fact]
@@ -228,6 +315,6 @@ public class WorkflowStateSignerTests
             }
         );
 
-        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope));
+        Assert.Throws<WorkflowCallbackStateException>(() => sut.Verify(envelope, SigningDomain.CallbackState));
     }
 }
