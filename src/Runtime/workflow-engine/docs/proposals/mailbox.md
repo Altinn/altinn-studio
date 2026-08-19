@@ -301,7 +301,12 @@ UPDATE engine.workflows AS w
 -- and stamp mw.released_at
 ```
 
-One `NOTIFY status_changed` after commit; the processor picks the row up on its next fetch cycle.
+One `NOTIFY status_changed`, issued **inside the releasing transaction**; the processor picks the row
+up on its next fetch cycle. (Corrected during step 4 — earlier drafts said "after commit". PostgreSQL
+queues a `NOTIFY` to commit and drops it on rollback, so in-transaction preserves exactly the intended
+semantics, while a post-`COMMIT` statement can fail on an already-committed transaction and send
+`ExecuteWithRetry` back through a delegate whose re-run answers `Duplicate` for a delivery that _was_
+accepted. The engine's write-back path takes the same position for the same reason.)
 Two outcomes: a waiter exists at `seq = idx` → released, delivery consumed by its receiver; no
 waiter yet → the delivery parks at its position and the enqueue-time `seq < next_idx` comparison
 under the same mailbox lock catches it. Exactly two interleavings, serialized by the mailbox row lock;
@@ -927,12 +932,79 @@ mailbox state.
 **Out of scope:** the wake and the closure release (step 4), anything the executor does with the
 delivery (step 6). A `Held` receiver in this step simply never wakes; say so in the step's notes.
 
-#### Step 4 — Engine: the rendezvous — the wake and the closure release — `in progress`
+#### Step 4 — Engine: the rendezvous — the wake and the closure release — `done`
+
+Landed as jj change `kmmxpntq` — 17 files, +1726/−82, all under `src/Runtime/workflow-engine`.
+Engine suite **797 → 827**; host 76, no wire-contract regeneration. Two rounds (approved on the first,
+with four follow-ups applied and confirmed).
+
+**The hot path survived the step that most threatened it.** The wake-to-claim histogram needed a
+timestamp taken at claim time, so this step touches `FetchAndLockWorkflows` — one added call line, with
+the claim CTE byte-identical to base. The zero-cost guarantee is now **pinned rather than incidental**:
+`RecordWakeToClaimLatency` returns before any SQL when no claimed entity carries a `MailboxId`, and the
+reviewer deleted that short-circuit in a throwaway copy to confirm
+`FetchAndLock_OfOrdinaryWorkflows_IssuesNoMailboxStatementAtAll` goes red alone. The fetch's stamp and
+the closure release touch disjoint waiter sets (`claimed_at IS NULL` versus `released_at IS NULL`), so
+they cannot contend.
+
+**Three properties established by mutation, not observation** — the standard this stack now holds:
+
+- **Atomicity of wake-with-delivery.** `Delivery_AndTheWakeItPerforms_ShareOneTransactionId` compares
+  `xmin` across the delivery row, the woken workflow and the waiter (v2's `wumzmozz` technique).
+  Splitting the transaction turns that test and the lock-order test red while 21 others stay green —
+  which is exactly why observation-based tests cannot establish this property.
+- **The compound lock order mailbox → workflow.** A third session proves the blocked delivery still
+  holds the mailbox row (`FOR UPDATE NOWAIT` → `55P03`) while it waits on the workflow row.
+- **Step 1's close-lock test did not discriminate**, verified _both ways_: against a `FOR UPDATE`-
+  dropping mutation the original test passes and the fixed one fails. Fixed here, in this revision,
+  without amending step 1.
+
+Every row of the races table now has a discriminating test, including the symmetric
+delivery-versus-closure interleaving step 2 left half-covered and the crash-after-wake-before-`NOTIFY`
+recovery. The table's remaining row — a crash inside the app's continuation sequence — is step 8's.
+
+Two departures from the proposal as drafted, both endorsed:
+
+- **`NOTIFY` is issued inside the releasing transaction**, not after commit. The plan text above is
+  corrected rather than the code.
+- **`engine.mailbox_waiters` gained `claimed_at`**, one nullable column beyond the drafted schema.
+  Without it a receiver that fails and climbs its retry ladder re-reports the whole ladder as wake
+  latency on every claim, so the histogram would measure the retry strategy rather than the wake. The
+  alternatives were worked and are worse: `updated_at` is overwritten by the claim itself, and
+  requeue/defer counters are fragile proxies.
+
+What steps 5–6 inherit:
+
+- **Telemetry is inherited, not re-derived.** `MailboxCloseResult` carries a virtual no-op `Record()`
+  that `Closed` overrides to emit `MailboxesClosed{reason}` _and_ the released counts together, so the
+  sweep calls `CloseLockedMailbox` and then `result.Record()` after its own commit and cannot get the
+  tag set wrong. The `reason` tag reads from the row actually written, so it becomes correct by
+  construction the moment the sweep passes `Deadline`.
+- **Step 5's sweep calls
+  `CloseLockedMailbox(conn, tx, locked, MailboxDisposedReason.Deadline, now, ct)`** — its
+  `FOR UPDATE SKIP LOCKED` claim _is_ the lock and the read, so it claims, projects through
+  `ReadMailbox`, and calls straight in. `Mailbox.UnconsumedDeliveries` is the number for
+  `engine.mailboxes.deliveries.unconsumed`.
+- **Step 6 should consider folding the wake-to-claim stamp into the executor's waiter read.** The
+  executor must read the waiter row by primary key anyway; folding removes the one statement the fetch
+  loop currently issues per claimed receiver (including a no-op `UPDATE` for receivers born runnable,
+  which have no waiter row) — at the cost of changing the measurement from release→claim to
+  release→first execution attempt.
+- A released receiver today is an ordinary runnable workflow: its steps execute in order and
+  `mailbox_id` is a column nothing consults at execution time. Pinned by
+  `Delivery_WakesAHeldReceiver_WhichThenRunsItsStepsLikeAnyOtherWorkflow`. The database-level freeze
+  step 6 re-derives from is already pinned here.
+
+Residuals recorded, not actioned: `ReleaseMailboxWaitersSql` has no query-plan test (the best candidate
+in the feature, along with the fetch stamp's `ANY(…)` update); the `@seq IS NULL` disjunction defeats
+the PK's second column (harmless at ≤100 waiters); three hand-written copies of engine SQL live in the
+tests, unavoidable for mid-flight-transaction and no-`NOTIFY` scenarios but able to drift silently.
 
 Paths: `src/Runtime/workflow-engine`.
 
 The wake, inside the delivery transaction, as the statement in [The wake](#the-wake) — release the
-waiter at `seq = idx`, stamp `released_at`, one `NOTIFY status_changed` after commit. The closure
+waiter at `seq = idx`, stamp `released_at`, one `NOTIFY status_changed` inside the releasing
+transaction (see [The wake](#the-wake)). The closure
 release inside `DELETE`, under the same lock: `Held` → `Enqueued` for every parked receiver, waiters
 stamped, unconsumed deliveries counted and reported in the response. This is the step where
 [Races and locking](#races-and-locking) becomes real: **every row of that table gets a test**, and
@@ -952,7 +1024,7 @@ its analogue — a test that would stay green if the transaction were split prov
 
 **Out of scope:** the sweep (step 5), the executor's read (step 6).
 
-#### Step 5 — Engine: the deadline sweep, retention, and the dashboard — `todo`
+#### Step 5 — Engine: the deadline sweep, retention, and the dashboard — `in progress`
 
 Paths: `src/Runtime/workflow-engine` (Core background service, `DbMaintenanceService`, dashboard).
 
