@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
@@ -20,6 +21,8 @@ internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string?
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
     IWorkflowEngineClient workflowEngineClient,
+    IWorkflowCallbackSecretProvider callbackSecretProvider,
+    TimeProvider? timeProvider = null,
     Telemetry? telemetry = null
 ) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
 {
@@ -168,6 +171,31 @@ internal sealed class ExecuteServiceTask(
             );
         }
 
+        // A mailbox may legitimately stay open for days — but the receive workflow that consumes it can
+        // only run for as long as the app code signing this transition's credentials lives. Both halves
+        // die with it: the receiver's callback token is signed by that code (GenerateToken sets
+        // Expires = appCode.ExpiresAt, not now + a lifetime of its own), and so is the state blob it
+        // starts on, which WorkflowStateSigner refuses once the code expires. A timeout past that point
+        // therefore buys nothing except a receiver that 401s days later, having already told the outside
+        // world when to answer by. Refuse at open instead, where the declaration can still be fixed.
+        DateTimeOffset now = (timeProvider ?? TimeProvider.System).GetUtcNow();
+        DateTimeOffset credentialsExpireAt = callbackSecretProvider.GetSigningSecret().ExpiresAt;
+        if (now + declaration.Options.Timeout > credentialsExpireAt)
+        {
+            return new MailboxResolution(
+                null,
+                null,
+                FailedProcessEngineCommandResult.Permanent(
+                    $"Stage '{declaration.StageName}' opens a mailbox with a timeout of "
+                        + $"{declaration.Options.Timeout}, but this application's WorkflowEngineCallback app code "
+                        + $"expires at {credentialsExpireAt:u} — in {credentialsExpireAt - now}. The reply workflow "
+                        + "is signed with that code and cannot outlive it. Shorten MailboxOptions.Timeout, or roll a "
+                        + "longer-lived app code before opening exchanges this long.",
+                    "MailboxTimeoutOutlivesAppCode"
+                )
+            );
+        }
+
         MailboxMintResult result = await workflowEngineClient.MintMailbox(
             $"{context.AppId.Org}/{context.AppId.App}",
             new MailboxCreateRequest
@@ -179,10 +207,24 @@ internal sealed class ExecuteServiceTask(
             context.CancellationToken
         );
 
+        if (result is MailboxMintResult.Minted minted)
+        {
+            // The address has to outlive this callback: the step that enqueues the first receive
+            // workflow runs later in the Main workflow and cannot re-derive the mint's key (it is this
+            // stage's step id). Recording it on the carry puts it in the state blob this callback
+            // publishes, from where every step in between forwards it untouched.
+            //
+            // The carry escapes this attempt only if the attempt succeeds — a failing callback returns
+            // without capturing state at all, and a deferral echoes the incoming blob unchanged — so
+            // recording here rather than after the stage's work changes nothing. What hands a retry the
+            // address its predecessor published is the mint above, keyed on this step's id.
+            context.StateCarry.RecordMailbox(minted.Mailbox.Id);
+        }
+
         return result switch
         {
-            MailboxMintResult.Minted minted => new MailboxResolution(
-                new ServiceTaskMailbox { Id = minted.Mailbox.Id, Deadline = minted.Mailbox.Deadline },
+            MailboxMintResult.Minted m => new MailboxResolution(
+                new ServiceTaskMailbox { Id = m.Mailbox.Id, Deadline = m.Mailbox.Deadline },
                 null,
                 null
             ),

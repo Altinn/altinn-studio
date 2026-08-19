@@ -25,12 +25,26 @@ public sealed record MailboxOptions
     /// is knowledge only the task has. Days are ordinary here — an archive receipt, a counterparty's
     /// answer.
     /// <para>
-    /// <strong>The ceiling is the workflow engine's, and it is 21 days by default.</strong> It is
-    /// the one mistake in this declaration that app startup cannot catch, because the limit lives in
-    /// the engine's configuration rather than in the app: an over-long timeout is rejected when the
-    /// stage mints the mailbox, so it surfaces as a failed transition for a user rather than as a
-    /// failure to start. Check the engine's <c>MaxMailboxTimeout</c> before declaring more than
-    /// three weeks.
+    /// <strong>Two ceilings apply, and neither can be checked at app startup</strong> — both are
+    /// enforced when the declaring stage opens the mailbox, so an over-long timeout surfaces as a
+    /// failed transition for a user rather than as a failure to start.
+    /// </para>
+    /// <para>
+    /// The first is the <strong>workflow engine's, 21 days by default</strong>: it lives in the
+    /// engine's configuration rather than in the app, and the engine rejects the mint. Check its
+    /// <c>MaxMailboxTimeout</c> before declaring more than three weeks.
+    /// </para>
+    /// <para>
+    /// The second is usually the tighter one, and the likelier to bite: <strong>the mailbox cannot
+    /// outlive this application's <c>WorkflowEngineCallback</c> app code</strong>. The workflow that
+    /// receives the answer carries a callback token signed by that code, and a state blob signed by
+    /// it too, so both stop being accepted the moment it expires — and app codes rotate, which means
+    /// the remaining life is routinely well under three weeks even where the engine would allow it.
+    /// A timeout running past that expiry fails the transition with
+    /// <c>MailboxTimeoutOutlivesAppCode</c>, naming the code's expiry and its remaining life, rather
+    /// than letting the exchange open and stall days later once the answer can no longer be
+    /// delivered. Shorten the timeout, or roll a longer-lived app code before opening exchanges
+    /// this long.
     /// </para>
     /// </remarks>
     public required TimeSpan Timeout { get; init; }

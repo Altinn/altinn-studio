@@ -75,4 +75,19 @@ internal sealed record WorkflowRequest
     /// </summary>
     [JsonPropertyName("isHead")]
     public bool? IsHead { get; init; }
+
+    /// <summary>
+    /// Declares this workflow a mailbox <em>receive workflow</em>: its first step consumes one message
+    /// from the named mailbox, and every later step is ordinary. <c>null</c> (the default) is an
+    /// ordinary workflow, which knows nothing about mailboxes.
+    /// </summary>
+    /// <remarks>
+    /// A workflow carries at most one such declaration — the shape of this property, not a rule the
+    /// engine has to check — and it cannot also carry <see cref="StartAt"/>: a receiver that finds
+    /// neither its delivery nor a closed mailbox is born <see cref="PersistentItemStatus.Held"/>, and a
+    /// held row has no schedule to run on. There is no per-receiver timeout either; the mailbox's own
+    /// deadline bounds the whole exchange.
+    /// </remarks>
+    [JsonPropertyName("mailbox")]
+    public MailboxReference? Mailbox { get; init; }
 }
