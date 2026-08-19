@@ -344,6 +344,8 @@ release.properties
 .project
 .settings/
 bin/
+!src/experimental/agents/src/bin/
+!src/experimental/agents/src/bin/*.rs
 tmp/
 *.tmp
 *.bak

@@ -8,5 +8,8 @@
   ],
   "json.schemaDownload.trustedDomains": {
     "https://altinncdn.no/": true
-  }
+  },
+  "rust-analyzer.linkedProjects": [
+    "./src/experimental/Cargo.toml"
+  ]
 }
