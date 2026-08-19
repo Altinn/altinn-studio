@@ -52,7 +52,6 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     pagination,
     sortableColumns,
     tableHeadersMobile,
-    mapping,
     queryParameters,
     secure,
     dataListId,
@@ -71,7 +70,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     sortDirection,
   };
 
-  const { data } = useDataListQuery(filter, dataListId, secure, mapping, queryParameters);
+  const { data } = useDataListQuery(filter, dataListId, secure, queryParameters);
   const bindings = item.dataModelBindings ?? ({} as IDataModelBindingsForList);
 
   // Determine selection mode based on bindings
