@@ -84,9 +84,9 @@ keda:
   # queue. Created out-of-band (one per cluster), not by this chart.
   authenticationRef:
     name: keda-gitea-auth
-  # How often KEDA polls Gitea per ScaledJob. 30s is the KEDA default; raise
-  # if Gitea complains about request rate (1 req per org per pollingInterval).
-  pollingInterval: 30
+  # How often KEDA polls Gitea per ScaledJob. The 60s interval reduces the
+  # request rate to one request per org per minute.
+  pollingInterval: 60
   # KEDA cleans up completed Jobs older than this many seconds.
   ttlSecondsAfterFinished: 300
   # Hard cap on total Job runtime. Pod is killed if it exceeds this even

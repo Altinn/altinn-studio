@@ -47,7 +47,7 @@ spec:
     # Allow the Gitea scaler more time to receive a response before KEDA
     # considers the request failed.
     http:
-      timeout: 10000
+      timeout: 15000
     resources:
       operator:
         requests:
