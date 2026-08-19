@@ -260,6 +260,99 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    [Fact]
+    public async Task SelectMailboxesForCollections_UsesIndexScans()
+    {
+        // The dashboard re-issues this read while it is open, so what matters is that no part of it scales
+        // with the number of mailboxes the engine retains. ix_mailboxes_namespace_collection_key is why the
+        // candidate set does not: without the collection key indexed the same filter is a sequential scan of
+        // every retained mailbox — 834 buffers against 40,000 rows at the design's own per-collection
+        // density, versus 3 through the index — and a partial index on 'open' could not serve it at all,
+        // since the read is deliberately status-agnostic. The trailing status column is ignorable here and
+        // load-bearing for the mint, which is the point of the shared index (see the mint's plan test below).
+        // The two child tables are reached by primary key, one correlated scan of each per mailbox, which is
+        // what keeps the positions bounded by one mailbox's log rather than by the whole delivery log.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectMailboxesForCollectionsSql,
+            [
+                new NpgsqlParameter<string[]>("collection_keys", ["seed-collection-3", "seed-collection-7"]),
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<int>("per_collection", 11),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_deliveries");
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_receivers");
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task MintMailbox_CountsACollectionsOpenMailboxesThroughTheSharedIndex()
+    {
+        // The other half of ix_mailboxes_namespace_collection_key's job, and the path that actually runs on
+        // every mint rather than only while a dashboard is open. The cap's `open_count` CTE is three equality
+        // predicates over (namespace, collection_key, status) — exactly the index's key, in order — so it is
+        // answered index-only without touching the heap. This is what makes one shared index better than the
+        // partial index it replaced plus a full one beside it: the count went from 4 buffers to 2, and a mint
+        // now maintains one index entry instead of two.
+        //
+        // Worth pinning here specifically because the widening was done for the dashboard's benefit. Nothing
+        // else asserts anything about the plan of the mint, so a future narrowing back to two columns would
+        // cost the cap its index-only count with no test to say so.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.MintMailboxSql,
+            [
+                new NpgsqlParameter<Guid>("id", Guid.CreateVersion7()),
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<string>("key", "plan-probe"),
+                new NpgsqlParameter<string>("collection_key", "seed-collection-3"),
+                new NpgsqlParameter<TimeSpan>("timeout", TimeSpan.FromHours(1)),
+                new NpgsqlParameter<DateTimeOffset>("deadline", _now.AddHours(1)),
+                new NpgsqlParameter<DateTimeOffset>("now", _now),
+                new NpgsqlParameter<int>("cap", 100),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        QueryPlanHelper.AssertHasScanType(plan, "mailboxes", "Index Only Scan");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task CountOverdueOpenMailboxes_UsesIndexScans()
+    {
+        // The gauge's read, and the one that runs most often of the three that scan this table — the metrics
+        // cadence rather than the sweep's. It has no LIMIT, so it visits every row that qualifies; being
+        // zero on a healthy engine is what makes that free, and ix_mailboxes_deadline_open is what makes it
+        // free rather than a full scan that happens to count nothing.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.CountOverdueOpenMailboxesSql,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddMinutes(-5)),
+                new NpgsqlParameter<int>("limit", 10_000),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_deadline_open");
+        await VerifyJson(plan.GetRawText());
+    }
+
     // --- Seed data ---
 
     /// <summary>
@@ -444,9 +537,46 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
+        // Two deliveries and two receiver registrations per mailbox, so the dashboard read's child joins are
+        // planned against populated tables in the proportion the design produces (a log of a few positions
+        // per mailbox, many mailboxes). Both matter. An empty child table is planned as a sequential scan of
+        // nothing, which would let a join that really did scan the whole delivery log pass unnoticed; and
+        // populating only a slice of the mailboxes makes the child tables small relative to the picked set,
+        // which tips the planner into hashing them whole — a plan that is cheap at this size and is not the
+        // one production runs. Nothing else in this file reads either table, so the rows perturb no other
+        // plan.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                SELECT m.id, g, 'seed-msg-' || m.id || '-' || g, '{}', @baseTime
+                FROM engine.mailboxes m, generate_series(0, 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+                SELECT m.id, g, gen_random_uuid(), @baseTime, @baseTime, @baseTime
+                FROM engine.mailboxes m, generate_series(0, 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
         // Refresh planner statistics
         await using var analyzeCmd = dataSource.CreateCommand(
-            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys, engine.mailboxes"
+            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys, "
+                + "engine.mailboxes, engine.mailbox_deliveries, engine.mailbox_receivers"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
     }

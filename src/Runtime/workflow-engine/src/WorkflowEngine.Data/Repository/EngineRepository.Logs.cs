@@ -144,6 +144,17 @@ internal static partial class EngineRepositoryLogs
     );
 
     [LoggerMessage(
+        LogLevel.Error,
+        "Failed to {Operation} after all retries exhausted. Database down? Error: {Message}"
+    )]
+    internal static partial void FailedMailboxRead(
+        this ILogger<EngineRepository> logger,
+        string operation,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(
         LogLevel.Warning,
         "Mailbox {MailboxId} closed at its deadline holding {UnconsumedDeliveries} delivered message(s) no receiver was ever enqueued for; they stay readable until retention purges the mailbox"
     )]

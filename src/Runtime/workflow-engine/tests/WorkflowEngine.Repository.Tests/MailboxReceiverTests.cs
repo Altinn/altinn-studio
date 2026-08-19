@@ -1001,8 +1001,8 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = new NpgsqlCommand(
                 """
-                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, released_at)
-                VALUES (@id, 0, gen_random_uuid(), NULL)
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at)
+                VALUES (@id, 0, gen_random_uuid(), now(), NULL)
                 """,
                 conn
             );
@@ -1029,8 +1029,8 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             await conn.OpenAsync(TestContext.Current.CancellationToken);
             await using var cmd = new NpgsqlCommand(
                 """
-                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, released_at)
-                VALUES (@id, 99, @workflowId, NULL)
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at)
+                VALUES (@id, 99, @workflowId, now(), NULL)
                 """,
                 conn
             );

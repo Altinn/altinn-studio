@@ -147,13 +147,34 @@ internal sealed class EngineDbContext : DbContext
             // index, and exactly one of them inserts.
             entity.HasIndex(e => new { e.Namespace, e.IdempotencyKey }).IsUnique();
 
-            // Backs the open-mailboxes-per-collection cap, which is counted on every mint. Partial on
-            // 'open' because that is the only status the cap counts, and a closed mailbox stays readable
-            // until retention purges it.
+            // Serves both questions asked about a collection's mailboxes, which is why it is one index and
+            // not two. The mint counts the collection's *open* mailboxes on every mint; the dashboard reads
+            // the collection's mailboxes in *both* statuses, because under a finished collection a concluded
+            // exchange is the ordinary case. `status` as the trailing key is what lets one index do both: it
+            // is a perfect prefix match for the cap's three-column equality (index-only, 2 buffers) and an
+            // ignorable trailing column for the dashboard's two-column range.
+            //
+            // Both halves were measured rather than assumed. Without the collection key indexed at all, the
+            // dashboard's filter is a sequential scan of every mailbox the engine still retains — 834 buffers
+            // against 40,000 rows at the design's own per-collection density, versus 3 through this index.
+            // Against the alternative of keeping a separate partial `(namespace, collection_key) WHERE status
+            // = 'open'` for the mint and adding a full one beside it, this shape wins on every axis: the
+            // mint's count goes 4 buffers to 2, total index bytes 504 kB to 312 kB, and index entries
+            // maintained per mint 2 to 1.
+            //
+            // One further trap, worth stating because it nearly landed: EF Core's lambda `HasIndex` keys the
+            // model's index by its *property set*, so two lambda calls over the same properties do not make
+            // two indexes — the second reconfigures the first, and scaffolds as a RenameIndex that keeps the
+            // filter. Widening to three columns makes the property set distinct and sidesteps that entirely.
+            // Pinned by MailboxDashboardTests.TheCollectionKeyIndex_CoversBothTheMintsCountAndTheDashboardsRead.
             entity
-                .HasIndex(e => new { e.Namespace, e.CollectionKey })
-                .HasDatabaseName("ix_mailboxes_namespace_collection_key_open")
-                .HasFilter($"status = '{MailboxStatusMap.Open}'");
+                .HasIndex(e => new
+                {
+                    e.Namespace,
+                    e.CollectionKey,
+                    e.Status,
+                })
+                .HasDatabaseName("ix_mailboxes_namespace_collection_key");
 
             // The deadline sweep's candidate scan, which runs on every cadence whether or not anything is
             // overdue — so what it costs when nothing is is the cost that matters. Partial on 'open' and
@@ -253,6 +274,19 @@ internal sealed class EngineDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.MailboxId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.ToTable(table =>
+                // Every receiver is born having done exactly one of two things: parked, or become runnable
+                // immediately. So one of the two stamps is always set at insert, and a row with neither
+                // describes a receiver in no state at all — unregistered as far as the wake and the closure
+                // release are concerned, since both filter on `released_at IS NULL` and would treat it as
+                // parked forever, while `held_at IS NULL` would exclude it from the wake histogram. The
+                // invariant lived in doc comments until now; as a constraint it fails at insert instead.
+                table.HasCheckConstraint(
+                    "ck_mailbox_receivers_birth_is_recorded",
+                    "held_at IS NOT NULL OR released_at IS NOT NULL"
+                )
+            );
         });
 
         SnakeCaseNamingConvention.Apply(modelBuilder);

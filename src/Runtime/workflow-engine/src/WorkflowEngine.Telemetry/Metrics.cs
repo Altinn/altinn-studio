@@ -406,6 +406,27 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of receive workflows the rendezvous could not answer for, tagged with <c>state</c>:
+    /// <c>unregistered</c> (the receiver holds no position in its mailbox — the registry row and the log
+    /// are gone) or <c>undecided</c> (it became runnable at a position of an <em>open</em> mailbox with no
+    /// message standing there).
+    /// </summary>
+    /// <remarks>
+    /// <strong>Alert on any value above zero.</strong> Neither state is a caller's mistake or a
+    /// counterparty's: the rendezvous releases a receiver only once its message exists or its mailbox has
+    /// closed, and a closed mailbox never reopens, so both mean the engine is violating an invariant of
+    /// its own rendezvous. They are deliberately not folded into the ordinary execution-failed counter's
+    /// story — a step failing because an app returned an error and a step failing because the engine
+    /// cannot say what it was handed need different people woken up, and until this counter existed the
+    /// difference lived only in a log line. The affected step fails critically, so the receive workflow is
+    /// also visible as <c>Failed</c> on the dashboard.
+    /// </remarks>
+    public static readonly Counter<long> MailboxRendezvousViolations = Meter.CreateCounter<long>(
+        "engine.mailboxes.rendezvous.violations",
+        description: "Number of receive workflows the rendezvous could not answer for, tagged by the state that could not be answered"
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(
@@ -530,6 +551,30 @@ public static class Metrics
         static () => _finishedWorkflowsCount
     );
 
+    private static long _overdueOpenMailboxesCount;
+
+    /// <summary>
+    /// Gauge of mailboxes still open past the point the deadline sweep should have closed them —
+    /// <c>deadline</c> plus one <c>MailboxSweepInterval</c>, the grace the sweep's own cadence entitles
+    /// it to.
+    /// </summary>
+    /// <remarks>
+    /// <strong>Zero is the only healthy value, and any other one is an invariant violation rather than a
+    /// backlog.</strong> Every mailbox closes by its deadline — the sweep is the guarantee that makes the
+    /// deadline a promise instead of a stamped column — so this counts nothing that the engine considers a
+    /// legitimate state. A persistent value means the sweep is not running or not draining, and what is
+    /// behind it is receivers parked on exchanges nobody will ever conclude, since a held receiver has no
+    /// timer of its own and the closure is the only thing that can release it. The grace is what keeps it
+    /// at zero in health: without it every mailbox would count for the seconds between its deadline and
+    /// the next tick. A mass timeout can still make it briefly non-zero while one tick drains, so alert on
+    /// it staying above zero rather than on it touching it.
+    /// </remarks>
+    public static readonly ObservableGauge<long> OverdueOpenMailboxes = Meter.CreateObservableGauge(
+        "engine.mailboxes.open.overdue",
+        static () => _overdueOpenMailboxesCount,
+        description: "Number of mailboxes still open more than one sweep cadence past their deadline (0 = healthy)"
+    );
+
     private static long _availableInboxSlotsCount;
 
     /// <summary>
@@ -649,6 +694,11 @@ public static class Metrics
     /// Sets the value reported by <see cref="FinishedWorkflows"/>.
     /// </summary>
     public static void SetFinishedWorkflowsCount(long count) => _finishedWorkflowsCount = count;
+
+    /// <summary>
+    /// Sets the value reported by <see cref="OverdueOpenMailboxes"/>.
+    /// </summary>
+    public static void SetOverdueOpenMailboxesCount(long count) => _overdueOpenMailboxesCount = count;
 
     /// <summary>
     /// Sets the value reported by <see cref="AvailableInboxSlots"/>.

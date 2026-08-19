@@ -162,6 +162,62 @@ internal sealed partial class EngineRepository
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// The mint, as one statement whose CTE order <em>is</em> its semantics. Hoisted to a named constant so
+    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> the statement the mint actually issues rather than a copy of
+    /// it — the same reason the sweep's candidate scan and the dashboard's read are constants.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>existing</c> is consulted first and unconditionally, so a replay returns the mailbox it already
+    /// minted even when the collection is at its cap: refusing a replay would strand a saga that has already
+    /// handed the mailbox id to a counterparty.
+    /// </para>
+    /// <para>
+    /// <c>open_count</c> bounds only genuinely new mailboxes, and only when a collection was named — the cap
+    /// is per collection, and a mailbox without one has no collection to be counted against. Its three
+    /// equality predicates are exactly the leading columns of <c>ix_mailboxes_namespace_collection_key</c>,
+    /// which is why that index carries <c>status</c> as its trailing key and why this count is index-only.
+    /// </para>
+    /// <para>
+    /// The <c>INSERT</c> is the mint's serialization point: it has no row to lock first because the row is
+    /// what it creates, so the unique index on <c>(namespace, idempotency_key)</c> does that job instead.
+    /// <c>ON CONFLICT DO UPDATE</c> rather than <c>DO NOTHING</c> so a mint that loses the race against a
+    /// concurrent one still blocks on, and then returns, the winner's row instead of coming back empty. The
+    /// caller tells the two apart by whether the returned id is the one it generated.
+    /// </para>
+    /// </remarks>
+    internal const string MintMailboxSql = $"""
+        WITH existing AS (
+            SELECT {MailboxColumns}
+            FROM engine.mailboxes m
+            WHERE m.namespace = @ns AND m.idempotency_key = @key
+        ),
+        open_count AS (
+            SELECT count(*)::int AS n
+            FROM engine.mailboxes m
+            WHERE m.namespace = @ns
+              AND m.collection_key = @collection_key
+              AND m.status = '{MailboxStatusMap.Open}'
+        ),
+        inserted AS (
+            INSERT INTO engine.mailboxes AS m (
+                id, namespace, idempotency_key, collection_key, timeout, deadline,
+                next_idx, next_seq, status, disposed_reason, created_at, disposed_at
+            )
+            SELECT @id, @ns, @key, @collection_key, @timeout, @deadline,
+                   0, 0, '{MailboxStatusMap.Open}', NULL, @now, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM existing)
+              AND (@collection_key IS NULL OR (SELECT n FROM open_count) < @cap)
+            ON CONFLICT (namespace, idempotency_key) DO UPDATE
+                SET namespace = EXCLUDED.namespace
+            RETURNING {MailboxColumns}
+        )
+        SELECT * FROM inserted
+        UNION ALL
+        SELECT * FROM existing
+        """;
+
     /// <inheritdoc/>
     public async Task<MailboxMintResult> MintMailbox(
         Guid mailboxId,
@@ -191,54 +247,7 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
 
-                    // One statement, and the order of the CTEs is the semantics.
-                    //
-                    // `existing` is consulted first and unconditionally, so a replay returns the mailbox
-                    // it already minted even when the collection is at its cap: refusing a replay would
-                    // strand a saga that has already handed the mailbox id to a counterparty.
-                    //
-                    // `open_count` bounds only genuinely new mailboxes, and only when a collection was
-                    // named — the cap is per collection, and a mailbox without one has no collection to
-                    // be counted against.
-                    //
-                    // The INSERT is the mint's serialization point: it has no row to lock first because
-                    // the row is what it creates, so the unique index on (namespace, idempotency_key)
-                    // does that job instead. ON CONFLICT DO UPDATE rather than DO NOTHING so a mint that
-                    // loses the race against a concurrent one still blocks on, and then returns, the
-                    // winner's row instead of coming back empty. The caller tells the two apart by
-                    // whether the returned id is the one it generated.
-                    const string sql = $"""
-                        WITH existing AS (
-                            SELECT {MailboxColumns}
-                            FROM engine.mailboxes m
-                            WHERE m.namespace = @ns AND m.idempotency_key = @key
-                        ),
-                        open_count AS (
-                            SELECT count(*)::int AS n
-                            FROM engine.mailboxes m
-                            WHERE m.namespace = @ns
-                              AND m.collection_key = @collection_key
-                              AND m.status = '{MailboxStatusMap.Open}'
-                        ),
-                        inserted AS (
-                            INSERT INTO engine.mailboxes AS m (
-                                id, namespace, idempotency_key, collection_key, timeout, deadline,
-                                next_idx, next_seq, status, disposed_reason, created_at, disposed_at
-                            )
-                            SELECT @id, @ns, @key, @collection_key, @timeout, @deadline,
-                                   0, 0, '{MailboxStatusMap.Open}', NULL, @now, NULL
-                            WHERE NOT EXISTS (SELECT 1 FROM existing)
-                              AND (@collection_key IS NULL OR (SELECT n FROM open_count) < @cap)
-                            ON CONFLICT (namespace, idempotency_key) DO UPDATE
-                                SET namespace = EXCLUDED.namespace
-                            RETURNING {MailboxColumns}
-                        )
-                        SELECT * FROM inserted
-                        UNION ALL
-                        SELECT * FROM existing
-                        """;
-
-                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    await using var cmd = new NpgsqlCommand(MintMailboxSql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("key", idempotencyKey));
@@ -329,6 +338,260 @@ internal sealed partial class EngineRepository
         {
             activity?.Errored(ex);
             logger.FailedMailboxOperation("get", mailboxId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// The dashboard's read: the mailboxes of the named collections, each with its log laid out position
+    /// by position. Hoisted to a named constant so <c>QueryPlanTests</c> can <c>EXPLAIN</c> the statement
+    /// the endpoint actually issues.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>Every part of it is bounded before the query runs, and the bound is per collection.</strong>
+    /// A single global <c>LIMIT</c> would be the wrong shape however generous: ordered newest-first across
+    /// every requested key, its casualties cluster at the older end <em>globally</em>, so one busy
+    /// collection starves the rest and whole collections come back with no mailbox at all — which on a card
+    /// is indistinguishable from an exchange that never had one. Each key therefore gets its own
+    /// <c>LATERAL</c> with its own limit, which the same index serves, and one key's history can only ever
+    /// cost that key. The total is the caller's key count times the per-collection limit, both of which the
+    /// endpoint caps.
+    /// </para>
+    /// <para>
+    /// One extra row per key is asked for so the caller can tell a full window from a truncated one, the
+    /// pattern <c>/dashboard/graph</c> established for its node cap. Silence would be worse here than
+    /// there: a missing older mailbox looks exactly like a mailbox that never existed.
+    /// </para>
+    /// <para>
+    /// The positions are one correlated <c>LATERAL</c> per mailbox that reads each log <em>once</em> and
+    /// <c>FULL JOIN</c>s them on the position they share, so a position held by a message, by a receiver, or
+    /// by both is one row either way. Reading the logs to find the positions and then re-joining them for
+    /// the details would read both tables twice for a row-for-row identical answer. Both logs are capped by
+    /// <c>MaxMailboxLogLength</c>, and <c>payload</c> is deliberately not projected.
+    /// </para>
+    /// <para>
+    /// The positions come from the rows rather than from <c>GREATEST(next_idx, next_seq)</c>, which
+    /// gaplessness would make equivalent. That is deliberate: a monitoring surface should report what the
+    /// log holds, so a log that ever disagreed with its counters shows as a short position list beside
+    /// counters that claim more, instead of as a position the query invented.
+    /// </para>
+    /// <para>
+    /// Both statuses are read. A concluded exchange is the ordinary case under a finished collection and
+    /// is the one an operator asks about after the fact, so filtering to open mailboxes would hide the
+    /// mailbox exactly when its story is complete.
+    /// </para>
+    /// </remarks>
+    internal const string SelectMailboxesForCollectionsSql = $"""
+        WITH picked AS (
+            SELECT p.*
+            FROM (SELECT DISTINCT unnest(@collection_keys) AS collection_key) k
+            CROSS JOIN LATERAL (
+                SELECT {MailboxColumns}
+                FROM engine.mailboxes m
+                WHERE m.collection_key = k.collection_key
+                  AND (@ns IS NULL OR m.namespace = @ns)
+                ORDER BY m.created_at DESC, m.id
+                LIMIT @per_collection
+            ) p
+        )
+        SELECT {MailboxColumns},
+               pos.position, pos.idempotency_key, pos.accepted_at,
+               pos.workflow_id, pos.held_at, pos.released_at, pos.claimed_at
+        FROM picked m
+        LEFT JOIN LATERAL (
+            SELECT COALESCE(d.idx, r.seq) AS position,
+                   d.idempotency_key, d.accepted_at,
+                   r.workflow_id, r.held_at, r.released_at, r.claimed_at
+            FROM (
+                SELECT idx, idempotency_key, accepted_at
+                FROM engine.mailbox_deliveries
+                WHERE mailbox_id = m.id
+            ) d
+            FULL JOIN (
+                SELECT seq, workflow_id, held_at, released_at, claimed_at
+                FROM engine.mailbox_receivers
+                WHERE mailbox_id = m.id
+            ) r ON r.seq = d.idx
+        ) pos ON TRUE
+        ORDER BY m.created_at DESC, m.id, pos.position
+        """;
+
+    /// <inheritdoc/>
+    public async Task<MailboxCollectionPage> GetMailboxesForCollections(
+        string? ns,
+        IReadOnlyList<string> collectionKeys,
+        int limitPerCollection,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (collectionKeys.Count == 0 || limitPerCollection <= 0)
+            return MailboxCollectionPage.Empty;
+
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetMailboxesForCollections");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            string? nsFilter = ns is null ? null : WorkflowNamespace.Normalize(ns);
+
+            var snapshots = new List<MailboxSnapshot>();
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    snapshots.Clear();
+
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    await using var cmd = new NpgsqlCommand(SelectMailboxesForCollectionsSql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<string[]>("collection_keys", [.. collectionKeys]));
+                    cmd.Parameters.Add(
+                        new NpgsqlParameter("ns", NpgsqlDbType.Varchar)
+                        {
+                            Value = nsFilter is null ? DBNull.Value : nsFilter,
+                        }
+                    );
+
+                    // One more than the caller's limit, so a key that has more history than fits is
+                    // distinguishable from one that does not — and the extra is the oldest of that key's
+                    // window, since each key's LATERAL orders newest first.
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("per_collection", limitPerCollection + 1));
+
+                    await using var reader = await cmd.ExecuteReaderAsync(ct);
+                    await ReadMailboxSnapshots(reader, snapshots, ct);
+                },
+                cancellationToken
+            );
+
+            return TrimToPerCollectionLimit(snapshots, collectionKeys, limitPerCollection);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedMailboxRead("read the mailboxes of a collection", ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Drops each collection's overflow row and names the collections that had one. The rows arrive
+    /// newest-first globally, and each key was read newest-first too, so the first
+    /// <paramref name="limitPerCollection"/> rows of a key are that key's newest and the overflow is its
+    /// oldest.
+    /// </summary>
+    /// <remarks>
+    /// The names come back in <paramref name="collectionKeys"/>' own order rather than in the order the rows
+    /// happened to arrive in. Arrival order follows the global newest-first sort, which makes it a fact about
+    /// which collection was busiest rather than anything the caller asked for — stable in a given database
+    /// and incidental everywhere else, which is the kind of order a caller ends up depending on by accident.
+    /// </remarks>
+    private static MailboxCollectionPage TrimToPerCollectionLimit(
+        List<MailboxSnapshot> snapshots,
+        IReadOnlyList<string> collectionKeys,
+        int limitPerCollection
+    )
+    {
+        var seenPerCollection = new Dictionary<string, int>(StringComparer.Ordinal);
+        var kept = new List<MailboxSnapshot>(snapshots.Count);
+        HashSet<string>? truncated = null;
+
+        foreach (var snapshot in snapshots)
+        {
+            // Never null in practice — every row matched a key equality — but the column is nullable, and a
+            // grouping key is not the place to assert.
+            var key = snapshot.Mailbox.CollectionKey ?? string.Empty;
+            seenPerCollection.TryGetValue(key, out var seen);
+            seenPerCollection[key] = seen + 1;
+
+            if (seen < limitPerCollection)
+                kept.Add(snapshot);
+            else if (seen == limitPerCollection)
+                (truncated ??= new HashSet<string>(StringComparer.Ordinal)).Add(key);
+        }
+
+        if (truncated is null)
+            return new MailboxCollectionPage(kept, []);
+
+        return new MailboxCollectionPage(
+            kept,
+            [.. collectionKeys.Distinct(StringComparer.Ordinal).Where(truncated.Contains)]
+        );
+    }
+
+    /// <summary>
+    /// The gauge's read: how many mailboxes are still open past <c>@cutoff</c>, saturating at
+    /// <c>@limit</c>. Hoisted to a named constant for the same reason the sweep's scan is —
+    /// <c>QueryPlanTests</c> explains the statement itself.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately the sweep's own predicate with a different instant, so the two cannot drift apart on
+    /// what "overdue" means. <c>ix_mailboxes_deadline_open</c> serves it for the same reason it serves the
+    /// sweep, and in health it counts nothing at all.
+    /// <para>
+    /// <strong>Saturating rather than exact, because of when it runs.</strong> It runs on the metrics
+    /// cadence, which is far faster than the sweep's, and the one event it exists to report is a mass
+    /// timeout — exactly when an unbounded <c>count(*)</c> would visit every overdue row on every tick and
+    /// could reach <c>DatabaseCommandTimeout</c>. The alert reads "greater than zero"; nobody pages on the
+    /// exact size of a pathological backlog, so stopping at the limit costs the alert nothing and bounds
+    /// the statement the way every other read here is bounded.
+    /// </para>
+    /// </remarks>
+    internal const string CountOverdueOpenMailboxesSql = $"""
+        SELECT count(*)
+        FROM (
+            SELECT 1
+            FROM engine.mailboxes m
+            WHERE m.status = '{MailboxStatusMap.Open}'
+              AND m.deadline <= @cutoff
+            LIMIT @limit
+        ) capped
+        """;
+
+    /// <inheritdoc/>
+    public async Task<long> CountOverdueOpenMailboxes(
+        DateTimeOffset cutoff,
+        int limit,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (limit <= 0)
+            return 0;
+
+        using var activity = Metrics.Source.StartActivity("EngineRepository.CountOverdueOpenMailboxes");
+        activity?.DontRecord();
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            long count = 0;
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    await using var cmd = new NpgsqlCommand(CountOverdueOpenMailboxesSql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("cutoff", cutoff));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("limit", limit));
+
+                    count = (long)(await cmd.ExecuteScalarAsync(ct) ?? 0L);
+                },
+                cancellationToken
+            );
+
+            return count;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedMailboxRead("count the mailboxes open past their deadline", ex.Message, ex);
             throw;
         }
     }
@@ -1044,6 +1307,54 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
+    /// Folds the dashboard read's rows — one per position, or one carrying a null position for a mailbox
+    /// whose logs are both still empty — into one snapshot per mailbox.
+    /// </summary>
+    /// <remarks>
+    /// The grouping is by adjacency rather than by dictionary, which the query's <c>ORDER BY</c> is what
+    /// makes safe: rows of one mailbox arrive together and its positions arrive in order, so a new id is a
+    /// new mailbox. Reading it any other way would let a future <c>ORDER BY</c> change turn into silently
+    /// interleaved positions instead of a failing test.
+    /// </remarks>
+    private static async Task ReadMailboxSnapshots(
+        NpgsqlDataReader reader,
+        List<MailboxSnapshot> snapshots,
+        CancellationToken cancellationToken
+    )
+    {
+        Guid? currentId = null;
+        List<MailboxPosition> positions = [];
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+#pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is already buffered
+            var mailbox = ReadMailbox(reader);
+            if (mailbox.Id != currentId)
+            {
+                currentId = mailbox.Id;
+                positions = [];
+                snapshots.Add(new MailboxSnapshot(mailbox, positions));
+            }
+
+            if (reader.IsDBNull(12))
+                continue;
+
+            positions.Add(
+                new MailboxPosition(
+                    Position: reader.GetInt64(12),
+                    DeliveryIdempotencyKey: reader.IsDBNull(13) ? null : reader.GetString(13),
+                    AcceptedAt: reader.IsDBNull(14) ? null : reader.GetFieldValue<DateTimeOffset>(14),
+                    ReceiverWorkflowId: reader.IsDBNull(15) ? null : reader.GetGuid(15),
+                    HeldAt: reader.IsDBNull(16) ? null : reader.GetFieldValue<DateTimeOffset>(16),
+                    ReleasedAt: reader.IsDBNull(17) ? null : reader.GetFieldValue<DateTimeOffset>(17),
+                    ClaimedAt: reader.IsDBNull(18) ? null : reader.GetFieldValue<DateTimeOffset>(18)
+                )
+            );
+#pragma warning restore CA1849, S6966
+        }
+    }
+
+    /// <summary>
     /// Projects one row of <see cref="MailboxDeliveryColumns"/> into its response shape.
     /// </summary>
     private static MailboxDeliveryResponse ReadMailboxDelivery(NpgsqlDataReader reader)
@@ -1059,6 +1370,64 @@ internal sealed partial class EngineRepository
 #pragma warning restore CA1849, S6966
     }
 }
+
+/// <summary>
+/// What one per-collection mailbox read returned: the mailboxes, newest-minted first, and the collection
+/// keys whose window was full — the ones with older mailboxes the limit did not fetch.
+/// </summary>
+/// <remarks>
+/// Truncation is reported <em>per collection</em> rather than as one flag, because the limit is per
+/// collection: a single boolean would tell a card that something somewhere was cut, when what it needs is
+/// whether the group it is drawing has an unshown tail. Empty means every requested collection came back
+/// whole.
+/// </remarks>
+internal sealed record MailboxCollectionPage(
+    IReadOnlyList<MailboxSnapshot> Mailboxes,
+    IReadOnlyList<string> TruncatedCollections
+)
+{
+    internal static MailboxCollectionPage Empty { get; } = new([], []);
+}
+
+/// <summary>
+/// One mailbox as a monitoring surface reads it: the mailbox row, and its log laid out position by
+/// position.
+/// </summary>
+/// <remarks>
+/// A read-only projection with no consumer inside the engine — nothing here is decided on, and the
+/// rendezvous never consults it. <see cref="Positions"/> is empty for a mailbox minted but not yet
+/// delivered into or received from, which is a real and often long-lived state: the mailbox exists from
+/// the moment its id goes out as a reply address, and the first receiver is enqueued only once the
+/// outbound message has been sent.
+/// </remarks>
+internal sealed record MailboxSnapshot(MailboxResponse Mailbox, IReadOnlyList<MailboxPosition> Positions);
+
+/// <summary>
+/// One position of a mailbox's log, from both sides: the message standing there, if one is, and the
+/// receiver holding it, if one does.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The two logs share one position space — the receiver at <c>seq</c> consumes the delivery at
+/// <c>idx = seq</c> — so a position carries a delivery, a receiver, or both. Neither is not a state the
+/// query can produce: a position exists here because a row of one log or the other is at it.
+/// </para>
+/// <para>
+/// <see cref="HeldAt"/> is what makes the receiver side legible after the fact. A receiver that parked
+/// and one that ran straight away are both settled workflows with the same status once they finish, and
+/// only this stamp separates them — so it is also what makes <see cref="ReleasedAt"/> minus
+/// <see cref="HeldAt"/> a park duration rather than a meaningless subtraction.
+/// </para>
+/// </remarks>
+internal sealed record MailboxPosition(
+    long Position,
+    string? DeliveryIdempotencyKey,
+    DateTimeOffset? AcceptedAt,
+    Guid? ReceiverWorkflowId,
+    DateTimeOffset? HeldAt,
+    DateTimeOffset? ReleasedAt,
+    DateTimeOffset? ClaimedAt
+);
 
 /// <summary>
 /// What the executor's read of the rendezvous found for one receive workflow.

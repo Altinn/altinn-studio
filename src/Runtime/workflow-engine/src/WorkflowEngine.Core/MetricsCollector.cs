@@ -19,6 +19,13 @@ internal sealed class MetricsCollector(
     TimeProvider timeProvider
 ) : BackgroundService
 {
+    /// <summary>
+    /// Where the overdue-mailbox count stops counting. High enough that no healthy or merely busy engine
+    /// reaches it, low enough that the statement stays bounded during the mass timeout the gauge exists to
+    /// report — the alert is on "greater than zero", not on the exact size of a backlog.
+    /// </summary>
+    private const int _overdueMailboxCountCap = 10_000;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.StartingUp();
@@ -61,6 +68,28 @@ internal sealed class MetricsCollector(
                 Metrics.SetUsedHttpSlots(httpSlotStatus.Used);
                 Metrics.SetAvailableWorkerSlots(workerSlotStatus.Available);
                 Metrics.SetUsedWorkerSlots(workerSlotStatus.Used);
+
+                // Deliberately the last thing the pass does, and the placement is the point: one try/catch
+                // covers the whole pass, so a read that throws here would suppress every gauge written after
+                // it — including engine health, which is the one an operator alerts on hardest. Ordered last,
+                // a failing mailbox read costs this gauge alone.
+                //
+                // The grace is the sweep's own cadence: a mailbox whose deadline has just passed is one the
+                // sweep has not had a tick to reach yet, and counting it would leave the gauge permanently
+                // non-zero on a healthy engine and therefore un-alertable. Past that, no legitimate state
+                // holds a mailbox open — the sweep closes every one of them — so what is left is the
+                // invariant violation the gauge exists to report. The count saturates at
+                // `_overdueMailboxCountCap` because the alert reads "greater than zero" and this runs far more
+                // often than the sweep: during a mass timeout an exact count would be at its most expensive
+                // precisely when the gauge matters most.
+                var overdueCutoff = timeProvider.GetUtcNow() - engineSettings.Value.MailboxSweepInterval;
+                Metrics.SetOverdueOpenMailboxesCount(
+                    await engineRepository.CountOverdueOpenMailboxes(
+                        overdueCutoff,
+                        _overdueMailboxCountCap,
+                        stoppingToken
+                    )
+                );
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

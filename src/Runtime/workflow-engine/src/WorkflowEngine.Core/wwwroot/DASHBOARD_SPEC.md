@@ -216,6 +216,88 @@ Response:
 }
 ```
 
+### `GET /dashboard/mailboxes`
+
+The mailboxes grouped under the named collections, each with its log laid out position by position.
+The first non-workflow noun the dashboard reads, and a fetch rather than a field on the live stream:
+mailboxes are not workflows, so nothing in that payload's shape or its fingerprint loop accommodates
+them, and a three-table read on a two-second loop would charge every engine for a feature most of them
+do not use.
+
+Open and closed mailboxes alike — under a finished collection a concluded exchange is the ordinary
+case. The read is bounded on every axis before it runs: at most 100 collection keys are honoured per
+call, at most **10 mailboxes per collection** (most recently minted first), and each mailbox's log is
+capped by the engine's `MaxMailboxLogLength`. Naming no collections returns an empty array without
+querying.
+
+**The mailbox bound is per collection, not global**, and that is load-bearing rather than incidental. A
+single global limit ordered newest-first drops its casualties at the older end across every requested
+key at once, so one busy collection starves the rest and whole groups come back with no mailbox — which
+on a card is indistinguishable from an exchange that never had one. Per key, one collection's history
+can only ever cost that collection.
+
+`truncatedCollections` names the keys whose window was full, so a group with an unshown tail can say so
+and no other group has to. It is the per-collection form of the `truncated` flag `/dashboard/graph`
+returns for its node cap, for the sharper version of the same reason.
+
+| Parameter        | Type   | Description                                              |
+| ---------------- | ------ | -------------------------------------------------------- |
+| `collectionKeys` | string | Comma-separated collection keys; max 100, extras ignored |
+| `namespace`      | string | Optional namespace filter; omitted reads every namespace |
+
+Response:
+
+```json
+{
+    "truncatedCollections": ["collection keys with older mailboxes not shown"],
+    "mailboxes": [
+        {
+            "id": "guid",
+            "namespace": "ttd/app",
+            "idempotencyKey": "Task_1:SendToArchive",
+            "collectionKey": "instance-42",
+            "status": "Open | Disposed",
+            "disposedReason": "Request | Deadline",
+            "deadline": "2026-08-19T14:00:00Z",
+            "createdAt": "2026-08-19T12:00:00Z",
+            "disposedAt": "2026-08-19T14:00:00Z",
+            "nextIdx": 2,
+            "nextSeq": 2,
+            "unconsumedDeliveries": 0,
+            "positions": [
+                {
+                    "position": 0,
+                    "state": "delivered | consumed | waiting | closed",
+                    "deliveryKey": "the forwarding source's own message id",
+                    "acceptedAt": "2026-08-19T12:30:00Z",
+                    "receiverWorkflowId": "guid",
+                    "heldAt": "2026-08-19T12:00:01Z",
+                    "releasedAt": "2026-08-19T12:30:00Z",
+                    "claimedAt": "2026-08-19T12:30:00Z",
+                    "parkedForSeconds": 1799
+                }
+            ]
+        }
+    ]
+}
+```
+
+`positions` is empty for a mailbox minted but not yet delivered into or received from — a real and
+often long-lived state, since the mailbox exists from the moment its id goes out as a reply address.
+The four `state` values:
+
+| State       | Meaning                                                                                 |
+| ----------- | --------------------------------------------------------------------------------------- |
+| `delivered` | A message stands here and no receiver has been enqueued for it — an unconsumed delivery |
+| `consumed`  | A receiver holds this position and its message is standing at it                        |
+| `waiting`   | A receiver is parked here and its message has not arrived                               |
+| `closed`    | A receiver holds this position, no message ever came, and the mailbox closed            |
+
+`heldAt` is what separates a receiver that parked from one that ran straight away, which the workflow
+status alone cannot say once the receiver has settled — and it is what makes `parkedForSeconds` a park
+duration rather than a meaningless subtraction. `parkedForSeconds` is absent while a receiver is still
+parked (count up from `heldAt` instead) and absent for one that never parked.
+
 ### `GET /dashboard/scheduled`
 
 All workflows with future `startAt`. Response: `Workflow[]`
@@ -614,6 +696,9 @@ interface Workflow {
     traceId: string | null;
     namespace: string;
     collectionKey: string | null;
+    // Present only on a receive workflow — the mailbox its first step reads from, and what matches
+    // a card to the mailbox block under its collection. Omitted on every ordinary workflow.
+    mailboxId: string | undefined;
     labels: Record<string, string> | null;
     backoffUntil: string | null;
     createdAt: string;

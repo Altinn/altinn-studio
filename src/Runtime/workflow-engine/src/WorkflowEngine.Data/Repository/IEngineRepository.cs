@@ -315,6 +315,46 @@ internal interface IEngineRepository
     Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Reads the mailboxes grouped under any of <paramref name="collectionKeys"/>, newest-minted first and
+    /// at most <paramref name="limitPerCollection"/> <em>per key</em>, each with its log laid out position
+    /// by position. A monitoring read: it takes no locks, writes nothing, and no engine decision consults
+    /// it.
+    /// </summary>
+    /// <remarks>
+    /// Open and closed mailboxes alike — a concluded exchange is the ordinary case under a finished
+    /// collection. Bounded on every axis before the query runs, and the mailbox bound is deliberately
+    /// per-collection rather than global: a global limit ordered newest-first drops its casualties at the
+    /// older end across all keys at once, so one busy collection starves the rest and whole collections come
+    /// back empty. The returned page names the keys whose window was full. A null <paramref name="ns"/>
+    /// reads every namespace.
+    /// </remarks>
+    Task<MailboxCollectionPage> GetMailboxesForCollections(
+        string? ns,
+        IReadOnlyList<string> collectionKeys,
+        int limitPerCollection,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Counts the mailboxes still open with a deadline at or before <paramref name="cutoff"/>, stopping at
+    /// <paramref name="limit"/> — the input to the gauge that alerts on the deadline sweep not doing its
+    /// job.
+    /// </summary>
+    /// <remarks>
+    /// The caller sets <paramref name="cutoff"/> back from now by the grace the sweep's cadence entitles
+    /// it to, so that a healthy engine counts zero rather than counting every mailbox for the seconds
+    /// between its deadline and the next tick. It saturates at <paramref name="limit"/> instead of counting
+    /// exactly, because it runs on the metrics cadence and the event it exists to report is a mass timeout:
+    /// the alert reads "greater than zero", and an unbounded count would be at its most expensive precisely
+    /// then.
+    /// </remarks>
+    Task<long> CountOverdueOpenMailboxes(
+        DateTimeOffset cutoff,
+        int limit,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Reads what the rendezvous produced for a receive workflow: the position it holds, and the message
     /// standing there or the closure that means none ever will.
     /// </summary>

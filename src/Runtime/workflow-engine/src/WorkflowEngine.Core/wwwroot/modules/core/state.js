@@ -43,6 +43,7 @@
  *   traceId:        string | null,
  *   namespace:      string,
  *   collectionKey:  string | null,
+ *   mailboxId:      string | undefined,
  *   labels:         Record<string, string> | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
