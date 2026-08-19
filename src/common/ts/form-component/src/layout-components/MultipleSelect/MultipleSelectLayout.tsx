@@ -165,7 +165,7 @@ export function MultipleSelect({
           <Suggestion.Input
             id={componentId}
             aria-invalid={!isValid}
-            aria-label={renderedInTable ? langAsString(title) : undefined}
+            aria-label={renderedInTable && title ? langAsString(title) : undefined}
             aria-describedby={
               !renderedInTable && title && description ? getDescriptionId(componentId) : undefined
             }
