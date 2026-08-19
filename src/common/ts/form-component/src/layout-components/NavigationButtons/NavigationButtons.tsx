@@ -1,7 +1,6 @@
 import { Button } from '@app/form-component/app-components/Button';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
 import classes from './NavigationButtons.module.css';
 
@@ -25,7 +24,6 @@ export interface NavigationButtonsProps {
   onClickPrevious?: () => void;
   onClickBackToSummary?: () => void;
   onClickBackToPage?: () => void;
-  innerGrid?: IGridStyling;
 }
 
 /**
@@ -50,13 +48,12 @@ export function NavigationButtons({
   onClickPrevious,
   onClickBackToSummary,
   onClickBackToPage,
-  innerGrid,
 }: NavigationButtonsProps) {
   const { lang, langAsString } = useTranslation();
   const loadingLabel = langAsString('general.loading');
 
   return (
-    <ComponentStructure componentId={componentId} innerGrid={innerGrid}>
+    <ComponentStructure componentId={componentId}>
       <div data-testid='NavigationButtons' className={classes.container}>
         {showBackToPage && (
           <Button

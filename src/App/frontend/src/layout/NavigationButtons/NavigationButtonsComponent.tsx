@@ -17,7 +17,6 @@ import {
   useProcessingMutationWithKey,
 } from 'src/hooks/useProcessingMutation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
@@ -74,7 +73,6 @@ function NavigationButtonsComponentInner({
     baseComponentId,
     'NavigationButtons',
   );
-  const { innerGrid } = useComponentStructureData(baseComponentId);
 
   const { getPageValidation } = usePageValidation(baseComponentId);
   // Use component-level validation if set, otherwise fall back to page-level
@@ -201,7 +199,6 @@ function NavigationButtonsComponentInner({
       onClickPrevious={onClickPrevious}
       onClickBackToSummary={onClickBackToSummary}
       onClickBackToPage={onClickBackToPage}
-      innerGrid={innerGrid}
     />
   );
 }

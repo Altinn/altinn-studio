@@ -11,7 +11,6 @@ export const NAVIGATION_BUTTONS_PROP_CATEGORIES = {
   backToSummary: 'text',
   backToPage: 'text',
   componentId: 'content',
-  innerGrid: 'content',
   showNext: 'runtime',
   showPrevious: 'runtime',
   showBackToSummary: 'runtime',
