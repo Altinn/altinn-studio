@@ -1,11 +1,9 @@
-# KEDA TriggerAuthentication for the github-runner scaler.
-#
-# The .name + .secretTargetRef[0].name + .secretTargetRef[0].key fields here
-# are pinned to the same values runner-org-sync writes via env on its CronJob
-# (RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME / _SECRET_KEY) and the same name the
-# workload chart references (charts/gitea-org-runner values.yaml's
-# keda.authenticationRef.name). If you rename any of them, change all four
-# places at once or KEDA scalers will fail with "auth ref not found".
+# KEDA TriggerAuthentication for the github-runner scaler. Keep this during
+# the metrics-api POC so either scaler revision can authenticate while Flux
+# independently reconciles the runner-org-sync and gitea-runners releases.
+# It reuses the PAT Secret written by runner-org-sync and can be removed in a
+# cleanup after the metrics-api POC is validated and rollback is no longer
+# required.
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
