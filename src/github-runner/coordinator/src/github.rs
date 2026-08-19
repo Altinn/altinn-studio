@@ -1,5 +1,4 @@
 use std::{
-    error::Error,
     io,
     time::{Duration, SystemTime},
 };
@@ -8,20 +7,20 @@ use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use reqwest::{Client, Response};
 use serde::{Deserialize, Serialize};
 
+use crate::AnyError;
+
 const API_VERSION: &str = "2022-11-28";
 const MAX_ERROR_BODY_BYTES: usize = 4096;
 const RUNNERS_PER_PAGE: u64 = 100;
 
-type AnyError = Box<dyn Error>;
-
 #[derive(Clone)]
 pub(crate) struct GithubConfig {
-    pub(super) api_url: String,
-    pub(super) app_id: u64,
-    pub(super) installation_id: u64,
-    pub(super) private_key: String,
-    pub(super) registration_path: String,
-    pub(super) runners_path: String,
+    pub(crate) api_url: String,
+    pub(crate) app_id: u64,
+    pub(crate) installation_id: u64,
+    pub(crate) private_key: String,
+    pub(crate) registration_path: String,
+    pub(crate) runners_path: String,
 }
 
 pub(crate) struct GithubClient {
@@ -58,7 +57,7 @@ struct Runner {
 }
 
 impl GithubClient {
-    pub(super) async fn authenticate(config: GithubConfig) -> Result<Self, AnyError> {
+    pub(crate) async fn authenticate(config: GithubConfig) -> Result<Self, AnyError> {
         let client = Client::builder()
             .user_agent("altinn-studio-sandbox-runner")
             .timeout(Duration::from_secs(30))
@@ -92,7 +91,7 @@ impl GithubClient {
         })
     }
 
-    pub(super) async fn registration_token(&self) -> Result<String, AnyError> {
+    pub(crate) async fn registration_token(&self) -> Result<String, AnyError> {
         let response = checked_response(
             self.request(self.client.post(self.url(&self.registration_path)))
                 .send()
@@ -105,7 +104,7 @@ impl GithubClient {
         Ok(token.token)
     }
 
-    pub(super) async fn remove_runner(&self, name: &str) -> Result<bool, AnyError> {
+    pub(crate) async fn remove_runner(&self, name: &str) -> Result<bool, AnyError> {
         let Some(runner) = self.find_runner(name).await? else {
             return Ok(false);
         };
@@ -118,7 +117,7 @@ impl GithubClient {
         Ok(true)
     }
 
-    pub(super) async fn runner_busy(&self, name: &str) -> Result<Option<bool>, AnyError> {
+    pub(crate) async fn runner_busy(&self, name: &str) -> Result<Option<bool>, AnyError> {
         Ok(self.find_runner(name).await?.map(|runner| runner.busy))
     }
 
@@ -129,17 +128,9 @@ impl GithubClient {
                 "{}?per_page={RUNNERS_PER_PAGE}&page={page}",
                 self.url(&self.runners_path)
             );
-            let response = checked_response(
-                self.request(self.client.get(url)).send().await?,
-                "list runners",
-            )
-            .await?;
+            let response = checked_response(self.request(self.client.get(url)).send().await?, "list runners").await?;
             let runners: RunnerList = response.json().await?;
-            if let Some(runner) = runners
-                .runners
-                .into_iter()
-                .find(|runner| runner.name == name)
-            {
+            if let Some(runner) = runners.runners.into_iter().find(|runner| runner.name == name) {
                 return Ok(Some(runner));
             }
 
@@ -169,6 +160,7 @@ fn app_jwt(app_id: u64, private_key: &str) -> Result<String, AnyError> {
         exp: now + 540,
         iss: app_id,
     };
+    // Secret managers commonly deliver PEM values with escaped newlines.
     let key = EncodingKey::from_rsa_pem(private_key.replace("\\n", "\n").as_bytes())?;
     encode(&Header::new(Algorithm::RS256), &claims, &key).map_err(Into::into)
 }
@@ -191,10 +183,7 @@ async fn checked_response(response: Response, operation: &str) -> Result<Respons
 
     let body = response.text().await?;
     let body = truncate_error_body(&body);
-    Err(io::Error::other(format!(
-        "failed to {operation}: GitHub returned {status}: {body}"
-    ))
-    .into())
+    Err(io::Error::other(format!("failed to {operation}: GitHub returned {status}: {body}")).into())
 }
 
 fn truncate_error_body(body: &str) -> &str {
@@ -208,8 +197,8 @@ fn truncate_error_body(body: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use super::{
-        Algorithm, AppClaims, EncodingKey, GithubClient, Header, MAX_ERROR_BODY_BYTES, encode,
-        require_token, truncate_error_body,
+        Algorithm, AppClaims, EncodingKey, GithubClient, Header, MAX_ERROR_BODY_BYTES, encode, require_token,
+        truncate_error_body,
     };
 
     #[test]
@@ -218,8 +207,7 @@ mod tests {
             client: reqwest::Client::new(),
             api_url: "https://api.github.test".to_string(),
             installation_token: "secret".to_string(),
-            registration_path: "/repos/Altinn/altinn-studio/actions/runners/registration-token"
-                .to_string(),
+            registration_path: "/repos/Altinn/altinn-studio/actions/runners/registration-token".to_string(),
             runners_path: "/repos/Altinn/altinn-studio/actions/runners".to_string(),
         };
         assert_eq!(

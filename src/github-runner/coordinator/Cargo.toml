@@ -2,7 +2,7 @@
 name = "github-runner-coordinator"
 description = "Runs one ephemeral GitHub Actions runner inside a Sandbox"
 edition = "2024"
-license = "Apache-2.0"
+license = "MIT"
 publish = false
 rust-version = "1.97.1"
 version = "0.1.0"

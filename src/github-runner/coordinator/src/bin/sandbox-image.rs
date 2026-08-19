@@ -1,13 +1,14 @@
-use std::{error::Error, io, path::PathBuf, time::Instant};
+use std::{io, path::PathBuf, time::Instant};
 
 use clap::{Parser, Subcommand};
-use github_runner_coordinator::provider::ProviderArguments;
+use github_runner_coordinator::{
+    AnyError,
+    provider::{ProviderArguments, native_linux_platform},
+};
 use sandbox::{
-    Platform, RootFilesystemMode,
+    RootFilesystemMode,
     image::{ImageSource, RegistryAuthentication, ResolveRequest},
 };
-
-type AnyError = Box<dyn Error>;
 
 #[derive(Parser)]
 #[command(about = "Export or import a prepared Sandbox image")]
@@ -57,10 +58,7 @@ async fn main() -> Result<(), AnyError> {
             registry_password,
         } => {
             let service = provider
-                .open_images(registry_authentication(
-                    registry_username,
-                    registry_password,
-                )?)
+                .open_images(registry_authentication(registry_username, registry_password)?)
                 .await?;
             export(&service, image, destination).await
         }
@@ -71,16 +69,10 @@ async fn main() -> Result<(), AnyError> {
     }
 }
 
-async fn export(
-    service: &sandbox::SandboxService,
-    image: String,
-    destination: PathBuf,
-) -> Result<(), AnyError> {
+async fn export(service: &sandbox::SandboxService, image: String, destination: PathBuf) -> Result<(), AnyError> {
     let started = Instant::now();
     let request = prepared_image_request(image);
-    let prepared = service
-        .export_prepared_image(&request, &destination)
-        .await?;
+    let prepared = service.export_prepared_image(&request, &destination).await?;
     println!(
         "prepared image exported; manifest={}; artifact={}; virtual_size_bytes={}; total_ms={}",
         prepared.image.manifest_digest,
@@ -91,11 +83,7 @@ async fn export(
     Ok(())
 }
 
-async fn import(
-    service: &sandbox::SandboxService,
-    image: String,
-    source: PathBuf,
-) -> Result<(), AnyError> {
+async fn import(service: &sandbox::SandboxService, image: String, source: PathBuf) -> Result<(), AnyError> {
     let started = Instant::now();
     let request = prepared_image_request(image);
     let prepared = service.import_prepared_image(&request, &source).await?;
@@ -116,17 +104,6 @@ fn prepared_image_request(reference: String) -> ResolveRequest {
     }
 }
 
-fn native_linux_platform() -> Platform {
-    Platform::new(
-        "linux",
-        match std::env::consts::ARCH {
-            "x86_64" => "amd64",
-            "aarch64" => "arm64",
-            architecture => architecture,
-        },
-    )
-}
-
 fn registry_authentication(
     username: Option<String>,
     password: Option<String>,
@@ -140,5 +117,33 @@ fn registry_authentication(
             io::ErrorKind::InvalidInput,
             "REGISTRY_USERNAME and REGISTRY_PASSWORD must be supplied together",
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use sandbox::image::RegistryAuthentication;
+
+    use super::registry_authentication;
+
+    #[test]
+    fn accepts_complete_registry_authentication() {
+        let result = registry_authentication(Some("username".to_string()), Some("password".to_string()));
+        assert!(matches!(
+            result,
+            Ok(Some(RegistryAuthentication::Basic { username, password }))
+                if username == "username" && password == "password"
+        ));
+    }
+
+    #[test]
+    fn rejects_incomplete_registry_authentication() {
+        assert!(registry_authentication(Some("username".to_string()), None).is_err());
+        assert!(registry_authentication(None, Some("password".to_string())).is_err());
+    }
+
+    #[test]
+    fn rejects_empty_registry_authentication() {
+        assert!(registry_authentication(Some(String::new()), Some(String::new())).is_err());
     }
 }

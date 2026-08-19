@@ -1,15 +1,15 @@
-use std::{error::Error, fs, fs::OpenOptions, io, path::Path, path::PathBuf, rc::Rc};
+use std::{fs, io, path::Path, path::PathBuf, rc::Rc};
 
 use clap::Args;
-use sandbox::{SandboxService, image::RegistryAuthentication};
+use sandbox::{Platform, SandboxService, image::RegistryAuthentication};
 use sandbox_microsandbox::MicrosandboxProvider;
+
+use crate::AnyError;
 
 const DEFAULT_PROVIDER_HOME: &str = "/var/lib/altinn/sandbox-provider";
 const DEFAULT_CACHE_DIRECTORY: &str = "/var/cache/altinn/sandbox";
 const DEFAULT_RUNTIME_BUNDLE: &str = "/opt/altinn/microsandbox/microsandbox-linux-x86_64.tar.gz";
 const DEFAULT_RUNTIME_BUNDLE_CHECKSUMS: &str = "/opt/altinn/microsandbox/checksums.sha256";
-
-pub type AnyError = Box<dyn Error>;
 
 /// Host configuration for the currently deployed Sandbox Provider.
 #[derive(Args)]
@@ -49,8 +49,7 @@ impl ProviderArguments {
         &self,
         registry_authentication: Option<RegistryAuthentication>,
     ) -> Result<SandboxService, AnyError> {
-        let runtime_bundle_sha256 =
-            read_runtime_bundle_sha256(&self.runtime_bundle, &self.runtime_bundle_checksums)?;
+        let runtime_bundle_sha256 = read_runtime_bundle_sha256(&self.runtime_bundle, &self.runtime_bundle_checksums)?;
         let builder = self
             .provider_builder(registry_authentication)
             .runtime_bundle(&self.runtime_bundle, runtime_bundle_sha256);
@@ -66,16 +65,14 @@ impl ProviderArguments {
         &self,
         registry_authentication: Option<RegistryAuthentication>,
     ) -> Result<SandboxService, AnyError> {
-        self.open_builder(self.provider_builder(registry_authentication))
-            .await
+        self.open_builder(self.provider_builder(registry_authentication)).await
     }
 
     fn provider_builder(
         &self,
         registry_authentication: Option<RegistryAuthentication>,
     ) -> sandbox_microsandbox::MicrosandboxProviderBuilder {
-        let mut builder = MicrosandboxProvider::builder(&self.provider_home)
-            .cache_directory(&self.cache_directory);
+        let mut builder = MicrosandboxProvider::builder(&self.provider_home).cache_directory(&self.cache_directory);
         if let Some(authentication) = registry_authentication {
             builder = builder.registry_authentication(authentication);
         }
@@ -93,36 +90,28 @@ impl ProviderArguments {
     }
 }
 
-/// Verifies that the host assigned a usable KVM device to the runner process.
-///
-/// # Errors
-///
-/// Returns an error when `/dev/kvm` cannot be opened for reading and writing.
-pub fn require_kvm() -> Result<(), io::Error> {
-    OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open("/dev/kvm")
-        .map(|_| ())
-        .map_err(|error| io::Error::new(error.kind(), format!("cannot open /dev/kvm: {error}")))
+/// Returns the native Linux Platform using OCI architecture names.
+#[must_use]
+pub fn native_linux_platform() -> Platform {
+    Platform::new(
+        "linux",
+        match std::env::consts::ARCH {
+            "x86_64" => "amd64",
+            "aarch64" => "arm64",
+            architecture => architecture,
+        },
+    )
 }
 
 fn read_runtime_bundle_sha256(bundle: &Path, checksums: &Path) -> Result<String, io::Error> {
-    let filename = bundle
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "MICROSANDBOX_RUNTIME_BUNDLE must have a UTF-8 filename",
-            )
-        })?;
-    let contents = fs::read_to_string(checksums).map_err(|error| {
+    let filename = bundle.file_name().and_then(|name| name.to_str()).ok_or_else(|| {
         io::Error::new(
-            error.kind(),
-            format!("cannot read {}: {error}", checksums.display()),
+            io::ErrorKind::InvalidInput,
+            "MICROSANDBOX_RUNTIME_BUNDLE must have a UTF-8 filename",
         )
     })?;
+    let contents = fs::read_to_string(checksums)
+        .map_err(|error| io::Error::new(error.kind(), format!("cannot read {}: {error}", checksums.display())))?;
     parse_runtime_bundle_sha256(&contents, filename)
 }
 

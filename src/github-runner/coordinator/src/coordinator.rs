@@ -1,8 +1,6 @@
 use std::{
     collections::BTreeMap,
-    env,
-    error::Error,
-    io,
+    env, io,
     num::NonZeroU64,
     process::ExitCode,
     time::{Duration, Instant},
@@ -11,24 +9,27 @@ use std::{
 use clap::{Args, ValueEnum};
 use futures_util::StreamExt as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, OperationEvent, Platform, RetentionPolicy,
-    RootFilesystem, SandboxEvent, SandboxFeature, SandboxHandle, SandboxName, SandboxPath,
-    SandboxResources, SandboxService, SandboxSpec,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, OperationEvent, RetentionPolicy, RootFilesystem, SandboxEvent,
+    SandboxFeature, SandboxHandle, SandboxName, SandboxPath, SandboxResources, SandboxService, SandboxSpec,
     execution::{ExecutionEvent, ExecutionId, ExecutionSpec, ExitStatus, StartExecutionRequest},
     image::ImageSource,
     init::InitSystem,
 };
 use tokio::signal::unix::{Signal, SignalKind, signal};
 
-use crate::github::{GithubClient, GithubConfig};
+use crate::{
+    AnyError,
+    github::{GithubClient, GithubConfig},
+    provider::native_linux_platform,
+};
 
 const DEFAULT_RUNNER_HOME: &str = "/home/runner";
 const DEFAULT_RUNNER_LABELS: &str = "self-hosted-sandbox";
 const RUNNER_ENTRYPOINT: &str = "/usr/local/bin/altinn-github-runner-sandbox";
 const CLEANUP_TIMEOUT: Duration = Duration::from_mins(1);
 const RUNNER_CLAIM_POLL_INTERVAL: Duration = Duration::from_secs(5);
-
-type AnyError = Box<dyn Error>;
+// Conventional shell exit status: 128 + SIGTERM (15).
+const SIGTERM_EXIT_CODE: u8 = 143;
 
 #[derive(Clone, Copy, ValueEnum)]
 enum RunnerScope {
@@ -36,11 +37,16 @@ enum RunnerScope {
     Org,
 }
 
+enum RunnerTarget {
+    Repo { owner: String, repository: String },
+    Org { owner: String },
+}
+
 #[derive(Args)]
 pub struct CoordinatorArguments {
-    /// Immutable OCI reference for the runner guest image.
+    /// Immutable OCI reference for the runner image.
     #[arg(long, env = "SANDBOX_IMAGE")]
-    guest_image: String,
+    runner_image: String,
 
     /// Sandbox name. Defaults to the Kubernetes Pod name.
     #[arg(long, env = "SANDBOX_NAME")]
@@ -60,11 +66,11 @@ pub struct CoordinatorArguments {
 
     /// GitHub App identifier.
     #[arg(long, env = "APP_ID", hide_env_values = true)]
-    app_id: u64,
+    app_id: NonZeroU64,
 
     /// Installation identifier for the GitHub App on the selected owner.
     #[arg(long, env = "APP_INSTALLATION_ID", hide_env_values = true)]
-    app_installation_id: u64,
+    app_installation_id: NonZeroU64,
 
     /// PEM-encoded GitHub App private key.
     #[arg(long, env = "APP_PRIVATE_KEY", hide_env_values = true)]
@@ -111,11 +117,7 @@ pub struct CoordinatorArguments {
     runner_claim_timeout_seconds: NonZeroU64,
 
     /// Optional registry mirror used by guest dockerd.
-    #[arg(
-        long,
-        env = "DOCKER_REGISTRY_MIRROR",
-        default_value = "https://mirror.gcr.io"
-    )]
+    #[arg(long, env = "DOCKER_REGISTRY_MIRROR", default_value = "https://mirror.gcr.io")]
     docker_registry_mirror: String,
 }
 
@@ -157,16 +159,20 @@ impl ShutdownSignals {
 ///
 /// Returns an error when configuration is invalid, Sandbox creation or execution fails, GitHub
 /// authentication or runner lifecycle operations fail, or cleanup cannot be completed.
-pub async fn run(
-    service: SandboxService,
-    arguments: CoordinatorArguments,
-) -> Result<ExitCode, AnyError> {
+pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Result<ExitCode, AnyError> {
     let started = Instant::now();
     validate_arguments(&arguments)?;
+    let runner_target = runner_target(&arguments)?;
     let sandbox_name = sandbox_name(arguments.sandbox_name.clone())?;
     let runner_name = runner_name(arguments.runner_name.as_deref())?;
-    let runner_url = runner_url(&arguments)?;
-    let github_config = github_config(&arguments)?;
+    let runner_url = runner_url(&arguments.github_server_url, &runner_target);
+    let github_config = github_config(
+        &arguments.github_api_url,
+        arguments.app_id,
+        arguments.app_installation_id,
+        &arguments.app_private_key,
+        &runner_target,
+    );
     println!("sandbox name: {sandbox_name}");
     println!("runner name: {runner_name}");
     let request = sandbox_request(&arguments, sandbox_name.clone());
@@ -180,7 +186,7 @@ pub async fn run(
         Ok(EnsureOutcome::Interrupted) => {
             eprintln!("shutdown requested while creating Sandbox");
             cleanup_named_sandbox(&service, &sandbox_name).await?;
-            return Ok(ExitCode::from(143));
+            return Ok(ExitCode::from(SIGTERM_EXIT_CODE));
         }
         Err(error) => {
             let cleanup = cleanup_named_sandbox(&service, &sandbox_name).await;
@@ -221,52 +227,50 @@ pub async fn run(
         cleanup_runner_registration(github_config, &runner_name),
     );
     let cleanup = combine_cleanup(sandbox_cleanup, registration_cleanup);
-    println!(
-        "timing cleanup_ms={}",
-        cleanup_started.elapsed().as_millis()
-    );
+    println!("timing cleanup_ms={}", cleanup_started.elapsed().as_millis());
     println!("timing total_ms={}", started.elapsed().as_millis());
 
     match (runner, cleanup) {
         (Ok(RunnerOutcome::Exited(status)), Ok(())) => Ok(exit_code(status.code)),
-        (Ok(RunnerOutcome::Interrupted), Ok(())) => Ok(ExitCode::from(143)),
+        (Ok(RunnerOutcome::Interrupted), Ok(())) => Ok(ExitCode::from(SIGTERM_EXIT_CODE)),
         (Ok(RunnerOutcome::Unclaimed), Ok(())) => Ok(ExitCode::SUCCESS),
         (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
-        (Err(error), Err(cleanup_error)) => Err(io::Error::other(format!(
-            "{error}; deleting the Sandbox also failed: {cleanup_error}"
-        ))
-        .into()),
+        (Err(error), Err(cleanup_error)) => {
+            Err(io::Error::other(format!("{error}; deleting the Sandbox also failed: {cleanup_error}")).into())
+        }
     }
 }
 
 fn validate_arguments(arguments: &CoordinatorArguments) -> Result<(), io::Error> {
-    validate_immutable_image_reference(&arguments.guest_image)?;
-    if arguments.app_id == 0 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "APP_ID must be greater than zero",
-        ));
-    }
+    validate_immutable_image_reference(&arguments.runner_image)?;
     require_nonempty("APP_PRIVATE_KEY", &arguments.app_private_key)?;
-    if arguments.app_installation_id == 0 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "APP_INSTALLATION_ID must be greater than zero",
-        ));
-    }
     require_nonempty("GITHUB_API_URL", &arguments.github_api_url)?;
     require_nonempty("GITHUB_SERVER_URL", &arguments.github_server_url)?;
     require_nonempty("GITHUB_OWNER", &arguments.github_owner)?;
-    if matches!(arguments.runner_scope, RunnerScope::Repo) {
-        require_nonempty(
-            "GITHUB_REPOSITORY",
-            arguments.github_repository.as_deref().unwrap_or_default(),
-        )?;
-    }
     require_nonempty("RUNNER_LABELS", &arguments.runner_labels)?;
     require_nonempty("RUNNER_GROUP", &arguments.runner_group)?;
     require_nonempty("RUNNER_WORKDIR", &arguments.runner_workdir)?;
     Ok(())
+}
+
+fn runner_target(arguments: &CoordinatorArguments) -> Result<RunnerTarget, io::Error> {
+    let owner = arguments.github_owner.clone();
+    match arguments.runner_scope {
+        RunnerScope::Repo => {
+            let repository = arguments.github_repository.as_deref().ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "GITHUB_REPOSITORY is required for repo scope",
+                )
+            })?;
+            require_nonempty("GITHUB_REPOSITORY", repository)?;
+            Ok(RunnerTarget::Repo {
+                owner,
+                repository: repository.to_string(),
+            })
+        }
+        RunnerScope::Org => Ok(RunnerTarget::Org { owner }),
+    }
 }
 
 fn validate_immutable_image_reference(reference: &str) -> Result<(), io::Error> {
@@ -276,10 +280,7 @@ fn validate_immutable_image_reference(reference: &str) -> Result<(), io::Error> 
             "SANDBOX_IMAGE must be pinned by sha256 digest",
         ));
     };
-    if repository.is_empty()
-        || digest.len() != 64
-        || !digest.bytes().all(|byte| byte.is_ascii_hexdigit())
-    {
+    if repository.is_empty() || digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "SANDBOX_IMAGE must contain a repository and a 64-character sha256 digest",
@@ -300,11 +301,7 @@ fn require_nonempty(name: &str, value: &str) -> Result<(), io::Error> {
 
 fn sandbox_name(argument: Option<SandboxName>) -> Result<SandboxName, sandbox::InvalidSandboxName> {
     argument.map_or_else(
-        || {
-            SandboxName::new(
-                env::var("POD_NAME").unwrap_or_else(|_| "github-runner-sandbox".to_string()),
-            )
-        },
+        || SandboxName::new(env::var("POD_NAME").unwrap_or_else(|_| "github-runner-sandbox".to_string())),
         Ok,
     )
 }
@@ -323,7 +320,7 @@ fn sandbox_request(arguments: &CoordinatorArguments, name: SandboxName) -> Ensur
         name,
         SandboxSpec {
             image: ImageSource::Reference {
-                reference: arguments.guest_image.clone(),
+                reference: arguments.runner_image.clone(),
             },
             platform: native_linux_platform(),
             resources: SandboxResources::new(
@@ -338,51 +335,39 @@ fn sandbox_request(arguments: &CoordinatorArguments, name: SandboxName) -> Ensur
     .requiring_features([SandboxFeature::NestedContainers])
 }
 
-fn github_config(arguments: &CoordinatorArguments) -> Result<GithubConfig, io::Error> {
-    let owner = &arguments.github_owner;
-    let (registration_path, runners_path) = match arguments.runner_scope {
-        RunnerScope::Repo => {
-            let repository = arguments.github_repository.as_deref().ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "GITHUB_REPOSITORY is required for repo scope",
-                )
-            })?;
-            (
-                format!("/repos/{owner}/{repository}/actions/runners/registration-token"),
-                format!("/repos/{owner}/{repository}/actions/runners"),
-            )
-        }
-        RunnerScope::Org => (
+fn github_config(
+    api_url: &str,
+    app_id: NonZeroU64,
+    installation_id: NonZeroU64,
+    private_key: &str,
+    target: &RunnerTarget,
+) -> GithubConfig {
+    let (registration_path, runners_path) = match target {
+        RunnerTarget::Repo { owner, repository } => (
+            format!("/repos/{owner}/{repository}/actions/runners/registration-token"),
+            format!("/repos/{owner}/{repository}/actions/runners"),
+        ),
+        RunnerTarget::Org { owner } => (
             format!("/orgs/{owner}/actions/runners/registration-token"),
             format!("/orgs/{owner}/actions/runners"),
         ),
     };
-    Ok(GithubConfig {
-        api_url: arguments.github_api_url.clone(),
-        app_id: arguments.app_id,
-        installation_id: arguments.app_installation_id,
-        private_key: arguments.app_private_key.clone(),
+    GithubConfig {
+        api_url: api_url.to_string(),
+        app_id: app_id.get(),
+        installation_id: installation_id.get(),
+        private_key: private_key.to_string(),
         registration_path,
         runners_path,
-    })
+    }
 }
 
-fn runner_url(arguments: &CoordinatorArguments) -> Result<String, io::Error> {
-    let base = arguments.github_server_url.trim_end_matches('/');
-    Ok(match arguments.runner_scope {
-        RunnerScope::Repo => format!(
-            "{base}/{}/{}",
-            arguments.github_owner,
-            arguments.github_repository.as_deref().ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "GITHUB_REPOSITORY is required for repo scope",
-                )
-            })?
-        ),
-        RunnerScope::Org => format!("{base}/{}", arguments.github_owner),
-    })
+fn runner_url(server_url: &str, target: &RunnerTarget) -> String {
+    let base = server_url.trim_end_matches('/');
+    match target {
+        RunnerTarget::Repo { owner, repository } => format!("{base}/{owner}/{repository}"),
+        RunnerTarget::Org { owner } => format!("{base}/{owner}"),
+    }
 }
 
 fn runner_environment(
@@ -401,10 +386,7 @@ fn runner_environment(
         ("RUNNER_NAME".to_string(), runner_name.to_string()),
         ("RUNNER_REGISTRATION_TOKEN".to_string(), registration_token),
         ("RUNNER_URL".to_string(), runner_url.to_string()),
-        (
-            "RUNNER_WORKDIR".to_string(),
-            arguments.runner_workdir.clone(),
-        ),
+        ("RUNNER_WORKDIR".to_string(), arguments.runner_workdir.clone()),
     ])
 }
 
@@ -531,10 +513,7 @@ async fn run_runner(
     }
 }
 
-async fn terminate_runner_execution(
-    sandbox: &SandboxHandle,
-    execution_id: &ExecutionId,
-) -> Result<(), AnyError> {
+async fn terminate_runner_execution(sandbox: &SandboxHandle, execution_id: &ExecutionId) -> Result<(), AnyError> {
     if let Err(error) = sandbox.terminate_execution(execution_id).await {
         eprintln!("graceful runner termination failed: {error}");
         sandbox.kill_execution(execution_id).await?;
@@ -550,39 +529,23 @@ fn write_output(mut writer: impl io::Write, bytes: &[u8]) -> Result<(), io::Erro
 async fn cleanup_sandbox(sandbox: SandboxHandle) -> Result<(), AnyError> {
     tokio::time::timeout(CLEANUP_TIMEOUT, sandbox.delete())
         .await
-        .map_or_else(
-            |_| Err(cleanup_timeout_error()),
-            |result| result.map_err(Into::into),
-        )
+        .map_or_else(|_| Err(cleanup_timeout_error()), |result| result.map_err(Into::into))
 }
 
-async fn cleanup_named_sandbox(
-    service: &SandboxService,
-    name: &SandboxName,
-) -> Result<(), AnyError> {
+async fn cleanup_named_sandbox(service: &SandboxService, name: &SandboxName) -> Result<(), AnyError> {
     tokio::time::timeout(CLEANUP_TIMEOUT, service.delete(name))
         .await
-        .map_or_else(
-            |_| Err(cleanup_timeout_error()),
-            |result| result.map_err(Into::into),
-        )
+        .map_or_else(|_| Err(cleanup_timeout_error()), |result| result.map_err(Into::into))
 }
 
-async fn cleanup_runner_registration(
-    config: GithubConfig,
-    runner_name: &str,
-) -> Result<(), AnyError> {
+async fn cleanup_runner_registration(config: GithubConfig, runner_name: &str) -> Result<(), AnyError> {
     let removed = tokio::time::timeout(CLEANUP_TIMEOUT, async {
+        // Installation tokens expire after one hour, while runner Jobs may last for two hours.
         let github = GithubClient::authenticate(config).await?;
         github.remove_runner(runner_name).await
     })
     .await
-    .map_err(|_| {
-        io::Error::new(
-            io::ErrorKind::TimedOut,
-            "GitHub runner-registration cleanup timed out",
-        )
-    })??;
+    .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "GitHub runner-registration cleanup timed out"))??;
     if removed {
         println!("removed stale GitHub runner registration");
     } else {
@@ -598,17 +561,13 @@ fn cleanup_timeout_error() -> AnyError {
 fn combine_errors(primary: AnyError, cleanup: Result<(), AnyError>) -> AnyError {
     match cleanup {
         Ok(()) => primary,
-        Err(cleanup_error) => io::Error::other(format!(
-            "{primary}; deleting the Sandbox also failed: {cleanup_error}"
-        ))
-        .into(),
+        Err(cleanup_error) => {
+            io::Error::other(format!("{primary}; deleting the Sandbox also failed: {cleanup_error}")).into()
+        }
     }
 }
 
-fn combine_cleanup(
-    first: Result<(), AnyError>,
-    second: Result<(), AnyError>,
-) -> Result<(), AnyError> {
+fn combine_cleanup(first: Result<(), AnyError>, second: Result<(), AnyError>) -> Result<(), AnyError> {
     match (first, second) {
         (Ok(()), Ok(())) => Ok(()),
         (Err(error), Ok(())) | (Ok(()), Err(error)) => Err(error),
@@ -623,21 +582,10 @@ fn exit_code(code: i32) -> ExitCode {
     u8::try_from(code).map_or(ExitCode::FAILURE, ExitCode::from)
 }
 
-fn native_linux_platform() -> Platform {
-    Platform::new(
-        "linux",
-        match env::consts::ARCH {
-            "x86_64" => "amd64",
-            "aarch64" => "arm64",
-            architecture => architecture,
-        },
-    )
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{exit_code, validate_immutable_image_reference};
-    use std::process::ExitCode;
+    use super::{RunnerTarget, exit_code, github_config, runner_url, validate_immutable_image_reference};
+    use std::{num::NonZeroU64, process::ExitCode};
 
     #[test]
     fn accepts_digest_pinned_image() {
@@ -663,5 +611,54 @@ mod tests {
         assert_eq!(exit_code(255), ExitCode::from(255));
         assert_eq!(exit_code(-1), ExitCode::FAILURE);
         assert_eq!(exit_code(256), ExitCode::FAILURE);
+    }
+
+    #[test]
+    fn maps_repository_target_to_github_paths_and_url() {
+        let target = RunnerTarget::Repo {
+            owner: "Altinn".to_string(),
+            repository: "altinn-studio".to_string(),
+        };
+        let config = github_config(
+            "https://api.github.test",
+            NonZeroU64::MIN,
+            NonZeroU64::MIN,
+            "private key",
+            &target,
+        );
+
+        assert_eq!(
+            config.registration_path,
+            "/repos/Altinn/altinn-studio/actions/runners/registration-token"
+        );
+        assert_eq!(config.runners_path, "/repos/Altinn/altinn-studio/actions/runners");
+        assert_eq!(
+            runner_url("https://github.test/", &target),
+            "https://github.test/Altinn/altinn-studio"
+        );
+    }
+
+    #[test]
+    fn maps_organization_target_to_github_paths_and_url() {
+        let target = RunnerTarget::Org {
+            owner: "Altinn".to_string(),
+        };
+        let config = github_config(
+            "https://api.github.test",
+            NonZeroU64::MIN,
+            NonZeroU64::MIN,
+            "private key",
+            &target,
+        );
+
+        assert_eq!(
+            config.registration_path,
+            "/orgs/Altinn/actions/runners/registration-token"
+        );
+        assert_eq!(config.runners_path, "/orgs/Altinn/actions/runners");
+        assert_eq!(
+            runner_url("https://github.test/", &target),
+            "https://github.test/Altinn"
+        );
     }
 }
