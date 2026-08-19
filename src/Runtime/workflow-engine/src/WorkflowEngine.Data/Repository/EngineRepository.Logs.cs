@@ -131,4 +131,14 @@ internal static partial class EngineRepositoryLogs
         string message,
         Exception ex
     );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Mailbox {MailboxId} closed at its deadline holding {UnconsumedDeliveries} delivered message(s) no receiver was ever enqueued for; they stay readable until retention purges the mailbox"
+    )]
+    internal static partial void MailboxClosedWithUnconsumedDeliveries(
+        this ILogger<EngineRepository> logger,
+        Guid mailboxId,
+        long unconsumedDeliveries
+    );
 }

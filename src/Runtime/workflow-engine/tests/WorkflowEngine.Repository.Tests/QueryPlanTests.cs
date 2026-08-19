@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
@@ -211,6 +212,54 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    [Fact]
+    public async Task SelectOverdueMailboxCandidates_UsesIndexScans()
+    {
+        // The scan the deadline sweep runs on every cadence whether or not anything is overdue, so what it
+        // costs when nothing is is the cost that matters. ix_mailboxes_deadline_open is partial on 'open'
+        // and ordered by deadline — the sweep's own predicate and ordering — so a quiet tick reads the
+        // leading entry, finds a deadline in the future and stops. Without it this degrades to a full scan
+        // of every mailbox the engine has ever held open, plus a sort to honor the ORDER BY.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectOverdueMailboxCandidatesSql,
+            [new NpgsqlParameter<DateTimeOffset>("now", _now), new NpgsqlParameter<int>("batch_size", 100)],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_deadline_open");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task SelectExpiredMailboxCandidates_UsesIndexScans()
+    {
+        // The retention purge's mirror image, and the more expensive one to get wrong: closed mailboxes
+        // accumulate for a whole retention period, so this is the scan that grows without bound. The
+        // ORDER BY is what makes the index worth having twice over — without ix_mailboxes_disposed_at the
+        // planner both scans every row and sorts the survivors externally.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            DbMaintenanceService.Sql.SelectExpiredMailboxCandidatesCommand,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddDays(-60)),
+                new NpgsqlParameter<int>("batchSize", 1000),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_disposed_at");
+        await VerifyJson(plan.GetRawText());
+    }
+
     // --- Seed data ---
 
     /// <summary>
@@ -349,9 +398,55 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
+        // Mailboxes, shaped for the two sweeps that scan this table. Both queries are ORDER BY ... LIMIT,
+        // so what decides the plan is whether the ordered index can stop early — which it only can when
+        // many more rows qualify than the LIMIT takes. That is deliberately the shape seeded here: ~5,000
+        // overdue against a batch of 100, and ~20,000 past the retention cutoff against a batch of 1,000.
+        // It is also the regime that matters, since a backlog bigger than one batch is exactly when a scan
+        // and sort over every qualifying row is the thing worth not doing. At a few thousand rows the whole
+        // table fits in too few pages for the planner to care either way, so the seed is sized past that.
+        //   g % 4 == 0 → open     (of those, g % 8 == 0 → deadline already passed)
+        //   g odd      → disposed, disposed_at well past the retention cutoff
+        //   g % 4 == 2 → disposed, disposed_at recent
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailboxes
+                    (id, namespace, idempotency_key, collection_key, timeout, deadline,
+                     next_idx, next_seq, status, disposed_reason, created_at, disposed_at)
+                SELECT
+                    gen_random_uuid(),
+                    'test-ns',
+                    'seed-mailbox-' || g,
+                    'seed-collection-' || (g % 50),
+                    INTERVAL '1 hour',
+                    CASE WHEN g % 8 = 0
+                         THEN @baseTime - (INTERVAL '1 minute' * ((g % 4000) + 1))
+                         ELSE @baseTime + (INTERVAL '1 hour' * ((g % 24) + 1))
+                    END,
+                    0,
+                    0,
+                    CASE WHEN g % 4 = 0 THEN 'open' ELSE 'disposed' END,
+                    CASE WHEN g % 4 = 0 THEN NULL ELSE 'request' END,
+                    @baseTime - (INTERVAL '1 minute' * g),
+                    CASE
+                        WHEN g % 4 = 0 THEN NULL
+                        WHEN g % 2 = 1 THEN @baseTime - INTERVAL '90 days' - (INTERVAL '1 minute' * g)
+                        ELSE @baseTime - (INTERVAL '1 hour' * (g % 24))
+                    END
+                FROM generate_series(0, @mailboxes - 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("mailboxes", 40000);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
         // Refresh planner statistics
         await using var analyzeCmd = dataSource.CreateCommand(
-            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
+            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys, engine.mailboxes"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
     }

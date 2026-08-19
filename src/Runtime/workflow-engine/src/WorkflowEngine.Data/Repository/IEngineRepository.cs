@@ -353,4 +353,31 @@ internal interface IEngineRepository
         int maxLogLength,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Closes every open mailbox whose deadline has passed, up to <paramref name="batchSize"/> of them,
+    /// running exactly the routine <see cref="CloseMailbox"/> runs with
+    /// <see cref="MailboxDisposedReason.Deadline"/>.
+    /// </summary>
+    /// <remarks>
+    /// One transaction per mailbox, each opened by a <c>FOR UPDATE SKIP LOCKED</c> claim that <em>is</em>
+    /// the mailbox row lock the routine requires — so a mailbox somebody else is already working on is
+    /// left for the next pass rather than waited on, and a mailbox a <c>DELETE</c> closed first is simply
+    /// not claimed.
+    /// <para>
+    /// A close that throws is contained to its own mailbox, which stays open and overdue and is claimed
+    /// again by the next pass. It is never allowed to abandon the rest of the batch: the candidates are
+    /// ordered by deadline, so one mailbox that always throws would otherwise lead every batch forever and
+    /// wedge the deadline guarantee for every exchange behind it.
+    /// </para>
+    /// <para>
+    /// The sweep only ever closes. Nothing is enqueued, because the receiver that concludes an exchange
+    /// already exists and carries the app's own steps — closing releases it rather than creating it.
+    /// </para>
+    /// </remarks>
+    Task<MailboxSweepResult> SweepOverdueMailboxes(
+        DateTimeOffset now,
+        int batchSize,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -660,7 +660,7 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
 
     #endregion
 
-    #region Gaps later steps close
+    #region The workflow sweeps stay out of it
 
     /// <summary>
     /// Retention settings for the sweeps below. Built here rather than taken from the fixture because
@@ -676,11 +676,13 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     };
 
     [Fact]
-    public async Task OverdueMailbox_IsLeftOpenByEveryMaintenanceSweepThatExistsToday()
+    public async Task OverdueMailbox_IsClosedOnlyByTheMailboxSweep_NeverByTheWorkflowSweeps()
     {
-        // A characterization test for a gap the deadline sweep closes later: the deadline is stamped at
-        // mint and reported on every read, but in this step nothing acts on it. An overdue mailbox keeps
-        // accepting whatever a mailbox accepts until somebody closes it explicitly.
+        // Mailboxes are not workflows, and the sweeps that recover workflows must keep not knowing they
+        // exist. The deadline is enforced by one sweep of its own, and this pins which one: every
+        // workflow-shaped sweep runs against an overdue mailbox first and leaves it exactly as it was,
+        // and only the mailbox sweep closes it. (Started life as a characterization test for the gap
+        // where nothing enforced the deadline; the second half is what closed it.)
         var repository = fixture.CreateRepository();
         var maintenance = fixture.CreateMaintenanceService();
         var minted = AssertMinted(
@@ -695,38 +697,39 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
         await maintenance.RecoverDependencyResolvedWorkflows(now, ct);
         await maintenance.PurgeExpiredWorkflows(now, _retention, ct);
 
-        var afterSweeps = await repository.GetMailbox(minted.Id, Ns, ct);
-        Assert.NotNull(afterSweeps);
-        Assert.Equal(MailboxStatus.Open, afterSweeps.Status);
+        var afterWorkflowSweeps = await repository.GetMailbox(minted.Id, Ns, ct);
+        Assert.NotNull(afterWorkflowSweeps);
+        Assert.Equal(MailboxStatus.Open, afterWorkflowSweeps.Status);
+
+        Assert.Equal(1, (await repository.SweepOverdueMailboxes(now, batchSize: 100, ct)).Closed);
+
+        var afterMailboxSweep = await repository.GetMailbox(minted.Id, Ns, ct);
+        Assert.NotNull(afterMailboxSweep);
+        Assert.Equal(MailboxStatus.Disposed, afterMailboxSweep.Status);
+        Assert.Equal(MailboxDisposedReason.Deadline, afterMailboxSweep.DisposedReason);
     }
 
     [Fact]
-    public async Task DisposedMailboxPastRetention_IsLeftInPlaceByTheRetentionSweep()
+    public async Task DisposedMailboxPastRetention_IsPurgedByTheMailboxRetentionSweep_NotTheWorkflowOne()
     {
-        // The second half of the same gap: mailboxes are not workflows, so the existing retention sweep
-        // never sees them. A closed mailbox — and, later, its deliveries and waiters — stays readable
-        // until a sweep that knows about mailboxes purges it.
+        // The mirror image, on the retention side: the workflow purge never sees a mailbox, so the closed
+        // one survives it untouched and goes only when the purge written for mailboxes runs.
         var repository = fixture.CreateRepository();
         var maintenance = fixture.CreateMaintenanceService();
         var longAgo = DateTimeOffset.UtcNow - _retention.RetentionPeriod - TimeSpan.FromDays(1);
         var minted = AssertMinted(await Mint(repository, "key-1", now: longAgo));
-        await repository.CloseMailbox(
-            minted.Id,
-            Ns,
-            MailboxDisposedReason.Request,
-            longAgo,
-            TestContext.Current.CancellationToken
-        );
+        var ct = TestContext.Current.CancellationToken;
+        await repository.CloseMailbox(minted.Id, Ns, MailboxDisposedReason.Request, longAgo, ct);
 
-        await maintenance.PurgeExpiredWorkflows(
-            DateTimeOffset.UtcNow,
-            _retention,
-            TestContext.Current.CancellationToken
-        );
+        await maintenance.PurgeExpiredWorkflows(DateTimeOffset.UtcNow, _retention, ct);
 
-        var afterSweep = await repository.GetMailbox(minted.Id, Ns, TestContext.Current.CancellationToken);
-        Assert.NotNull(afterSweep);
-        Assert.Equal(MailboxStatus.Disposed, afterSweep.Status);
+        var afterWorkflowPurge = await repository.GetMailbox(minted.Id, Ns, ct);
+        Assert.NotNull(afterWorkflowPurge);
+        Assert.Equal(MailboxStatus.Disposed, afterWorkflowPurge.Status);
+
+        await maintenance.PurgeExpiredMailboxes(DateTimeOffset.UtcNow, _retention, ct);
+
+        Assert.Null(await repository.GetMailbox(minted.Id, Ns, ct));
     }
 
     #endregion

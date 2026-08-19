@@ -155,6 +155,22 @@ internal sealed class EngineDbContext : DbContext
                 .HasDatabaseName("ix_mailboxes_namespace_collection_key_open")
                 .HasFilter($"status = '{MailboxStatusMap.Open}'");
 
+            // The deadline sweep's candidate scan, which runs on every cadence whether or not anything is
+            // overdue — so what it costs when nothing is is the cost that matters. Partial on 'open' and
+            // ordered by deadline, the sweep's own predicate and ordering: a tick with nothing overdue
+            // reads the leading index entry, finds a deadline in the future, and stops.
+            entity
+                .HasIndex(e => e.Deadline)
+                .HasDatabaseName("ix_mailboxes_deadline_open")
+                .HasFilter($"status = '{MailboxStatusMap.Open}'");
+
+            // The retention purge's candidate scan, the mirror image: partial on 'disposed' because a
+            // mailbox is only purgeable once it is closed, and keyed by the instant it closed.
+            entity
+                .HasIndex(e => e.DisposedAt)
+                .HasDatabaseName("ix_mailboxes_disposed_at")
+                .HasFilter($"status = '{MailboxStatusMap.Disposed}'");
+
             entity.Property(e => e.NextIdx).HasDefaultValue(0L);
             entity.Property(e => e.NextSeq).HasDefaultValue(0L);
 
