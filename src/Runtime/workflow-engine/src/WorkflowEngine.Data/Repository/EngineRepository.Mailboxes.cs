@@ -42,6 +42,12 @@ internal sealed partial class EngineRepository
 
         try
         {
+            // Normalized on entry, as every other namespaced repository operation does. The mailbox
+            // tables are reached by the same namespaces the workflow tables are, so one contract for the
+            // parameter is the only way a mailbox minted under one casing stays reachable from a workflow
+            // enqueued under another.
+            ns = WorkflowNamespace.Normalize(ns);
+
             MailboxMintResult result = new MailboxMintResult.AtCollectionCapacity();
             await ExecuteWithRetry(
                 async ct =>
@@ -152,6 +158,8 @@ internal sealed partial class EngineRepository
 
         try
         {
+            ns = WorkflowNamespace.Normalize(ns);
+
             MailboxResponse? mailbox = null;
             await ExecuteWithRetry(
                 async ct =>
@@ -202,6 +210,8 @@ internal sealed partial class EngineRepository
 
         try
         {
+            ns = WorkflowNamespace.Normalize(ns);
+
             MailboxCloseResult result = new MailboxCloseResult.NotFound();
             await ExecuteWithRetry(
                 async ct =>
@@ -315,6 +325,8 @@ internal sealed partial class EngineRepository
 
         try
         {
+            ns = WorkflowNamespace.Normalize(ns);
+
             MailboxDeliveryResult result = new MailboxDeliveryResult.NotFound();
             await ExecuteWithRetry(
                 async ct =>

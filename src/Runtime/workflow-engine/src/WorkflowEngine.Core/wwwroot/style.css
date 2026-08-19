@@ -1028,6 +1028,12 @@ body {
     border: 1px solid var(--cyan);
     background: rgba(var(--cyan-rgb), 0.08);
 }
+.status-pill.Held {
+    color: var(--cyan);
+    border: 1px dashed var(--cyan);
+    background: rgba(var(--cyan-rgb), 0.04);
+    opacity: 0.75;
+}
 .status-pill.Failed {
     color: var(--red);
     border: 1px solid var(--red);
@@ -2436,6 +2442,11 @@ pre.diff-remove {
 .compact-dot.Waiting {
     border-color: var(--cyan);
     background: rgba(var(--cyan-rgb), 0.4);
+}
+.compact-dot.Held {
+    border-color: var(--cyan);
+    background: transparent;
+    opacity: 0.6;
 }
 .compact-dot.Failed {
     border-color: var(--red);

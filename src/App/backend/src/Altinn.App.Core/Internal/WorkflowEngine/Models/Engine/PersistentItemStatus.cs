@@ -41,4 +41,13 @@ internal enum PersistentItemStatus
     /// counts as active: a caller must never read a waiting workflow as settled.
     /// </summary>
     Waiting = 8,
+
+    /// <summary>
+    /// The workflow was created parked and has not started: it is held until an external event releases
+    /// it. Today that event is a mailbox rendezvous — the workflow's first step consumes one message,
+    /// and it waits here until that message arrives or the mailbox closes. Non-terminal, so workflows
+    /// depending on it stay blocked; no worker fetches it, so nothing runs while it waits, and it has no
+    /// timer of its own.
+    /// </summary>
+    Held = 9,
 }

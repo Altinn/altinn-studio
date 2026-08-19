@@ -174,6 +174,52 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Retention_PreservesWorkflows_ReferencedByAHeldReceiver()
+    {
+        // Held is in the Incomplete set, which is what the hold-back reads, so a mailbox receiver parked
+        // indefinitely keeps the workflows it points at alive for as long as it waits — through a
+        // dependency edge and through a link edge alike. That is the property the design leans on when
+        // it says receive workflows need no synthetic edges: they are ordinary rows protected by
+        // ordinary rules. Had Held landed outside Incomplete, a long-running exchange would quietly lose
+        // the rows its receiver still refers to.
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var depTargetId = Guid.NewGuid();
+        var linkTargetId = Guid.NewGuid();
+        foreach (var targetId in new[] { depTargetId, linkTargetId })
+        {
+            await InsertWorkflow(
+                dataSource,
+                targetId,
+                status: PersistentItemStatus.Completed,
+                updatedAt: _now.AddDays(-31),
+                ct: ct
+            );
+        }
+
+        // Aged well past the cutoff itself, so nothing but its status keeps it — or its targets — alive.
+        var receiverId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            receiverId,
+            status: PersistentItemStatus.Held,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+        await InsertDependency(dataSource, workflowId: receiverId, dependsOnId: depTargetId, ct: ct);
+        await InsertLink(dataSource, workflowId: receiverId, linkedWorkflowId: linkTargetId, ct: ct);
+
+        await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
+
+        await using var ctx = fixture.CreateDbContext();
+        var remaining = await ctx.Workflows.Select(w => w.Id).ToListAsync(ct);
+        Assert.Contains(receiverId, remaining);
+        Assert.Contains(depTargetId, remaining);
+        Assert.Contains(linkTargetId, remaining);
+    }
+
+    [Fact]
     public async Task Retention_DrainsAllEligibleRows_InBatches()
     {
         var ct = TestContext.Current.CancellationToken;

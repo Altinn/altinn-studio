@@ -395,6 +395,7 @@ internal static class DashboardEndpoints
                                     "FAILED" => PersistentItemStatus.Failed,
                                     "REQUEUED" => PersistentItemStatus.Requeued,
                                     "WAITING" => PersistentItemStatus.Waiting,
+                                    "HELD" => PersistentItemStatus.Held,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
                                     "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,

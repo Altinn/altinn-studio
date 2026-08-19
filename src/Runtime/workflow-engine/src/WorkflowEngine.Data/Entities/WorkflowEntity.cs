@@ -58,6 +58,14 @@ internal sealed class WorkflowEntity
 
     public bool? IsHead { get; set; }
 
+    /// <summary>
+    /// The mailbox this workflow receives from, or null on every ordinary workflow. Deliberately a plain
+    /// uuid column with no foreign key: the receivers are ordinary workflows purged by the ordinary
+    /// retention sweep, and a foreign key here would make a mailbox's retention purge depend on its
+    /// receivers' — two lifetimes the design keeps apart.
+    /// </summary>
+    public Guid? MailboxId { get; set; }
+
     public ICollection<StepEntity> Steps { get; set; } = [];
     public ICollection<WorkflowEntity>? Dependencies { get; set; }
     public ICollection<WorkflowEntity>? Dependents { get; set; }
@@ -87,6 +95,7 @@ internal sealed class WorkflowEntity
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             InitialState = workflow.InitialState,
             IsHead = workflow.IsHead,
+            MailboxId = workflow.MailboxId,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
             Links = workflow.Links?.Select(FromDomainModel).ToList(),
@@ -132,6 +141,7 @@ internal sealed class WorkflowEntity
             CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,
             IsHead = IsHead,
+            MailboxId = MailboxId,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = includeRelations
                 ? Dependencies?.Select(x => x.ToDomainModel(includeRelations: false)).ToList()
