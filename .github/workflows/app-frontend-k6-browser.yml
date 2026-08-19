@@ -33,7 +33,7 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Frontend
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -44,7 +44,7 @@ jobs:
   k6-browser:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: K6 Browser
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     needs: [build-frontend]
     steps:
@@ -63,7 +63,7 @@ jobs:
       - name: Run k6 browser test
         run: |
           docker run --rm -i --security-opt seccomp=./src/App/frontend/test/e2e/k6-browser/chrome.json \
-            --network host --cap-add=SYS_ADMIN \
+            --network host --add-host local.altinn.cloud:127.0.0.1 --cap-add=SYS_ADMIN \
             -v ${{ github.workspace }}:/github/workspace \
             -w /github/workspace \
             -e K6_BROWSER_TIMEOUT=120000 \
