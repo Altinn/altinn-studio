@@ -1211,7 +1211,70 @@ with their logs laid out position by position, open and closed alike, bounded pe
 globally. A gauge of mailboxes left open past `deadline` plus one sweep cadence, and a counter on step 6's
 two critical states tagged apart from ordinary execution failures.
 
-#### Step 5b-ii — Engine: rendering the mailbox under its collection — `in progress`
+#### Step 5b-ii — Engine: rendering the mailbox under its collection — `done`
+
+Landed as jj change `lpwlyzxx` (8 files, +576/−10, all under `wwwroot`), plus a second revision
+`qnlqnrpr` carrying a **security fix to pre-existing code** — see below. Engine suite 939 and host 81
+both unchanged: neither revision contains a line of C#. Two review rounds.
+
+**This step had no test infrastructure to lean on**, which is why 5b split. The standard was met by
+driving the real thing: a live engine host with `wwwroot` symlinked so the files under test were the
+ones served, a seeded namespace covering all four position states — including a `closed · deadline`
+produced by the **engine's own sweep** rather than a hand-written row — DOM reads rather than network
+reads, and **eight mutations**, one at the database level. The one that carries the rest is the
+**control**: with the fetch broken, 65 collection groups still render and **zero** mailbox blocks do,
+so every content assertion downstream reads something that exists only because the mailbox render ran.
+
+**Four findings came out of driving it, two of which no diff review would have produced:**
+
+1. **A cross-namespace collision drew one namespace's mailboxes under another's rows.** Collection
+   groups are keyed by collection key **alone** (`recent.js`, `query.js`), so two namespaces sharing a
+   key merge — and the block took its namespace from `members[0]`, whichever workflow happened to be
+   oldest. One namespace's mailbox vanished from the page entirely while the other's was drawn above
+   its rows. On a screen whose job is attribution, in a product whose stated principle is tenant
+   isolation.
+2. **The client could build a request the server refuses.** No length budget on the query string: 100
+   keys of 78 characters is 8764 bytes against Kestrel's 8 KB request-line default, and
+   `collection_key` is `varchar(200)`. The 414 was swallowed with the cache stamps already written, so
+   the blocks silently never rendered. Now chunked by encoded length, with a non-`ok` chunk leaving its
+   collections _uncached_ rather than cached-empty.
+3. **The poll could not recover.** It wanted collections with an open block **in the DOM**, and the only
+   other caller ran on a render pass, which only happens when the SSE fingerprint moves — so after one
+   empty answer the blocks were gone for good on an idle engine.
+4. **5b-i's rejected cost had come back through another door.** `wantMailboxes` ran for every group on
+   every render pass at a 3-second TTL, so any engine busy enough to keep the fingerprint moving paid
+   the three-table read every ~3s per namespace on screen, mailboxes or not. Now keyed on the
+   `mailboxId` 5b-i put on every card (previously dead payload weight): 3s while a collection has
+   mailboxes or a member hinting at one, 60s once it has answered empty. Measured: 61 mailbox-free
+   collections cost **1 request in 125 seconds**, against all 64 being re-read every 3 seconds before.
+
+##### The dashboard XSS — pre-existing, live, and fixed here — jj change `qnlqnrpr`
+
+**A stored XSS was found on the dashboard and proven exploitable**, twice, on a running page. It
+predates this stack entirely. `collection_key` and `operation_id` arrive from a request header or query
+parameter with only trimming (`MetadataExtractor`), the dashboard interpolated them into `onclick=` and
+`title=` attributes through an escaper that does **not** escape `"`, the dashboard carries **no
+authentication** and **no CSP**, and the value is stored and replayed to every operator who opens the
+page. A collection key of `rev-xss" onmouseover="…` broke out and compiled a real handler.
+
+Fixed with two new helpers — `escAttr` for attributes, `escJsArg` for single-quoted inline-handler
+arguments — applied across ~20 sites in six modules. The sweep was enumerated **by pattern rather than
+by the reported line numbers**, which is what found two attributes (`pipeline.js`'s `data-backoff`,
+`modal.js`'s `status-pill` class) that had **no escaping at all**. Verification built the vulnerable and
+fixed lines side by side on the same page from the same payloads: pre-sweep, 2 injected handlers that
+fired; post-sweep, **0 across 1926 elements and nine event types**, with the payload sitting byte-exact
+as inert data — and the escaping proven lossless by clicking the real chips.
+
+**The durable part is the check, not the patch.** `wwwroot/AGENTS.md` now states the three-helper rule
+and carries both greps verbatim in a fenced block, deliberately **wider** than an anchored match,
+because an `esc()` later in an attribute value is the same bug. Four non-exploitable survivors
+(enum-valued `class="… ${esc(…)}"` sites) were converted anyway, so no example of the shape remains to
+copy.
+
+_Scope note:_ this is a security fix to code the mailbox work did not write. It was taken here rather
+than deferred because it lives in the files this step already touches, this step introduced the helper
+that fixes it, and this was the last engine step — "its own revision later" would have meant never. It
+is a separate revision so it stays independently reviewable and backportable.
 
 Paths: `src/Runtime/workflow-engine/src/WorkflowEngine.Core/wwwroot`.
 
@@ -1433,7 +1496,7 @@ with tests that re-derive the callback across attempt, retry and resume, and pin
 callback can only follow closure. Mine `nqtvqytw` for the contract reshape and follow its snapshot
 protocol.
 
-#### Step 7 — App-lib: pipeline contract and mailbox mint — `todo`
+#### Step 7 — App-lib: pipeline contract and mailbox mint — `in progress`
 
 Paths: `src/App/backend`.
 
@@ -1519,6 +1582,19 @@ feature revision** — each deserves its own small revision, landed here or earl
    created. Confirmed byte-identical to the pre-feature base, so it predates this stack entirely and
    nothing here aggravates it; the engine migrates at startup, so only script generation is affected.
    Plain (non-idempotent) script generation works.
+4. **`DagRoundtrip_AllRelations_FullExchange.exchange.http` rewrites itself on some runs.** The
+   `dependencies` and `links` dictionaries serialize in nondeterministic order, so the snapshot flips
+   between runs and dirties the working copy. Reproduced independently by two agents from revisions
+   containing no C#. Sort the keys before serializing.
+5. **`cards.js:305` (`rerenderCards`)** interpolates a workflow key into a `querySelectorAll` selector
+   without `CSS.escape`, where its two siblings now escape. GUID-valued, so selector injection only —
+   but it is the odd one out after the XSS sweep.
+
+Two traps worth carrying into any step that runs the suite: `jj restore` with a repo-root-relative path
+run from a subdirectory resolves nothing and **fails silently** (the working directory persists between
+tool calls); and building `src/App/backend` rewrites the LF-stored generated files under
+`test/Altinn.App.SourceGenerator.Integration.Tests/gen/` as CRLF, which git reports clean and jj reports
+modified.
 
 Rebuild each revision the way CI does, confirm the suites, confirm `typos`, CSharpier and prettier,
 confirm no generated-file CRLF drift rode along, and update the engine `AGENTS.md`, the app-lib
