@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
-import { Paragraph } from '@digdir/designsystemet-react';
 import {
-  StudioCenter,
   StudioAlert,
+  StudioCenter,
+  StudioParagraph,
   StudioSpinner,
   StudioValidationMessage,
 } from '@studio/components';
@@ -16,6 +16,7 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
@@ -54,26 +55,46 @@ const NoSelectedPageMessage = () => {
   const { t } = useTranslation();
   return (
     <StudioCenter>
-      <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
+      <StudioParagraph data-size='md'>{t('ux_editor.no_components_selected')}</StudioParagraph>
     </StudioCenter>
   );
 };
 
-// The actual preview frame that displays the selected page
 const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { previewIframeRef, selectedFormLayoutName } = useAppContext();
   const { layoutSet } = useUxEditorParams();
-  const { data: appVersion, isPending: isAppVersionPending } = useAppVersionQuery(org, app);
-  // In v9 the layout set name is the process task id (no separate task id), so the legacy lookup falls
-  // back to the stateless task ('Task_1'). Use the layout set name directly for v9.
-  const isV9App = !isBelowSupportedVersion(appVersion?.backendVersion ?? '', 9);
-  const derivedTaskId = useSelectedTaskId(layoutSet);
-  const taskId = isV9App ? layoutSet : derivedTaskId;
   const { t } = useTranslation();
-  const { data: user } = useUserQuery();
+  const { data: appVersion, isPending: isAppVersionPending } = useAppVersionQuery(org, app);
+  const { data: user, isPending: isUserPending } = useUserQuery();
+  const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
+  const derivedTaskId = useSelectedTaskId(layoutSet);
 
-  const { shouldReloadPreview, previewHasLoaded } = useAppContext();
+  if (isAppVersionPending || isUserPending || isLayoutSetsPending) {
+    return (
+      <StudioCenter>
+        <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
+      </StudioCenter>
+    );
+  }
+
+  const isV9App = !isBelowSupportedVersion(appVersion?.backendVersion ?? '', 9);
+  const taskId = isV9App ? layoutSet : derivedTaskId;
+
+  return <PreviewIframe partyId={user.id} taskId={taskId} />;
+};
+
+type PreviewIframeProps = {
+  partyId: number;
+  taskId: string;
+};
+
+// The actual preview frame that displays the selected page
+const PreviewIframe = ({ partyId, taskId }: PreviewIframeProps) => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { previewIframeRef, selectedFormLayoutName, shouldReloadPreview, previewHasLoaded } =
+    useAppContext();
+  const { layoutSet } = useUxEditorParams();
+  const { t } = useTranslation();
   const checksum = useChecksum(shouldReloadPreview);
   const {
     mutate: createInstance,
@@ -86,11 +107,8 @@ const PreviewFrame = () => {
   const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
-    // Wait until the app version has resolved before creating the instance; otherwise taskId is derived
-    // from a stale (v4) assumption on the first render and would create the instance with the wrong task.
-    if (user && taskId && !isAppVersionPending)
-      createInstance({ partyId: user?.id, taskId: taskId });
-  }, [createInstance, user, taskId, isAppVersionPending]);
+    createInstance({ partyId, taskId });
+  }, [createInstance, partyId, taskId]);
 
   useEffect(() => {
     return () => {
