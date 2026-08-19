@@ -1,5 +1,5 @@
 [package]
-name = "github-runner-sandbox-coordinator"
+name = "github-runner-coordinator"
 description = "Runs one ephemeral GitHub Actions runner inside a Sandbox"
 edition = "2024"
 license = "Apache-2.0"

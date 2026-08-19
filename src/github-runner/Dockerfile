@@ -4,6 +4,7 @@ LABEL org.opencontainers.image.source="https://github.com/Altinn/altinn-studio"
 LABEL org.opencontainers.image.description="Altinn Studio self-hosted GitHub Actions runner"
 
 ARG GO_VERSION=1.26.4
+ARG KUBECTL_VERSION=1.35.7
 ARG NODE_CHANNEL=22
 ARG YARN_CHANNEL=stable
 ARG DOTNET_CHANNELS="8.0 9.0 10.0"
@@ -15,6 +16,7 @@ USER root
 
 COPY run.sh /usr/local/bin/altinn-github-runner
 COPY run-with-dockerd.sh /usr/local/bin/altinn-github-runner-dind
+COPY run-sandbox.sh /usr/local/bin/altinn-github-runner-sandbox
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
       build-essential \
@@ -134,6 +136,16 @@ RUN apt-get update \
     && git config --system checkout.thresholdForParallelism 100 \
     && usermod -aG docker runner \
     && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack /usr/share/dotnet
+
+RUN KUBECTL_SHA256="$(curl -fsSL \
+      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256")" \
+    && curl -fsSL \
+      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+      -o /tmp/kubectl \
+    && echo "${KUBECTL_SHA256}  /tmp/kubectl" | sha256sum -c - \
+    && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
+    && rm -f /tmp/kubectl \
+    && chmod 0755 /usr/local/bin/altinn-github-runner-sandbox
 
 ENV CGO_ENABLED=1
 ENV DOTNET_ROOT=/usr/share/dotnet

@@ -42,12 +42,12 @@ jobs:
       config_repo: ${{ steps.vars.outputs.config-repo }}
       coordinator_digest: ${{ steps.coordinator-image.outputs.digest }}
       coordinator_repository: ${{ steps.vars.outputs.coordinator-repository }}
-      guest_digest: ${{ steps.guest-image.outputs.digest }}
-      guest_repository: ${{ steps.vars.outputs.guest-repository }}
       image_tag: ${{ steps.vars.outputs.short-sha }}
       prepared_image: ${{ steps.vars.outputs.prepared-image }}
       prepared_image_latest: ${{ steps.vars.outputs.prepared-image-latest }}
       prepared_image_repository: ${{ steps.vars.outputs.prepared-image-repository }}
+      runner_digest: ${{ steps.base-image.outputs.digest }}
+      runner_repository: ${{ steps.vars.outputs.runner-repository }}
     defaults:
       run:
         working-directory: src/github-runner
@@ -60,17 +60,15 @@ jobs:
           SHA="${GITHUB_SHA::10}"
           {
             echo "short-sha=${SHA}"
+            echo "runner-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner"
             echo "base-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
             echo "base-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest"
-            echo "guest-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest"
-            echo "guest-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:${SHA}"
-            echo "guest-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest"
-            echo "coordinator-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator"
-            echo "coordinator-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator:${SHA}"
-            echo "coordinator-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator:latest"
-            echo "prepared-image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image"
-            echo "prepared-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image:${SHA}"
-            echo "prepared-image-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image:latest"
+            echo "coordinator-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator"
+            echo "coordinator-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:${SHA}"
+            echo "coordinator-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest"
+            echo "prepared-image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared"
+            echo "prepared-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:${SHA}"
+            echo "prepared-image-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest"
             echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/github-runners-repo:${SHA}"
           } >> "$GITHUB_OUTPUT"
 
@@ -91,7 +89,7 @@ jobs:
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and publish base image
+      - name: Build and publish runner image
         id: base-image
         env:
           IMAGE: ${{ steps.vars.outputs.base-image }}
@@ -116,38 +114,14 @@ jobs:
           esac
           echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and publish sandbox guest image
-        id: guest-image
-        env:
-          IMAGE: ${{ steps.vars.outputs.guest-image }}
-          LATEST: ${{ steps.vars.outputs.guest-latest }}
-        run: |
-          METADATA_FILE="${RUNNER_TEMP}/github-runner-sandbox-guest-build.json"
-          docker buildx build \
-            --file Dockerfile.sandbox \
-            --metadata-file "${METADATA_FILE}" \
-            --platform linux/amd64 \
-            --pull \
-            --push \
-            --tag "${IMAGE}" \
-            --tag "${LATEST}" \
-            .
-
-          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
-          case "${IMAGE_DIGEST}" in
-            sha256:*) ;;
-            *) echo "Unexpected guest image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
-          esac
-          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
-
-      - name: Build and publish sandbox coordinator image
+      - name: Build and publish coordinator image
         id: coordinator-image
         working-directory: ${{ github.workspace }}/src
         env:
           IMAGE: ${{ steps.vars.outputs.coordinator-image }}
           LATEST: ${{ steps.vars.outputs.coordinator-latest }}
         run: |
-          METADATA_FILE="${RUNNER_TEMP}/github-runner-sandbox-coordinator-build.json"
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
           docker buildx build \
             --file github-runner/Dockerfile.coordinator \
             --metadata-file "${METADATA_FILE}" \
@@ -196,8 +170,8 @@ jobs:
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
           COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
-          GUEST_DIGEST: ${{ needs.build-images.outputs.guest_digest }}
-          GUEST_REPOSITORY: ${{ needs.build-images.outputs.guest_repository }}
+          RUNNER_DIGEST: ${{ needs.build-images.outputs.runner_digest }}
+          RUNNER_REPOSITORY: ${{ needs.build-images.outputs.runner_repository }}
         run: |
           REGISTRY_PASSWORD="$(az acr login --name "${REGISTRY_NAME}" --expose-token --query accessToken --output tsv)"
           test -n "${REGISTRY_PASSWORD}"
@@ -208,14 +182,14 @@ jobs:
           mkdir prepared-image
           CACHE_DIRECTORY="$(mktemp -d "${RUNNER_TEMP}/sandbox-cache.XXXXXX")"
           COORDINATOR_IMAGE="${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}"
-          GUEST_IMAGE="${GUEST_REPOSITORY}@${GUEST_DIGEST}"
+          RUNNER_IMAGE="${RUNNER_REPOSITORY}@${RUNNER_DIGEST}"
           docker run --rm \
             --entrypoint /usr/local/bin/sandbox-image \
             --env SANDBOX_CACHE_HOME=/cache \
             --env PREPARED_IMAGE_DIRECTORY=/output \
             --env REGISTRY_PASSWORD \
             --env REGISTRY_USERNAME=00000000-0000-0000-0000-000000000000 \
-            --env "SANDBOX_IMAGE=${GUEST_IMAGE}" \
+            --env "SANDBOX_IMAGE=${RUNNER_IMAGE}" \
             --volume "${CACHE_DIRECTORY}:/cache" \
             --volume "${PWD}/prepared-image:/output" \
             "${COORDINATOR_IMAGE}" \
@@ -229,7 +203,7 @@ jobs:
           IMAGE: ${{ needs.build-images.outputs.prepared_image }}
           LATEST: ${{ needs.build-images.outputs.prepared_image_latest }}
         run: |
-          METADATA_FILE="${RUNNER_TEMP}/github-runner-sandbox-prepared-image-build.json"
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-prepared-build.json"
           docker buildx build \
             --build-arg "COORDINATOR_IMAGE=${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}" \
             --file Dockerfile.prepared-image \
@@ -285,43 +259,43 @@ jobs:
             yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
           done
 
-      - name: Pin sandbox images by digest
+      - name: Pin runner images by digest
         working-directory: src/github-runner/infra/kustomize/base
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
           COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
-          GUEST_DIGEST: ${{ needs.build-images.outputs.guest_digest }}
-          GUEST_REPOSITORY: ${{ needs.build-images.outputs.guest_repository }}
           PREPARED_IMAGE_DIGEST: ${{ needs.build-prepared-image.outputs.digest }}
           PREPARED_IMAGE_REPOSITORY: ${{ needs.build-images.outputs.prepared_image_repository }}
+          RUNNER_DIGEST: ${{ needs.build-images.outputs.runner_digest }}
+          RUNNER_REPOSITORY: ${{ needs.build-images.outputs.runner_repository }}
           IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
         run: |
           COORDINATOR_IMAGE="${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}"
-          GUEST_IMAGE="${GUEST_REPOSITORY}@${GUEST_DIGEST}"
           PREPARED_IMAGE="${PREPARED_IMAGE_REPOSITORY}@${PREPARED_IMAGE_DIGEST}"
-          export COORDINATOR_IMAGE GUEST_IMAGE IMAGE_TAG PREPARED_IMAGE
+          RUNNER_IMAGE="${RUNNER_REPOSITORY}@${RUNNER_DIGEST}"
+          export COORDINATOR_IMAGE IMAGE_TAG PREPARED_IMAGE RUNNER_IMAGE
 
           yq -i '
             .metadata.annotations["altinn.studio/image"] = strenv(COORDINATOR_IMAGE) |
             .metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG) |
-            .metadata.annotations["altinn.studio/guest-image"] = strenv(GUEST_IMAGE) |
-            .metadata.annotations["altinn.studio/guest-image-tag"] = strenv(IMAGE_TAG) |
+            .metadata.annotations["altinn.studio/runner-image"] = strenv(RUNNER_IMAGE) |
+            .metadata.annotations["altinn.studio/runner-image-tag"] = strenv(IMAGE_TAG) |
             .metadata.annotations["altinn.studio/prepared-image"] = strenv(PREPARED_IMAGE) |
             .metadata.annotations["altinn.studio/prepared-image-tag"] = strenv(IMAGE_TAG)
           ' scaledjob-sandbox.yaml
 
           test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob-sandbox.yaml)" = "${COORDINATOR_IMAGE}"
           test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/guest-image"]' scaledjob-sandbox.yaml)" = "${GUEST_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/guest-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image"]' scaledjob-sandbox.yaml)" = "${RUNNER_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
           test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image"]' scaledjob-sandbox.yaml)" = "${PREPARED_IMAGE}"
           test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
 
           RENDERED="$(kubectl kustomize .)"
           test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"
-          test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${GUEST_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
           test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .image' <<< "${RENDERED}")" = "${PREPARED_IMAGE}"
-          test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${GUEST_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
 
       - name: push artifact
         working-directory: src/github-runner/infra/kustomize

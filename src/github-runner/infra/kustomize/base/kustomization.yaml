@@ -34,7 +34,7 @@ replacements:
   - source:
       kind: ScaledJob
       name: github-runners-sandbox
-      fieldPath: metadata.annotations.[altinn.studio/guest-image]
+      fieldPath: metadata.annotations.[altinn.studio/runner-image]
     targets:
       - select:
           kind: ScaledJob

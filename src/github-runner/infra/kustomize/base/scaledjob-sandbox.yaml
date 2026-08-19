@@ -6,11 +6,11 @@ metadata:
     app.kubernetes.io/name: github-runner
     app.kubernetes.io/component: runner-sandbox
   annotations:
-    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator:latest
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest
     altinn.studio/image-tag: latest
-    altinn.studio/guest-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest
-    altinn.studio/guest-image-tag: latest
-    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image:latest
+    altinn.studio/runner-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
+    altinn.studio/runner-image-tag: latest
+    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest
     altinn.studio/prepared-image-tag: latest
 spec:
   maxReplicaCount: 16
@@ -45,7 +45,7 @@ spec:
             type: RuntimeDefault
         initContainers:
           - name: prepare-image
-            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image:latest
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest
             imagePullPolicy: IfNotPresent
             securityContext:
               allowPrivilegeEscalation: false
@@ -62,7 +62,7 @@ spec:
               - name: PREPARED_IMAGE_DIRECTORY
                 value: /opt/altinn/prepared-image
               - name: SANDBOX_IMAGE
-                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest
+                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
             resources:
               requests:
                 cpu: "4"
@@ -77,7 +77,7 @@ spec:
                 mountPath: /tmp
         containers:
           - name: coordinator
-            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator:latest
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest
             imagePullPolicy: IfNotPresent
             securityContext:
               allowPrivilegeEscalation: false
@@ -96,7 +96,7 @@ spec:
               - name: SANDBOX_CACHE_HOME
                 value: /var/cache/altinn/sandbox
               - name: SANDBOX_IMAGE
-                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest
+                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
               - name: SANDBOX_CPUS
                 value: "4"
               - name: SANDBOX_MEMORY

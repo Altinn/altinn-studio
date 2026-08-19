@@ -1718,7 +1718,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "github-runner-sandbox-coordinator"
+name = "github-runner-coordinator"
 version = "0.1.0"
 dependencies = [
  "clap",

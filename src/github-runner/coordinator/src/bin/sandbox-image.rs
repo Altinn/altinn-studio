@@ -1,7 +1,7 @@
 use std::{error::Error, io, path::PathBuf, time::Instant};
 
 use clap::{Parser, Subcommand};
-use github_runner_sandbox_coordinator::provider::ProviderArguments;
+use github_runner_coordinator::provider::ProviderArguments;
 use sandbox::{
     Platform, RootFilesystemMode,
     image::{ImageSource, RegistryAuthentication, ResolveRequest},
