@@ -67,33 +67,11 @@ public sealed class SemanticDetectionTests : IDisposable
                 }
             }
 
-            namespace Altinn.App.Api.Extensions
-            {
-                public static class ServiceCollectionExtensions
-                {
-                    public static void ConfigureMaskinportenClient(this object services, string configSectionPath) { }
-                }
-            }
             """
         )
     );
 
-    private static readonly Lazy<MetadataReference> _externalPackageStub = new(static () =>
-        SemanticScannerFactory.EmitStubAssembly(
-            "Altinn.ApiClients.Maskinporten",
-            """
-            namespace Altinn.ApiClients.Maskinporten.Services
-            {
-                public interface IMaskinportenService { }
-
-                public class MaskinportenService : IMaskinportenService { }
-            }
-            """
-        )
-    );
-
-    private CSharpSourceScanner SemanticScanner() =>
-        SemanticScannerFactory.CreateScanner(AppFolder, _coreStub.Value, _externalPackageStub.Value);
+    private CSharpSourceScanner SemanticScanner() => SemanticScannerFactory.CreateScanner(AppFolder, _coreStub.Value);
 
     // --- ServiceTaskResultApiDetector ------------------------------------------------------------
 
@@ -204,93 +182,6 @@ public sealed class SemanticDetectionTests : IDisposable
         // binds to the app's own method.
         Assert.Contains(syntax.Warnings, static w => w.Contains("Exporter.cs:3"));
         Assert.DoesNotContain(semantic.Warnings, static w => w.Contains("Exporter.cs:3"));
-    }
-
-    // --- ExternalMaskinportenPackageDetector -----------------------------------------------------
-
-    [Fact]
-    public void ExternalMaskinporten_FullyQualifiedUse_OnlySemanticCatchesIt()
-    {
-        _app.Write(
-            "logic/Client.cs",
-            """
-            public class Client
-            {
-                public Altinn.ApiClients.Maskinporten.Services.IMaskinportenService? Service { get; set; }
-            }
-            """
-        );
-        WriteProjectWithoutExternalPackage();
-
-        var syntax = new ExternalMaskinportenPackageDetector(SyntaxScanner(), ProjectFile()).Detect();
-        var semantic = new ExternalMaskinportenPackageDetector(SemanticScanner(), ProjectFile()).Detect();
-
-        // IMaskinportenService is on the ambiguous list, gated on a namespace import the file does
-        // not have - syntax misses the fully qualified use; assembly identity catches it.
-        Assert.Empty(syntax.Warnings);
-        Assert.Contains(semantic.Warnings, static w => w.Contains("IMaskinportenService"));
-        Assert.True(semantic.ManualActionRequired);
-    }
-
-    [Fact]
-    public void ExternalMaskinporten_AppsOwnServiceWithImport_OnlySyntaxFlagsIt()
-    {
-        _app.Write(
-            "logic/OwnService.cs",
-            """
-            using Altinn.ApiClients.Maskinporten.Services;
-
-            namespace MyApp
-            {
-                public class MaskinportenTokenHandler { }
-
-                public class Uses
-                {
-                    public MaskinportenTokenHandler Handler => new();
-                }
-            }
-            """
-        );
-        WriteProjectWithoutExternalPackage();
-
-        var syntax = new ExternalMaskinportenPackageDetector(SyntaxScanner(), ProjectFile()).Detect();
-        var semantic = new ExternalMaskinportenPackageDetector(SemanticScanner(), ProjectFile()).Detect();
-
-        // The namespace import makes syntax count the app's own MaskinportenTokenHandler as package
-        // usage; semantic still reports the import itself but never the app's own type.
-        Assert.Contains(syntax.Warnings, static w => w.Contains("MaskinportenTokenHandler"));
-        Assert.DoesNotContain(semantic.Warnings, static w => w.Contains("MaskinportenTokenHandler"));
-        Assert.Contains(semantic.Warnings, static w => w.Contains("Altinn.ApiClients.Maskinporten"));
-    }
-
-    // --- MaskinportenClientOverrideDetector ------------------------------------------------------
-
-    [Fact]
-    public void ClientOverride_ConstSectionName_OnlySemanticExemptsIt()
-    {
-        _app.Write(
-            "Program.cs",
-            """
-            using Altinn.App.Api.Extensions;
-
-            public static class Startup
-            {
-                private const string SectionName = "MaskinportenSettings";
-
-                public static void Register(object services)
-                {
-                    services.ConfigureMaskinportenClient(SectionName);
-                }
-            }
-            """
-        );
-
-        var syntax = new MaskinportenClientOverrideDetector(SyntaxScanner()).Detect();
-        var semantic = new MaskinportenClientOverrideDetector(SemanticScanner()).Detect();
-
-        Assert.True(syntax.ManualActionRequired);
-        Assert.False(semantic.ManualActionRequired);
-        Assert.Empty(semantic.Warnings);
     }
 
     // --- CorrespondenceApiMigration.WithData -----------------------------------------------------
@@ -477,37 +368,6 @@ public sealed class SemanticDetectionTests : IDisposable
         // Syntax detector on the live view: does not re-report the no-op call the rewriter removed.
         Assert.DoesNotContain(": WithSender", text);
         Assert.Equal(3, exitCode);
-    }
-
-    // --- ReferencesToAssembly must not report namespace segments ---------------------------------
-
-    [Fact]
-    public void ExternalMaskinporten_UsingDirective_IsReportedOnceWithoutNamespaceSegmentNoise()
-    {
-        _app.Write(
-            "logic/Client.cs",
-            """
-            using Altinn.ApiClients.Maskinporten.Services;
-
-            public class Client
-            {
-                public IMaskinportenService? Service { get; set; }
-            }
-            """
-        );
-        WriteProjectWithoutExternalPackage();
-
-        var semantic = new ExternalMaskinportenPackageDetector(SemanticScanner(), ProjectFile()).Detect();
-
-        // Namespace segments bind to the package's assembly too (merged namespaces collapse to their
-        // single constituent), but reporting `ApiClients`/`Services` per using directive would bury
-        // the real usages. One line for the directive, one for the actual type use.
-        var locationLines = semantic.Warnings.Where(static w => w.Contains("Client.cs:")).ToList();
-        Assert.Equal(2, locationLines.Count);
-        Assert.Contains(locationLines, static w => w.Contains("using Altinn.ApiClients.Maskinporten.Services"));
-        Assert.Contains(locationLines, static w => w.Contains("Client.cs:5: IMaskinportenService"));
-        Assert.DoesNotContain(semantic.Warnings, static w => w.EndsWith(": ApiClients", StringComparison.Ordinal));
-        Assert.DoesNotContain(semantic.Warnings, static w => w.EndsWith(": Services", StringComparison.Ordinal));
     }
 
     // --- Scanner.Update keeps semantic models current --------------------------------------------

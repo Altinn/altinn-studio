@@ -12,8 +12,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <para>
 /// Every query takes the file's <see cref="SemanticModel"/> and is only valid for nodes reached from
 /// that file's <see cref="ScannedCSharpFile.Root"/>. The name-set queries pre-filter syntactically
-/// before binding; <see cref="ReferencesToAssembly"/> necessarily binds every name in the file, which
-/// is fine at app scale (tens of files, models cached per file).
+/// before binding.
 /// </para>
 /// </summary>
 internal static class CSharpSemanticQueries
@@ -24,10 +23,6 @@ internal static class CSharpSemanticQueries
 
     /// <summary>Whether the symbol is declared by the Altinn.App packages.</summary>
     public static bool IsAltinnAppSymbol(ISymbol? symbol) => IsAltinnAppAssembly(symbol?.ContainingAssembly?.Name);
-
-    /// <summary>Whether the symbol is declared by <paramref name="assemblyName"/>.</summary>
-    public static bool IsDeclaredBy(ISymbol? symbol, string assemblyName) =>
-        string.Equals(symbol?.ContainingAssembly?.Name, assemblyName, StringComparison.Ordinal);
 
     /// <summary>
     /// Invocations that bind to an Altinn.App method with one of the given names — regardless of how
@@ -96,38 +91,6 @@ internal static class CSharpSemanticQueries
 
             var symbol = semanticModel.GetSymbolInfo(name).Symbol;
             if (symbol is INamedTypeSymbol type && IsAltinnAppSymbol(type))
-            {
-                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(name), name.Identifier.Text);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Name nodes that bind to <em>any</em> symbol (type, method, property, ...) declared by the given
-    /// assembly. The detector for the external Maskinporten package uses this: assembly identity is the
-    /// exact form of the question its distinctive/ambiguous name split approximates.
-    /// </summary>
-    public static IEnumerable<CSharpApiMatch> ReferencesToAssembly(
-        ScannedCSharpFile file,
-        SemanticModel semanticModel,
-        string assemblyName
-    )
-    {
-        foreach (var name in file.Root.DescendantNodes().OfType<SimpleNameSyntax>())
-        {
-            var symbol = semanticModel.GetSymbolInfo(name).Symbol;
-            var unreduced = symbol is IMethodSymbol { ReducedFrom: { } reducedFrom } ? reducedFrom : symbol;
-
-            // Namespace segments are excluded even though they do carry the assembly (Roslyn's merged
-            // namespace collapses to its single constituent when only one assembly declares it):
-            // reporting `ApiClients`/`Services` for every using directive would bury the real usages,
-            // and the syntactic using-directive query already reports the directive itself.
-            if (unreduced is null or INamespaceSymbol || unreduced.IsImplicitlyDeclared)
-            {
-                continue;
-            }
-
-            if (IsDeclaredBy(unreduced, assemblyName))
             {
                 yield return new CSharpApiMatch(file.RelativePath, file.GetLine(name), name.Identifier.Text);
             }

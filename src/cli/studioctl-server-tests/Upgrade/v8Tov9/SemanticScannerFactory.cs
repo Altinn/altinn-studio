@@ -7,7 +7,7 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 /// <summary>
 /// Builds a <see cref="CSharpSourceScanner"/> whose files carry semantic models, without restoring
 /// real packages: SDK surface stubs are compiled into in-memory assemblies whose <em>names</em> match
-/// the real ones (<c>Altinn.App.Core</c>, <c>Altinn.ApiClients.Maskinporten</c>), which is what the
+/// the real ones (<c>Altinn.App.Core</c>), which is what the
 /// semantic queries key on. Production takes the same path with the real assemblies via
 /// <c>V8CompilationLoader</c>; these tests pin the query logic, not the loader.
 /// </summary>
