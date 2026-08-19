@@ -116,6 +116,9 @@ public class ExecuteServiceTaskMailboxTests
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
     }
 
     /// <summary>
@@ -217,7 +220,8 @@ public class ExecuteServiceTaskMailboxTests
 
     private static ProcessEngineCommandContext CreateContext(
         Guid? stepId = null,
-        WorkflowCallbackStateCarry? carry = null
+        WorkflowCallbackStateCarry? carry = null,
+        AppCallbackMailbox? mailbox = null
     )
     {
         var instance = new Instance
@@ -247,9 +251,26 @@ public class ExecuteServiceTaskMailboxTests
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),
                 StepId = stepId ?? Guid.NewGuid(),
+                Mailbox = mailbox,
             },
         };
     }
+
+    /// <summary>
+    /// The rendezvous a receive workflow's step is handed: a message standing at its position.
+    /// </summary>
+    private static AppCallbackMailbox Delivered(Guid mailboxId, long seq = 0, string payload = "<receipt/>") =>
+        new()
+        {
+            Id = mailboxId,
+            Seq = seq,
+            Delivery = new AppCallbackMailboxDelivery
+            {
+                IdempotencyKey = $"source-message-{seq}",
+                Payload = payload,
+                AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
+            },
+        };
 
     private static ExecuteServiceTaskPayload Payload(string? stageName) => new("archiving", stageName);
 
@@ -304,7 +325,10 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
 
-        await CreateCommand(task, minter).Execute(CreateContext(), Payload(stageName));
+        // The conclusion of a declaring pipeline runs only on a receive workflow, so it is handed a
+        // rendezvous; a stage never is.
+        await CreateCommand(task, minter)
+            .Execute(CreateContext(mailbox: stageName is null ? Delivered(Guid.NewGuid()) : null), Payload(stageName));
 
         Assert.Empty(minter.Mints);
 
@@ -456,25 +480,24 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     [Fact]
-    public async Task TheReceiveWorkflowsStepToday_RunsThePipelinesConclusionWithNoReply()
+    public async Task ConclusionOfADeclaringPipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
     {
-        // Characterization, not aspiration. A receive workflow's one step is the pipeline's conclusion
-        // (an ExecuteServiceTask step with no stage name), so when the engine releases a receiver —
-        // with a delivery or because the mailbox closed — what runs today is the ordinary Finally,
-        // handed an ordinary context. It has no way to see the message, no way to tell a delivery from
-        // a closure, and no way to enqueue the next receiver: step 8 adds all three. Until then a
-        // released receiver concludes the task on nothing.
+        // The characterization step 7b left here — "a released receiver concludes the task on
+        // nothing" — is now false, and this is what replaced it. A declaring pipeline emits its
+        // conclusion on receive workflows only, so it can only ever run with the engine's rendezvous
+        // block. Without one it would settle the task without ever reading the answer it opened the
+        // exchange for, so it fails permanently and the handler is never called at all.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
 
         ProcessEngineCommandResult result = await CreateCommand(task, minter)
             .Execute(CreateContext(), Payload(stageName: null));
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        ServiceTaskContext conclusion = task.Seen["Finally"];
-        // Nothing was minted for it, and the mailbox it is answering on is not readable from here.
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
         Assert.Empty(minter.Mints);
-        Assert.Throws<InvalidOperationException>(() => conclusion.Mailbox);
+        Assert.Empty(task.Seen);
     }
 
     [Fact]

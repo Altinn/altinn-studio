@@ -24,6 +24,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
+        services.AddTransient<MailboxRelay>();
 
         services
             .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()

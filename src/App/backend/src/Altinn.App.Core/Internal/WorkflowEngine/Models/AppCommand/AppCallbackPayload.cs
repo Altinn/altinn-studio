@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 
@@ -36,6 +37,22 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }
+
+    /// <summary>
+    /// On a mailbox receive workflow's first step: the rendezvous this step was created to consume —
+    /// the message standing at the step's position, or the fact that none can ever stand there.
+    /// <c>null</c> on every ordinary callback, which is every step of an ordinary workflow and every
+    /// step after the first of a receive workflow.
+    /// </summary>
+    /// <remarks>
+    /// The engine reads it from its deliveries log at the start of each attempt rather than baking it
+    /// into the step, because the message may not have existed when the step was created. Whether a
+    /// message stands at the position is settled before the step can first run, so a retry and a
+    /// resume see the block this attempt sees — which is what lets a handler treat an absent
+    /// <see cref="AppCallbackMailbox.Delivery"/> as an instruction rather than as a gap.
+    /// </remarks>
+    [JsonPropertyName("mailbox")]
+    public AppCallbackMailbox? Mailbox { get; init; }
 
     /// <summary>
     /// The engine's identity for the step being executed. Stable across every attempt of the step —
@@ -92,4 +109,73 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("waitDeadline")]
     public DateTimeOffset? WaitDeadline { get; init; }
+}
+
+/// <summary>
+/// The mailbox rendezvous, as a receive workflow's first step is told about it.
+/// </summary>
+/// <remarks>
+/// <strong>Exactly one of <see cref="Delivery"/> and <see cref="DisposedReason"/> is present.</strong>
+/// A receiver is made runnable only by a message arriving at its position, by being created when one
+/// is already there, or by the mailbox closing — and a closed mailbox refuses further messages, so
+/// there is no third answer and no state in between. An absent delivery is therefore a statement, not
+/// a gap: the exchange is over and this handler must conclude it.
+/// </remarks>
+public sealed record AppCallbackMailbox
+{
+    /// <summary>
+    /// The mailbox this step receives from — the reply address the app published when it opened the
+    /// exchange, and what the relay addresses to enqueue the next receiver or to close the mailbox.
+    /// </summary>
+    [JsonPropertyName("id")]
+    public required Guid Id { get; init; }
+
+    /// <summary>
+    /// The step's position in the mailbox's receivers log: the first receiver of an exchange holds
+    /// <c>0</c>, the one its handler asks for next holds <c>1</c>, and so on. The message at
+    /// <see cref="Delivery"/> is the one delivered at this same position.
+    /// </summary>
+    [JsonPropertyName("seq")]
+    public required long Seq { get; init; }
+
+    /// <summary>
+    /// The message standing at <see cref="Seq"/>, or <c>null</c> exactly when the mailbox closed
+    /// without one ever arriving there.
+    /// </summary>
+    [JsonPropertyName("delivery")]
+    public AppCallbackMailboxDelivery? Delivery { get; init; }
+
+    /// <summary>
+    /// Why the mailbox closed, on a callback carrying no delivery; <c>null</c> whenever
+    /// <see cref="Delivery"/> is present. For the conclusion's wording only — both reasons demand
+    /// the same response.
+    /// </summary>
+    [JsonPropertyName("disposedReason")]
+    public MailboxDisposedReason? DisposedReason { get; init; }
+}
+
+/// <summary>
+/// One message delivered into a mailbox, as its receiver is handed it.
+/// </summary>
+public sealed record AppCallbackMailboxDelivery
+{
+    /// <summary>
+    /// The key the message was accepted under — the forwarding source's own message id. Stable across
+    /// every attempt of this step, so a handler may deduplicate its own side effects on it.
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public required string IdempotencyKey { get; init; }
+
+    /// <summary>
+    /// The message body, verbatim. The engine stores it and never parses it.
+    /// </summary>
+    [JsonPropertyName("payload")]
+    public required string Payload { get; init; }
+
+    /// <summary>
+    /// When the engine accepted the message — the instant it became durable, not the instant this
+    /// step read it. On an early delivery the two can be far apart.
+    /// </summary>
+    [JsonPropertyName("acceptedAt")]
+    public required DateTimeOffset AcceptedAt { get; init; }
 }

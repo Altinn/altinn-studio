@@ -10,6 +10,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -185,6 +186,35 @@ public class WorkflowEngineCallbackController : ControllerBase
                     stateCarry
                 );
 
+                // A mailbox reply handler's verdict is the relay's to act on, and it runs here rather
+                // than inside the command for one reason: whatever it starts must begin on the state
+                // this handler *published* — saved, re-captured and re-signed above — not on the
+                // state the handler received. A successor started on the incoming blob would not see
+                // the elements its predecessor created, nor their Storage-assigned ids. If the relay
+                // throws, the callback returns 500 and the engine retries the whole step; every call
+                // the relay makes is keyed off this step, so those deduplicate — but the save above
+                // does not: the retry re-runs the handler and re-applies its data changes, starting
+                // from a blob that knows nothing of the first save. That is the ordinary
+                // at-least-once contract every callback already has (its app-facing half is stated on
+                // ServiceTaskReply), not something the relay's keys extend to.
+                if (success.MailboxContinuation is { } continuation)
+                {
+                    await RunMailboxRelay(
+                        continuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork.Instance,
+                        updatedState,
+                        success.AutoAdvanceProcess,
+                        success.AutoAdvanceAction,
+                        ct
+                    );
+
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    return Ok(new AppCallbackResponse { State = updatedState });
+                }
+
                 // If the command signals auto-advance, enqueue a dependent process-next workflow.
                 // This happens AFTER save so the state blob includes Storage-assigned IDs.
                 // If this fails, we return 500 — the engine retries the whole callback (at-least-once).
@@ -217,7 +247,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         collectionKey,
                         updatedState,
                         success.AutoAdvanceAction,
-                        ct
+                        ct: ct
                     );
                 }
 
@@ -272,6 +302,26 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedProcessEngineCommandResult failed:
+                // A permanent failure from a mailbox reply handler still concludes the exchange: the
+                // app has given up on it, so the mailbox must stop accepting messages. Nothing
+                // downstream starts, and no state was saved — the relay's only act here is the
+                // close. Run before responding, so a retry of this step repeats it rather than
+                // leaving an abandoned exchange open until its deadline.
+                if (failed.MailboxContinuation is { } failedContinuation)
+                {
+                    await RunMailboxRelay(
+                        failedContinuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork.Instance,
+                        state: null,
+                        autoAdvanceProcess: false,
+                        autoAdvanceAction: null,
+                        ct
+                    );
+                }
+
                 // The resolved command's own key rather than the route string it matched - same value,
                 // but provably from the registered set, as in the deferral branch above.
                 _logger.LogError(
@@ -338,6 +388,41 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
                 throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
         }
+    }
+
+    /// <summary>
+    /// Hands one reply handler's verdict to the mailbox relay. The controller decides <em>when</em>
+    /// the relay runs — after the save on a success, before the response on a permanent failure — and
+    /// nothing else: which calls are made, in which order, and under which keys is
+    /// <see cref="MailboxRelay"/>'s alone.
+    /// </summary>
+    private Task RunMailboxRelay(
+        MailboxContinuation continuation,
+        AppIdentifier appId,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        Instance instance,
+        string? state,
+        bool autoAdvanceProcess,
+        string? autoAdvanceAction,
+        CancellationToken ct
+    )
+    {
+        var relay = _serviceProvider.GetRequiredService<MailboxRelay>();
+        return relay.Continue(
+            continuation,
+            new MailboxRelayRequest
+            {
+                AppId = appId,
+                InstanceId = instanceId,
+                Payload = payload,
+                Instance = instance,
+                State = state,
+                AutoAdvanceProcess = autoAdvanceProcess,
+                AutoAdvanceAction = autoAdvanceAction,
+            },
+            ct
+        );
     }
 
     private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)

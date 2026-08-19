@@ -72,4 +72,32 @@ internal sealed class WorkflowCallbackStateCarry
 
         MailboxId = mailboxId;
     }
+
+    /// <summary>
+    /// Whether the exchange this callback's workflow was receiving on has been concluded by the
+    /// handler that just ran. The blob captured from a concluded carry <strong>drops</strong>
+    /// <see cref="MailboxId"/>, so nothing downstream believes it still holds an open mailbox.
+    /// </summary>
+    public bool MailboxConcluded { get; private set; }
+
+    /// <summary>
+    /// Records that the handler concluded the exchange, so the state blob this callback publishes
+    /// stops carrying the mailbox it was answering on.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is the one thing the mailbox id must <em>not</em> outlive. The workflow the conclusion
+    /// starts — the process-next that advances past the service task — inherits this callback's
+    /// captured blob, and its own service task may open a mailbox of its own. Handing it a blob that
+    /// still names the finished exchange's mailbox would make
+    /// <see cref="RecordMailbox"/> refuse the new one and fail that transition permanently, days
+    /// after the exchange it is complaining about ended.
+    /// </para>
+    /// <para>
+    /// A second value with a second named method, deliberately, rather than a general setter or a
+    /// mutable <see cref="MailboxId"/>: the carry's whole point is that the only way to change it is
+    /// a method named for the one thing it records.
+    /// </para>
+    /// </remarks>
+    public void RecordMailboxConcluded() => MailboxConcluded = true;
 }

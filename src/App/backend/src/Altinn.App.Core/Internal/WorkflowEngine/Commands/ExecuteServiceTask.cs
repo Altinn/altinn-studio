@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -43,6 +44,15 @@ internal sealed class ExecuteServiceTask(
         "ServiceTaskContext.Mailbox was read, but this task opens no mailbox. Declare one on the pipeline with "
         + "WithReplyFrom(\"<stage>\", new MailboxOptions { Timeout = … }), and read it in that stage.";
 
+    /// <summary>
+    /// What <see cref="ServiceTaskContext.Reply"/> says when the task opens no mailbox — a constant,
+    /// like <see cref="NoMailboxDeclaredReason"/>, and for the same reason.
+    /// </summary>
+    private const string NoMailboxDeclaredReplyReason =
+        "ServiceTaskContext.Reply was read, but this task is not answered by a message. Declare a mailbox on the "
+        + "pipeline with WithReplyFrom(\"<stage>\", new MailboxOptions { Timeout = … }); the pipeline's Finally "
+        + "then runs once per message, with the message in ServiceTaskContext.Reply.";
+
     public override string GetKey() => Key;
 
     public override ProcessStepOptions? DefaultStepOptions { get; } =
@@ -78,6 +88,15 @@ internal sealed class ExecuteServiceTask(
                 return mintFailure;
             }
 
+            // What this execution answers, if anything: the message standing at its position, the
+            // fact that the mailbox closed without one, or — for every stage and every task that is
+            // not answered by a message — nothing at all.
+            ReplyResolution reply = ResolveReply(context, pipeline, payload.StageName, serviceTaskType);
+            if (reply.Failure is { } replyFailure)
+            {
+                return replyFailure;
+            }
+
             ServiceTaskContext serviceTaskContext = new()
             {
                 InstanceDataMutator = instanceDataMutator,
@@ -98,11 +117,24 @@ internal sealed class ExecuteServiceTask(
                 },
                 MailboxOrDefault = mailbox.Mailbox,
                 MailboxUnavailableReason = mailbox.UnavailableReason,
+                ReplyOrDefault = reply.Reply,
+                MailboxClosedReasonOrDefault = reply.ClosedReason,
+                ReplyUnavailableReason = reply.UnavailableReason,
             };
 
-            return payload.StageName is { } stageName
-                ? await ExecuteStage(pipeline, serviceTask, stageName, serviceTaskContext)
-                : MapServiceTaskResult(await pipeline.Final(serviceTaskContext), serviceTask);
+            if (payload.StageName is { } stageName)
+            {
+                return await ExecuteStage(pipeline, serviceTask, stageName, serviceTaskContext);
+            }
+
+            ServiceTaskResult conclusion = await pipeline.Final(serviceTaskContext);
+
+            // A conclusion that answers a message is the relay's, not the ordinary mapping's: which
+            // verdicts end the exchange, and what the saga does about it, is one decision and lives
+            // in one place.
+            return context.Payload.Mailbox is { } receipt
+                ? MailboxRelay.Decide(conclusion, serviceTaskType, context.Payload.StepId, receipt, context.StateCarry)
+                : MapServiceTaskResult(conclusion, serviceTask);
         }
         catch (Exception ex)
         {
@@ -261,6 +293,157 @@ internal sealed class ExecuteServiceTask(
         };
     }
 
+    /// <summary>
+    /// What this execution knows about the message it answers: the message, or the closure that
+    /// stands in for one, or the sentence explaining that this execution answers no message at all —
+    /// and, in place of all three, the failure when the engine's rendezvous block and the pipeline's
+    /// own declaration contradict each other.
+    /// </summary>
+    private readonly record struct ReplyResolution(
+        ServiceTaskReply? Reply,
+        MailboxClosedReason? ClosedReason,
+        string? UnavailableReason,
+        FailedProcessEngineCommandResult? Failure
+    );
+
+    /// <summary>
+    /// Reads the engine's rendezvous block into the shape the pipeline's conclusion sees, or records
+    /// why this execution has none to read.
+    /// </summary>
+    /// <remarks>
+    /// Every disagreement between the block and the pipeline is a permanent failure rather than a
+    /// silent default, because the two ways to be wrong here are the two ways this design can lie: a
+    /// conclusion told "no message" when one exists would answer the wrong question, and a
+    /// conclusion told nothing at all where a message was expected would conclude the task on
+    /// nothing. Neither is a state a retry can improve.
+    /// </remarks>
+    private static ReplyResolution ResolveReply(
+        ProcessEngineCommandContext context,
+        ServiceTaskPipeline pipeline,
+        string? stageName,
+        string serviceTaskType
+    )
+    {
+        AppCallbackMailbox? receipt = context.Payload.Mailbox;
+
+        if (stageName is { } executingStage)
+        {
+            // The engine puts the block on a receive workflow's first step and nowhere else, and a
+            // receive workflow's one step is the conclusion — so a stage carrying one means the
+            // workflow was not built by this app-lib's expansion.
+            if (receipt is not null)
+            {
+                return new ReplyResolution(
+                    null,
+                    null,
+                    null,
+                    FailedProcessEngineCommandResult.Permanent(
+                        $"Stage '{executingStage}' of service task '{serviceTaskType}' was handed a mailbox message, "
+                            + "but only a pipeline's conclusion answers messages. This workflow was not built by this "
+                            + "application's pipeline expansion.",
+                        "MailboxReceiptOnStage"
+                    )
+                );
+            }
+
+            return new ReplyResolution(
+                null,
+                null,
+                $"{nameof(ServiceTaskContext)}.{nameof(ServiceTaskContext.Reply)} was read in stage "
+                    + $"'{executingStage}', but a stage never answers a message. The pipeline's conclusion is what "
+                    + "runs once per message; a stage runs once, before the exchange opens or as part of opening it.",
+                null
+            );
+        }
+
+        if (pipeline.Mailbox is null)
+        {
+            if (receipt is not null)
+            {
+                return new ReplyResolution(
+                    null,
+                    null,
+                    null,
+                    FailedProcessEngineCommandResult.Permanent(
+                        $"Service task '{serviceTaskType}' was handed a mailbox message, but its pipeline declares no "
+                            + "mailbox. The declaration was removed while an exchange was in flight, or this workflow "
+                            + "belongs to a different task.",
+                        "MailboxReceiptWithoutDeclaration"
+                    )
+                );
+            }
+
+            return new ReplyResolution(null, null, NoMailboxDeclaredReplyReason, null);
+        }
+
+        // A declaring pipeline's conclusion is emitted on receive workflows only, so it can only run
+        // with a rendezvous block. Without one it would conclude the task on nothing, which is the
+        // exact state this step exists to end.
+        if (receipt is null)
+        {
+            return new ReplyResolution(
+                null,
+                null,
+                null,
+                FailedProcessEngineCommandResult.Permanent(
+                    $"Service task '{serviceTaskType}' is answered by a message, but the workflow engine handed its "
+                        + "conclusion no mailbox rendezvous. Concluding here would settle the task without ever "
+                        + "reading the answer it is waiting for.",
+                    "MailboxReceiptMissing"
+                )
+            );
+        }
+
+        // Exactly one of the two is present, by the engine's contract. Both absent cannot be read as
+        // "closed": an absent message is an instruction to conclude the exchange, not an absence of
+        // information, so accepting it unstated would let a malformed callback end an exchange.
+        if ((receipt.Delivery is null) == (receipt.DisposedReason is null))
+        {
+            return new ReplyResolution(
+                null,
+                null,
+                null,
+                FailedProcessEngineCommandResult.Permanent(
+                    $"Service task '{serviceTaskType}' was handed a mailbox rendezvous carrying "
+                        + (
+                            receipt.Delivery is null
+                                ? "neither a message nor a reason the mailbox closed"
+                                : "both a message and a reason the mailbox closed"
+                        )
+                        + ". Exactly one of the two is always present, so this callback cannot be answered.",
+                    "MailboxReceiptAmbiguous"
+                )
+            );
+        }
+
+        if (receipt.Delivery is { } delivery)
+        {
+            return new ReplyResolution(
+                new ServiceTaskReply
+                {
+                    Payload = delivery.Payload,
+                    IdempotencyKey = delivery.IdempotencyKey,
+                    AcceptedAt = delivery.AcceptedAt,
+                    Position = receipt.Seq,
+                },
+                null,
+                null,
+                null
+            );
+        }
+
+        return new ReplyResolution(
+            null,
+            receipt.DisposedReason switch
+            {
+                MailboxDisposedReason.Deadline => MailboxClosedReason.Deadline,
+                _ => MailboxClosedReason.Request,
+            },
+            null,
+            null
+        );
+    }
+
     private static async Task<ProcessEngineCommandResult> ExecuteStage(
         ServiceTaskPipeline pipeline,
         IPipelineServiceTask serviceTask,
@@ -305,6 +488,19 @@ internal sealed class ExecuteServiceTask(
             _ => throw new UnreachableException($"Unknown stage result type: {result.GetType().Name}"),
         };
 
+    /// <summary>
+    /// What a conclusion that answers no message is told when it asks for another one. Only the
+    /// conclusion of a pipeline that declared a mailbox holds a message, so nothing else has one to
+    /// follow, and there is no receiver to enqueue.
+    /// </summary>
+    private static FailedProcessEngineCommandResult AwaitNextReplyOutsideAnExchange(IPipelineServiceTask task) =>
+        FailedProcessEngineCommandResult.Permanent(
+            $"Service task '{task.Type}' answered AwaitNextReply, but this execution is not answering a mailbox "
+                + "message, so there is no next message to await. Only the conclusion of a pipeline that declared "
+                + "WithReplyFrom may return it.",
+            "AwaitNextReplyOutsideAnExchange"
+        );
+
     private static ProcessEngineCommandResult MapServiceTaskResult(
         ServiceTaskResult result,
         IPipelineServiceTask task
@@ -321,6 +517,9 @@ internal sealed class ExecuteServiceTask(
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
+            // Explicit, ahead of the catch-all: falling through would answer "success, do not
+            // advance" and settle a task that believes it is still waiting for a message.
+            ServiceTaskAwaitNextReplyResult => AwaitNextReplyOutsideAnExchange(task),
             ServiceTaskSuccessResult { AutoAdvanceProcess: true } success => new SuccessfulProcessEngineCommandResult
             {
                 AutoAdvanceProcess = true,
