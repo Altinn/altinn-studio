@@ -46,6 +46,8 @@ public class AppWireContractTests
             typeof(WorkflowCollectionDetailResponse),
             typeof(CancelWorkflowResponse),
             typeof(ResumeWorkflowResponse),
+            typeof(MailboxCreateRequest),
+            typeof(MailboxResponse),
             typeof(Actor),
             typeof(AppCommandData),
             typeof(AppWorkflowContext),

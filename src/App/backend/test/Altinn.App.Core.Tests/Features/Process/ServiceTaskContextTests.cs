@@ -44,4 +44,35 @@ public class ServiceTaskContextTests
         Assert.Equal(TimeSpan.Zero, context.Wait.Remaining);
         Assert.True(context.Wait.IsFinalCheck);
     }
+
+    [Fact]
+    public void ToString_WithNoMailbox_DoesNotThrowAndReadsNone()
+    {
+        // The record's synthesized PrintMembers would read every public property, including the
+        // computed Mailbox whose getter throws when no mailbox was minted — which is almost every
+        // execution. A custom PrintMembers must keep ToString safe (a debug log, a debugger watch, an
+        // assertion-failure message all call it) and print the mailbox as <none>.
+        var context = CreateContext(waitDeadline: null);
+
+        string? rendered = null;
+        Exception? thrown = Record.Exception(() => rendered = context.ToString());
+
+        Assert.Null(thrown);
+        Assert.NotNull(rendered);
+        Assert.Contains("Mailbox = <none>", rendered, StringComparison.Ordinal);
+        // Reading the property itself still throws — ToString is the only thing that must not.
+        Assert.Throws<InvalidOperationException>(() => context.Mailbox);
+    }
+
+    [Fact]
+    public void ToString_WithMailbox_RendersTheAddress()
+    {
+        var mailbox = new ServiceTaskMailbox { Id = Guid.NewGuid(), Deadline = DateTimeOffset.UtcNow.AddDays(3) };
+        var context = CreateContext(waitDeadline: null) with { MailboxOrDefault = mailbox };
+
+        string rendered = context.ToString();
+
+        Assert.Contains(mailbox.Id.ToString(), rendered, StringComparison.Ordinal);
+        Assert.DoesNotContain("<none>", rendered, StringComparison.Ordinal);
+    }
 }

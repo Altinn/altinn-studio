@@ -2004,6 +2004,11 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
     }
+    public sealed class MailboxOptions : System.IEquatable<Altinn.App.Core.Features.Process.MailboxOptions>
+    {
+        public MailboxOptions() { }
+        public required System.TimeSpan Timeout { get; init; }
+    }
     public sealed class OnProcessEndingContext
     {
         public OnProcessEndingContext() { }
@@ -2070,6 +2075,7 @@ namespace Altinn.App.Core.Features.Process
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public System.DateTimeOffset ExecutionReferenceTime { get; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public Altinn.App.Core.Features.Process.ServiceTaskMailbox Mailbox { get; }
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
         public required System.Guid WorkflowId { get; init; }
@@ -2084,7 +2090,16 @@ namespace Altinn.App.Core.Features.Process
     {
         public required string ErrorMessage { get; init; }
     }
-    public sealed class ServiceTaskPipeline { }
+    public sealed class ServiceTaskMailbox : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskMailbox>
+    {
+        public ServiceTaskMailbox() { }
+        public required System.DateTimeOffset Deadline { get; init; }
+        public required System.Guid Id { get; init; }
+    }
+    public sealed class ServiceTaskPipeline
+    {
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline WithReplyFrom(string stageName, Altinn.App.Core.Features.Process.MailboxOptions options) { }
+    }
     public sealed class ServiceTaskPipelineBuilder
     {
         public ServiceTaskPipelineBuilder() { }

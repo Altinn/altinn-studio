@@ -1496,18 +1496,31 @@ with tests that re-derive the callback across attempt, retry and resume, and pin
 callback can only follow closure. Mine `nqtvqytw` for the contract reshape and follow its snapshot
 protocol.
 
-#### Step 7 — App-lib: pipeline contract and mailbox mint — `in progress`
+#### Step 7 — App-lib: pipeline contract and mailbox mint — **split into 7a and 7b**
 
-Paths: `src/App/backend`.
+Split taken by the step-7 worker (2026-08-19) under the protocol's scope-split rule, on the shape the
+orchestrator had pre-scoped. The two halves turned out to touch disjoint machinery and to be provable by
+different means. 7a is the app-facing surface plus one outbound HTTP call: everything it claims is
+provable in-process against a recording client, and it is the half the wire-contract trip belongs to,
+since the mint is what first makes the app a consumer of the mailbox DTOs. 7b is a change to the
+_expansion_ — the Main workflow stops emitting the conclusion as a step and emits an enqueue step
+instead — and its central problem is not the enqueue at all but **carrying the minted mailbox id from
+the declaring stage to that appended step**. The mint is keyed on the declaring stage's engine-assigned
+step id, which the appended step cannot re-derive, so the id has to travel in the app's signed state
+blob: `WorkflowCallbackState` gains a field, and the callback controller's capture/restore lifecycle has
+to thread it. That is a change to the app⇄engine state contract and to a documented per-callback
+lifecycle, in a different set of files from 7a, and it is the piece step 8's relay actually builds on.
+
+#### Step 7a — App-lib: `WithReplyFrom`, the mint, and `context.Mailbox` — `in review`
+
+Paths: `src/App/backend`, plus `EngineContractTypes` and the snapshot in `workflow-engine-app`.
 
 `WithReplyFrom("Stage", new MailboxOptions { Timeout = … })` as in
 [Pipeline contract](#pipeline-contract): the app-lib mints the mailbox in that stage via
-`POST /mailboxes` keyed by the step id, stores it in workflow state, exposes `context.Mailbox` in
-exactly that stage and throws elsewhere, and the expansion appends one final Main-workflow step
-whose callback enqueues receive workflow 1 as a collection head. No `WaitingReason` is persisted.
-Mine `kotqmwtq` for the pairing and expansion mechanics; the address shape differs, so copy
-structure, not semantics. The `ServiceTaskPipeline` mutability that existed only to serve
-`WithReplyFrom` should not be re-created — build the immutable shape v2's residual asked for.
+`POST /mailboxes` keyed by the step id, and exposes `context.Mailbox` in exactly that stage, throwing
+elsewhere. Mine `kotqmwtq` for the pairing mechanics; the address shape differs, so copy structure, not
+semantics. The `ServiceTaskPipeline` mutability that existed only to serve `WithReplyFrom` should not be
+re-created — build the immutable shape v2's residual asked for.
 
 **Wire contract, carried from step 1:** the mailbox DTOs are deliberately outside the drift guard
 until an app consumer exists. This step must add `MailboxCreateRequest`/`MailboxResponse` to
@@ -1515,6 +1528,29 @@ until an app consumer exists. This step must add `MailboxCreateRequest`/`Mailbox
 `MailboxDisposedReason` are **new enums**, `AppWireContractTests`' directionality rule forces the app
 to model their members in this same step (enum `Kind` is compared as an exact string; a nullable
 field may be omitted, an enum member may not).
+
+#### Step 7b — App-lib: the expansion's appended enqueue step — `todo`
+
+Paths: `src/App/backend`.
+
+The expansion appends one final Main-workflow step whose callback enqueues **receive workflow 1** —
+mailbox reference, fresh `Context`, enqueued as a collection head — and, for a pipeline that declares a
+mailbox, stops emitting the conclusion as a Main step, because the conclusion _is_ the receive handler.
+No `WaitingReason` is persisted: the wait's user-facing wording is static per task and lives in the
+pipeline definition. Mine `kotqmwtq` for the `ServiceTaskExpansion` mechanics.
+
+The step's real content is the carry: 7a mints the mailbox keyed on the declaring stage's step id, which
+the appended step cannot re-derive, so the mailbox id travels in the signed state blob
+(`WorkflowCallbackState` plus the controller's capture/restore path) — a change to the app⇄engine state
+contract, so decide it deliberately rather than by the first mechanism that compiles. The app-side
+`MailboxReference` DTO and `WorkflowRequest.mailbox` land here; both are already in the committed
+snapshot from engine step 3, and `mailbox` is nullable, so no regeneration is needed — verify that rather
+than assume it.
+
+What 7a leaves for this step to close, recorded rather than commented: a pipeline that declares a mailbox
+today still expands with its conclusion as an ordinary Main step and nothing enqueues a receiver, so the
+address the stage publishes has nobody listening on it. The app CHANGELOG entry says as much and must be
+completed here and in step 8 before release.
 
 #### Step 8 — App-lib: the receive handler and the relay saga — `todo`
 
