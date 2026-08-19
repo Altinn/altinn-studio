@@ -844,7 +844,65 @@ pre-lock rejections.
 **Out of scope:** the wake (no waiters exist yet — step 4), admission/backpressure (decision 6
 above).
 
-#### Step 3 — Engine: receive workflows — `Held`, the declaration, and seq assignment — `in progress`
+#### Step 3 — Engine: receive workflows — `Held`, the declaration, and seq assignment — `done`
+
+Landed as jj change `qpuyyswk` — 54 files, +2378/−75, the first step to reach outside the engine
+folder. Engine suite **758 → 797**; host 76; `Altinn.App.Core.Tests --filter ~WorkflowEngine` 268.
+Two review rounds.
+
+**The hot-path claim was verified the way v2 verified its analogue, not asserted.**
+`FetchAndLockWorkflows` is byte-identical to the pre-step base by method extraction (re-checked after
+round 2 edited the same file), its plan snapshot is untouched and `QueryPlanTests` green, `mailbox_id`
+reaches the enqueue `COPY` automatically through `SqlBulkInserter`'s reflection over the EF model, and
+a non-mailbox batch issues **zero** extra statements — the lock helper returns before any SQL and the
+three downstream helpers short-circuit. `Held` entering the `Incomplete` set is a real semantic change
+to three existing consumers (backpressure via `MetricsCollector`, the active/scheduled queries, and
+retention through `IncompleteSqlList`), each traced and each correct; the retention half is now pinned
+by a test that goes red if `IncompleteSqlList` reverts.
+
+Three decisions worth carrying forward:
+
+- **The idempotency-key release choreography is necessary here**, unlike step 2's ingestion.
+  `MailboxLogFull` cannot be decided before newness is known, and `InsertIdempotencyKeys` is the only
+  non-racy way to learn newness; the shapes that avoid the release add statements and races instead.
+  `ReleaseIdempotencyKeys` only ever deletes rows its own transaction inserted, and runs before the
+  COPY. Intra-batch duplicates of a refused request inherit its verdict through `(Index, PrimaryIndex)`
+  pairing.
+- **The flush locks mailboxes only for requests that can consume a position** — `LockAndReadMailboxes`
+  runs just after `InsertIdempotencyKeys`, scoped to `newRequestIndices`. The first draft locked
+  earlier, over every valid request, which made a replay-only batch stall an entire shared flush behind
+  a delivery or a close for a request that would consume nothing. The reversed order relative to
+  `idempotency_keys` is cycle-free, established by enumerating every statement touching either table:
+  no transaction anywhere holds a mailbox row while waiting on a key. A flush blocked on a concurrent
+  same-key insert now holds no mailbox rows at all.
+- **The repository layer holds one namespace contract.** Mailbox rows had been storing the raw route
+  namespace while workflow rows stored the normalized form, compensated for at one reader. All four
+  mailbox repository entry points now normalize on entry (outside `ExecuteWithRetry`, per step 1's
+  SQLSTATE-22001 rule) and the compensation is gone.
+
+The uniform lock order in the flush is **`idempotency_keys` → `mailboxes` (`ORDER BY m.id … FOR
+UPDATE`) → `workflows` (COPY) → `workflow_collections` → `mailbox_waiters`**. `ProcessCollections` can
+never hold a collection row while waiting on a mailbox row.
+
+What steps 4–6 inherit:
+
+- **A waiter row exists only for a receiver born parked.** One born runnable registers nothing, so the
+  wake and the closure release walk exactly the set that needs releasing. `released_at` is written by
+  nobody yet.
+- `WriteMailboxReceivers` advances `next_seq` relatively (`next_seq + n`) and inserts waiters, after
+  `ProcessCollections`, inside the transaction holding the mailbox row lock.
+- **`mailbox_waiters` FK is `RESTRICT`** like deliveries; `workflow_id` deliberately carries no FK.
+  **Step 5's purge must delete waiters and deliveries before the mailbox.**
+- **Step 4's wake must emit the `NOTIFY status_changed` this step does not** — receivers born
+  `Enqueued` are ordinary new workflows riding the existing in-process signal.
+- `Fetchable` is now genuinely load-bearing: `FetchableSqlList` is shared with the
+  `ix_workflows_backoff_until_created_at` filter and pinned to the set, so a set edit changes the index
+  and CI catches it. The **fetch gate's own status list remains an unpinned restatement kept in step by
+  review** — stated plainly in the code rather than claimed to be pinned.
+
+Deliberately left undone, pinned by characterization tests: a `Held` receiver created here never wakes
+(`Enqueue_EnqueueFirst_LeavesAWaiterForTheDeliveryToFind`, and a live-engine test asserting it stays
+`Held`). **Step 4 must make both stop being true.**
 
 Paths: `src/Runtime/workflow-engine`, `src/Runtime/workflow-engine-app` (wire contract), and the
 app-lib DTO copies in `src/App/backend` that the directional guard forces (`Held` is a new enum
@@ -869,7 +927,7 @@ mailbox state.
 **Out of scope:** the wake and the closure release (step 4), anything the executor does with the
 delivery (step 6). A `Held` receiver in this step simply never wakes; say so in the step's notes.
 
-#### Step 4 — Engine: the rendezvous — the wake and the closure release — `todo`
+#### Step 4 — Engine: the rendezvous — the wake and the closure release — `in progress`
 
 Paths: `src/Runtime/workflow-engine`.
 
@@ -998,6 +1056,18 @@ per-cadence scan. Mine `mmppzrvl` for the comparator machinery and its recorded 
 describe the v2 tree and are a comparator, not a baseline to reproduce.
 
 #### Step 12 — Stack hygiene: green revision by revision — `todo`
+
+**Two pre-existing engine defects were found during this stack and deliberately not fixed inside a
+feature revision** — each deserves its own small revision, landed here or earlier:
+
+1. `DbMaintenanceService.PurgeExpiredWorkflows` loops `while (deleted >= settings.BatchSize)` and
+   **never terminates when `BatchSize == 0`** — which is exactly what `PostgresFixture` builds, since
+   it constructs `EngineSettings` with no `Retention` block. It hung a test run for ten minutes in
+   step 1. Production is protected only indirectly, by `ValidateEngineSettings`.
+2. `ClassifyExistingIdempotencyKeys` builds its lookup with `ToDictionary` over an `unnest`-join whose
+   key array can repeat, so a batch containing **three or more** requests sharing one
+   `(namespace, key)` throws `ArgumentException`. v2 fixed it with `.Distinct()` plus an
+   indexer-based dictionary. Step 3 made it strictly less reachable but did not fix it.
 
 Rebuild each revision the way CI does, confirm the suites, confirm `typos`, CSharpier and prettier,
 confirm no generated-file CRLF drift rode along, and update the engine `AGENTS.md`, the app-lib
