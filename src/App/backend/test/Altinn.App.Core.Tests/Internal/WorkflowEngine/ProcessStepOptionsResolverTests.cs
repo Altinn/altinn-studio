@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -24,7 +25,10 @@ public class ProcessStepOptionsResolverTests
         var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
 
         // ExecuteServiceTask is the only command declaring a tier-2 default (10 min) today.
-        return new ProcessStepOptionsResolver([new ExecuteServiceTask(appImplFactory)], appImplFactory);
+        return new ProcessStepOptionsResolver(
+            [new ExecuteServiceTask(appImplFactory, Mock.Of<IWorkflowEngineClient>())],
+            appImplFactory
+        );
     }
 
     private static ProcessStepOptionsResolver CreateResolver(params IServiceTask[] serviceTasks) =>

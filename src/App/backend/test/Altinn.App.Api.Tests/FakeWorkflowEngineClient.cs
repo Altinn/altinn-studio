@@ -47,6 +47,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private readonly ConcurrentDictionary<Guid, StoredWorkflow> _workflows = new();
     private readonly ConcurrentDictionary<string, Guid[]> _workflowsByIdempotencyKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, List<Guid>> _collectionHeadsByKey = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, MailboxResponse> _mailboxesByIdempotencyKey = new(
+        StringComparer.Ordinal
+    );
     private readonly object _gate = new();
     private bool _isProcessing;
 
@@ -334,6 +337,38 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         return abandoned;
+    }
+
+    /// <summary>
+    /// Mints a mailbox, idempotent on <c>(namespace, idempotencyKey)</c> exactly as the engine is —
+    /// the property a retried stage depends on, so the fake would be lying if it minted twice.
+    /// Nothing here delivers into the mailbox or closes it; the fake models the address, not the
+    /// rendezvous.
+    /// </summary>
+    public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
+    {
+        MailboxResponse mailbox = _mailboxesByIdempotencyKey.GetOrAdd(
+            CreateBatchKey(ns, request.IdempotencyKey),
+            _ =>
+            {
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                return new MailboxResponse
+                {
+                    Id = Guid.CreateVersion7(now),
+                    Namespace = ns,
+                    IdempotencyKey = request.IdempotencyKey,
+                    CollectionKey = request.CollectionKey,
+                    Timeout = request.Timeout,
+                    Deadline = now + request.Timeout,
+                    Status = MailboxStatus.Open,
+                    NextIdx = 0,
+                    NextSeq = 0,
+                    CreatedAt = now,
+                };
+            }
+        );
+
+        return Task.FromResult<MailboxMintResult>(new MailboxMintResult.Minted(mailbox));
     }
 
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)

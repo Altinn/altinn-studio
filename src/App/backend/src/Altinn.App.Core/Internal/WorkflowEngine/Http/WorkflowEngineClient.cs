@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.Extensions.Logging;
@@ -190,6 +191,96 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         response.EnsureSuccessStatusCode();
         return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = JsonContent.Create(request);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+
+        // A 400 is the engine reading the request and finding it invalid before it touched anything —
+        // an over-long idempotency key, a timeout past its maximum. Retrying cannot change that
+        // answer, so it comes back as a value the caller can fail permanently on rather than as an
+        // exception the step's retry ladder would chew on for a day.
+        if (response.StatusCode == HttpStatusCode.BadRequest)
+        {
+            string detail = await ReadProblemDetail(response, ct);
+            _logger.LogError(
+                "Workflow engine refused the mailbox mint as invalid. URL: {Url}. Detail: {Detail}",
+                url,
+                detail
+            );
+            return new MailboxMintResult.Rejected(detail);
+        }
+
+        // A 429 is the collection at its open-mailbox cap. The caller still retries — the cap clears
+        // as mailboxes reach their deadlines — but this carries the engine's detail (which names the
+        // collection and the cap) so the first failure says "this instance holds the maximum" rather
+        // than a bare status the ladder repeats.
+        if (response.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            string detail = await ReadProblemDetail(response, ct);
+            _logger.LogError(
+                "Workflow engine mailbox mint hit the open-mailbox cap. URL: {Url}. Detail: {Detail}",
+                url,
+                detail
+            );
+            return new MailboxMintResult.AtCapacity(detail);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string body = await response.Content.ReadAsStringAsync(ct);
+            _logger.LogError(
+                "Workflow engine mailbox mint failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
+                response.StatusCode,
+                url,
+                body
+            );
+        }
+        response.EnsureSuccessStatusCode();
+
+        MailboxResponse mailbox =
+            await response.Content.ReadFromJsonAsync<MailboxResponse>(ct)
+            ?? throw new InvalidOperationException("The expected mailbox was not found in the mint response content.");
+
+        return new MailboxMintResult.Minted(mailbox);
+    }
+
+    /// <summary>
+    /// The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one. The engine
+    /// puts the actionable sentence there — which value was rejected and why — and it is the only
+    /// part worth forwarding into a failure message.
+    /// </summary>
+    private static async Task<string> ReadProblemDetail(HttpResponseMessage response, CancellationToken ct)
+    {
+        string body = await response.Content.ReadAsStringAsync(ct);
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(body);
+            if (
+                document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty("detail", out JsonElement detail)
+                && detail.ValueKind == JsonValueKind.String
+            )
+            {
+                return detail.GetString() ?? body;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not JSON at all (a proxy's HTML error page, say) — the raw body is the best we have.
+        }
+
+        return body;
     }
 
     private string BuildListWorkflowsUrl(

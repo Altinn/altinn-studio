@@ -394,12 +394,102 @@
       }
     ]
   },
+  "MailboxCreateRequest": {
+    "Name": "MailboxCreateRequest",
+    "Fields": [
+      {
+        "Name": "collectionKey",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "timeout",
+        "Kind": "timespan",
+        "Nullable": false
+      }
+    ]
+  },
   "MailboxReference": {
     "Name": "MailboxReference",
     "Fields": [
       {
         "Name": "id",
         "Kind": "guid",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxResponse": {
+    "Name": "MailboxResponse",
+    "Fields": [
+      {
+        "Name": "collectionKey",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "deadline",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "disposedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "disposedReason",
+        "Kind": "enum<string>{Request=0,Deadline=1}",
+        "Nullable": true
+      },
+      {
+        "Name": "id",
+        "Kind": "guid",
+        "Nullable": false
+      },
+      {
+        "Name": "idempotencyKey",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "nextIdx",
+        "Kind": "long",
+        "Nullable": false
+      },
+      {
+        "Name": "nextSeq",
+        "Kind": "long",
+        "Nullable": false
+      },
+      {
+        "Name": "status",
+        "Kind": "enum<string>{Open=0,Disposed=1}",
+        "Nullable": false
+      },
+      {
+        "Name": "timeout",
+        "Kind": "timespan",
+        "Nullable": false
+      },
+      {
+        "Name": "unconsumedDeliveries",
+        "Kind": "long",
         "Nullable": false
       }
     ]

@@ -187,6 +187,51 @@ public class ServiceTaskRegistrationValidatorTests
 
     // ── The sealed forwarding Define (backstop for the ALTINNAPP0700 analyzer) ──────────────
 
+    private sealed class DiscardedMailboxDeclarationTask : IPipelineServiceTask
+    {
+        public string Type => "discardedMailbox";
+
+        // The violation: WithReplyFrom returns the declared pipeline, so calling it for its side
+        // effect and returning the pipeline from before it composes a task whose mailbox is never
+        // opened.
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
+        {
+            ServiceTaskPipeline composed = pipeline.Stage("Send", NoopStage).Finally(NoopFinally);
+            composed.WithReplyFrom("Send", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+            return composed;
+        }
+    }
+
+    [Fact]
+    public async Task PipelineTaskDiscardingItsMailboxDeclaration_FailsStartup()
+    {
+        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, DiscardedMailboxDeclarationTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains(nameof(ServiceTaskPipeline.WithReplyFrom), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("returned the pipeline from before it", exception.Message, StringComparison.Ordinal);
+    }
+
+    private sealed class MailboxOnAnUnknownStageTask : IPipelineServiceTask
+    {
+        public string Type => "unknownMailboxStage";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("Send", NoopStage)
+                .Finally(NoopFinally)
+                .WithReplyFrom("Dispatch", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+    }
+
+    [Fact]
+    public async Task PipelineTaskNamingAStageThatDoesNotExist_FailsStartup()
+    {
+        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, MailboxOnAnUnknownStageTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains("No stage named 'Dispatch'", exception.Message, StringComparison.Ordinal);
+    }
+
     private sealed class ReplacedDefineTask : IServiceTask
     {
         public string Type => "replacedDefine";

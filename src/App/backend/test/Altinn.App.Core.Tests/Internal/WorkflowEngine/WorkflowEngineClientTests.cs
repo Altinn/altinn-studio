@@ -258,6 +258,217 @@ public class WorkflowEngineClientTests
         Assert.Equal(["process-next:abc:Task_1:2"], headerValues);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.Created)]
+    [InlineData(HttpStatusCode.OK)]
+    public async Task MintMailbox_PostsToMailboxEndpointAndReadsTheMailbox(HttpStatusCode statusCode)
+    {
+        // 201 is a fresh mint and 200 an idempotent replay. The client deliberately does not tell
+        // them apart: a replay is the intended outcome of a retry, and a caller that branched on it
+        // would be branching on whether it had crashed before.
+        HttpRequestMessage? capturedRequest = null;
+        string? capturedBody = null;
+        Guid mailboxId = Guid.NewGuid();
+        DateTimeOffset deadline = new(2026, 9, 9, 12, 0, 0, TimeSpan.Zero);
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                async (request, ct) =>
+                {
+                    capturedRequest = request;
+                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    HttpResponseMessage response = CreateJsonResponse(
+                        new MailboxResponse
+                        {
+                            Id = mailboxId,
+                            Namespace = "ttd/app",
+                            IdempotencyKey = "step-key",
+                            CollectionKey = "collection-key",
+                            Timeout = TimeSpan.FromDays(3),
+                            Deadline = deadline,
+                            Status = MailboxStatus.Open,
+                            NextIdx = 0,
+                            NextSeq = 0,
+                            CreatedAt = deadline - TimeSpan.FromDays(3),
+                        }
+                    );
+                    response.StatusCode = statusCode;
+                    return response;
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxMintResult result = await client.MintMailbox(
+            "ttd/app",
+            new MailboxCreateRequest
+            {
+                IdempotencyKey = "step-key",
+                Timeout = TimeSpan.FromDays(3),
+                CollectionKey = "collection-key",
+            }
+        );
+
+        MailboxMintResult.Minted minted = Assert.IsType<MailboxMintResult.Minted>(result);
+        Assert.Equal(mailboxId, minted.Mailbox.Id);
+        Assert.Equal(deadline, minted.Mailbox.Deadline);
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
+        Assert.Equal("http://workflow-engine/api/v1/ttd%2Fapp/mailboxes", capturedRequest.RequestUri!.ToString());
+        Assert.NotNull(capturedBody);
+        using JsonDocument body = JsonDocument.Parse(capturedBody!);
+        Assert.Equal("step-key", body.RootElement.GetProperty("idempotencyKey").GetString());
+        Assert.Equal("collection-key", body.RootElement.GetProperty("collectionKey").GetString());
+        Assert.Equal("3.00:00:00", body.RootElement.GetProperty("timeout").GetString());
+    }
+
+    [Fact]
+    public async Task MintMailbox_BadRequest_ReturnsRejectedCarryingTheEngineDetail()
+    {
+        // The one unsuccessful status that is a value rather than an exception: the engine read the
+        // request and found it impossible, so retrying only reproduces the same answer.
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (_, _) =>
+                    Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.BadRequest,
+                            Content = new StringContent(
+                                """{"title":"Bad Request","status":400,"detail":"Timeout 30.00:00:00 exceeds the maximum mailbox timeout of 21.00:00:00."}""",
+                                Encoding.UTF8,
+                                "application/problem+json"
+                            ),
+                        }
+                    )
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxMintResult result = await client.MintMailbox(
+            "ttd/app",
+            new MailboxCreateRequest { IdempotencyKey = "step-key", Timeout = TimeSpan.FromDays(30) }
+        );
+
+        MailboxMintResult.Rejected rejected = Assert.IsType<MailboxMintResult.Rejected>(result);
+        Assert.Equal("Timeout 30.00:00:00 exceeds the maximum mailbox timeout of 21.00:00:00.", rejected.Detail);
+    }
+
+    [Fact]
+    public async Task MintMailbox_TooManyRequests_ReturnsAtCapacityCarryingTheEngineDetail()
+    {
+        // The open-mailbox cap. Still retryable — the cap clears as mailboxes reach their deadlines —
+        // but a value rather than an exception, so the first failure carries the engine's detail
+        // (which names the collection and the cap) instead of a bare 429 repeated up the ladder.
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (_, _) =>
+                    Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.TooManyRequests,
+                            Content = new StringContent(
+                                """{"title":"Too Many Requests","status":429,"detail":"Collection 'inst-1' already holds the maximum of 100 open mailboxes."}""",
+                                Encoding.UTF8,
+                                "application/problem+json"
+                            ),
+                        }
+                    )
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        MailboxMintResult result = await client.MintMailbox(
+            "ttd/app",
+            new MailboxCreateRequest { IdempotencyKey = "step-key", Timeout = TimeSpan.FromDays(3) }
+        );
+
+        MailboxMintResult.AtCapacity atCapacity = Assert.IsType<MailboxMintResult.AtCapacity>(result);
+        Assert.Equal("Collection 'inst-1' already holds the maximum of 100 open mailboxes.", atCapacity.Detail);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task MintMailbox_OtherFailures_Throw(HttpStatusCode statusCode)
+    {
+        // A 400 (invalid) and a 429 (at cap) are the only statuses modeled as values; every other
+        // unsuccessful status is an ordinary transient that throws to put the step back on its ladder.
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (_, _) =>
+                    Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = statusCode,
+                            Content = new StringContent("{}", Encoding.UTF8, "application/problem+json"),
+                        }
+                    )
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.MintMailbox(
+                "ttd/app",
+                new MailboxCreateRequest { IdempotencyKey = "step-key", Timeout = TimeSpan.FromDays(3) }
+            )
+        );
+    }
+
     private static HttpResponseMessage CreateJsonResponse<T>(T body) =>
         new()
         {

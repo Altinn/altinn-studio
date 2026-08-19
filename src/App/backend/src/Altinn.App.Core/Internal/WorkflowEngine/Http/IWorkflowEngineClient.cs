@@ -82,4 +82,20 @@ internal interface IWorkflowEngineClient
     /// concurrent resume revived it.
     /// </returns>
     Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Mints a mailbox — the durable inbox a service task publishes as its reply address. Idempotent
+    /// on <see cref="MailboxCreateRequest.IdempotencyKey"/> within the namespace: a replay returns
+    /// the mailbox that key already minted, so a retried step is handed the address it published on
+    /// its first attempt rather than opening a second mailbox nobody was told about.
+    /// </summary>
+    /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
+    /// <param name="request">The mint request: idempotency key, timeout, optional collection key</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>
+    /// <see cref="MailboxMintResult.Minted"/> with the mailbox, or
+    /// <see cref="MailboxMintResult.Rejected"/> when the engine refused the request as invalid.
+    /// Every other unsuccessful status throws.
+    /// </returns>
+    Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default);
 }

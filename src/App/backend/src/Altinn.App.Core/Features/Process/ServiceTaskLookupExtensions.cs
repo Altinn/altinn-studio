@@ -43,12 +43,41 @@ internal static class ServiceTaskLookupExtensions
     /// The task's composed pipeline — for an <see cref="IServiceTask"/>, the forwarding default
     /// (<c>Finally(Execute)</c>). Throws when <c>Define</c> returns null, which no honest
     /// implementation does (the builder is the only source of a pipeline) but mocks that bypass
-    /// the interface default do.
+    /// the interface default do — and when it composed a mailbox and then returned the pipeline
+    /// from before that declaration.
     /// </summary>
-    public static ServiceTaskPipeline ResolvePipeline(this IPipelineServiceTask task) =>
-        task.Define(new ServiceTaskPipelineBuilder())
-        ?? throw new InvalidOperationException(
-            $"{task.GetType().Name}.{nameof(IPipelineServiceTask.Define)} returned null — a service task must "
-                + "return the pipeline composed from the supplied builder."
-        );
+    public static ServiceTaskPipeline ResolvePipeline(this IPipelineServiceTask task)
+    {
+        // Fresh per call, so anything it records is scoped to this one Define invocation and cannot
+        // leak to another task or persist across calls.
+        var builder = new ServiceTaskPipelineBuilder();
+
+        ServiceTaskPipeline pipeline =
+            task.Define(builder)
+            ?? throw new InvalidOperationException(
+                $"{task.GetType().Name}.{nameof(IPipelineServiceTask.Define)} returned null — a service task must "
+                    + "return the pipeline composed from the supplied builder."
+            );
+
+        // WithReplyFrom returns the declared pipeline rather than mutating the one it was called on,
+        // so a Define that ignores its return value composes a mailbox and then hands back the
+        // pipeline from before it. That declaration marks the builder it came from — the one handed
+        // in here — so if this builder saw a declaration but the returned pipeline carries none, the
+        // author called WithReplyFrom and discarded its result, and the mailbox would never open.
+        // (A Define that instead returns a pipeline built from some other builder — a cached one, say
+        // — is judged only by whether that returned pipeline carries the declaration, which is
+        // correct: this builder never saw the call.) It is caught here rather than left for a reply
+        // nobody can send to fail to arrive.
+        if (builder.MailboxDeclared && pipeline.Mailbox is null)
+        {
+            throw new InvalidOperationException(
+                $"{task.GetType().Name}.{nameof(IPipelineServiceTask.Define)} called "
+                    + $"{nameof(ServiceTaskPipeline.WithReplyFrom)} but returned the pipeline from before it, so the "
+                    + $"mailbox would never be opened. Return what {nameof(ServiceTaskPipeline.WithReplyFrom)} gives "
+                    + "you: 'return pipeline.Stage(…).Finally(…).WithReplyFrom(…);'."
+            );
+        }
+
+        return pipeline;
+    }
 }

@@ -1,0 +1,29 @@
+namespace Altinn.App.Core.Features.Process;
+
+/// <summary>
+/// The mailbox opened for the stage that declared it, read from
+/// <see cref="ServiceTaskContext.Mailbox"/>. <see cref="Id"/> is the reply address the stage
+/// publishes in its outbound message; <see cref="Deadline"/> is when the mailbox stops accepting
+/// answers.
+/// </summary>
+/// <remarks>
+/// Minted by the app before the declaring stage's work runs, keyed on the stage's own step id — so
+/// a retried attempt is handed the same mailbox rather than a second one, and an address already
+/// published stays valid.
+/// </remarks>
+public sealed record ServiceTaskMailbox
+{
+    /// <summary>
+    /// The mailbox's id — the reply address. Unguessable, but <strong>not a secret</strong>: it is
+    /// the address a message is sent to, not proof of who sent it. Authenticity of what comes back
+    /// is the receiving side's job, exactly as it is for any other callback address.
+    /// </summary>
+    public required Guid Id { get; init; }
+
+    /// <summary>
+    /// The instant the mailbox stops accepting messages, stamped when it was minted as <em>mint time
+    /// plus <see cref="MailboxOptions.Timeout"/></em>. Absolute: it never moves, and no message
+    /// resets it. Useful to state in the outbound message as the answer-by time.
+    /// </summary>
+    public required DateTimeOffset Deadline { get; init; }
+}
