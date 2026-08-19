@@ -2,7 +2,7 @@
 
 This package coordinates one ephemeral GitHub Actions runner through the backend-neutral Sandbox SDK and provides
 the `sandbox-image` helper used to export and import prepared images. See the directory-level
-[`AGENTS.md`](../AGENTS.md) for architecture and deployment details.
+[`AGENTS.md`](../AGENTS.md) for design constraints.
 
 Run formatting, strict Clippy, tests and unused-dependency checks:
 
