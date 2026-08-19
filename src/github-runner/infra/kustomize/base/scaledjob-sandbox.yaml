@@ -13,7 +13,7 @@ metadata:
     altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest
     altinn.studio/prepared-image-tag: latest
 spec:
-  maxReplicaCount: 16
+  maxReplicaCount: 64
   minReplicaCount: 0
   pollingInterval: 30
   rollout:
