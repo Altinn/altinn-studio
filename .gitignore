@@ -353,7 +353,6 @@ local.properties
 nbproject/private/
 build/
 nbbuild/
-dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
@@ -414,8 +413,6 @@ __pycache__/
 *$py.class
 .venv/
 venv/
-env/
-.python-version
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -428,6 +425,7 @@ coverage.xml
 ## Env files (allow examples)
 **/.env.*
 !**/.env.example
+!**/.env.sample
 
 ## Frontend build / tooling
 **/.npm/
