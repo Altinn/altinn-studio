@@ -346,6 +346,8 @@ release.properties
 bin/
 !src/experimental/agents/src/bin/
 !src/experimental/agents/src/bin/*.rs
+!src/github-runner/coordinator/src/bin/
+!src/github-runner/coordinator/src/bin/*.rs
 tmp/
 *.tmp
 *.bak

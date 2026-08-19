@@ -6,10 +6,12 @@ metadata:
     app.kubernetes.io/name: github-runner
     app.kubernetes.io/component: runner-sandbox
   annotations:
-    altinn.studio/image: ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator:latest
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator:latest
     altinn.studio/image-tag: latest
-    altinn.studio/guest-image: ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest:latest
+    altinn.studio/guest-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest
     altinn.studio/guest-image-tag: latest
+    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image:latest
+    altinn.studio/prepared-image-tag: latest
 spec:
   maxReplicaCount: 16
   minReplicaCount: 0
@@ -41,10 +43,42 @@ spec:
           runAsGroup: 0
           seccompProfile:
             type: RuntimeDefault
+        initContainers:
+          - name: prepare-image
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-prepared-image:latest
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+            env:
+              - name: SANDBOX_PROVIDER_HOME
+                value: /tmp/sandbox-provider
+              - name: SANDBOX_CACHE_HOME
+                value: /var/cache/altinn/sandbox
+              - name: PREPARED_IMAGE_DIRECTORY
+                value: /opt/altinn/prepared-image
+              - name: SANDBOX_IMAGE
+                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest
+            resources:
+              requests:
+                cpu: "4"
+                memory: 2Gi
+              limits:
+                cpu: "4"
+                memory: 2Gi
+            volumeMounts:
+              - name: provider-cache
+                mountPath: /var/cache/altinn/sandbox
+              - name: tmp
+                mountPath: /tmp
         containers:
           - name: coordinator
-            image: ghcr.io/altinn/altinn-studio/github-runner-sandbox-coordinator:latest
-            imagePullPolicy: Always
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-coordinator:latest
+            imagePullPolicy: IfNotPresent
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
@@ -59,10 +93,10 @@ spec:
                     fieldPath: metadata.name
               - name: SANDBOX_PROVIDER_HOME
                 value: /var/lib/altinn/sandbox-provider
-              - name: MICROSANDBOX_CACHE_HOME
-                value: /var/cache/altinn/microsandbox
-              - name: SANDBOX_GUEST_IMAGE
-                value: ghcr.io/altinn/altinn-studio/github-runner-sandbox-guest:latest
+              - name: SANDBOX_CACHE_HOME
+                value: /var/cache/altinn/sandbox
+              - name: SANDBOX_IMAGE
+                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-sandbox-guest:latest
               - name: SANDBOX_CPUS
                 value: "4"
               - name: SANDBOX_MEMORY
@@ -116,15 +150,15 @@ spec:
             volumeMounts:
               - name: provider-home
                 mountPath: /var/lib/altinn/sandbox-provider
-              - name: microsandbox-cache
-                mountPath: /var/cache/altinn/microsandbox
+              - name: provider-cache
+                mountPath: /var/cache/altinn/sandbox
               - name: tmp
                 mountPath: /tmp
         volumes:
           - name: provider-home
             emptyDir:
               sizeLimit: 120Gi
-          - name: microsandbox-cache
+          - name: provider-cache
             hostPath:
               path: /var/lib/altinn/microsandbox-cache
               type: DirectoryOrCreate

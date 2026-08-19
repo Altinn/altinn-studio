@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: github-runner
     app.kubernetes.io/component: runner-single
   annotations:
-    altinn.studio/image: ghcr.io/altinn/altinn-studio/github-runner:latest
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
     altinn.studio/image-tag: latest
 spec:
   maxReplicaCount: 64
@@ -43,7 +43,7 @@ spec:
           fsGroup: 1001
         containers:
           - name: github-runner
-            image: ghcr.io/altinn/altinn-studio/github-runner:latest
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
             imagePullPolicy: Always
             command: ["/usr/local/bin/altinn-github-runner-dind"]
             securityContext:

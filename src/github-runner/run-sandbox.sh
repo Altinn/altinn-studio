@@ -99,9 +99,8 @@ chown -R runner:runner \
   "${NUGET_PACKAGES}" \
   "${GOMODCACHE}"
 
-# Microsandbox adds a tmpfs at /tmp for OCI roots by default. The runner uses
-# the direct ext4 root for temporary files so large jobs do not consume guest
-# memory through tmpfs.
+# Keep large temporary workloads on the direct ext4 root when the Sandbox
+# runtime provides a memory-backed /tmp.
 if [[ "$(filesystem_type /tmp)" == "tmpfs" ]]; then
   umount /tmp
   chmod 1777 /tmp

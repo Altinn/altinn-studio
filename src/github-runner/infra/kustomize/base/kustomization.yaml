@@ -40,4 +40,15 @@ replacements:
           kind: ScaledJob
           name: github-runners-sandbox
         fieldPaths:
-          - spec.jobTargetRef.template.spec.containers.[name=coordinator].env.[name=SANDBOX_GUEST_IMAGE].value
+          - spec.jobTargetRef.template.spec.containers.[name=coordinator].env.[name=SANDBOX_IMAGE].value
+          - spec.jobTargetRef.template.spec.initContainers.[name=prepare-image].env.[name=SANDBOX_IMAGE].value
+  - source:
+      kind: ScaledJob
+      name: github-runners-sandbox
+      fieldPath: metadata.annotations.[altinn.studio/prepared-image]
+    targets:
+      - select:
+          kind: ScaledJob
+          name: github-runners-sandbox
+        fieldPaths:
+          - spec.jobTargetRef.template.spec.initContainers.[name=prepare-image].image

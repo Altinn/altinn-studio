@@ -1,18 +1,26 @@
 # Sandbox runner coordinator
 
-This package runs one ephemeral GitHub Actions runner inside one Microsandbox. It is a separate
-host-side process from the existing Kata runner: GitHub App credentials remain in the coordinator,
-and the guest receives only a short-lived runner registration token.
+This package runs one ephemeral GitHub Actions runner through the backend-neutral Sandbox SDK. The
+runner lifecycle receives a constructed `SandboxService`; the currently deployed provider is
+composed separately in `provider.rs`. GitHub App credentials remain in the coordinator, and the
+guest receives only a short-lived runner registration token.
 
-The coordinator requires an immutable `SANDBOX_GUEST_IMAGE` reference, creates a direct ext4 guest
+The coordinator requires an immutable `SANDBOX_IMAGE` reference, creates a direct ext4 guest
 root, streams runner output, handles SIGINT and SIGTERM, deletes the Sandbox, and removes any stale
 GitHub runner registration. The guest image is built with `Dockerfile.sandbox`; its entrypoint starts
 dockerd on the guest ext4 root and requires the `overlay2` storage driver before registering the
 runner.
 
-`SANDBOX_PROVIDER_HOME` contains private per-Job state. `MICROSANDBOX_CACHE_HOME` selects the
-node-local immutable cache shared by coordinator Jobs through the public Microsandbox Provider
-builder; the coordinator does not depend on Microsandbox's default directory layout.
+`SANDBOX_PROVIDER_HOME` contains private per-Job state. `SANDBOX_CACHE_HOME` selects the node-local
+immutable image cache shared by coordinator Jobs. Only the provider composition translates these
+generic host paths into concrete Provider configuration.
+
+CI materializes the guest image once and publishes its provider-owned representation as a separate,
+digest-pinned ACR init image. Kubelet pulls that image with the node identity. Its
+`github-runner-sandbox-prepared-image` entrypoint asks the Sandbox image facade to validate and
+import the opaque artifact into `SANDBOX_CACHE_HOME` before the coordinator starts. The helper does
+not know the Provider's cache layout or prepared-image format. The coordinator therefore neither receives
+registry credentials nor pulls and materializes the original OCI layers on a cold node.
 
 The coordinator image contains the checksum-verified `0.6.9-digdir.2` Microsandbox runtime bundle.
 The provider installs it from the local image instead of downloading host runtime binaries when a
@@ -36,9 +44,9 @@ docker build \
   src
 ```
 
-Build the guest from `src/github-runner`. The normal runner deployment workflow publishes the
-public `ghcr.io/altinn/altinn-studio/github-runner:latest`, which is the guest's base image. Use
-`--pull` to resolve the current base:
+Build the guest from `src/github-runner`. The normal runner deployment workflow publishes
+`altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest`, which is the
+guest's base image. Use `--pull` to resolve the current base:
 
 ```sh
 docker build \
@@ -47,9 +55,9 @@ docker build \
   -t github-runner-sandbox-guest:TAG .
 ```
 
-The deployment workflow publishes the base, guest and coordinator to public GHCR packages. Runtime
-manifests use immutable guest and coordinator digests, so the coordinator does not need registry
-credentials.
+The deployment workflow publishes the base, guest, coordinator and prepared-image init image to ACR.
+Runtime manifests use immutable guest, coordinator and prepared-image digests. Only the CI export step
+receives a short-lived ACR access token; runtime pulls use the kubelet identity.
 
 The `github-runners-sandbox` KEDA ScaledJob schedules non-privileged coordinators on `sandboxpool`.
 Each coordinator requests one logical KVM slot and runs one ephemeral GitHub Actions runner inside

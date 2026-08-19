@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: github-runner
     app.kubernetes.io/component: runner
   annotations:
-    altinn.studio/image: ghcr.io/altinn/altinn-studio/github-runner:latest
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
     altinn.studio/image-tag: latest
 spec:
   maxReplicaCount: 16
@@ -97,7 +97,7 @@ spec:
                 mountPath: /home/runner/_work
         containers:
           - name: github-runner
-            image: ghcr.io/altinn/altinn-studio/github-runner:latest
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
             imagePullPolicy: Always
             env:
               - name: DOCKER_HOST

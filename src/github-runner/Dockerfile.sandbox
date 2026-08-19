@@ -1,7 +1,7 @@
-FROM ghcr.io/altinn/altinn-studio/github-runner:latest
+FROM altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
 
 LABEL org.opencontainers.image.source="https://github.com/Altinn/altinn-studio"
-LABEL org.opencontainers.image.description="Altinn Studio GitHub Actions runner guest for Microsandbox"
+LABEL org.opencontainers.image.description="Altinn Studio GitHub Actions runner Sandbox guest"
 
 ARG KUBECTL_VERSION=1.35.7
 

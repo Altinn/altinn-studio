@@ -1,6 +1,6 @@
 [package]
 name = "github-runner-sandbox-coordinator"
-description = "Runs one ephemeral GitHub Actions runner inside a Microsandbox"
+description = "Runs one ephemeral GitHub Actions runner inside a Sandbox"
 edition = "2024"
 license = "Apache-2.0"
 publish = false

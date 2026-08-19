@@ -14,6 +14,7 @@ const RUNNERS_PER_PAGE: u64 = 100;
 
 type AnyError = Box<dyn Error>;
 
+#[derive(Clone)]
 pub(crate) struct GithubConfig {
     pub(super) api_url: String,
     pub(super) app_id: u64,
