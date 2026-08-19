@@ -309,6 +309,24 @@ internal sealed class Engine(
         {
             var hash = request.ComputeHash();
             var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
+
+            // Decided inside the flush, under the mailbox's row lock, so they arrive as outcomes rather
+            // than as pre-flight validation errors — and they carry no workflow ids to report, which is
+            // why they answer before the zip below.
+            if (outcome.Status is BatchEnqueueResultStatus.MailboxNotFound)
+            {
+                activity?.Errored(errorMessage: outcome.Message);
+                return new WorkflowEnqueueResponse.Rejected.Invalid(outcome.Message ?? "Unknown mailbox.");
+            }
+
+            if (outcome.Status is BatchEnqueueResultStatus.MailboxLogFull)
+            {
+                activity?.Errored(errorMessage: outcome.Message);
+                return new WorkflowEnqueueResponse.Rejected.AtCapacity(
+                    outcome.Message ?? "The mailbox's receivers log is full."
+                );
+            }
+
             // outcome.WorkflowIds is in request order (see EngineRepository.Writes.BatchEnqueueWorkflows)
             var results = request
                 .Workflows.Zip(
@@ -776,6 +794,33 @@ internal sealed class Engine(
                 return new RequestConstraintValidationResult.Invalid(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
+
+            // A receive workflow's declaration. "At most one mailbox block per workflow" needs no check —
+            // it is the shape of WorkflowRequest.Mailbox — and neither does "the delivery lands in the
+            // first step and nowhere else", which is where the executor reads it and the only place it
+            // could be. What is checkable, and what a caller can get wrong, is the rest.
+            if (workflow.Mailbox is { } mailbox)
+            {
+                if (mailbox.Id == Guid.Empty)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox with an empty id."
+                    );
+
+                // A receiver that finds neither its delivery nor a closed mailbox is born Held, and a held
+                // row has no schedule: nothing ever consults its StartAt, so honoring both would mean
+                // silently ignoring one of them.
+                if (workflow.StartAt is { } startAt)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Workflow '{workflow.Ref ?? $"#{i}"}' declares both a mailbox and a startAt ({startAt:O}); a mailbox receiver has no schedule."
+                    );
+
+                // Without a step there is nothing for the delivery to be handed to, so the workflow could
+                // only consume a position and discard it.
+                if (workflow.Steps.Count == 0)
+                    return new RequestConstraintValidationResult.Invalid(
+                        $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox but has no steps to receive into."
+                    );
+            }
 
             for (int j = 0; j < workflow.Steps.Count; j++)
             {

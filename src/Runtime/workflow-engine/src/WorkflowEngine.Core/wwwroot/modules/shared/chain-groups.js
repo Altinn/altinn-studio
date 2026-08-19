@@ -47,7 +47,7 @@ const TERMINAL_STATUSES = new Set([
  */
 const aggregateStatus = (members) => {
     const statuses = new Set(members.map((m) => m.status));
-    for (const s of ['Processing', 'Requeued', 'Waiting', 'Enqueued'])
+    for (const s of ['Processing', 'Requeued', 'Waiting', 'Held', 'Enqueued'])
         if (statuses.has(s)) return s;
     for (const s of ['Failed', 'DependencyFailed', 'Canceled', 'Abandoned'])
         if (statuses.has(s)) return s;

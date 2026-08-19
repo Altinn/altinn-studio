@@ -34,6 +34,11 @@ internal sealed class EngineDbContext : DbContext
     /// </summary>
     public DbSet<MailboxDeliveryEntity> MailboxDeliveries { get; set; }
 
+    /// <summary>
+    /// Gets or sets the mailbox waiter entities stored in the database.
+    /// </summary>
+    public DbSet<MailboxWaiterEntity> MailboxWaiters { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -49,11 +54,11 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.CollectionKey);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
+            // Backs the fetch gate. Using the same constant keeps it aligned with the status set every
+            // other reader consults — if the two diverge, the index stops covering the gate.
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
-                .HasFilter(
-                    $"status IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued}, {(int)PersistentItemStatus.Waiting})"
-                )
+                .HasFilter($"status IN ({PersistentItemStatusMap.FetchableSqlList})")
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
             entity.HasIndex(e => e.HeartbeatAt).HasFilter($"status = {(int)PersistentItemStatus.Processing}");
@@ -205,6 +210,27 @@ internal sealed class EngineDbContext : DbContext
             // No cascade: a mailbox with deliveries cannot be deleted out from under them. Retention
             // purges children first, deliberately and in that order, so an accidental delete of a mailbox
             // fails loudly instead of silently taking the exchange's messages with it.
+            entity
+                .HasOne<MailboxEntity>()
+                .WithMany()
+                .HasForeignKey(e => e.MailboxId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure MailboxWaiter entity
+        modelBuilder.Entity<MailboxWaiterEntity>(entity =>
+        {
+            // The wake's key: a delivery landing at a position asks who is waiting there.
+            entity.HasKey(e => new { e.MailboxId, e.Seq });
+
+            // The executor's key, and the schema's statement that one receive workflow consumes exactly
+            // one position. A second registration for the same workflow is a bug in the enqueue plan, and
+            // this is what makes it fail loudly instead of silently double-consuming the log.
+            entity.HasIndex(e => e.WorkflowId).IsUnique();
+
+            // No cascade, matching mailbox_deliveries: retention purges a mailbox's children first,
+            // explicitly and in that order, so an accidental delete of a mailbox fails loudly (SQLSTATE
+            // 23001) instead of silently taking the rendezvous with it.
             entity
                 .HasOne<MailboxEntity>()
                 .WithMany()

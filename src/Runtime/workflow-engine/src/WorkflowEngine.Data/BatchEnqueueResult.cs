@@ -18,4 +18,12 @@ internal sealed record BatchEnqueueResult(
 
     public static BatchEnqueueResult InvalidRef(string message) =>
         new(BatchEnqueueResultStatus.InvalidReference, null, message);
+
+    /// <summary>
+    /// The flush refused a request because of the mailbox one of its workflows declared. Whatever the
+    /// flush had already written for the request is undone before it commits — including its idempotency
+    /// key, so a refusal leaves no trace and the same request may be made again once the reason is gone.
+    /// </summary>
+    public static BatchEnqueueResult MailboxRejected(BatchEnqueueResultStatus status, string message) =>
+        new(status, null, message);
 }

@@ -24,7 +24,7 @@ On-demand paginated search against the database. Not SSE-driven — user clicks 
 
 **Controls:**
 
-- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Completed, Failed, Canceled
+- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
 - Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
 - Text search (triggers on Enter)
@@ -480,7 +480,7 @@ compact cards in their original position. Group chrome and the history control l
 **Group anatomy:** a header row (label segments from the newest head member, workflow count,
 wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
 history control) above the shared chain rows. Aggregate status: an in-flight member wins
-(Processing/Requeued/Waiting/Enqueued), then the worst terminal outcome, then Completed.
+(Processing/Requeued/Waiting/Held/Enqueued), then the worst terminal outcome, then Completed.
 
 **Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
 fetches needed (`isHead` is already on the card DTOs). The **history** control fetches
@@ -539,7 +539,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
 - **Recent**: All, Completed, Failed, Abandoned
-- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Completed, Failed, Canceled
+- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
 
 ### Text Filter
 

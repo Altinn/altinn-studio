@@ -171,17 +171,58 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
+            // The first act on mailbox state, and it is scoped to requests that are actually new. Every
+            // operation that assigns a position or changes what positions mean takes the mailbox's row
+            // lock before reading anything it decides on, so a receiver's whole verdict — its position,
+            // the delivery it may already have, and the mailbox's status — comes from one snapshot
+            // nobody can move underneath it.
+            //
+            // It runs after the idempotency insert rather than before because that insert is what tells
+            // a replay from a first arrival, and a replay consumes no position: locking for one would
+            // stall every unrelated caller batched into this flush behind a delivery or a close, for a
+            // request that is going to be answered from engine.idempotency_keys alone. A batch with no
+            // new receiver in it issues nothing at all.
+            var mailboxes = await LockAndReadMailboxes(conn, requests, newRequestIndices, cancellationToken);
+
+            var receiverPlan = PlanMailboxReceivers(
+                requests,
+                newRequestIndices,
+                bulkInsertData,
+                mailboxes,
+                results,
+                cancellationToken
+            );
+
+            if (receiverPlan.RejectedRequestIndices.Count > 0)
+            {
+                await ReleaseIdempotencyKeys(conn, requests, receiverPlan.RejectedRequestIndices, cancellationToken);
+            }
+
             await BulkCopyNewWorkflows(conn, newRequestIndices, bulkInsertData, cancellationToken);
 
             await ProcessCollections(conn, requests, newRequestIndices, perRequestWorkflows, cancellationToken);
 
+            await WriteMailboxReceivers(conn, receiverPlan, cancellationToken);
+
             await tx.CommitAsync(cancellationToken);
 
-            existingRequestIndices.AddRange(duplicates);
+            receiverPlan.Births.Record();
 
             foreach (var i in newRequestIndices)
             {
                 results[i] = BatchEnqueueResult.Created([.. perRequestWorkflows[i].Select(w => w.DatabaseId)]);
+            }
+
+            foreach (var (index, primaryIndex) in duplicates)
+            {
+                // An intra-batch duplicate normally classifies against the stored idempotency key. A
+                // duplicate of a request the flush *refused* cannot: the flush released that key, so
+                // there is nothing to classify against and the honest answer is the primary's own
+                // verdict.
+                if (results[primaryIndex] is { } primary && IsMailboxRejection(primary.Status))
+                    results[index] = primary;
+                else
+                    existingRequestIndices.Add(index);
             }
 
             if (existingRequestIndices.Count > 0)
@@ -441,10 +482,26 @@ internal sealed partial class EngineRepository
         return validIndices;
     }
 
-    private static List<int> RemoveDuplicates(IReadOnlyList<BufferedEnqueueRequest> requests, List<int> indicesToCheck)
+    /// <summary>
+    /// Removes requests that share a (namespace, idempotency key) with an earlier request in the same
+    /// batch from <paramref name="indicesToCheck"/>, and returns each one paired with the index of the
+    /// request it duplicates.
+    /// </summary>
+    /// <remarks>
+    /// The pairing matters because a duplicate is normally resolved after the transaction by reading the
+    /// stored idempotency key — which only works while that key exists. A request the flush refuses over
+    /// its mailbox releases its key, so its intra-batch duplicates have to inherit its verdict instead.
+    /// The primary is the last <em>kept</em> request of the key group, so a run of three duplicates all
+    /// point at the one request that was actually processed.
+    /// </remarks>
+    private static List<(int Index, int PrimaryIndex)> RemoveDuplicates(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> indicesToCheck
+    )
     {
-        var duplicates = new List<int>();
+        var duplicates = new List<(int Index, int PrimaryIndex)>();
         BufferedEnqueueRequest? previous = null;
+        int previousKeptIndex = -1;
         foreach (
             var (current, index) in requests
                 .Select((value, index) => (Value: value, Index: index))
@@ -464,8 +521,12 @@ internal sealed partial class EngineRepository
                 && current.Metadata.IdempotencyKey == previous.Metadata.IdempotencyKey
             )
             {
-                duplicates.Add(index);
+                duplicates.Add((index, previousKeptIndex));
                 indicesToCheck.Remove(index);
+            }
+            else
+            {
+                previousKeptIndex = index;
             }
             previous = current;
         }
@@ -602,6 +663,370 @@ internal sealed partial class EngineRepository
         {
             await _insertLinks(conn, allLinkEdges, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// One mailbox's state, read under its row lock: everything a receiver's birth depends on and
+    /// nothing else.
+    /// </summary>
+    /// <param name="Namespace">
+    /// Re-checked against the enqueuing request, so the flush stands on its own rather than trusting a
+    /// caller to name a mailbox it can reach.
+    /// </param>
+    /// <param name="IsDisposed">Whether the mailbox is closed to further deliveries.</param>
+    /// <param name="NextIdx">
+    /// The deliveries log's next position. Deliveries are gapless, so <c>seq &lt; NextIdx</c> is exactly
+    /// "a delivery already sits at this receiver's position" — one comparison, no lookup.
+    /// </param>
+    /// <param name="NextSeq">The receivers log's next position, and the one this flush hands out from.</param>
+    private sealed record MailboxReceiverRow(string Namespace, bool IsDisposed, long NextIdx, long NextSeq);
+
+    /// <summary>
+    /// How many receivers a flush created in each of the three birth states, and how to publish that.
+    /// </summary>
+    /// <remarks>
+    /// Published after the commit, deliberately: a birth that rolled back is not a birth, and this is
+    /// the one metric an operator uses to tell "the relay is running" from "the relay is parked".
+    /// </remarks>
+    private readonly record struct MailboxBirthCounts(long Delivered, long Closed, long Held)
+    {
+        public void Record()
+        {
+            if (Delivered > 0)
+                Metrics.MailboxReceiversCreated.Add(Delivered, new KeyValuePair<string, object?>("birth", "delivered"));
+
+            if (Closed > 0)
+                Metrics.MailboxReceiversCreated.Add(Closed, new KeyValuePair<string, object?>("birth", "closed"));
+
+            if (Held > 0)
+                Metrics.MailboxReceiversCreated.Add(Held, new KeyValuePair<string, object?>("birth", "held"));
+        }
+    }
+
+    /// <summary>One receiver's registration at the position the flush handed it.</summary>
+    private readonly record struct MailboxWaiterInsert(Guid MailboxId, long Seq, Guid WorkflowId);
+
+    /// <summary>What one flush decided about the mailbox receivers it was handed.</summary>
+    /// <param name="RejectedRequestIndices">
+    /// Request indices whose receiver could not be born. Already removed from the batch's new-request set
+    /// and already given a result; their idempotency keys must be released before the transaction commits.
+    /// </param>
+    /// <param name="Waiters">The rows to register — only for receivers that were born parked.</param>
+    /// <param name="SeqAdvances">Per mailbox, how many positions this flush consumed.</param>
+    /// <param name="Births">What to count once the transaction commits.</param>
+    private sealed record MailboxReceiverPlan(
+        List<int> RejectedRequestIndices,
+        List<MailboxWaiterInsert> Waiters,
+        Dictionary<Guid, long> SeqAdvances,
+        MailboxBirthCounts Births
+    )
+    {
+        public static readonly MailboxReceiverPlan Empty = new([], [], [], default);
+    }
+
+    private static bool IsMailboxRejection(BatchEnqueueResultStatus status) =>
+        status is BatchEnqueueResultStatus.MailboxNotFound or BatchEnqueueResultStatus.MailboxLogFull;
+
+    /// <summary>
+    /// Locks the row of every mailbox this batch declares a receiver for and reads the state their birth
+    /// is decided from. The transaction's first act on mailbox state, so a receiver's position, the
+    /// delivery it may already have, and the mailbox's status all come from one snapshot nobody else can
+    /// move underneath it.
+    /// </summary>
+    /// <remarks>
+    /// There are exactly two orders in which a delivery and its receiver's enqueue can interleave, and
+    /// the lock decides between them rather than leaving a third: whichever transaction takes the row
+    /// lock first commits first. Delivery first, and this read sees a <c>next_idx</c> already past the
+    /// receiver's position, so the receiver is born runnable with that delivery and registers no waiter.
+    /// Enqueue first, and the waiter row exists before the delivery's transaction can take the lock, so
+    /// the wake finds it. A receiver cannot be born parked <em>after</em> a delivery for its position was
+    /// accepted, because being born requires this lock, which the delivering transaction holds until it
+    /// commits.
+    /// </remarks>
+    /// <returns>
+    /// <c>null</c> when the batch declares no mailbox at all — the signal that keeps the ordinary enqueue
+    /// path free of mailbox work, and the reason a batch of plain workflows issues no extra statement. An
+    /// empty dictionary is a different thing entirely: receivers were enqueued for mailboxes that do not
+    /// exist, and must be refused rather than created as ordinary workflows.
+    /// </returns>
+    private static async Task<Dictionary<Guid, MailboxReceiverRow>?> LockAndReadMailboxes(
+        NpgsqlConnection conn,
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> validRequestIndices,
+        CancellationToken cancellationToken
+    )
+    {
+        SortedSet<Guid>? mailboxIds = null;
+        foreach (var i in validRequestIndices)
+        {
+            foreach (var workflow in requests[i].Request.Workflows)
+            {
+                if (workflow.Mailbox is { } mailbox)
+                    (mailboxIds ??= []).Add(mailbox.Id);
+            }
+        }
+
+        if (mailboxIds is null)
+            return null;
+
+        var ids = mailboxIds.ToArray();
+
+        // ORDER BY is what makes concurrent flushes take these rows in the same order and therefore
+        // unable to deadlock each other; the SortedSet above only dedupes the ids and hands them over
+        // already sorted.
+        const string sql = """
+            SELECT m.id, m.namespace, m.status, m.next_idx, m.next_seq
+            FROM engine.mailboxes m
+            WHERE m.id = ANY(@ids)
+            ORDER BY m.id
+            FOR UPDATE
+            """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+
+        var rows = new Dictionary<Guid, MailboxReceiverRow>(ids.Length);
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+#pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is buffered after ReadAsync
+            rows[reader.GetGuid(0)] = new MailboxReceiverRow(
+                Namespace: reader.GetString(1),
+                IsDisposed: MailboxStatusMap.FromDbValue(reader.GetString(2)) == MailboxStatus.Disposed,
+                NextIdx: reader.GetInt64(3),
+                NextSeq: reader.GetInt64(4)
+            );
+#pragma warning restore CA1849, S6966
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// Decides, for every mailbox receiver this flush is about to insert, the position it consumes and
+    /// the state it is born in — the three cases the design turns on. Pure bookkeeping over the locked
+    /// snapshot; the writes it implies are folded into the bulk-insert data the caller is about to COPY
+    /// and into the plan the caller writes afterwards.
+    /// </summary>
+    /// <remarks>
+    /// The birth state is the whole point, so it is worth stating plainly. A receiver is born
+    /// <see cref="PersistentItemStatus.Enqueued"/> with its delivery when one already sits at its
+    /// position; born <see cref="PersistentItemStatus.Enqueued"/> with the closing signal when the
+    /// mailbox is closed and no delivery can arrive; and born <see cref="PersistentItemStatus.Held"/>
+    /// otherwise, registering a waiter. The first case takes precedence over the second, which is the one
+    /// that looks wrong and is not: <strong>an accepted delivery outranks closure</strong>, so a saga
+    /// replaying after the deadline drains the backlog it was promised instead of dropping it.
+    /// <para>
+    /// Positions fold sequentially in request order within the flush, the same rule collection heads
+    /// follow, so two receivers for one mailbox in one batch take consecutive positions rather than both
+    /// taking the one the batch started at. Across flushes the mailbox row lock does the same job.
+    /// </para>
+    /// <para>
+    /// A request is refused whole or not at all — it carries one idempotency key, so half of it cannot be
+    /// kept — which is why the positions a request would consume are held aside until every receiver in
+    /// it is known to be born.
+    /// </para>
+    /// </remarks>
+    private MailboxReceiverPlan PlanMailboxReceivers(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> newRequestIndices,
+        BulkInsertData bulkInsertData,
+        Dictionary<Guid, MailboxReceiverRow>? mailboxes,
+        BatchEnqueueResult[] results,
+        CancellationToken cancellationToken
+    )
+    {
+        if (mailboxes is null)
+            return MailboxReceiverPlan.Empty;
+
+        var cap = settings.Value.MaxMailboxLogLength;
+        var rejected = new List<int>();
+        var waiters = new List<MailboxWaiterInsert>();
+        var advances = new Dictionary<Guid, long>(mailboxes.Count);
+        long bornDelivered = 0;
+        long bornClosed = 0;
+        long bornHeld = 0;
+        var pending = new List<(Guid MailboxId, long Seq, WorkflowEntity Entity)>();
+        var reserved = new Dictionary<Guid, long>();
+
+        foreach (var reqIdx in newRequestIndices)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var request = requests[reqIdx];
+            var ns = WorkflowNamespace.Normalize(request.Metadata.Namespace);
+            var workflowRequests = request.Request.Workflows;
+            var entities = bulkInsertData.WorkflowEntities[reqIdx];
+
+            pending.Clear();
+            reserved.Clear();
+            BatchEnqueueResult? rejection = null;
+
+            for (int j = 0; j < workflowRequests.Count && rejection is null; j++)
+            {
+                if (workflowRequests[j].Mailbox is not { } declared)
+                    continue;
+
+                if (!mailboxes.TryGetValue(declared.Id, out var mailbox) || mailbox.Namespace != ns)
+                {
+                    rejection = BatchEnqueueResult.MailboxRejected(
+                        BatchEnqueueResultStatus.MailboxNotFound,
+                        $"Workflow '{workflowRequests[j].Ref ?? $"#{j}"}' declares mailbox {declared.Id}, "
+                            + $"which does not exist in namespace '{ns}'."
+                    );
+                    continue;
+                }
+
+                var seq =
+                    mailbox.NextSeq + advances.GetValueOrDefault(declared.Id) + reserved.GetValueOrDefault(declared.Id);
+
+                if (seq >= cap)
+                {
+                    rejection = BatchEnqueueResult.MailboxRejected(
+                        BatchEnqueueResultStatus.MailboxLogFull,
+                        $"The receivers log of mailbox {declared.Id} already holds {seq} positions, maximum is {cap}."
+                    );
+                    continue;
+                }
+
+                pending.Add((declared.Id, seq, entities[j]));
+                reserved[declared.Id] = reserved.GetValueOrDefault(declared.Id) + 1;
+            }
+
+            if (rejection is not null)
+            {
+                results[reqIdx] = rejection;
+                rejected.Add(reqIdx);
+                continue;
+            }
+
+            foreach (var (mailboxId, seq, entity) in pending)
+            {
+                var mailbox = mailboxes[mailboxId];
+                var hasDelivery = seq < mailbox.NextIdx;
+
+                if (hasDelivery || mailbox.IsDisposed)
+                {
+                    // Runnable at birth: its truth is already frozen, so there is nothing to wait for and
+                    // no waiter row to register. Which of the two it is, the executor re-derives from the
+                    // deliveries table at every attempt rather than from anything written here.
+                    entity.Status = PersistentItemStatus.Enqueued;
+
+                    if (hasDelivery)
+                        bornDelivered++;
+                    else
+                        bornClosed++;
+                }
+                else
+                {
+                    entity.Status = PersistentItemStatus.Held;
+                    waiters.Add(new MailboxWaiterInsert(mailboxId, seq, entity.Id));
+                    bornHeld++;
+                }
+
+                advances[mailboxId] = advances.GetValueOrDefault(mailboxId) + 1;
+            }
+        }
+
+        foreach (var reqIdx in rejected)
+        {
+            newRequestIndices.Remove(reqIdx);
+        }
+
+        return new MailboxReceiverPlan(
+            rejected,
+            waiters,
+            advances,
+            new MailboxBirthCounts(bornDelivered, bornClosed, bornHeld)
+        );
+    }
+
+    /// <summary>
+    /// Deletes the idempotency keys this transaction inserted for requests it then refused, so a refusal
+    /// leaves no trace: the same request may be made again once the reason for the refusal is gone,
+    /// rather than deduplicating onto workflows that were never created.
+    /// </summary>
+    private static async Task ReleaseIdempotencyKeys(
+        NpgsqlConnection conn,
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        List<int> requestIndices,
+        CancellationToken cancellationToken
+    )
+    {
+        var (keys, namespaces) = requestIndices
+            .Select(i =>
+                (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
+            )
+            .ToArray()
+            .Unzip();
+
+        const string sql = """
+            DELETE FROM engine.idempotency_keys ik
+            USING unnest(@keys, @namespaces) AS t(idempotency_key, namespace)
+            WHERE ik.idempotency_key = t.idempotency_key AND ik.namespace = t.namespace
+            """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", keys));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Writes the rendezvous half of the flush: the waiter rows for receivers born parked, and the
+    /// advance of each mailbox's receivers counter by the number of positions the flush consumed.
+    /// </summary>
+    /// <remarks>
+    /// The counter is advanced relative to its own current value rather than set to the value the plan
+    /// read, which under the mailbox row lock amounts to the same thing and would still be gapless if the
+    /// lock were ever lost. What actually makes the log gapless is the transaction: every position this
+    /// flush handed out is either written with the counter that consumed it, or written not at all.
+    /// </remarks>
+    private static async Task WriteMailboxReceivers(
+        NpgsqlConnection conn,
+        MailboxReceiverPlan plan,
+        CancellationToken cancellationToken
+    )
+    {
+        if (plan.SeqAdvances.Count == 0)
+            return;
+
+        var (mailboxIds, counts) = plan.SeqAdvances.Select(kvp => (kvp.Key, kvp.Value)).ToArray().Unzip();
+
+        const string advanceSql = """
+            UPDATE engine.mailboxes AS m
+            SET next_seq = m.next_seq + v.n
+            FROM unnest(@ids, @counts) AS v(id, n)
+            WHERE m.id = v.id
+            """;
+
+        await using (var advanceCmd = new NpgsqlCommand(advanceSql, conn))
+        {
+            advanceCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", mailboxIds));
+            advanceCmd.Parameters.Add(new NpgsqlParameter<long[]>("counts", counts));
+            await advanceCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        if (plan.Waiters.Count == 0)
+            return;
+
+        var (waiterMailboxIds, seqs, workflowIds) = plan
+            .Waiters.Select(w => (w.MailboxId, w.Seq, w.WorkflowId))
+            .ToArray()
+            .Unzip();
+
+        const string waiterSql = """
+            INSERT INTO engine.mailbox_waiters (mailbox_id, seq, workflow_id, released_at)
+            SELECT mailbox_id, seq, workflow_id, NULL
+            FROM unnest(@mailbox_ids, @seqs, @workflow_ids) AS t(mailbox_id, seq, workflow_id)
+            """;
+
+        await using var waiterCmd = new NpgsqlCommand(waiterSql, conn);
+        waiterCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", waiterMailboxIds));
+        waiterCmd.Parameters.Add(new NpgsqlParameter<long[]>("seqs", seqs));
+        waiterCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("workflow_ids", workflowIds));
+        await waiterCmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>

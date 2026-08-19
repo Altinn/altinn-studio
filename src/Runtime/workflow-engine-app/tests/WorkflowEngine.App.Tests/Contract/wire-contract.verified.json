@@ -264,7 +264,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
       },
       {
@@ -340,6 +340,16 @@
       {
         "Name": "wasRetryable",
         "Kind": "bool",
+        "Nullable": false
+      }
+    ]
+  },
+  "MailboxReference": {
+    "Name": "MailboxReference",
+    "Fields": [
+      {
+        "Name": "id",
+        "Kind": "guid",
         "Nullable": false
       }
     ]
@@ -529,7 +539,7 @@
       },
       {
         "Name": "status",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
       },
       {
@@ -613,6 +623,11 @@
         "Nullable": true
       },
       {
+        "Name": "mailbox",
+        "Kind": "object<MailboxReference>",
+        "Nullable": true
+      },
+      {
         "Name": "operationId",
         "Kind": "string",
         "Nullable": false
@@ -689,12 +704,12 @@
       },
       {
         "Name": "dependencies",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
         "Nullable": true
       },
       {
         "Name": "dependents",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
         "Nullable": true
       },
       {
@@ -719,7 +734,7 @@
       },
       {
         "Name": "links",
-        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8}>",
+        "Kind": "map<guid,enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}>",
         "Nullable": true
       },
       {
@@ -734,7 +749,7 @@
       },
       {
         "Name": "overallStatus",
-        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8}",
+        "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
       },
       {

@@ -329,6 +329,23 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of receive workflows created, tagged with the state they were born in: <c>delivered</c>
+    /// (a message already sat at their position), <c>closed</c> (the mailbox was already closed, so none
+    /// ever can), or <c>held</c> (parked until one of those becomes true).
+    /// </summary>
+    /// <remarks>
+    /// The split is the one number that separates "the relay is running" from "the relay is parked":
+    /// <c>held</c> rising without <c>delivered</c> following means counterparties have stopped answering,
+    /// and <c>closed</c> rising means exchanges are concluding without their last message. Counted after
+    /// the enqueue transaction commits, so a birth that rolled back is not counted. Refused enqueues are
+    /// not births and appear only in the HTTP metrics.
+    /// </remarks>
+    public static readonly Counter<long> MailboxReceiversCreated = Meter.CreateCounter<long>(
+        "engine.mailboxes.receivers.created",
+        description: "Number of mailbox receive workflows created, tagged by the state they were born in"
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(

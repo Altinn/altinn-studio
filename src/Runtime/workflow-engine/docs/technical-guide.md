@@ -586,6 +586,82 @@ A refused delivery **stores nothing at all**, which is why its `idempotencyKey` 
 key may be offered again the moment the reason for the refusal is gone. There is no key to release
 afterwards, because a refusal never claimed one.
 
+### Receive workflows
+
+A workflow declares at enqueue that it consumes one message from a mailbox:
+
+```json
+{
+    "operationId": "Task_1 [archive reply 2]",
+    "mailbox": { "id": "018f4e…" },
+    "steps": [{ "command": { "type": "app-command", "data": {} } }]
+}
+```
+
+The block names a mailbox and nothing else. The **position** the workflow consumes is not the
+caller's to choose: the engine assigns it under the mailbox's row lock, in arrival order, so the
+receivers log is gapless for the same reason the deliveries log is. A caller able to pick its own
+position could pick one twice, or skip one, and the pairing between the two logs is the whole
+rendezvous.
+
+Three constraints hold. The delivery lands in the **first** step and nowhere else — later steps are
+ordinary. A workflow carries at most one such block, which is the shape of the field rather than a
+rule anyone has to check. And a receiver may not also carry `startAt`: a receiver that has to wait is
+born `Held`, and a held row has no schedule, so honoring both would mean quietly ignoring one of the
+caller's two instructions. There is no per-receiver timeout either — the mailbox's deadline bounds the
+whole exchange.
+
+#### Three births, decided under the mailbox's row lock
+
+Inside the enqueue flush, the engine locks the mailbox row — for the requests that are actually new,
+see [serialization point](#the-mailbox-row-is-its-own-serialization-point) — assigns
+`seq = nextSeq++`, and decides the state the workflow is born in:
+
+| At the assigned position                        | Born                                          |
+| ----------------------------------------------- | --------------------------------------------- |
+| A delivery already sits there (`seq < nextIdx`) | `Enqueued`, runnable, with that message       |
+| No delivery, and the mailbox is closed          | `Enqueued`, runnable, with the closing signal |
+| Neither                                         | `Held`, with a waiter row registered          |
+
+The first row wins over the second, which is the case that looks wrong and is not: **an accepted
+delivery outranks closure.** A receiver enqueued against a closed mailbox still gets the message
+waiting at its position, so a saga replaying after the deadline drains the backlog it was promised
+instead of dropping it. Enqueueing against a closed mailbox is therefore accepted, never refused —
+which is what makes a close racing an in-flight relay self-resolving, with no "mailbox was closed"
+error branch anywhere in the app's saga.
+
+Two refusals remain, both decided under the same lock and both leaving nothing behind — including the
+request's idempotency key, so the same request may be made again once the reason is gone:
+
+| Outcome                                | Response                |
+| -------------------------------------- | ----------------------- |
+| No such mailbox in this namespace      | `400 Bad Request`       |
+| Receivers log at `MaxMailboxLogLength` | `429 Too Many Requests` |
+
+The same _accepted versus kept_ rule the delivery endpoint follows applies here: a replayed
+idempotency key is answered with the receiver it already created, even once the log it filled is
+full.
+
+#### `Held`, and what releases it
+
+`Held` means born parked. The workflow is durable and visible from the moment it is created, and it
+has not started: it is **absent from the fetch gate's status list**, so no worker ever claims it, and
+it holds no lease, no heartbeat, and no backoff. It has no timer of its own, deliberately — the
+release is transactional with its cause, and the mailbox's deadline is what bounds the wait.
+
+`Held` is non-terminal and counts as active, so the dependency gate holds dependents back with no
+gate changes and retention never purges a receiver that is still waiting. The cost of that is stated
+plainly: a held receiver consumes admission budget for as long as its mailbox stays open.
+
+The receiver's position lives on its waiter row rather than on the workflow, keyed by
+`(mailbox_id, seq)` for the release's read and `UNIQUE (workflow_id)` for the executor's. The
+workflow row carries one nullable column, `mailbox_id` — the executor's discriminator and the marker
+ops reads a held row by. A waiter row exists **only** for a receiver that had to park: one born
+runnable has nothing to wait for, so it registers nothing.
+
+Metric: `engine.mailboxes.receivers.created`, tagged `birth` (`delivered`/`closed`/`held`) — the one
+number that separates "the relay is running" from "the relay is parked".
+
 ### Closing is terminal, idempotent, and says why
 
 ```http
@@ -605,13 +681,21 @@ change, `200` means it had already happened. Whoever closed it first wins outrig
 
 ### The mailbox row is its own serialization point
 
-Every operation that changes mailbox state takes the mailbox row's lock as **the first act of its
-transaction**, before reading anything it decides on. This is why concurrent closes collapse onto a
-single disposal with a single timestamp instead of each writing its own, and it is the discipline
-every future mailbox operation inherits. The one compound lock order is **mailbox row → workflow
-row**; nothing takes them in the reverse order, so the ordering is acyclic by inspection.
+Every operation that changes mailbox state takes the mailbox row's lock **before reading anything it
+decides on**, and for the endpoints that act on one mailbox that is the first act of the transaction.
+This is why concurrent closes collapse onto a single disposal with a single timestamp instead of each
+writing its own, and it is the discipline every future mailbox operation inherits. The one compound
+lock order is **mailbox row → workflow row**; nothing takes them in the reverse order, so the ordering
+is acyclic by inspection.
 
-The mint is the single exception, and only because it has no row to lock: the row is what it
+The enqueue flush is the one operation that does not lock first, and deliberately so: it is a batch of
+unrelated callers, and it locks only for the requests that can actually consume a position — which it
+cannot know until the idempotency insert has told a first arrival from a replay. A replay's answer
+comes from `engine.idempotency_keys` alone, so making it take the lock would stall every ordinary
+workflow batched with it behind a delivery or a close, for a request that will change no mailbox
+state. What matters is preserved exactly: nothing about a receiver's birth is read before the lock.
+
+The mint takes no row lock at all, and cannot: the row is what it
 creates. The unique index on `(namespace, idempotencyKey)` serializes it instead — concurrent mints
 of one key contend there, exactly one inserts, and the losers are handed the winner's mailbox.
 

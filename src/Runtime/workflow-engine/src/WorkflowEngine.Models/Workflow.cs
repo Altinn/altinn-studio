@@ -114,6 +114,19 @@ public sealed record Workflow : PersistentItem
     /// </summary>
     public bool? IsHead { get; init; }
 
+    /// <summary>
+    /// The mailbox this workflow receives from (<see cref="WorkflowRequest.Mailbox"/>), or <c>null</c> on
+    /// every ordinary workflow. Non-<c>null</c> is the marker that the first step's callback carries a
+    /// mailbox delivery — the executor's discriminator, and the marker ops reads a held row by.
+    /// </summary>
+    /// <remarks>
+    /// The workflow's <em>position</em> in that mailbox is deliberately not here: it lives on the waiter
+    /// row, keyed by <c>UNIQUE (workflow_id)</c> for the executor's read and by <c>(mailbox_id, seq)</c>
+    /// for the wake's. Keeping it off this row keeps mailbox state in the mailbox subsystem's own tables
+    /// and costs the hot enqueue <c>COPY</c> one nullable column rather than two.
+    /// </remarks>
+    public Guid? MailboxId { get; init; }
+
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <summary>
