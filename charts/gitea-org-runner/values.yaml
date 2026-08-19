@@ -77,7 +77,7 @@ keda:
   # ScaledJob, holding the read-only Gitea PAT the scaler uses to poll the
   # queue. Created out-of-band (one per cluster), not by this chart.
   authenticationRef:
-    name: keda-gitea-auth
+    name: keda-gitea-auth-bearer
   # How often KEDA polls Gitea per ScaledJob. At 30s, 68 organisations produce
   # approximately 2.3 lightweight requests per second in total.
   pollingInterval: 30

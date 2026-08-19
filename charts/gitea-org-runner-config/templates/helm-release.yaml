@@ -49,11 +49,11 @@ spec:
       runnerLabels: "ubuntu-latest:host"
 
     # KEDA wiring: name of the TriggerAuthentication ScaledJobs reference.
-    # The CR is materialised by runner-org-sync's deploy in the same
-    # namespace (src/runner-org-sync/infra/kustomize/triggerauthentication.yaml).
+    # The CR is materialised by runner-org-sync's deploy in the same namespace
+    # (infra/kustomize/base/triggerauthentication-bearer.yaml in that service).
     keda:
       authenticationRef:
-        name: keda-gitea-auth
+        name: keda-gitea-auth-bearer
 
     # Per-org concurrency caps. Default applies to every org; overrides
     # keyed by org name take precedence.
