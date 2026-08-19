@@ -4,6 +4,7 @@ import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import type { IAttachment } from 'src/features/attachments';
 import type { AttachmentValidation, ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext } from 'src/layout';
@@ -39,6 +40,10 @@ export function validateMissingTags(attachments: IAttachment[], tagKey: string |
 }
 
 export function validateMissingTagsForNode(ctx: ComponentValidationContext<'FileUpload'>): ComponentValidation[] {
+  if (!fileUploadHasTag(ctx.component)) {
+    return [];
+  }
+
   return validateMissingTags(
     attachmentSelector(
       makeAttachmentNode(ctx.baseComponentId, ctx.component),
