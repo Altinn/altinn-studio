@@ -5,6 +5,10 @@ log() {
   printf '[sandbox-runner] %s\n' "$*" >&2
 }
 
+if (( EUID != 0 )); then
+  exec sudo --preserve-env -- "$0" "$@"
+fi
+
 filesystem_type() {
   df -PT "$1" | awk 'NR == 2 { print $2 }'
 }
