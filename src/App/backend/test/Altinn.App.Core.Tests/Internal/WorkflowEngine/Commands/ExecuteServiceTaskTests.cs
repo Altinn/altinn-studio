@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -59,6 +60,7 @@ public class ExecuteServiceTaskTests
 
         return new ProcessEngineCommandContext
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
@@ -106,7 +108,9 @@ public class ExecuteServiceTaskTests
 
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
-            Mock.Of<IWorkflowEngineClient>()
+            Mock.Of<IWorkflowEngineClient>(),
+            // Never consulted: these pipelines declare no mailbox, so the app-code guard is not reached.
+            Mock.Of<IWorkflowCallbackSecretProvider>()
         );
     }
 

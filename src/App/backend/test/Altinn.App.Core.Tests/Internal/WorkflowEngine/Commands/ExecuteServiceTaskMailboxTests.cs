@@ -1,12 +1,16 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Infrastructure.Clients.Secrets;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -171,17 +175,50 @@ public class ExecuteServiceTaskMailboxTests
                 });
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
+    /// <summary>
+    /// A frozen clock, so the app-code guard's arithmetic is exact rather than nearly exact.
+    /// </summary>
+    private static readonly FakeTimeProvider _clock = new(new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero));
+
+    /// <summary>
+    /// The callback app code this application signs with, expiring <paramref name="remainingLife"/> from
+    /// now. It bounds a mailbox: the receive workflow's token and its state blob are both signed with it.
+    /// </summary>
+    private static IWorkflowCallbackSecretProvider CreateSecretProvider(TimeSpan remainingLife) =>
+        Mock.Of<IWorkflowCallbackSecretProvider>(p =>
+            p.GetSigningSecret()
+            == new AppCode
+            {
+                Id = "code-1",
+                Code = "secret-code-long-enough-for-hmac",
+                IssuedAt = _clock.GetUtcNow().AddDays(-1),
+                ExpiresAt = _clock.GetUtcNow() + remainingLife,
+            }
+        );
+
+    private static ExecuteServiceTask CreateCommand(
+        IPipelineServiceTask serviceTask,
+        IWorkflowEngineClient client,
+        TimeSpan? appCodeLife = null
+    )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
         services.AddSingleton(serviceTask);
         var sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), client);
+        return new ExecuteServiceTask(
+            sp.GetRequiredService<AppImplementationFactory>(),
+            client,
+            CreateSecretProvider(appCodeLife ?? TimeSpan.FromDays(180)),
+            _clock
+        );
     }
 
-    private static ProcessEngineCommandContext CreateContext(Guid? stepId = null)
+    private static ProcessEngineCommandContext CreateContext(
+        Guid? stepId = null,
+        WorkflowCallbackStateCarry? carry = null
+    )
     {
         var instance = new Instance
         {
@@ -200,6 +237,7 @@ public class ExecuteServiceTaskMailboxTests
             InstanceId = new InstanceIdentifier(1337, InstanceGuid),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
+            StateCarry = carry ?? new WorkflowCallbackStateCarry(),
             Payload = new AppCallbackPayload
             {
                 CommandKey = ExecuteServiceTask.Key,
@@ -385,5 +423,96 @@ public class ExecuteServiceTaskMailboxTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Empty(task.Seen);
+    }
+
+    [Fact]
+    public async Task DeclaringStage_RecordsTheMailboxOnTheStateCarry()
+    {
+        // The mint's key is this stage's step id, which no later step can re-derive — so the address
+        // has to leave this callback in the state blob, and the carry is what puts it there.
+        var task = new ArchivingTask();
+        var minter = new RecordingMailboxMinter();
+        var carry = new WorkflowCallbackStateCarry();
+
+        await CreateCommand(task, minter).Execute(CreateContext(carry: carry), Payload("SendToArchive"));
+
+        Assert.Equal(task.Seen["SendToArchive"].Mailbox.Id, carry.MailboxId);
+    }
+
+    [Theory]
+    [InlineData("RecordDispatch")]
+    [InlineData(null)]
+    public async Task StepThatIsNotTheDeclaringStage_RecordsNothingOnTheCarry(string? stageName)
+    {
+        // A step that mints nothing must leave the carry exactly as it found it — which for a step
+        // before the mint means empty, and for a step after it means untouched.
+        var task = new ArchivingTask();
+        var minter = new RecordingMailboxMinter();
+        var carry = new WorkflowCallbackStateCarry();
+
+        await CreateCommand(task, minter).Execute(CreateContext(carry: carry), Payload(stageName));
+
+        Assert.Null(carry.MailboxId);
+    }
+
+    [Fact]
+    public async Task TheReceiveWorkflowsStepToday_RunsThePipelinesConclusionWithNoReply()
+    {
+        // Characterization, not aspiration. A receive workflow's one step is the pipeline's conclusion
+        // (an ExecuteServiceTask step with no stage name), so when the engine releases a receiver —
+        // with a delivery or because the mailbox closed — what runs today is the ordinary Finally,
+        // handed an ordinary context. It has no way to see the message, no way to tell a delivery from
+        // a closure, and no way to enqueue the next receiver: step 8 adds all three. Until then a
+        // released receiver concludes the task on nothing.
+        var task = new ArchivingTask();
+        var minter = new RecordingMailboxMinter();
+
+        ProcessEngineCommandResult result = await CreateCommand(task, minter)
+            .Execute(CreateContext(), Payload(stageName: null));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        ServiceTaskContext conclusion = task.Seen["Finally"];
+        // Nothing was minted for it, and the mailbox it is answering on is not readable from here.
+        Assert.Empty(minter.Mints);
+        Assert.Throws<InvalidOperationException>(() => conclusion.Mailbox);
+    }
+
+    [Fact]
+    public async Task TimeoutOutlivingTheCallbackAppCode_FailsPermanentlyAndOpensNothing()
+    {
+        // The app-lib's real bound on an exchange, and it is not the engine's MaxMailboxTimeout: the
+        // receive workflow's callback token *and* the state blob it starts on are both signed with the
+        // current WorkflowEngineCallback app code, and WorkflowStateSigner rejects the blob the moment
+        // that code expires. A mailbox outliving it would publish an answer-by date the app cannot
+        // honor and surface as a 401 storm days later. Refused at open, permanently — a retry replays
+        // the same arithmetic — and before the mint, so no address is published and nothing counts
+        // against the namespace's open-mailbox cap.
+        var task = new ArchivingTask { Timeout = TimeSpan.FromDays(10) };
+        var minter = new RecordingMailboxMinter();
+
+        ProcessEngineCommandResult result = await CreateCommand(task, minter, appCodeLife: TimeSpan.FromDays(3))
+            .Execute(CreateContext(), Payload("SendToArchive"));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxTimeoutOutlivesAppCode", failed.ExceptionType);
+        Assert.Contains("SendToArchive", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Empty(minter.Mints);
+        Assert.Empty(task.Seen);
+    }
+
+    [Fact]
+    public async Task TimeoutInsideTheCallbackAppCodesLife_OpensNormally()
+    {
+        // The boundary from the other side: a mailbox that closes before the signing code does is fine,
+        // which is what keeps the guard from being a blanket ban on long exchanges.
+        var task = new ArchivingTask { Timeout = TimeSpan.FromDays(10) };
+        var minter = new RecordingMailboxMinter();
+
+        ProcessEngineCommandResult result = await CreateCommand(task, minter, appCodeLife: TimeSpan.FromDays(11))
+            .Execute(CreateContext(), Payload("SendToArchive"));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Single(minter.Mints);
     }
 }

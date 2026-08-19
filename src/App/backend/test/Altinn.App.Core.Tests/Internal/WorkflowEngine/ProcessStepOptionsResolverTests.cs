@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
@@ -26,7 +27,14 @@ public class ProcessStepOptionsResolverTests
 
         // ExecuteServiceTask is the only command declaring a tier-2 default (10 min) today.
         return new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory, Mock.Of<IWorkflowEngineClient>())],
+            [
+                new ExecuteServiceTask(
+                    appImplFactory,
+                    Mock.Of<IWorkflowEngineClient>(),
+                    // Only its DefaultStepOptions are read here; nothing executes.
+                    Mock.Of<IWorkflowCallbackSecretProvider>()
+                ),
+            ],
             appImplFactory
         );
     }

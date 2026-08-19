@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -100,10 +101,14 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        // The blob restores into two halves: the instance data the command acts on, and the non-data
+        // bookkeeping it was carrying. The carry is threaded into the command and back out into the
+        // captured state below, so a step that knows nothing about it forwards it unchanged.
         InstanceDataUnitOfWork instanceDataUnitOfWork;
+        WorkflowCallbackStateCarry stateCarry;
         try
         {
-            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
+            (instanceDataUnitOfWork, stateCarry) = await _workflowCallbackStateService.RestoreState(
                 instanceId,
                 payload.State,
                 payload.Actor.Language
@@ -141,6 +146,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
+                StateCarry = stateCarry,
             }
         );
 
@@ -171,8 +177,13 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
-                // Capture updated state (includes Storage-assigned IDs for newly created data elements)
-                string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
+                // Capture updated state (includes Storage-assigned IDs for newly created data elements),
+                // carrying forward the bookkeeping this callback restored plus anything the command
+                // recorded into it — a step that never looked at it still hands it to the next one.
+                string updatedState = await _workflowCallbackStateService.CaptureState(
+                    instanceDataUnitOfWork,
+                    stateCarry
+                );
 
                 // If the command signals auto-advance, enqueue a dependent process-next workflow.
                 // This happens AFTER save so the state blob includes Storage-assigned IDs.
