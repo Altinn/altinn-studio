@@ -379,7 +379,7 @@ const mailboxBlockHTML = (ns, key, mbx, spineIds) => {
         : mbx.disposedReason === 'Deadline'
           ? 'Closed by the deadline sweep: every parked receiver was released with the closing signal'
           : 'Closed on request by the app concluding the exchange';
-    html += `<span class="mbx-status ${open ? 'open' : 'disposed'}" title="${esc(stateTitle)}">${esc(state)}</span>`;
+    html += `<span class="mbx-status ${open ? 'open' : 'disposed'}" title="${escAttr(stateTitle)}">${esc(state)}</span>`;
     html += '<span class="header-spacer"></span>';
     // Both counters, named as the log they count rather than prettified: idx and seq are the words
     // the API, the schema and the callback all use, and an operator reading one alongside the other
@@ -493,7 +493,7 @@ const groupHeaderHTML = (key, members, opts) => {
     html += `<span class="chain-count">${countLabel(members.length, opts.total, opts.countNoun)}</span>`;
     html += spanHTML(members);
     const agg = aggregateStatus(members);
-    html += `<span class="status-pill ${esc(agg)}" style="animation:none">${esc(agg)}</span>`;
+    html += `<span class="status-pill ${escAttr(agg)}" style="animation:none">${esc(agg)}</span>`;
     html += collectionButtonHTML(head, true);
     html += opts.hasHistory
         ? `<span class="chain-history-loaded" title="Showing the full workflow graph for this collection">full history</span>`
