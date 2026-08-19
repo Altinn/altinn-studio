@@ -1571,8 +1571,9 @@ What steps 7b/8 inherit:
   today still concludes as an ordinary Main step with no answer, so the entry as written documented a
   reachable trap, not an incomplete feature.
 
-Residuals: a deferring declaring stage re-mints once per defer re-check (idempotent; 7b's state-blob
-carry removes it); `MailboxUnavailableReason` is built eagerly for a rarely-thrown exception;
+Residuals: a deferring declaring stage re-mints once per defer re-check (idempotent, and
+**7b's carry structurally cannot remove it** — a deferral echoes the incoming blob unchanged, so the
+record is discarded; corrected here, `WorkflowEngine/AGENTS.md` records the truth); `MailboxUnavailableReason` is built eagerly for a rarely-thrown exception;
 `DisposedReason`/`DisposedAt` on `MailboxResponse` are unreachable until step 8; the mint has no
 telemetry (telemetry additions are breaking in this repo).
 
@@ -1592,7 +1593,91 @@ until an app consumer exists. This step must add `MailboxCreateRequest`/`Mailbox
 to model their members in this same step (enum `Kind` is compared as an exact string; a nullable
 field may be omitted, an enum member may not).
 
-#### Step 7b — App-lib: the expansion's appended enqueue step — `in progress`
+#### Step 7b — App-lib: the expansion's appended enqueue step — `done`
+
+Landed as jj change `ptztutkm` — 47 files, +1749/−81, all under `src/App/backend`.
+`Altinn.App.Core.Tests` **3149 → 3171** (`--filter ~WorkflowEngine` 286 → 308), Api 494 → 497, Fiks 183,
+engine 939 and host 81 unmoved, **no wire regeneration** (`MailboxReference` and `WorkflowRequest.mailbox`
+were already in the committed snapshot; `AppWireContractTests` discovers the nested type). Two review
+rounds, 18 mutations in the first alone.
+
+**The step's real content was the carry, and the shape decision is the durable part.** The mint is keyed
+on the declaring stage's engine-assigned `StepId`, which the appended step cannot re-derive, so the
+mailbox id travels in the signed state blob: `RestoreState` returns
+`RestoredWorkflowCallbackState(uow, carry)`, the controller threads a **small mutable holder** into
+`ProcessEngineCommandContext.StateCarry` and back into `CaptureState`, and `WorkflowCallbackState` gains
+`mailboxId`. A mutable holder rather than a value on the result type, deliberately: **transitivity is the
+property that matters** — most steps between mint and enqueue know nothing about mailboxes, and a value
+threaded through every result type is a value some step eventually forgets to thread. Review weighed the
+alternative and found the argument concrete rather than rhetorical: `ExecuteServiceTask.Execute` has four
+return paths downstream of the mint. Its only mutation is `RecordMailbox`, which throws on a conflicting
+second mailbox; `StateCarry` is `required` so an omission is a compile error rather than an NRE.
+
+**The frontier's first half is in place**: the expansion appends one final Main step that enqueues
+receiver 1 as an independent head **after** every critical post-commit step, and a declaring pipeline
+**stops emitting its conclusion as a Main step** — the conclusion _is_ the receive handler. Any enqueue
+failure is retryable, so Main cannot complete having published an address nobody listens on.
+
+**A hazard recorded as a residual back in engine step 3 was closed here, and it had to be.** `Held` was
+absent from the app-lib's `IsActiveWorkflowStatus`/`IsActiveCollectionHeadStatus`, so **a parked receiver
+read as settled** — the design's named catastrophe, silent early execution of downstream work. Landing
+the enqueue without it would have shipped exactly that in a revision that looked green. `Held` is now in
+both, and in the parked-release predicates (`IsWaitingCollectionHeadStatus` → `IsParkedCollectionHeadStatus`,
+plus `IsParkedWorkflowStatus`); adding it to _active_ alone would have turned every declaring transition's
+ProcessNext into a 100-second 504, which review reproduced by mutation.
+
+**The one genuinely new constraint this step discovered: an exchange cannot outlive the app code that
+signed it.** The worker minted a fresh callback token at the appended step, arguing Main's token would
+expire first. Review traced the machinery and found the argument false — `GenerateToken` binds `Expires`
+to the **signing code's** expiry and `GetSigningSecret()` returns the first non-expired code in
+configuration order, so the mint selects the same code and produces an identical `exp`. And it could not
+have helped regardless, because the receiver also carries a state blob signed by that same code, which
+`WorkflowStateSigner.Verify` rejects the moment it expires: _blob and token fail together during
+rotation_. So **receiver 1's viability is bounded by `signingCode.ExpiresAt`**, and a `Timeout` outliving
+the current code would have stranded it — 401 storm, `Failed` workflow, `ResumeRequired` instance — days
+after the exchange opened, with nothing having warned at open.
+
+Now guarded at mint: `ExecuteServiceTask.ResolveMailbox` refuses `now + Timeout > GetSigningSecret().ExpiresAt`
+with a permanent **`MailboxTimeoutOutlivesAppCode`** naming the declared timeout, the code's expiry, the
+remaining life and both fixes — placed **before** the mint, so a refused declaration publishes no address
+and consumes no slot against the cap. It is pinned as a _bound_, not a ban: widening it by one
+timeout-length reddens the permissive test, and widening it to a blanket ban reddens all six of 7a's mint
+paths. It compares against the strict `ExpiresAt` while the validator and signer both allow five minutes
+of skew — conservative in the right direction. `MailboxOptions.Timeout`'s xmldoc now states **two**
+ceilings, neither checkable at startup, and names the app-code bound as usually the tighter one, since a
+wrong justification is what led here.
+
+What step 8 inherits:
+
+- **The app-lib's real bound on an exchange is the callback app code's remaining life, not
+  `MaxMailboxTimeout`.** Enforced at open for receiver 1. Each relay hop re-mints its successor's token
+  from whatever code is current then — this is what the mint genuinely buys — but **every hop's blob is
+  signed by the code that captured it**, so a hop enqueued shortly before a rotation still dies with the
+  old code. Whether the relay re-checks the bound per hop, or re-signs, is step 8's decision.
+- **What a receive workflow does today**, pinned by
+  `TheReceiveWorkflowsStepToday_RunsThePipelinesConclusionWithNoReply`: its one step is an ordinary
+  `ExecuteServiceTask` with a null stage name, so the `Finally` runs with an ordinary context — it cannot
+  see the message, cannot tell a delivery from a closure, and enqueues no successor.
+- Reuse `EnqueueReceiveWorkflow.CreateIdempotencyKey(stepId)`,
+  `WorkflowCommandSet.CreateReceiveHandlerStep(serviceTaskType)`, and
+  `ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix`. Receiver _n_'s own blob already carries the
+  mailbox id, so its handler can address the mailbox for both the `AwaitNextReply` enqueue and the
+  `Success` `DELETE` with no new channel. Add a second carried value with a second **named** method on
+  `WorkflowCallbackStateCarry`, never a general setter.
+- **`context.Reply` needs the `PrintMembers` treatment** — 7a's carried obligation: `ServiceTaskContext`'s
+  hand-written `PrintMembers` must never read a throwing computed getter.
+- **The lock token is carried verbatim into a days-long receiver** while the callback token is re-minted;
+  `InstanceLocker`'s default TTL is five minutes. Pre-existing shape (deferring tasks with long wait
+  budgets already exceed it), but a sharper asymmetry now — step 8 owns the receiver's writes and should
+  decide it explicitly.
+- **The stack must not ship between 7b and 8**: a declaring pipeline now stalls for the mailbox's whole
+  timeout rather than concluding. Safer than concluding on nothing, invisible to users (`WithReplyFrom` is
+  unreleased and `## [Unreleased]` is empty), but step 12 should know.
+
+Residuals: `AssembleCommandSequence` assumes at most one task start per transition, documented but
+unenforced; a transition superseded before its enqueue step orphans a mailbox against the instance's cap
+until its deadline (step 8's `DELETE` is the release valve); `Payload` and `InstanceDataMutator` share
+`StateCarry`'s former unenforced-non-nullable weakness, left for step 12.
 
 Paths: `src/App/backend`.
 
@@ -1615,7 +1700,7 @@ today still expands with its conclusion as an ordinary Main step and nothing enq
 address the stage publishes has nobody listening on it. The app CHANGELOG entry says as much and must be
 completed here and in step 8 before release.
 
-#### Step 8 — App-lib: the receive handler and the relay saga — `todo`
+#### Step 8 — App-lib: the receive handler and the relay saga — `in progress`
 
 Paths: `src/App/backend`.
 
