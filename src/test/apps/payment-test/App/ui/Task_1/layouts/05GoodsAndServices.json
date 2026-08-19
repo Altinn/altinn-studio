@@ -185,7 +185,7 @@
           "group": "GoodsAndServicesProperties.Inventory.InventoryProperties"
         },
         "textResourceBindings": {
-          "add_button": "addClassification"
+          "addButton": "addClassification"
         },
         "maxCount": 99,
         "minCount": 1,
@@ -210,18 +210,22 @@
         },
         "hidden": [
           "or",
-          ["equals",
           [
-            "dataModel",
-            "HF_HaveReadAndUnderstood"
+            "equals",
+            [
+              "dataModel",
+              "HF_HaveReadAndUnderstood"
+            ],
+            null
           ],
-          null],
-          ["equals",
           [
-            "dataModel",
-            "HideFirstPaymentDetails"
-          ],
-          true]
+            "equals",
+            [
+              "dataModel",
+              "HideFirstPaymentDetails"
+            ],
+            true
+          ]
         ]
       },
       {

@@ -11,13 +11,13 @@
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "GridExample.ExampleInputTwo",
-          "person_lookup_name": "street"
+          "ssn": "GridExample.ExampleInputTwo",
+          "fullName": "street"
         },
         "textResourceBindings": {
           "title": "Legg til person",
-          "description": "Her legger du inn etternavn og fødselsnummer",
-          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
+          "description": "Her legger du inn etternavn og f\u00F8dselsnummer",
+          "help": "For \u00E5 kunne s\u00F8ke i registeret m\u00E5 du ha f\u00F8dselsnummeret til personen"
         },
         "required": true
       },

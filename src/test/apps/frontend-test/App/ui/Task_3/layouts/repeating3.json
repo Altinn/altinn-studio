@@ -15,21 +15,44 @@
           "description": "Pets.GeneratePanel.Description"
         },
         "groupingIndicator": "panel",
-        "children": ["panelButtons"],
-        "hidden": ["dataModel", "ForceShowPets"]
+        "children": [
+          "panelButtons"
+        ],
+        "hidden": [
+          "dataModel",
+          "ForceShowPets"
+        ]
       },
       {
         "id": "generateAnotherFarm",
         "type": "CustomButton",
-        "textResourceBindings": { "title": "Generer enda en gård" },
-        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
+        "textResourceBindings": {
+          "title": "Generer enda en g\u00E5rd"
+        },
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
+        ],
         "buttonStyle": "secondary",
-        "hidden": ["equals", ["dataModel", "ForceShowPets"], false]
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "ForceShowPets"
+          ],
+          false
+        ]
       },
       {
         "id": "panelButtons",
         "type": "ButtonGroup",
-        "children": ["forceShowPets", "generatePets", "generateWholeFarm"]
+        "children": [
+          "forceShowPets",
+          "generatePets",
+          "generateWholeFarm"
+        ]
       },
       {
         "id": "forceShowPets",
@@ -37,7 +60,12 @@
         "textResourceBindings": {
           "title": "Pets.ForceShowButton"
         },
-        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
+        ],
         "buttonStyle": "secondary"
       },
       {
@@ -46,7 +74,12 @@
         "textResourceBindings": {
           "title": "Pets.GenerateButton"
         },
-        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
+        ],
         "buttonStyle": "primary"
       },
       {
@@ -55,7 +88,12 @@
         "textResourceBindings": {
           "title": "Pets.GenerateWholeFarmButton"
         },
-        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
+        ],
         "buttonStyle": "primary"
       },
       {
@@ -73,12 +111,15 @@
         },
         "textResourceBindings": {
           "title": "Pets.Title",
-          "add_button_full": "Pets.AddButton"
+          "addButtonFull": "Pets.AddButton"
         },
         "edit": {
           "saveAndNextButton": true
         },
-        "tableHeaders": ["pet-species", "pet-name"],
+        "tableHeaders": [
+          "pet-species",
+          "pet-name"
+        ],
         "tableColumns": {
           "pet-species": {
             "alignText": "left",
@@ -88,10 +129,29 @@
         },
         "hidden": [
           "or",
-          ["not", ["dataModel", "ForceShowPets"]],
-          ["dataModel", "PetsUseOptionComponent"]
+          [
+            "not",
+            [
+              "dataModel",
+              "ForceShowPets"
+            ]
+          ],
+          [
+            "dataModel",
+            "PetsUseOptionComponent"
+          ]
         ],
-        "hiddenRow": ["commaContains", ["dataModel", "HiddenPets"], ["dataModel", "Pets.UniqueId"]],
+        "hiddenRow": [
+          "commaContains",
+          [
+            "dataModel",
+            "HiddenPets"
+          ],
+          [
+            "dataModel",
+            "Pets.UniqueId"
+          ]
+        ],
         "stickyHeader": true
       },
       {
@@ -137,7 +197,7 @@
         "readOnly": false,
         "formatting": {
           "number": {
-            "suffix": " år",
+            "suffix": " \u00E5r",
             "allowNegative": false
           },
           "align": "right"
@@ -169,7 +229,12 @@
         "grid": {
           "xs": 3
         },
-        "actions": [{ "type": "ServerAction", "id": "sortPets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "sortPets"
+          }
+        ],
         "buttonStyle": "secondary"
       },
       {
@@ -188,12 +253,15 @@
         },
         "textResourceBindings": {
           "title": "Pets.Title",
-          "add_button_full": "Pets.AddButton"
+          "addButtonFull": "Pets.AddButton"
         },
         "edit": {
           "saveAndNextButton": true
         },
-        "tableHeaders": ["pet-species-option", "pet-name2"],
+        "tableHeaders": [
+          "pet-species-option",
+          "pet-name2"
+        ],
         "tableColumns": {
           "pet-species-option": {
             "editInTable": true,
@@ -202,10 +270,32 @@
         },
         "hidden": [
           "or",
-          ["not", ["dataModel", "ForceShowPets"]],
-          ["not", ["dataModel", "PetsUseOptionComponent"]]
+          [
+            "not",
+            [
+              "dataModel",
+              "ForceShowPets"
+            ]
+          ],
+          [
+            "not",
+            [
+              "dataModel",
+              "PetsUseOptionComponent"
+            ]
+          ]
         ],
-        "hiddenRow": ["commaContains", ["dataModel", "HiddenPets"], ["dataModel", "Pets.UniqueId"]],
+        "hiddenRow": [
+          "commaContains",
+          [
+            "dataModel",
+            "HiddenPets"
+          ],
+          [
+            "dataModel",
+            "Pets.UniqueId"
+          ]
+        ],
         "stickyHeader": true
       },
       {
@@ -214,7 +304,10 @@
         "textResourceBindings": {
           "title": "Pets.Species"
         },
-        "value": ["dataModel", "Pets.Species"],
+        "value": [
+          "dataModel",
+          "Pets.Species"
+        ],
         "optionsId": "pet-species",
         "grid": {
           "md": 4
@@ -264,7 +357,7 @@
         "readOnly": false,
         "formatting": {
           "number": {
-            "suffix": " år",
+            "suffix": " \u00E5r",
             "allowNegative": false
           },
           "align": "right"
@@ -296,7 +389,12 @@
         "grid": {
           "xs": 3
         },
-        "actions": [{ "type": "ServerAction", "id": "sortPets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "sortPets"
+          }
+        ],
         "buttonStyle": "secondary"
       },
       {
@@ -314,13 +412,47 @@
           "label": "PetName",
           "value": "Pets.UniqueId"
         },
-        "hidden": ["not", ["dataModel", "ForceShowPets"]],
+        "hidden": [
+          "not",
+          [
+            "dataModel",
+            "ForceShowPets"
+          ]
+        ],
         "optionFilter": [
           "and",
-          ["notEquals", ["dataModel", "Pets.Age"], null],
-          ["notEquals", ["dataModel", "Pets.Name"], null],
-          ["notEquals", ["dataModel", "Pets.Name"], "Tullekjæledyr som ikke skal få være med"],
-          ["notEquals", ["dataModel", "Pets.Species"], null]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "Pets.Age"
+            ],
+            null
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "Pets.Name"
+            ],
+            null
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "Pets.Name"
+            ],
+            "Tullekj\u00E6ledyr som ikke skal f\u00E5 v\u00E6re med"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "Pets.Species"
+            ],
+            null
+          ]
         ]
       },
       {
@@ -328,17 +460,29 @@
         "type": "RadioButtons",
         "textResourceBindings": {
           "title": "Bruk Option-komponenten?",
-          "description": "Velg 'Ja' her, så bytter vi ut Dropdown med Option i tabellen over"
+          "description": "Velg \u0027Ja\u0027 her, s\u00E5 bytter vi ut Dropdown med Option i tabellen over"
         },
         "dataModelBindings": {
           "simpleBinding": "PetsUseOptionComponent"
         },
         "preselectedOptionIndex": 1,
         "options": [
-          { "label": "Ja", "value": "true" },
-          { "label": "Nei", "value": "false" }
+          {
+            "label": "Ja",
+            "value": "true"
+          },
+          {
+            "label": "Nei",
+            "value": "false"
+          }
         ],
-        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+        "hidden": [
+          "not",
+          [
+            "dataModel",
+            "ForceShowPets"
+          ]
+        ]
       },
       {
         "id": "futureSortOrder-outside",
@@ -353,7 +497,13 @@
           "xs": 9
         },
         "optionsId": "pet-sort-order",
-        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+        "hidden": [
+          "not",
+          [
+            "dataModel",
+            "ForceShowPets"
+          ]
+        ]
       },
       {
         "id": "sortOrderButton-outside",
@@ -364,14 +514,28 @@
         "grid": {
           "xs": 3
         },
-        "actions": [{ "type": "ServerAction", "id": "sortPets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "sortPets"
+          }
+        ],
         "buttonStyle": "secondary",
-        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+        "hidden": [
+          "not",
+          [
+            "dataModel",
+            "ForceShowPets"
+          ]
+        ]
       },
       {
         "id": "bottomButtons",
         "type": "ButtonGroup",
-        "children": ["resetButton", "nav-page-rep3"]
+        "children": [
+          "resetButton",
+          "nav-page-rep3"
+        ]
       },
       {
         "id": "resetButton",
@@ -379,9 +543,20 @@
         "textResourceBindings": {
           "title": "Pets.ResetButton"
         },
-        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
+        ],
         "buttonStyle": "secondary",
-        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+        "hidden": [
+          "not",
+          [
+            "dataModel",
+            "ForceShowPets"
+          ]
+        ]
       },
       {
         "id": "nav-page-rep3",
@@ -392,8 +567,10 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": ["All"]
-        },
+          "show": [
+            "All"
+          ]
+        }
       }
     ]
   }

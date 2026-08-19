@@ -19,13 +19,18 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "fornavn"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.fornavn"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "autocomplete": "given-name",
         "textResourceBindings": {
@@ -41,13 +46,18 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "etternavn"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.etternavn"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.etternav.title"
@@ -63,13 +73,18 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "alder"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.alder"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.alder.title"
@@ -91,15 +106,20 @@
         "type": "Dropdown",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "kjonn"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.kjonn"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
-        "optionsId": "kjønn",
+        "optionsId": "kj\u00F8nn",
         "textResourceBindings": {
           "title": "CV.kj.title"
         },
@@ -113,13 +133,18 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "epost"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.epost"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.e-post.title"
@@ -135,13 +160,18 @@
         "type": "Input",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "telefon"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.telefonnummer"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.telefon.title"
@@ -149,7 +179,7 @@
         "autocomplete": "tel",
         "formatting": {
           "number": {
-            "format": "+47 ### ## ###"
+            "format": "\u002B47 ### ## ###"
           }
         },
         "grid": {
@@ -162,13 +192,18 @@
         "type": "Dropdown",
         "hidden": [
           "commaContains",
-          ["dataModel", "root.SF_skjul-felter"],
+          [
+            "dataModel",
+            "root.SF_skjul-felter"
+          ],
           "bosted"
         ],
         "dataModelBindings": {
           "simpleBinding": "root.bosted"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "optionsId": "kommuner",
         "required": true,
         "textResourceBindings": {
@@ -187,11 +222,17 @@
         },
         "textResourceBindings": {
           "title": "Validering av vedleggstyper",
-          "description": "Dersom dette aktiveres kommer vi til å mase frem til du har lastet opp alle vedlegsstyper"
+          "description": "Dersom dette aktiveres kommer vi til \u00E5 mase frem til du har lastet opp alle vedlegsstyper"
         },
         "options": [
-          { "label":  "Ja", "value":  true },
-          { "label":  "Nei", "value":  false }
+          {
+            "label": "Ja",
+            "value": true
+          },
+          {
+            "label": "Nei",
+            "value": false
+          }
         ],
         "preselectedOptionIndex": 1
       },
@@ -234,17 +275,31 @@
           "dato-fra",
           "dato-til"
         ],
-        "validateOnSaveRow": ["All"],
+        "validateOnSaveRow": [
+          "All"
+        ],
         "hiddenRow": [
           "and",
           [
             "equals",
-            ["dataModel", "root.arbeidserfaring.stilling"],
-            ["dataModel", "root.SF_skjul-arbeidsgiver"]
+            [
+              "dataModel",
+              "root.arbeidserfaring.stilling"
+            ],
+            [
+              "dataModel",
+              "root.SF_skjul-arbeidsgiver"
+            ]
           ],
           [
             "greaterThan",
-            ["stringLength", ["dataModel", "root.SF_skjul-arbeidsgiver"]],
+            [
+              "stringLength",
+              [
+                "dataModel",
+                "root.SF_skjul-arbeidsgiver"
+              ]
+            ],
             0
           ]
         ],
@@ -252,7 +307,7 @@
           "group": "root.arbeidserfaring"
         },
         "textResourceBindings": {
-          "add_button": "arbeidserfaring.add_button"
+          "addButton": "arbeidserfaring.add_button"
         }
       },
       {
@@ -261,7 +316,9 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.arbeidsgiver"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.arbeidsgiver.title"
@@ -276,8 +333,15 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.fortsattAnsatt"
         },
-        "showValidations": ["AllExceptRequired"],
-        "options": [{ "label": "Jeg er fortsatt ansatt her", "value": true }]
+        "showValidations": [
+          "AllExceptRequired"
+        ],
+        "options": [
+          {
+            "label": "Jeg er fortsatt ansatt her",
+            "value": true
+          }
+        ]
       },
       {
         "id": "dato-fra",
@@ -285,7 +349,9 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.fra"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "minDate": "1900-01-01T12:00:00.000Z",
         "maxDate": "2100-01-01T12:00:00.000Z",
         "timeStamp": false,
@@ -304,12 +370,17 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.til"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "minDate": "1900-01-01T12:00:00.000Z",
         "maxDate": "2100-01-01T12:00:00.000Z",
         "timeStamp": false,
         "required": true,
-        "hidden": ["component", "fortsatt-ansatt"],
+        "hidden": [
+          "component",
+          "fortsatt-ansatt"
+        ],
         "textResourceBindings": {
           "title": "CV.dato-til.title"
         },
@@ -324,7 +395,9 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.stilling"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.stilling.title"
@@ -336,7 +409,9 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.beskrivelse"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": false,
         "textResourceBindings": {
           "title": "CV.erfaring-beskrivelse.title"
@@ -365,19 +440,38 @@
       {
         "id": "prosjekter",
         "type": "RepeatingGroup",
-        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
-        "tableHeaders": ["prosjekt-tittel"],
-        "validateOnSaveRow": ["All"],
+        "children": [
+          "prosjekt-tittel",
+          "prosjekt-beskrivelse"
+        ],
+        "tableHeaders": [
+          "prosjekt-tittel"
+        ],
+        "validateOnSaveRow": [
+          "All"
+        ],
         "hiddenRow": [
           "and",
           [
             "equals",
-            ["dataModel", "root.arbeidserfaring.prosjekter.tittel"],
-            ["dataModel", "root.SF_skjul-prosjekt"]
+            [
+              "dataModel",
+              "root.arbeidserfaring.prosjekter.tittel"
+            ],
+            [
+              "dataModel",
+              "root.SF_skjul-prosjekt"
+            ]
           ],
           [
             "greaterThan",
-            ["stringLength", ["dataModel", "root.SF_skjul-prosjekt"]],
+            [
+              "stringLength",
+              [
+                "dataModel",
+                "root.SF_skjul-prosjekt"
+              ]
+            ],
             0
           ]
         ],
@@ -385,7 +479,7 @@
           "group": "root.arbeidserfaring.prosjekter"
         },
         "textResourceBindings": {
-          "add_button": "tsnLc5YNPHLJ"
+          "addButton": "tsnLc5YNPHLJ"
         }
       },
       {
@@ -394,7 +488,9 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.prosjekter.tittel"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": true,
         "textResourceBindings": {
           "title": "CV.prosjekt-tittel.title"
@@ -406,7 +502,9 @@
         "dataModelBindings": {
           "simpleBinding": "root.arbeidserfaring.prosjekter.beskrivelse"
         },
-        "showValidations": ["AllExceptRequired"],
+        "showValidations": [
+          "AllExceptRequired"
+        ],
         "required": false,
         "textResourceBindings": {
           "title": "CV.prosjekt-beskrivelse.title"
@@ -415,14 +513,19 @@
       {
         "id": "button-group",
         "type": "ButtonGroup",
-        "children": ["nav", "send-inn"]
+        "children": [
+          "nav",
+          "send-inn"
+        ]
       },
       {
         "id": "nav",
         "type": "NavigationButtons",
         "validateOnNext": {
           "page": "current",
-          "show": ["All"]
+          "show": [
+            "All"
+          ]
         },
         "textResourceBindings": {
           "next": "CV.nav.next",

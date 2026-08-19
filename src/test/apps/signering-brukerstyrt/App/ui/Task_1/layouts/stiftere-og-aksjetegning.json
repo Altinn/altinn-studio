@@ -26,9 +26,8 @@
         "maxCount": 99999,
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
-          "add_button_full": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
+          "addButtonFull": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
         },
-
         "children": [
           "personLookup",
           "Address-ORk7vt",
@@ -58,7 +57,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
           "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
-          "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
+          "addButtonFull": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
         "children": [
           "organisationLookup",
@@ -75,13 +74,13 @@
         "id": "organisationLookup",
         "type": "OrganizationLookup",
         "dataModelBindings": {
-          "organization_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
-          "organization_lookup_name": "StifterVirksomhet.Navn"
+          "orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "name": "StifterVirksomhet.Navn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
           "description": "Her legger du inn organisasjonsnummer",
-          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
+          "help": "Du kan finne organisasjonsnummeret ved \u00E5 s\u00F8ke i Br\u00F8nn\u00F8ysundregistrene"
         },
         "required": true
       },
@@ -101,7 +100,9 @@
         },
         "grid": {
           "lg": 12,
-          "innerGrid": { "lg": 6 }
+          "innerGrid": {
+            "lg": 6
+          }
         }
       },
       {
@@ -115,19 +116,21 @@
           "summaryTitle": "Mobiltelefon",
           "tableTitle": "Mobiltelefon"
         },
-        "grid": { "lg": 6 }
+        "grid": {
+          "lg": 6
+        }
       },
       {
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "StifterPerson.Foedselsnummer",
-          "person_lookup_name": "StifterPerson.Etternavn"
+          "ssn": "StifterPerson.Foedselsnummer",
+          "fullName": "StifterPerson.Etternavn"
         },
         "textResourceBindings": {
           "title": "Stifter",
-          "description": "Her legger du inn etternavn og fødselsnummer",
-          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
+          "description": "Her legger du inn etternavn og f\u00F8dselsnummer",
+          "help": "For \u00E5 kunne s\u00F8ke i registeret m\u00E5 du ha f\u00F8dselsnummeret til personen"
         },
         "required": true
       },
@@ -170,18 +173,24 @@
       {
         "id": "Input-person-sms",
         "type": "Input",
-        "dataModelBindings": { "simpleBinding": "StifterPerson.Mobiltelefon" },
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Mobiltelefon"
+        },
         "textResourceBindings": {
           "title": "Mobiltelefon (for varsel om signering)",
           "summaryTitle": "Mobiltelefon",
           "tableTitle": "Mobiltelefon"
         },
-        "grid": { "lg": 6 }
+        "grid": {
+          "lg": 6
+        }
       },
       {
         "id": "Aksjetegning-heading",
         "type": "Heading",
-        "textResourceBindings": { "title": "Aksjetegning" },
+        "textResourceBindings": {
+          "title": "Aksjetegning"
+        },
         "size": "S"
       },
       {
@@ -238,11 +247,18 @@
       },
       {
         "id": "StifterPerson-Fullmektig",
-        "hidden": ["notEquals", ["component", "fullmektig-checkbox"], "Ja"],
+        "hidden": [
+          "notEquals",
+          [
+            "component",
+            "fullmektig-checkbox"
+          ],
+          "Ja"
+        ],
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "StifterPerson.Fullmektig.Foedselsnummer",
-          "person_lookup_name": "StifterPerson.Fullmektig.Etternavn"
+          "ssn": "StifterPerson.Fullmektig.Foedselsnummer",
+          "fullName": "StifterPerson.Fullmektig.Etternavn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Group-xCsfYx.title"
