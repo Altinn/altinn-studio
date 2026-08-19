@@ -12,13 +12,9 @@ dependencies = [
 
     # HTTP client
     "httpx>=0.28.1",
-    "httpx-sse>=0.4.3",
 
     # Configuration
     "python-dotenv>=1.2.2",
-
-    # Git operations
-    "GitPython>=3.1.46",
 
     # LLM & Agent framework
     "langgraph>=1.1.3",
@@ -26,9 +22,6 @@ dependencies = [
     "langchain-openai>=1.1.12",
     "openai>=2.30.0",
     "anthropic>=0.86.0",
-
-    # MCP client
-    "fastmcp>=3.1.1",
 
     # Observability
     "langfuse>=3.0.0",
@@ -38,6 +31,10 @@ dependencies = [
 
     # YAML parsing for prompt frontmatter
     "PyYAML>=6.0",
+
+    # Altinn domain library (agents/altinn)
+    "jsonschema>=4.0",
+    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]
@@ -53,7 +50,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["agents*", "api*", "services*", "shared*"]
+include = ["agents*", "api*", "benchmarks*", "services*", "shared*"]
 
 [tool.setuptools.package-data]
 agents = ["prompts/**/*.md"]

@@ -33,8 +33,8 @@ internal sealed class ProcessTaskResolver
             altinnTaskType = "NullType";
         }
 
-        IEnumerable<IServiceTask> serviceTasks = _appImplementationFactory.GetAll<IServiceTask>();
-        IServiceTask? serviceTask = serviceTasks.LastOrDefault(pt => pt.Type == altinnTaskType);
+        IEnumerable<IPipelineServiceTask> serviceTasks = _appImplementationFactory.GetServiceTasks();
+        IPipelineServiceTask? serviceTask = serviceTasks.LastOrDefault(pt => pt.Type == altinnTaskType);
 
         if (serviceTask is not null)
         {

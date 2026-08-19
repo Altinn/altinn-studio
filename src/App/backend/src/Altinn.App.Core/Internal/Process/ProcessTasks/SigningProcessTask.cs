@@ -67,12 +67,14 @@ internal sealed class SigningProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    /// <remarks> Generates a PDF if the signature configuration specifies a signature data type. </remarks>
+    /// <remarks>
+    /// Generates a PDF if the signature configuration specifies a signature data type, and revokes any
+    /// signee access rights that were delegated for runtime delegated signing, so they don't outlive the task.
+    /// </remarks>
     public async Task End(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         CancellationToken ct = context.CancellationToken;
-        Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration? signatureConfiguration = _processReader
             .GetAltinnTaskExtension(taskId)
@@ -82,7 +84,7 @@ internal sealed class SigningProcessTask : IProcessTask
 
         if (signingPdfDataType is not null)
         {
-            await using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, ct: ct);
+            await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
             using var memoryStream = new MemoryStream();
             await pdfStream.CopyToAsync(memoryStream, ct);
 
@@ -94,6 +96,15 @@ internal sealed class SigningProcessTask : IProcessTask
                 memoryStream.ToArray(),
                 taskId
             );
+        }
+
+        // Revoke delegated signing if configured
+        if (
+            signatureConfiguration?.SigneeProviderId is not null
+            && signatureConfiguration.SigneeStatesDataTypeId is not null
+        )
+        {
+            await _signingService.RevokeSigneeRightsOnTaskEnd(dataMutator, signatureConfiguration, ct);
         }
     }
 

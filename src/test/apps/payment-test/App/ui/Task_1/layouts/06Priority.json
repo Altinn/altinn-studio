@@ -8,7 +8,7 @@
       },
       {
         "id": "priorityTitle",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "priorityTitle"
         },
@@ -270,7 +270,6 @@
         "textResourceBindings": {
           "next": "next"
         },
-        "showBackButton": true,
         "validateOnNext": {
           "page": "current",
           "show": [

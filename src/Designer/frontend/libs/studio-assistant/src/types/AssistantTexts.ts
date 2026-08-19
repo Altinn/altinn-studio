@@ -18,6 +18,14 @@ export type AssistantTexts = {
   assistantFirstMessage: string;
   feedback: MessageFeedbackTexts;
   criticalFileAlert: CriticalFileAlertTexts;
+  permissionPrompt: PermissionPromptTexts;
+  sourcesLabel: string;
+};
+
+export type PermissionPromptTexts = {
+  heading: string;
+  allow: string;
+  deny: string;
 };
 
 export type CriticalFileAlertTexts = {
@@ -54,6 +62,4 @@ export type EmptyThreadTexts = {
 
 export type TextAreaTexts = {
   placeholder: string;
-  wait: string;
-  waitingForConnection: string;
 };

@@ -9,13 +9,13 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import classes from 'src/components/process/ProcessWrapper.module.css';
 import {
   useIsWorkflowFailedOnCurrentServiceTask,
+  useIsWorkflowProcessingOnCurrentServiceTask,
   WorkflowFailed,
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { FormStore } from 'src/features/form/FormContext';
 import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -23,14 +23,15 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
-import { ServiceTask } from 'src/features/process/service/ServiceTask';
+import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
+import { ServiceTaskWaiting } from 'src/features/process/service/ServiceTaskWaiting';
+import { useFollowProcess } from 'src/features/process/useFollowProcess';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
-import { getComponentDef, implementsSubRouting } from 'src/layout';
-import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 interface NavigationErrorProps {
@@ -100,7 +101,10 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
       // converge onto the committed task unconditionally - the submitting session never navigated
       // (useProcessNext swallows the failure), and a reconnecting session should land on the same
       // screen a successful transition would have shown.
-      wasBusyRef.current = false;
+      //
+      // Deliberately does NOT consume wasBusyRef: this branch can fire against a stale snapshot
+      // (a read that raced a just-settled reject). Leaving the flag set lets the settled branch
+      // below converge forward as soon as the workflow reads settled again.
       const settledTask = getTargetTaskFromProcess(process);
       if (settledTask && settledTask !== taskId) {
         navigateToTask(settledTask);
@@ -127,10 +131,22 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isRunningProcessNext = useIsRunningProcessNext();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
+  const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
+  const { data: process } = useProcessQuery();
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
   useNavigateToSettledTask(taskId, !isPdfMode);
+
+  // A process parked on a service task advances out-of-band (the task is waiting for an external
+  // outcome), so nothing in this session would otherwise observe the advance: the live workflow
+  // annotation is idle (no transition in flight) and InstanceContext only polls while processing.
+  // Poll here and carry the user forward when the process moves. Keyed on the committed task's
+  // element type - not the classified taskType - so a service task with a custom layout (which
+  // classifies and renders as a Data task) is followed the same way as the default waiting view.
+  const isParkedOnServiceTask =
+    process?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK && (workflow?.status ?? 'idle') === 'idle';
+  useFollowProcess(!isPdfMode && isParkedOnServiceTask);
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
@@ -161,7 +177,17 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // PDF mode must bypass this replacement: the PDF service task renders the page *during* the
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
-  if (!isPdfMode && workflow?.status === 'processing') {
+  //
+  // A deferring service task also bypasses it when the task supplies its own layout and the URL is
+  // on it: the process genuinely sits on the committed task, and the app's page owns the waiting
+  // presentation - exactly as it does for a parked (idle) task. Park and defer are opposites in
+  // the engine but deliberately identical UX on layouted service tasks (see the durable-yield ADR).
+  // The replacement stays for transitions toward other tasks, default-view service tasks, and
+  // stale URLs until navigation converges.
+  const deferringOnLayoutedServiceTask =
+    processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
+
+  if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowProcessing />
@@ -176,6 +202,19 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     return (
       <PresentationComponent showNavigation={false}>
         <WorkflowFailed />
+      </PresentationComponent>
+    );
+  }
+
+  // A failure owned by the current service task renders the task's recoverable failure view.
+  // This takes precedence over a custom layout (which would classify the task as Data below and
+  // render its form with no trace of the failure), and sits before the wrong-task guard for the
+  // same reason as the guards above: the URL may still point at the transition's previous task
+  // while useNavigateToSettledTask converges it onto the committed one.
+  if (!isPdfMode && failedOnCurrentServiceTask) {
+    return (
+      <PresentationComponent>
+        <ServiceTaskFailed />
       </PresentationComponent>
     );
   }
@@ -204,11 +243,15 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
+  // A service task without a failure and without a custom layout is an implicit waiting step:
+  // the process is parked here pending an outcome, and the poll above carries the user forward
+  // when it advances. The PdfWrapper stays because PDF mode renders the PDF service task's
+  // snapshot through it; outside PDF mode it just passes the waiting view through.
   if (taskType === ProcessTaskType.Service) {
     return (
       <PdfWrapper>
         <PresentationComponent>
-          <ServiceTask />
+          <ServiceTaskWaiting />
         </PresentationComponent>
       </PdfWrapper>
     );
@@ -220,32 +263,6 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   throw new Error(`Unknown task type: ${taskType}`);
 }
-
-export const ComponentRouting = () => {
-  const componentId = useNavigationParam('componentId');
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-
-  // Wait for props to sync, needed for now
-  if (!componentId) {
-    return <Loader reason='component-routing' />;
-  }
-
-  const component = layoutLookups.allComponents[componentId];
-  if (!component) {
-    // Consider adding a 404 page?
-    return <RedirectBackToMainForm />;
-  }
-
-  const def = getComponentDef(component.type);
-  if (implementsSubRouting(def)) {
-    const SubRouting = def.subRouting;
-
-    return <SubRouting baseComponentId={componentId} />;
-  }
-
-  // If node exists but does not implement sub routing
-  throw new Error(`Component ${componentId} does not have subRouting`);
-};
 
 function isRunningProcessNext(queryClient: QueryClient) {
   return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;

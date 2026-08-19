@@ -21,7 +21,7 @@
               "simpleBinding": "Skjema.Dag"
             },
             "timestamp": false,
-            "format": "DD.MM.YYYY"
+            "format": "dd.MM.yyyy"
           }
         ]
       }

@@ -47,7 +47,8 @@ const TERMINAL_STATUSES = new Set([
  */
 const aggregateStatus = (members) => {
     const statuses = new Set(members.map((m) => m.status));
-    for (const s of ['Processing', 'Requeued', 'Enqueued']) if (statuses.has(s)) return s;
+    for (const s of ['Processing', 'Requeued', 'Waiting', 'Enqueued'])
+        if (statuses.has(s)) return s;
     for (const s of ['Failed', 'DependencyFailed', 'Canceled', 'Abandoned'])
         if (statuses.has(s)) return s;
     return 'Completed';
@@ -57,9 +58,7 @@ const aggregateStatus = (members) => {
 const spanHTML = (members) => {
     const starts = members.map((m) => new Date(m.createdAt).getTime());
     const ends = members.map((m) =>
-        new Date(
-            m.removedAt || m.steps.at(-1)?.updatedAt || m.updatedAt || m.createdAt,
-        ).getTime(),
+        new Date(m.removedAt || m.steps.at(-1)?.updatedAt || m.updatedAt || m.createdAt).getTime(),
     );
     const span = (Math.max(...ends) - Math.min(...starts)) / 1000;
     if (!Number.isFinite(span) || span < 0) return '';

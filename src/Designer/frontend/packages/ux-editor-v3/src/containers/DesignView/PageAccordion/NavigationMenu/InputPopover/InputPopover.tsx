@@ -1,11 +1,16 @@
 import type { ReactNode, ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState, useRef } from 'react';
 import classes from './InputPopover.module.css';
-import { DropdownMenu, ErrorMessage } from '@digdir/designsystemet-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';
-import { StudioPopover, StudioTextfield, StudioButton } from '@studio/components';
+import {
+  StudioPopover,
+  StudioTextfield,
+  StudioButton,
+  StudioValidationMessage,
+} from '@studio/components';
 
 export type InputPopoverProps = {
   disabled: boolean;
@@ -94,9 +99,9 @@ export const InputPopover = ({
               autoFocus
             />
             {errorMessage && (
-              <ErrorMessage className={classes.errorMessage} size='small'>
+              <StudioValidationMessage className={classes.errorMessage} data-size='sm'>
                 {errorMessage}
-              </ErrorMessage>
+              </StudioValidationMessage>
             )}
             <div className={classes.buttonContainer}>
               <StudioButton

@@ -5,6 +5,7 @@ import type {
   EmptyThreadTexts,
   CriticalFileAlertTexts,
   TextAreaTexts,
+  PermissionPromptTexts,
 } from '../types/AssistantTexts';
 
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
@@ -26,8 +27,6 @@ const emptyThreadTexts: EmptyThreadTexts = {
 
 const textAreaTexts: TextAreaTexts = {
   placeholder: 'placeholder',
-  wait: 'wait',
-  waitingForConnection: 'waitingForConnection',
 };
 
 export const messageFeedbackTexts: MessageFeedbackTexts = {
@@ -43,6 +42,12 @@ export const messageFeedbackTexts: MessageFeedbackTexts = {
 export const criticalFileAlertTexts: CriticalFileAlertTexts = {
   heading: 'criticalFileAlertHeading',
   description: 'criticalFileAlertDescription',
+};
+
+export const permissionPromptTexts: PermissionPromptTexts = {
+  heading: 'permissionPromptHeading',
+  allow: 'permissionPromptAllow',
+  deny: 'permissionPromptDeny',
 };
 
 export const mockTexts: AssistantTexts = {
@@ -63,4 +68,6 @@ export const mockTexts: AssistantTexts = {
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
   feedback: messageFeedbackTexts,
   criticalFileAlert: criticalFileAlertTexts,
+  permissionPrompt: permissionPromptTexts,
+  sourcesLabel: 'sourcesLabel',
 };

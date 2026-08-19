@@ -56,13 +56,21 @@ describe('Dynamics', () => {
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
-    cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'contain.text',
+      texts.testIsNotValidValue,
+    );
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.changeOfName.newLastName).type('hideFirstName');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.changeOfName.newFirstName).should('not.exist');
     cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
-    cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'contain.text',
+      texts.testIsNotValidValue,
+    );
+    cy.get(appFrontend.errorReport).should('not.exist');
   });
 
   it('Page interdependent dynamics with component lookups', () => {

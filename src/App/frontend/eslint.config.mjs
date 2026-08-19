@@ -30,7 +30,6 @@ export default defineConfig([
     '**/*.snap',
     'src/features/expressions/shared-tests/**/*.json',
     'schemas/**/*.json',
-    'webpack*.js', // FIXME: should this be included?
     '.yarn/*',
     'test/e2e/k6-browser/**/*',
   ]),
@@ -173,7 +172,7 @@ export default defineConfig([
     },
     languageOptions: {
       globals: {
-        ...globals.jest,
+        ...globals.vitest,
       },
     },
     rules: {
@@ -192,6 +191,13 @@ export default defineConfig([
     files: ['src/codegen/**/*.ts'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    // Vite loads these before any tsconfig path aliases are in play, so their imports must be relative.
+    files: ['vite.config*.ts'],
+    rules: {
+      'no-relative-import-paths/no-relative-import-paths': 'off',
     },
   },
   {
@@ -240,6 +246,13 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    // Route modules must default-export their component - that is React Router's Route Module API.
+    files: ['src/routes/**/*.route.tsx'],
+    rules: {
+      'import/no-default-export': ['off'],
     },
   },
   {

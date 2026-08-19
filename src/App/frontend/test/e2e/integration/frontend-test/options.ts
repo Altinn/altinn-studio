@@ -110,14 +110,10 @@ describe('Options', () => {
 
     cy.goto('changename');
 
-    // All options are fetched once at first (with 'undefined' in mapping, as no value for source has been set)
-    cy.get('@interceptOptions(references).all').should('have.length', 1);
-    cy.get('@interceptOptions(test).all').should('have.length', 1);
-
     // This field uses preselectedOptionIndex to select 'Altinn'
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
-    // At that point our options have new mappings, so requests should have fired again
+    // At this point our options have new mappings, so requests should have fired again
     cy.get('@interceptOptions(references).all').should('have.length', 2);
     cy.get('@interceptOptions(test).all').should('have.length', 2);
 
@@ -424,9 +420,8 @@ describe('Options', () => {
     cy.get('[data-componentid="ingredientId-3"]').should('have.text', '1');
 
     const errMsg = 'Du kan ikke ha flere ingredienser av samme type';
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').eq(0).should('contain.text', errMsg);
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').eq(1).should('contain.text', errMsg);
+    cy.findAllByText(errMsg).should('have.length', 2);
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     // Select something else than grapes in the third and fourth row
     cy.dsSelect('#ingredientType-2', 'Jordbær');

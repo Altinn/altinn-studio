@@ -14,9 +14,16 @@ describe('formItemConfig', () => {
     confOnScreenComponents,
   ];
   const allAvailableComponents = allAvailableLists.flat();
-  const excludedComponents = [ComponentType.Custom, ComponentType.Payment, ComponentType.Summary];
+  const excludedComponents = [
+    ComponentType.Custom,
+    // OrganisationLookup and Header belong to pre-v9 ux-editor-v4.
+    ComponentType.OrganisationLookup,
+    ComponentType.Header,
+    ComponentType.Payment,
+    ComponentType.Summary,
+  ];
 
-  /**  Test that all components, except Custom, Payment, and Summary, are available in one of the visible lists */
+  /** Test that all v9 components, except Custom, Payment, and Summary, are available in a visible list. */
   it.each(
     Object.values(ComponentType).filter(
       (componentType) => !excludedComponents.includes(componentType),

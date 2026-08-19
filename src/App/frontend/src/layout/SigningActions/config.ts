@@ -171,6 +171,14 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
+      name: 'rejectModalCloseButton',
+      title: 'Reject modal close button',
+      description:
+        'The text to display in the button that closes the modal without rejecting the signing task, i.e. continuing the signing',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
       name: 'rejectModalTriggerButton',
       title: 'Reject modal trigger button',
       description: 'The text to display in the button that triggers the reject modal',

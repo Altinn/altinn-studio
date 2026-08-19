@@ -2,10 +2,10 @@ import React from 'react';
 import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { jest } from '@jest/globals';
 import { QueryClient } from '@tanstack/react-query';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
+import { vi } from 'vitest';
 import type { RenderOptions, waitForOptions } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
@@ -85,9 +85,9 @@ const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;
 
 export function queryPromiseMock<T extends keyof AppQueriesContext>(_name: T) {
-  const mock = jest.fn().mockName(_name);
-  const resolve = jest.fn().mockName(`${_name}.resolve`);
-  const reject = jest.fn().mockName(`${_name}.reject`);
+  const mock = vi.fn().mockName(_name);
+  const resolve = vi.fn().mockName(`${_name}.resolve`);
+  const reject = vi.fn().mockName(`${_name}.reject`);
   mock.mockImplementation(
     () =>
       new Promise<T>((res, rej) => {
@@ -165,7 +165,7 @@ const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
 };
 
 function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialRenderRef) {
-  const mock = jest.fn().mockName(name);
+  const mock = vi.fn().mockName(name);
   const proxy: Proxy<Name> = (original) => ({
     proxy: ({ args, toCall }) => {
       if (ref.current) {
@@ -188,7 +188,7 @@ function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialR
 export const makeFormDataMethodProxies = (
   ref: InitialRenderRef,
 ): { proxies: FormDataWriteProxies; mocks: FormDataMethods } => {
-  const all: { [M in keyof FormDataMethods]: { mock: jest.Mock; proxy: Proxy<M> } } = {
+  const all: { [M in keyof FormDataMethods]: { mock: Mock; proxy: Proxy<M> } } = {
     debounce: makeProxy('debounce', ref),
     cancelSave: makeProxy('cancelSave', ref),
     saveFinished: makeProxy('saveFinished', ref),
@@ -447,7 +447,7 @@ const renderBase = async ({
   const mutations = makeMutationMocks(queryPromiseMock);
 
   const queryMocks = Object.fromEntries(
-    Object.entries(finalQueries).map(([key, value]) => [key, jest.fn().mockImplementation(value).mockName(key)]),
+    Object.entries(finalQueries).map(([key, value]) => [key, vi.fn().mockImplementation(value).mockName(key)]),
   ) as unknown as AppQueries;
 
   const mutationMocks = Object.fromEntries(
@@ -492,7 +492,7 @@ const renderBase = async ({
       onTimeout: () => {
         const queryCalls: string[] = [];
         for (const [name, fn] of Object.entries(queryMocks)) {
-          const mock = (fn as jest.Mock).mock;
+          const mock = (fn as Mock).mock;
           if (mock.calls.length > 0) {
             for (const args of mock.calls) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -645,7 +645,7 @@ export const renderWithInstanceAndLayout = async ({
                   layout: [
                     {
                       id: 'noOtherComponentsHere',
-                      type: 'Header',
+                      type: 'Heading',
                       textResourceBindings: {
                         title:
                           "You haven't added any components yet. Supply your own components " +
@@ -746,3 +746,4 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
 const mockGenericComponentProps: IComponentProps = {
   containerDivRef: { current: null },
 };
+import type { Mock } from 'vitest';

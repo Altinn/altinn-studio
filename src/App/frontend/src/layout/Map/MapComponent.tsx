@@ -4,6 +4,7 @@ import cn from 'classnames';
 
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { MapAttribution } from 'src/layout/Map/features/attribution/MapAttribution';
 import { MarkerLocationText } from 'src/layout/Map/features/singleMarker/MarkerLocationText';
 import { Map } from 'src/layout/Map/Map';
 import classes from 'src/layout/Map/MapComponent.module.css';
@@ -34,6 +35,7 @@ export function MapComponent({ baseComponentId }: PropsFromGenericComponent<'Map
           readOnly={readOnly ?? false}
         />
       </div>
+      <MapAttribution baseComponentId={baseComponentId} />
       {dataModelBindings?.simpleBinding && <MarkerLocationText baseComponentId={baseComponentId} />}
     </ComponentStructureWrapper>
   );

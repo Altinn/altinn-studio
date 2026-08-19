@@ -86,33 +86,18 @@ public class EqualTests(ITestOutputHelper outputHelper)
         Assert.Equal(json, toStringForEquals);
     }
 
-    public static TheoryData<object> GetNonsenseValues =>
-        new()
-        {
-            new BigInteger(123), // Not supported by JsonSerializer, but might make sense to support
-            new object[] { 1, 2, 3 },
-            new object(),
-            new
-            {
-                A = 1,
-                B = 2,
-                C = 3,
-            },
-            new byte[] { 0x01, 0x02, 0x03 },
-        };
-
-    [Theory]
-    [MemberData(nameof(GetNonsenseValues))]
-    public void ToStringForEquals_NonsenseTypes_ThrowsException(object? value)
+    [Fact]
+    public void Verify_BigInteger_NotJsonCompatible()
     {
-        outputHelper.WriteLine($"Object of type {value?.GetType().FullName ?? "null"}:");
-        outputHelper.WriteLine($"   value:{value}");
-        outputHelper.WriteLine($"   json: {JsonSerializer.Serialize(value)}");
-
-        var union = ExpressionValue.FromObject(value);
-        outputHelper.WriteLine($"   union: {union}");
-        // Verify that the EqualsToString method throws an exception for unsupported types.
-        Assert.Null(ExpressionValue.FromObject(value).ToStringForEquals());
+        var value = BigInteger.Parse("1234567890123456789012345678901234567890");
+        // Just a note that BigInteger is not properly supported by System.Text.Json.
+        // If MS adds support for it in the future
+        // We can add `BigInteger("123")` as an exotic type in the GetExoticTypes test data and verify that the ToStringForEquals method returns the same value as the JsonSerializer.
+        Assert.Equal(
+            """{"IsPowerOfTwo":false,"IsZero":false,"IsOne":false,"IsEven":true,"Sign":1}""",
+            JsonSerializer.Serialize(value, _unsafeSerializerOptions)
+        );
+        Assert.Equal("1234567890123456789012345678901234567890", ExpressionValue.FromObject(value).ToStringForEquals());
     }
 
     [Theory]

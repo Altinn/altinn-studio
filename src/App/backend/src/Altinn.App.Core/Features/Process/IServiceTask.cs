@@ -1,118 +1,33 @@
-using Altinn.App.Core.Internal.Process.ProcessTasks;
-
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Interface for service tasks that can be executed during a process.
+/// A service task that does one thing: a single unit of work executed (and on failure, retried)
+/// durably by the workflow engine when the process enters a BPMN service task. This is the shape
+/// almost every service task wants. A task with several consecutive units of work — dispatch then
+/// await, or a series of API calls — should implement <see cref="IPipelineServiceTask"/> instead
+/// and give each unit its own durable stage.
 /// </summary>
 /// <remarks>
-/// <strong>IMPORTANT: Implementations MUST be idempotent - service tasks may be retried on failure.</strong>
+/// <strong>IMPORTANT: Implementations MUST be idempotent — service tasks may be retried on failure.</strong>
 /// </remarks>
 [ImplementableByApps]
-public interface IServiceTask : IProcessTask, IProcessStepConfigurable
+public interface IServiceTask : IPipelineServiceTask
 {
     /// <summary>
-    /// Executes the service task.
+    /// Executes the service task: <see cref="ServiceTaskResult.Success"/> (with optional
+    /// auto-advance action), <see cref="ServiceTaskResult.SuccessWithoutAutoAdvance"/>,
+    /// <see cref="ServiceTaskResult.Defer"/> to run again later, or a failure. Unhandled
+    /// exceptions are treated as retryable failures.
     /// </summary>
     public Task<ServiceTaskResult> Execute(ServiceTaskContext context);
-}
-
-/// <summary>
-/// This class represents the parameters for executing a service task.
-/// </summary>
-public sealed record ServiceTaskContext
-{
-    /// <summary>
-    /// An instance data mutator that can be used to read and modify the instance data during the service task execution.
-    /// </summary>
-    /// <remarks>Changes are saved after Execute returns a successful result. Keep in mind that data elements from previous tasks are locked.</remarks>
-    public required IInstanceDataMutator InstanceDataMutator { get; init; }
 
     /// <summary>
-    /// Cancellation token for the operation.
+    /// A simple service task is a pipeline whose only step is the conclusion: <see cref="Execute"/>
+    /// is the pipeline's <c>Finally</c>. This forwarding is the contract — an implementing class
+    /// must never replace it (enforced at compile time and at app startup).
     /// </summary>
-    public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
-}
-
-/// <summary>
-/// Base type for the result of executing a service task.
-/// </summary>
-public abstract record ServiceTaskResult
-{
-    /// <summary>
-    /// Creates a service task result representing successful execution.
-    /// The process will automatically advance to the next element.
-    /// </summary>
-    /// <param name="action">
-    /// Optional action to use when advancing (e.g. "reject").
-    /// When null, the default BPMN transition is used.
-    /// </param>
-    public static ServiceTaskSuccessResult Success(string? action = null) => new() { Action = action };
-
-    /// <summary>
-    /// Creates a service task result representing successful execution
-    /// without automatic process advancement. The instance will remain
-    /// at the service task until manually advanced.
-    /// </summary>
-    public static ServiceTaskSuccessResult SuccessWithoutAutoAdvance() => new() { AutoAdvanceProcess = false };
-
-    /// <summary>
-    /// Creates a retryable failure. The workflow engine will retry the step with backoff.
-    /// Use this for transient errors (external service down, timeout, rate limit, etc.).
-    /// </summary>
-    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceTaskFailedResult FailedRetryable(string errorMessage)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new ServiceTaskFailedResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
-    }
-
-    /// <summary>
-    /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
-    /// and mark the step as failed immediately.
-    /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
-    /// </summary>
-    /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceTaskFailedResult FailedPermanent(string errorMessage)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new ServiceTaskFailedResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
-    }
-}
-
-/// <summary>
-/// Represents a successful result of executing a service task.
-/// </summary>
-public sealed record ServiceTaskSuccessResult : ServiceTaskResult
-{
-    /// <summary>
-    /// If true, the process will automatically advance to the next element after the service task completes.
-    /// Defaults to true.
-    /// </summary>
-    public bool AutoAdvanceProcess { get; init; } = true;
-
-    /// <summary>
-    /// Optional action to use when auto-advancing (e.g. "reject" to abandon the current task).
-    /// Only used when <see cref="AutoAdvanceProcess"/> is true. When null, the default BPMN transition is used.
-    /// </summary>
-    public string? Action { get; init; }
-}
-
-/// <summary>
-/// Represents a failed result of executing a service task. Construct via
-/// <see cref="ServiceTaskResult.FailedRetryable"/> or <see cref="ServiceTaskResult.FailedPermanent"/>.
-/// </summary>
-public sealed record ServiceTaskFailedResult : ServiceTaskResult
-{
-    internal ServiceTaskFailedResult() { }
-
-    /// <summary>
-    /// Human-readable error message describing the failure.
-    /// </summary>
-    public required string ErrorMessage { get; init; }
-
-    /// <summary>
-    /// Whether the failure is retryable or permanent.
-    /// </summary>
-    internal FailureKind Kind { get; init; }
+    [SealedImplementation(
+        $"Implement {nameof(IPipelineServiceTask)} directly instead — on an {nameof(IServiceTask)}, {nameof(Execute)} would never run"
+    )]
+    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
 }

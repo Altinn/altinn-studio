@@ -10,10 +10,10 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 // Mock dateformat
-jest.mock('@app/form-component', () => ({
+vi.mock('@app/form-component', async () => ({
   __esModule: true,
-  ...jest.requireActual<typeof import('@app/form-component')>('@app/form-component'),
-  getDateFormat: jest.fn(() => 'dd.MM.yyyy'),
+  ...(await vi.importActual<typeof import('@app/form-component')>('@app/form-component')),
+  getDateFormat: vi.fn(() => 'dd.MM.yyyy'),
 }));
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Datepicker'>> = {}) =>
@@ -41,19 +41,19 @@ const currentMonthNumeric = new Date().toLocaleDateString(navigator.language, {
 
 const { setScreenWidth } = mockMediaQuery(600);
 
-// Workaround since there is no support for dialog element functions yet in jest.
+// Workaround since there is no support for dialog element functions yet in vi.
 const originalDialogShow = HTMLDialogElement.prototype.show;
 const originalDialogShowModal = HTMLDialogElement.prototype.showModal;
 const originalDialogClose = HTMLDialogElement.prototype.close;
 
 function mockHTMLDialogElement() {
-  HTMLDialogElement.prototype.show = jest.fn(function (this: HTMLDialogElement) {
+  HTMLDialogElement.prototype.show = vi.fn(function (this: HTMLDialogElement) {
     this.open = true;
   }) as unknown as typeof HTMLDialogElement.prototype.show;
-  HTMLDialogElement.prototype.showModal = jest.fn(function (this: HTMLDialogElement) {
+  HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
     this.open = true;
   }) as unknown as typeof HTMLDialogElement.prototype.showModal;
-  HTMLDialogElement.prototype.close = jest.fn(function (this: HTMLDialogElement) {
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
     this.open = false;
   }) as unknown as typeof HTMLDialogElement.prototype.close;
 }
@@ -64,14 +64,14 @@ describe('DatepickerComponent', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     HTMLDialogElement.prototype.show = originalDialogShow;
     HTMLDialogElement.prototype.showModal = originalDialogShowModal;
     HTMLDialogElement.prototype.close = originalDialogClose;
   });
 
   it('should not show calendar initially, and show calendar when clicking calendar button', async () => {
-    jest.spyOn(console, 'error').mockName('console.error');
+    vi.spyOn(console, 'error').mockName('console.error');
     await render();
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -120,8 +120,8 @@ describe('DatepickerComponent', () => {
 
     await userEvent.click(calendarButton);
 
-    // Ignore TZ part of timestamp to avoid test failing when this changes
-    // DatePickerCalendar opens up on current year/month by default, so we need to cater for this in the expected output
+    // DatePickerCalendar opens on current year/month by default; with timeStamp false (new default)
+    // the saved value is a date-only string (yyyy-MM-dd).
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}`),
@@ -174,7 +174,7 @@ describe('DatepickerComponent', () => {
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: expect.stringContaining('2022-12-31T00:00:00'),
+      newValue: '2022-12-31',
     });
   });
 

@@ -28,7 +28,7 @@ const render = async (renderAs: RenderAs) => {
     m.partyTypesAllowed.person = true;
     m.partyTypesAllowed.organisation = true;
   });
-  const getInstanceMock = jest.fn(async () => {
+  const getInstanceMock = vi.fn(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
     return {
       ...getInstanceDataMock(
@@ -85,7 +85,7 @@ describe('PDFWrapper', () => {
     await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
 
     expect(screen.queryByText('Avsender:')).not.toBeNull();
-    expect(screen.queryByText('01017512345-Ola Privatperson')).not.toBeNull();
+    expect(screen.queryByText('010175*****-Ola Privatperson')).not.toBeNull();
   });
 
   it('should render PDF with correct sender for service owner', async () => {
@@ -94,7 +94,7 @@ describe('PDFWrapper', () => {
     await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
 
     expect(screen.queryByText('Avsender:')).not.toBeNull();
-    expect(screen.queryByText('01017512345-Ola Privatperson')).toBeNull();
+    expect(screen.queryByText('010175*****-Ola Privatperson')).toBeNull();
     expect(screen.queryByText('974760673-Brønnøysundregistrene')).not.toBeNull();
   });
 

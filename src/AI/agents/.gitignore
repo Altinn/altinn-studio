@@ -21,3 +21,12 @@ htmlcov/
 
 # IDE
 .vscode/
+# Build artifacts
+*.egg-info/
+
+# Debug trace dumps
+trace-*.json
+
+# Benchmark fixtures (PDFs etc.) — local only
+benchmarks/assets/
+benchmarks/.env

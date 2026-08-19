@@ -259,7 +259,6 @@ public class ReleaseServiceTest
         {
             BaseUri = "https://dev.azure.com/brreg/altinn-studio/_apis/",
             BuildDefinitionId = 69,
-            DeployDefinitionId = 81,
         };
     }
 
@@ -279,7 +278,7 @@ public class ReleaseServiceTest
         );
     }
 
-    private void SetupAppLibVersion(string version)
+    private void SetupAppLibVersion(string version, bool includeUtf8Bom = false)
     {
         string csprojContent = $"""
             <Project Sdk="Microsoft.NET.Sdk.Web">
@@ -288,12 +287,15 @@ public class ReleaseServiceTest
               </ItemGroup>
             </Project>
             """;
+        byte[] csprojBytes = Encoding.UTF8.GetBytes(csprojContent);
+        if (includeUtf8Bom)
+        {
+            csprojBytes = [.. Encoding.UTF8.GetPreamble(), .. csprojBytes];
+        }
 
         _giteaClient
             .Setup(c => c.GetFileAsync(_org, _app, "App/App.csproj", It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new FileSystemObject { Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(csprojContent)) }
-            );
+            .ReturnsAsync(new FileSystemObject { Content = Convert.ToBase64String(csprojBytes) });
     }
 
     private void VerifyWarningLog()
@@ -546,7 +548,7 @@ public class ReleaseServiceTest
     }
 
     [Fact]
-    public async Task CreateAsync_WithAppLibVersion9PreviewAndNullAppScopes_AddsDefaultMaskinportenScopes()
+    public async Task CreateAsync_WithUtf8BomAppLibVersion9PreviewAndNullAppScopes_AddsDefaultMaskinportenScopes()
     {
         // Arrange
         ReleaseEntity releaseEntity = new()
@@ -597,7 +599,7 @@ public class ReleaseServiceTest
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
-        SetupAppLibVersion("9.0.0-preview.1");
+        SetupAppLibVersion("9.0.0-preview.1", includeUtf8Bom: true);
 
         ReleaseService releaseService = CreateReleaseService();
 

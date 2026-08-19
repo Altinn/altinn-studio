@@ -6,8 +6,8 @@
   "dependencies": {
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "typescript": "6.0.3",
     "uuid": "13.0.2"
   },

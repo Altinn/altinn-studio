@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
@@ -189,6 +190,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
+        services.TryAddTransient<DataModelFieldCalculator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();
         services.AddTransient<IFormDataReader, FormDataReader>();
         services.TryAddTransient<DataListsFactory>();
@@ -197,6 +199,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IDataListsService, DataListsService>();
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
+        services.AddTransient<IDataWriteProcessor, DataModelFieldCalculatorProcessor>();
         services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
         services.AddTransient<IDataService, DataService>();
         services.AddSingleton<ModelSerializationService>();
@@ -219,7 +222,6 @@ public static class ServiceCollectionExtensions
         AddPdfServices(services);
         AddPaymentServices(services, configuration, env);
         AddSignatureServices(services);
-        AddEventServices(services);
         AddNotificationServices(services);
         AddProcessServices(services);
         services.AddWorkflowEngineIntegration();
@@ -257,6 +259,11 @@ public static class ServiceCollectionExtensions
         {
             services.AddTransient<IValidator, ExpressionValidator>();
         }
+
+        if (appSettings?.XsdValidation is true)
+        {
+            services.AddTransient<IValidator, XsdValidator>();
+        }
     }
 
     /// <summary>
@@ -266,24 +273,6 @@ public static class ServiceCollectionExtensions
     public static bool IsAdded(this IServiceCollection services, Type serviceType)
     {
         return services.Any(x => x.ServiceType == serviceType);
-    }
-
-    private static void AddEventServices(IServiceCollection services)
-    {
-        services.AddTransient<IEventHandler, SubscriptionValidationHandler>();
-        services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
-        services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
-
-        // TODO: Event subs could be handled by the new automatic Maskinporten auth, once implemented.
-        // The event subscription client depends upon a Maskinporten message handler being
-        // added to the client during setup. As of now this needs to be done in the apps
-        // if subscription is to be added. This registration is to prevent the DI container
-        // from failing for the apps not using event subscription. If you try to use
-        // event subscription with this client you will get a 401 Unauthorized.
-        if (!services.IsAdded(typeof(IEventsSubscription)))
-        {
-            services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
-        }
     }
 
     private static void AddNotificationServices(IServiceCollection services)
@@ -391,8 +380,12 @@ public static class ServiceCollectionExtensions
 
         // Service tasks
         services.AddTransient<IServiceTask, PdfServiceTask>();
-        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
+
+        // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
+        // eFormidling task but never called it is told at startup instead of mid-process.
+        services.AddHostedService<EFormidlingConfigValidationService>();
     }
 
     private static void AddActionServices(IServiceCollection services)

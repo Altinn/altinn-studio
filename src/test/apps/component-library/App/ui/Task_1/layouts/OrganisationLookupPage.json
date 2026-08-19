@@ -9,10 +9,10 @@
             },
             {
                 "id": "organisationLookup",
-                "type": "OrganisationLookup",
+                "type": "OrganizationLookup",
                 "dataModelBindings": {
-                    "organisation_lookup_orgnr": "street",
-                    "organisation_lookup_name": "co"
+                    "organization_lookup_orgnr": "street",
+                    "organization_lookup_name": "co"
                 },
                 "textResourceBindings": {
                     "title": "Legg til virksomhet",
@@ -23,7 +23,7 @@
             },
             {
                 "id": "OrganisationLookup-Header-Summary2",
-                "type": "Header",
+                "type": "Heading",
                 "textResourceBindings": {
                     "title": "Header.Summary2"
                 },
@@ -40,7 +40,6 @@
             {
                 "id": "OrganisationLookupPage-NavigationButtons",
                 "type": "NavigationButtons",
-                "showBackButton": true,
                 "textResourceBindings": {
                     "next": "Neste",
                     "back": "Forrige"

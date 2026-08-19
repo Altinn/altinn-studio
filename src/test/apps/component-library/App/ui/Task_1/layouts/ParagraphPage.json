@@ -9,7 +9,7 @@
       },
       {
         "id": "ParagraphPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Avsnitt"
@@ -17,7 +17,7 @@
       },
       {
         "id": "ParagraphPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -85,7 +85,6 @@
       {
         "id": "ParagraphPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

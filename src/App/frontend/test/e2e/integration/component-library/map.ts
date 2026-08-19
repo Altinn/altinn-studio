@@ -50,6 +50,15 @@ describe('Map component', () => {
     cy.findByRole('link', { name: 'Save' }).click();
     cy.get('g>path').should('not.exist');
   });
+
+  it('should pass accessibility tests', () => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Kart');
+
+    // Wait for the map to be rendered before running the axe check
+    cy.get('.leaflet-container').should('be.visible');
+    cy.testWcag();
+  });
 });
 
 function moveAndClick(x: number, y: number) {
@@ -68,7 +77,7 @@ function assertPath(lines: number, closed: boolean) {
   cy.get(selectors.path)
     .invoke('attr', 'd')
     .should((path) => {
-      const commands = path?.match(/[MLZ]/gi) ?? [];
+      const commands: string[] = path?.match(/[MLZ]/gi) ?? [];
       const drawnLines = commands.filter((command) => command.toUpperCase() === 'L').length;
       const isClosed = commands.at(-1)?.toUpperCase() === 'Z';
 

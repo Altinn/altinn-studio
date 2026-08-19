@@ -11,7 +11,7 @@ import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
 import type { PartyApi } from 'src/core/api-client/party.api';
 
 const deletedParty = getPartyMock({
-  ssn: '01017512347',
+  ssn: '050575*****',
   partyId: 12347,
   name: 'Petter Nordmann',
   isDeleted: true,
@@ -19,17 +19,17 @@ const deletedParty = getPartyMock({
 
 // Need at least 9 parties to test pagination (twice)
 const parties = [
-  getPartyMock(),
+  getPartyMock({ ssn: '010175*****' }),
   getServiceOwnerPartyMock(),
   getPartyWithSubunitMock().org,
-  getPartyMock({ ssn: '01017512346', partyId: 12346, name: 'Kari Nordmann' }),
+  getPartyMock({ ssn: '020275*****', partyId: 12346, name: 'Kari Nordmann' }),
   deletedParty,
-  getPartyMock({ ssn: '01017512348', partyId: 12348, name: 'Per Nordmann' }),
-  getPartyMock({ ssn: '01017512349', partyId: 12349, name: 'Lise Nordmann' }),
-  getPartyMock({ ssn: '01017512350', partyId: 12350, name: 'Anne Nordmann' }),
-  getPartyMock({ ssn: '01017512351', partyId: 12351, name: 'Hans Nordmann' }),
-  getPartyMock({ ssn: '01017512352', partyId: 12352, name: 'Knut Nordmann' }),
-  getPartyMock({ ssn: '01017512353', partyId: 12353, name: 'Bjørn Nordmann' }),
+  getPartyMock({ ssn: '030375*****', partyId: 12348, name: 'Per Nordmann' }),
+  getPartyMock({ ssn: '040475*****', partyId: 12349, name: 'Lise Nordmann' }),
+  getPartyMock({ ssn: '060675*****', partyId: 12350, name: 'Anne Nordmann' }),
+  getPartyMock({ ssn: '070775*****', partyId: 12351, name: 'Hans Nordmann' }),
+  getPartyMock({ ssn: '080875*****', partyId: 12352, name: 'Knut Nordmann' }),
+  getPartyMock({ ssn: '090975*****', partyId: 12353, name: 'Bjørn Nordmann' }),
 ];
 
 function TestWrapper(props: PropsWithChildren) {
@@ -84,6 +84,39 @@ describe('PartySelection', () => {
     expect(screen.queryByRole('button', { name: /last flere/i })).not.toBeInTheDocument();
   });
 
+  it('should find an organisation when searching for an org number containing whitespace', async () => {
+    const user = userEvent.setup({ delay: null });
+    await render();
+
+    await user.type(screen.getByRole('textbox', { name: /søk/i }), '974 760 673');
+
+    expect(screen.getAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Brønnøysundregistrene org.nr. 974760673' })).toBeInTheDocument();
+  });
+
+  it('should find a person when searching for an SSN containing whitespace', async () => {
+    const user = userEvent.setup({ delay: null });
+    await render();
+
+    await user.type(screen.getByRole('textbox', { name: /søk/i }), '01 01 75');
+
+    expect(screen.getAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Ola Privatperson personnr. 010175*****' })).toBeInTheDocument();
+  });
+
+  it('should not find parties when searching for letters together with matching numbers', async () => {
+    const user = userEvent.setup({ delay: null });
+    await render();
+    const searchInput = screen.getByRole('textbox', { name: /søk/i });
+
+    await user.type(searchInput, 'abc010175');
+    expect(screen.queryAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(0);
+
+    await user.clear(searchInput);
+    await user.type(searchInput, 'abc974760673');
+    expect(screen.queryAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(0);
+  });
+
   it('sub-unit filter should work', async () => {
     const user = userEvent.setup({ delay: null });
     await render();
@@ -117,15 +150,15 @@ describe('PartySelection', () => {
 
     expect(screen.getByRole('checkbox', { name: /vis slettede/i })).toBeChecked();
     expect(screen.getAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Petter Nordmann (slettet) personnr. 01017512347' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Petter Nordmann (slettet) personnr. 050575*****' })).toBeInTheDocument();
   });
 
   describe('selecting parties', () => {
     const testCases = [
       {
-        parties: [getPartyMock({ ssn: '01017512346', partyId: 12346, name: 'Kari Nordmann' })],
+        parties: [getPartyMock({ ssn: '010175*****', partyId: 12346, name: 'Kari Nordmann' })],
         expectedPartyId: 12346,
-        partyName: 'Kari Nordmann personnr. 01017512346',
+        partyName: 'Kari Nordmann personnr. 010175*****',
       },
       {
         parties: [getServiceOwnerPartyMock()],
@@ -144,7 +177,7 @@ describe('PartySelection', () => {
     it.each(testCases)(
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
-        const setSelectedPartyMock = jest.fn(async () => 'Party successfully updated' as const);
+        const setSelectedPartyMock = vi.fn(async () => 'Party successfully updated' as const);
         const user = userEvent.setup({ delay: null });
         await render(parties, setSelectedPartyMock);
 

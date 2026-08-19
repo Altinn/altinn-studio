@@ -10,13 +10,14 @@ import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMoc
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confirm/containers/ConfirmPage';
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { maskSsn } from 'src/utils/maskSsn';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
-jest.mock('src/features/instance/useProcessQuery', () => ({
-  ...jest.requireActual<typeof import('src/features/instance/useProcessQuery')>(
+vi.mock('src/features/instance/useProcessQuery', async () => ({
+  ...(await vi.importActual<typeof import('src/features/instance/useProcessQuery')>(
     'src/features/instance/useProcessQuery',
-  ),
-  useIsAuthorized: jest.fn().mockReturnValue(() => true),
+  )),
+  useIsAuthorized: vi.fn().mockReturnValue(() => true),
 }));
 
 describe('ConfirmPage', () => {
@@ -43,7 +44,7 @@ describe('ConfirmPage', () => {
       renderer: () => <ConfirmPage {...props} />,
     });
 
-    const ssn = screen.getByText(personParty.ssn ?? '', { exact: false });
+    const ssn = screen.getByText(maskSsn(personParty.ssn), { exact: false });
     expect(ssn).toBeInTheDocument();
     const name = screen.getByText(personParty.name, { exact: false });
     expect(name).toBeInTheDocument();
@@ -88,7 +89,7 @@ describe('ConfirmPage', () => {
       // Never resolves
     });
 
-    jest.mocked(doProcessNext).mockImplementation(async () => processNextPromise);
+    vi.mocked(doProcessNext).mockImplementation(async () => processNextPromise);
 
     await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,

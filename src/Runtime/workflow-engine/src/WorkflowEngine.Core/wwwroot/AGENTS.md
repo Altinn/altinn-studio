@@ -61,20 +61,20 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 
 ## Endpoints Used
 
-| Endpoint                  | Method | Used by                                              |
-| ------------------------- | ------ | ---------------------------------------------------- |
-| `/dashboard/stream`       | SSE    | Main loop — engine status, capacity, scheduled count |
-| `/dashboard/stream/live`  | SSE    | Active and recent workflows                          |
-| `/dashboard/labels`       | GET    | Fetch distinct values for label keys                 |
-| `/dashboard/scheduled`    | GET    | Scheduled section (on-demand)                        |
-| `/dashboard/query`        | GET    | Query tab (on-demand, paginated)                     |
-| `/dashboard/step`         | GET    | Step detail modal                                    |
-| `/dashboard/state`        | GET    | State evolution modal                                |
-| `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
-| `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
-| `/dashboard/retry`        | POST   | Retry a failed workflow                              |
-| `/dashboard/skip-backoff` | POST   | Skip backoff wait on a requeued workflow             |
-| `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
+| Endpoint                 | Method | Used by                                                              |
+| ------------------------ | ------ | -------------------------------------------------------------------- |
+| `/dashboard/stream`      | SSE    | Main loop — engine status, capacity, scheduled count                 |
+| `/dashboard/stream/live` | SSE    | Active and recent workflows                                          |
+| `/dashboard/labels`      | GET    | Fetch distinct values for label keys                                 |
+| `/dashboard/scheduled`   | GET    | Scheduled section (on-demand)                                        |
+| `/dashboard/query`       | GET    | Query tab (on-demand, paginated)                                     |
+| `/dashboard/step`        | GET    | Step detail modal                                                    |
+| `/dashboard/state`       | GET    | State evolution modal                                                |
+| `/dashboard/relations`   | GET    | On-demand relations for recent/query cards                           |
+| `/dashboard/graph`       | GET    | Connected graph: chain modal + chains-view history                   |
+| `/dashboard/retry`       | POST   | Retry a failed workflow                                              |
+| `/dashboard/nudge`       | POST   | Clear the pending backoff of a parked (requeued or waiting) workflow |
+| `/dashboard/hot-reload`  | SSE    | Dev file change watcher                                              |
 
 ## Patterns
 
@@ -86,6 +86,6 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 - URL state sync via `syncUrl()`/`restoreUrl()` — shareable URLs capture full dashboard state
 - Grafana trace links built from workflow `traceId` for Tempo integration
 - Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, collectionKey, labels)
-- Retry button on failed pipeline steps, skip-backoff button on requeued steps with backoff timer
+- Retry button on failed pipeline steps, nudge button on parked steps with a backoff timer
 
 For full behavioral spec (sections, endpoint contracts, card anatomy, filtering mechanics, modal behavior, URL state sync), see `DASHBOARD_SPEC.md` (same directory).

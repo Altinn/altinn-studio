@@ -6,7 +6,7 @@
       {
         "size": "L",
         "id": "Task1Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Task1.header.title"
         }
@@ -66,8 +66,24 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "preCommit"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "postCommit"
+          ]
         ],
         "options": [
           {
@@ -108,8 +124,24 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "preCommit"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "postCommit"
+          ]
         ],
         "options": [
           {
@@ -146,8 +178,24 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
-          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "preCommit"
+          ],
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "path",
+              "TransitionControl"
+            ],
+            "postCommit"
+          ]
         ],
         "options": [
           {
@@ -161,11 +209,159 @@
           {
             "value": "failureThenSuccess",
             "label": "endState.failureThenSuccess"
+          },
+          {
+            "value": "waitExpired",
+            "label": "endState.waitExpired"
           }
         ],
         "textResourceBindings": {
           "title": "endState.title",
           "help": "endState.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "advance",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "advance",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
+        "options": [
+          {
+            "value": "auto",
+            "label": "advance.auto"
+          },
+          {
+            "value": "park",
+            "label": "advance.park"
+          },
+          {
+            "value": "parkThenRelease",
+            "label": "advance.parkThenRelease"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "advance.title",
+          "help": "advance.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "serviceView",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "serviceView",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
+        "options": [
+          {
+            "value": "default",
+            "label": "serviceView.default"
+          },
+          {
+            "value": "layout",
+            "label": "serviceView.layout"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "serviceView.title",
+          "help": "serviceView.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "deferrals",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "deferrals",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
+        "options": [
+          {
+            "value": "0",
+            "label": "deferrals.none"
+          },
+          {
+            "value": "1",
+            "label": "deferrals.one"
+          },
+          {
+            "value": "3",
+            "label": "deferrals.three"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "deferrals.title",
+          "help": "deferrals.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "deferDelayMs",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "deferDelayMs",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "path",
+            "TransitionControl"
+          ],
+          "postCommit"
+        ],
+        "options": [
+          {
+            "value": "2000",
+            "label": "deferDelayMs.fast"
+          },
+          {
+            "value": "5000",
+            "label": "deferDelayMs.slow"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "deferDelayMs.title",
+          "help": "deferDelayMs.help"
         }
       },
       {

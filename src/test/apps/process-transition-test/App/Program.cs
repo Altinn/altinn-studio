@@ -18,11 +18,18 @@ void RegisterCustomAppServices(
     // Pre-commit lever: fails/delays the forward Task_1 transition while committed=Task_1.
     services.AddTransient<IOnTaskEndingHandler, TaskEndingHandler>();
 
-    // Post-commit lever: the "scenario" service task (Task_Service) the Gateway_PostCommit gateway
-    // routes through when path == "postCommit". ExecuteServiceTask runs it as a critical
-    // post-commit step, so its delays/failures are frontend-observable (committed = Task_Service).
-    services.AddTransient<IServiceTask, ScenarioServiceTask>();
+    // Post-commit lever: the "scenario" service task (Task_Service / Task_ServiceLayout) the
+    // Gateway_PostCommit gateway routes through when path == "postCommit". A pipeline task —
+    // the PrepareScenario stage runs before the concluding RunScenario — so every postCommit e2e
+    // scenario also drives the multi-stage contract (dispatch by stage name, per-stage
+    // durability/options). The engine runs the pipeline as critical post-commit steps, so
+    // delays/failures are frontend-observable (committed = the service task).
+    services.AddTransient<IPipelineServiceTask, ScenarioServiceTask>();
 
+    // Background driver for the parkThenRelease lever: releases a parked service task after a few
+    // seconds via an ordinary authorized process/next, imitating an external callback.
+    services.AddSingleton<ParkedTaskReleaser>();
+    services.AddHttpClient();
 }
 
 // ###########################################################################

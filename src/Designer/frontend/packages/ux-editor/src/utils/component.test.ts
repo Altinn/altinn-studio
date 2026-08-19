@@ -17,20 +17,25 @@ import { formItemConfigs } from '../data/formItemConfig';
 
 describe('Component utils', () => {
   describe('generateFormItem', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
-      'Generates component of type %s with given ID',
-      (componentType) => {
-        const id = 'testId';
-        const component = generateFormItem(componentType, id);
-        expect(component).toEqual(
-          expect.objectContaining({
-            id,
-            type: componentType,
-            itemType: 'COMPONENT',
-          }),
-        );
-      },
-    );
+    // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+    it.each(
+      Object.values(ComponentType).filter(
+        (v) =>
+          v !== ComponentType.OrganisationLookup &&
+          v !== ComponentType.Header &&
+          !containerComponentTypes.includes(v),
+      ),
+    )('Generates component of type %s with given ID', (componentType) => {
+      const id = 'testId';
+      const component = generateFormItem(componentType, id);
+      expect(component).toEqual(
+        expect.objectContaining({
+          id,
+          type: componentType,
+          itemType: 'COMPONENT',
+        }),
+      );
+    });
 
     it('maps custom component type to correct component reference', () => {
       expect(formItemConfigs[CustomComponentType.CloseSubformButton].componentRef).toBe(

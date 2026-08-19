@@ -3,7 +3,6 @@ using System.Reflection;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
@@ -287,26 +286,22 @@ internal static class FormDataWrapperExtensions
     }
 
     /// <summary>
-    /// Get a list of all possible keys for the given data model
+    /// Get a list of all possible keys for the given data model at the path
     /// </summary>
     /// <example>
-    /// intro.fnr
-    /// group[0].name
-    /// group[0].age
-    /// group[1].name
-    /// group[1].age
+    /// group.name -> ["group[0].name", "group[1].name"]
+    /// group.age -> ["group[0].age", "group[1].age"]
     /// </example>
-    public static DataReference[] GetResolvedKeys(this IFormDataWrapper formDataWrapper, DataReference reference)
+    public static string[] GetResolvedKeys(this IFormDataWrapper formDataWrapper, string path)
     {
         //TODO: write more efficient code that uses the formDataWrapper to resolve keys instead of reflection in DataModelWrapper
+        // The current implementation also does not throw exceptions when the path ends in an enumerable.
+        // When resolving "group" it is not clear if the result should be "group[0]", "group[1]", or just "group"."
         var data = formDataWrapper.BackingData<object>();
 #pragma warning disable CS0618 // Type or member is obsolete
         var dataModelWrapper = new DataModelWrapper(data);
 #pragma warning restore CS0618 // Type or member is obsolete
-        return dataModelWrapper
-            .GetResolvedKeys(reference.Field)
-            .Select(resolvedField => reference with { Field = resolvedField })
-            .ToArray();
+        return dataModelWrapper.GetResolvedKeys(path);
     }
 
     private static int GetMaxBufferLength(ReadOnlySpan<char> path, ReadOnlySpan<int> rowIndexes)

@@ -390,6 +390,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/xsdschema/{id},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/instance-selection,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -898,15 +907,6 @@
           requiredScopesServiceOwners: [
             custom:serviceowner/instances.write
           ]
-        }
-      },
-      {
-        endpoint: POST {org}/{app}/api/v1/eventsreceiver,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
         }
       },
       {

@@ -31,6 +31,12 @@
   }
 }
 
+.dialogButtonContainer {
+  display: flex;
+  gap: var(--ds-size-4);
+  flex-wrap: wrap;
+}
+
 /* TODO: Remove this when we upgrade Designsystemet to @next */
 .checkbox {
   > * {

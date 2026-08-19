@@ -1,31 +1,26 @@
-# AGENTS.md — Altinn.Studio.Runtime.Common (`src/common`)
+# AGENTS.md — Repository-wide common code (`src/common`)
 
-A small shared .NET class library (`Altinn.Studio.Runtime.Common`, references
-`Microsoft.AspNetCore.App`) of **runtime hosting helpers** used by the Runtime services — notably the
-[workflow-engine](../Runtime/workflow-engine/AGENTS.md) and the [gateway](../Runtime/gateway/AGENTS.md).
+Code shared across product areas lives here, grouped by technology stack. Code shared only within one
+product area belongs in that area's own `common/` directory, such as [`src/Runtime/common`](../Runtime/common/AGENTS.md).
 
 See the root [`/AGENTS.md`](../../AGENTS.md) for the wider picture.
 
-## What's here
+## Stacks
 
-The library is intentionally tiny — three source files under `src/`:
+| Folder                                                        | What it contains                                                                      | Build guidance                                           |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| [`dotnet/Altinn.Studio.Common`](dotnet/Altinn.Studio.Common/) | Dependency-light .NET hosting and assertion helpers shared across product areas.      | Build `Altinn.Studio.Common.csproj` from that directory. |
+| [`ts`](ts/AGENTS.md)                                          | React and TypeScript libraries shared by App Frontend, Designer, and other consumers. | Follow the TypeScript-specific instructions.             |
 
-- `Hosting.cs` — common `WebApplicationBuilder` configuration (e.g. header forwarding, graceful
-  shutdown).
-- `Ports.cs` — Kestrel public/internal port configuration and endpoint filters.
-- `Assert.cs` — an always-on assertion helper.
-
-## Build & test
-
-A class library with no standalone solution or tests — it is built as part of each consuming service
-(build/test the workflow-engine or gateway to exercise it). To compile it in isolation:
-
-```bash
-dotnet build Altinn.Studio.Runtime.Common.csproj    # from src/common
-```
+Add a stack directory only when shared code for that stack exists. Keep packages focused and use
+ecosystem-native project boundaries rather than creating a generic utilities package.
 
 ## Working here
 
-- This is shared infrastructure: a change here can affect every Runtime service that references it, so
-  keep the surface small and dependency-light, and build a consumer (workflow-engine/gateway) to catch
-  breakage.
+- A change under `src/common` can affect several independently built products; verify every affected
+  consumer and its container build.
+- Shared .NET sources must remain consumable both through the project and through direct source
+  inclusion. Do not rely on project-provided implicit or global usings, and verify representative
+  source-consuming projects alongside the standalone project.
+- Keep public surfaces small and dependencies explicit.
+- Place code shared only within a product area under `src/<Area>/common/<stack>`.

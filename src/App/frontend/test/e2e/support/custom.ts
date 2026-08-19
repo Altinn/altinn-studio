@@ -15,7 +15,6 @@ import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
-import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
@@ -120,21 +119,28 @@ Cypress.Commands.add('gotoNavPage', (page: string) => {
 
 Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
   cy.log('Clearing number formatted input field');
-  if (!subject) {
+  if (!subject?.length) {
     throw new Error('Subject is undefined');
+  }
+
+  // Prefer id over subject.selector — findByRole() sets a non-CSS selector that cy.get cannot parse.
+  const id = subject.attr('id');
+  const selector = id ? `#${id}` : subject.selector;
+
+  if (!selector) {
+    throw new Error('numberFormatClear requires cy.get("#id") or an element with an id attribute');
   }
 
   // Since we cannot use {selectall} on number formatted input fields, because react-number-format messes with
   // our selection, we need to delete the content by moving to the start of the input field and deleting one
-  // character at a time.
-  const strLength = subject.val()?.toString().length;
-  const del = new Array(strLength).fill('{del}').join('');
-
-  // We also add {moveToStart} multiple times to ensure that we are at the start of the input field, as
-  // react-number-format messes with our cursor position here as well.
-  const moveToStart = new Array(5).fill('{moveToStart}').join('');
-
-  cy.get(subject.selector!).type(`${moveToStart}${del}`);
+  // character at a time. Each delete is a separate command so React re-renders do not detach the subject mid-type.
+  cy.get(selector).type('{moveToStart}{moveToStart}{moveToStart}{moveToStart}{moveToStart}');
+  cy.get(selector).then(($input) => {
+    const strLength = $input.val()?.toString().length ?? 0;
+    for (let i = 0; i < strLength; i++) {
+      cy.get(selector).type('{del}', { delay: 0 });
+    }
+  });
 });
 
 interface KnownViolation extends Pick<axe.Result, 'id'> {
@@ -423,6 +429,14 @@ Cypress.Commands.add('testWcag', () => {
   cy.checkA11y(undefined, axeOptions, violationsCallback, skipFailures);
 });
 
+// cypress-axe finds axe-core with `require.resolve`, which throws "require is not defined" in a
+// browser bundle, and its fallback path does not account for axe-core being hoisted to the repo
+// root. The path is resolved in the Node process instead and exposed as `axeCorePath` (see
+// cypress.config.js), so every cy.injectAxe() call gets a working absolute path.
+Cypress.Commands.overwrite('injectAxe', (originalFn, injectOptions) =>
+  originalFn({ ...injectOptions, axeCorePath: Cypress.expose('axeCorePath') }),
+);
+
 Cypress.Commands.add('reloadAndWait', () => {
   cy.waitUntilSaved();
   cy.reload();
@@ -477,7 +491,7 @@ Cypress.Commands.add('moveProcessNext', () => {
     const maybeInstanceId = getInstanceIdRegExp().exec(url);
     const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
     const baseUrl =
-      Cypress.env('type') === 'localtest'
+      Cypress.expose('type') === 'localtest'
         ? Cypress.config().baseUrl || ''
         : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}`;
     const urlPath = url.replace(baseUrl, '');
@@ -502,7 +516,8 @@ Cypress.Commands.add('moveProcessNext', () => {
 Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, _options) => {
   const options = _options ?? { times: 1 };
   cy.intercept({ method: 'GET', url: `**/bootstrap-form/${taskName}*`, ...options }, (req) => {
-    req.reply((res) => {
+    req.on('before:response', (res) => {
+      const responseType = typeof res;
       const response = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
       const set = response?.layouts as ILayoutCollection;
 
@@ -515,7 +530,8 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
         wholeLayoutMutator(set);
       }
 
-      res.send({ ...response, layouts: set });
+      res.body =
+        responseType === 'string' ? JSON.stringify({ ...response, layouts: set }) : { ...response, layouts: set };
     });
   }).as(`interceptLayout(${taskName})`);
 });
@@ -1031,10 +1047,4 @@ Cypress.Commands.add('expectPageBreaks', (expectedCount: number) => {
 
 Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: boolean) => {
   cy.setCookie(`FEATURE_${toggleName}`, value.toString());
-});
-
-Cypress.Commands.add('preventPartySelection', () => {
-  interceptAltinnAppGlobalData((globalData) => {
-    globalData.applicationMetadata.promptForParty = 'never';
-  });
 });

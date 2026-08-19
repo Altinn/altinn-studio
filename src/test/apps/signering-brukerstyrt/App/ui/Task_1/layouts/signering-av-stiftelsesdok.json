@@ -22,7 +22,6 @@
       },
       {
         "id": "NavigationButtons-mkFwZY",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons",
         "grid": {

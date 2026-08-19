@@ -24,7 +24,7 @@ On-demand paginated search against the database. Not SSE-driven — user clicks 
 
 **Controls:**
 
-- Status checkboxes: Enqueued, Processing, Requeued, Completed, Failed, Canceled
+- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Completed, Failed, Canceled
 - Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
 - Text search (triggers on Enter)
@@ -78,12 +78,8 @@ Pushes workflow arrays. Uses PG NOTIFY to wake up on changes (2s timeout fallbac
 
 ```json
 {
-    "active": [
-        /* Workflow[] or null */
-    ],
-    "recent": [
-        /* Workflow[] or null */
-    ]
+    "active": [/* Workflow[] or null */],
+    "recent": [/* Workflow[] or null */]
 }
 ```
 
@@ -108,7 +104,9 @@ Paginated workflow search.
 
 Response: `{ totalCount: int, workflows: Workflow[] }`
 
-**Default statuses** (when `status` param is omitted): `Completed`, `Failed`, `Requeued`.
+**Default statuses** (when `status` param is omitted): `Completed`, `Failed`, `Requeued`. `Waiting` is
+recognized but not on by default — parked pollers would otherwise crowd out the terminal outcomes the
+Query view exists to surface.
 
 ### `GET /dashboard/step`
 
@@ -228,9 +226,11 @@ Reset a failed workflow back to Enqueued.
 
 Body: `{ "workflowId": "<guid>" }`
 
-### `POST /dashboard/skip-backoff`
+### `POST /dashboard/nudge`
 
-Clear backoff wait on a requeued workflow, making it immediately eligible for processing.
+Clear the pending backoff of a parked workflow (Requeued or Waiting), making it immediately eligible for
+processing. The dashboard face of `POST /api/v1/{namespace}/workflows/{id}/nudge` — same primitive, and
+the workflow is re-executed rather than skipped.
 
 Body: `{ "workflowId": "<guid>" }`
 
@@ -265,6 +265,7 @@ Horizontal row of step circles connected by SVG lines.
 - Processing: ◯ animated (blue pulse)
 - Failed: ✗ (red)
 - Requeued: ↻ (orange)
+- Waiting: ⌛ (cyan, slow pulse) — deferred, awaiting an external outcome
 - Canceled: — (gray)
 - Enqueued: ◯ outline (gray)
 
@@ -289,7 +290,7 @@ don't jump as retry/backoff/timing rows appear mid-processing; static pipelines
 drop the reservation. The phase-bracket headroom (`.pipeline-grouped`) applies only when at least
 one step maps to a phase.
 
-**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing or Requeued step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
+**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing, Requeued or Waiting step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
 
 **BPMN grouping:** Steps are grouped by task phase using `stepPhase()` which maps command detail names to `start`/`end`/`process-end` phases. Groups show bracket lines and task labels from `parseTransition()`. The transition is parsed from `operationId` (format: `"Process next: TaskA → TaskB"`).
 
@@ -346,7 +347,7 @@ The modal has four distinct DOM zones:
 ### Tabs
 
 1. **Details** (default) — Rows top to bottom:
-    - **Status row**: Status pill + backoff countdown (if Requeued) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued with >5s backoff remaining). All elements flex-aligned in a single row.
+    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued / Check now for Waiting, with >5s backoff remaining). All elements flex-aligned in a single row.
     - Idempotency Key
     - Created (formatted time + relative age)
     - Execution Started (if set)
@@ -371,7 +372,8 @@ The modal has four distinct DOM zones:
 ### Action Buttons
 
 - **Retry** — Shown for Failed steps in the status row. Calls `POST /dashboard/retry`.
-- **Retry now** (skip backoff) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/skip-backoff`.
+- **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/nudge`.
+- **Check now** (nudge) — The same control on a Waiting step, relabelled: the step is polling, not retrying. Same endpoint; only the wording changes, because "retry" misdescribes a step that never failed.
 
 **UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped" with success CSS class (stays disabled). On failure, text changes to "Failed" with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
 
@@ -474,7 +476,7 @@ compact cards in their original position. Group chrome and the history control l
 **Group anatomy:** a header row (label segments from the newest head member, workflow count,
 wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
 history control) above the shared chain rows. Aggregate status: an in-flight member wins
-(Processing/Requeued/Enqueued), then the worst terminal outcome, then Completed.
+(Processing/Requeued/Waiting/Enqueued), then the worst terminal outcome, then Completed.
 
 **Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
 fetches needed (`isHead` is already on the card DTOs). The **history** control fetches
@@ -533,7 +535,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
 - **Recent**: All, Completed, Failed, Abandoned
-- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Completed, Failed, Canceled
+- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Completed, Failed, Canceled
 
 ### Text Filter
 
@@ -576,7 +578,8 @@ All dashboard state is encoded in the URL query string via `syncUrl()` / `restor
 TypeDefs in `state.js`:
 
 ```typescript
-type StepStatus = 'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Canceled';
+type StepStatus =
+    'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled';
 type CommandType = 'app' | 'webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate';
 
 interface Step {

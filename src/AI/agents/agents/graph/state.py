@@ -1,5 +1,5 @@
 from typing import List, Optional, Literal, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from shared.models import AgentAttachment
 
 class ConversationMessage(BaseModel):
@@ -9,15 +9,67 @@ class ConversationMessage(BaseModel):
     sources: Optional[List[Dict[str, Any]]] = None  # Sources cited in assistant responses
 
 
+class FormSpecOption(BaseModel):
+    """One choice for a radio/checkbox/dropdown field.
+
+    Altinn needs both a display `label` (what the user sees) and a stable
+    `value` (what gets stored in the data model).  We keep them separate
+    so a label change later doesn't migrate stored data.
+    """
+    label: str
+    value: str
+
+
 class FormSpecField(BaseModel):
     """A single field extracted from a PDF/image attachment."""
     id: str  # Machine-friendly ID derived from label (e.g., "sokerens-navn")
     label: str  # Exact label text from the document (original language)
     description: Optional[str] = None  # Help text / tooltip content
     field_type: str  # text, checkbox, radio, dropdown, date, textarea, number, header, paragraph
-    options: Optional[List[str]] = None  # For radio/checkbox/dropdown
+    options: Optional[List[FormSpecOption]] = None  # For radio/checkbox/dropdown
     required: bool = False
     data_model_binding: Optional[str] = None  # Suggested binding path (e.g., "applicant.name")
+
+    @field_validator("options", mode="before")
+    @classmethod
+    def _coerce_options(cls, value: Any) -> Any:
+        """Lift legacy `List[str]` options to `List[{label, value}]`.
+
+        Older spec-extraction prompts sometimes return plain strings; we
+        normalise them so downstream code only ever sees the structured
+        form.  Slugifying the value here keeps stored data stable across
+        label edits.
+        """
+        if value is None:
+            return value
+        if not isinstance(value, list):
+            return value  # let pydantic raise the right error
+        coerced: List[Any] = []
+        for item in value:
+            if isinstance(item, str):
+                coerced.append({"label": item, "value": _slugify_option_value(item)})
+            else:
+                coerced.append(item)
+        return coerced
+
+
+def _slugify_option_value(text: str) -> str:
+    """Stable, code-safe value derived from an option's label.
+
+    `Ny bevilling` → `ny-bevilling`.  Lowercases, ASCII-folds the
+    Norwegian extras (æøå → ae/oe/aa), and collapses non-alphanumerics
+    to single hyphens.  Used only as a last-resort fallback — the model
+    should return explicit `value`s.
+    """
+    import re
+    folded = (
+        text.lower()
+        .replace("æ", "ae")
+        .replace("ø", "oe")
+        .replace("å", "aa")
+    )
+    slug = re.sub(r"[^a-z0-9]+", "-", folded).strip("-")
+    return slug or "option"
 
 
 class FormSpecPage(BaseModel):
@@ -60,7 +112,12 @@ class FormSpec(BaseModel):
             for f in page.fields:
                 label = self._sanitize(f.label)
                 desc = f" — {self._sanitize(f.description)}" if f.description else ""
-                opts = f" [{', '.join(self._sanitize(o, 80) for o in f.options[:20])}]" if f.options else ""
+                opts = (
+                    " [" + ", ".join(
+                        f"{self._sanitize(o.label, 60)} ({self._sanitize(o.value, 40)})"
+                        for o in f.options[:20]
+                    ) + "]"
+                ) if f.options else ""
                 req = " *" if f.required else ""
                 lines.append(f"    - [{f.field_type}] \"{label}\"{desc}{opts}{req}")
         return "\n".join(lines)
@@ -74,6 +131,10 @@ class AgentState(BaseModel):
     developer: str
     org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
+    # Hard permission gate: when False the loop runs read-only (write tools
+    # denied) — the "chat mode" of the unified path. Fail closed: write
+    # access is opt-in, so a constructor that omits the flag gets read-only.
+    allow_app_changes: bool = False
     attachments: List[AgentAttachment] = Field(default_factory=list)
     conversation_history: List[ConversationMessage] = Field(default_factory=list)  # Previous Q&A pairs
     form_spec: Optional[FormSpec] = None  # Structured spec extracted from attachments by spec agent
@@ -90,6 +151,5 @@ class AgentState(BaseModel):
     changed_files: List[str] = []
     verify_notes: List[str] = []
     tests_passed: Optional[bool] = None
-    mcp_degraded: bool = False  # True when MCP went down mid-request — results may be incomplete
     next_action: Literal["plan", "scan", "spec", "act", "verify", "review", "stop"] = "plan"
     limits: Dict[str, Any] = {"max_files": 50, "max_lines": 2000}  # Altinn apps need multiple files (layout, resources, models)

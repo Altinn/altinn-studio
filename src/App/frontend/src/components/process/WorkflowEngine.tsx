@@ -215,6 +215,22 @@ export function useIsWorkflowFailedOnCurrentServiceTask() {
   );
 }
 
+/**
+ * Determines whether the processing workflow is parked ON the current committed service task (a
+ * deferring step polling for its outcome) rather than a transition heading somewhere else. Lets a
+ * layouted service task render its own page for this state, exactly as it does when parked.
+ */
+export function useIsWorkflowProcessingOnCurrentServiceTask() {
+  const { data: process } = useProcessQuery();
+  const workflow = process?.workflow;
+  const currentTask = process?.currentTask;
+  return (
+    workflow?.status === 'processing' &&
+    currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK &&
+    workflow.targetTask === currentTask.elementId
+  );
+}
+
 function WorkflowFailedDetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>

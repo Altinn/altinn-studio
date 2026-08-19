@@ -16,15 +16,16 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { RepeatingGroupsFocusProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
-  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
-  useTextResources: jest.fn(() => ({
+vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
+  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
+  useTextResources: vi.fn(() => ({
     'option.label': { value: 'Value to be shown' },
     'button.open': { value: 'New open text' },
     'button.close': { value: 'New close text' },
@@ -111,8 +112,10 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
   return await renderWithInstanceAndLayout({
     renderer: (
       <RepeatingGroupProvider baseComponentId={group.id}>
-        <LeakEditIndex />
-        <RepeatingGroupContainer />
+        <RepeatingGroupsFocusProvider>
+          <LeakEditIndex />
+          <RepeatingGroupContainer />
+        </RepeatingGroupsFocusProvider>
       </RepeatingGroupProvider>
     ),
     queries: {
@@ -210,6 +213,91 @@ describe('RepeatingGroupContainer', () => {
     expect(within(editContainer).queryByText('Title2')).not.toBeInTheDocument();
     expect(within(editContainer).getByText('Title3')).toBeInTheDocument();
     expect(within(editContainer).getByText('Title4')).toBeInTheDocument();
+  });
+
+  it('moves focus to the top of the edit container when navigating between multiPage pages', async () => {
+    await render({
+      container: {
+        edit: {
+          ...mockContainer.edit,
+          multiPage: true,
+        },
+        children: ['0:field1', '0:field2', '1:field3', '1:field4'],
+      },
+    });
+
+    // Open the first row for editing (shows page 0 with field1/field2)
+    await userEvent.click(screen.getAllByRole('button', { name: /Rediger/i })[0]);
+    const editContainer = screen.getByTestId('group-edit-container');
+
+    // Navigate forward: focus should move to the first field on the new page, not stay on the button.
+    await userEvent.click(within(editContainer).getByRole('button', { name: /Neste/i }));
+    await waitFor(() => expect(document.activeElement).toHaveAccessibleName(/Title3/));
+
+    // Navigate back: focus should move to the first field on the previous page.
+    await userEvent.click(within(editContainer).getByRole('button', { name: /Tilbake/i }));
+    await waitFor(() => expect(document.activeElement).toHaveAccessibleName(/Title1/));
+  });
+
+  it("moves focus to the same row's edit button after saving and closing", async () => {
+    await render({ numRows: 3 });
+
+    // Open the second row (index 1) for editing
+    await userEvent.click(screen.getAllByRole('button', { name: /Rediger/i })[1]);
+
+    const editContainer = screen.getByTestId('group-edit-container');
+    await userEvent.click(within(editContainer).getByRole('button', { name: /Lagre og lukk/i }));
+
+    // Focus returns to the edit button of the same row (index 1), not the next row.
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAccessibleName(/Rediger/);
+      expect(document.activeElement?.closest('[data-row-num]')).toHaveAttribute('data-row-num', '1');
+    });
+  });
+
+  it('moves focus to the first field of the next edit container after save and open next', async () => {
+    await render({
+      container: {
+        edit: {
+          ...mockContainer.edit,
+          saveAndNextButton: true,
+        },
+      },
+      numRows: 3,
+    });
+
+    // Open the first row, then save and open next
+    await userEvent.click(screen.getAllByRole('button', { name: /Rediger/i })[0]);
+    const editContainer = screen.getByTestId('group-edit-container');
+    await userEvent.click(within(editContainer).getByRole('button', { name: /Lagre og åpne neste/i }));
+
+    // Focus moves to the first field in the next row's edit container, not its edit button.
+    await waitFor(() => expect(document.activeElement).toHaveAccessibleName(/Title1/));
+  });
+
+  it('does not move focus to the edit button when validation blocks saving', async () => {
+    await render({
+      container: {
+        validateOnSaveRow: ['All'],
+      },
+      validationIssues: [
+        {
+          customTextKey: 'Feltet er feil',
+          field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        } as BackendValidationIssue,
+      ],
+    });
+
+    await userEvent.click(screen.getAllByRole('button', { name: /Rediger/i })[0]);
+    await userEvent.click(screen.getAllByRole('button', { name: /Lagre og lukk/i })[1]);
+
+    await waitFor(() => expect(screen.getByText(/feltet er feil/i)).toBeInTheDocument());
+    // The row stays open and focus must remain inside the edit container, not jump to the edit button.
+    const editContainer = screen.getByTestId('group-edit-container');
+    expect(editContainer.contains(document.activeElement)).toBe(true);
   });
 
   it('should trigger validate when saving if validateOnSaveRow is set', async () => {
@@ -333,6 +421,36 @@ describe('RepeatingGroupContainer', () => {
 
     const closeButtons = screen.getAllByText('New close text');
     expect(closeButtons).toHaveLength(1);
+  });
+
+  it('should notify screen readers via a live region when a row is deleted', async () => {
+    await render({ numRows: 3 });
+
+    const status = screen.getByRole('status');
+    expect(status).toBeEmptyDOMElement();
+
+    await userEvent.click(screen.getAllByRole('button', { name: /Slett/i })[0]);
+    await waitFor(() => expect(status).toHaveTextContent('Rad slettet, 2 gjenstår'));
+
+    // The message must change on consecutive deletions; screen readers do not reliably re-announce
+    // identical live-region text, so a repeated identical message would go unread.
+    await userEvent.click(screen.getAllByRole('button', { name: /Slett/i })[0]);
+    await waitFor(() => expect(status).toHaveTextContent('Rad slettet, 1 gjenstår'));
+  });
+
+  it('should move focus to the previous row after deletion instead of letting it fall back to the page', async () => {
+    await render({ numRows: 3 });
+
+    // Delete the second row; focus should move to the first (previous) row.
+    await userEvent.click(screen.getAllByRole('button', { name: /Slett/i })[1]);
+
+    // Focus must land on an actionable element in the remaining previous row, not on document.body
+    // (which would make the screen reader announce the page title and skip the deletion message).
+    await waitFor(() => {
+      expect(document.activeElement).not.toBe(document.body);
+      expect(document.activeElement?.tagName).toBe('BUTTON');
+      expect(document.activeElement?.closest('[data-row-num]')).toHaveAttribute('data-row-num', '0');
+    });
   });
 
   it('should display textResourceBindings.save_button as save button if present', async () => {

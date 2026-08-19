@@ -69,7 +69,7 @@ public class PersonClient : IPersonClient
         request.Headers.Add("X-Ai-NationalIdentityNumber", nationalIdentityNumber);
         request.Headers.Add("X-Ai-LastName", ConvertToBase64(lastName));
 
-        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, ct);
+        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, ct);
 
         return await ReadResponse(response, ct);
     }
@@ -101,7 +101,7 @@ public class PersonClient : IPersonClient
             return null;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     private static string ConvertToBase64(string text)

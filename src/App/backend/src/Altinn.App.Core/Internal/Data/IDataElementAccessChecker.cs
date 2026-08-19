@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Core.Internal.Data;
 
-internal interface IDataElementAccessChecker
+/// <summary>
+/// Interface for checking if the current user has access to perform operations on data elements of an instance.
+/// </summary>
+public interface IDataElementAccessChecker
 {
     /// <summary>
     /// Checks if the user has access to read a data element of a given data type on an instance.

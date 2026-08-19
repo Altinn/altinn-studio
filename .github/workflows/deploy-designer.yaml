@@ -10,8 +10,13 @@ on:
       - 'src/Designer/backend/**'
       - 'src/Designer/frontend/**'
       - 'src/Designer/Dockerfile'
+      - 'src/common/dotnet/**'
+      - 'src/common/ts/**'
       - 'src/App/template/**'
       - 'package.json'
+      - 'yarn.lock'
+      - '.yarnrc.yml'
+      - '.yarn/**'
       - 'charts/altinn-designer/**'
       - 'charts/altinn-designer-config/**'
 
@@ -73,7 +78,7 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-designer-db-migrations
-      context: src/Designer/backend
+      context: src
       dockerfile: src/Designer/backend/Migrations.Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:

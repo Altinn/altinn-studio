@@ -114,7 +114,7 @@ public static class WebHostBuilderExtensions
             }
 
             configBuilder.AddJsonFile(
-                provider: secretsFileProvider ??= new PhysicalFileProvider(secretsDirectory),
+                provider: secretsFileProvider ??= CreateRuntimeSecretsFileProvider(secretsDirectory),
                 path: jsonFileName,
                 optional: true,
                 reloadOnChange: true
@@ -136,11 +136,20 @@ public static class WebHostBuilderExtensions
             }
 
             configBuilder.AddJsonFile(
-                provider: secretsFileProvider ??= new PhysicalFileProvider(secretsDirectory),
+                provider: secretsFileProvider ??= CreateRuntimeSecretsFileProvider(secretsDirectory),
                 path: jsonFileName,
                 optional: true,
                 reloadOnChange: true
             );
         }
     }
+
+    private static PhysicalFileProvider CreateRuntimeSecretsFileProvider(string secretsDirectory) =>
+        new(secretsDirectory)
+        {
+            // This path is normally a Kubernetes Secret/projected volume. Kubernetes updates it by swapping
+            // the ..data symlink target, so polling is required to detect credential changes reliably.
+            UsePollingFileWatcher = true,
+            UseActivePolling = true,
+        };
 }

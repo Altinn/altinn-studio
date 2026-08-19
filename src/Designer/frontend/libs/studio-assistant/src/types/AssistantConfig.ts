@@ -20,11 +20,26 @@ export interface AssistantMessageData {
   traceId?: string;
 }
 
+/**
+ * Activity phase the backend emits with status and chunk events. The UI
+ * highlights the matching pill in the activity row. Keep these strings in
+ * sync with `_PHASE_*` constants in `agents/graph/nodes/agentic_loop_node.py`.
+ */
+export type WorkflowPhase = 'thinking' | 'reading' | 'writing' | 'verifying' | 'committing';
+
 export interface WorkflowStatusData {
   message?: string;
   status?: string;
   done?: boolean;
   mode?: string;
+  phase?: WorkflowPhase;
+  /** Stable id of the model's tool_use block. Lets the frontend match
+   *  a follow-up call message to its pending placeholder and collapse
+   *  them into a single journal entry. */
+  tool_use_id?: string;
+  /** Marks this status as a placeholder emitted while the model is
+   *  still streaming the tool_use input.  Replaced when the call lands. */
+  pending?: boolean;
 }
 
 export interface WorkflowEventBase {
@@ -41,6 +56,17 @@ export interface WorkflowStatusEvent extends WorkflowEventBase {
   data: WorkflowStatusData;
 }
 
+export interface AssistantMessageChunkData {
+  text: string;
+  turn?: number;
+  phase?: WorkflowPhase;
+}
+
+export interface AssistantMessageChunkEvent extends WorkflowEventBase {
+  type: 'assistant_message_chunk';
+  data: AssistantMessageChunkData;
+}
+
 export interface DoneEvent extends WorkflowEventBase {
   type: 'done';
   data: { success?: boolean; message?: string };
@@ -48,10 +74,29 @@ export interface DoneEvent extends WorkflowEventBase {
 
 export interface ErrorEvent extends WorkflowEventBase {
   type: 'error';
-  data: { done?: boolean; success?: boolean; status?: string; message?: string };
+  data: {
+    done?: boolean;
+    success?: boolean;
+    status?: string;
+    message?: string;
+    /** Alternative goal phrasings the backend suggests when a goal is rejected. */
+    suggestions?: string[];
+  };
 }
 
-export type WorkflowEvent = AssistantMessageEvent | WorkflowStatusEvent | DoneEvent | ErrorEvent;
+/** The agent asks the user to allow changes in a read-only session. */
+export interface PermissionRequestEvent extends WorkflowEventBase {
+  type: 'permission_request';
+  data: { request_id: string; message: string };
+}
+
+export type WorkflowEvent =
+  | AssistantMessageEvent
+  | AssistantMessageChunkEvent
+  | WorkflowStatusEvent
+  | DoneEvent
+  | ErrorEvent
+  | PermissionRequestEvent;
 
 export interface WorkflowRequest {
   session_id: string;

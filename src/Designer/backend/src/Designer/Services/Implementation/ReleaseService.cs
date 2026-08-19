@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -267,7 +266,7 @@ public class ReleaseService : IReleaseService
 
         try
         {
-            string csprojContent = Encoding.UTF8.GetString(Convert.FromBase64String(appCsproj.Content));
+            byte[] csprojContent = Convert.FromBase64String(appCsproj.Content);
             string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
             return PackageVersionHelper.TryGetPackageVersionFromCsprojContent(

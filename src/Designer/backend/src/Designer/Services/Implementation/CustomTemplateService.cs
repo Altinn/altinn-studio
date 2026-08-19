@@ -270,7 +270,9 @@ public class CustomTemplateService : ICustomTemplateService
             }
         }
 
-        string templateContent = Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
+        using var stream = new MemoryStream(Convert.FromBase64String(file.Content));
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        string templateContent = await reader.ReadToEndAsync();
         var validationResult = await ValidateManifestJsonAsync(templateContent);
 
         if (validationResult.Count > 0)

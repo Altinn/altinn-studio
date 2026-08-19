@@ -31,6 +31,14 @@ namespace Designer.Tests.Services;
 
 public class RepositoryServiceTests
 {
+    private static AppTemplate TestAppTemplate() =>
+        new()
+        {
+            Id = "v8",
+            DisplayName = "Altinn App v8",
+            RootPath = Path.Combine("..", "..", "..", "..", "..", "..", "..", "App", "template", "v8", "src"),
+        };
+
     [Fact]
     public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
     {
@@ -129,7 +137,8 @@ public class RepositoryServiceTests
             await repositoryService.CreateService(
                 org,
                 new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName },
-                []
+                [],
+                TestAppTemplate()
             );
             var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory)
                 .GetAltinnGitRepository(org, repositoryName, developer)
@@ -412,7 +421,7 @@ public class RepositoryServiceTests
             };
 
             // Act
-            await repositoryService.CreateService(org, serviceConfig, templates);
+            await repositoryService.CreateService(org, serviceConfig, templates, TestAppTemplate());
 
             // Assert
             customTemplateServiceMock.Verify(
@@ -467,7 +476,7 @@ public class RepositoryServiceTests
             };
 
             // Act
-            await repositoryService.CreateService(org, serviceConfig, templates);
+            await repositoryService.CreateService(org, serviceConfig, templates, TestAppTemplate());
 
             // Assert
             customTemplateServiceMock.Verify(
@@ -529,7 +538,7 @@ public class RepositoryServiceTests
             };
 
             // Act
-            await repositoryService.CreateService(org, serviceConfig, []);
+            await repositoryService.CreateService(org, serviceConfig, [], TestAppTemplate());
 
             // Assert
             customTemplateServiceMock.Verify(
@@ -640,9 +649,8 @@ public class RepositoryServiceTests
 
         GeneralSettings generalSettings = new()
         {
-            TemplateLocation = @"../../../../../../../App/template/src",
-            DeploymentLocation = @"../../../../../../../App/template/src/deployment",
-            AppLocation = @"../../../../../../../App/template/src/App",
+            TemplateLocation = @"../../../../../../../App/template",
+            DefaultAppTemplate = "v8",
         };
 
         PlatformSettings platformSettings = new() { AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}" };

@@ -365,6 +365,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/xsdschema/{id},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/instance-selection,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -708,15 +717,6 @@
       },
       {
         endpoint: POST /{org}/{app}/api/testing/authorization/{instanceOwnerPartyId:int},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: POST {org}/{app}/api/v1/eventsreceiver,
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,

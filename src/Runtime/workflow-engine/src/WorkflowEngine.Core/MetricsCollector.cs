@@ -33,10 +33,12 @@ internal sealed class MetricsCollector(
                 var counts = await engineRepository.CountWorkflowsByStatus(stoppingToken);
                 var active = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Incomplete);
                 var scheduled = counts.Scheduled;
+                var waiting = counts.ByStatus.GetValueOrDefault(PersistentItemStatus.Waiting);
                 var failed = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Failed);
                 var successful = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Successful);
                 Metrics.SetActiveWorkflowsCount(active);
                 Metrics.SetScheduledWorkflowsCount(scheduled);
+                Metrics.SetWaitingWorkflowsCount(waiting);
                 Metrics.SetFailedWorkflowsCount(failed);
                 Metrics.SetSuccessfulWorkflowsCount(successful);
                 Metrics.SetFinishedWorkflowsCount(failed + successful);

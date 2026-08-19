@@ -9,9 +9,9 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "react-router-dom": "7.17.0"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-router-dom": "7.18.2"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",

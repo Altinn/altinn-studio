@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "AddressPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "AddressPage"
         }
@@ -17,7 +17,7 @@
       {
         "size": "h3",
         "id": "AddressPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Component"
         }
@@ -39,7 +39,7 @@
       {
         "size": "h3",
         "id": "AddressPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
@@ -53,7 +53,7 @@
       {
         "size": "h3",
         "id": "AddressPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }
@@ -70,7 +70,6 @@
       },
       {
         "id": "AddressPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

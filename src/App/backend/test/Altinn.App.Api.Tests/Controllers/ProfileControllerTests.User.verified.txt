@@ -86,7 +86,7 @@
           partyUuid: null,
           partyTypeName: 0,
           orgNumber: null,
-          ssn: 01039012345,
+          ssn: 010390*****,
           unitType: null,
           name: null,
           isDeleted: false,
