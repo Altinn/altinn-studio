@@ -1511,7 +1511,70 @@ blob: `WorkflowCallbackState` gains a field, and the callback controller's captu
 to thread it. That is a change to the app⇄engine state contract and to a documented per-callback
 lifecycle, in a different set of files from 7a, and it is the piece step 8's relay actually builds on.
 
-#### Step 7a — App-lib: `WithReplyFrom`, the mint, and `context.Mailbox` — `in review`
+#### Step 7a — App-lib: `WithReplyFrom`, the mint, and `context.Mailbox` — `done`
+
+Landed as jj change `nxumxzkz` — 31 files, +1849/−32, all under `src/App/backend` plus the app-owned
+`EngineContractTypes` list and snapshot in `workflow-engine-app`. `Altinn.App.Core.Tests` **3115 →
+3149**, `--filter ~WorkflowEngine` 268 → 286; Api 494, Fiks 183, engine 939, host 81 all unmoved. Two
+review rounds (survived an infra crash and a watchdog stall between them; the revision was intact each
+time).
+
+**Two defects caught here would have passed every test.** `ServiceTaskContext` is a `record`, so its
+synthesized `ToString()` reads _every_ public property — including the new computed `Mailbox`, which
+throws whenever no mailbox is available, i.e. on essentially every service-task execution. Nothing
+in-tree calls `ToString()` on it, so the suite was green while an app author's `_logger.LogDebug("{Context}",
+context)` or a debugger watch would throw a misleading "mailbox is not available". Fixed with a
+hand-written `PrintMembers` that never touches the throwing getter, pinned by a test that asserts both
+`ToString()` does not throw **and** the property still does — so the fix cannot silently degrade into a
+non-throwing property. **Step 8's `context.Reply` has the identical shape and must get the same
+treatment.**
+
+The second: the discarded-declaration guard was a mutable, monotonic, never-cleared flag on the
+pipeline, written on the receiver of `WithReplyFrom` and checked from four call sites. With a
+`static readonly` base pipeline shared by two tasks — a shape the worker's own new test blessed by
+caching — one task's declaration latched the base and **failed an unrelated task at startup, naming a
+call it never made**. Moved to the per-`ResolvePipeline` builder (fresh each call, so the mark cannot
+leak or persist), which also let the mutable property be deleted, making `ServiceTaskPipeline` genuinely
+immutable — the shape v2's residual asked for. The reviewer rebuilt the two-task poisoning case in a
+scratch project and confirmed it is gone.
+
+**A test that claimed to pin v2's caching regression did not** — it cached an _already-declared_
+pipeline and never re-invoked `WithReplyFrom`, so it was green under the broken design too (the seventh
+such test this stack has caught). Two new tests now pin the real shapes: cached _undeclared_ base
+declared per call, and the shared-base non-poisoning.
+
+Other decisions: **`MailboxResponse.UnconsumedDeliveries` is carried as `{ get; init; }`, not
+recomputed** — an expression-bodied getter made `System.Text.Json` discard the sent value and silently
+recompute it, and the wire guard checks field _shape_ only, so a future engine rule change would drift
+unnoticed; duplicating engine arithmetic is the one thing the guard cannot protect. **A `429` at mint
+gets a named `MailboxMintResult.AtCapacity`** carrying the engine's detail — the retry decision is
+unchanged (the engine returns the existing mailbox even at cap, so a `429` is always a first mint, and a
+cap hit means this instance holds 100 open mailboxes, a runaway relieved only by a sibling `DELETE` or a
+deadline days out), but ops now sees the named collection on the first failure rather than a bare `429`.
+
+What steps 7b/8 inherit:
+
+- **`context.Reply` needs the same `PrintMembers` fix** as `context.Mailbox`, for the same reason.
+- The discard guard lives on the per-call builder; **any new `ResolvePipeline`-style entry point must
+  construct the builder itself** to keep the mark call-scoped. Its one uncaught shape — declaring off a
+  foreign/static base and returning it — still fails loudly at runtime via the stage's `context.Mailbox`
+  read, and the complete fix is the recorded analyzer follow-up (an "unused `WithReplyFrom` result"
+  diagnostic beside `ALTINNAPP0700`), not more runtime state.
+- The mint is keyed on `AppCallbackPayload.StepId`, `CollectionKey` = the instance guid via
+  `ProcessNextRequestFactory.CreateCollectionKey`; both stable across attempts, so replays land on the
+  published address. An empty `StepId` fails permanently — a constant key would collapse every mailbox
+  in the namespace onto one inbox.
+- `FakeWorkflowEngineClient.MintMailbox` (Api.Tests) now mints idempotently on `(ns, key)`, so later
+  integration-style tests get replay semantics for free; it models the address, not the rendezvous, and
+  does **not** yet model `429`.
+- **Step 8 owns the CHANGELOG entry.** 7a's entry was removed rather than shipped: a declaring pipeline
+  today still concludes as an ordinary Main step with no answer, so the entry as written documented a
+  reachable trap, not an incomplete feature.
+
+Residuals: a deferring declaring stage re-mints once per defer re-check (idempotent; 7b's state-blob
+carry removes it); `MailboxUnavailableReason` is built eagerly for a rarely-thrown exception;
+`DisposedReason`/`DisposedAt` on `MailboxResponse` are unreachable until step 8; the mint has no
+telemetry (telemetry additions are breaking in this repo).
 
 Paths: `src/App/backend`, plus `EngineContractTypes` and the snapshot in `workflow-engine-app`.
 
@@ -1529,7 +1592,7 @@ until an app consumer exists. This step must add `MailboxCreateRequest`/`Mailbox
 to model their members in this same step (enum `Kind` is compared as an exact string; a nullable
 field may be omitted, an enum member may not).
 
-#### Step 7b — App-lib: the expansion's appended enqueue step — `todo`
+#### Step 7b — App-lib: the expansion's appended enqueue step — `in progress`
 
 Paths: `src/App/backend`.
 
