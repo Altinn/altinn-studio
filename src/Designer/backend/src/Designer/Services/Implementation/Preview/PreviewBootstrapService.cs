@@ -164,8 +164,43 @@ public class PreviewBootstrapService(
         {
             ["layouts"] = JsonSerializer.SerializeToNode(layouts, s_jsonSerializerOptions),
             ["dataModels"] = dataModels,
-            ["staticOptions"] = new JsonObject(),
+            ["staticOptions"] = await BuildStaticOptionsNode(altinnAppGitRepository, cancellationToken),
         };
+    }
+
+    /// <summary>
+    /// App/options/*.json keyed by options id. The app backend only includes the lists the layouts refer
+    /// to, but every list in the repo is cheap to include here. Ids not covered - library references and
+    /// options provided by app code - still fall back to the options API in app-frontend.
+    /// </summary>
+    private static async Task<JsonObject> BuildStaticOptionsNode(
+        AltinnAppGitRepository altinnAppGitRepository,
+        CancellationToken cancellationToken
+    )
+    {
+        JsonObject staticOptions = new();
+        foreach (string optionsListId in altinnAppGitRepository.GetOptionsListIds())
+        {
+            JsonNode? options;
+            try
+            {
+                options = JsonNode.Parse(
+                    await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken)
+                );
+            }
+            catch (Exception ex) when (ex is NotFoundException or JsonException)
+            {
+                // Options lists are editable in Studio, so a malformed file must not break the preview.
+                continue;
+            }
+
+            if (options is JsonArray optionsArray)
+            {
+                staticOptions[optionsListId] = new JsonObject { ["options"] = optionsArray };
+            }
+        }
+
+        return staticOptions;
     }
 
     /// <inheritdoc />
