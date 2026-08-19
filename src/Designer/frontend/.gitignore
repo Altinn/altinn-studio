@@ -19,3 +19,6 @@ script.js
 
 # Vite build output
 dist/
+
+# Written by stats.js
+stats.csv
