@@ -15,6 +15,7 @@ export * from './IFrame';
 export * from './ImageUpload';
 export * from './Image';
 export * from './InstanceInformation';
+export * from './InstantiationButton';
 export * from './Link';
 export * from './Option';
 export * from './Paragraph';
