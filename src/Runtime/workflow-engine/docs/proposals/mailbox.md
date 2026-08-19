@@ -274,7 +274,7 @@ receiver becomes runnable in exactly three ways, each of which fixes the truth f
 
 Deliveries to a closed mailbox are refused, so from the moment a receiver is fetchable, **whether a
 delivery exists at its position can never change again**. The executor infers the callback from
-that frozen fact: read the waiter's `seq` (one primary-key read, the analogue of v2's
+that frozen fact: read the receiver's `seq` (one unique-index probe on `workflow_id`, the analogue of v2's
 `ReadInheritedChainState` hop), read `mailbox_deliveries (mailbox_id, seq)` — present → attach the
 payload; absent → the no-delivery callback. There is no resolution column, no CAS, and nothing
 for the executor to write; every attempt, retry, and resume re-derives the same answer.
@@ -1102,12 +1102,19 @@ nothing to attach to here. Retention: a `disposed` mailbox past the cutoff purge
 and waiters, children first, in the existing maintenance sweep. Metric:
 `engine.mailboxes.deliveries.unconsumed`.
 
-#### Step 5b — Engine: the dashboard — `todo` (deferred until after step 6)
+#### Step 5b — Engine: the dashboard and the mailbox alerts — `in progress`
 
-**Order changed by the orchestrator (2026-08-19):** step 6 runs first. 5b is fully unblocked by
-[step 5c](#step-5c--engine-register-every-receivers-position--done) and nothing depends on it, while
-step 6 is the last engine piece the app-lib steps 7–10 all wait on. Observability follows the
-contract.
+Ran after step 6 rather than before it (step 6 was the last engine piece steps 7–10 waited on;
+nothing waits on the dashboard). **Two observability gaps from earlier steps are folded in here**,
+because they are the same kind of work and each is currently a documented promise with nothing to
+hang on:
+
+1. **No gauge of open mailboxes past their deadline.** 5a's docs say such a mailbox "is an invariant
+   violation worth an alert, not a GC policy" — and nothing makes it observable. The sweep closes
+   them, so a persistent one means the sweep is not running or not draining.
+2. **No metric on step 6's two critical states.** `Unregistered` and `Undecided` log at `Error` and
+   raise the ordinary execution-failed counter, so an operator alert on "the engine is violating its
+   own rendezvous invariant" has only the log to hang on.
 
 Paths: `src/Runtime/workflow-engine` (`DashboardEndpoints`, `DashboardMapper`, `wwwroot`, a new
 repository read).
@@ -1231,7 +1238,83 @@ Pin: every birth state leaves exactly one registry row with the right `seq`; a r
 is never touched by the wake or the closure release (mutation-test it, do not assert it); and the
 counters still agree with the registry after mixed births.
 
-#### Step 6 — Engine + host: the delivery callback contract — `in progress`
+#### Step 6 — Engine + host: the delivery callback contract — `done`
+
+Landed as jj change `psytnsym` — 24 files, +1994/−19. Engine suite **866 → 892**; host **76 → 81**;
+`Altinn.App.Core.Tests --filter ~WorkflowEngine` 268 with **no `src/App/backend` source change at all**.
+No migration. Two review rounds. **The engine's contract is complete: an app can now receive.**
+
+**The read is one statement, not the two this document described**, and the reason is better than the
+one first offered. Joining `mailbox_receivers` (by `UNIQUE (workflow_id)`) to `mailboxes` and
+`LEFT JOIN`ing `mailbox_deliveries (mailbox_id, seq)` costs one unique-index probe plus two
+primary-key probes, three index scans and 13 buffers, verified on a seeded database. The obvious
+argument — one snapshot, so the registry row and the delivery row cannot be read at different
+instants — is true but **not load-bearing**, since the frozen rule already makes every legitimate
+answer stable. The payoff is in the illegitimate case: split into two statements under
+`READ COMMITTED`, a read could see "no delivery" (a genuine bug) and then a concurrent close one
+statement later, and report the bug as an ordinary closing signal — **laundering an invariant
+violation through traffic that happens constantly.** One snapshot is what keeps the new error state
+from being silenceable by a race.
+
+**Two states the rendezvous cannot produce are modeled rather than folded into "no delivery"** —
+`Unregistered` (no registry row) and `Undecided` (open mailbox, nothing at this position) — and both
+fail the step **critically**. Folding either is the one degradation the contract cannot survive,
+because "no delivery" is not an absence of information: it is the instruction to conclude the
+exchange. Returning null or throwing would be worse — the executor's generic catch maps exceptions to
+`RetryableError`, so a purged log would climb a ladder that cannot help it. The severity is argued in
+the code rather than assumed: retryable is defensible for `Undecided` (the handler is never called, so
+the frozen-meaning hazard never materializes, and the deadline sweep would self-heal it) and loses
+because a self-healing invariant violation is one nobody investigates, and healing would make the
+retry ladder load-bearing in a rendezvous built so a parked receiver needs no timer.
+
+**Step 4's suggested fold was declined, and the suggestion turned out to be wrong on its own terms.**
+Folding the wake-to-claim stamp into this read would make the first attempt's statement differ from
+every other — the exact asymmetry this step exists to remove. Two further grounds emerged in review:
+`RecordWakeToClaimLatency` issues **one** `UPDATE … WHERE workflow_id = ANY(@ids)` per _batch_, not
+per claimed receiver, so folding would move a once-per-batch write onto a once-per-attempt retry
+ladder — a multiplication, not a saving; and after a pod crash between claim and execute, a fold would
+record the _re_-claim, inflating the histogram by a whole lease timeout precisely in the incidents
+worth measuring. The stamp stays in the fetch. `held_at`'s projection guard is untouched.
+
+**`MailboxReceipt` applies the same principle to itself.** A private constructor and two factories —
+`Delivered(mailboxId, seq, delivery)` and `Closed(mailboxId, seq, reason)` — make the third state
+unconstructible; get-only properties (not `init`) close the `with`-expression path too, verified by
+compiling probes for all three routes. A bonus fell out: folding `Undecided` into the closing signal
+now requires _inventing_ a disposal reason to satisfy the factory, so the type erects a second barrier
+in front of the degradation the step forbids. The refactor could not disturb the wire because the host
+owns curated DTOs and `EngineContractTypes`' roots stop at them — the layering that makes steps 7–10
+safe to build on.
+
+**A third test was found green against a state the engine cannot reach.** Step 4's
+`WakeThatCommittedWithoutItsNotify_…` released a receiver with no delivery on a still-open mailbox as
+shorthand — which is exactly `Undecided`, so this step turned it red. Its helper now reproduces the
+wake's whole transaction minus the notification, verified statement-for-statement against the real
+one, and the test is stronger than before because it exercises the executor's read end to end.
+
+What steps 7–10 inherit:
+
+- The callback's `mailbox` block is **nullable**, present only on a receive workflow's **first** step;
+  `delivery` and `disposedReason` are **exclusive** — exactly one is present. An absent `delivery`
+  means _closed, conclude_; the reason is for wording only. It serializes as `"mailbox": null` on
+  ordinary callbacks, consistent with every other optional field on that payload.
+- `delivery.idempotencyKey` is the **forwarding source's own message id** (step 9's `POST` key), stable
+  across every attempt — the natural dedup key for handler side effects.
+- `seq` is on the wire for logging and tracing. It is **not** the enqueue key: saga invariant 3 (keys
+  derived from the executing step id) stands unchanged.
+- `disposedReason` serializes Pascal-cased (`"Request"`/`"Deadline"`), and `MailboxDisposedReason` is
+  already in the committed snapshot — so when step 7 adds `MailboxResponse` to `EngineContractTypes`,
+  its `disposedReason` will already agree.
+- **`AwaitNextReply` on a no-delivery callback is not enforced by the engine.** The engine guarantees
+  only the callback's meaning; that check is entirely step 8's.
+- `WorkflowEngine.TestApp.ReceivingCommand` (`"test-receive"`) records the receipt per attempt and can
+  fail retryably or terminally — reusable wherever a later step needs to see what a receive step was
+  handed.
+
+Residuals: no query-plan test for the per-attempt read (verified by hand — three index probes, no
+`ORDER BY … LIMIT` crossover subtlety, so lower value than 5a's two); the reader's positional offsets
+are coupled to its inline `SELECT` by convention, as steps 1–2 recorded for their column lists; the
+executor's `ProcessingOrder == 0` gate relies on step 3's enqueue validation with nothing pinning the
+two together; and one 10-second bounded token joins 5a's wall-clock thresholds.
 
 Paths: `src/Runtime/workflow-engine` (executor), `src/Runtime/workflow-engine-app` (`AppCommand`
 shapes, wire-contract snapshot), and the app-lib DTO copies the guard forces.
