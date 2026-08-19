@@ -59,7 +59,7 @@ export type FormItemConfigs = {
   [
     T in Exclude<
       ComponentType | CustomComponentType,
-      ComponentType.OrganisationLookup | ComponentType.Header
+      ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
     >
   ]: FormItemConfig<T>;
 } & Partial<{
@@ -240,20 +240,6 @@ export const formItemConfigs: FormItemConfigs = {
       minNumberOfAttachments: 1,
     },
     propertyPath: 'definitions/fileUploadComponent',
-    icon: PaperclipIcon,
-  },
-  [ComponentType.FileUploadWithTag]: {
-    name: ComponentType.FileUploadWithTag,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      displayMode: 'list',
-      hasCustomFileEndings: false,
-      maxFileSizeInMB: 25,
-      maxNumberOfAttachments: 1,
-      minNumberOfAttachments: 1,
-      optionsId: '',
-    },
-    propertyPath: 'definitions/fileUploadWithTagComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.Grid]: {
@@ -575,7 +561,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
-  formItemConfigs[ComponentType.FileUploadWithTag],
   formItemConfigs[ComponentType.Button],
   formItemConfigs[ComponentType.CustomButton],
   formItemConfigs[ComponentType.NavigationButtons],
@@ -663,7 +648,6 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
   attachment: [
     ComponentType.AttachmentList,
     ComponentType.FileUpload,
-    ComponentType.FileUploadWithTag,
     ComponentType.ImageUpload,
   ],
   container: [

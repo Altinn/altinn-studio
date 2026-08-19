@@ -14,7 +14,6 @@ export class FilterUtils {
     const unsupportedSubformComponents: Array<FormItemConfigs[ComponentType]> = [
       formItemConfigs[ComponentType.Button],
       formItemConfigs[ComponentType.FileUpload],
-      formItemConfigs[ComponentType.FileUploadWithTag],
       formItemConfigs[ComponentType.InstantiationButton],
       formItemConfigs[ComponentType.Payment],
       formItemConfigs[ComponentType.Subform],

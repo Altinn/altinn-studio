@@ -27,10 +27,7 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
       if (!layout) return;
 
       return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout }).then(() => {
-        if (
-          componentType === ComponentType.FileUpload ||
-          componentType === ComponentType.FileUploadWithTag
-        ) {
+        if (componentType === ComponentType.FileUpload) {
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const {
