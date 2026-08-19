@@ -677,11 +677,12 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         Assert.Equal(0L, waiter.Seq);
         Assert.Equal(workflowId, waiter.WorkflowId);
 
-        // Characterization, not aspiration: this step gives the delivery a waiter to find and stops
-        // there. The wake that releases it — and stamps released_at — is step 4's, so a receiver held
-        // here never wakes, whatever arrives.
-        Assert.Null(waiter.ReleasedAt);
-        Assert.Equal(PersistentItemStatus.Held, await StatusOf(workflowId));
+        // And finding the waiter is what wakes it: the delivery releases the receiver in its own
+        // transaction and stamps the instant on the waiter row. The rendezvous itself, along with the
+        // interleavings and the atomicity proof, lives in MailboxRendezvousTests — asserted here only far
+        // enough to show that the waiter this step registers is the thing the wake consumes.
+        Assert.NotNull(waiter.ReleasedAt);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
     }
 
     [Fact]

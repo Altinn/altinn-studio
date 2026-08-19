@@ -566,20 +566,17 @@ internal sealed class Engine(
         CancellationToken cancellationToken = default
     )
     {
-        var result = await repository.CloseMailbox(
+        // The closure metrics — the close itself and the receivers it released — are published by the
+        // repository, after the transaction that performed them commits. They belong to the routine
+        // rather than to this entry point, because the deadline sweep runs the same routine without
+        // passing through here.
+        return await repository.CloseMailbox(
             mailboxId,
             ns,
             MailboxDisposedReason.Request,
             timeProvider.GetUtcNow(),
             cancellationToken
         );
-
-        // Only the close that actually happened counts. A repeat close, or one that lost to the
-        // deadline, changed nothing and is not a second closure.
-        if (result is MailboxCloseResult.Closed)
-            Metrics.MailboxesClosed.Add(1, ("reason", MailboxStatusMap.ToDbValue(MailboxDisposedReason.Request)));
-
-        return result;
     }
 
     /// <summary>
@@ -640,6 +637,9 @@ internal sealed class Engine(
 
         // Counted for every outcome, the pre-lock refusals included, so a storm of oversized or
         // misaddressed forwards is visible in the mailbox metrics and not only in HTTP status codes.
+        // The outcome tag stays here because it is the only counter that covers refusals decided before
+        // the database is reached. The wake the delivery may have performed is counted by the repository,
+        // beside the release itself.
         Metrics.MailboxDeliveriesReceived.Add(1, ("outcome", MailboxDeliveryOutcomeTag(result)));
 
         return result;

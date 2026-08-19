@@ -25,6 +25,140 @@ internal sealed partial class EngineRepository
     /// </summary>
     private const string MailboxDeliveryColumns = "d.mailbox_id, d.idx, d.idempotency_key, d.accepted_at";
 
+    /// <summary>
+    /// The one statement that ever releases a parked receiver — v2's <c>Held</c>-release, joined through
+    /// the waiter registry — used by both of the design's exactly two releases: the wake, which passes the
+    /// position a delivery just landed at, and the closure release, which passes none and takes every
+    /// waiter the mailbox has.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One statement rather than two so the status transition and the <c>released_at</c> stamp cannot
+    /// diverge: a receiver is runnable exactly when its waiter says it was released. It is also the whole
+    /// compound lock acquisition in the design — the caller already holds the mailbox row, and this takes
+    /// the workflow rows — so the order <c>mailbox row → workflow row</c> is a property of this statement
+    /// existing only here.
+    /// </para>
+    /// <para>
+    /// The <c>@seq IS NULL</c> disjunction is what makes it one routine instead of two near-copies. It
+    /// costs nothing: a mailbox holds at most <c>MaxMailboxLogLength</c> waiters, and <c>mailbox_id</c>
+    /// alone is the leading column of the waiters' primary key, so both shapes are an index scan over a
+    /// handful of rows.
+    /// </para>
+    /// <para>
+    /// <c>released_at IS NULL</c> and <c>status = @held</c> are both guards rather than filters, and they
+    /// guard different things. The stamp keeps the first release's instant when a second release looks at
+    /// the same row; the status keeps a release from resurrecting a receiver that has since been claimed,
+    /// run, or settled. Neither can fire in a correct engine — a closed mailbox refuses deliveries, so
+    /// nothing can wake a waiter the closure released — and both are cheap enough that proving that by
+    /// inspection is not worth the risk of being wrong.
+    /// </para>
+    /// </remarks>
+    private const string ReleaseMailboxWaitersSql = """
+        WITH released AS (
+            UPDATE engine.workflows AS w
+            SET status = @enqueued,
+                backoff_until = NULL,
+                updated_at = @now
+            FROM engine.mailbox_waiters AS mw
+            WHERE mw.mailbox_id = @mailbox_id
+              AND (@seq IS NULL OR mw.seq = @seq)
+              AND mw.released_at IS NULL
+              AND w.id = mw.workflow_id
+              AND w.status = @held
+            RETURNING w.id
+        )
+        UPDATE engine.mailbox_waiters AS mw
+        SET released_at = @now
+        FROM released
+        WHERE mw.workflow_id = released.id
+        """;
+
+    /// <summary>
+    /// Releases parked receivers of one mailbox and returns how many became runnable.
+    /// </summary>
+    /// <param name="conn">A connection whose transaction already holds the mailbox's row lock.</param>
+    /// <param name="tx">The transaction the release must be part of — the delivery's, or the closure's.</param>
+    /// <param name="mailboxId">The mailbox whose waiters are released.</param>
+    /// <param name="seq">
+    /// The single position to release, or <c>null</c> to release every parked receiver. The wake passes
+    /// the <c>idx</c> the delivery took; the closure release passes <c>null</c>.
+    /// </param>
+    /// <param name="now">The release instant, stamped on both the workflow and the waiter.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private static async Task<int> ReleaseMailboxWaiters(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        Guid mailboxId,
+        long? seq,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var cmd = new NpgsqlCommand(ReleaseMailboxWaitersSql, conn, tx);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid>("mailbox_id", mailboxId));
+        cmd.Parameters.Add(
+            new NpgsqlParameter("seq", NpgsqlDbType.Bigint) { Value = seq.HasValue ? seq.Value : DBNull.Value }
+        );
+        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+        cmd.Parameters.Add(new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued));
+        cmd.Parameters.Add(new NpgsqlParameter<int>("held", (int)PersistentItemStatus.Held));
+        return await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The wake: releases the receiver standing at <paramref name="seq"/>, if one is, and returns whether
+    /// it did. At most one receiver can be waiting there — <c>(mailbox_id, seq)</c> is the waiters' primary
+    /// key — so the answer is a yes or a no rather than a count.
+    /// </summary>
+    private static async Task<bool> ReleaseWaiterAt(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        Guid mailboxId,
+        long seq,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    ) => await ReleaseMailboxWaiters(conn, tx, mailboxId, seq, now, cancellationToken) > 0;
+
+    /// <summary>
+    /// The closure release: releases every receiver still parked on the mailbox and returns how many
+    /// there were. Every one of them, not the next one — a closed mailbox accepts no further deliveries,
+    /// so all their truths were frozen at the same instant.
+    /// </summary>
+    private static Task<int> ReleaseAllWaiters(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        Guid mailboxId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    ) => ReleaseMailboxWaiters(conn, tx, mailboxId, seq: null, now, cancellationToken);
+
+    /// <summary>
+    /// Signals the processor that a release made work runnable.
+    /// </summary>
+    /// <remarks>
+    /// Issued <em>inside</em> the releasing transaction, which is not a shortcut for "after commit" but a
+    /// stronger version of it: PostgreSQL queues a <c>NOTIFY</c> until its transaction commits and drops
+    /// it on rollback, so the notification is delivered exactly when the release is durable. Sending it
+    /// after <c>COMMIT</c> instead would add a statement that can fail on an already-committed
+    /// transaction, and <see cref="ExecuteWithRetry"/> would then re-run the whole delegate — turning a
+    /// delivery that <em>was</em> accepted into a <c>Duplicate</c> answer for the caller. The engine's
+    /// write-back path takes the same position for the same reason.
+    /// <para>
+    /// Either way the signal is acceleration and nothing else: a release that commits and never notifies
+    /// is picked up by the next fetch cycle, which is a property the design depends on and a test pins.
+    /// </para>
+    /// </remarks>
+    private static async Task NotifyStatusChanged(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var cmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx);
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     /// <inheritdoc/>
     public async Task<MailboxMintResult> MintMailbox(
         Guid mailboxId,
@@ -247,53 +381,14 @@ internal sealed partial class EngineRepository
                         return;
                     }
 
-                    // Whoever closed it first wins, including the deadline sweep: the replay reports the
-                    // original reason and instant rather than overwriting them with this call's.
-                    if (locked.Status == MailboxStatus.Disposed)
-                    {
-                        await tx.CommitAsync(ct);
-                        result = new MailboxCloseResult.AlreadyClosed(locked);
-                        return;
-                    }
-
-                    const string closeSql = $"""
-                        UPDATE engine.mailboxes AS m
-                        SET status = '{MailboxStatusMap.Disposed}',
-                            disposed_reason = @reason,
-                            disposed_at = @now
-                        WHERE m.id = @id
-                        RETURNING {MailboxColumns}
-                        """;
-
-                    await using (var closeCmd = new NpgsqlCommand(closeSql, conn, tx))
-                    {
-                        closeCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
-                        closeCmd.Parameters.Add(
-                            new NpgsqlParameter<string>("reason", MailboxStatusMap.ToDbValue(reason))
-                        );
-                        closeCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-
-                        await using var reader = await closeCmd.ExecuteReaderAsync(ct);
-
-                        // Unreachable: we hold this row's lock, and nothing deletes a mailbox out from
-                        // under one. Kept as a loud failure rather than a silent NotFound, and knowingly
-                        // classified wrong — RetryErrorHandler treats InvalidOperationException as
-                        // transient, so this would retry to the command timeout and be logged as a
-                        // suspected database outage. Correcting that means widening the classifier's
-                        // abort set, which is a shared decision for every repository operation and does
-                        // not belong to the one call site that would benefit.
-                        if (!await reader.ReadAsync(ct))
-                            throw new InvalidOperationException(
-                                $"Mailbox {mailboxId} vanished while its row lock was held."
-                            );
-
-                        result = new MailboxCloseResult.Closed(ReadMailbox(reader));
-                    }
+                    result = await CloseLockedMailbox(conn, tx, locked, reason, now, ct);
 
                     await tx.CommitAsync(ct);
                 },
                 cancellationToken
             );
+
+            result.Record();
 
             return result;
         }
@@ -307,6 +402,80 @@ internal sealed partial class EngineRepository
             logger.FailedMailboxOperation("close", mailboxId, ex.Message, ex);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Closes a mailbox whose row the caller has already locked and read: mark it disposed, and release
+    /// every receiver parked on it. This is the whole closure routine, and there is exactly one of it —
+    /// the caller's only job is to hold the row.
+    /// </summary>
+    /// <remarks>
+    /// Split from <see cref="CloseMailbox"/> so the deadline sweep can run the identical routine from
+    /// under its own claim. The sweep's <c>FOR UPDATE SKIP LOCKED</c> claim <em>is</em> the mailbox row
+    /// lock this method requires, so it calls straight in with
+    /// <see cref="MailboxDisposedReason.Deadline"/>; nothing about "closed by request" or "closed at the
+    /// deadline" differs below, which is what makes a <c>DELETE</c> racing the sweep a first-writer-wins
+    /// no-op rather than two half-closures.
+    /// <para>
+    /// Releasing under the same lock is what makes closure safe against an in-flight receiver enqueue:
+    /// the enqueue either got the lock first, in which case its waiter is in the set released here, or it
+    /// waits and then reads a disposed mailbox and is born runnable with the closing signal. There is no
+    /// interleaving that parks a receiver on a closed mailbox, which would be a receiver nothing could
+    /// ever release.
+    /// </para>
+    /// </remarks>
+    private static async Task<MailboxCloseResult> CloseLockedMailbox(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        MailboxResponse locked,
+        MailboxDisposedReason reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        // Whoever closed it first wins, including the deadline sweep: the replay reports the original
+        // reason and instant rather than overwriting them with this call's. It releases nothing either,
+        // and cannot need to — the first close released every waiter that existed, and an enqueue against
+        // a closed mailbox parks no new one.
+        if (locked.Status == MailboxStatus.Disposed)
+            return new MailboxCloseResult.AlreadyClosed(locked);
+
+        const string closeSql = $"""
+            UPDATE engine.mailboxes AS m
+            SET status = '{MailboxStatusMap.Disposed}',
+                disposed_reason = @reason,
+                disposed_at = @now
+            WHERE m.id = @id
+            RETURNING {MailboxColumns}
+            """;
+
+        MailboxResponse closed;
+        await using (var closeCmd = new NpgsqlCommand(closeSql, conn, tx))
+        {
+            closeCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", locked.Id));
+            closeCmd.Parameters.Add(new NpgsqlParameter<string>("reason", MailboxStatusMap.ToDbValue(reason)));
+            closeCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+
+            await using var reader = await closeCmd.ExecuteReaderAsync(cancellationToken);
+
+            // Unreachable: we hold this row's lock, and nothing deletes a mailbox out from under one.
+            // Kept as a loud failure rather than a silent NotFound, and knowingly classified wrong —
+            // RetryErrorHandler treats InvalidOperationException as transient, so this would retry to the
+            // command timeout and be logged as a suspected database outage. Correcting that means
+            // widening the classifier's abort set, which is a shared decision for every repository
+            // operation and does not belong to the one call site that would benefit.
+            if (!await reader.ReadAsync(cancellationToken))
+                throw new InvalidOperationException($"Mailbox {locked.Id} vanished while its row lock was held.");
+
+            closed = ReadMailbox(reader);
+        }
+
+        var released = await ReleaseAllWaiters(conn, tx, locked.Id, now, cancellationToken);
+
+        if (released > 0)
+            await NotifyStatusChanged(conn, tx, cancellationToken);
+
+        return new MailboxCloseResult.Closed(closed, new MailboxReleaseCounts(Delivered: 0, Closed: released));
     }
 
     /// <inheritdoc/>
@@ -430,6 +599,7 @@ internal sealed partial class EngineRepository
                         RETURNING {MailboxDeliveryColumns}
                         """;
 
+                    MailboxDeliveryResponse appended;
                     await using (var appendCmd = new NpgsqlCommand(appendSql, conn, tx))
                     {
                         appendCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
@@ -452,13 +622,38 @@ internal sealed partial class EngineRepository
                                 $"Mailbox {mailboxId} vanished while its row lock was held."
                             );
 
-                        result = new MailboxDeliveryResult.Accepted(ReadMailboxDelivery(reader));
+                        appended = ReadMailboxDelivery(reader);
                     }
+
+                    // The wake, and it is inside the delivery's own transaction rather than after it.
+                    // That is the property the whole rendezvous rests on: a held receiver has no timer of
+                    // its own, so "the message is durable but the wake was lost" would park it until the
+                    // mailbox's deadline with a message sitting at its position the entire time. Sharing
+                    // the transaction makes that state one the database cannot hold, and a test proves it
+                    // by transaction id rather than by observation.
+                    //
+                    // Exactly two interleavings, and the mailbox row lock is what leaves no third: either
+                    // a receiver already registered at this position and is released here, or none has
+                    // yet and the enqueue's own `seq < next_idx` comparison — taken under this same lock —
+                    // will find the message waiting for it.
+                    var released = await ReleaseWaiterAt(conn, tx, mailboxId, appended.Idx, now, ct);
+
+                    if (released)
+                        await NotifyStatusChanged(conn, tx, ct);
+
+                    result = new MailboxDeliveryResult.Accepted(appended, released);
 
                     await tx.CommitAsync(ct);
                 },
                 cancellationToken
             );
+
+            // Counted here rather than a layer up, and after the commit rather than beside the statement,
+            // for the reason every release metric in this file shares: the release happens here, so a
+            // caller that reaches the wake by any route counts it without having to know the tag exists.
+            // A release that rolled back is not a release.
+            if (result is MailboxDeliveryResult.Accepted { ReleasedReceiver: true })
+                new MailboxReleaseCounts(Delivered: 1, Closed: 0).Record();
 
             return result;
         }
@@ -548,6 +743,31 @@ internal abstract record MailboxMintResult
 }
 
 /// <summary>
+/// How many receivers a release made runnable, split by the only two causes there are, and how to
+/// publish that.
+/// </summary>
+/// <remarks>
+/// Modeled on <c>MailboxBirthCounts</c> and published for the same reason: after the commit, because a
+/// release that rolled back released nobody. It travels on the result rather than being emitted where
+/// the statement runs, so a caller that performs a release inside its own transaction — the deadline
+/// sweep claims mailboxes with <c>FOR UPDATE SKIP LOCKED</c> and calls
+/// <c>CloseLockedMailbox</c> directly — publishes the same telemetry by calling
+/// <see cref="MailboxCloseResult.Record"/> after its own commit, instead of re-deriving which counters
+/// and tag values a closure owes.
+/// </remarks>
+internal readonly record struct MailboxReleaseCounts(int Delivered, int Closed)
+{
+    public void Record()
+    {
+        if (Delivered > 0)
+            Metrics.MailboxReceiversReleased.Add(Delivered, new KeyValuePair<string, object?>("cause", "delivered"));
+
+        if (Closed > 0)
+            Metrics.MailboxReceiversReleased.Add(Closed, new KeyValuePair<string, object?>("cause", "closed"));
+    }
+}
+
+/// <summary>
 /// Outcome of closing a mailbox.
 /// </summary>
 internal abstract record MailboxCloseResult
@@ -555,9 +775,42 @@ internal abstract record MailboxCloseResult
     private MailboxCloseResult() { }
 
     /// <summary>
-    /// This call closed the mailbox.
+    /// Publishes whatever telemetry this outcome owes, and nothing when it owes none. Call it once, after
+    /// the transaction that produced it has committed.
     /// </summary>
-    internal sealed record Closed(MailboxResponse Mailbox) : MailboxCloseResult;
+    public virtual void Record() { }
+
+    /// <summary>
+    /// This call closed the mailbox, releasing every receiver parked on it in the same transaction. Each
+    /// of them runs the no-delivery path and concludes in the app's own words; the count tells an
+    /// operator whether anybody was still waiting when the exchange ended.
+    /// </summary>
+    internal sealed record Closed(MailboxResponse Mailbox, MailboxReleaseCounts Released) : MailboxCloseResult
+    {
+        /// <summary>
+        /// Counts the closure and the receivers it released together, because they are one event. The
+        /// reason is read from the row that was actually written rather than from the parameter that
+        /// asked for it, so the tag can never describe a close this call did not perform.
+        /// </summary>
+        /// <remarks>
+        /// The pattern match cannot fail: <c>ck_mailboxes_disposal_is_complete</c> is biconditional, so a
+        /// disposed mailbox always carries a reason and this record is only ever built from one. It is
+        /// written as a match rather than asserted, because a metric is the wrong place to discover that
+        /// the constraint was weakened.
+        /// </remarks>
+        public override void Record()
+        {
+            if (Mailbox.DisposedReason is { } reason)
+            {
+                Metrics.MailboxesClosed.Add(
+                    1,
+                    new KeyValuePair<string, object?>("reason", MailboxStatusMap.ToDbValue(reason))
+                );
+            }
+
+            Released.Record();
+        }
+    }
 
     /// <summary>
     /// The mailbox was already closed, by an earlier call or by the deadline. Carries the mailbox as it
@@ -586,8 +839,12 @@ internal abstract record MailboxDeliveryResult
 
     /// <summary>
     /// This call appended the delivery, which now holds the position it reports.
+    /// <paramref name="ReleasedReceiver"/> says whether a receiver was parked at that position and was
+    /// woken in the same transaction — bookkeeping for the release metric, not a difference the caller
+    /// answers differently: acceptance is not consumption, and a message that arrives before its receiver
+    /// is as accepted as one that arrives after it.
     /// </summary>
-    internal sealed record Accepted(MailboxDeliveryResponse Delivery) : MailboxDeliveryResult;
+    internal sealed record Accepted(MailboxDeliveryResponse Delivery, bool ReleasedReceiver) : MailboxDeliveryResult;
 
     /// <summary>
     /// The idempotency key had already delivered a message into this mailbox, and it is returned at the

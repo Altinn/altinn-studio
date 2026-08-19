@@ -604,12 +604,25 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_CannotEvenReadTheMailboxWhileItsRowLockIsHeldElsewhere()
     {
-        // The structural half. The close's first act is SELECT ... FOR UPDATE, so with the row lock held
-        // by someone else it cannot reach a verdict at all — not even the "already closed" one, which a
-        // read-before-lock implementation would happily return from a stale snapshot. Splitting the lock
-        // off from the decision would turn this test red.
+        // The structural half, and it is exercised through the one verdict a read-before-lock
+        // implementation could reach without ever writing: the mailbox is *already closed* before the
+        // racing close starts. Such an implementation would read the disposed row from its own snapshot
+        // and answer AlreadyClosed immediately, so it is red here; this one takes SELECT ... FOR UPDATE as
+        // the transaction's first act and cannot answer until the lock is free.
+        //
+        // Racing a close against an *open* mailbox would prove nothing — that close has to write, and a
+        // write blocks on the row lock whatever order the code reads in.
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
+        Assert.IsType<MailboxCloseResult.Closed>(
+            await repository.CloseMailbox(
+                minted.Id,
+                Ns,
+                MailboxDisposedReason.Request,
+                DateTimeOffset.UtcNow,
+                TestContext.Current.CancellationToken
+            )
+        );
 
         await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
         await blocker.OpenAsync(TestContext.Current.CancellationToken);
@@ -635,11 +648,14 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
-        Assert.False(close.IsCompleted, "CloseMailbox reached a verdict while the mailbox row lock was held.");
+        Assert.False(
+            close.IsCompleted,
+            "CloseMailbox answered from an unlocked read: it reported the mailbox already closed while the row lock was held elsewhere."
+        );
 
         await blockingTx.RollbackAsync(TestContext.Current.CancellationToken);
 
-        Assert.IsType<MailboxCloseResult.Closed>(await close);
+        Assert.IsType<MailboxCloseResult.AlreadyClosed>(await close);
     }
 
     #endregion

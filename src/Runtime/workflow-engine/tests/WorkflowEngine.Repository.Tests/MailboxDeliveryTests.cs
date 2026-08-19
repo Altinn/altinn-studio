@@ -614,11 +614,11 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task AcceptedDelivery_SitsAtItsPositionAndWakesNobody()
     {
-        // A characterization test for the gap the rendezvous closes later. In this step a delivery is
-        // durable and addressable and that is all it is: there is no waiter registry for it to release, so
-        // the receivers log never moves and the message counts as unconsumed no matter how long it waits.
-        // The step that adds the wake is the one that must make this test's second half stop being true —
-        // by giving a receiver a position to be released at, not by making acceptance do anything else.
+        // Acceptance is not consumption, and it stays that way now the rendezvous exists: a message with
+        // nobody waiting at its position releases nothing, moves the receivers log not at all, and counts
+        // as unconsumed for as long as it waits. The wake did not change what acceptance does — it gave
+        // the message somebody to find, which is a different mailbox and a different test
+        // (MailboxRendezvousTests).
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 

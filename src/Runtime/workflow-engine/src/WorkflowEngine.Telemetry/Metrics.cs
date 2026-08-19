@@ -346,6 +346,46 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of parked receivers released to run, tagged with <c>cause</c>: <c>delivered</c> when a
+    /// delivery landed at the receiver's position, <c>closed</c> when the mailbox closed and no delivery
+    /// ever can. Those are the only two things that release a receiver, so the two tag values partition
+    /// the counter exactly.
+    /// </summary>
+    /// <remarks>
+    /// Read against <see cref="MailboxReceiversCreated"/>'s <c>held</c> value, this is the relay's
+    /// balance sheet: every receiver born held is eventually released by one cause or the other, so a
+    /// persistent gap means receivers are parked on mailboxes whose deadline has not come round yet, and
+    /// a <c>closed</c> share that climbs means exchanges are ending without their last message. Counted
+    /// once per receiver — both release paths skip a waiter that already carries a release stamp — so the
+    /// number is receivers released, not release statements executed.
+    /// </remarks>
+    public static readonly Counter<long> MailboxReceiversReleased = Meter.CreateCounter<long>(
+        "engine.mailboxes.receivers.released",
+        description: "Number of parked mailbox receivers released to run, tagged by cause (delivered or closed)"
+    );
+
+    /// <summary>
+    /// Histogram of wake-to-claim latency: from the instant a receiver was released — by its delivery or
+    /// by the mailbox closing — to the instant a worker first claimed it.
+    /// </summary>
+    /// <remarks>
+    /// The number that shows whether the wake is doing its job. A held receiver is unfetchable and has no
+    /// timer, so the release is the only thing that can make it runnable, and this measures the gap
+    /// between "the engine decided it may run" and "the engine actually picked it up" — the part
+    /// <c>NOTIFY</c> accelerates and the fetch cycle bounds. Recorded once per release, by the first
+    /// claim: the fetch stamps the waiter's <c>claimed_at</c> under <c>claimed_at IS NULL</c>, so a
+    /// receiver that fails and retries reports its wake latency once instead of reporting its whole
+    /// retry ladder. A receiver born runnable was never woken and is never recorded here. Clamped at
+    /// zero: the release and the claim are timed on two pods' clocks, and clock skew belongs in a
+    /// clock-skew alert rather than in this histogram's lower tail.
+    /// </remarks>
+    public static readonly Histogram<double> MailboxReceiverWakeLatency = Meter.CreateHistogram<double>(
+        "engine.mailboxes.receivers.wake_latency",
+        "s",
+        "Seconds between a mailbox receiver being released and a worker first claiming it. Recorded once per release."
+    );
+
+    /// <summary>
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(

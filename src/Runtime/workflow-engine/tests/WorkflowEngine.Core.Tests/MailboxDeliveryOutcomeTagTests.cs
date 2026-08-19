@@ -46,7 +46,7 @@ public sealed class MailboxDeliveryOutcomeTagTests
     /// </summary>
     private static readonly (MailboxDeliveryResult Result, string Tag)[] _cases =
     [
-        (new MailboxDeliveryResult.Accepted(_delivery), "accepted"),
+        (new MailboxDeliveryResult.Accepted(_delivery, ReleasedReceiver: false), "accepted"),
         (new MailboxDeliveryResult.Duplicate(_delivery), "duplicate"),
         (new MailboxDeliveryResult.NotFound(), "not_found"),
         (new MailboxDeliveryResult.Closed(_mailbox), "closed"),

@@ -51,5 +51,18 @@ internal sealed class MailboxWaiterEntity
     /// closing — or <c>null</c> while it is still parked. Bookkeeping for operators and for the
     /// wake-to-claim latency measurement; the receiver's own status is the authority on whether it ran.
     /// </summary>
+    /// <remarks>
+    /// Written exactly once, by whichever release got there first: both release paths skip waiters that
+    /// already carry a stamp, so the value always records the release that actually made the receiver
+    /// runnable rather than the last statement that looked at the row.
+    /// </remarks>
     public DateTimeOffset? ReleasedAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets when a worker first claimed the released receiver, or <c>null</c> until one does.
+    /// The other end of the wake-to-claim measurement, and the reason that measurement can be trusted:
+    /// the fetch stamps it under <c>claimed_at IS NULL</c>, so each release is timed once and a receiver
+    /// that fails and retries does not report its whole retry ladder as wake latency.
+    /// </summary>
+    public DateTimeOffset? ClaimedAt { get; set; }
 }
