@@ -1,6 +1,6 @@
 # Failure-storm throttling: a namespace circuit breaker for the workflow engine
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team Apps
 - Date: 13.08.2026
 
