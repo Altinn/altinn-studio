@@ -70,10 +70,12 @@ internal sealed class CorrespondenceApiMigration
         "GetDataBytes",
     };
 
-    /// <summary>Written-out types that mean "byte payload" when a declaration names one.</summary>
-    private static readonly IReadOnlySet<string> _byteTypeNames = new HashSet<string>(StringComparer.Ordinal)
+    /// <summary>
+    /// Written-out types that mean "memory payload" when a declaration names one: the type is settled,
+    /// but no mechanical rewrite compiles (the <c>MemoryStream</c> constructor takes an array).
+    /// </summary>
+    private static readonly IReadOnlySet<string> _memoryTypeNames = new HashSet<string>(StringComparer.Ordinal)
     {
-        "byte[]",
         "ReadOnlyMemory<byte>",
         "Memory<byte>",
         "ReadOnlyMemory<byte>?",
@@ -301,8 +303,9 @@ internal sealed class CorrespondenceApiMigration
                     );
 
                 case DataKind.ProvenMemory:
-                    // The semantic model settled the type; only the fix needs a human, because the
-                    // MemoryStream constructor takes an array, not a ReadOnlyMemory/Memory value.
+                    // The type is settled (bound overload or written-out declaration); only the fix
+                    // needs a human, because the MemoryStream constructor takes an array, not a
+                    // ReadOnlyMemory/Memory value.
                     Unresolved.Add(
                         $"{_file.RelativePath}:{_file.GetLine(original)}: `WithData({argument.Expression})` - "
                             + "WithData(ReadOnlyMemory<byte>) is removed and this argument is a "
@@ -332,8 +335,9 @@ internal sealed class CorrespondenceApiMigration
             Stream,
 
             /// <summary>
-            /// Semantically proven <c>ReadOnlyMemory&lt;byte&gt;</c>/<c>Memory&lt;byte&gt;</c>: the type
-            /// is known, but no mechanical rewrite compiles.
+            /// Proven <c>ReadOnlyMemory&lt;byte&gt;</c>/<c>Memory&lt;byte&gt;</c> — by overload
+            /// resolution or a written-out declaration: the type is known, but no mechanical
+            /// rewrite compiles.
             /// </summary>
             ProvenMemory,
         }
@@ -438,9 +442,14 @@ internal sealed class CorrespondenceApiMigration
                 return DataKind.Stream;
             }
 
-            if (_byteTypeNames.Contains(typeName) || typeName.StartsWith("byte[", StringComparison.Ordinal))
+            if (typeName.StartsWith("byte[", StringComparison.Ordinal))
             {
                 return DataKind.Bytes;
+            }
+
+            if (_memoryTypeNames.Contains(typeName))
+            {
+                return DataKind.ProvenMemory;
             }
 
             return DataKind.Unknown;

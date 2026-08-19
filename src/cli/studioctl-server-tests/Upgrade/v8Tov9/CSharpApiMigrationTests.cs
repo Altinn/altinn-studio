@@ -1340,16 +1340,18 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // Provably bytes - wrapped.
         Assert.Contains("WithData(new MemoryStream(raw))", migrated);
-        Assert.Contains("WithData(new MemoryStream(vedlegg.Innhold))", migrated);
         Assert.Contains("WithData(new MemoryStream(Encoding.UTF8.GetBytes(_text)))", migrated);
         Assert.Contains("WithData(new MemoryStream(\"literal\"u8.ToArray()))", migrated);
+
+        // Provably ReadOnlyMemory<byte> (declared in the app) - reported, never wrapped: the
+        // MemoryStream constructor takes an array, so the wrap would not compile.
+        Assert.Contains("WithData(vedlegg.Innhold);", migrated);
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("cannot be wrapped in a MemoryStream directly"));
 
         // Provably a stream - untouched. Wrapping either of these would not compile.
         Assert.Contains("WithData(new MemoryStream(_bytes));", migrated);
         Assert.DoesNotContain("new MemoryStream(new MemoryStream", migrated);
         Assert.Contains("WithData(open);", migrated);
-
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be rewritten automatically"));
     }
 
     [Fact]

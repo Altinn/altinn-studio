@@ -204,11 +204,18 @@ internal sealed class CSharpSourceScanner
         }
 
         // The compilation's trees carry the paths MSBuild gave them; index by full path so each disk
-        // file can adopt its compiled tree (and thereby a semantic model) when one exists.
+        // file can adopt its compiled tree (and thereby a semantic model) when one exists. The comparer
+        // follows the platform: case-insensitive where the file system is (MSBuild may report a casing
+        // that differs from the directory enumeration), ordinal where it is not — two files differing
+        // only by case are distinct there, and folding them would pair a file with the other's tree.
         Dictionary<string, SyntaxTree>? treesByPath = null;
         if (_compilation is not null)
         {
-            treesByPath = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
+            treesByPath = new Dictionary<string, SyntaxTree>(
+                OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
+                    ? StringComparer.OrdinalIgnoreCase
+                    : StringComparer.Ordinal
+            );
             foreach (var tree in _compilation.SyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath))
