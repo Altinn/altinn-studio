@@ -23,10 +23,10 @@ wwwroot/
     shared/                          — reusable UI building blocks (imports from core/ only)
       cards.js                       — all card renderers (full, compact, scheduled), filter data, label segments
       chain.js                       — chain rows: spine layout (edge-based + creation-order), inline row expansion
-      chain-groups.js                — collection group chrome + history cache, shared by recent & query chains modes
+      chain-groups.js                — collection group chrome + history and mailbox caches, shared by recent & query chains modes
       pipeline.js                    — buildPipelineHTML(), step nodes, connectors, phase grouping, retry/skip buttons
       section.js                     — collapse/expand, compact/full toggle, card expand
-      timers.js                      — requestAnimationFrame timer loop for elapsed counters + backoff countdowns
+      timers.js                      — requestAnimationFrame timer loop for elapsed counters, backoff countdowns, mailbox deadline/park counters
     features/                        — one file per visible UI section (imports from core/ and shared/)
       header.js                      — engine status badges + capacity meters (workers, DB, HTTP)
       scheduled.js                   — scheduled workflows fetch + badge
@@ -72,6 +72,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/state`        | GET    | State evolution modal                                |
 | `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
 | `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
+| `/dashboard/mailboxes`    | GET    | Mailbox blocks under the collection groups (chains views) |
 | `/dashboard/retry`        | POST   | Retry a failed workflow                              |
 | `/dashboard/nudge`        | POST   | Clear the pending backoff of a parked (requeued or waiting) workflow |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
@@ -87,5 +88,6 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 - Grafana trace links built from workflow `traceId` for Tempo integration
 - Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, collectionKey, labels)
 - Retry button on failed pipeline steps, nudge button on parked steps with a backoff timer
+- Mailboxes are the one non-workflow noun the dashboard draws. A render pass records the collections it drew and reads their mailboxes as one batch per namespace, chunked to fit the server's request line; the per-collection TTL is short for a collection that has mailboxes or a receive workflow on screen and long (60s) for one that answered empty, so an engine that never mints a mailbox is not charged for the feature. A 5s timer re-reads the last pass's collections once there is any evidence of mailboxes — an exchange advances without any workflow changing, so no other render pass would ever come. The two live counters (`data-deadline`, `data-parked-since`) ride the same timer loop as the elapsed and backoff counters
 
 For full behavioral spec (sections, endpoint contracts, card anatomy, filtering mechanics, modal behavior, URL state sync), see `DASHBOARD_SPEC.md` (same directory).

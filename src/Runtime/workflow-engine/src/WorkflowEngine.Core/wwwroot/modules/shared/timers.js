@@ -1,7 +1,8 @@
-/* Timers — workflow elapsed + step backoff countdowns */
+/* Timers — workflow elapsed, step backoff countdowns, and the two mailbox counters
+ * (a deadline counting down, a parked receiver counting up) */
 
 import { state } from '../core/state.js';
-import { formatElapsed } from '../core/helpers.js';
+import { formatElapsed, formatSpan } from '../core/helpers.js';
 
 export const updateTimers = () => {
     const now = Date.now();
@@ -23,6 +24,27 @@ export const updateTimers = () => {
         const remaining =
             (new Date(el.getAttribute('data-starts-at') ?? '').getTime() - now) / 1000;
         el.textContent = remaining > 0 ? `starts in ${formatElapsed(remaining)}` : 'starting...';
+    }
+
+    // A mailbox's deadline is the only bound on an exchange, so it counts down rather than being
+    // stated: what an operator wants from an open mailbox is how long is left, and past the deadline
+    // the overcount is the sweep's lateness.
+    for (const el of document.querySelectorAll('[data-deadline]')) {
+        const deadline = new Date(el.getAttribute('data-deadline') ?? '').getTime();
+        if (Number.isNaN(deadline)) continue;
+        const remaining = (deadline - now) / 1000;
+        el.textContent =
+            remaining > 0
+                ? `closes in ${formatSpan(remaining)}`
+                : `overdue ${formatSpan(-remaining)}`;
+        el.classList.toggle('mbx-overdue', remaining <= 0);
+    }
+
+    // A receiver still parked has no park duration to state — the server sends none, deliberately —
+    // so the card counts up from the stamp instead.
+    for (const el of document.querySelectorAll('[data-parked-since]')) {
+        const since = new Date(el.getAttribute('data-parked-since') ?? '').getTime();
+        el.textContent = Number.isNaN(since) ? '' : formatSpan((now - since) / 1000);
     }
 
     requestAnimationFrame(updateTimers);
