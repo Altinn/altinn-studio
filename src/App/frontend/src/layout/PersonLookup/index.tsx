@@ -71,7 +71,7 @@ export class PersonLookup extends PersonLookupDef {
   }
 
   validateEmptyField(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {
-    return validateEmptyFieldOnlyOneBinding(ctx, 'person_lookup_ssn');
+    return validateEmptyFieldOnlyOneBinding(ctx, 'ssn');
   }
 
   validateDataModelBindings(
@@ -80,7 +80,7 @@ export class PersonLookup extends PersonLookupDef {
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
     return (
-      validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'person_lookup_ssn', [
+      validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'ssn', [
         'string',
       ])[0] ?? []
     );

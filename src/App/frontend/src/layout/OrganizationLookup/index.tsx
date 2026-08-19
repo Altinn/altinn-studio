@@ -36,7 +36,7 @@ export class OrganizationLookup extends OrganizationLookupDef {
   }
 
   validateEmptyField(ctx: ComponentValidationContext<'OrganizationLookup'>): ComponentValidation[] {
-    return validateEmptyFieldOnlyOneBinding(ctx, 'organization_lookup_orgnr', 'organization_lookup.error_required');
+    return validateEmptyFieldOnlyOneBinding(ctx, 'orgnr', 'organization_lookup.error_required');
   }
 
   validateDataModelBindings(
@@ -50,7 +50,7 @@ export class OrganizationLookup extends OrganizationLookupDef {
         bindings,
         lookupBinding,
         layoutLookups,
-        'organization_lookup_orgnr',
+        'orgnr',
         ['string'],
       )[0] ?? []
     );

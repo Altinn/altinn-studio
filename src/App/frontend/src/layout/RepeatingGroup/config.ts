@@ -39,7 +39,7 @@ export const Config = new CG.component({
     new CG.trb({
       name: 'addButtonFull',
       title: 'Add button (full) (for repeating groups)',
-      description: 'The text for the "Add" button (overrides "add_button", and sets the full text for the button)',
+      description: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
     }),
   )
   .addTextResource(
