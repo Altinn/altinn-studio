@@ -127,9 +127,6 @@ export function MultipleSelect({
       changeMessageGenerator,
     );
 
-  const toggleValue = (value: string) =>
-    values.includes(value) ? values.filter((v) => v !== value) : [...values, value];
-
   const showVisibleLabel = !renderedInTable && renderLabel !== false;
 
   return (
@@ -214,12 +211,15 @@ export function MultipleSelect({
           />
           <Suggestion.List>
             <Suggestion.Empty>{lang('form_filler.no_options_found')}</Suggestion.Empty>
+            {/* Selection is driven solely by the combobox's onSelectedChange. Do NOT add an
+                onClick handler to the options: React flushes its update before the click reaches
+                the u-datalist pipeline, which then finds the just-added chip and interprets the
+                same click as a removal — deselecting the value (or falsely alerting). */}
             {options.map((option) => (
               <Suggestion.Option
                 key={option.value}
                 value={option.value}
                 label={langAsString(option.label)}
-                onClick={() => handleChange(toggleValue(option.value))}
               >
                 <span>
                   <wbr />

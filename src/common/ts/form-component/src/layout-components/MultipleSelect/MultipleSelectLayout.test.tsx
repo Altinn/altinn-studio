@@ -40,17 +40,37 @@ const getInput = (container: HTMLElement) =>
 
 const getPopover = (container: HTMLElement) => container.querySelector('.ds-popover');
 
-// A selected value is rendered both as a chip and as an option in the list, so text queries can be
-// ambiguous. Clicking the `<u-option>` element fires the option's onClick (React attaches it to the
-// host element regardless of the web-component upgrade), which drives the real selection wiring.
-const clickOption = (label: string) => {
-  const option = Array.from(document.querySelectorAll('u-option')).find((el) =>
-    el.textContent?.includes(label),
-  );
-  if (!option) {
-    throw new Error(`Found no option labeled ${label}`);
+// Selection must flow through the combobox's `comboboxbeforeselect` event — the component
+// deliberately has no click handler on the options (see the comment in MultipleSelectLayout).
+// The `<u-combobox>` custom element does not upgrade in jsdom, so we emulate its contract: the
+// Designsystemet Suggestion listens for `comboboxbeforeselect` whose `detail` is a `<data>`
+// element — a connected one (an existing chip) means "remove", a detached one means "add".
+const dispatchBeforeSelect = (detail: HTMLDataElement) => {
+  const combobox = document.querySelector('u-combobox');
+  if (!combobox) {
+    throw new Error('Found no u-combobox element');
   }
-  fireEvent.click(option);
+  // The non-upgraded element lacks the u-combobox `multiple` getter (backed by data-multiple).
+  Object.defineProperty(combobox, 'multiple', { value: true, configurable: true });
+  fireEvent(
+    combobox,
+    new CustomEvent('comboboxbeforeselect', { detail, bubbles: true, cancelable: true }),
+  );
+};
+
+const selectOption = (value: string, label: string) => {
+  const data = document.createElement('data');
+  data.value = value;
+  data.textContent = label;
+  dispatchBeforeSelect(data);
+};
+
+const removeSelected = (value: string) => {
+  const chip = Array.from(document.querySelectorAll('data')).find((el) => el.value === value);
+  if (!chip) {
+    throw new Error(`Found no selected chip with value ${value}`);
+  }
+  dispatchBeforeSelect(chip);
 };
 
 describe('MultipleSelect', () => {
@@ -102,21 +122,19 @@ describe('MultipleSelect', () => {
     expect(screen.getByText('Snakkes i Danmark')).toBeInTheDocument();
   });
 
-  it('adds the clicked value to the selection', () => {
+  it('adds a newly selected value to the selection', () => {
     const onChange = vi.fn();
-    // Clicking an option fires the option's onClick (React attaches it to the host element regardless
-    // of the web-component upgrade), which drives the real selection wiring in MultipleSelectLayout.
     render({ values: ['norsk'], onChange });
 
-    clickOption('Svensk');
+    selectOption('svensk', 'Svensk');
     expect(onChange).toHaveBeenCalledWith(['norsk', 'svensk']);
   });
 
-  it('removes an already-selected value when it is clicked again', () => {
+  it('removes an already-selected value when it is deselected', () => {
     const onChange = vi.fn();
     render({ values: ['norsk', 'svensk'], onChange });
 
-    clickOption('Svensk');
+    removeSelected('svensk');
     expect(onChange).toHaveBeenCalledWith(['norsk']);
   });
 
@@ -124,7 +142,7 @@ describe('MultipleSelect', () => {
     const onChange = vi.fn();
     render({ values: ['norsk'], alertOnChange: true, onChange });
 
-    clickOption('Svensk');
+    selectOption('svensk', 'Svensk');
     expect(onChange).toHaveBeenCalledWith(['norsk', 'svensk']);
   });
 
@@ -132,7 +150,7 @@ describe('MultipleSelect', () => {
     const onChange = vi.fn();
     const { container } = render({ values: ['norsk', 'svensk'], alertOnChange: true, onChange });
 
-    clickOption('Svensk');
+    removeSelected('svensk');
 
     // The change is suspended: the alert message names the removed value and onChange has not fired yet.
     expect(getPopover(container)).toHaveTextContent('Are you sure you want to delete Svensk?');
@@ -147,7 +165,7 @@ describe('MultipleSelect', () => {
     const onChange = vi.fn();
     const { container } = render({ values: ['norsk', 'svensk'], alertOnChange: true, onChange });
 
-    clickOption('Svensk');
+    removeSelected('svensk');
 
     // The cancel label resolves from the text resources ('general.cancel' → 'Cancel' in en).
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
