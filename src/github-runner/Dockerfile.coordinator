@@ -13,7 +13,7 @@ RUN cargo build \
     --manifest-path github-runner/coordinator/Cargo.toml \
     && strip --strip-unneeded \
       /source/github-runner/coordinator/target/release/github-runner-sandbox-coordinator \
-      /source/github-runner/coordinator/target/release/github-runner-sandbox-prepared-image
+      /source/github-runner/coordinator/target/release/sandbox-image
 
 FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea AS runtime-bundle
 
@@ -47,8 +47,8 @@ COPY --from=build \
   /source/github-runner/coordinator/target/release/github-runner-sandbox-coordinator \
   /usr/local/bin/github-runner-sandbox-coordinator
 COPY --from=build \
-  /source/github-runner/coordinator/target/release/github-runner-sandbox-prepared-image \
-  /usr/local/bin/github-runner-sandbox-prepared-image
+  /source/github-runner/coordinator/target/release/sandbox-image \
+  /usr/local/bin/sandbox-image
 COPY --from=runtime-bundle \
   /runtime/microsandbox-linux-x86_64.tar.gz \
   /runtime/checksums.sha256 \

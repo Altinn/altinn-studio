@@ -11,8 +11,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools \
-  /usr/local/bin/github-runner-sandbox-prepared-image \
-  /usr/local/bin/github-runner-sandbox-prepared-image
+  /usr/local/bin/sandbox-image \
+  /usr/local/bin/sandbox-image
 COPY prepared-image /opt/altinn/prepared-image
 
-ENTRYPOINT ["/usr/local/bin/github-runner-sandbox-prepared-image", "import"]
+ENTRYPOINT ["/usr/local/bin/sandbox-image", "import"]

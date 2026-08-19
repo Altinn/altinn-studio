@@ -17,8 +17,8 @@ generic host paths into concrete Provider configuration.
 
 CI materializes the guest image once and publishes its provider-owned representation as a separate,
 digest-pinned ACR init image. Kubelet pulls that image with the node identity. Its
-`github-runner-sandbox-prepared-image` entrypoint asks the Sandbox image facade to validate and
-import the opaque artifact into `SANDBOX_CACHE_HOME` before the coordinator starts. The helper does
+`sandbox-image` entrypoint asks the Sandbox image facade to validate and import the opaque artifact
+into `SANDBOX_CACHE_HOME` before the coordinator starts. The helper does
 not know the Provider's cache layout or prepared-image format. The coordinator therefore neither receives
 registry credentials nor pulls and materializes the original OCI layers on a cold node.
 

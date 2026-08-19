@@ -210,7 +210,7 @@ jobs:
           COORDINATOR_IMAGE="${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}"
           GUEST_IMAGE="${GUEST_REPOSITORY}@${GUEST_DIGEST}"
           docker run --rm \
-            --entrypoint /usr/local/bin/github-runner-sandbox-prepared-image \
+            --entrypoint /usr/local/bin/sandbox-image \
             --env SANDBOX_CACHE_HOME=/cache \
             --env PREPARED_IMAGE_DIRECTORY=/output \
             --env REGISTRY_PASSWORD \

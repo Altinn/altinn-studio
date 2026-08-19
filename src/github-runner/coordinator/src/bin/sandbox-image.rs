@@ -10,7 +10,7 @@ use sandbox::{
 type AnyError = Box<dyn Error>;
 
 #[derive(Parser)]
-#[command(about = "Export or import a prepared Sandbox runner image")]
+#[command(about = "Export or import a prepared Sandbox image")]
 struct Arguments {
     #[command(flatten)]
     provider: ProviderArguments,
