@@ -57,6 +57,12 @@ public sealed record FiksArkivReceiptSettings
     /// <summary>
     /// Settings for the storage of the confirmation record (arkivkvittering).
     /// </summary>
+    /// <remarks>
+    /// Written when the archive's receipt arrives, as part of the process transition that sent the
+    /// record — so it lands with everything else that transition records. A receipt that arrives but
+    /// cannot be read as an archive receipt fails the task instead, rather than advancing the process
+    /// with no confirmation record to show. See <see cref="FiksArkivServiceTask"/> for the whole flow.
+    /// </remarks>
     [JsonPropertyName("confirmationRecord")]
     public required FiksArkivDataTypeSettings ConfirmationRecord { get; set; }
 
@@ -186,12 +192,19 @@ public sealed record FiksArkivDocumentSettings
 /// <summary>
 /// Represents the settings for success handling.
 /// </summary>
+/// <remarks>
+/// These describe what to do once <strong>the archive has confirmed the record</strong> — when its
+/// receipt arrives, not when the message was handed to Fiks IO. Nothing here applies to a send: the
+/// task is not finished until the archive has answered. Applied by
+/// <see cref="FiksArkivServiceTask"/>, which documents the whole flow.
+/// </remarks>
 public sealed record FiksArkivSuccessHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task after successfully sending the message?
+    /// Should we automatically progress to the next task once the archive has confirmed the record?
     /// Default to <c>true</c>.
     /// </summary>
+    /// <remarks><c>false</c> leaves the instance on the Fiks Arkiv task, to be advanced manually.</remarks>
     [JsonPropertyName("moveToNextTask")]
     public bool MoveToNextTask { get; set; } = true;
 
@@ -203,9 +216,13 @@ public sealed record FiksArkivSuccessHandlingSettings
     public string? Action { get; set; }
 
     /// <summary>
-    /// Should we mark the instance as `completed` after successfully sending the message?
+    /// Should we mark the instance as `completed` once the archive has confirmed the record?
     /// Defaults to <c>false</c>.
     /// </summary>
+    /// <remarks>
+    /// The confirmation is sent before the process advances, because advancing can end the process and
+    /// an ended process can take the instance with it.
+    /// </remarks>
     [JsonPropertyName("markInstanceComplete")]
     public bool MarkInstanceComplete { get; set; }
 
@@ -219,12 +236,32 @@ public sealed record FiksArkivSuccessHandlingSettings
 /// <summary>
 /// Represents the settings for error handling.
 /// </summary>
+/// <remarks>
+/// These describe what to do when <strong>the archive reports that it could not create the record</strong>
+/// — an error message or a receipt reporting a failure. They do <em>not</em> apply when the message
+/// cannot be handed to Fiks IO at all: that is retried and then fails the task, so a shipment that never
+/// left reaches monitoring instead of quietly advancing the process. (The task's send runs as a pipeline
+/// stage, and a stage cannot advance the process — nothing would then be waiting for a receipt that can
+/// never arrive.) Applied by <see cref="FiksArkivServiceTask"/>, which documents the whole flow.
+/// </remarks>
 public sealed record FiksArkivErrorHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task after failing to send the message?
-    /// Defaults to <c>true</c>.
+    /// Should we automatically progress to the next task when the archive reports that it could not
+    /// create the record? Defaults to <c>true</c>.
     /// </summary>
+    /// <remarks>
+    /// <c>false</c> fails the task instead, so the archive's rejection reaches monitoring rather than
+    /// being absorbed by the process.
+    /// <para>
+    /// <strong>Omitting the whole <c>errorHandling</c> block is not the same as accepting these
+    /// defaults.</strong> With no block at all, an error from the archive fails the task; a block that
+    /// is present with this left at <c>true</c> advances down the reject path. The distinction is
+    /// deliberate — an app that never configured error handling should not have the process moved on
+    /// its behalf — but it means "no block" and "an empty block" behave differently, so say which one
+    /// you mean.
+    /// </para>
+    /// </remarks>
     [JsonPropertyName("moveToNextTask")]
     public bool MoveToNextTask { get; set; } = true;
 
