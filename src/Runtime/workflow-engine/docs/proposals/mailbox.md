@@ -1817,7 +1817,88 @@ concluder, every mid-callback call keyed off the executing step id — and the
 walks a multi-hop relay asserting the frontier at every step boundary. These are the tests the whole
 design's honesty rests on; write them first.
 
-#### Step 9 — App-lib: forwarder rework — `in progress`
+#### Step 9 — App-lib: forwarder rework — `done`
+
+Landed as jj change `msnxxqqq` — 41 files, +2768/−75, all under `src/App/backend` except the app-owned
+drift guard in `workflow-engine-app` (step 7a's precedent). `Altinn.App.Core.Tests` **3213 → 3305**
+(`--filter ~WorkflowEngine` 347 → 439 — **every added test in that namespace, none outside**, confirmed
+by reconstructing the parent baseline in a throwaway copy), Api 505 → 506, Fiks 183, engine 939 and host
+81 unmoved. Two review rounds.
+
+**The compatibility-critical change was proved, not argued.** The envelope needed a domain-keyed
+signature, which meant touching `WorkflowStateSigner` — pre-existing machinery that signs **in-flight
+state blobs for every service task in every deployed app**, mailboxes or not. A tag that altered those
+bytes would 422 every in-flight workflow on upgrade. The `CallbackState` domain is deliberately
+**untagged**, and review verified it at the byte level: both `ComputeSignature` bodies run over
+**200,008 input pairs — zero mismatches**, spanning HMAC's 64-byte block boundary, with a control
+confirming a tagged domain diverges in **1000 of 1000** cases. In-flight blobs survive.
+
+**The known-answer vectors were re-derived, and that is what makes them worth having.** Twelve rows
+generated from the tag format in independent Python rather than from the code under test, and review
+re-derived them again the same way. The decisive mutation: re-pointing the tag to v2's
+`service-task-reply:v3` reddens **20** tests **while every round-trip test stays green** — the exact
+reason vectors exist, since a round trip agrees with itself under any binding. None of v2's eight
+signatures survives in the new file. Dropping each of the three bound values reddens 24, removing the
+length prefixes reddens 21 including a delimiter-injection test, and changing the prefix unit reddens
+exactly 3.
+
+_A precision worth keeping:_ the prefixes count **UTF-16 code units**, because that is the unit the tag
+is written in. Both a code-point count and a UTF-8 byte count are wrong, and each was mutated
+independently to confirm it. The orchestrator's brief got this wrong; the code and its test comment did
+not.
+
+**Two departures, both flagged rather than buried, both upheld.** `ForwardReply` **takes** the
+service-task type rather than deriving it — v2 recorded that its derivation could be wrong at signing
+time and then _sign its own mistake_, producing an envelope that verifies perfectly against the wrong
+handler, whereas a caller-supplied constant fails loudly at the handler. (Review considered moving
+`payload` last for readability and **withdrew** it: that would make `serviceTaskType` and
+`idempotencyKey` adjacent, and that transposition is the worse one — the dedup key becomes a constant
+and every second message of an exchange is silently deduped away. The current order separates the two
+most damaging confusions.) And the **unwrap side** was taken into scope, because step 8 could not have
+written it — the binding it verifies did not exist yet — and without it `context.Reply.Payload` is
+envelope JSON and the binding proves nothing.
+
+**The finding that mattered most was a message-loss bug.** The forwarder's catch-all mapped every
+undocumented 4xx to `Rejected` with `IsTransient == false`, which tells the receiving channel to
+**dead-letter** — true for 400/404/409/413/422, and false for `401`, `403` and `408`, which are auth and
+infrastructure conditions that resolve. An auth incident would have silently destroyed business messages
+that would have succeeded minutes later. The tell was an asymmetry: `SigningUnavailable` had already been
+made transient for exactly the analogous "secret not mounted yet" deployment race. Now
+`Unauthorized`/`Forbidden`/`RequestTimeout` map to `EngineUnavailable`, and the fix is pinned in **both**
+directions — deleting the arm reddens three rows, and widening it to swallow the `Rejected` arm **does
+not compile** (`CS8510`, unreachable pattern), which is a stronger guard than a test.
+
+Also fixed: the envelope-invalid failure told an operator the message was forged or tampered with while
+omitting **app-code rotation**, which is reachable _because_ this design makes early delivery
+first-class — a message can wait unread at its position while the exchange advances, so a long exchange
+can outlive the code that sealed one of its messages. And nothing resolved `IServiceTaskReplyForwarder`
+from a real container, so the step's single public entry point had no coverage of its DI registration
+(the "green tests, broken product" shape); the new test also pins **transient** lifetime, which the
+xmldoc's "resolve per received message" advice depends on and nothing else checked.
+
+`409` **always means too late**, verified end to end: it is the only `409` on the endpoint, produced
+solely by `MailboxDeliveryResult.Closed`. The **accepted-versus-kept** rule holds in the real
+repository — the idempotency lookup runs before the disposed check, so a replay of a kept delivery
+answers `200` and the forwarder succeeds rather than dead-lettering. `FakeWorkflowEngineClient` models
+that ordering, including the `200`-after-closure case.
+
+What step 10 inherits: call
+`ForwardReply(mailboxId, FiksArkivServiceTask.Type, payload, fiksMessageId)`; the reply address is what
+the archive echoes back — v2 established `klientKorrelasjonsId`, **not** `klientMeldingId`, and swapping
+them still _sends_ successfully while silently making every answer unroutable, so pin both against the
+real request. Resolve the forwarder **per received message from an `IServiceScope`** (it is transient; a
+singleton subscriber holding one pins its `HttpClient` for the process lifetime). Branch on
+`Outcome`/`IsTransient`, never on status — only `EngineUnavailable` and `SigningUnavailable` are worth
+redelivering. `TestMailboxDeliveryEnvelope` and `Services.GetRequiredService<MailboxDeliveryEnvelope>()`
+are how a test seals a delivery, and an unsealed payload now fails the step, so any Fiks test handing a
+handler a message must seal it.
+
+Residuals: `MailboxDeliveryResult` is a plain triple rather than named cases (deliberate, recorded in its
+xmldoc); a `Guid.Empty` `mailboxId` is forwarded and returns `Unroutable` rather than being validated
+like its two siblings (defensible — an empty echo _is_ an unroutable address); `Verify`'s xmldoc
+overstates that it throws `WorkflowCallbackStateException` for "any failure" when a `default`
+`SigningDomain` throws `InvalidOperationException`; the forwarder has no telemetry; and one unreproduced
+single-test Api flake, with clean TRX runs after — the same class step 8 recorded.
 
 Paths: `src/App/backend`.
 
@@ -1828,7 +1909,7 @@ late, `413`/`429` dead-letter). Mine `vonkpkpu` including its known-answer vecto
 them for the new binding rather than copying the old ones. The awaiting-task-type derivation round
 trip is not needed here — do not port it.
 
-#### Step 10 — Fiks Arkiv re-plumb — `todo`
+#### Step 10 — Fiks Arkiv re-plumb — `in progress`
 
 Paths: `src/App/backend/src/Altinn.App.Clients.Fiks` and its tests.
 
@@ -1873,9 +1954,18 @@ feature revision** — each deserves its own small revision, landed here or earl
    `dependencies` and `links` dictionaries serialize in nondeterministic order, so the snapshot flips
    between runs and dirties the working copy. Reproduced independently by two agents from revisions
    containing no C#. Sort the keys before serializing.
-5. **`cards.js:305` (`rerenderCards`)** interpolates a workflow key into a `querySelectorAll` selector
+5. **Prettier fails repo-wide on two files this stack touched but did not dirty**:
+   `src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md` (`*italic*` → `_italic_` at lines 111/270/286)
+   and `workflow-engine-app/tests/.../wire-contract.verified.json` (no trailing newline). Both verified
+   pre-existing at the parent revision.
+6. **`cards.js:305` (`rerenderCards`)** interpolates a workflow key into a `querySelectorAll` selector
    without `CSS.escape`, where its two siblings now escape. GUID-valued, so selector injection only —
    but it is the odd one out after the XSS sweep.
+
+A third trap, seen in step 8's review: **`jj` cannot snapshot the working copy while an Api test run is
+creating and deleting instance-data fixtures underneath it**, so `jj diff`/`jj st` answer from a stale
+snapshot and appear to show drift that is not there. Do not run app suites and jj integrity checks
+concurrently.
 
 Two traps worth carrying into any step that runs the suite: `jj restore` with a repo-root-relative path
 run from a subdirectory resolves nothing and **fails silently** (the working directory persists between
