@@ -4,13 +4,14 @@ use microsandbox::LocalBackend;
 use sandbox::Error;
 use tokio::sync::OnceCell;
 
-use crate::error;
+use crate::{backend::RuntimeBundle, error};
 
 /// Keeps Microsandbox's thread-safe ownership model at the SDK boundary.
 #[derive(Clone)]
 pub(crate) struct Client {
     backend: Arc<LocalBackend>,
     microsandbox_home: PathBuf,
+    runtime_bundle: Option<RuntimeBundle>,
     installation: Rc<OnceCell<()>>,
 }
 
@@ -75,24 +76,39 @@ fn unsupported_resource(resource: &'static str, value: impl std::fmt::Display, r
 }
 
 impl Client {
-    pub(crate) async fn open(microsandbox_home: PathBuf) -> Result<Self, Error> {
-        let backend = LocalBackend::builder()
+    pub(crate) async fn open(
+        microsandbox_home: PathBuf,
+        cache_directory: Option<PathBuf>,
+        runtime_bundle: Option<RuntimeBundle>,
+    ) -> Result<Self, Error> {
+        if let Some(cache_directory) = &cache_directory {
+            tokio::fs::create_dir_all(cache_directory)
+                .await
+                .map_err(|source| error::io("create Microsandbox cache directory", source))?;
+        }
+        let mut builder = LocalBackend::builder()
             .ignore_persisted_config()
             .home(&microsandbox_home)
             .disable_metrics_sample(true)
-            .deployment_profile(microsandbox::sandbox::DeploymentProfile::SingleTenant)
-            .build()
-            .await
-            .map_err(error::microsandbox)?;
+            .deployment_profile(microsandbox::sandbox::DeploymentProfile::SingleTenant);
+        if let Some(cache_directory) = cache_directory {
+            builder = builder.cache_dir(cache_directory);
+        }
+        let backend = builder.build().await.map_err(error::microsandbox)?;
         Ok(Self {
             backend: Arc::new(backend),
             microsandbox_home,
+            runtime_bundle,
             installation: Rc::new(OnceCell::new()),
         })
     }
 
     pub(crate) fn local(&self) -> &LocalBackend {
         &self.backend
+    }
+
+    pub(crate) fn cache_directory(&self) -> PathBuf {
+        self.backend.cache_dir()
     }
 
     pub(crate) async fn bind_network_controller(
@@ -108,13 +124,27 @@ impl Client {
     pub(crate) async fn ensure_installed(&self) -> Result<(), Error> {
         self.installation
             .get_or_try_init(|| async {
-                microsandbox::setup::Setup::builder()
-                    .base_dir(&self.microsandbox_home)
-                    .allow_ci_local_bundle(false)
-                    .build()
-                    .install()
-                    .await
-                    .map_err(error::microsandbox)
+                match &self.runtime_bundle {
+                    Some(bundle) => {
+                        microsandbox::setup::Setup::builder()
+                            .base_dir(&self.microsandbox_home)
+                            .bundle_path(&bundle.path)
+                            .expected_bundle_sha256(&bundle.sha256)
+                            .allow_ci_local_bundle(false)
+                            .build()
+                            .install()
+                            .await
+                    }
+                    None => {
+                        microsandbox::setup::Setup::builder()
+                            .base_dir(&self.microsandbox_home)
+                            .allow_ci_local_bundle(false)
+                            .build()
+                            .install()
+                            .await
+                    }
+                }
+                .map_err(error::microsandbox)
             })
             .await?;
         Ok(())
