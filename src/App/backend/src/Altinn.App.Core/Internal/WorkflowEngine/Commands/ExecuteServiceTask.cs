@@ -23,6 +23,7 @@ internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
     IWorkflowEngineClient workflowEngineClient,
     IWorkflowCallbackSecretProvider callbackSecretProvider,
+    MailboxDeliveryEnvelope deliveryEnvelope,
     TimeProvider? timeProvider = null,
     Telemetry? telemetry = null
 ) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
@@ -317,7 +318,7 @@ internal sealed class ExecuteServiceTask(
     /// conclusion told nothing at all where a message was expected would conclude the task on
     /// nothing. Neither is a state a retry can improve.
     /// </remarks>
-    private static ReplyResolution ResolveReply(
+    private ReplyResolution ResolveReply(
         ProcessEngineCommandContext context,
         ServiceTaskPipeline pipeline,
         string? stageName,
@@ -418,10 +419,45 @@ internal sealed class ExecuteServiceTask(
 
         if (receipt.Delivery is { } delivery)
         {
+            // The body the handler reads is the one this app forwarded, or the step does not run at
+            // all. The envelope is bound to this mailbox, this service task and this idempotency key,
+            // all three read from the delivered callback — so opening it is what makes those three
+            // trustworthy rather than the opening trusting them.
+            string body;
+            try
+            {
+                body = deliveryEnvelope.Unwrap(delivery.Payload, receipt.Id, serviceTaskType, delivery.IdempotencyKey);
+            }
+            catch (MailboxDeliveryEnvelopeException ex)
+            {
+                // Permanent: the bytes at this position never change, so every retry re-derives the
+                // same refusal. Concluding on the raw payload instead would hand a handler content
+                // nothing vouched for, which is the whole point of the envelope; and the handler is
+                // never called, so the exchange ends as a visible failed workflow rather than on a
+                // message the platform cannot stand behind.
+                return new ReplyResolution(
+                    null,
+                    null,
+                    null,
+                    FailedProcessEngineCommandResult.Permanent(
+                        $"The message delivered to service task '{serviceTaskType}' at position {receipt.Seq} of "
+                            + $"mailbox {receipt.Id} cannot be opened as one this application sealed: it was never "
+                            + "sealed by IServiceTaskReplyForwarder, was altered after forwarding, was sealed for a "
+                            + "different mailbox, service task or message id, or was sealed with a WorkflowEngineCallback "
+                            + "app code that has since expired or been unmounted. The last is reachable without anything "
+                            + "being wrong with the message: an early message can wait unread at its position while the "
+                            + "exchange advances, so a long exchange can outlive the code that sealed one of its "
+                            + "messages. "
+                            + ex.Message,
+                        "MailboxDeliveryEnvelopeInvalid"
+                    )
+                );
+            }
+
             return new ReplyResolution(
                 new ServiceTaskReply
                 {
-                    Payload = delivery.Payload,
+                    Payload = body,
                     IdempotencyKey = delivery.IdempotencyKey,
                     AcceptedAt = delivery.AcceptedAt,
                     Position = receipt.Seq,

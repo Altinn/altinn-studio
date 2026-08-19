@@ -8,8 +8,11 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Computes and verifies the detached HMAC-SHA256 signature that wraps the opaque workflow callback state
-/// blob. Capture and restore both go through this single helper so the two paths cannot diverge.
+/// Computes and verifies the detached HMAC-SHA256 signature that wraps an opaque blob the app sends
+/// through the workflow engine and gets back again — the callback state blob, and the body of a message
+/// forwarded into a mailbox. Every producing and consuming path goes through this single helper so they
+/// cannot diverge, and each names its own <see cref="SigningDomain"/>, which selects the key the
+/// signature is computed under, so envelopes minted for one cannot be replayed as the other.
 /// </summary>
 internal sealed class WorkflowStateSigner
 {
@@ -31,10 +34,16 @@ internal sealed class WorkflowStateSigner
     /// Wraps <paramref name="payload"/> in a signed envelope, signing the exact transmitted bytes with the
     /// current signing code.
     /// </summary>
-    public string Sign(string payload)
+    /// <param name="payload">The exact bytes to transport and sign.</param>
+    /// <param name="domain">
+    /// What this envelope is, and what it binds. Required, and constructible only through
+    /// <see cref="SigningDomain"/>'s factories, so a new call site cannot silently land in another
+    /// domain's signature space — see <see cref="SigningPurpose"/>.
+    /// </param>
+    public string Sign(string payload, SigningDomain domain)
     {
         AppCode signingCode = _secretProvider.GetSigningSecret();
-        string signature = ComputeSignature(signingCode.Code, payload);
+        string signature = ComputeSignature(signingCode.Code, domain, payload);
         var envelope = new SignedWorkflowState
         {
             Payload = payload,
@@ -47,9 +56,15 @@ internal sealed class WorkflowStateSigner
     /// <summary>
     /// Verifies <paramref name="envelopeJson"/> and returns the inner payload string on success.
     /// Throws <see cref="WorkflowCallbackStateException"/> on any failure (malformed envelope, unknown or
-    /// expired secret id, signature mismatch) — never reveals which check failed.
+    /// expired secret id, signature mismatch, wrong domain) — never reveals which check failed.
     /// </summary>
-    public string Verify(string envelopeJson)
+    /// <param name="envelopeJson">The transported envelope.</param>
+    /// <param name="domain">
+    /// The domain the caller expects this envelope to have been minted for. An envelope signed for a
+    /// different purpose, or for the same purpose bound to a different mailbox, fails verification
+    /// exactly like a tampered one.
+    /// </param>
+    public string Verify(string envelopeJson, SigningDomain domain)
     {
         SignedWorkflowState envelope;
         try
@@ -91,7 +106,7 @@ internal sealed class WorkflowStateSigner
             );
         }
 
-        string expected = ComputeSignature(code.Code, envelope.Payload);
+        string expected = ComputeSignature(code.Code, domain, envelope.Payload);
         if (!FixedTimeEquals(expected, envelope.Signature))
         {
             throw new WorkflowCallbackStateException("Workflow callback state envelope signature is invalid.");
@@ -100,12 +115,39 @@ internal sealed class WorkflowStateSigner
         return envelope.Payload;
     }
 
-    private static string ComputeSignature(string secret, string payload)
+    /// <summary>
+    /// Base64(HMACSHA256(key = <see cref="DeriveKey"/>(code, domain), data = UTF8(payload))).
+    /// </summary>
+    /// <remarks>
+    /// Domain separation lives entirely in the <em>key</em> (see <see cref="DeriveKey"/>) rather than
+    /// in the signed data. Prefixing a tag onto the data would have worked too, but it leaves a
+    /// collision to argue away: an untagged payload that happens to equal <c>tag + separator +
+    /// P</c> signs identically to the tagged <c>P</c>. That is unreachable today only because a
+    /// callback state blob always serializes starting with <c>{</c> — a property of an entirely
+    /// different code path, and exactly the kind of coupling that breaks quietly later. Deriving the
+    /// key removes the premise instead of documenting it.
+    /// </remarks>
+    private static string ComputeSignature(string secret, SigningDomain domain, string payload)
+    {
+        byte[] key = DeriveKey(secret, domain);
+        byte[] hash = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(payload));
+        return Convert.ToBase64String(hash);
+    }
+
+    /// <summary>
+    /// The per-domain signing key: <c>HMACSHA256(key = UTF8(code), data = UTF8(tag))</c>, so each
+    /// domain signs under a key nothing else can reach without the app-code.
+    /// </summary>
+    /// <remarks>
+    /// A domain with no tag (<see cref="SigningPurpose.CallbackState"/>) uses the app-code directly —
+    /// that is the original computation, kept byte for byte so every state blob signed by an earlier
+    /// version still verifies, and the reason the state path's known-answer vectors assert the raw-key
+    /// result.
+    /// </remarks>
+    private static byte[] DeriveKey(string secret, SigningDomain domain)
     {
         byte[] key = Encoding.UTF8.GetBytes(secret);
-        byte[] data = Encoding.UTF8.GetBytes(payload);
-        byte[] hash = HMACSHA256.HashData(key, data);
-        return Convert.ToBase64String(hash);
+        return domain.Tag is { } tag ? HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(tag)) : key;
     }
 
     private static bool FixedTimeEquals(string a, string b)

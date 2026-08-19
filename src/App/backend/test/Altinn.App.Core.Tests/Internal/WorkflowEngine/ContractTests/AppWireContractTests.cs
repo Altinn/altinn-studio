@@ -48,6 +48,8 @@ public class AppWireContractTests
             typeof(ResumeWorkflowResponse),
             typeof(MailboxCreateRequest),
             typeof(MailboxResponse),
+            typeof(MailboxDeliveryRequest),
+            typeof(MailboxDeliveryResponse),
             typeof(Actor),
             typeof(AppCommandData),
             typeof(AppWorkflowContext),

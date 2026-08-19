@@ -65,7 +65,7 @@ internal sealed class WorkflowCallbackStateService
             MailboxId = carry is { MailboxConcluded: false } ? carry.MailboxId : null,
         };
         string payload = JsonSerializer.Serialize(callbackState);
-        return _stateSigner.Sign(payload);
+        return _stateSigner.Sign(payload, SigningDomain.CallbackState);
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ internal sealed class WorkflowCallbackStateService
         // Verify the detached HMAC signature and unwrap the inner payload before trusting any of it. A leaked
         // callback token cannot be combined with a forged/tampered blob: the inner payload is bound to a
         // secret only the app holds. Any failure (tampering, unknown/expired secret) throws and maps to 422.
-        string payload = _stateSigner.Verify(state);
+        string payload = _stateSigner.Verify(state, SigningDomain.CallbackState);
 
         WorkflowCallbackState callbackState =
             JsonSerializer.Deserialize<WorkflowCallbackState>(payload)

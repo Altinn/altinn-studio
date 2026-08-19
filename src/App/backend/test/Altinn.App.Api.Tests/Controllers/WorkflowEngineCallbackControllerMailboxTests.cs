@@ -105,6 +105,13 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             return Task.FromResult<MailboxResponse?>(null);
         }
 
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
@@ -219,7 +226,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             StepId = stepId,
             Mailbox = mailbox,
             Payload = CommandPayloadSerializer.Serialize(new ExecuteServiceTaskPayload(ServiceTaskType)),
-            State = signer.Sign(JsonSerializer.Serialize(incoming)),
+            State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
 
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
@@ -235,7 +242,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                 await response.Content.ReadAsStringAsync(),
                 JsonSerializerOptions
             );
-            returned = JsonSerializer.Deserialize<WorkflowCallbackState>(signer.Verify(callbackResponse!.State!));
+            returned = JsonSerializer.Deserialize<WorkflowCallbackState>(
+                signer.Verify(callbackResponse!.State!, SigningDomain.CallbackState)
+            );
         }
 
         return new CallbackOutcome(response.StatusCode, returned, recorder, stepId);
@@ -252,18 +261,28 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
 
-    private static AppCallbackMailbox Delivered() =>
-        new()
+    /// <summary>
+    /// A delivered message, sealed with the host's own callback code exactly as
+    /// <see cref="IServiceTaskReplyForwarder"/> seals one. An unsealed payload never reaches the handler,
+    /// so a relay test that hand-wrote one would only be testing the refusal.
+    /// </summary>
+    private AppCallbackMailbox Delivered()
+    {
+        const string key = "fiks-message-1";
+        return new AppCallbackMailbox
         {
             Id = _mailboxId,
             Seq = 0,
             Delivery = new AppCallbackMailboxDelivery
             {
-                IdempotencyKey = "fiks-message-1",
-                Payload = "<receipt/>",
+                IdempotencyKey = key,
+                Payload = Services
+                    .GetRequiredService<MailboxDeliveryEnvelope>()
+                    .Wrap("<receipt/>", _mailboxId, ServiceTaskType, key),
                 AcceptedAt = DateTimeOffset.UnixEpoch,
             },
         };
+    }
 
     private static AppCallbackMailbox Closed() =>
         new()
@@ -272,6 +291,25 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             Seq = 1,
             DisposedReason = MailboxDisposedReason.Deadline,
         };
+
+    [Fact]
+    public void TheForwarder_ResolvesFromTheRealContainer()
+    {
+        // The step's one public entry point, taken the way an app takes it. Every other test in this
+        // stack constructs ServiceTaskReplyForwarder directly, so nothing would notice if its
+        // registration were missing or if one of its dependencies were unreachable from a scope — and
+        // one of them, AppIdentifier, is registered in an entirely different file from the rest. That is
+        // the "green tests, broken product" shape: the failure would first appear in a real app, at the
+        // moment a message arrived.
+        using IServiceScope scope = Services.CreateScope();
+
+        var forwarder = scope.ServiceProvider.GetService<IServiceTaskReplyForwarder>();
+
+        Assert.IsType<ServiceTaskReplyForwarder>(forwarder);
+        // Transient, because the xmldoc tells a singleton subscriber to take one per received message
+        // rather than hold one: a captured instance pins its HttpClient for the process's whole life.
+        Assert.NotSame(forwarder, scope.ServiceProvider.GetRequiredService<IServiceTaskReplyForwarder>());
+    }
 
     [Fact]
     public async Task Conclusion_ClosesTheMailboxBeforeTheAfterWorkflow_ThroughTheRealCallback()
@@ -303,7 +341,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
         string afterWorkflowState = Assert.Single(outcome.Recorder.AfterWorkflowState);
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
-        var carried = JsonSerializer.Deserialize<WorkflowCallbackState>(signer.Verify(afterWorkflowState));
+        var carried = JsonSerializer.Deserialize<WorkflowCallbackState>(
+            signer.Verify(afterWorkflowState, SigningDomain.CallbackState)
+        );
         Assert.Null(carried!.MailboxId);
     }
 

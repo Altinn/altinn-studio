@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private readonly ConcurrentDictionary<string, Guid[]> _workflowsByIdempotencyKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, List<Guid>> _collectionHeadsByKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, MailboxResponse> _mailboxesByIdempotencyKey = new(
+        StringComparer.Ordinal
+    );
+    private readonly ConcurrentDictionary<string, MailboxDeliveryResponse> _deliveriesByKey = new(
         StringComparer.Ordinal
     );
     private readonly object _gate = new();
@@ -401,6 +405,68 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         return Task.FromResult<MailboxResponse?>(null);
+    }
+
+    /// <summary>
+    /// Delivers a message into a mailbox, modelling the engine's response matrix: <c>404</c> for an id
+    /// this fake never minted, <c>409</c> once the mailbox is closed, <c>200</c> for a key it already
+    /// holds — including after closure, since the engine kept it — and <c>202</c> otherwise, at the
+    /// next gapless position.
+    /// </summary>
+    /// <remarks>
+    /// It stores the delivery and moves <c>nextIdx</c>, but wakes nobody: this fake models the mailbox
+    /// as an address and a log, not the rendezvous. A test that needs a receiver to read a message
+    /// hands the message to the callback directly.
+    /// </remarks>
+    public Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);
+
+        // The idempotency lookup runs before the closed check, exactly as the engine's does: that
+        // ordering is the accepted-versus-kept rule, and reversing it would have a forwarder
+        // dead-letter a message the engine is still holding.
+        if (_deliveriesByKey.TryGetValue(deliveryKey, out MailboxDeliveryResponse? existing))
+        {
+            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null));
+        }
+
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id != mailboxId || !string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                return Task.FromResult(
+                    new MailboxDeliveryResult(
+                        HttpStatusCode.Conflict,
+                        Body: null,
+                        ErrorDetail: $"Mailbox {mailboxId} is closed and no longer accepts deliveries."
+                    )
+                );
+            }
+
+            var delivery = new MailboxDeliveryResponse
+            {
+                MailboxId = mailboxId,
+                Idx = mailbox.NextIdx,
+                IdempotencyKey = request.IdempotencyKey,
+                AcceptedAt = DateTimeOffset.UtcNow,
+            };
+            _deliveriesByKey[deliveryKey] = delivery;
+            _mailboxesByIdempotencyKey.TryUpdate(key, mailbox with { NextIdx = mailbox.NextIdx + 1 }, mailbox);
+
+            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.Accepted, delivery, ErrorDetail: null));
+        }
+
+        return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.NotFound, Body: null, ErrorDetail: null));
     }
 
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)

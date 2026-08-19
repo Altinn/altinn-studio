@@ -215,6 +215,13 @@ public class MailboxRelayFrontierTests
         public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
             Task.FromResult<MailboxResponse?>(null);
 
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,

@@ -27,6 +27,13 @@ public sealed record ServiceTaskReply
     /// The message body, exactly as it was delivered. Opaque to the platform and
     /// <strong>untrusted</strong>.
     /// </summary>
+    /// <remarks>
+    /// Guaranteed to be byte-for-byte what <see cref="IServiceTaskReplyForwarder.ForwardReply"/>
+    /// forwarded into this mailbox, for this task, under this <see cref="IdempotencyKey"/>: the body
+    /// travels in a tamper-evident envelope, and one that does not open fails the step rather than
+    /// reaching this property. That says nothing about whether the content is <em>true</em> — it came
+    /// from outside the platform and stays untrusted input for the handler that reads it.
+    /// </remarks>
     public required string Payload { get; init; }
 
     /// <summary>
@@ -34,6 +41,11 @@ public sealed record ServiceTaskReply
     /// IO message id). Stable across every attempt of this execution, and unique within the mailbox,
     /// so it is the natural key for a side effect this handler must not repeat.
     /// </summary>
+    /// <remarks>
+    /// Covered by the message's integrity envelope alongside <see cref="Payload"/>, so a handler that
+    /// keys durable work on it is keying on a value the platform authenticated rather than on
+    /// unverified transport metadata.
+    /// </remarks>
     public required string IdempotencyKey { get; init; }
 
     /// <summary>

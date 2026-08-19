@@ -76,7 +76,8 @@ public class ProcessNextRequestFactoryTests
                     appImplFactory,
                     Mock.Of<IWorkflowEngineClient>(),
                     // Only its DefaultStepOptions are read here; nothing executes.
-                    Mock.Of<IWorkflowCallbackSecretProvider>()
+                    Mock.Of<IWorkflowCallbackSecretProvider>(),
+                    TestMailboxDeliveryEnvelope.Create()
                 ),
             ],
             appImplFactory
