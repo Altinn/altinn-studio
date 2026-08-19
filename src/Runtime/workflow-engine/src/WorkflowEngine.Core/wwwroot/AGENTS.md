@@ -88,6 +88,11 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 - Grafana trace links built from workflow `traceId` for Tempo integration
 - Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, collectionKey, labels)
 - Retry button on failed pipeline steps, nudge button on parked steps with a backoff timer
+- **Escaping in generated markup — three helpers, and they are not interchangeable.** `esc()` is for element _content_ only: it escapes `&`, `<` and `>` and leaves quotes intact. A value interpolated into an attribute needs `escAttr()`, and one interpolated into a single-quoted JS argument of an inline `onclick` needs `escJsArg()` — with `esc()` there, a quote in a caller-supplied value (a collection key, an operationId, a label) closes the attribute and the remainder parses as attributes of its own, which is a working event handler on a value the engine stores and replays to every operator. Re-run both of these and expect no hits; the first is deliberately wider than an anchored match, because an `esc()` later in an attribute value is the same bug:
+    ```sh
+    grep -rnE '[a-zA-Z-]+="[^"]*\$\{esc\(' modules/     # esc() anywhere inside an attribute
+    grep -rn "'\${esc(" modules/                        # esc() as an inline-handler argument
+    ```
 - Mailboxes are the one non-workflow noun the dashboard draws. A render pass records the collections it drew and reads their mailboxes as one batch per namespace, chunked to fit the server's request line; the per-collection TTL is short for a collection that has mailboxes or a receive workflow on screen and long (60s) for one that answered empty, so an engine that never mints a mailbox is not charged for the feature. A 5s timer re-reads the last pass's collections once there is any evidence of mailboxes — an exchange advances without any workflow changing, so no other render pass would ever come. The two live counters (`data-deadline`, `data-parked-since`) ride the same timer loop as the elapsed and backoff counters
 
 For full behavioral spec (sections, endpoint contracts, card anatomy, filtering mechanics, modal behavior, URL state sync), see `DASHBOARD_SPEC.md` (same directory).
