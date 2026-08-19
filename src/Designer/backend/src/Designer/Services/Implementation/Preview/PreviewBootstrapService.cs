@@ -184,9 +184,7 @@ public class PreviewBootstrapService(
             JsonNode? options;
             try
             {
-                options = JsonNode.Parse(
-                    await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken)
-                );
+                options = JsonNode.Parse(await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken));
             }
             catch (Exception ex) when (ex is NotFoundException or JsonException)
             {
