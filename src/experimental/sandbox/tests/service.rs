@@ -210,7 +210,7 @@ async fn service_accepts_prepared_image_metadata_coherent_with_the_request() {
         image: image::ResolvedImage {
             source: request.source.clone(),
             platform: request.platform.clone(),
-            digest: "sha256:resolved-oci-descriptor".into(),
+            manifest_digest: "sha256:resolved-oci-manifest".into(),
         },
         root_filesystem_mode: request.root_filesystem_mode,
         artifact_digest: "sha256:opaque-artifact".into(),
@@ -647,7 +647,7 @@ impl image::ImageBackend for IncompatibleImageBackend {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
                     platform: Platform::new("windows", "amd64"),
-                    digest: "sha256:incompatible".into(),
+                    manifest_digest: "sha256:incompatible".into(),
                 })
             })
         })

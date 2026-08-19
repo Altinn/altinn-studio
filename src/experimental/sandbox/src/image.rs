@@ -234,11 +234,11 @@ pub struct ResolvedImage {
     pub source: ImageSource,
     /// The actual Platform selected from the image.
     pub platform: Platform,
-    /// Immutable OCI descriptor digest resolved from the source.
+    /// Immutable digest of the platform-specific OCI image manifest.
     ///
-    /// This may identify an image index or an image manifest. The materialized
-    /// Platform is recorded separately by [`Self::platform`].
-    pub digest: String,
+    /// Resolving a multi-platform image index selects its matching manifest;
+    /// an index digest is never returned here.
+    pub manifest_digest: String,
 }
 
 /// Description of a transportable, fully materialized OCI image.
@@ -303,8 +303,8 @@ impl ResolvedImage {
     pub(crate) fn validate(&self) -> Result<(), Error> {
         self.source.validate()?;
         self.platform.validate()?;
-        if self.digest.is_empty() {
-            return Err(Error::invalid("image.digest", "must not be empty"));
+        if self.manifest_digest.is_empty() {
+            return Err(Error::invalid("image.manifestDigest", "must not be empty"));
         }
         Ok(())
     }

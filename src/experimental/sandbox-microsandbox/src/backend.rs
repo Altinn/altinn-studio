@@ -130,7 +130,7 @@ impl MicrosandboxProvider {
             Err(error) if error.is_not_found() => {}
             Err(error) => return Err(error),
         }
-        self.cached_image_reference(&request.image.digest).await?;
+        self.cached_image_reference(&request.image.manifest_digest).await?;
 
         let record = SandboxRecord::new(
             request.id,
@@ -291,7 +291,7 @@ impl MicrosandboxProvider {
         let started = Instant::now();
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
-        let image = self.cached_image_reference(&record.image.digest).await?;
+        let image = self.cached_image_reference(&record.image.manifest_digest).await?;
         step.complete(started.elapsed()).await;
         if record.resources.root_filesystem().mode() == RootFilesystemMode::Direct {
             let started = Instant::now();
@@ -324,17 +324,17 @@ impl MicrosandboxProvider {
         Ok(runtime)
     }
 
-    async fn cached_image_reference(&self, digest: &str) -> Result<String, Error> {
+    async fn cached_image_reference(&self, manifest_digest: &str) -> Result<String, Error> {
         let images = microsandbox::Image::list_local(self.client.local())
             .await
             .map_err(error::microsandbox)?;
         images
             .iter()
-            .find(|image| image.manifest_digest() == Some(digest))
+            .find(|image| image.manifest_digest() == Some(manifest_digest))
             .map(|image| image.reference().to_string())
             .ok_or_else(|| {
                 Error::Backend(format!(
-                    "image digest {digest} is not present in this Microsandbox cache"
+                    "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
                 ))
             })
     }

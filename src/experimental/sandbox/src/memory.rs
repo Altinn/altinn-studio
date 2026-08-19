@@ -902,7 +902,7 @@ impl image::ImageBackend for MemoryImageBackend {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
                     platform: request.platform.clone(),
-                    digest: format!("sha256:{}:{source}", request.platform),
+                    manifest_digest: format!("sha256:{}:{source}", request.platform),
                 })
             })
         })

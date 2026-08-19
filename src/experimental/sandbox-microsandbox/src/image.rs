@@ -82,13 +82,13 @@ impl MicrosandboxImageBackend {
             )
             .await;
         let cleanup = self.remove_temporary_image(&temporary_tag, progress).await;
-        let (digest, actual) = resolution?;
+        let (manifest_digest, actual) = resolution?;
         cleanup?;
 
         Ok(image::ResolvedImage {
             source: request.source.clone(),
             platform: actual,
-            digest,
+            manifest_digest,
         })
     }
 
@@ -438,12 +438,12 @@ impl MicrosandboxImageBackend {
         let handle = microsandbox::Image::get_local(self.client.local(), reference)
             .await
             .map_err(error::microsandbox)?;
-        let (digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
+        let (manifest_digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
         step.complete(started.elapsed()).await;
         Ok(image::ResolvedImage {
             source: request.source.clone(),
             platform: actual,
-            digest,
+            manifest_digest,
         })
     }
 
@@ -500,7 +500,7 @@ impl MicrosandboxImageBackend {
             image::ResolvedImage {
                 source: request.source.clone(),
                 platform: actual,
-                digest: prepared.image.manifest_digest.clone(),
+                manifest_digest: prepared.image.manifest_digest.clone(),
             },
             &prepared,
         ))
@@ -580,9 +580,9 @@ fn resolve_image_handle(
     requested: &sandbox::Platform,
     fallback: &sandbox::Platform,
 ) -> Result<(String, sandbox::Platform), Error> {
-    let digest = handle
+    let manifest_digest = handle
         .manifest_digest()
-        .ok_or_else(|| Error::Backend("Microsandbox did not report the imported image digest".to_string()))?
+        .ok_or_else(|| Error::Backend("Microsandbox did not report the imported image manifest digest".to_string()))?
         .to_string();
     let actual = sandbox::Platform::new(
         handle.os().unwrap_or(fallback.os.as_str()),
@@ -594,7 +594,7 @@ fn resolve_image_handle(
             actual: Box::new(actual),
         });
     }
-    Ok((digest, actual))
+    Ok((manifest_digest, actual))
 }
 
 async fn report_buildkit_status(

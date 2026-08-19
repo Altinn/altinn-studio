@@ -4,11 +4,13 @@ use microsandbox_network::control::NETWORK_CONTROL_PROTOCOL;
 use sandbox::{
     Platform, RootFilesystemMode, SandboxFeature,
     backend::SandboxBackend as _,
-    image::ImageSourceKind,
+    image::{ImageSource, ImageSourceKind, ResolveRequest},
     network::{NetworkControlProtocolId, NetworkEndpointSelection},
     provider::SandboxProvider as _,
 };
 use sandbox_microsandbox::MicrosandboxProvider;
+
+const ALPINE_3_22_INDEX_DIGEST: &str = "sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce";
 
 #[tokio::test(flavor = "local")]
 async fn backend_state_and_runtime_are_rooted_in_the_explicit_home() {
@@ -101,6 +103,42 @@ async fn cache_directory_can_be_shared_without_sharing_provider_state() {
     assert!(shared_cache.is_dir());
     assert!(first_home.join("state/sandboxes").is_dir());
     assert!(second_home.join("state/sandboxes").is_dir());
+}
+
+#[tokio::test(flavor = "local")]
+#[ignore = "requires access to the public Docker registry"]
+async fn multi_platform_index_resolves_to_the_native_image_manifest() {
+    let (architecture, expected_manifest_digest) = match std::env::consts::ARCH {
+        "x86_64" => (
+            "amd64",
+            "sha256:7c8cb692ae09657cbc4a3f3cbd0e8d5a2690ba38386aaaf252dbb060bf5eb2e6",
+        ),
+        "aarch64" => (
+            "arm64",
+            "sha256:2c9d26f410d032d5b1525aa8a873e238b05b90c4ae8618743d4311f0cc827e37",
+        ),
+        _ => return,
+    };
+    let temporary = tempfile::tempdir().expect("temporary home should be created");
+    let provider = MicrosandboxProvider::open(temporary.path().join("provider"))
+        .await
+        .expect("Provider should open");
+    let request = ResolveRequest {
+        source: ImageSource::Reference {
+            reference: format!("docker.io/library/alpine@{ALPINE_3_22_INDEX_DIGEST}"),
+        },
+        platform: Platform::new("linux", architecture),
+        root_filesystem_mode: RootFilesystemMode::Layered,
+    };
+
+    let resolved = provider
+        .image_backend()
+        .resolve(&request)
+        .await
+        .expect("multi-platform index should resolve");
+
+    assert_eq!(resolved.manifest_digest, expected_manifest_digest);
+    assert_ne!(resolved.manifest_digest, ALPINE_3_22_INDEX_DIGEST);
 }
 
 #[tokio::test(flavor = "local")]
