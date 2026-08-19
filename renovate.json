@@ -198,6 +198,11 @@
       "groupSlug": "react-ecosystem",
       "additionalBranchPrefix": "",
       "commitMessageSuffix": ""
+    },
+    {
+      "description": "Manage experimental agent platform dependencies manually",
+      "matchFileNames": ["src/experimental/**"],
+      "enabled": false
     }
   ],
   "schedule": []

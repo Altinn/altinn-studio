@@ -2786,26 +2786,6 @@ namespace Altinn.App.Core.Interface
     {
         System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Person?> GetPerson(string SSN);
     }
-    [System.Obsolete("Use Altinn.App.Core.Internal.Data.IDataClient instead", true)]
-    public interface IData
-    {
-        [System.Obsolete("Use method DeleteData with delayed=false instead.", true)]
-        System.Threading.Tasks.Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid);
-        System.Threading.Tasks.Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, bool delay);
-        System.Threading.Tasks.Task<System.IO.Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid);
-        System.Threading.Tasks.Task<object> GetFormData(System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, System.IO.Stream stream);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, string dataType, Microsoft.AspNetCore.Http.HttpRequest request);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> InsertFormData<T>(Altinn.Platform.Storage.Interface.Models.Instance instance, string dataType, T dataToSerialize, System.Type type);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> InsertFormData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, string dataType);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> Update(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? contentType, string filename, System.Guid dataGuid, System.IO.Stream stream);
-        [System.Obsolete("Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, " +
-            "Stream) instead", false)]
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, Microsoft.AspNetCore.Http.HttpRequest request);
-        System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> UpdateData<T>(T dataToSerialize, System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId);
-    }
     [System.Obsolete("Use Altinn.App.Core.Internal.Registers.IOrganizationClient instead", true)]
     public interface IER
     {

@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { Alert } from '@digdir/designsystemet-react';
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph, StudioAlert } from '@studio/components';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -259,7 +258,7 @@ export const FormComponentConfig = ({
       })}
       {/* Show information about unsupported properties if there are any */}
       {unsupportedPropertyKeys.length > 0 && !hideUnsupported && (
-        <Alert severity='info'>
+        <StudioAlert data-color='info'>
           {t('ux_editor.edit_component.unsupported_properties_message')}
           <ul>
             {unsupportedPropertyKeys.length > 0 &&
@@ -267,7 +266,7 @@ export const FormComponentConfig = ({
                 <li key={propertyKey}>{propertyKey}</li>
               ))}
           </ul>
-        </Alert>
+        </StudioAlert>
       )}
     </>
   );
