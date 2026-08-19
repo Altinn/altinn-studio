@@ -211,6 +211,9 @@ public static class OptionsBuilderExtensions
                 if (config.MaintenanceInterval <= TimeSpan.Zero)
                     config.MaintenanceInterval = Defaults.EngineSettings.MaintenanceInterval;
 
+                if (config.MailboxSweepInterval <= TimeSpan.Zero)
+                    config.MailboxSweepInterval = Defaults.EngineSettings.MailboxSweepInterval;
+
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
 
@@ -318,6 +321,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.MaxMailboxLogLength > 0,
                 $"{ns}.{nameof(EngineSettings.MaxMailboxLogLength)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MailboxSweepInterval > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.MailboxSweepInterval)} must be greater than zero."
             );
 
             builder.Validate(

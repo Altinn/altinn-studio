@@ -734,6 +734,68 @@ The response reports `unconsumedDeliveries` — accepted positions no receiver w
 messages that arrived while the app was concluding or past the relay's last hop. The rows themselves
 stay readable until retention, so an operator can see what turned up too late.
 
+### The deadline is enforced by one sweep, running the same routine
+
+A parked receiver has no timer of its own, so the mailbox's deadline is the only thing standing
+between it and waiting forever. `MailboxDeadlineService` is what turns that column into a promise: a
+periodic sweep that claims open mailboxes past their `deadline` and runs **exactly the routine
+`DELETE` runs**, with `disposedReason = deadline`. There is no separate closure path to keep in step
+with the caller-driven one, which is what makes a `DELETE` racing the sweep a first-writer-wins no-op
+rather than two half-closures.
+
+It runs on `EngineSettings.MailboxSweepInterval` — five minutes by default, deliberately coarser than
+the maintenance cadence, because a deadline is a day-scale promise and a tick with nothing overdue
+costs one indexed scan (`ix_mailboxes_deadline_open`). **That interval is a term in the
+callback-token lifetime bound** derived on `MaxMailboxTimeout`: a receiver parks until the mailbox
+actually closes, which is its deadline plus at most one cadence, so raising the interval raises the
+worst case and `CallbackTokenLifetimeInvariantTests` fails loudly rather than letting a receiver park
+past its token's validity.
+
+Three properties are worth knowing:
+
+- **The claim is the lock.** Each mailbox is claimed with `FOR UPDATE SKIP LOCKED`, which is both the
+  row lock the closure routine requires and the reason a mailbox somebody else is holding — another
+  pod's sweep, a delivery, a close, an enqueue — is left for the next tick instead of queued behind.
+- **One transaction per mailbox, isolated.** A close that throws is contained: that mailbox stays
+  open, overdue and claimable next pass, and the rest of the batch closes now. Without the isolation
+  it would be a permanent wedge rather than a delay, since the candidates are ordered by deadline and
+  the same mailbox would lead every batch.
+- **A tick drains; the batch size bounds the statement.** Each claim-and-close pass takes at most
+  `SweepBatchSize` mailboxes, and the tick repeats passes until nothing is left — so "at most one
+  cadence" is true of the close and not merely of the first hundred closes. One batch per tick would
+  make the real gap `ceil(overdue / SweepBatchSize)` intervals and quietly break the bound below
+  during exactly the mass-timeout event that most needs it. A pass that closes nothing ends the tick,
+  which is what stops a batch full of failing mailboxes spinning inside one tick instead of waiting
+  for the next.
+- **There is no second half.** Nothing is enqueued. The workflow that concludes the exchange already
+  exists and carries the app's own steps, so closing _releases_ it rather than creating anything.
+
+The sweep counts what it finds: `engine.mailboxes.closed` tagged `reason=deadline`, the receivers it
+released through `engine.mailboxes.receivers.released`, and
+`engine.mailboxes.deliveries.unconsumed`. That last one is the sweep's alone — a `DELETE` reports the
+same number to a caller who can act on it, while a mailbox that aged out has no such caller.
+
+**No leak backstop exists, and none is needed.** Every mailbox closes by its deadline, so an open
+mailbox materially older than its deadline plus a sweep cadence is an invariant violation worth an
+alert, not a garbage-collection policy.
+
+### Retention
+
+A **closed** mailbox past the retention cutoff is purged with its deliveries and waiters, in the
+existing maintenance sweep. Age alone is not enough: an open mailbox is an exchange in progress
+whatever its timestamps say, and if it is past its deadline the closure sweep is what owes it an
+answer.
+
+The children go first, and that order is enforced by the schema rather than by the code that happens
+to implement it — both child tables reference `engine.mailboxes` with `ON DELETE RESTRICT`, the only
+non-cascade foreign keys in the schema, so a purge written in the wrong order raises SQLSTATE `23001`
+instead of quietly taking rows with it.
+
+Receive workflows purge independently, under the workflow sweep, and nothing waits for them: a purged
+receiver leaves behind a released waiter row whose `workflow_id` points at nothing, which is why that
+column deliberately carries no foreign key. The waiter is a record of a rendezvous that already
+happened, and it goes when its mailbox does.
+
 ### The mailbox row is its own serialization point
 
 Every operation that changes mailbox state takes the mailbox row's lock **before reading anything it

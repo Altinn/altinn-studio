@@ -60,17 +60,20 @@ public class CallbackTokenLifetimeInvariantTests
     /// design introduces.
     /// </para>
     /// <para>
-    /// <strong>The sweep term is a placeholder for a sweep that does not exist yet.</strong> It is
-    /// charged against <see cref="EngineSettings.MaintenanceInterval"/> because the mailbox closure
-    /// sweep, when it arrives, is expected to ride that cadence — but if it is given its own, coarser
-    /// setting instead, this term must be repointed at that setting here and in the remarks on
-    /// <see cref="EngineSettings.MaxMailboxTimeout"/>. A sweep running slower than the term charged for
-    /// it lets a receiver park past the bound while every assertion below stays green.
+    /// <strong>The sweep term names the cadence the closure sweep actually runs on</strong> —
+    /// <see cref="EngineSettings.MailboxSweepInterval"/>, which the sweep was given rather than riding the
+    /// maintenance cadence, because a deadline is a day-scale promise and does not want a minute-scale
+    /// timer. Naming the setting is what keeps the arithmetic honest: raising it raises the worst case
+    /// here too, so a sweep made slower than this bound allows fails loudly instead of quietly letting a
+    /// receiver park past its token's validity. It is pinned to the service by
+    /// <c>MailboxSweepTests.SweepService_RunsOnTheMailboxSweepInterval_NotTheMaintenanceInterval</c>,
+    /// without which the setting could be raised here while the sweep went on running on some other
+    /// clock.
     /// </para>
     /// </remarks>
     private static TimeSpan BoundedWorstCaseReceiverLifetime(EngineSettings settings) =>
         settings.MaxMailboxTimeout
-        + settings.MaintenanceInterval
+        + settings.MailboxSweepInterval
         + settings.MaxStepWaitBudget
         + settings.Retention.RetentionPeriod
         + settings.MaxStepWaitBudget
@@ -101,6 +104,58 @@ public class CallbackTokenLifetimeInvariantTests
         var settings = Defaults.EngineSettings;
 
         Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
-        Assert.Equal(TimeSpan.FromDays(110) + TimeSpan.FromMinutes(1), BoundedWorstCaseReceiverLifetime(settings));
+        Assert.Equal(TimeSpan.FromMinutes(5), settings.MailboxSweepInterval);
+        Assert.Equal(TimeSpan.FromDays(110) + TimeSpan.FromMinutes(5), BoundedWorstCaseReceiverLifetime(settings));
     }
+
+    [Fact]
+    public void TheDerivationsMailboxTerms_AreSourcedFromDefaults_NotFromPropertyInitializers()
+    {
+        // Both tests above read Defaults.EngineSettings, so they only guard the engine's real behavior
+        // while Defaults is what the engine really runs on. It is not automatically: EngineSettings is a
+        // plain settings object whose properties may carry initializers, and the normalizer only reaches
+        // for Defaults when a value is non-positive — so an initializer is the value that actually runs
+        // when nothing is configured, and a tripwire reading Defaults would go on guarding a number the
+        // engine had stopped using.
+        //
+        // The two terms are held to different standards, deliberately. MailboxSweepInterval must carry no
+        // initializer at all, so Defaults is not merely in agreement but is the only source there is —
+        // the stricter rule, and affordable because this step introduced the setting. MaxMailboxTimeout
+        // inherited its initializer from step 1 and is held to the weaker rule that it agree with Defaults,
+        // so that which of the two wins cannot matter. Mutating either number on its own reddens this.
+        var unnormalized = UnnormalizedSettings();
+
+        Assert.True(
+            unnormalized.MailboxSweepInterval <= TimeSpan.Zero,
+            "EngineSettings.MailboxSweepInterval has grown a property initializer. That value, not "
+                + "Defaults.EngineSettings, is now what runs when nothing is configured — so the "
+                + "callback-token bound above is guarding a cadence the sweep no longer uses. Drop the "
+                + "initializer and let the settings normalizer source this from Defaults, as the "
+                + "neighboring timer settings do."
+        );
+
+        Assert.Equal(Defaults.EngineSettings.MaxMailboxTimeout, unnormalized.MaxMailboxTimeout);
+    }
+
+    /// <summary>
+    /// An <see cref="EngineSettings"/> exactly as the type constructs itself — required members supplied
+    /// because the compiler insists, and nothing else touched. This is what a host gets before the settings
+    /// normalizer runs, and therefore what it keeps for any value the normalizer decides is already set.
+    /// </summary>
+    private static EngineSettings UnnormalizedSettings() =>
+        new()
+        {
+            MaxWorkflowsPerRequest = 1,
+            MaxStepsPerWorkflow = 1,
+            MaxLabels = 1,
+            MetricsCollectionInterval = TimeSpan.FromSeconds(1),
+            DefaultStepCommandTimeout = TimeSpan.FromSeconds(1),
+            MaxStepCommandTimeout = TimeSpan.FromSeconds(1),
+            DefaultStepRetryStrategy = null!,
+            DatabaseCommandTimeout = TimeSpan.FromSeconds(1),
+            DatabaseRetryStrategy = null!,
+            HeartbeatInterval = TimeSpan.FromSeconds(1),
+            StaleWorkflowThreshold = TimeSpan.FromSeconds(1),
+            MaxReclaimCount = 1,
+        };
 }

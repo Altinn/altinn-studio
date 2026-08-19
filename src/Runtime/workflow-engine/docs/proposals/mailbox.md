@@ -1024,19 +1024,30 @@ its analogue — a test that would stay green if the transaction were split prov
 
 **Out of scope:** the sweep (step 5), the executor's read (step 6).
 
-#### Step 5 — Engine: the deadline sweep, retention, and the dashboard — `in progress`
+#### Step 5 — Engine: the deadline sweep, retention, and the dashboard — **split into 5a and 5b**
 
-Paths: `src/Runtime/workflow-engine` (Core background service, `DbMaintenanceService`, dashboard).
+Split taken by the step-5 worker (2026-08-19) under the protocol's scope-split rule, on the sizing the
+step itself anticipated. The dashboard is not a small addition to the sweep: it is the **first
+non-workflow noun the dashboard renders**, so nothing composes — DTOs, `DashboardMapper`, the SSE
+fingerprint loop and the chain spine all assume "a workflow" — and it needs a genuinely new
+three-table repository read with no precedent among the four single-mailbox methods that exist. It
+also carries a design question that is not the worker's to settle silently (recorded in 5b below).
+The sweep and the retention purge, by contrast, are one coherent piece of lifecycle housekeeping, and
+they carry the `MaxMailboxTimeout` repoint with them. Estimated ~900 hand-written lines for the
+dashboard alone against ~1400 for the sweep half.
 
-A small `BackgroundService` on the `MaintenanceInterval` pattern claiming `open` mailboxes past
-`deadline` with `FOR UPDATE SKIP LOCKED` — the claim _is_ the master lock — running **exactly the
-`DELETE` routine** with `disposed_reason = 'deadline'`, one transaction per mailbox, per-mailbox
-`try`/`catch` so one throw leaves that mailbox claimable next tick and never wedges the batch. There
-is no second half: nothing is enqueued. Mine `wumzmozz` for the isolation lesson and leave its
-backstop zoo behind — it has nothing to attach to here. Retention: a `disposed` mailbox past the
-cutoff purges with its deliveries and waiters, children first, in the existing maintenance sweep.
-Dashboard: a mailbox renders under its collection with deadline, both counters, per-position state,
-and its receivers linked. Metric: `engine.mailboxes.deliveries.unconsumed`.
+#### Step 5a — Engine: the deadline sweep and retention
+
+Paths: `src/Runtime/workflow-engine` (background service, `DbMaintenanceService`, repository).
+
+A small `BackgroundService` claiming `open` mailboxes past `deadline` with `FOR UPDATE SKIP LOCKED` —
+the claim _is_ the master lock — running **exactly the `DELETE` routine** with
+`disposed_reason = 'deadline'`, one transaction per mailbox, per-mailbox `try`/`catch` so one throw
+leaves that mailbox claimable next tick and never wedges the batch. There is no second half: nothing
+is enqueued. Mine `wumzmozz` for the isolation lesson and leave its backstop zoo behind — it has
+nothing to attach to here. Retention: a `disposed` mailbox past the cutoff purges with its deliveries
+and waiters, children first, in the existing maintenance sweep. Metric:
+`engine.mailboxes.deliveries.unconsumed`.
 
 **Carried from step 1:** the `MaxMailboxTimeout` derivation and
 `CallbackTokenLifetimeInvariantTests` both charge the sweep term against
@@ -1045,8 +1056,30 @@ gives the closure sweep its own, coarser cadence setting, **repoint that term in
 slower sweep lets a receiver park past the bound while every assertion stays green. Both files say so
 at the point of use; they are the grep targets.
 
-Reasonable split if the dashboard proves large: 5a sweep + retention, 5b dashboard. Take it via
-`BLOCKED_FOR_SCOPE_SPLIT` rather than by growing the revision.
+#### Step 5b — Engine: the dashboard — `todo`
+
+Paths: `src/Runtime/workflow-engine` (`DashboardEndpoints`, `DashboardMapper`, `wwwroot`, a new
+repository read).
+
+A mailbox renders under its collection with its deadline, both counters, per-position state
+(delivered/consumed/waiting), and its receivers linked. A `Held` receiver renders as `Held` and
+receive workflows are ordinary workflows, so those cost nothing new. `released_at` and `claimed_at`
+are both written exactly once and are ready for this.
+
+**One design question must be settled before code.** "Its receivers linked" is not fully answerable
+from the schema as it stands: a waiter row exists **only for a receiver that had to park** (step 3's
+landing note), so a receiver born runnable — `delivered` or `closed` birth — has its position
+recorded nowhere. `engine.workflows.mailbox_id` names the mailbox but carries no `seq`. Three
+options, and the choice is the orchestrator's: accept the gap and render those positions without a
+link; infer position from `created_at` order (true in practice, guaranteed by nothing); or add the
+column. Note the recorded alternative in [The receive workflow](#the-receive-workflow) is the same
+question from the other end.
+
+Two further sizing facts the split turned up: the collection view is built entirely from the
+`/dashboard/stream/live` SSE payload with no fetch, so a block that should always be visible needs
+either a new endpoint or a new SSE fingerprint; and `modules/shared/chain-groups.js` is the module
+that owns the collection level, with `mailboxCache` slotting beside its existing `historyCache` and
+reusing its re-render hooks.
 
 #### Step 6 — Engine + host: the delivery callback contract — `todo`
 

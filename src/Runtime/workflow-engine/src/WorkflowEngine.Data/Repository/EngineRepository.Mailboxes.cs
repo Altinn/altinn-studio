@@ -478,6 +478,220 @@ internal sealed partial class EngineRepository
         return new MailboxCloseResult.Closed(closed, new MailboxReleaseCounts(Delivered: 0, Closed: released));
     }
 
+    /// <summary>
+    /// The overdue claim. Not a plain read despite reading nothing the sweep decides differently on:
+    /// <c>FOR UPDATE</c> makes it the mailbox row lock <see cref="CloseLockedMailbox"/> requires, and
+    /// <c>SKIP LOCKED</c> makes it a claim — a mailbox another pod's sweep, a <c>DELETE</c>, a delivery or
+    /// an enqueue is holding is left for the next tick instead of queued behind.
+    /// </summary>
+    /// <remarks>
+    /// The status and deadline predicates are re-evaluated against the locked row, so a mailbox that a
+    /// <c>DELETE</c> closed between this transaction's snapshot and its lock returns nothing here and is
+    /// simply not swept. That is the whole of "a <c>DELETE</c> racing the sweep": whoever locks first
+    /// closes it, and the loser never reaches the routine at all.
+    /// </remarks>
+    private const string ClaimOverdueMailboxSql = $"""
+        SELECT {MailboxColumns}
+        FROM engine.mailboxes m
+        WHERE m.id = @id
+          AND m.status = '{MailboxStatusMap.Open}'
+          AND m.deadline <= @now
+        FOR UPDATE SKIP LOCKED
+        """;
+
+    /// <inheritdoc/>
+    public async Task<MailboxSweepResult> SweepOverdueMailboxes(
+        DateTimeOffset now,
+        int batchSize,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.SweepOverdueMailboxes");
+        activity?.DontRecord();
+
+        var candidates = await SelectOverdueMailboxCandidates(now, batchSize, cancellationToken);
+        if (candidates.Count == 0)
+            return default;
+
+        activity?.Record();
+        activity?.SetTag("mailboxes.overdue", candidates.Count);
+
+        var result = new MailboxSweepResult();
+        foreach (var mailboxId in candidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                result += await CloseOverdueMailbox(mailboxId, now, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Per-mailbox isolation, and it is the one lesson worth carrying over from the exchange
+                // sweep this replaces. Each mailbox has its own transaction, so a throw here has already
+                // rolled that mailbox's close back and left it open, overdue, and claimable next tick —
+                // exactly where it started. Letting the exception escape instead would abandon every
+                // mailbox behind it in the batch, and since the candidate scan orders by deadline the same
+                // mailbox would lead the next batch too: a permanent wedge rather than a delay, taking the
+                // "no exchange outlives its deadline" guarantee down with it.
+                //
+                // Treated as transient without exception, because there is no permanent shape to
+                // recognize: the routine takes no caller-supplied body, only a row the engine wrote.
+                // Retrying forever is the correct answer to a database problem, and the log names the
+                // mailbox so one that never drains is identifiable rather than merely counted.
+                result = result with
+                {
+                    Failed = result.Failed + 1,
+                };
+
+                // Tagged apart from the sweep pass's own failures on purpose. This one is self-healing —
+                // the mailbox stays claimable and the next pass takes it — while a failure tagged
+                // "mailboxDeadlineSweep" means the pass itself did not run and the deadline guarantee is
+                // off for everything. An operator cannot tell "one poisoned mailbox" from "the sweep is
+                // down" if both arrive under one tag, and they want opposite responses.
+                Metrics.Errors.Add(1, ("operation", "mailboxDeadlineClose"));
+                logger.FailedMailboxOperation("close at its deadline", mailboxId, ex.Message, ex);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// The deadline sweep's candidate scan, hoisted to a named constant so <c>QueryPlanTests</c> can
+    /// <c>EXPLAIN</c> the statement the sweep actually issues rather than a copy of it — the same reason
+    /// <c>DbMaintenanceService.Sql</c> holds its commands that way.
+    /// </summary>
+    /// <remarks>
+    /// The predicate and the ordering together are what <c>ix_mailboxes_deadline_open</c> is partial and
+    /// keyed on, so a tick with nothing overdue reads one index entry and stops.
+    /// </remarks>
+    internal const string SelectOverdueMailboxCandidatesSql = $"""
+        SELECT m.id
+        FROM engine.mailboxes m
+        WHERE m.status = '{MailboxStatusMap.Open}'
+          AND m.deadline <= @now
+        ORDER BY m.deadline
+        LIMIT @batch_size
+        """;
+
+    /// <summary>
+    /// Reads the ids of mailboxes whose deadline has passed while they are still open, oldest deadline
+    /// first. Deliberately takes no locks: it selects <em>candidates</em>, and each one is claimed under
+    /// its own transaction below, so a slow close cannot make this scan hold a row.
+    /// </summary>
+    private async Task<List<Guid>> SelectOverdueMailboxCandidates(
+        DateTimeOffset now,
+        int batchSize,
+        CancellationToken cancellationToken
+    )
+    {
+        using var slot = await limiter.AcquireDbSlot(cancellationToken: cancellationToken);
+
+        var candidates = new List<Guid>();
+        await ExecuteWithRetry(
+            async ct =>
+            {
+                candidates.Clear();
+
+                await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                await using var cmd = new NpgsqlCommand(SelectOverdueMailboxCandidatesSql, conn);
+                cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+                cmd.Parameters.Add(new NpgsqlParameter<int>("batch_size", batchSize));
+
+                await using var reader = await cmd.ExecuteReaderAsync(ct);
+                while (await reader.ReadAsync(ct))
+                {
+#pragma warning disable CA1849, S6966 // The row is already buffered
+                    candidates.Add(reader.GetGuid(0));
+#pragma warning restore CA1849, S6966
+                }
+            },
+            cancellationToken
+        );
+
+        return candidates;
+    }
+
+    /// <summary>
+    /// Closes one overdue mailbox in its own transaction, running exactly the routine <c>DELETE</c> runs.
+    /// </summary>
+    /// <remarks>
+    /// No <see cref="ExecuteWithRetry"/>, and the omission is deliberate: the sweep's cadence is its retry.
+    /// A re-run of this delegate after a commit whose acknowledgement was lost would find the mailbox
+    /// already closed and report a close it had in fact performed as a no-op, losing the released count and
+    /// the unconsumed number this pass owed — whereas a genuinely failed close leaves the mailbox open and
+    /// overdue, and the next tick claims it again with nothing lost.
+    /// </remarks>
+    private async Task<MailboxSweepResult> CloseOverdueMailbox(
+        Guid mailboxId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        using var slot = await limiter.AcquireDbSlot(cancellationToken: cancellationToken);
+
+        await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var tx = await conn.BeginTransactionAsync(cancellationToken);
+
+        MailboxResponse? claimed;
+        await using (var claimCmd = new NpgsqlCommand(ClaimOverdueMailboxSql, conn, tx))
+        {
+            claimCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
+            claimCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+
+            await using var reader = await claimCmd.ExecuteReaderAsync(cancellationToken);
+            claimed = await reader.ReadAsync(cancellationToken) ? ReadMailbox(reader) : null;
+        }
+
+        if (claimed is null)
+        {
+            await tx.RollbackAsync(cancellationToken);
+            return default;
+        }
+
+        var result = await CloseLockedMailbox(
+            conn,
+            tx,
+            claimed,
+            MailboxDisposedReason.Deadline,
+            now,
+            cancellationToken
+        );
+
+        await tx.CommitAsync(cancellationToken);
+
+        // After the commit, and through the result rather than beside the statements, so the sweep cannot
+        // get the tag set wrong: the closure's own counters — including the `deadline` reason, read off the
+        // row that was actually written — come for free from the routine it shares with DELETE.
+        result.Record();
+
+        if (result is not MailboxCloseResult.Closed closed)
+            return default;
+
+        // The unconsumed count is the sweep's alone to publish. A DELETE reports the same number to a
+        // caller who can act on it; a mailbox that aged out has no such caller, so if this pass does not
+        // count them, nothing ever does.
+        var unconsumed = closed.Mailbox.UnconsumedDeliveries;
+        if (unconsumed > 0)
+        {
+            Metrics.MailboxDeliveriesUnconsumed.Add(unconsumed);
+            logger.MailboxClosedWithUnconsumedDeliveries(mailboxId, unconsumed);
+        }
+
+        return new MailboxSweepResult(
+            Closed: 1,
+            ReceiversReleased: closed.Released.Closed,
+            UnconsumedDeliveries: unconsumed,
+            Failed: 0
+        );
+    }
+
     /// <inheritdoc/>
     public async Task<MailboxDeliveryResult> DeliverToMailbox(
         Guid mailboxId,
@@ -765,6 +979,40 @@ internal readonly record struct MailboxReleaseCounts(int Delivered, int Closed)
         if (Closed > 0)
             Metrics.MailboxReceiversReleased.Add(Closed, new KeyValuePair<string, object?>("cause", "closed"));
     }
+}
+
+/// <summary>
+/// What one pass of the deadline sweep did, summed over the mailboxes it claimed.
+/// </summary>
+/// <param name="Closed">Mailboxes this pass closed at their deadline.</param>
+/// <param name="ReceiversReleased">Receivers those closures released to run with the no-delivery signal.</param>
+/// <param name="UnconsumedDeliveries">Accepted positions across them that no receiver was ever enqueued for.</param>
+/// <param name="Failed">
+/// Mailboxes whose close threw and were left open, overdue, and claimable by the next pass. Nonzero is not
+/// a lost close — it is a delayed one — but a value that stays nonzero across passes is a mailbox that
+/// never drains, which the log names.
+/// </param>
+/// <remarks>
+/// A claim the sweep lost — to another pod, or to a <c>DELETE</c> that closed the mailbox first — is none
+/// of these: nothing failed and nothing was closed by this pass, so it contributes a zero.
+/// </remarks>
+internal readonly record struct MailboxSweepResult(
+    int Closed = 0,
+    int ReceiversReleased = 0,
+    long UnconsumedDeliveries = 0,
+    int Failed = 0
+)
+{
+    public static MailboxSweepResult operator +(MailboxSweepResult left, MailboxSweepResult right) =>
+        new(
+            left.Closed + right.Closed,
+            left.ReceiversReleased + right.ReceiversReleased,
+            left.UnconsumedDeliveries + right.UnconsumedDeliveries,
+            left.Failed + right.Failed
+        );
+
+    /// <summary>Whether this pass has anything worth reporting.</summary>
+    public bool IsEmpty => Closed == 0 && Failed == 0;
 }
 
 /// <summary>

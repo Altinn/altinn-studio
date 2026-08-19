@@ -39,6 +39,7 @@ internal static class Defaults
         MaxReclaimCount = 5,
         CancellationWatcherInterval = TimeSpan.FromSeconds(2),
         MaintenanceInterval = TimeSpan.FromMinutes(1),
+        MailboxSweepInterval = TimeSpan.FromMinutes(5),
         Concurrency = new ConcurrencySettings()
         {
             MaxWorkers = 400,

@@ -52,6 +52,7 @@ internal sealed class DbMaintenanceService(
                 {
                     _lastRetentionRun = now;
                     await PurgeExpiredWorkflows(now, settings.Retention, stoppingToken);
+                    await PurgeExpiredMailboxes(now, settings.Retention, stoppingToken);
                 }
 
                 await FailPoisonedWorkflows(now, settings, stoppingToken);
@@ -316,6 +317,99 @@ internal sealed class DbMaintenanceService(
     private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
 
     /// <summary>
+    /// Purges closed mailboxes past the retention cutoff, together with their deliveries and waiters.
+    /// </summary>
+    /// <remarks>
+    /// Mailboxes are not workflows, so <see cref="PurgeExpiredWorkflows"/> never sees them and they need a
+    /// policy of their own. It is a simple one: only a <c>disposed</c> mailbox is purgeable — an open one
+    /// is an exchange in progress however old it looks, and if it is older than its own deadline the
+    /// closure sweep is what should have dealt with it — and it becomes purgeable once the instant it
+    /// closed falls past the cutoff.
+    /// <para>
+    /// <strong>Children first, and the order is enforced by the schema rather than by this comment.</strong>
+    /// Both child tables reference <c>engine.mailboxes</c> with <c>ON DELETE RESTRICT</c> — the only
+    /// non-cascade foreign keys in the schema, chosen deliberately so that a purge written in the wrong
+    /// order raises SQLSTATE <c>23001</c> instead of quietly taking rows nobody asked it to take.
+    /// </para>
+    /// <para>
+    /// The receive workflows that read those deliveries purge independently, under the workflow sweep, and
+    /// nothing here waits for them: a purged receiver leaves behind a released waiter row whose
+    /// <c>workflow_id</c> points at nothing, which is why that column deliberately carries no foreign key.
+    /// The waiter is a record of a rendezvous that already happened, and it goes when its mailbox does.
+    /// </para>
+    /// </remarks>
+    internal async Task PurgeExpiredMailboxes(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.PurgeExpiredMailboxes");
+
+        var cutoff = now - settings.RetentionPeriod;
+        var totalPurged = 0;
+
+        // Bounded by the batch actually emptying rather than by it coming back short, so a batch size of
+        // zero — which selects nothing — ends the loop instead of running it forever.
+        int purged;
+        do
+        {
+            using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+            {
+                purged = await PurgeExpiredMailboxBatch(cutoff, settings.BatchSize, ct);
+                totalPurged += purged;
+            }
+        } while (purged > 0 && purged >= settings.BatchSize);
+
+        if (totalPurged > 0)
+            logger.RetentionDeletedMailboxes(totalPurged);
+    }
+
+    private async Task<int> PurgeExpiredMailboxBatch(DateTimeOffset cutoff, int batchSize, CancellationToken ct)
+    {
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+
+        // Claimed with SKIP LOCKED so a mailbox another pod is closing, delivering into, or purging is left
+        // alone rather than waited on — and, because the claim holds the row for the rest of this
+        // transaction, so that none of those can begin against a mailbox that is on its way out.
+        List<Guid> candidates = [];
+        await using (var selectCmd = new NpgsqlCommand(Sql.SelectExpiredMailboxCandidatesCommand, conn, tx))
+        {
+            selectCmd.Parameters.AddWithValue("cutoff", cutoff);
+            selectCmd.Parameters.AddWithValue("batchSize", batchSize);
+
+            await using var reader = await selectCmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+#pragma warning disable CA1849, S6966 // The row is already buffered
+                candidates.Add(reader.GetFieldValue<Guid>(0));
+#pragma warning restore CA1849, S6966
+            }
+        }
+
+        if (candidates.Count == 0)
+        {
+            await tx.CommitAsync(ct);
+            return 0;
+        }
+
+        var mailboxIds = candidates.ToArray();
+
+        await using (var childrenCmd = new NpgsqlCommand(Sql.DeleteExpiredMailboxChildrenCommand, conn, tx))
+        {
+            childrenCmd.Parameters.AddWithValue("mailboxIds", mailboxIds);
+            await childrenCmd.ExecuteNonQueryAsync(ct);
+        }
+
+        int deleted;
+        await using (var mailboxCmd = new NpgsqlCommand(Sql.DeleteExpiredMailboxesCommand, conn, tx))
+        {
+            mailboxCmd.Parameters.AddWithValue("mailboxIds", mailboxIds);
+            deleted = await mailboxCmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await tx.CommitAsync(ct);
+        return deleted;
+    }
+
+    /// <summary>
     /// Finalizes poisoned workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
     /// and whose heartbeat is stale — by marking them as <see cref="PersistentItemStatus.Failed"/>
     /// and clearing LeaseToken. Idempotent across concurrent sweeps from multiple pods:
@@ -531,6 +625,32 @@ internal sealed class DbMaintenanceService(
             RETURNING id, collection_key, namespace
             """;
 
+        internal const string SelectExpiredMailboxCandidatesCommand = $"""
+            SELECT m.id
+            FROM engine.mailboxes m
+            WHERE m.status = '{MailboxStatusMap.Disposed}'
+              AND m.disposed_at < @cutoff
+            ORDER BY m.disposed_at
+            LIMIT @batchSize
+            FOR UPDATE SKIP LOCKED
+            """;
+
+        // One statement for both child tables so the order between them cannot be got wrong either —
+        // there is no order between them, and writing it as two statements would invite one.
+        internal const string DeleteExpiredMailboxChildrenCommand = """
+            WITH purged_deliveries AS (
+                DELETE FROM engine.mailbox_deliveries
+                WHERE mailbox_id = ANY(@mailboxIds)
+            )
+            DELETE FROM engine.mailbox_waiters
+            WHERE mailbox_id = ANY(@mailboxIds)
+            """;
+
+        internal const string DeleteExpiredMailboxesCommand = """
+            DELETE FROM engine.mailboxes
+            WHERE id = ANY(@mailboxIds)
+            """;
+
         internal const string DeleteOrphanedIdempotencyKeys = """
             DELETE FROM engine.idempotency_keys
             WHERE created_at < @cutoff
@@ -618,6 +738,12 @@ internal static partial class DbMaintenanceServiceLogs
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} orphaned idempotency key(s)")]
     internal static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "Retention: deleted {Count} closed mailbox(es) with their deliveries and waiters"
+    )]
+    internal static partial void RetentionDeletedMailboxes(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
     internal static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);

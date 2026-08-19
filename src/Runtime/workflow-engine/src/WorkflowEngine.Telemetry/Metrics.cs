@@ -329,6 +329,24 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of accepted deliveries that no receiver was ever enqueued for, counted when the mailbox
+    /// closes at its deadline.
+    /// </summary>
+    /// <remarks>
+    /// The messages an exchange took in and nobody read: they arrived while the app was concluding, or
+    /// past the relay's last hop, and no replayed saga ever drained them. Counted by the deadline sweep
+    /// rather than by every closure, because a <c>DELETE</c> reports the same number in its response to a
+    /// caller who is in a position to act on it, while a mailbox that aged out has no such caller — this
+    /// counter is the only place that number is ever seen. A rising value means counterparties are
+    /// answering after their exchange gave up, which is a forwarder or a timeout problem rather than an
+    /// engine one; the rows themselves stay readable until retention purges the mailbox.
+    /// </remarks>
+    public static readonly Counter<long> MailboxDeliveriesUnconsumed = Meter.CreateCounter<long>(
+        "engine.mailboxes.deliveries.unconsumed",
+        description: "Number of accepted deliveries no receiver was ever enqueued for, counted when a mailbox closes at its deadline"
+    );
+
+    /// <summary>
     /// Counter of receive workflows created, tagged with the state they were born in: <c>delivered</c>
     /// (a message already sat at their position), <c>closed</c> (the mailbox was already closed, so none
     /// ever can), or <c>held</c> (parked until one of those becomes true).

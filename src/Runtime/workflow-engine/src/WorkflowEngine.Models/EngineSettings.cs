@@ -135,11 +135,10 @@ public sealed record EngineSettings
     ///   <item>the park: at most the mailbox's whole remaining lifetime, which is at most this cap for a
     ///         receiver enqueued at mint — 21d</item>
     ///   <item>the closure sweep's coarseness, since the mailbox closes at its deadline plus at most one
-    ///         cadence — <see cref="MaintenanceInterval"/>, 1min. <strong>This term must track whatever
-    ///         cadence the mailbox closure sweep actually runs on.</strong> No such sweep exists yet, so
-    ///         it is charged against the maintenance interval; a sweep introduced on its own, coarser
-    ///         setting has to replace this term here and in the tripwire test, or the bound silently
-    ///         stops covering the wait it is meant to bound</item>
+    ///         cadence — <see cref="MailboxSweepInterval"/>, 5min. <strong>This term must track whatever
+    ///         cadence the mailbox closure sweep actually runs on</strong>, which is why it names that
+    ///         setting rather than the sweep's implementation: raising the interval without raising this
+    ///         term would leave the bound silently no longer covering the wait it exists to bound</item>
     ///   <item>the released receiver's own wait, its steps being ordinary steps that may defer —
     ///         <see cref="MaxStepWaitBudget"/>, 14d</item>
     ///   <item>a failure, then a resume at the terminal-retention edge replaying the original token —
@@ -148,7 +147,7 @@ public sealed record EngineSettings
     ///   <item>the final retry ladder — <see cref="RetryStrategy.MaxDuration"/> of
     ///         <see cref="DefaultStepRetryStrategy"/>, 24h</item>
     /// </list>
-    /// which totals 110d and a minute against a floor of ≥114d of remaining validity at enqueue
+    /// which totals 110d and five minutes against a floor of ≥114d of remaining validity at enqueue
     /// (operator app-code rotation policy in
     /// <c>src/Runtime/operator/internal/controller/appcodesync/controller.go</c>: 186d acceptance, 72d
     /// rotation). <c>CallbackTokenLifetimeInvariantTests</c> pins that arithmetic, so raising this cap —
@@ -291,6 +290,37 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("maintenanceInterval")]
     public TimeSpan MaintenanceInterval { get; set; }
+
+    /// <summary>
+    /// Interval at which the mailbox closure sweep looks for open mailboxes whose deadline has passed and
+    /// closes them. Deliberately coarser than <see cref="MaintenanceInterval"/>.
+    /// </summary>
+    /// <remarks>
+    /// A mailbox deadline is a day-scale promise, so the sweep buys nothing by running often — every tick
+    /// with nothing overdue is one indexed scan, and a mailbox that closes a few minutes after its
+    /// deadline is indistinguishable to the app from one that closes on it. Its own setting rather than
+    /// the maintenance interval because the two answer different questions: maintenance recovers work the
+    /// engine already owns and wants to be prompt, while this enforces a bound measured in weeks.
+    /// <para>
+    /// <strong>It is a term in the callback-token lifetime bound.</strong> A receiver parks until the
+    /// mailbox actually closes, which is its deadline plus at most one of these intervals, so this number
+    /// is charged in the derivation on <see cref="MaxMailboxTimeout"/> and pinned by
+    /// <c>CallbackTokenLifetimeInvariantTests</c>. Raising it is therefore not free: it must stay within
+    /// the headroom that derivation leaves, and the tripwire fails loudly rather than letting a slow sweep
+    /// quietly push a parked receiver past its token's validity.
+    /// </para>
+    /// <para>
+    /// <strong>The default lives in one place only</strong> — <c>Defaults.EngineSettings</c>, applied by the
+    /// settings normalizer — and this property deliberately carries no initializer, matching
+    /// <see cref="MaintenanceInterval"/> and <see cref="CancellationWatcherInterval"/>, the two neighboring
+    /// timer settings this is one of. An initializer here would be the value that actually runs when nothing
+    /// is configured, since the normalizer only reaches for <c>Defaults</c> when the value is non-positive —
+    /// so the tripwire, which reads <c>Defaults</c>, would go on guarding a number the engine had stopped
+    /// using.
+    /// </para>
+    /// </remarks>
+    [JsonPropertyName("mailboxSweepInterval")]
+    public TimeSpan MailboxSweepInterval { get; set; }
 
     /// <summary>
     /// Concurrency settings.
