@@ -25,6 +25,41 @@ require_ext4() {
   log "${path} is ext4"
 }
 
+raise_proc_limit() {
+  local path="$1"
+  local value="$2"
+  local name="$3"
+  local current
+
+  if [[ ! -r "${path}" ]]; then
+    log "${name} is not readable; keeping kernel default"
+    return
+  fi
+
+  current="$(cat "${path}")"
+  if [[ "${current}" =~ ^[0-9]+$ ]] && (( current >= value )); then
+    log "${name} is ${current}; keeping existing value"
+    return
+  fi
+
+  if [[ ! -w "${path}" ]]; then
+    log "${name} is ${current}; cannot raise to ${value}"
+    return
+  fi
+
+  if echo "${value}" > "${path}"; then
+    log "set ${name}=${value}"
+  else
+    log "failed to set ${name}=${value}; keeping ${current}"
+  fi
+}
+
+configure_kernel_limits() {
+  raise_proc_limit /proc/sys/fs/inotify/max_user_instances 1024 fs.inotify.max_user_instances
+  raise_proc_limit /proc/sys/fs/inotify/max_user_watches 1048576 fs.inotify.max_user_watches
+  raise_proc_limit /proc/sys/fs/inotify/max_queued_events 32768 fs.inotify.max_queued_events
+}
+
 wait_for_docker() {
   for _ in {1..60}; do
     if docker info >/dev/null 2>&1; then
@@ -84,6 +119,8 @@ cleanup() {
   terminate_process dockerd "${dockerd_pid:-}"
 }
 trap cleanup EXIT INT TERM
+
+configure_kernel_limits
 
 mkdir -p \
   "${RUNNER_WORKDIR}/_temp" \
