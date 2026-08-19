@@ -106,9 +106,9 @@ jobs:
         shell: bash
         run: bash .github/workflows/scripts/github-runner-parity.sh post-setup
 
-  self-hosted-sandbox:
+  self-hosted-ubuntu:
     name: Sandbox-backed runner
-    runs-on: self-hosted-sandbox
+    runs-on: self-hosted-ubuntu
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

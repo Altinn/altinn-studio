@@ -52,7 +52,7 @@ terminate_process() {
 RUNNER_HOME="${RUNNER_HOME:-/home/runner}"
 RUNNER_WORKDIR="${RUNNER_WORKDIR:-${RUNNER_HOME}/_work}"
 RUNNER_NAME="${RUNNER_NAME:-$(hostname)}"
-RUNNER_LABELS="${RUNNER_LABELS:-self-hosted-sandbox}"
+RUNNER_LABELS="${RUNNER_LABELS:-self-hosted-ubuntu}"
 RUNNER_GROUP="${RUNNER_GROUP:-Default}"
 DOCKER_REGISTRY_MIRROR="${DOCKER_REGISTRY_MIRROR:-https://mirror.gcr.io}"
 

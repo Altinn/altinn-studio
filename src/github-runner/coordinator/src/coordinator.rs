@@ -24,7 +24,7 @@ use crate::{
 };
 
 const DEFAULT_RUNNER_HOME: &str = "/home/runner";
-const DEFAULT_RUNNER_LABELS: &str = "self-hosted-sandbox";
+const DEFAULT_RUNNER_LABELS: &str = "self-hosted-ubuntu";
 const RUNNER_ENTRYPOINT: &str = "/usr/local/bin/altinn-github-runner-sandbox";
 const CLEANUP_TIMEOUT: Duration = Duration::from_mins(1);
 const RUNNER_CLAIM_POLL_INTERVAL: Duration = Duration::from_secs(5);

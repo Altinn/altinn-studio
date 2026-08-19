@@ -1,4 +1,4 @@
 self-hosted-runner:
   labels:
     - self-hosted-single
-    - self-hosted-sandbox
+    - self-hosted-ubuntu

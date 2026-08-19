@@ -114,7 +114,7 @@ spec:
               - name: RUNNER_SCOPE
                 value: repo
               - name: RUNNER_LABELS
-                value: self-hosted-sandbox
+                value: self-hosted-ubuntu
               - name: RUNNER_GROUP
                 value: Default
               - name: RUNNER_WORKDIR
@@ -180,7 +180,7 @@ spec:
         owner: Altinn
         runnerScope: repo
         repos: altinn-studio
-        labels: self-hosted-sandbox
+        labels: self-hosted-ubuntu
         noDefaultLabels: "true"
         enableEtags: "false"
         applicationIDFromEnv: APP_ID
