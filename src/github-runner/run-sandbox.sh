@@ -140,12 +140,11 @@ if [[ "${docker_driver}" != "overlay2" ]]; then
 fi
 log "Docker is ready with overlay2"
 
-registration_token="${RUNNER_REGISTRATION_TOKEN}"
+export ACTIONS_RUNNER_INPUT_TOKEN="${RUNNER_REGISTRATION_TOKEN}"
 unset RUNNER_REGISTRATION_TOKEN
 
 runuser --preserve-environment -u runner -- "${RUNNER_HOME}/config.sh" \
   --url "${RUNNER_URL}" \
-  --token "${registration_token}" \
   --name "${RUNNER_NAME}" \
   --work "${RUNNER_WORKDIR}" \
   --labels "${RUNNER_LABELS}" \
@@ -155,8 +154,7 @@ runuser --preserve-environment -u runner -- "${RUNNER_HOME}/config.sh" \
   --replace \
   --disableupdate
 
-registration_token=""
-unset registration_token
+unset ACTIONS_RUNNER_INPUT_TOKEN
 
 set +e
 runuser --preserve-environment -u runner -- "${RUNNER_HOME}/run.sh" &

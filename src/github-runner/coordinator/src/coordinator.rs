@@ -89,7 +89,7 @@ pub struct CoordinatorArguments {
     github_owner: String,
 
     /// Repository name when `RUNNER_SCOPE` is repo.
-    #[arg(long, env = "GITHUB_REPOSITORY")]
+    #[arg(long, env = "GITHUB_REPOSITORY_NAME")]
     github_repository: Option<String>,
 
     /// Scope at which the ephemeral runner is registered.
@@ -260,10 +260,10 @@ fn runner_target(arguments: &CoordinatorArguments) -> Result<RunnerTarget, io::E
             let repository = arguments.github_repository.as_deref().ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    "GITHUB_REPOSITORY is required for repo scope",
+                    "GITHUB_REPOSITORY_NAME is required for repo scope",
                 )
             })?;
-            require_nonempty("GITHUB_REPOSITORY", repository)?;
+            require_nonempty("GITHUB_REPOSITORY_NAME", repository)?;
             Ok(RunnerTarget::Repo {
                 owner,
                 repository: repository.to_string(),
@@ -299,19 +299,27 @@ fn require_nonempty(name: &str, value: &str) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn sandbox_name(argument: Option<SandboxName>) -> Result<SandboxName, sandbox::InvalidSandboxName> {
+fn sandbox_name(argument: Option<SandboxName>) -> Result<SandboxName, io::Error> {
     argument.map_or_else(
-        || SandboxName::new(env::var("POD_NAME").unwrap_or_else(|_| "github-runner-sandbox".to_string())),
+        || SandboxName::new(pod_name()?).map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error)),
         Ok,
     )
 }
 
 fn runner_name(argument: Option<&str>) -> Result<String, io::Error> {
-    let name = argument
-        .map(ToOwned::to_owned)
-        .or_else(|| env::var("POD_NAME").ok())
-        .unwrap_or_else(|| "github-runner-sandbox".to_string());
+    let name = argument.map(ToOwned::to_owned).map_or_else(pod_name, Ok)?;
     require_nonempty("RUNNER_NAME", &name)?;
+    Ok(name)
+}
+
+fn pod_name() -> Result<String, io::Error> {
+    let name = env::var("POD_NAME").map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "POD_NAME is required when no name is provided",
+        )
+    })?;
+    require_nonempty("POD_NAME", &name)?;
     Ok(name)
 }
 

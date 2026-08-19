@@ -109,7 +109,7 @@ spec:
                 value: https://github.com
               - name: GITHUB_OWNER
                 value: Altinn
-              - name: GITHUB_REPOSITORY
+              - name: GITHUB_REPOSITORY_NAME
                 value: altinn-studio
               - name: RUNNER_SCOPE
                 value: repo
@@ -157,7 +157,8 @@ spec:
         volumes:
           - name: provider-home
             emptyDir:
-              sizeLimit: 120Gi
+              # Leave room within the 120Gi Pod limit for /tmp, logs and writable image layers.
+              sizeLimit: 110Gi
           - name: provider-cache
             hostPath:
               path: /var/lib/altinn/microsandbox-cache
