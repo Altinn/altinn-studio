@@ -1,141 +1,97 @@
 name: GitHub Runner - Parity Diagnostics
+run-name: Runner comparison (${{ inputs.scenario }})
 
 on:
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: Node-cache state prepared for this run
+        required: true
+        type: choice
+        options:
+          - cold
+          - hot
 
 jobs:
-  github-hosted:
-    name: GitHub-hosted Ubuntu
-    runs-on: ubuntu-latest
+  compare:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Self-hosted single-container runner
+            runner: self-hosted-single
+          - name: Self-hosted Ubuntu runner
+            runner: self-hosted-ubuntu
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Collect pre-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh pre-setup
-
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
-          go-version-file: src/tools/releaser/go.mod
-          cache-dependency-path: src/tools/releaser/go.sum
+          fetch-depth: 0
 
-      - name: Setup Node
+      - name: Install Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '22'
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
-        with:
-          dotnet-version: |
-            8.0.x
-            9.0.x
-            10.0.x
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        working-directory: src/App/frontend
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
-      - name: Collect post-setup diagnostics
+      - name: Restore Yarn cache
+        id: yarn-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        working-directory: src/App/frontend
+        run: yarn --immutable
+
+      - name: Type-check
+        working-directory: src/App/frontend
+        run: yarn tsc
+
+      - name: Strict type-check
+        working-directory: src/App/frontend
+        run: |
+          strict_error_count="$(yarn tsc-strict:error-count)"
+          echo "Strict TypeScript error count: ${strict_error_count}"
+
+          if (( strict_error_count >= 301 )); then
+            echo "Strict TypeScript error count is ${strict_error_count}, expected less than 301."
+            exit 1
+          fi
+
+      - name: Lint
+        working-directory: src/App/frontend
+        run: yarn lint
+
+      - name: Test
+        working-directory: src/App/frontend
+        run: yarn test --coverage --maxWorkers=4
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Record comparison metadata
+        if: always()
         shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh post-setup
-
-  self-hosted:
-    name: Self-hosted runner
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Collect pre-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh pre-setup
-
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: src/tools/releaser/go.mod
-          cache-dependency-path: src/tools/releaser/go.sum
-
-      - name: Setup Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: '22'
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
-        with:
-          dotnet-version: |
-            8.0.x
-            9.0.x
-            10.0.x
-
-      - name: Collect post-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh post-setup
-
-  self-hosted-single:
-    name: Self-hosted single-container runner
-    runs-on: self-hosted-single
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Collect pre-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh pre-setup
-
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: src/tools/releaser/go.mod
-          cache-dependency-path: src/tools/releaser/go.sum
-
-      - name: Setup Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: '22'
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
-        with:
-          dotnet-version: |
-            8.0.x
-            9.0.x
-            10.0.x
-
-      - name: Collect post-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh post-setup
-
-  self-hosted-ubuntu:
-    name: Sandbox-backed runner
-    runs-on: self-hosted-ubuntu
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Collect pre-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh pre-setup
-
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: src/tools/releaser/go.mod
-          cache-dependency-path: src/tools/releaser/go.sum
-
-      - name: Setup Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: '22'
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
-        with:
-          dotnet-version: |
-            8.0.x
-            9.0.x
-            10.0.x
-
-      - name: Collect post-setup diagnostics
-        shell: bash
-        run: bash .github/workflows/scripts/github-runner-parity.sh post-setup
+        env:
+          CACHE_HIT: ${{ steps.yarn-cache.outputs.cache-hit }}
+          COMPARISON_NAME: ${{ matrix.name }}
+          SCENARIO: ${{ inputs.scenario }}
+        run: |
+          {
+            echo "### ${COMPARISON_NAME}"
+            echo
+            echo "- Scenario: \`${SCENARIO}\`"
+            echo "- Runner: \`${RUNNER_NAME}\`"
+            echo "- OS/architecture: \`${RUNNER_OS}/${RUNNER_ARCH}\`"
+            echo "- Yarn cache hit: \`${CACHE_HIT:-false}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
