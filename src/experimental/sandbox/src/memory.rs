@@ -11,6 +11,7 @@ use std::{
 };
 
 use futures_core::Stream;
+use sha2::{Digest as _, Sha256};
 use tokio::{io::AsyncReadExt as _, sync::mpsc};
 use tokio_util::sync::PollSender;
 use zeroize::Zeroizing;
@@ -893,16 +894,10 @@ impl image::ImageBackend for MemoryImageBackend {
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
             Box::pin(async move {
-                let source = match &request.source {
-                    image::ImageSource::Build { context, dockerfile } => {
-                        format!("build:{}:{}", context.display(), dockerfile.display())
-                    }
-                    image::ImageSource::Reference { reference } => format!("reference:{reference}"),
-                };
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
                     platform: request.platform.clone(),
-                    manifest_digest: format!("sha256:{}:{source}", request.platform),
+                    manifest_digest: memory_manifest_digest(request),
                 })
             })
         })
@@ -923,6 +918,52 @@ impl image::ImageBackend for MemoryImageBackend {
     ) -> PendingOperation<'a, image::PreparedImage> {
         unsupported_prepared_image(image::ImageOperation::PreparedImageImport)
     }
+}
+
+fn memory_manifest_digest(request: &image::ResolveRequest) -> String {
+    let mut digest = Sha256::new();
+    digest.update(b"sandbox.memory-image-manifest.v1\0");
+    match &request.source {
+        image::ImageSource::Build { context, dockerfile } => {
+            update_digest_part(&mut digest, b"build");
+            update_digest_part(&mut digest, context.as_os_str().as_encoded_bytes());
+            update_digest_part(&mut digest, dockerfile.as_os_str().as_encoded_bytes());
+        }
+        image::ImageSource::Reference { reference } => {
+            update_digest_part(&mut digest, b"reference");
+            update_digest_part(&mut digest, reference.as_bytes());
+        }
+    }
+    update_digest_part(&mut digest, request.platform.os.as_bytes());
+    update_digest_part(&mut digest, request.platform.architecture.as_bytes());
+    update_optional_digest_part(&mut digest, request.platform.variant.as_deref());
+    update_optional_digest_part(&mut digest, request.platform.os_version.as_deref());
+    for feature in &request.platform.os_features {
+        update_digest_part(&mut digest, feature.as_bytes());
+    }
+    let mut encoded = String::with_capacity("sha256:".len() + 64);
+    encoded.push_str("sha256:");
+    for byte in digest.finalize() {
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        encoded.push(char::from(HEX[usize::from(byte >> 4)]));
+        encoded.push(char::from(HEX[usize::from(byte & 0x0f)]));
+    }
+    encoded
+}
+
+fn update_optional_digest_part(digest: &mut Sha256, value: Option<&str>) {
+    match value {
+        Some(value) => {
+            digest.update([1]);
+            update_digest_part(digest, value.as_bytes());
+        }
+        None => digest.update([0]),
+    }
+}
+
+fn update_digest_part(digest: &mut Sha256, value: &[u8]) {
+    digest.update(value.len().to_le_bytes());
+    digest.update(value);
 }
 
 fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {

@@ -582,7 +582,7 @@ fn resolve_image_handle(
 ) -> Result<(String, sandbox::Platform), Error> {
     let manifest_digest = handle
         .manifest_digest()
-        .ok_or_else(|| Error::Backend("Microsandbox did not report the imported image manifest digest".to_string()))?
+        .ok_or_else(|| Error::Backend("Microsandbox did not report the image manifest digest".to_string()))?
         .to_string();
     let actual = sandbox::Platform::new(
         handle.os().unwrap_or(fallback.os.as_str()),

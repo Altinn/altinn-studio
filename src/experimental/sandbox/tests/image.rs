@@ -3,8 +3,11 @@
 use std::path::{Path, PathBuf};
 
 use sandbox::{
-    RootFilesystemMode, RootFilesystemModeSet,
-    image::{ImageOperationCapabilities, ImageSource, ImageSourceKind, ImageSourceKindSet},
+    Platform, RootFilesystemMode, RootFilesystemModeSet,
+    image::{
+        ImageBackend as _, ImageOperationCapabilities, ImageSource, ImageSourceKind, ImageSourceKindSet, ResolveRequest,
+    },
+    memory::MemoryImageBackend,
 };
 
 #[test]
@@ -64,4 +67,51 @@ fn image_operation_requires_at_least_one_source_and_mode() {
         !ImageOperationCapabilities::new(ImageSourceKindSet::default(), [RootFilesystemMode::Direct].into(),)
             .is_available()
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn memory_images_have_deterministic_sha256_manifest_digests() {
+    let backend = MemoryImageBackend;
+    let request = ResolveRequest {
+        source: ImageSource::Reference {
+            reference: "registry.example/worker:latest".to_string(),
+        },
+        platform: Platform::new("linux", "amd64"),
+        root_filesystem_mode: RootFilesystemMode::Layered,
+    };
+
+    let first = backend.resolve(&request).await.expect("image should resolve");
+    let second = backend.resolve(&request).await.expect("image should resolve again");
+    let digest = first
+        .manifest_digest
+        .strip_prefix("sha256:")
+        .expect("manifest digest should use SHA-256");
+
+    assert_eq!(first.manifest_digest, second.manifest_digest);
+    assert_eq!(digest.len(), 64);
+    assert!(
+        digest
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    );
+
+    let different_source = backend
+        .resolve(&ResolveRequest {
+            source: ImageSource::Reference {
+                reference: "registry.example/other:latest".to_string(),
+            },
+            platform: request.platform.clone(),
+            root_filesystem_mode: request.root_filesystem_mode,
+        })
+        .await
+        .expect("another image should resolve");
+    let different_platform = backend
+        .resolve(&ResolveRequest {
+            platform: Platform::new("linux", "arm64"),
+            ..request
+        })
+        .await
+        .expect("image should resolve for another platform");
+    assert_ne!(first.manifest_digest, different_source.manifest_digest);
+    assert_ne!(first.manifest_digest, different_platform.manifest_digest);
 }
