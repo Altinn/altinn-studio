@@ -4,7 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
-import { previewPage } from 'app-shared/api/paths';
+import { previewPage, previewPageV9 } from 'app-shared/api/paths';
 import {
   StudioAlert,
   StudioCenter,
@@ -80,16 +80,17 @@ const PreviewFrame = () => {
   const isV9App = !isBelowSupportedVersion(appVersion?.backendVersion ?? '', 9);
   const taskId = isV9App ? layoutSet : derivedTaskId;
 
-  return <PreviewIframe partyId={user.id} taskId={taskId} />;
+  return <PreviewIframe partyId={user.id} taskId={taskId} isV9App={isV9App} />;
 };
 
 type PreviewIframeProps = {
   partyId: number;
   taskId: string;
+  isV9App: boolean;
 };
 
 // The actual preview frame that displays the selected page
-const PreviewIframe = ({ partyId, taskId }: PreviewIframeProps) => {
+const PreviewIframe = ({ partyId, taskId, isV9App }: PreviewIframeProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { previewIframeRef, selectedFormLayoutName, shouldReloadPreview, previewHasLoaded } =
     useAppContext();
@@ -127,7 +128,15 @@ const PreviewIframe = ({ partyId, taskId }: PreviewIframeProps) => {
       </StudioCenter>
     );
   }
-  const previewURL = previewPage(org, app, layoutSet, taskId, selectedFormLayoutName, instance?.id);
+  const buildPreviewUrl = isV9App ? previewPageV9 : previewPage;
+  const previewURL = buildPreviewUrl(
+    org,
+    app,
+    layoutSet,
+    taskId,
+    selectedFormLayoutName,
+    instance?.id,
+  );
 
   return (
     <div className={classes.root}>
