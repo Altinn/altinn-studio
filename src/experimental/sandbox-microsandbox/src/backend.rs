@@ -23,7 +23,7 @@ use crate::{
     client::{Client, RuntimeResources},
     error,
     execution::ExecutionControls,
-    image::MicrosandboxImageResolver,
+    image::MicrosandboxImageBackend,
     network_endpoint, platform,
     state::{SandboxRecord, StateStore},
 };
@@ -36,10 +36,10 @@ const CREATE_RUNTIME: &str = "Create Microsandbox VM";
 const START_RUNTIME: &str = "Start Microsandbox VM";
 const UPDATE_RUNTIME_RESOURCES: &str = "Update Microsandbox VM resources";
 
-/// Microsandbox Provider pairing its Sandbox Backend with its Image Resolver.
+/// Microsandbox Provider pairing its Sandbox Backend with its Image Backend.
 pub struct MicrosandboxProvider {
     pub(crate) client: Client,
-    image_resolver: MicrosandboxImageResolver,
+    image_backend: MicrosandboxImageBackend,
     pub(crate) state: StateStore,
     pub(crate) executions: ExecutionControls,
 }
@@ -48,6 +48,7 @@ pub struct MicrosandboxProvider {
 pub struct MicrosandboxProviderBuilder {
     home: PathBuf,
     cache_directory: Option<PathBuf>,
+    registry_authentication: Option<sandbox::image::RegistryAuthentication>,
     runtime_bundle: Option<RuntimeBundle>,
 }
 
@@ -64,6 +65,7 @@ impl MicrosandboxProvider {
         MicrosandboxProviderBuilder {
             home: home.into(),
             cache_directory: None,
+            registry_authentication: None,
             runtime_bundle: None,
         }
     }
@@ -78,15 +80,10 @@ impl MicrosandboxProvider {
         Self::builder(home.as_ref().to_path_buf()).open().await
     }
 
-    /// Returns the configured shared Microsandbox cache directory.
-    #[must_use]
-    pub fn cache_directory(&self) -> PathBuf {
-        self.client.cache_directory()
-    }
-
     async fn open_configured(
         home: PathBuf,
         cache_directory: Option<PathBuf>,
+        registry_authentication: Option<sandbox::image::RegistryAuthentication>,
         runtime_bundle: Option<RuntimeBundle>,
     ) -> Result<Self, Error> {
         if home.as_os_str().is_empty() {
@@ -111,10 +108,10 @@ impl MicrosandboxProvider {
         }
         let state = StateStore::open(home.join("state")).await?;
         let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
-        let image_resolver = MicrosandboxImageResolver::new(client.clone());
+        let image_backend = MicrosandboxImageBackend::new(client.clone(), registry_authentication);
         Ok(Self {
             client,
-            image_resolver,
+            image_backend,
             state,
             executions: Rc::new(RefCell::new(HashMap::new())),
         })
@@ -414,6 +411,13 @@ impl MicrosandboxProviderBuilder {
         self
     }
 
+    /// Supplies transient credentials used to resolve OCI registry references.
+    #[must_use]
+    pub fn registry_authentication(mut self, authentication: sandbox::image::RegistryAuthentication) -> Self {
+        self.registry_authentication = Some(authentication);
+        self
+    }
+
     /// Installs the Microsandbox host runtime from a verified local release bundle.
     ///
     /// The path must identify a platform-compatible Microsandbox `tar.gz`
@@ -434,7 +438,13 @@ impl MicrosandboxProviderBuilder {
     /// Returns an error when a configured path is empty or cannot be
     /// initialized by the Microsandbox runtime.
     pub async fn open(self) -> Result<MicrosandboxProvider, Error> {
-        MicrosandboxProvider::open_configured(self.home, self.cache_directory, self.runtime_bundle).await
+        MicrosandboxProvider::open_configured(
+            self.home,
+            self.cache_directory,
+            self.registry_authentication,
+            self.runtime_bundle,
+        )
+        .await
     }
 }
 
@@ -443,8 +453,8 @@ impl SandboxProvider for MicrosandboxProvider {
         self
     }
 
-    fn image_resolver(&self) -> &dyn sandbox::image::Resolver {
-        &self.image_resolver
+    fn image_backend(&self) -> &dyn sandbox::image::ImageBackend {
+        &self.image_backend
     }
 }
 

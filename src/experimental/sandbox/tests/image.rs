@@ -2,7 +2,10 @@
 
 use std::path::{Path, PathBuf};
 
-use sandbox::image::ImageSource;
+use sandbox::{
+    RootFilesystemMode, RootFilesystemModeSet,
+    image::{ImageOperationCapabilities, ImageSource, ImageSourceKind, ImageSourceKindSet},
+};
 
 #[test]
 fn build_source_resolves_only_its_context_from_the_manifest_directory() {
@@ -45,4 +48,20 @@ fn image_source_has_an_explicit_serialized_variant() {
 
     assert!(matches!(build, ImageSource::Build { .. }));
     assert!(matches!(reference, ImageSource::Reference { .. }));
+}
+
+#[test]
+fn image_operation_requires_at_least_one_source_and_mode() {
+    assert!(
+        ImageOperationCapabilities::new([ImageSourceKind::Reference].into(), [RootFilesystemMode::Direct].into(),)
+            .is_available()
+    );
+    assert!(
+        !ImageOperationCapabilities::new([ImageSourceKind::Reference].into(), RootFilesystemModeSet::default(),)
+            .is_available()
+    );
+    assert!(
+        !ImageOperationCapabilities::new(ImageSourceKindSet::default(), [RootFilesystemMode::Direct].into(),)
+            .is_available()
+    );
 }

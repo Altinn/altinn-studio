@@ -32,8 +32,8 @@ impl SandboxProvider for Provider {
         self
     }
 
-    fn image_resolver(&self) -> &dyn image::Resolver {
-        &ImageResolver
+    fn image_backend(&self) -> &dyn image::ImageBackend {
+        &MemoryImageBackend
     }
 }
 
@@ -869,11 +869,27 @@ impl network::NetworkBackend for NetworkBackend {
     }
 }
 
-/// Deterministically resolves source paths to synthetic digests.
+/// Deterministically resolves OCI Image Sources to synthetic digests.
 #[derive(Default)]
-pub struct ImageResolver;
+pub struct MemoryImageBackend;
 
-impl image::Resolver for ImageResolver {
+impl image::ImageBackend for MemoryImageBackend {
+    fn capabilities<'a>(
+        &'a self,
+        _platform: &'a Platform,
+    ) -> LocalFuture<'a, Result<image::ImageBackendCapabilities, Error>> {
+        Box::pin(async {
+            Ok(image::ImageBackendCapabilities::new(
+                image::ImageOperationCapabilities::new(
+                    [image::ImageSourceKind::Build, image::ImageSourceKind::Reference].into(),
+                    [RootFilesystemMode::Layered, RootFilesystemMode::Direct].into(),
+                ),
+                image::ImageOperationCapabilities::default(),
+                image::ImageOperationCapabilities::default(),
+            ))
+        })
+    }
+
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
             Box::pin(async move {
@@ -891,6 +907,28 @@ impl image::Resolver for ImageResolver {
             })
         })
     }
+
+    fn export_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _destination: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        unsupported_prepared_image(image::ImageOperation::PreparedImageExport)
+    }
+
+    fn import_prepared_image<'a>(
+        &'a self,
+        _request: &'a image::ResolveRequest,
+        _source: &'a std::path::Path,
+    ) -> PendingOperation<'a, image::PreparedImage> {
+        unsupported_prepared_image(image::ImageOperation::PreparedImageImport)
+    }
+}
+
+fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
+    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
+        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
+    })
 }
 
 fn test_platform() -> Platform {

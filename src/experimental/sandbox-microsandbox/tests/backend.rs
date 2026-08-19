@@ -2,9 +2,11 @@
 
 use microsandbox_network::control::NETWORK_CONTROL_PROTOCOL;
 use sandbox::{
-    Platform, SandboxFeature,
+    Platform, RootFilesystemMode, SandboxFeature,
     backend::SandboxBackend as _,
+    image::ImageSourceKind,
     network::{NetworkControlProtocolId, NetworkEndpointSelection},
+    provider::SandboxProvider as _,
 };
 use sandbox_microsandbox::MicrosandboxProvider;
 
@@ -47,6 +49,35 @@ async fn backend_state_and_runtime_are_rooted_in_the_explicit_home() {
                 NETWORK_CONTROL_PROTOCOL
             )))
     );
+
+    let image_capabilities = backend
+        .image_backend()
+        .capabilities(&platform)
+        .await
+        .expect("native Image Backend capabilities should be reported");
+    assert!(image_capabilities.resolve.sources.contains(ImageSourceKind::Build));
+    assert!(image_capabilities.resolve.sources.contains(ImageSourceKind::Reference));
+    assert!(
+        image_capabilities
+            .resolve
+            .root_filesystem_modes
+            .contains(RootFilesystemMode::Layered)
+    );
+    assert!(
+        image_capabilities
+            .resolve
+            .root_filesystem_modes
+            .contains(RootFilesystemMode::Direct)
+    );
+    for prepared in [
+        &image_capabilities.prepared_image_export,
+        &image_capabilities.prepared_image_import,
+    ] {
+        assert!(prepared.sources.contains(ImageSourceKind::Reference));
+        assert!(!prepared.sources.contains(ImageSourceKind::Build));
+        assert!(prepared.root_filesystem_modes.contains(RootFilesystemMode::Direct));
+        assert!(!prepared.root_filesystem_modes.contains(RootFilesystemMode::Layered));
+    }
 }
 
 #[tokio::test(flavor = "local")]
@@ -56,19 +87,17 @@ async fn cache_directory_can_be_shared_without_sharing_provider_state() {
     let first_home = temporary.path().join("first-provider");
     let second_home = temporary.path().join("second-provider");
 
-    let first = MicrosandboxProvider::builder(&first_home)
+    MicrosandboxProvider::builder(&first_home)
         .cache_directory(&shared_cache)
         .open()
         .await
         .expect("first Provider should open with the shared cache");
-    let second = MicrosandboxProvider::builder(&second_home)
+    MicrosandboxProvider::builder(&second_home)
         .cache_directory(&shared_cache)
         .open()
         .await
         .expect("second Provider should open with the shared cache");
 
-    assert_eq!(first.cache_directory(), shared_cache);
-    assert_eq!(second.cache_directory(), shared_cache);
     assert!(shared_cache.is_dir());
     assert!(first_home.join("state/sandboxes").is_dir());
     assert!(second_home.join("state/sandboxes").is_dir());
