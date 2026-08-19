@@ -14,7 +14,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
-import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
+import classes from 'src/layout/FileUpload/Tag/EditWindowComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionFilter } from 'src/utils/options';

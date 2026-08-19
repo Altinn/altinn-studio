@@ -371,7 +371,7 @@ describe('File uploading components', () => {
     await userEvent.click(saveButton);
   }
 
-  describe('FileUploadWithTagComponent', () => {
+  describe('FileUpload with tags', () => {
     function mockDelayedTagUpdate() {
       let resolveTagUpdate: ((value: { tags: string[] }) => void) | undefined;
       const tagUpdatePromise = new Promise<{ tags: string[] }>((resolve) => {
@@ -571,7 +571,6 @@ describe('File uploading components', () => {
   }
 
   async function renderAbstract({
-    type,
     component,
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     withTag,
@@ -600,9 +599,9 @@ describe('File uploading components', () => {
       component: {
         id,
         type: 'FileUpload',
-        displayMode: type === 'FileUpload' ? 'simple' : 'list',
+        displayMode: withTag ? 'list' : 'simple',
         maxFileSizeInMB: 2,
-        maxNumberOfAttachments: type === 'FileUpload' ? 3 : 7,
+        maxNumberOfAttachments: withTag ? 7 : 3,
         minNumberOfAttachments: 1,
         readOnly: false,
         textResourceBindings,

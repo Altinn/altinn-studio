@@ -13,7 +13,7 @@ import type { CompSummary2External } from 'src/layout/Summary2/config.generated'
 
 describe('SummaryComponent', () => {
   const layoutMock = (
-    components: string[] = ['Input', 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'],
+    components: string[] = ['Input', 'Group', 'FileUpload', 'Checkboxes'],
   ): ILayoutCollection => ({
     FormLayout: {
       data: {
