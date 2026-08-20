@@ -42,6 +42,7 @@ deps: ## Print the coordinator dependency graph
 
 deps-check: ## Check for unused direct dependencies
 	@cargo machete --with-metadata .
+	@git diff --exit-code -- ':(top)Cargo.lock'
 
 check: fmt build lint test deps-check ## Run all local checks
 	@echo "✓ All checks passed"

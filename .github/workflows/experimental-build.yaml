@@ -32,6 +32,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install native build dependencies
+        run: |
+          if ! pkg-config --exists libcap-ng; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends libcap-ng-dev
+          fi
 
       - name: Install Rust toolchain
         run: |

@@ -57,6 +57,7 @@ deps: ## Print the workspace dependency graph
 
 deps-check: ## Check for unused direct dependencies
 	@cargo machete --with-metadata .
+	@git diff --exit-code -- ':(top)Cargo.lock'
 
 check: fmt lint build test test-e2e deps-check ## Run all local checks
 	@echo "✓ All checks passed"
