@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
@@ -181,6 +183,41 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var result = Assert.Single(results);
         Assert.Equal(BatchEnqueueResultStatus.InvalidReference, result.Status);
         Assert.Null(result.WorkflowIds);
+    }
+
+    [Fact]
+    public async Task EnqueueBatch_WithThreeRequestsSharingOneIdempotencyKey_AnswersEachOfThem()
+    {
+        // Two same-key requests in one flush leave one intra-batch duplicate to classify against one
+        // stored key. Three leave two — so the (key, namespace) pairs the classification query unnests
+        // repeat, and the join hands that one stored row back once per repeat. Building the lookup
+        // from those rows without allowing for the repeat throws ArgumentException from inside the
+        // flush, which is not a bad answer to this caller but no answer at all to every unrelated
+        // caller the write buffer batched in with it.
+        var repo = fixture.CreateRepository();
+        var (request, metadata, ns, _) = WorkflowTestHelper.CreateRequest();
+        var shared = metadata with { Namespace = ns, IdempotencyKey = "one-key-three-requests" };
+
+        // One hash for all three: same fingerprint, so the two repeats are duplicates rather than
+        // conflicts, which is the path that reads the lookup.
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(shared.IdempotencyKey));
+        BufferedEnqueueRequest Buffered() =>
+            new(
+                new WorkflowEnqueueRequest { Workflows = [request] },
+                shared,
+                hash,
+                new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
+            );
+
+        var results = await repo.BatchEnqueueWorkflows(
+            [Buffered(), Buffered(), Buffered()],
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, results[0].Status);
+        Assert.Equal(BatchEnqueueResultStatus.Duplicate, results[1].Status);
+        Assert.Equal(BatchEnqueueResultStatus.Duplicate, results[2].Status);
+        Assert.All(results, r => Assert.Equal(results[0].WorkflowIds, r.WorkflowIds));
     }
 
     [Fact]
