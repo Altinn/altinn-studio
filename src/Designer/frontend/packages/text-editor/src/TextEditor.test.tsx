@@ -287,8 +287,8 @@ describe('TextEditor', () => {
     const setupSearch = (searchQuery: string = '') => {
       const setSearchQuery = jest.fn();
       const searchUser = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-      const renderResult = renderTextEditor({ searchQuery, setSearchQuery });
-      return { setSearchQuery, searchUser, renderResult };
+      const { rerender } = renderTextEditor({ searchQuery, setSearchQuery });
+      return { setSearchQuery, searchUser, rerender };
     };
 
     it('does not apply a pending search after the search has been cleared', async () => {
@@ -319,10 +319,10 @@ describe('TextEditor', () => {
     });
 
     it('updates the search field when the search query changes externally', () => {
-      const { renderResult } = setupSearch('external query');
+      const { rerender } = setupSearch('external query');
       expect(getSearchInput()).toHaveValue('external query');
 
-      renderResult.rerender(
+      rerender(
         <ServicesContextProvider {...queriesMock} client={queryClientMock}>
           <TextEditor {...defaultTextEditorProps} searchQuery='' />
         </ServicesContextProvider>,
