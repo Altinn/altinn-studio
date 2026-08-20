@@ -5,12 +5,10 @@
   padding-bottom: var(--fds-spacing-3);
 }
 
-.dataTypeSelectAndButtons {
+.dataTypeSelectAndButton {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: var(--fds-spacing-4);
-  vertical-align: middle;
+  align-items: flex-end;
+  gap: var(--ds-size-4);
 }
 
 .dataTypeSelect {

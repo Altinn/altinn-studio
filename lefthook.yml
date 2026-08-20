@@ -30,7 +30,7 @@ pre-commit:
       run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
       stage_fixed: true
     form-component-eslint:
-      root: 'app-libs/form-component/'
+      root: 'src/common/ts/form-component/'
       glob: '*.{js,jsx,ts,tsx}'
       run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
       stage_fixed: true
@@ -46,6 +46,6 @@ pre-commit:
       # dirs are still covered (not excluded).
       exclude:
         - 'src/App/frontend/**/*.{js,jsx,ts,tsx}'
-        - 'app-libs/form-component/**/*.{js,jsx,ts,tsx}'
+        - 'src/common/ts/form-component/**/*.{js,jsx,ts,tsx}'
       run: yarn prettier -w {staged_files}
       stage_fixed: true

@@ -41,6 +41,14 @@
     "serviceView": {
       "type": "string",
       "title": "Visning under behandling"
+    },
+    "deferrals": {
+      "type": "integer",
+      "title": "Antall utsettelser"
+    },
+    "deferDelayMs": {
+      "type": "integer",
+      "title": "Tid mellom utsettelser (ms)"
     }
   }
 }

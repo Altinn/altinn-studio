@@ -71,7 +71,7 @@ class TestBuildRegistry:
         }.issubset(names)
 
     def test_altinn_tools_registered(self):
-        """The former MCP capabilities are now in-process tools."""
+        """The Altinn domain capabilities are registered as in-process tools."""
         registry = _build_registry()
         assert "altinn_layout_props" in registry
         assert "altinn_datamodel_sync" in registry

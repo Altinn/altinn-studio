@@ -9,7 +9,7 @@ runs:
   using: "composite"
   steps:
     - name: 'Setting up Node'
-      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         cache: 'yarn'
         cache-dependency-path: ${{ inputs.working-directory }}/yarn.lock
@@ -21,7 +21,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
 
-    - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}

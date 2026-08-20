@@ -51,7 +51,7 @@
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
                   Disabled: false,
-                  Filter: ((status = ANY ('{0,1,2}'::integer[])) AND ((start_at IS NULL) OR (start_at <= now())))
+                  Filter: ((status = ANY ('{0,1,2,8}'::integer[])) AND ((start_at IS NULL) OR (start_at <= now())))
                 }
               ]
             },

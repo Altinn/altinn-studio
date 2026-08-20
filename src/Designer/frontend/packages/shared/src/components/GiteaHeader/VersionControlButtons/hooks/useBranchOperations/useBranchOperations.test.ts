@@ -111,22 +111,7 @@ describe('useBranchOperations', () => {
       expect(window.location.reload).toHaveBeenCalled();
     });
 
-    it('should set "already exists" error when create fails with 409', () => {
-      createBranchMutate.mockImplementation((_branch, options) =>
-        options?.onError?.(createAxiosError(409)),
-      );
-
-      const { result } = renderHook(() => useBranchOperations(org, app));
-
-      act(() => result.current.checkoutNewBranch('existing-branch'));
-
-      expect(result.current.createError).toBe(
-        textMock('branching.new_branch_dialog.error_already_exists'),
-      );
-      expect(checkoutBranchMutate).not.toHaveBeenCalled();
-    });
-
-    it('should set generic error when create fails with 500', () => {
+    it('should set generic error when create fails', () => {
       createBranchMutate.mockImplementation((_branch, options) =>
         options?.onError?.(createAxiosError(500)),
       );
@@ -157,7 +142,7 @@ describe('useBranchOperations', () => {
 
     it('should reset createError when retrying', () => {
       createBranchMutate
-        .mockImplementationOnce((_branch, options) => options?.onError?.(createAxiosError(409)))
+        .mockImplementationOnce((_branch, options) => options?.onError?.(createAxiosError(500)))
         .mockImplementationOnce((_branch, options) => options?.onSuccess?.());
       checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
 

@@ -9,7 +9,6 @@ Altinity is a multi-agent system powered by LangGraph that understands Altinn St
 ## Prerequisites
 
 - Azure OpenAI API access (or OpenAI)
-- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** running
 
 ## Quick Start
 
@@ -20,10 +19,7 @@ Altinity is a multi-agent system powered by LangGraph that understands Altinn St
 cp .env.example .env.docker
 # Edit .env.docker with your API keys
 
-# 2. Start MCP server (separate terminal)
-# See: https://github.com/Simenwai/altinity-mcp
-
-# 3. Start Altinity
+# 2. Start Altinity
 docker-compose up
 ```
 
@@ -37,18 +33,15 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your API keys
 
-# 3. Start MCP server (separate terminal)
-# See: https://github.com/Simenwai/altinity-mcp
-
-# 4. Start Altinity
+# 3. Start Altinity
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
 ## Features
 
-- 🤖 **Code Generation** - Generates Altinn-compliant code using MCP tools
+- 🤖 **Code Generation** - Generates Altinn-compliant code using in-process Altinn tools
 - 💬 **Chat Mode** - Ask questions without making changes
-- ✅ **Validation** - Schema and business rule validation via MCP
+- ✅ **Validation** - Schema and business rule validation
 - 🔄 **Atomic Operations** - All-or-nothing changes with rollback
 - 🌲 **Git Integration** - Session-based branches for change tracking
 - 📊 **Observability** - Langfuse integration for tracing and cost monitoring
@@ -114,7 +107,7 @@ ws.onopen = () => {
     JSON.stringify({
       type: 'session',
       session_id: 'your-session-id',
-    })
+    }),
   );
 };
 
@@ -149,9 +142,6 @@ AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
 GITEA_LOCAL_TOKEN=your-token
 GITEA_BASE_URL=http://localhost:3000
 
-# Required: MCP Server
-MCP_SERVER_URL=http://localhost:8069/sse
-
 # Optional: Multi-model setup
 LLM_MODEL_PLANNER=gpt-4o
 LLM_MODEL_ACTOR=claude-sonnet-4-5
@@ -165,42 +155,44 @@ LANGFUSE_ENABLED=true
 
 ## How It Works
 
-### Workflow Mode
+Every request first passes **pre-graph gates** — intent parsing and a scope check that decline anything outside Altinn app development. It then runs a small LangGraph: **intake → [spec] → agentic loop**.
 
-1. **Intake** - Validates goal safety and parses intent
-2. **Repository Scan** - Discovers project structure
-3. **Planning** - Retrieves Altinn documentation, plans tool usage
-4. **Actor** - Generates code changes using MCP tools
-5. **Verifier** - Validates changes via MCP verification tools
-6. **Reviewer** - Commits to session branch or rolls back
+### Workflow Mode (`allow_app_changes: true`)
 
-All operations are atomic - changes either fully succeed or are rolled back.
+1. **Intake** - Validates the goal and parses it into a change request.
+2. **Spec** (only when files are attached) - Extracts a structured FormSpec from the uploads.
+3. **Agentic loop** - A single model-driven loop does the work by calling tools: scan the repo, read/edit/write files, look up layout and datamodel schemas, load domain-knowledge skills, verify changes, and commit to a session branch. The model chooses the order.
 
-### Chat Mode
+Changes are atomic: the loop commits a working change to the session branch or rolls back.
 
-Answers questions using MCP tools without modifying files. Scans your repository for context and generates responses with documentation examples.
+### Chat Mode (`allow_app_changes: false`)
+
+Runs the same agentic loop **read-only** (write tools are denied): the model answers using the repo scan, documentation skills, and schema-lookup tools without modifying files.
 
 ## Project Structure
 
 ```
 altinity-agents/
 ├── api/                  # FastAPI server
-│   ├── routes/           # API endpoints (agent, websocket)
+│   ├── routes/           # Endpoints: agent, websocket, token_usage, traces
 │   └── main.py           # Application entry point
 ├── agents/
-│   ├── graph/            # LangGraph workflow
-│   │   ├── nodes/        # Workflow nodes (intake, planner, actor, verifier, reviewer)
-│   │   └── runner.py     # Workflow orchestration
-│   ├── services/         # Core services
-│   │   ├── mcp/          # MCP client & verification
-│   │   ├── git/          # Git operations
-│   │   ├── llm/          # LLM client
-│   │   └── events/       # Event handling
-│   └── workflows/        # Pipeline stages
+│   ├── graph/            # LangGraph: intake → [spec] → agentic_loop
+│   │   ├── nodes/        # intake_node, spec_node, agentic_loop_node
+│   │   ├── runner.py     # Graph build + pre-graph gates
+│   │   └── state.py      # AgentState
+│   ├── core/             # Agentic loop engine (loop, tool registry, skills, tools/)
+│   ├── altinn/           # Altinn domain library (datamodel, layout, policy, resources)
+│   ├── skills/           # Domain-knowledge skills, loaded on demand
+│   ├── prompts/          # System + user prompts (+ loader)
+│   ├── services/         # git, llm, events, validation, repo, patching, telemetry
+│   └── workflows/        # Up-front pipeline stages (intake, spec)
 └── shared/               # Config, models, utilities
 ```
 
 ## Dependencies
 
-- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** - Altinn-specific tools and documentation
-- FastAPI, LangGraph, LangChain, Langfuse, GitPython
+- FastAPI
+- LangGraph
+- LangChain
+- Langfuse

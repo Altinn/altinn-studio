@@ -97,13 +97,12 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
             $"{_localtestBaseUrl}/Home/GetTestOrgToken?org={appMetadata.Org}&orgNumber=991825827&authenticationLevel=3&scopes={Uri.EscapeDataString(formattedScopes)}";
 
         using var client = _httpClientFactory.CreateClient();
-        var response = await client.GetAsync(url, cancellationToken);
+        using var response = await client.GetAsync(url, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response, cancellationToken);
 
         string token = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.Dispose(); // Disposing manually because PlatformHttpException pathway requires the response to be retained
 
         return JwtToken.Parse(token);
     }

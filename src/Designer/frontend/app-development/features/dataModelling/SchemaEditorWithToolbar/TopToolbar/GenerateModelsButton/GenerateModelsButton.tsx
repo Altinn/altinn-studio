@@ -1,10 +1,9 @@
-import { Spinner } from '@digdir/designsystemet-react';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useSchemaQuery } from '../../../../../hooks/queries';
 import { useGenerateModelsMutation } from '../../../../../hooks/mutations';
 import { toast } from 'react-toastify';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components';
 
 export interface GenerateModelsButtonProps {
   modelPath: string;
@@ -37,7 +36,7 @@ export const GenerateModelsButton = ({
   return (
     <>
       {isPending ? (
-        <Spinner title={t('general.saving')} />
+        <StudioSpinner aria-label={t('general.saving')} />
       ) : (
         <StudioButton
           id='save-model-button'

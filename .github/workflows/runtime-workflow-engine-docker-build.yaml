@@ -34,7 +34,7 @@ jobs:
   docker-build:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build ${{ matrix.name }} image
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -49,7 +49,7 @@ jobs:
         working-directory: src
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 

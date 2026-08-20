@@ -20,7 +20,6 @@ import { useIsSubformPage } from 'src/hooks/navigation';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { FailedAttachments } from 'src/layout/FileUpload/Error/FailedAttachments';
-import { InfectedFileAlert } from 'src/layout/FileUpload/Error/InfectedFileAlert';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
@@ -217,7 +216,6 @@ export function FileUploadComponent({
           </button>
         )}
         <FailedAttachments baseComponentId={baseComponentId} />
-        <InfectedFileAlert baseComponentId={baseComponentId} />
       </div>
     </ComponentStructureWrapper>
   );

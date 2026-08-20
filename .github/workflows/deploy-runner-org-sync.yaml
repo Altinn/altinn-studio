@@ -34,7 +34,7 @@ jobs:
       run:
         working-directory: src/runner-org-sync
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set vars
         id: vars
@@ -45,7 +45,7 @@ jobs:
           echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/runner-org-sync-repo:${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: az login
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -55,7 +55,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: docker build
         run: docker build -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
@@ -93,7 +93,7 @@ jobs:
         include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
     steps:
       - name: az login
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -103,7 +103,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@1fd61a06264d71cf445ed55c4f14d401d26a1c64 # v2.8.8
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: tag artifact
         run: |

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FrontendUpgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
@@ -45,8 +46,18 @@ internal sealed class AppUpgradeService : IDisposable
         {
             var output = new StringWriter(CultureInfo.InvariantCulture);
             var error = new StringWriter(CultureInfo.InvariantCulture);
+            var report = new UpgradeReport();
             try
             {
+                // We want to enforce a clean directory, so git diff will only show what the update did. An
+                // unreadable repository is refused too - we cannot tell its changes apart from the upgrade's.
+                if (!request.AllowDirty && !GitOperations.IsWorkingTreeClean(projectFolder, out var gitError))
+                    return AppUpgradeResult.Invalid(
+                        gitError is null
+                            ? "The git repository has local changes. Commit or stash them before upgrading or run with --allow-dirty to ignore the check."
+                            : $"Could not determine whether the git repository has local changes: {gitError}. Fix the repository before upgrading."
+                    );
+
                 var exitCode = await RunUpgradeAsync(
                     request with
                     {
@@ -54,15 +65,21 @@ internal sealed class AppUpgradeService : IDisposable
                     },
                     output,
                     error,
+                    report,
                     cancellationToken
                 );
 
-                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString());
+                if (!request.AllowDirty && !V8Tov9Upgrade.IsError(exitCode))
+                {
+                    StageChanges(projectFolder, output, error, report);
+                }
+
+                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString(), report.Steps);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                await error.WriteLineAsync(ex.Message);
-                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString());
+                await error.WriteLineAsync(FileAccessDiagnostics.Describe(ex));
+                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString(), report.Steps);
             }
         }
         finally
@@ -71,10 +88,24 @@ internal sealed class AppUpgradeService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Stages the upgrade's changes, if it was run in a git repository.
+    /// </summary>
+    private static void StageChanges(string projectFolder, TextWriter output, TextWriter error, UpgradeReport report)
+    {
+        // keep reporting status to report if has already been used, otherwise report to output.
+        using (report.HasSteps ? UpgradeConsole.Use(report, error) : UpgradeConsole.Use(output, error))
+        {
+            UpgradeConsole.BeginStep("Staging changes");
+            GitOperations.StageAllChanges(projectFolder);
+        }
+    }
+
     private static Task<int> RunUpgradeAsync(
         AppUpgradeRequest request,
         TextWriter output,
         TextWriter error,
+        UpgradeReport report,
         CancellationToken cancellationToken
     )
     {
@@ -131,7 +162,7 @@ internal sealed class AppUpgradeService : IDisposable
                     SkipCsprojUpgrade: false,
                     ConvertPackageReferences: request.ConvertPackageReferences,
                     StudioRoot: request.StudioRoot,
-                    Output: output,
+                    Report: report,
                     Error: error,
                     CancellationToken: cancellationToken
                 )
@@ -159,13 +190,25 @@ internal sealed record AppUpgradeRequest(
     string Kind,
     string ProjectFolder,
     string? StudioRoot,
-    bool ConvertPackageReferences
+    bool ConvertPackageReferences,
+    bool AllowDirty
 );
 
-internal sealed record AppUpgradeResult(bool IsValid, int ExitCode, string Message, string Output, string Error)
+internal sealed record AppUpgradeResult(
+    bool IsValid,
+    int ExitCode,
+    string Message,
+    string Output,
+    string Error,
+    IReadOnlyList<UpgradeStep> Steps
+)
 {
-    public static AppUpgradeResult Invalid(string message) => new(false, 1, message, "", "");
+    public static AppUpgradeResult Invalid(string message) => new(false, 1, message, "", "", []);
 
-    public static AppUpgradeResult Completed(int exitCode, string output, string error) =>
-        new(true, exitCode, exitCode == 0 ? "upgrade completed" : "upgrade failed", output, error);
+    public static AppUpgradeResult Completed(
+        int exitCode,
+        string output,
+        string error,
+        IReadOnlyList<UpgradeStep> steps
+    ) => new(true, exitCode, exitCode == 0 ? "upgrade completed" : "upgrade failed", output, error, steps);
 }

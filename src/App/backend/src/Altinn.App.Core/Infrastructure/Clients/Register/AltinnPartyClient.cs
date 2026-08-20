@@ -112,7 +112,7 @@ public class AltinnPartyClient : IAltinnPartyClient
 
         using StringContent content = new(JsonSerializerPermissive.Serialize(partyLookup));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             endpointUrl,
             content,
@@ -132,7 +132,7 @@ public class AltinnPartyClient : IAltinnPartyClient
             await response.Content.ReadAsStringAsync()
         );
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 
     /// <inheritdoc/>
@@ -161,7 +161,7 @@ public class AltinnPartyClient : IAltinnPartyClient
                 response.StatusCode,
                 await response.Content.ReadAsStringAsync()
             );
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response);
         }
 
         using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
@@ -205,7 +205,7 @@ public class AltinnPartyClient : IAltinnPartyClient
                 response.StatusCode,
                 await response.Content.ReadAsStringAsync()
             );
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response);
         }
 
         using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());

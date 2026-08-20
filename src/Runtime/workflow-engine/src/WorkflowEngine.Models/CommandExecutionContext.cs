@@ -41,6 +41,30 @@ public sealed record CommandExecutionContext
     public string? StateIn { get; init; }
 
     /// <summary>
+    /// The absolute instant the engine stops waiting for <em>this attempt</em> and treats it as a
+    /// retryable failure — derived from <see cref="CommandDefinition.MaxExecutionTime"/> (or the engine
+    /// default) at the moment execution started.
+    /// </summary>
+    /// <remarks>
+    /// The cancellation token enforces this but only reports being cut off. The deadline lets a command
+    /// decide beforehand — with 10 seconds left and a 30-second call to make, deferring for a fresh
+    /// attempt beats starting work it cannot finish. Distinct from <see cref="WaitDeadline"/>, which
+    /// bounds the whole wait rather than one attempt.
+    /// </remarks>
+    public DateTimeOffset? ExecutionDeadline { get; init; }
+
+    /// <summary>
+    /// The absolute instant this step's wait budget runs out, or <c>null</c> before its first deferral.
+    /// Lets a deferring command pace itself against the budget it actually has — and give up early,
+    /// deliberately, rather than being failed by the engine when the budget expires.
+    /// </summary>
+    /// <remarks>
+    /// A deadline rather than a remaining duration, which would start aging the instant it is computed.
+    /// Pair with <see cref="Step.DeferCount"/>.
+    /// </remarks>
+    public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
     /// Parent trace context for distributed tracing.
     /// </summary>
     public ActivityContext? ParentTraceContext { get; init; }

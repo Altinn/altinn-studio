@@ -87,7 +87,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -141,7 +141,7 @@ internal sealed class InstanceClient : IInstanceClient
     {
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
         using var activity = _telemetry?.StartQueryInstancesActivity();
-        HttpResponseMessage response = await _client.GetAsync(token, url, cancellationToken: ct);
+        using HttpResponseMessage response = await _client.GetAsync(token, url, cancellationToken: ct);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
@@ -153,7 +153,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError("Unable to query instances from Platform Storage");
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -174,7 +174,7 @@ internal sealed class InstanceClient : IInstanceClient
         _logger.LogInformation($"update process state: {processStateString}");
 
         StringContent httpContent = new(processStateString, Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             httpContent,
@@ -192,7 +192,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -218,7 +218,7 @@ internal sealed class InstanceClient : IInstanceClient
         _logger.LogInformation($"update process state: {updateString}");
 
         StringContent httpContent = new(updateString, Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             httpContent,
@@ -236,7 +236,7 @@ internal sealed class InstanceClient : IInstanceClient
         else
         {
             _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-            throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.Create(response, ct);
         }
     }
 
@@ -254,7 +254,7 @@ internal sealed class InstanceClient : IInstanceClient
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
         StringContent content = new(JsonConvert.SerializeObject(instanceTemplate), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             content,
@@ -272,7 +272,7 @@ internal sealed class InstanceClient : IInstanceClient
         _logger.LogError(
             $"Unable to create instance {response.StatusCode} - {await response.Content.ReadAsStringAsync(CancellationToken.None)}"
         );
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc/>
@@ -287,7 +287,7 @@ internal sealed class InstanceClient : IInstanceClient
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/complete";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             new StringContent(string.Empty),
@@ -302,7 +302,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc/>
@@ -318,7 +318,7 @@ internal sealed class InstanceClient : IInstanceClient
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status={readStatus}";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             new StringContent(string.Empty),
@@ -353,7 +353,7 @@ internal sealed class InstanceClient : IInstanceClient
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json"),
@@ -367,7 +367,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc />
@@ -383,7 +383,7 @@ internal sealed class InstanceClient : IInstanceClient
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json"),
@@ -397,7 +397,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc />
@@ -413,7 +413,7 @@ internal sealed class InstanceClient : IInstanceClient
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json"),
@@ -427,7 +427,7 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 
     /// <inheritdoc />
@@ -442,7 +442,7 @@ internal sealed class InstanceClient : IInstanceClient
         using var activity = _telemetry?.StartDeleteInstanceActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";
         string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
-        HttpResponseMessage response = await _client.DeleteAsync(
+        using HttpResponseMessage response = await _client.DeleteAsync(
             token,
             apiUrl,
             lockToken: _instanceLocker.CurrentLockToken,
@@ -456,6 +456,6 @@ internal sealed class InstanceClient : IInstanceClient
             return instance;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response, ct);
     }
 }

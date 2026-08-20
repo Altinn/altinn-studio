@@ -39,7 +39,21 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.EFormidling.EFormidlingConfigValidationService
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Altinn.App.Core.Internal.WorkflowEngine.WorkflowStepOptionsValidator
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.WorkflowEngine.ServiceTaskRegistrationValidator
   },
   {
     isImplementationFactory: false,

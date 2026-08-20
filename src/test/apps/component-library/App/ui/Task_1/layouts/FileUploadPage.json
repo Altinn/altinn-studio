@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "FileUpload-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "FileUpload"
         }
@@ -29,7 +29,7 @@
       {
         "size": "h3",
         "id": "FileUpload-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Oppsummering av FileUpload"
         }
@@ -46,7 +46,7 @@
       {
         "size": "h2",
         "id": "FileUpload-HeaderWithtag",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "FileUpload with tag"
         }
@@ -86,7 +86,7 @@
       {
         "size": "h3",
         "id": "FileUpload-Header-summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Oppsummering av FileUpload with tag:"
         }
@@ -102,7 +102,6 @@
       },
       {
         "id": "NavigationButtons-L67e32",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

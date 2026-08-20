@@ -36,6 +36,7 @@ export const dataModelsJsonPath = (org, app) => `${apiBasePath}/${org}/${app}/da
 export const dataModelsXsdPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/upload`; // Post
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${apiBasePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
+export const dataModelPrefillPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/prefill?${s({ modelPath })}`; // Get, Put
 
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
@@ -235,6 +236,9 @@ export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+
+// App Templates (the scaffold a new app is created from)
+export const appTemplatesPath = () => `${apiBasePath}/apptemplates`; // GET
 
 // Custom Templates
 export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET

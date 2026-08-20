@@ -1,6 +1,6 @@
 name: CLI - Changelog entry
 
-# Requires PRs that change studioctl code to add an entry to src/cli/CHANGELOG.md
+# Requires PRs that change studioctl code or its shared dependencies to add an entry to src/cli/CHANGELOG.md
 # under [Unreleased], via the releaser's `validate-changelog` command. Apply the
 # 'skip-changelog' label to PRs with no user-visible change (refactors, test-only
 # or CI-only work); the labeled/unlabeled triggers re-evaluate the check when the
@@ -12,6 +12,7 @@ on:
     paths:
       - 'src/cli/**'
       - '!src/cli/**/*.md'
+      - 'src/Runtime/common/dotnet/**'
       - '.github/workflows/cli-changelog.yaml'
 
 concurrency:
@@ -25,17 +26,17 @@ jobs:
   require-changelog-entry:
     name: Require studioctl changelog entry
     if: ${{ !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: 'src/tools/releaser/go.mod'
           cache-dependency-path: src/tools/releaser/go.sum

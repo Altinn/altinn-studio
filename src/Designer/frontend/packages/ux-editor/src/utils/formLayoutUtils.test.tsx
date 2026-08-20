@@ -51,9 +51,9 @@ const baseContainer: FormContainer<ComponentType.Group> = {
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
-const headerComponent: FormComponent<ComponentType.Header> = {
+const headingComponent: FormComponent<ComponentType.Heading> = {
   id: headerId,
-  type: ComponentType.Header,
+  type: ComponentType.Heading,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -115,7 +115,7 @@ const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> =
 };
 const mockInternal: IInternalLayout = {
   components: {
-    [headerId]: headerComponent,
+    [headerId]: headingComponent,
     [paragraphId]: paragraphComponent,
     [paragraphInGroupId]: paragraphInGroupComponent,
     [paragraphInGroupInGroupId]: paragraphInGroupInGroupComponent,
@@ -350,7 +350,6 @@ describe('formLayoutUtils', () => {
         'id',
         'itemType',
         'onClickAction',
-        'showBackButton',
         'textResourceBindings',
         'type',
         'pageIndex',
@@ -392,15 +391,20 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
-      'Adds a new component to the layout when the given type is %s',
-      (componentType) => {
-        const id = 'newItemId';
-        const layout = addItemOfType(mockInternal, componentType, id);
-        expect(layout.components[id].itemType).toEqual('COMPONENT');
-        expect(layout.components[id].type).toEqual(componentType);
-      },
-    );
+    // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+    it.each(
+      Object.values(ComponentType).filter(
+        (v) =>
+          v !== ComponentType.OrganisationLookup &&
+          v !== ComponentType.Header &&
+          !containerComponentTypes.includes(v),
+      ),
+    )('Adds a new component to the layout when the given type is %s', (componentType) => {
+      const id = 'newItemId';
+      const layout = addItemOfType(mockInternal, componentType, id);
+      expect(layout.components[id].itemType).toEqual('COMPONENT');
+      expect(layout.components[id].type).toEqual(componentType);
+    });
 
     it.each(containerComponentTypes)(
       'Adds a new container to the layout when the given type is %s',

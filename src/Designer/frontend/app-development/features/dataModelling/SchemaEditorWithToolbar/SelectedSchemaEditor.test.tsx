@@ -22,6 +22,7 @@ import type {
 } from 'app-shared/types/DataModelMetadata';
 import { verifyNeverOccurs } from '@studio/testing/testUtils';
 import { org, app } from '@studio/testing/testids';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 
 const user = userEvent.setup();
 
@@ -42,10 +43,16 @@ const defaultProps: SelectedSchemaEditorProps = {
 // Mocks:
 const schemaEditorTestId = 'schema-editor';
 const saveButtonTestId = 'save-button';
+const savePrefillConfigButtonTestId = 'save-prefill-config-button';
+const prefillConfigMock: PrefillConfig = { ER: { OrgNumber: 'someField' } };
 jest.mock('@altinn/schema-editor/SchemaEditorApp', () => ({
-  SchemaEditorApp: ({ save }: SchemaEditorAppProps) => (
+  SchemaEditorApp: ({ save, savePrefillConfig }: SchemaEditorAppProps) => (
     <div data-testid={schemaEditorTestId}>
       <button data-testid={saveButtonTestId} onClick={() => save(dataMock)} />
+      <button
+        data-testid={savePrefillConfigButtonTestId}
+        onClick={() => savePrefillConfig(prefillConfigMock)}
+      />
     </div>
   ),
 }));
@@ -105,6 +112,22 @@ describe('SelectedSchemaEditor', () => {
     await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
+  });
+
+  it('Saves the prefill config for the current model', async () => {
+    const saveDataModelPrefill = jest.fn();
+    const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+
+    render({ getDataModel, saveDataModelPrefill });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
+    );
+
+    const button = screen.getByTestId(savePrefillConfigButtonTestId);
+    await user.click(button);
+    await waitFor(() => expect(saveDataModelPrefill).toHaveBeenCalledTimes(1));
+    expect(saveDataModelPrefill).toHaveBeenCalledWith(org, app, model1Path, prefillConfigMock);
   });
 
   it('Auto saves when changing between models that are not present in the cache', async () => {

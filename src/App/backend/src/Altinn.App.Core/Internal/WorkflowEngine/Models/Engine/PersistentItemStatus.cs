@@ -34,4 +34,11 @@ internal enum PersistentItemStatus
     /// failure for dependency evaluation: workflows enqueued afterwards may depend on it and run.
     /// </summary>
     Abandoned = 7,
+
+    /// <summary>
+    /// A step ran without error but the outcome it awaits is not available yet, so the engine parked
+    /// it until its next poll. Non-terminal and not a failure — the work is still in flight, so this
+    /// counts as active: a caller must never read a waiting workflow as settled.
+    /// </summary>
+    Waiting = 8,
 }

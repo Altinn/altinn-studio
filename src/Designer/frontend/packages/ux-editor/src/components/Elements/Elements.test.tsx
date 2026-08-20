@@ -71,8 +71,8 @@ describe('Elements', () => {
       screen.queryByText(textMock('ux_editor.collapsable_standard_components')),
     ).not.toBeInTheDocument();
 
-    const headerComponent = screen.getAllByText(textMock('ux_editor.component_title.Header'));
-    expect(headerComponent[0]).toBeInTheDocument();
+    const headingComponent = screen.getAllByText(textMock('ux_editor.component_title.Heading'));
+    expect(headingComponent[0]).toBeInTheDocument();
   });
 
   it('should render conf page toolbar when task type is payment', () => {

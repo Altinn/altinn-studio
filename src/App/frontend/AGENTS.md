@@ -17,7 +17,7 @@ This is the Altinn 3 app frontend - a React application that renders dynamic for
 
 ### Testing
 
-- `yarn test` - Run Jest unit tests (runs codegen first)
+- `yarn test` - Run Vitest unit tests once (runs codegen first)
 - `yarn test:watch` - Run tests in watch mode
 - `yarn test:watchall` - Run all tests in watch mode
 - `yarn cy:open` - Open Cypress for e2e testing
@@ -51,7 +51,7 @@ The codebase uses a hybrid approach with plans to modernize:
 - React Query for server state management
 - Reduced dependency on React Context
 - Zustand potentially replaced by React Query patterns
-- Migration from Webpack to Vite, Jest to Vitest, Cypress to Playwright
+- Migration from Cypress to Playwright
 - Migration to wrap Designsystemet component and our own smaller components that Designsystemet doesn't have in our own dumb components in `src/app-components/`.
 
 ### Key Architectural Patterns
@@ -96,9 +96,9 @@ The codebase uses a hybrid approach with plans to modernize:
 
 ### Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Build**: Webpack (migrating to Vite)
-- **Testing**: Jest + React Testing Library (migrating to Vitest), Cypress (migrating to Playwright)
+- **Frontend**: React 19 with TypeScript
+- **Build**: Vite
+- **Testing**: Vitest + React Testing Library, Cypress (migrating to Playwright)
 - **State**: React Context + Zustand (evolving to React Query focus)
 - **Styling**: CSS Modules + Digdir Design System
 - **Package Manager**: Yarn 4 with Corepack

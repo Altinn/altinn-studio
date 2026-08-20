@@ -8,7 +8,7 @@ using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Models;
@@ -172,6 +172,88 @@ public class FiksArkivDefaultPayloadGeneratorTest
         Assert.Contains("Unsupported message type", ex.Message);
     }
 
+    [Fact]
+    internal async Task GeneratePayload_ReadsDocumentBytesFromAccessor()
+    {
+        var fixture = PayloadGeneratorFixture.Create(
+            Factories.DocumentSettings("model"),
+            [Factories.DocumentSettings("ref-data-as-pdf")],
+            archiveDocumentMetadata: null,
+            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
+            instanceOwnerParty: null,
+            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+        );
+        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessor.Setup(x => x.Instance).Returns(_defaultInstance);
+        dataAccessor
+            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync("Accessor content"u8.ToArray());
+
+        var result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+            "",
+            Factories.Recipient(),
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            _now,
+            dataAccessor.Object
+        );
+
+        Assert.NotNull(result);
+        dataAccessor.Verify(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    internal async Task GeneratePayload_WithExecutionReferenceTime_UsesOneLocalTimeForEveryGeneratedDate()
+    {
+        var fixture = PayloadGeneratorFixture.Create(
+            Factories.DocumentSettings("model"),
+            [Factories.DocumentSettings("ref-data-as-pdf")],
+            archiveDocumentMetadata: null,
+            recipientParty: Factories.RecipientParty("recipient-id", "Recipient Name"),
+            instanceOwnerParty: null,
+            instanceOwnerClassification: Factories.InstanceOwnerClassification(Auth.User)
+        );
+        TimeZoneInfo localTimeZone = TimeZoneInfo.CreateCustomTimeZone(
+            "Fiks-Test-UTC-05-45",
+            TimeSpan.FromMinutes(345),
+            "Fiks test time",
+            "Fiks test time"
+        );
+        fixture.FakeTime.SetLocalTimeZone(localTimeZone);
+        DateTimeOffset executionReferenceTime = DateTimeOffset.Parse("2025-12-31T20:30:45Z");
+        DateTime expectedLocalTime = new(2026, 1, 1, 2, 15, 45);
+        var dataAccessor = new Mock<IInstanceDataAccessor>();
+        dataAccessor.Setup(x => x.Instance).Returns(_defaultInstance);
+        dataAccessor
+            .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync("Mocked content"u8.ToArray());
+
+        IEnumerable<FiksIOMessagePayload> result = await fixture.FiksArkivDefaultPayloadGenerator.GeneratePayload(
+            "Task_1",
+            Factories.Recipient(),
+            FiksArkivConstants.MessageTypes.CreateArchiveRecord,
+            executionReferenceTime,
+            dataAccessor.Object
+        );
+
+        string archiveMessageXml = result
+            .Single(x => x.Filename == FiksArkivConstants.Filenames.ArchiveRecord)
+            .Data.ReadToString();
+        Arkivmelding archiveMessage = archiveMessageXml.DeserializeXml<Arkivmelding>()!;
+        Saksmappe caseFile = Assert.IsType<Saksmappe>(archiveMessage.Mappe);
+        Journalpost journalEntry = Assert.IsType<Journalpost>(archiveMessage.Registrering);
+
+        Assert.Equal(expectedLocalTime.Year, caseFile.Saksaar);
+        Assert.Equal(expectedLocalTime.Date, caseFile.Saksdato);
+        Assert.Equal(expectedLocalTime.Year, journalEntry.Journalaar);
+        Assert.Equal(expectedLocalTime.Date, journalEntry.DokumentetsDato);
+        Assert.Equal(expectedLocalTime, journalEntry.SendtDato);
+        Assert.NotEmpty(journalEntry.Dokumentbeskrivelse);
+        Assert.All(
+            journalEntry.Dokumentbeskrivelse,
+            document => Assert.Equal(expectedLocalTime, document.OpprettetDato)
+        );
+    }
+
     internal sealed record TestCase(
         PayloadGeneratorFixture Fixture,
         string MessageType,
@@ -218,7 +300,6 @@ public class FiksArkivDefaultPayloadGeneratorTest
     internal sealed record PayloadGeneratorFixture(
         FiksArkivDefaultPayloadGenerator FiksArkivDefaultPayloadGenerator,
         Mock<IAppMetadata> AppMetadataMock,
-        Mock<IDataClient> DataClientMock,
         Mock<IFiksArkivConfigResolver> ConfigResolverMock,
         FakeTimeProvider FakeTime,
         Mock<ILogger<FiksArkivDefaultPayloadGenerator>> LoggerMock
@@ -226,11 +307,17 @@ public class FiksArkivDefaultPayloadGeneratorTest
     {
         public async Task<IReadOnlyList<FiksIOMessagePayload>> GeneratePayload(Instance instance, string messageType)
         {
+            var dataAccessor = new Mock<IInstanceDataAccessor>();
+            dataAccessor.Setup(x => x.Instance).Returns(instance);
+            dataAccessor
+                .Setup(x => x.GetBinaryData(It.IsAny<DataElementIdentifier>()))
+                .ReturnsAsync("Mocked content"u8.ToArray());
             var payload = await FiksArkivDefaultPayloadGenerator.GeneratePayload(
                 "",
-                instance,
                 Factories.Recipient(),
-                messageType
+                messageType,
+                _now,
+                dataAccessor.Object
             );
             return payload.ToList();
         }
@@ -247,7 +334,6 @@ public class FiksArkivDefaultPayloadGeneratorTest
         )
         {
             var appMetadataMock = new Mock<IAppMetadata>();
-            var dataClientMock = new Mock<IDataClient>();
             var configResolverMock = new Mock<IFiksArkivConfigResolver>();
             var loggerMock = new Mock<ILogger<FiksArkivDefaultPayloadGenerator>>();
             var fakeTime = new FakeTimeProvider(_now);
@@ -260,7 +346,9 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 .Setup(x => x.GetApplicationTitle(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(applicationTitle);
             configResolverMock
-                .Setup(x => x.GetArchiveDocumentMetadata(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetArchiveDocumentMetadata(It.IsAny<IInstanceDataAccessor>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(archiveDocumentMetadata);
             configResolverMock
                 .Setup(x => x.GetCorrelationId(It.IsAny<Instance>()))
@@ -277,31 +365,19 @@ public class FiksArkivDefaultPayloadGeneratorTest
 
             var payloadGenerator = new FiksArkivDefaultPayloadGenerator(
                 appMetadataMock.Object,
-                dataClientMock.Object,
                 Mock.Of<IAuthenticationContext>(),
                 loggerMock.Object,
                 Mock.Of<IHostEnvironment>(x => x.EnvironmentName == Environments.Development),
                 configResolverMock.Object,
+                Mock.Of<IAppModel>(),
+                Options.Create(TestHelpers.DefaultFiksArkivSettings),
                 Options.Create(Factories.FiksIOSettings(_fiksIOSenderAccount)),
                 fakeTime
             );
 
-            dataClientMock
-                .Setup(x =>
-                    x.GetDataBytes(
-                        It.IsAny<int>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    )
-                )
-                .ReturnsAsync("Mocked content"u8.ToArray());
-
             return new PayloadGeneratorFixture(
                 payloadGenerator,
                 appMetadataMock,
-                dataClientMock,
                 configResolverMock,
                 fakeTime,
                 loggerMock

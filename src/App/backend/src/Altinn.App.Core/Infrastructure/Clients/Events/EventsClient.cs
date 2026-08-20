@@ -94,7 +94,7 @@ public class EventsClient : IEventsClient
 
         string serializedCloudEvent = JsonSerializer.Serialize(cloudEvent);
 
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             "app",
             new StringContent(serializedCloudEvent, Encoding.UTF8, "application/json"),
@@ -107,6 +107,6 @@ public class EventsClient : IEventsClient
             return eventId;
         }
 
-        throw await PlatformHttpException.CreateAsync(response);
+        throw await PlatformHttpException.Create(response);
     }
 }

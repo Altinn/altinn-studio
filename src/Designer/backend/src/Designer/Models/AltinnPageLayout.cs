@@ -39,17 +39,20 @@ public class AltinnPageLayout
         return components.Any((component) => component["type"].GetValue<string>().Equals(type));
     }
 
-    public AltinnPageLayout WithNavigationButtons()
+    public AltinnPageLayout WithNavigationButtons(bool includeShowBackButton)
     {
-        (Structure["data"]["layout"] as JsonArray).Add(
-            new JsonObject()
-            {
-                ["id"] = "NavigationButtons-" + GenerateRandomId(),
-                ["showBackButton"] = true,
-                ["textResourceBindings"] = { },
-                ["type"] = "NavigationButtons",
-            }
-        );
+        JsonObject navigationButtons = new()
+        {
+            ["id"] = "NavigationButtons-" + GenerateRandomId(),
+            ["textResourceBindings"] = { },
+            ["type"] = "NavigationButtons",
+        };
+        if (includeShowBackButton)
+        {
+            navigationButtons["showBackButton"] = true;
+        }
+
+        (Structure["data"]["layout"] as JsonArray).Add(navigationButtons);
         return this;
     }
 

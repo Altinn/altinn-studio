@@ -38,7 +38,7 @@ export enum SummaryContains {
   // components should be hidden but it will only be hidden from the summary if there are 1+ form components (i.e.
   // components that report either emptyValue or SomeUserContent) within the same EmptyChildrenBoundary, and all of them
   // are empty. This means that if you have a group that only contains presentational components, that group will never
-  // be hidden. But a Header alongside a set of Input components will be hidden if all the Input components are empty.
+  // be hidden. But a Heading alongside a set of Input components will be hidden if all the Input components are empty.
   Presentational = 'presentational',
 }
 

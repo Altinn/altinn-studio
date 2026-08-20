@@ -840,7 +840,7 @@ public class FormBootstrapServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.Forbidden), "Forbidden"));
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Forbidden, "Forbidden"));
 
         var service = CreateService();
 

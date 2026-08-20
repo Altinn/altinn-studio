@@ -9,6 +9,7 @@ resources:
   - rolebinding.yaml
   - cronjob.yaml
   - triggerauthentication.yaml
+  - triggerauthentication-bearer.yaml
   - networkpolicy.yaml
 
 # Copy the image annotation onto the container spec. The annotation value

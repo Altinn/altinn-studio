@@ -8,7 +8,7 @@
       },
       {
         "id": "tittel2",
-        "type": "Header",
+        "type": "Heading",
         "size": "L",
         "textResourceBindings": {
           "title": "CV.tittel.title"
@@ -420,7 +420,6 @@
       {
         "id": "nav",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "validateOnNext": {
           "page": "current",
           "show": ["All"]

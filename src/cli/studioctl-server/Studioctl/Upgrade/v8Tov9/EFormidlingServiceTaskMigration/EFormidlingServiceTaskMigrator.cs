@@ -154,9 +154,9 @@ internal sealed class EFormidlingServiceTaskMigrator
         if (gate.EnabledAnywhere && !AppRegistersEFormidlingServices(appFolder))
         {
             warnings.Add(
-                "Could not find an AddEFormidlingServices registration in the app's C# code. The v9 "
-                    + "eFormidling service task fails at runtime without it - make sure Program.cs registers "
-                    + "the services with AddEFormidlingServices2<TM, TR> (and implements IEFormidlingMetadata)."
+                "Could not find an eFormidling registration in the app's C# code. The v9 eFormidling "
+                    + "service task fails at runtime without it - make sure Program.cs registers the services "
+                    + "with AddEFormidling().WithMetadata<T>() (and that T implements IEFormidlingMetadata)."
             );
         }
 
@@ -188,7 +188,9 @@ internal sealed class EFormidlingServiceTaskMigrator
                     continue;
                 }
 
-                if (File.ReadAllText(file).Contains("AddEFormidlingServices", StringComparison.Ordinal))
+                // Deliberately the shared prefix of the v8 and v9 method names, so this reads the same
+                // whether or not the registration rewrite has already run over the file.
+                if (File.ReadAllText(file).Contains("AddEFormidling", StringComparison.Ordinal))
                     return true;
             }
         }

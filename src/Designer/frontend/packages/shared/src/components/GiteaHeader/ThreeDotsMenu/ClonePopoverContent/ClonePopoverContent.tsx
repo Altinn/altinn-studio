@@ -1,11 +1,16 @@
 import { repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './ClonePopoverContent.module.css';
-import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioLabelAsParagraph,
+  StudioTextfield,
+  StudioParagraph,
+  StudioLink,
+} from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
@@ -24,33 +29,24 @@ export const ClonePopoverContent = () => {
       <StudioLabelAsParagraph data-size='sm'>
         {t('sync_header.favourite_tool')}
       </StudioLabelAsParagraph>
-      <Paragraph asChild size='small'>
-        <Link
-          className={classes.link}
-          href={altinnDocsUrl({ language: 'nb' })}
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          {t('sync_header.favourite_tool_link')}
-        </Link>
-      </Paragraph>
+      <StudioLink
+        href={altinnDocsUrl({ language: 'nb' })}
+        target='_blank'
+        rel='noopener noreferrer'
+      >
+        {t('sync_header.favourite_tool_link')}
+      </StudioLink>
+
       {dataModel.length === 0 && (
         <>
           <div className={classes.iconAndText}>
             <InformationSquareFillIcon className={classes.infoIcon} />
-            <Paragraph size='small'>{t('sync_header.data_model_missing')}</Paragraph>
+            <StudioParagraph>{t('sync_header.data_model_missing')}</StudioParagraph>
           </div>
-          <Paragraph size='small' spacing>
-            {t('sync_header.data_model_missing_helper')}
-          </Paragraph>
-          <Paragraph size='small' asChild>
-            <Link
-              className={classes.link}
-              href={packagesRouter.getPackageNavigationUrl('dataModel')}
-            >
-              {t('sync_header.data_model_missing_link')}
-            </Link>
-          </Paragraph>
+          <StudioParagraph spacing>{t('sync_header.data_model_missing_helper')}</StudioParagraph>
+          <StudioLink href={packagesRouter.getPackageNavigationUrl('dataModel')}>
+            {t('sync_header.data_model_missing_link')}
+          </StudioLink>
         </>
       )}
       <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} />

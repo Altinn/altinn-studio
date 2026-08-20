@@ -9,8 +9,8 @@ The node:
         immutable system prompt.
     2.  Builds a `ToolRegistry` populated with the in-process tools
         (`scan_repo`, `propose_patch`, `verify_changes`,
-        `commit_session_branch`, `rollback`) plus every tool the MCP
-        server advertises.
+        `commit_session_branch`, `rollback`) plus the in-process Altinn
+        tools.
     3.  Bridges loop events to the existing `EventSink` so the
         frontend keeps seeing status messages; wires
         `sink.is_cancelled(session_id)` as the cancel signal.
@@ -99,7 +99,7 @@ def _status_for_tool_call(name: str, tool_input: dict[str, Any] | None) -> str |
     Returns None when the tool shouldn't surface.  Format is
     "<verb phrase> <subject>" — e.g. "Leser App/ui/Side1.json",
     "Slår opp komponent: Input".  No technical tool names in the
-    output; those map through _MCP_TOOL_LABELS for the MCP family.
+    output; those map through _ALTINN_TOOL_LABELS for the altinn_ family.
     """
     base = _TOOL_STATUS_MESSAGES.get(name)
     args = tool_input or {}
