@@ -58,8 +58,9 @@ export const TextEditor = ({
   );
 
   useEffect(() => {
+    cancelDebounce();
     setSearchInputValue(searchQuery ?? '');
-  }, [searchQuery]);
+  }, [searchQuery, cancelDebounce]);
 
   useEffect(() => {
     const addedLanguage = selectedLangCodes.find(
