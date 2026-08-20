@@ -3,33 +3,35 @@ using System.Xml.Linq;
 
 namespace Altinn.App.Analyzers.Authorization;
 
-/// <summary>A task in the process, with the facts that determine what the app owner must be permitted.</summary>
+/// <summary>A task in the process, with what determines the actions the app owner must be permitted.</summary>
 /// <param name="Id">The BPMN element id, used to recognise grants scoped to this task.</param>
 /// <param name="TaskType">The <c>altinn:taskType</c> value.</param>
 /// <param name="AllowsReject">
 /// Whether the task declares <c>reject</c> as a process action, meaning a transition can abandon it.
 /// </param>
-internal sealed record ProcessTaskFact(string? Id, string TaskType, bool AllowsReject);
+internal sealed record ProcessTaskInfo(string? Id, string TaskType, bool AllowsReject);
 
 /// <summary>
-/// The facts read out of <c>config/process/process.bpmn</c> that decide which actions the app owner
-/// needs beyond the unconditional baseline.
+/// What is read out of <c>config/process/process.bpmn</c> to decide which actions the app owner needs
+/// beyond the unconditional baseline - deliberately only that, not a model of the process: nothing
+/// here describes flows, gateways or events. Mirrors the record of the same name in the v8-to-v9
+/// policy migrator, which reads the same three things for the same purpose.
 /// </summary>
-internal sealed class ProcessFacts
+internal sealed class ProcessInfo
 {
-    private ProcessFacts(IReadOnlyList<ProcessTaskFact> tasks, HashSet<string> endEventIds)
+    private ProcessInfo(IReadOnlyList<ProcessTaskInfo> tasks, HashSet<string> endEventIds)
     {
         Tasks = tasks;
         EndEventIds = endEventIds;
     }
 
-    internal IReadOnlyList<ProcessTaskFact> Tasks { get; }
+    internal IReadOnlyList<ProcessTaskInfo> Tasks { get; }
 
     /// <summary>End event ids, used to accept <c>complete</c> grants scoped to a real end event.</summary>
     internal HashSet<string> EndEventIds { get; }
 
     /// <summary>Parses the process, or returns null when the document is not valid XML.</summary>
-    internal static ProcessFacts? TryParse(string xml)
+    internal static ProcessInfo? TryParse(string xml)
     {
         XDocument document;
         try
@@ -55,7 +57,7 @@ internal sealed class ProcessFacts
             }
         }
 
-        var tasks = new List<ProcessTaskFact>();
+        var tasks = new List<ProcessTaskInfo>();
         foreach (var taskType in document.Descendants().Where(e => e.Name.LocalName == "taskType"))
         {
             var type = taskType.Value.Trim();
@@ -68,7 +70,7 @@ internal sealed class ProcessFacts
             // Nothing between the two has an id of its own, so the nearest one is the task's.
             var taskElement = taskType.Ancestors().FirstOrDefault(a => a.Attribute("id") is not null);
             tasks.Add(
-                new ProcessTaskFact(
+                new ProcessTaskInfo(
                     taskElement?.Attribute("id")?.Value,
                     type,
                     AllowsReject: taskElement is not null && DeclaresRejectProcessAction(taskElement)
@@ -76,7 +78,7 @@ internal sealed class ProcessFacts
             );
         }
 
-        return new ProcessFacts(tasks, endEventIds);
+        return new ProcessInfo(tasks, endEventIds);
     }
 
     /// <summary>

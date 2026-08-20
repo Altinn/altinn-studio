@@ -48,7 +48,7 @@ internal static class ServiceOwnerPolicyUtils
         // Without a process there is nothing to derive task-specific requirements from, but the
         // baseline still applies - every app reads and writes instance data.
         var processContent = processFile?.GetText(token)?.ToString();
-        var process = processContent is null ? null : ProcessFacts.TryParse(processContent);
+        var process = processContent is null ? null : ProcessInfo.TryParse(processContent);
         var requirements = BuildRequirements(process, autoDeleteOnProcessEnd);
 
         if (policyFile is null)
@@ -150,7 +150,7 @@ internal static class ServiceOwnerPolicyUtils
     /// The actions the app owner must hold, in a stable order: the unconditional baseline first,
     /// then the ones the process and the app metadata add.
     /// </summary>
-    private static List<Requirement> BuildRequirements(ProcessFacts? process, bool autoDeleteOnProcessEnd)
+    private static List<Requirement> BuildRequirements(ProcessInfo? process, bool autoDeleteOnProcessEnd)
     {
         var requirements = new List<Requirement>
         {
