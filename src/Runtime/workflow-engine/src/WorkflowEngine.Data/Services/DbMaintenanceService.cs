@@ -94,7 +94,10 @@ internal sealed class DbMaintenanceService(
         var cutoff = now - settings.RetentionPeriod;
         var totalDeletedWorkflows = 0;
 
-        // Delete terminal workflows in batches until all eligible rows are drained.
+        // Delete terminal workflows in batches until all eligible rows are drained. Bounded by the
+        // batch actually emptying rather than by it coming back short, so a batch size of zero — which
+        // selects nothing, and is what a settings object with no Retention block carries — ends the
+        // loop instead of running it forever. Same shape as PurgeExpiredMailboxes below.
         int deleted;
         do
         {
@@ -103,7 +106,7 @@ internal sealed class DbMaintenanceService(
                 deleted = await PurgeExpiredWorkflowBatch(now, cutoff, settings.BatchSize, ct);
                 totalDeletedWorkflows += deleted;
             }
-        } while (deleted >= settings.BatchSize);
+        } while (deleted > 0 && deleted >= settings.BatchSize);
 
         if (totalDeletedWorkflows > 0)
             logger.RetentionDeletedWorkflows(totalDeletedWorkflows);
