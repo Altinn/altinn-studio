@@ -541,7 +541,10 @@ by the app (one extra app→engine HTTP call per hop that v2's engine-created li
 but with no dependency edge and no link edges, which were the two largest measured per-link
 statement costs in v2. An unprocessed (buffered) message costs one delivery row, cheaper than
 v2's `Held` link workflow. The non-reply hot path pays one nullable column on the enqueue `COPY`
-and one null check per step execution; the sweep adds one indexed scan per cadence. These claims
+and one null check per step execution; the timers add **three** unconditional indexed scans — the
+closure sweep (5 min), the retention candidate scan (2 h), and the overdue-mailbox gauge (5 s, the
+most frequent of the three, added by step 5b-i). _Corrected by step 11's measurement; the draft said
+one._ These claims
 need their own chain-storm-style measurement before they are believed.
 
 ## Failure modes and operations
@@ -1995,7 +1998,69 @@ logic. Note decision 7 above: `IFiksArkivResponseHandler` is **live v8 GA API at
 default is to re-plumb it; retiring public API is an orchestrator decision, reached by ending the
 run `BLOCKED` with the argument, never taken inside the step.
 
-#### Step 11 — k6: mailbox-storm measurement — `in progress`
+#### Step 11 — k6: mailbox-storm measurement — `done`
+
+Landed as jj change `qwspmprz` — 8 files, +3845/−28, all under `src/Runtime/workflow-engine`. Engine
+939 and host 81 unmoved; no C# changed. Two review rounds. Same hardware as v2's chain-storm, so the
+numbers are comparable in kind: two interleaved rotated sessions (4 arms × 5 and × 3, 3 min each),
+a per-hop idle run, `pg_stat_statements` accounting, and `EXPLAIN` at 202,005 mailboxes.
+
+**The claims this document asked to have measured:**
+
+- **Confirmed — the two largest v2 per-link terms are gone.** `COPY engine.workflow_dependency` and
+  `COPY engine.workflow_link`: **0 calls, 0 rows** after 9,903 receive workflows. This zero is now
+  _falsifiable_ — round 1's was not, because nothing in the suite ever created an edge, so a renamed
+  statement would have read zero too. A positive control now runs before any arm and halts the session
+  unless one enqueue with `dependsOn` + `links` moves both counters and both row counts.
+- **Confirmed — per-message cost.** 0.205 ms of server-side statement time per stored message
+  (0.205 / 0.206 / 0.212 over three runs), against v2's ~0.4 ms per reply. A processed message ≈0.23 ms;
+  a **buffered message ≈0.099 ms and no workflow at all.**
+- **Confirmed — the non-mailbox path.** On a mailbox-free run no statement writes or locks a mailbox,
+  and the fetch gate names no mailbox column with 5,454 mailboxes in the table. The enqueue `COPY` is
+  one column wider.
+- **Confirmed and priced — the sweep scans**, reproducible from the shipped recipe
+  (`SWEEP_SCALE=200000`): 3 buffers against 3,957 without the index; retention 2 on an empty tick and
+  104 with a full batch; the gauge 4. **False without step 5a's indexes.**
+- **Refuted — this document's own sentence.** The timers are **three** unconditional statements, not
+  one, the most frequent being the 5-second overdue gauge. Corrected above; all three are negligible and
+  the conclusion survives.
+- **Unmeasurable on this hardware, and reported as such:** p99 (30–35% sensitivity against a 10%
+  target), the _size_ of the p95 cost (+10.7% one session, +5.0% the other), the per-step null check
+  (five orders of magnitude below the instrument), a large parked-receiver population, a hot single
+  mailbox, and multi-pod.
+
+**Two of v2's recorded numbers are unsound, which matters beyond this stack.** v2's _"+58% on the fetch
+gate"_ came from a **single pair with no workflow-matched control** — and here +55 workflows/s alone
+buys +23% and +200/s buys +69%, so the whole of v2's figure sits inside what workflow count produces;
+sampling every run instead, control→storm is **+0.0032 ms against a 0.0036 ms tolerance, not
+resolvable**. And v2's _"a reply costs 2.4× an enqueue"_ carries a **~5 ms position artifact** — its
+measured hop sat second in an iteration after a sleep while its yardstick sat fourth after three
+back-to-back requests. The new suite runs one hop per iteration so the yardstick is a phase like any
+other. Corroboration: v2's warm yardstick was 4.83 ms where this cold one is 11.65 ms, and v2's own cold
+reply lands on it. **The two ratios must not be subtracted.**
+
+**Stated plainly rather than buried:** on comparable cold instruments a processed message costs
+13.59 + 8.96 = **22.55 ms** of client wall clock against v2's single 11.63 ms — roughly double, because
+the app makes two calls where v2's engine made one inside its own transaction. That is the honest price
+of moving the continuation protocol out of the engine.
+
+**No price is recorded, and the gate says so without crying wolf.** The p95 cost could not be resolved
+(a factor of two between sessions), so instead of a price the suite records a **ceiling**:
+`costEstablishedUnresolved = { 'enqueue.med': 0.028, 'enqueue.p95': 0.107 }`. Inside tolerance is
+`pass`; above it and within the ceiling is **`inconclusive`, exit-neutral, never `pass`**, with a remedy
+that names the third session rather than more repeats; beyond it is `FAIL — PAST THE CEILING`. The band
+is **one-sided (dearer only)** — a deliberate deviation from the reviewer's symmetric spec, and a better
+one: a symmetric band would have swallowed the request-matched bracket's `FAIL — storm is BETTER`, the
+one output that catches a badly provisioned control. "A cost of at most X" is inherently one-sided.
+
+Round 1's own gate claim was **false**: the README advertised two latency `FAIL`s that the shipped
+invocation had never produced, because the table was hand-curated to drop one run and `join_runs` has no
+exclusion mechanism. Both false sentences are gone and the README now prints the three real invocations
+with their verdicts.
+
+Notes for step 12 are folded into the list below. Residuals: session A's control and inproc arms are
+n=4, the request-matched bracket n=3, and there is no third session — hence the ceiling rather than a
+price.
 
 Paths: `src/Runtime/workflow-engine/.k6`.
 
@@ -2006,7 +2071,7 @@ this design's shape: per-delivery and per-receiver database cost, the non-reply 
 per-cadence scan. Mine `mmppzrvl` for the comparator machinery and its recorded fixes; the v2 prices
 describe the v2 tree and are a comparator, not a baseline to reproduce.
 
-#### Step 12 — Stack hygiene: green revision by revision — `todo`
+#### Step 12 — Stack hygiene: green revision by revision — `in progress`
 
 **Two pre-existing engine defects were found during this stack and deliberately not fixed inside a
 feature revision** — each deserves its own small revision, landed here or earlier:
@@ -2066,6 +2131,14 @@ concurrently.
   place because deleting telemetry is breaking and a removal is its own decision.
 - **`ProcessEngineCommandContext.Payload` and `InstanceDataMutator`** share the unenforced-non-nullable
   weakness step 7b fixed for `StateCarry`.
+- **From step 11's measurement:** the k6 trap "a stale container image silently invalidates a session"
+  is documented but, unlike its two siblings, not defended in code (two lines of `docker inspect` would
+  match their standard); five en-GB spellings carried verbatim from v2 sit in the comparator, hidden by
+  `typos.toml`'s `**/.k6/**` exclude; `.k6/results/` is prettier-dirty as untracked artifacts, so a
+  `.prettierignore` entry would silence `npx prettier --check .k6`; `.claude/skills/docker/SKILL.md` is
+  stale independently of this stack; and the README should state the ceiling's numeric consequence (the
+  p95 FAIL threshold is now 0.56 ms, ~21% of the control mean) in prose, as the comparator already does
+  at the point of use.
 
 Two traps worth carrying into any step that runs the suite: `jj restore` with a repo-root-relative path
 run from a subdirectory resolves nothing and **fails silently** (the working directory persists between
