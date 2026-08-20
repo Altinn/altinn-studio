@@ -38,7 +38,6 @@ jobs:
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
-      base_image: ${{ steps.vars.outputs.base-image }}
       config_repo: ${{ steps.vars.outputs.config-repo }}
       coordinator_digest: ${{ steps.coordinator-image.outputs.digest }}
       coordinator_repository: ${{ steps.vars.outputs.coordinator-repository }}
@@ -248,17 +247,6 @@ jobs:
 
       - name: flux install
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
-
-      - name: patch base with image tag
-        working-directory: src/github-runner/infra/kustomize/base
-        env:
-          IMAGE: ${{ needs.build-images.outputs.base_image }}
-          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
-        run: |
-          for file in scaledjob.yaml scaledjob-single.yaml; do
-            yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
-            yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
-          done
 
       - name: Pin runner images by digest
         working-directory: src/github-runner/infra/kustomize/base

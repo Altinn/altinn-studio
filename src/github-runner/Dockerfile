@@ -11,8 +11,6 @@ ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278
 
 USER root
 
-COPY run.sh /usr/local/bin/altinn-github-runner
-COPY run-with-dockerd.sh /usr/local/bin/altinn-github-runner-dind
 COPY run-sandbox.sh /usr/local/bin/altinn-github-runner-sandbox
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -21,7 +19,6 @@ RUN apt-get update \
       curl \
       docker.io \
       docker-compose-v2 \
-      e2fsprogs \
       fonts-liberation \
       git \
       iproute2 \
@@ -83,8 +80,6 @@ RUN apt-get update \
     && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /usr/bin/google-chrome \
     && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /usr/bin/chrome \
     && rm -rf /var/lib/apt/lists/* \
-    && chmod +x /usr/local/bin/altinn-github-runner \
-    && chmod +x /usr/local/bin/altinn-github-runner-dind \
     && mkdir -p \
       /home/runner/.cache/go-build \
       /home/runner/.npm \
@@ -159,4 +154,4 @@ ENV PATH=/opt/tools/go/current/bin:/opt/tools/node/current/bin:/usr/share/dotnet
 USER runner
 WORKDIR /home/runner
 
-ENTRYPOINT ["/usr/local/bin/altinn-github-runner"]
+ENTRYPOINT ["/usr/local/bin/altinn-github-runner-sandbox"]
