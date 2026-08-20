@@ -43,12 +43,16 @@ const (
 	studioctlServerRequestTimeout        = 2 * time.Second
 	studioctlServerStartTimeout          = 10 * time.Second
 	studioctlServerRegisterTimeoutMargin = 2 * time.Second
-	studioctlServerUpgradeTimeout        = 30 * time.Second
-	studioctlServerShutdownWait          = 3 * time.Second
-	studioctlServerPollInterval          = 100 * time.Millisecond
-	hostBridgeEndpointPath               = "/internal/host-bridge"
-	studioctlServerLogTailLines          = 40
-	studioctlServerLogSuffix             = ".log"
+	// The v8->v9 upgrade restores and compiles the app against its current packages for exact
+	// detection (plus up to five more restores raising dependency floors), so on a cold NuGet cache
+	// the request runs for minutes, not seconds. Output is buffered server-side and only returned
+	// when the whole upgrade finishes.
+	studioctlServerUpgradeTimeout = 10 * time.Minute
+	studioctlServerShutdownWait   = 3 * time.Second
+	studioctlServerPollInterval   = 100 * time.Millisecond
+	hostBridgeEndpointPath        = "/internal/host-bridge"
+	studioctlServerLogTailLines   = 40
+	studioctlServerLogSuffix      = ".log"
 )
 
 type startConfig struct {

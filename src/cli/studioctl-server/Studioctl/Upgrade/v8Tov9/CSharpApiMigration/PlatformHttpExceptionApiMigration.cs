@@ -41,7 +41,8 @@ internal sealed class PlatformHttpExceptionApiMigration
         var changes = new List<string>();
         var unresolved = new List<string>();
 
-        foreach (var file in _scanner.Files)
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        foreach (var file in _scanner.Files.ToArray())
         {
             var rewriter = new Rewriter(file);
             var updated = rewriter.Visit(file.Root);
@@ -51,7 +52,7 @@ internal sealed class PlatformHttpExceptionApiMigration
                 continue;
             }
 
-            File.WriteAllText(file.Path, updated.ToFullString());
+            _scanner.Update(file, (CompilationUnitSyntax)updated);
             changes.AddRange(rewriter.Changes);
         }
 

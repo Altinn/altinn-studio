@@ -48,6 +48,7 @@ logs/
 *.nupkg
 
 ## Compiled binaries (Go builds, cross-compiles)
+/target/
 *.exe
 *.dll
 *.so
@@ -123,3 +124,6 @@ src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 /src/tools/altinn-fleet-stats/apps-tt02/
 /src/tools/altinn-fleet-stats/altinn-apps-cloned-*/
 **/fleet-*.sqlite*
+
+# Altinn app frontend bundle copied into Designer wwwroot for local v9 preview dev (built artifact)
+src/Designer/backend/src/Designer/wwwroot/altinn-app-frontend/
