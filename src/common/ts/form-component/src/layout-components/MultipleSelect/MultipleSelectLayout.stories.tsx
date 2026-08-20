@@ -28,7 +28,6 @@ export const MULTIPLE_SELECT_PROP_CATEGORIES = {
   validationGrid: 'content',
   // Injected by the runtime wrapper — not part of the Studio configuration
   onChange: 'runtime',
-  onBlur: 'runtime',
   isValid: 'runtime',
   renderedInTable: 'runtime',
   renderLabel: 'runtime',
