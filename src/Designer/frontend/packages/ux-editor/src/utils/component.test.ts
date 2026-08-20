@@ -18,14 +18,23 @@ import { formItemConfigs } from '../data/formItemConfig';
 describe('Component utils', () => {
   describe('generateFormItem', () => {
     // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+    const supportedComponentTypes = Object.values(ComponentType).filter(
+      (
+        v,
+      ): v is Exclude<
+        ComponentType,
+        | ComponentType.OrganisationLookup
+        | ComponentType.Header
+        | ComponentType.FileUploadWithTag
+      > =>
+        v !== ComponentType.OrganisationLookup &&
+        v !== ComponentType.Header &&
+        v !== ComponentType.FileUploadWithTag &&
+        !containerComponentTypes.includes(v),
+    );
+
     it.each(
-      Object.values(ComponentType).filter(
-        (v) =>
-          v !== ComponentType.OrganisationLookup &&
-          v !== ComponentType.Header &&
-          v !== ComponentType.FileUploadWithTag &&
-          !containerComponentTypes.includes(v),
-      ),
+      supportedComponentTypes,
     )('Generates component of type %s with given ID', (componentType) => {
       const id = 'testId';
       const component = generateFormItem(componentType, id);

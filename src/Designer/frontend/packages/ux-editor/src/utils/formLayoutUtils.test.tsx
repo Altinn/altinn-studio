@@ -392,14 +392,23 @@ describe('formLayoutUtils', () => {
 
   describe('addItemOfType', () => {
     // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+    const supportedComponentTypes = Object.values(ComponentType).filter(
+      (
+        v,
+      ): v is Exclude<
+        ComponentType,
+        | ComponentType.OrganisationLookup
+        | ComponentType.Header
+        | ComponentType.FileUploadWithTag
+      > =>
+        v !== ComponentType.OrganisationLookup &&
+        v !== ComponentType.Header &&
+        v !== ComponentType.FileUploadWithTag &&
+        !containerComponentTypes.includes(v),
+    );
+
     it.each(
-      Object.values(ComponentType).filter(
-        (v) =>
-          v !== ComponentType.OrganisationLookup &&
-          v !== ComponentType.Header &&
-          v !== ComponentType.FileUploadWithTag &&
-          !containerComponentTypes.includes(v),
-      ),
+      supportedComponentTypes,
     )('Adds a new component to the layout when the given type is %s', (componentType) => {
       const id = 'newItemId';
       const layout = addItemOfType(mockInternal, componentType, id);
