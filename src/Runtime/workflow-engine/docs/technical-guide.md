@@ -242,7 +242,7 @@ When a workflow fails:
 
 Some work is "start now, confirm eventually": an eFormidling shipment, a payment capture, a signing
 order. The outcome arrives on someone else's schedule, and the only honest thing a step can say is
-*"I ran fine; the answer isn't ready yet."* That is a **deferral** — not a failure, and not a retry.
+_"I ran fine; the answer isn't ready yet."_ That is a **deferral** — not a failure, and not a retry.
 
 ```csharp
 return ExecutionResult.Defer(TimeSpan.FromMinutes(5), "delivery not confirmed yet");
@@ -251,7 +251,7 @@ return ExecutionResult.Defer(TimeSpan.FromMinutes(5), "delivery not confirmed ye
 The engine parks the step in `Waiting` and schedules its next execution through the workflow's
 `backoff_until` — the same durable timer `StartAt` rides on. A parked workflow holds **no lease, no
 worker slot and no HTTP slot**; it is simply a row the fetch gate will not claim until its timer
-elapses. `Waiting` is non-terminal and counts as *active*: consumers must never read a parked
+elapses. `Waiting` is non-terminal and counts as _active_: consumers must never read a parked
 workflow as settled.
 
 The reason string is persisted as the step's `lastDeferReason` (overwritten on every deferral,
@@ -262,15 +262,15 @@ to say, in its own words, what it is waiting for.
 
 Deferrals are kept rigorously separate from errors:
 
-| | Retryable error | Deferral |
-| --- | --- | --- |
-| Status | `Requeued` | `Waiting` |
-| `ErrorHistory` | Appends an entry | Records nothing |
-| `RequeueCount` | Incremented | **Reset to 0** |
-| Metric | `engine.steps.execution.requeued` | `engine.steps.execution.deferred` |
-| Bounded by | `RetryStrategy` | The step's wait budget |
+|                | Retryable error                   | Deferral                          |
+| -------------- | --------------------------------- | --------------------------------- |
+| Status         | `Requeued`                        | `Waiting`                         |
+| `ErrorHistory` | Appends an entry                  | Records nothing                   |
+| `RequeueCount` | Incremented                       | **Reset to 0**                    |
+| Metric         | `engine.steps.execution.requeued` | `engine.steps.execution.deferred` |
+| Bounded by     | `RetryStrategy`                   | The step's wait budget            |
 
-Resetting `RequeueCount` is deliberate: retries bound *consecutive errors between* deferrals, not
+Resetting `RequeueCount` is deliberate: retries bound _consecutive errors between_ deferrals, not
 errors across the step's whole lifetime. A poll that fails transiently, recovers, and then polls for
 another six hours should not arrive at hour six with its retry budget already spent.
 
@@ -286,11 +286,11 @@ the gauge measures the state (`engine.workflows.waiting`).
 
 Each bounds a different thing, and none of them substitutes for another:
 
-| Clock | Bounds | Anchored at | Default | A command reads |
-| --- | --- | --- | --- | --- |
-| `command.maxExecutionTime` | One execution attempt | Attempt start | 100s | `ExecutionDeadline` |
-| `RetryStrategy` | A run of consecutive *errors* | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount` |
-| `command.waitBudget` | Cumulative time spent *waiting* | `Step.FirstDeferredAt` | 24h | `Step.DeferCount` + `WaitDeadline` |
+| Clock                      | Bounds                          | Anchored at                                   | Default                 | A command reads                    |
+| -------------------------- | ------------------------------- | --------------------------------------------- | ----------------------- | ---------------------------------- |
+| `command.maxExecutionTime` | One execution attempt           | Attempt start                                 | 100s                    | `ExecutionDeadline`                |
+| `RetryStrategy`            | A run of consecutive _errors_   | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount`                |
+| `command.waitBudget`       | Cumulative time spent _waiting_ | `Step.FirstDeferredAt`                        | 24h                     | `Step.DeferCount` + `WaitDeadline` |
 
 Each clock is observable from `CommandExecutionContext`, one field per clock, so a command can pace
 itself against the same limits the engine will enforce instead of guessing at them. Both deadlines are
@@ -301,7 +301,7 @@ how much has already been spent.
 Two persisted anchors, because they measure different spans and collapsing them breaks one of the two.
 `FirstDeferredAt` never moves once set, so the budget measures the whole wait. `LastDeferredAt` moves
 with each deferral, so an error run that begins after a long wait still gets its full retry allowance.
-Anchoring retries on `UpdatedAt` instead looks equivalent and is not: `UpdatedAt` advances on *every*
+Anchoring retries on `UpdatedAt` instead looks equivalent and is not: `UpdatedAt` advances on _every_
 write-back, including each failed attempt, which slides the retry deadline forward one backoff at a
 time and stops `MaxDuration` binding at all — a deferred step whose command starts failing would then
 retry forever, never reaching a terminal status and never raising a failure metric.
@@ -334,7 +334,7 @@ The budget bounds waiting; it does not shorten the last poll. A deferral asking 
 budget has left is **clamped to land exactly on the deadline**, so the step always spends its whole
 budget and always gets one final execution before expiring. (Rejecting the overshooting deferral
 instead would forfeit the remainder of the budget, and would make `Defer(24h)` under a 24h budget fail
-without ever having waited.) A deferral *at or past* the deadline is what fails the step — with a
+without ever having waited.) A deferral _at or past_ the deadline is what fails the step — with a
 distinct classification:
 
 ```text
@@ -344,7 +344,7 @@ engine.workflows.execution.failed{reason="wait_expired"}
 Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
 not that the engine or the command broke. Route it to the team that owns the integration. A
 non-positive delay, by contrast, is a command bug and fails the step under the ordinary `execution`
-reason. A *positive but negligible* delay is the same class of mistake handled gently: it is clamped
+reason. A _positive but negligible_ delay is the same class of mistake handled gently: it is clamped
 up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
 "wait no time at all", and a spinning park would hammer the callback target for the whole budget.
 
@@ -352,7 +352,7 @@ up to `MinStepDeferDelay` (1s), because there is no honest threshold below which
 
 A deferring step is handed **its own** `StateOut` back as the next attempt's `StateIn` — see
 `ResolveStateIn`. Without that, a command that yields state would have it persisted and then silently
-discarded on every re-execution, so each poll would restart from whatever the *previous step* left
+discarded on every re-execution, so each poll would restart from whatever the _previous step_ left
 behind. A polling command therefore resumes from what it last recorded, and the state channel needs no
 special-casing for waiting.
 
@@ -363,12 +363,12 @@ budget expires. `WaitDeadline` is an absolute instant rather than a remaining du
 starts aging the moment it is computed, and a command that receives it across a network boundary (as
 the Altinn app callback does) cannot tell how much has already been spent.
 `engine.steps.wait.duration` records the budget a step actually consumed, once per deferring step at
-the moment it resolves — the only signal that shows budgets being *approached* rather than blown, so
+the moment it resolves — the only signal that shows budgets being _approached_ rather than blown, so
 compare its upper percentiles against the configured budget when sizing one.
 
 ### Push as an optimization of pull
 
-The step's own cadence is always the source of truth. When an external signal *does* arrive early, use
+The step's own cadence is always the source of truth. When an external signal _does_ arrive early, use
 [Nudge](#nudge) to collapse the remaining wait — the step then re-executes and decides for itself
 whether the outcome is ready. A lost signal therefore costs latency, never correctness.
 
@@ -488,7 +488,7 @@ step runs again and reaches its own conclusion. Nudging a poller that still has 
 simply produces another deferral.
 
 This is the engine's push channel. It exists so an external signal (a webhook, an event) can
-*accelerate* a poll, never to carry it: the step's own cadence remains the source of truth, so a lost
+_accelerate_ a poll, never to carry it: the step's own cadence remains the source of truth, so a lost
 nudge costs one poll interval of latency and nothing else. Never build a flow whose correctness
 depends on the nudge arriving.
 
@@ -503,7 +503,7 @@ depends on the nudge arriving.
 
 Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
 the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
-does not exist. The dashboard's *Retry now* / *Check now* buttons drive the same operation through
+does not exist. The dashboard's _Retry now_ / _Check now_ buttons drive the same operation through
 `POST /dashboard/nudge`.
 
 ## Mailboxes
@@ -982,6 +982,41 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 | Histograms | `engine.workflows.time.queue`, `.time.service`, `.time.total` (also per step)                    |
 | Gauges     | `engine.workflows.active`, `.scheduled`, `.failed`; `engine.slots.workers.*`, `.db.*`, `.http.*` |
 
+### Mailbox metrics
+
+| Metric                                    | Type      | Tags                                                                                     |
+| ----------------------------------------- | --------- | ---------------------------------------------------------------------------------------- |
+| `engine.mailboxes.created`                | Counter   | —                                                                                        |
+| `engine.mailboxes.closed`                 | Counter   | `reason` (`request`/`deadline`)                                                          |
+| `engine.mailboxes.deliveries.received`    | Counter   | `outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
+| `engine.mailboxes.deliveries.unconsumed`  | Counter   | — (recorded by the deadline sweep alone)                                                 |
+| `engine.mailboxes.receivers.created`      | Counter   | `birth` (`delivered`/`closed`/`held`)                                                    |
+| `engine.mailboxes.receivers.released`     | Counter   | `cause` (`delivered`/`closed`)                                                           |
+| `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
+| `engine.mailboxes.rendezvous.violations`  | Counter   | `state` (`unregistered`/`undecided`)                                                     |
+| `engine.mailboxes.open.overdue`           | Gauge     | —                                                                                        |
+
+Reading them:
+
+- `created` and `closed` count **state changes rather than requests**, so idempotent replays do not
+  inflate them.
+- `deliveries.received` counts **every verdict, refusals included** — even the ones refused before the
+  row lock — so a storm of oversized or misaddressed forwards is visible here and not only in HTTP
+  metrics. A call that throws instead of reaching a verdict is not an outcome and increments nothing;
+  that case shows up in the database and HTTP error metrics.
+- `rendezvous.violations`: **alert on any value above zero.** Both states are the engine violating an
+  invariant of its own rendezvous (see
+  [the frozen-meaning rule](#the-receivers-meaning-is-frozen-before-it-can-run)) — a step failing
+  because an app returned an error and a step failing because the engine cannot say what it was handed
+  want different people woken up.
+- `open.overdue` is the gauge the no-leak-backstop alert hangs on: it counts mailboxes still open past
+  their `deadline` plus one `MailboxSweepInterval` of grace — the gap the sweep's own cadence entitles
+  it to — so a healthy engine reads **exactly zero** and any other value means the sweep is not running
+  or not draining. A mass timeout can make it briefly non-zero while one tick drains, so the alert
+  wants persistence rather than a single sample. The count saturates rather than being exact — an
+  unbounded `count(*)` would be at its most expensive during exactly the mass timeout the gauge exists
+  to report, and the alert reads "greater than zero", so stopping early costs it nothing.
+
 ### Traces
 
 Activity source `WorkflowEngine` with spans for workflow handling, step execution, command callbacks, and resource acquisition. Workflows carry W3C `DistributedTraceContext` for cross-service correlation.
@@ -996,6 +1031,8 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 - State evolution viewer
 - Grafana Tempo click-through links
 - Paginated query interface with namespace/status/label filters
+- Mailboxes rendered under their collections, log laid out position by position
+  (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
 
 ## API Reference
 
@@ -1160,13 +1197,13 @@ GET /api/v1/{namespace}/workflows
 
 Supports the following optional query parameters (all repeatable params can be supplied multiple times):
 
-| Parameter       | Repeatable | Description                                                                                                                                                                                                                    |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Parameter       | Repeatable | Description                                                                                                                                                                                                                                 |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
-| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
-| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
-| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
-| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                               |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                              |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                 |
 
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 
@@ -1469,6 +1506,16 @@ All via `EngineSettings` (bound from `appsettings.json`):
 | `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert |
 | `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size        |
 | `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers  |
+
+### Mailboxes
+
+| Setting                         | Default | Description                                                                                        |
+| ------------------------------- | ------- | -------------------------------------------------------------------------------------------------- |
+| `MaxMailboxTimeout`             | 21d     | Cap on a mailbox's `timeout` at mint; the derivation is written on the setting itself              |
+| `MaxOpenMailboxesPerCollection` | 100     | Best-effort cap on open mailboxes per collection (`429` at mint; see [Limits](#limits))            |
+| `MaxMailboxPayloadSize`         | 256 KiB | Per-delivery payload cap, measured on UTF-8 bytes (`413`)                                          |
+| `MaxMailboxLogLength`           | 100     | Positions per mailbox log, deliveries and receivers alike (`429`)                                  |
+| `MailboxSweepInterval`          | 5m      | Closure sweep cadence — a term in the callback-token lifetime bound derived on `MaxMailboxTimeout` |
 
 ## Testing
 
