@@ -15,50 +15,29 @@ import type { SuggestionItem } from '@digdir/designsystemet-react';
 import classes from './MultipleSelectLayout.module.css';
 
 export interface MultipleSelectOption {
-  /** The value stored in the data model when this option is selected. */
   value: string;
-  /** Text-resource key for the option's label. */
   label: string;
-  /** Text-resource key for an optional secondary description shown under the label. */
   description?: string;
 }
 
 export interface MultipleSelectProps {
-  /** The configured component id (Studio "Komponent-ID"). Rendered as the input's `id` and the label's `htmlFor`. */
   componentId: string;
-  /** The selectable options. Labels/descriptions are text-resource keys resolved by this component. */
   options: MultipleSelectOption[];
-  /** The currently selected values (the data-model values). Empty array means nothing is selected. */
   values: string[];
-  /** Called with the new values when the selection changes (after confirmation when `alertOnChange`). */
   onChange?: (values: string[]) => void;
-  /** Called when the input loses focus (used by the wrapper to flush debounced form data). */
-  onBlur?: () => void;
   readOnly?: boolean;
   required?: boolean;
-  /** Whether the current values are valid. Drives `aria-invalid`. Defaults to `true`. */
   isValid?: boolean;
-  /** Show a confirmation popover before removing already-selected values. */
   alertOnChange?: boolean;
-  /** Text-resource key for the label text. */
   title?: string;
-  /** Text-resource key for the label help text. */
   help?: string;
-  /** Text-resource key for the label description. */
   description?: string;
-  /** Whether to show the optional marking on the label for non-required fields. */
   showOptionalMarking?: boolean;
-  /** Grid sizing for the label. */
   labelGrid?: IGridStyling;
-  /** Whether the component is rendered inside a table cell. */
   renderedInTable?: boolean;
-  /** Whether to render the visible label at all. Defaults to `true`. */
   renderLabel?: boolean;
-  /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
-  /** Grid sizing for the validation messages. */
   validationGrid?: IGridStyling;
-  /** Rendered validation messages. */
   validationMessages?: ReactNode;
 }
 
@@ -69,7 +48,6 @@ export function MultipleSelect({
   options,
   values,
   onChange = noop,
-  onBlur,
   readOnly,
   required,
   isValid = true,
@@ -159,7 +137,6 @@ export function MultipleSelect({
           data-size='sm'
           selected={selectedItems}
           onSelectedChange={(newOptions) => handleChange(newOptions.map((option) => option.value))}
-          onBlur={() => onBlur?.()}
           style={{ width: '100%' }}
         >
           <Suggestion.Input
@@ -181,11 +158,9 @@ export function MultipleSelect({
 
               const input = e.target;
 
-              // Wait for the combobox to be fully defined
               await customElements.whenDefined('u-combobox');
 
               setTimeout(() => {
-                // Ensure we are still the active element
                 if (document.activeElement !== input) {
                   return;
                 }
@@ -193,7 +168,6 @@ export function MultipleSelect({
                 // Tell the next execution of onFocus to ignore the event we are about to fire
                 isPatchingFocus.current = true;
 
-                // Wake up the component
                 input.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
               }, 150);
             }}
