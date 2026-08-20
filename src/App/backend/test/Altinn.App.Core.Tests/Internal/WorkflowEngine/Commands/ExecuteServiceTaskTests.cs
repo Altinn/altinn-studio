@@ -1,6 +1,5 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -109,9 +108,8 @@ public class ExecuteServiceTaskTests
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
             Mock.Of<IWorkflowEngineClient>(),
-            // Never consulted: these pipelines declare no mailbox, so neither the app-code guard nor
-            // the delivery envelope is reached.
-            Mock.Of<IWorkflowCallbackSecretProvider>(),
+            // Never consulted: these pipelines declare no mailbox, so the delivery envelope is never
+            // reached.
             TestMailboxDeliveryEnvelope.Create()
         );
     }

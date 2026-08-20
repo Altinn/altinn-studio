@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -22,9 +21,7 @@ internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string?
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
     IWorkflowEngineClient workflowEngineClient,
-    IWorkflowCallbackSecretProvider callbackSecretProvider,
     MailboxDeliveryEnvelope deliveryEnvelope,
-    TimeProvider? timeProvider = null,
     Telemetry? telemetry = null
 ) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
 {
@@ -200,33 +197,6 @@ internal sealed class ExecuteServiceTask(
                         + "key it on. A mailbox keyed on an empty id would be shared by every task in this "
                         + "application. Upgrade the workflow engine to a version that sends stepId.",
                     "MailboxStepIdMissing"
-                )
-            );
-        }
-
-        // A mailbox may legitimately stay open for days — but the receive workflow that consumes it can
-        // only run for as long as the app code signing this transition's credentials lives. Both halves
-        // die with it: the receiver's callback token is signed by that code (GenerateToken sets
-        // Expires = appCode.ExpiresAt, not now + a lifetime of its own), and so is the state blob it
-        // starts on, which WorkflowStateSigner refuses once the code expires. A timeout past that point
-        // therefore buys nothing except a receiver that 401s days later, having already told the outside
-        // world when to answer by. Refuse at open instead, where the declaration can still be fixed.
-        DateTimeOffset now = (timeProvider ?? TimeProvider.System).GetUtcNow();
-        DateTimeOffset credentialsExpireAt = callbackSecretProvider.GetSigningSecret().ExpiresAt;
-        if (now + declaration.Options.Timeout > credentialsExpireAt)
-        {
-            return new MailboxResolution(
-                null,
-                null,
-                FailedProcessEngineCommandResult.Permanent(
-                    $"Stage '{declaration.StageName}' opens a mailbox with a timeout of "
-                        + $"{declaration.Options.Timeout}, but this application's WorkflowEngineCallback app code "
-                        + $"expires at {credentialsExpireAt:u} — in {credentialsExpireAt - now}. The reply workflow "
-                        + "is signed with that code and cannot outlive it. Shorten MailboxOptions.Timeout, or put a "
-                        + "longer-lived code first in AppCodes:WorkflowEngineCallback — the app signs with the "
-                        + "first non-expired code in that list, not the longest-lived one, so appending one "
-                        + "changes nothing.",
-                    "MailboxTimeoutOutlivesAppCode"
                 )
             );
         }
