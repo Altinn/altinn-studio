@@ -14,70 +14,32 @@ import classes from './CheckboxesLayout.module.css';
 import { WrappedCheckbox } from './WrappedCheckbox';
 
 export interface CheckboxesOption {
-  /** The value stored in the data model when this option is checked. */
   value: string;
-  /** Text-resource key for the option's label. */
   label: string;
-  /** Text-resource key for an optional description shown under the option label. */
   description?: string;
-  /** Text-resource key for an optional help text shown as a tooltip next to the option label. */
   helpText?: string;
 }
 
 export interface CheckboxesProps {
-  /** The configured component id (Studio "Komponent-ID"). Rendered as the group's `id`. */
   componentId: string;
-  /** The selectable options. Labels/descriptions/help texts are text-resource keys resolved here. */
   options: CheckboxesOption[];
-  /** The currently checked values (the data-model values). */
   value: string[];
-  /**
-   * Called when an option is toggled, with the option's value and its new checked state. The caller
-   * owns how that translates into a data-model update (replacing a value list, toggling a row in a
-   * repeating group, ...), so this reports the toggle rather than the resulting selection.
-   */
   onChange?: (value: string, checked: boolean) => void;
   readOnly?: boolean;
   required?: boolean;
-  /** Whether the current value is valid. Drives the error state of the checkbox group. Defaults to `true`. */
   isValid?: boolean;
-  /** Ask for confirmation before unchecking an option. */
   alertOnChange?: boolean;
-  /**
-   * How the options are laid out. Defaults to a row for fewer than three options and a column
-   * otherwise.
-   */
   layout?: LayoutStyle;
-  /** Text-resource key for the group legend. */
   title?: string;
-  /** Text-resource key for the legend help text. */
   help?: string;
-  /** Text-resource key for the group description. */
   description?: string;
-  /** Whether to show the optional marking on the legend for non-required groups. */
   showOptionalMarking?: boolean;
-  /**
-   * Whether to keep the option label visible when the group is rendered in a table with a single
-   * option. Without it, that single label is hidden (the table header already names the column).
-   */
   showLabelsInTable?: boolean;
-  /**
-   * Whether the component is rendered inside a table cell. When true the group is labelled with an
-   * `aria-label` instead of a visible legend.
-   */
   renderedInTable?: boolean;
-  /** Whether to render the legend element. Defaults to `true`. */
   renderLegend?: boolean;
-  /** Whether to render the legend contents. Defaults to `true`. */
   renderLabel?: boolean;
-  /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
-  /** Grid sizing for the validation messages. */
   validationGrid?: IGridStyling;
-  /**
-   * Rendered validation messages. The app owns validation, so it passes the already-rendered
-   * messages in rather than this library reaching into app-specific validation state.
-   */
   validationMessages?: ReactNode;
 }
 

@@ -14,14 +14,10 @@ import classes from './CheckboxesLayout.module.css';
 import type { CheckboxesOption } from './CheckboxesLayout';
 
 type WrappedCheckboxOwnProps = {
-  /** The configured component id, used to build the checkbox' own DOM id. */
   componentId: string;
   option: CheckboxesOption;
-  /** Visually hide the option label, keeping it available to assistive tech. */
   hideLabel?: boolean;
-  /** Ask for confirmation before unchecking the option. */
   alertOnChange?: boolean;
-  /** Called with the new checked state, after confirmation when `alertOnChange` is set. */
   onCheckedChange: (checked: boolean) => void;
   ref?: Ref<HTMLInputElement>;
 };
@@ -29,10 +25,6 @@ type WrappedCheckboxOwnProps = {
 export type WrappedCheckboxProps = WrappedCheckboxOwnProps &
   Omit<CheckboxProps, 'label' | 'aria-label' | 'aria-labelledby' | keyof WrappedCheckboxOwnProps>;
 
-/**
- * A single checkbox in a {@link Checkboxes} group: renders the option's label, description and help
- * text, and suspends unchecking behind a confirmation popover when `alertOnChange` is set.
- */
 export function WrappedCheckbox({
   componentId,
   option,
