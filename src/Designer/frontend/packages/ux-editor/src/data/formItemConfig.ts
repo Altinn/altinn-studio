@@ -651,11 +651,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.InstantiationButton,
     ComponentType.ActionButton,
   ],
-  attachment: [
-    ComponentType.AttachmentList,
-    ComponentType.FileUpload,
-    ComponentType.ImageUpload,
-  ],
+  attachment: [ComponentType.AttachmentList, ComponentType.FileUpload, ComponentType.ImageUpload],
   container: [
     ComponentType.Group,
     ComponentType.Grid,

@@ -397,9 +397,7 @@ describe('formLayoutUtils', () => {
         v,
       ): v is Exclude<
         ComponentType,
-        | ComponentType.OrganisationLookup
-        | ComponentType.Header
-        | ComponentType.FileUploadWithTag
+        ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
       > =>
         v !== ComponentType.OrganisationLookup &&
         v !== ComponentType.Header &&
@@ -407,14 +405,15 @@ describe('formLayoutUtils', () => {
         !containerComponentTypes.includes(v),
     );
 
-    it.each(
-      supportedComponentTypes,
-    )('Adds a new component to the layout when the given type is %s', (componentType) => {
-      const id = 'newItemId';
-      const layout = addItemOfType(mockInternal, componentType, id);
-      expect(layout.components[id].itemType).toEqual('COMPONENT');
-      expect(layout.components[id].type).toEqual(componentType);
-    });
+    it.each(supportedComponentTypes)(
+      'Adds a new component to the layout when the given type is %s',
+      (componentType) => {
+        const id = 'newItemId';
+        const layout = addItemOfType(mockInternal, componentType, id);
+        expect(layout.components[id].itemType).toEqual('COMPONENT');
+        expect(layout.components[id].type).toEqual(componentType);
+      },
+    );
 
     it.each(containerComponentTypes)(
       'Adds a new container to the layout when the given type is %s',

@@ -23,9 +23,7 @@ describe('Component utils', () => {
         v,
       ): v is Exclude<
         ComponentType,
-        | ComponentType.OrganisationLookup
-        | ComponentType.Header
-        | ComponentType.FileUploadWithTag
+        ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
       > =>
         v !== ComponentType.OrganisationLookup &&
         v !== ComponentType.Header &&
@@ -33,19 +31,20 @@ describe('Component utils', () => {
         !containerComponentTypes.includes(v),
     );
 
-    it.each(
-      supportedComponentTypes,
-    )('Generates component of type %s with given ID', (componentType) => {
-      const id = 'testId';
-      const component = generateFormItem(componentType, id);
-      expect(component).toEqual(
-        expect.objectContaining({
-          id,
-          type: componentType,
-          itemType: 'COMPONENT',
-        }),
-      );
-    });
+    it.each(supportedComponentTypes)(
+      'Generates component of type %s with given ID',
+      (componentType) => {
+        const id = 'testId';
+        const component = generateFormItem(componentType, id);
+        expect(component).toEqual(
+          expect.objectContaining({
+            id,
+            type: componentType,
+            itemType: 'COMPONENT',
+          }),
+        );
+      },
+    );
 
     it('maps custom component type to correct component reference', () => {
       expect(formItemConfigs[CustomComponentType.CloseSubformButton].componentRef).toBe(

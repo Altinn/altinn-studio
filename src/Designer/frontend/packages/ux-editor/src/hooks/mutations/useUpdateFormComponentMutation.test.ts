@@ -49,9 +49,7 @@ const fileUploadDataType = {
 jest.mock('bpmn-moddle', () =>
   jest.fn(() => ({
     fromXML: jest.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([
-        componentMocks[ComponentType.FileUpload].id,
-      ]),
+      rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
     }),
     toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
   })),

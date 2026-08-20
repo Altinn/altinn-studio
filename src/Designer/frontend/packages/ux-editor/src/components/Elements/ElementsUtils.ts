@@ -34,9 +34,7 @@ export class ElementsUtils {
     return undefined;
   }
 
-  public static getAvailableComponentList(
-    confPageType: ConfPageType,
-  ): FormItemConfigEntry[] {
+  public static getAvailableComponentList(confPageType: ConfPageType): FormItemConfigEntry[] {
     switch (confPageType) {
       case 'receipt':
         return confOnScreenComponents;
