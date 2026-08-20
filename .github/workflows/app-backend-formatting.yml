@@ -17,7 +17,7 @@ jobs:
   verify-no-changes:
     if: |
       github.event.pull_request.user.login != 'renovate[bot]'
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 5
     defaults:
       run:

@@ -107,10 +107,6 @@ impl Client {
         &self.backend
     }
 
-    pub(crate) fn cache_directory(&self) -> PathBuf {
-        self.backend.cache_dir()
-    }
-
     pub(crate) async fn bind_network_controller(
         &self,
         name: &str,
