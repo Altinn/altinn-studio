@@ -1,7 +1,7 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledJob
 metadata:
-  name: github-runners-sandbox
+  name: github-runners
   labels:
     app.kubernetes.io/name: github-runner
     app.kubernetes.io/component: runner
