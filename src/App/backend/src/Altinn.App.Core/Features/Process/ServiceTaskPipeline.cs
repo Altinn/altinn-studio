@@ -45,25 +45,19 @@ public sealed class ServiceTaskPipeline
     internal ServiceTaskMailboxDeclaration? Mailbox { get; }
 
     /// <summary>
-    /// Declares that the named stage opens a <strong>mailbox</strong>: a durable inbox the outside world answers
-    /// into. The stage reads it from <see cref="ServiceTaskContext.Mailbox"/> and publishes
-    /// <see cref="ServiceTaskMailbox.Id"/> in its outbound message as the reply address, and every message that
-    /// comes back on that address is handed to the pipeline's conclusion, one message per execution.
+    /// Declares that the named stage opens a <strong>mailbox</strong>: a durable inbox whose id the stage reads
+    /// from <see cref="ServiceTaskContext.Mailbox"/> and publishes as its reply address. Every message that
+    /// comes back is handed to the pipeline's conclusion, one per execution, until
+    /// <see cref="MailboxOptions.Timeout"/> runs out. At most one mailbox per pipeline.
     /// </summary>
     /// <remarks>
-    /// The mailbox is minted when the named stage runs — keyed on that stage's own step id, so a retry is handed
-    /// the same mailbox and an address already published stays valid — and it accepts messages until
-    /// <see cref="MailboxOptions.Timeout"/> runs out. <see cref="ServiceTaskContext.Mailbox"/> is available in the
-    /// named stage and nowhere else, and a pipeline declares at most one mailbox.
-    /// <para>
-    /// <strong>Use the value this returns.</strong> The declaration is not recorded on the pipeline it is called
-    /// on, so <c>return pipeline.Stage(…).Finally(…).WithReplyFrom(…);</c> is the shape that works. Discarding the
-    /// result is caught when the pipeline is resolved rather than silently dropping the mailbox.
-    /// </para>
+    /// <strong>Use the value this returns</strong> — the declaration is not recorded on the pipeline it is
+    /// called on, so <c>return pipeline.Stage(…).Finally(…).WithReplyFrom(…);</c> is the shape that works.
+    /// Discarding the result is caught at resolution rather than silently dropping the mailbox.
     /// </remarks>
-    /// <param name="stageName">The stage that opens the mailbox — a stage composed in this pipeline.</param>
-    /// <param name="options">The mailbox's declaration: how long it accepts messages.</param>
-    /// <returns>A pipeline that is this one plus the mailbox declaration.</returns>
+    /// <param name="stageName">The stage that opens the mailbox — the stage that sends.</param>
+    /// <param name="options">How long the mailbox accepts messages.</param>
+    /// <returns>A pipeline that is this one plus the declaration.</returns>
     /// <exception cref="ArgumentException">No stage of this pipeline has that name.</exception>
     /// <exception cref="InvalidOperationException">This pipeline already declares a mailbox.</exception>
     /// <exception cref="ArgumentOutOfRangeException">
@@ -93,9 +87,8 @@ public sealed class ServiceTaskPipeline
             );
         }
 
-        // Record the declaration on the builder this pipeline came from, not on this pipeline. The builder is
-        // created fresh for each ResolvePipeline call, so the mark cannot outlive the call or reach another task
-        // — where a mark on a shared or cached pipeline could latch a base and fail an innocent task.
+        // Recorded on the per-call builder, not this pipeline: a mark on a shared or cached pipeline could
+        // latch a base and fail an innocent task.
         _origin.NoteMailboxDeclaration();
         return new ServiceTaskPipeline(
             Stages,
@@ -121,9 +114,5 @@ internal sealed record ServiceTaskStage(
     ProcessStepOptions? StepOptions
 );
 
-/// <summary>
-/// One declared mailbox: the stage that opens it and the terms it is opened on. Produced by
-/// <see cref="ServiceTaskPipeline.WithReplyFrom"/> and read at execution, where the named stage's attempt mints
-/// the mailbox.
-/// </summary>
+/// <summary>One declared mailbox: the stage that opens it and the terms it is opened on.</summary>
 internal sealed record ServiceTaskMailboxDeclaration(string StageName, MailboxOptions Options);

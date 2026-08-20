@@ -20,9 +20,8 @@ using Xunit.Abstractions;
 namespace Altinn.App.Api.Tests.Controllers;
 
 /// <summary>
-/// The callback controller's half of the state carry: it restores the non-data bookkeeping from the incoming
-/// blob, hands it to the command, and writes it back into the blob it returns. Nothing else connects a mailbox
-/// minted in one callback to the step that enqueues its receiver several callbacks later.
+/// The controller's half of the state carry: restored from the incoming blob, handed to the command,
+/// written back into the returned blob.
 /// </summary>
 public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
@@ -40,8 +39,8 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
         : base(factory, outputHelper) { }
 
     /// <summary>
-    /// Stands in for whichever command the callback resolves: it reports the carry it was handed and, when asked,
-    /// records a mailbox into it the way <c>ExecuteServiceTask</c>'s mint does.
+    /// Stands in for whichever command the callback resolves: reports the carry it was handed and, on request,
+    /// records a mailbox the way the mint does.
     /// </summary>
     private sealed class CarryProbeCommand : IWorkflowEngineCommand
     {
@@ -134,8 +133,6 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     [Fact]
     public async Task Callback_ForwardsTheCarriedMailboxToACommandThatIgnoresIt()
     {
-        // Every step between the declaring stage and the enqueue step is one of these: it knows nothing about
-        // mailboxes, and must hand the address on regardless.
         (WorkflowCallbackState returned, CarryProbeCommand probe) = await RunCallback(_carriedMailboxId, mints: false);
 
         Assert.Equal(_carriedMailboxId, probe.SeenMailboxId);
@@ -145,8 +142,6 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     [Fact]
     public async Task Callback_PublishesAMailboxTheCommandRecorded()
     {
-        // The declaring stage's callback: the blob it received carried nothing, and the blob it publishes carries
-        // the address the mint returned.
         (WorkflowCallbackState returned, CarryProbeCommand probe) = await RunCallback(
             incomingMailboxId: null,
             mints: true

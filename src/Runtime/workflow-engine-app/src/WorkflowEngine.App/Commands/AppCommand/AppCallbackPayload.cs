@@ -25,10 +25,8 @@ internal sealed record AppCallbackPayload
     public required Guid WorkflowId { get; init; }
 
     /// <summary>
-    /// On a receive workflow's first step: the mailbox rendezvous this step was created to consume — the message
-    /// standing at the step's position, or the fact that none can ever stand there. <c>null</c> on every ordinary
-    /// callback. Read from the engine's deliveries log at the start of each attempt rather than baked into the
-    /// step, so a retry and a resume see what this attempt sees.
+    /// On a receive workflow's first step: the rendezvous this step consumes. <c>null</c> on every ordinary
+    /// callback. Read from the deliveries log per attempt, so a retry and a resume see the same block.
     /// </summary>
     [JsonPropertyName("mailbox")]
     public AppCallbackMailbox? Mailbox { get; init; }
@@ -91,37 +89,27 @@ internal sealed record AppCallbackPayload
 }
 
 /// <summary>
-/// The mailbox rendezvous, as a receive workflow's first step is told about it. Exactly one of
-/// <see cref="Delivery"/> and <see cref="DisposedReason"/> is present, so an absent delivery is a statement
-/// rather than a gap: the exchange is over and this handler must conclude it.
+/// The mailbox rendezvous. Exactly one of <see cref="Delivery"/> and <see cref="DisposedReason"/> is
+/// present, so an absent delivery is a statement: the exchange is over and this handler must conclude it.
 /// </summary>
 internal sealed record AppCallbackMailbox
 {
-    /// <summary>
-    /// The mailbox this step receives from — the reply address the app published when it opened the exchange, and
-    /// what a continuation addresses to enqueue the next receiver or to close the mailbox.
-    /// </summary>
+    /// <summary>The reply address the app published when it opened the exchange.</summary>
     [JsonPropertyName("id")]
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The step's position in the mailbox's receivers log: the first receiver of an exchange holds <c>0</c>, the
-    /// one its handler enqueues next holds <c>1</c>, and so on. <see cref="Delivery"/> is the message delivered at
-    /// this same position.
+    /// The step's position in the receivers log; <see cref="Delivery"/> is the message at this same position.
     /// </summary>
     [JsonPropertyName("seq")]
     public required long Seq { get; init; }
 
-    /// <summary>
-    /// The message standing at <see cref="Seq"/>, or <c>null</c> exactly when the mailbox closed without
-    /// one ever arriving there.
-    /// </summary>
+    /// <summary>The message at <see cref="Seq"/>, or <c>null</c> exactly when the mailbox closed without one.</summary>
     [JsonPropertyName("delivery")]
     public AppCallbackMailboxDelivery? Delivery { get; init; }
 
     /// <summary>
-    /// Why the mailbox closed, on a callback carrying no delivery; <c>null</c> whenever <see cref="Delivery"/> is
-    /// present. It changes only how a handler <em>words</em> its conclusion — both reasons demand the same
+    /// Why the mailbox closed, when no delivery is present. Wording only — both reasons demand the same
     /// response.
     /// </summary>
     [JsonPropertyName("disposedReason")]
@@ -133,8 +121,7 @@ internal sealed record AppCallbackMailbox
 internal sealed record AppCallbackMailboxDelivery
 {
     /// <summary>
-    /// The key the message was accepted under — the forwarding source's own message id. Stable across every
-    /// attempt of this step, so a handler may deduplicate its own side effects on it.
+    /// The forwarding source's own message id — stable across attempts, so a handler may deduplicate on it.
     /// </summary>
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
@@ -143,10 +130,7 @@ internal sealed record AppCallbackMailboxDelivery
     [JsonPropertyName("payload")]
     public required string Payload { get; init; }
 
-    /// <summary>
-    /// When the engine accepted the message — the instant it became durable, not the instant this step read it. On
-    /// an early delivery the two can be far apart.
-    /// </summary>
+    /// <summary>When the engine accepted the message — not when this step read it.</summary>
     [JsonPropertyName("acceptedAt")]
     public required DateTimeOffset AcceptedAt { get; init; }
 }

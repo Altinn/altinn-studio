@@ -7,26 +7,20 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The pre-assembled enqueue request for the first receive workflow of a service task that opens a mailbox,
-/// built by <c>ProcessNextRequestFactory</c> at Main-enqueue time. The command fills in the three values that
-/// only exist at execution: which mailbox to receive from, the state blob to start the receiver on, and a
-/// callback token minted now rather than at the transition's enqueue.
+/// The pre-assembled enqueue request for the first receive workflow, built at Main-enqueue time. The
+/// command fills in the three execution-only values: the mailbox, the state blob, and a fresh callback
+/// token.
 /// </summary>
 internal sealed record EnqueueReceiveWorkflowPayload(WorkflowEnqueueRequest EnqueueRequest) : CommandRequestPayload;
 
 /// <summary>
-/// The last step of the Main workflow for a service task that opens a mailbox: it enqueues the task's first
-/// <em>receive workflow</em> — the workflow whose single step is the pipeline's conclusion, run once against
-/// one message from the mailbox (or against the fact that none can come).
+/// The last step of Main for a service task that opens a mailbox: enqueues the task's first
+/// <em>receive workflow</em> — one step, the pipeline's conclusion, run once against one message.
 /// </summary>
 /// <remarks>
-/// It is a step of Main, and the last one, on purpose: the receiver exists before Main settles, so the
-/// instance's collection never reads all-settled while the exchange is open — the frontier-never-empty property
-/// everything gating on the collection depends on without knowing mailboxes exist. The receiver is enqueued as
-/// a collection <em>head</em> that depends on no head, so it joins the frontier without being condemned by a
-/// terminal head an earlier transition left behind or waiting on Main. It deliberately carries no <c>links</c>
-/// edge back to Main: a receiver shares the instance's collection key and the transition's labels, so an edge
-/// would buy no reachability.
+/// Last in Main on purpose: the receiver exists before Main settles, keeping the collection's frontier
+/// non-empty for the whole exchange. Enqueued as a head that depends on no head, and with no <c>links</c>
+/// edge back to Main — a receiver shares the collection key and labels, so an edge buys no reachability.
 /// </remarks>
 internal sealed class EnqueueReceiveWorkflow(
     IWorkflowEngineClient workflowEngineClient,
@@ -51,9 +45,8 @@ internal sealed class EnqueueReceiveWorkflow(
             );
         }
 
-        // The mailbox the declaring stage minted, carried here in the state blob because the mint's key is that
-        // stage's step id and nothing later can re-derive it. Missing means the stage never completed, which
-        // cannot happen — it is an earlier step of this same workflow — so retrying would only repeat.
+        // Carried in the state blob because the mint's key is the declaring stage's step id, which nothing later
+        // can re-derive. Missing means a broken carry, which retrying only repeats.
         if (context.StateCarry.MailboxId is not { } mailboxId)
         {
             return FailedProcessEngineCommandResult.Permanent(
@@ -64,9 +57,8 @@ internal sealed class EnqueueReceiveWorkflow(
             );
         }
 
-        // Saga rule: every engine call made from inside a callback is keyed off the executing step, so a crashed
-        // attempt's replay deduplicates instead of enqueueing a second receiver. An empty step id is a constant,
-        // which would collapse every receive enqueue in this namespace onto one workflow.
+        // Saga rule: keyed off the executing step, so a crashed attempt's replay deduplicates. An empty step id
+        // is a constant that would collapse every receive enqueue in the namespace onto one workflow.
         if (context.Payload.StepId == Guid.Empty)
         {
             return FailedProcessEngineCommandResult.Permanent(
@@ -79,14 +71,9 @@ internal sealed class EnqueueReceiveWorkflow(
 
         try
         {
-            // A token minted here rather than reused from the Main workflow's context. It rarely differs — the
-            // signing code is selected in configuration order, so minting seconds later usually picks the same one
-            // — and it could not save the receiver anyway, since the state blob below was signed by the previous
-            // step's code and dies with it. What minting per enqueue is genuinely for is the relay: each hop's
-            // receiver is enqueued from inside the previous hop's callback and draws from whatever code is
-            // current then. Receiver 1's viability is therefore bounded by the signing code's ExpiresAt rather
-            // than by the mailbox's deadline — the general property of any parked workflow, set out under Key
-            // Design Constraints in Internal/WorkflowEngine/AGENTS.md.
+            // Minted here for the relay's sake: each hop draws from whatever code is current then. It does not
+            // extend receiver 1's life — the state blob is signed by the previous step's code and dies with it,
+            // so viability is bounded by the signing code's expiry (see Internal/WorkflowEngine/AGENTS.md).
             var receiveContext = new AppWorkflowContext
             {
                 Actor = context.Payload.Actor,
@@ -121,8 +108,8 @@ internal sealed class EnqueueReceiveWorkflow(
         }
         catch (Exception ex)
         {
-            // Retryable, and the step stays unfinished until it succeeds: Main must not complete having published a
-            // reply address that nothing is listening on.
+            // Retryable, and the step stays unfinished: Main must not complete having published a reply address
+            // nothing is listening on.
             return FailedProcessEngineCommandResult.Retryable(ex);
         }
     }

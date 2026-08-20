@@ -179,16 +179,13 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     /// <summary>
-    /// Reads the mailbox rendezvous for a receive workflow's first step, or answers "nothing to read" for every
-    /// other step in the engine.
+    /// Reads the mailbox rendezvous for a receive workflow's first step; every other step answers "nothing to
+    /// read" from two field comparisons and no SQL.
     /// </summary>
     /// <remarks>
-    /// The gate is two field comparisons and no SQL, so the whole feature costs the execution path a null check
-    /// until an app declares a mailbox. The read happens per attempt rather than once per workflow, which is the
-    /// point: it is the same read every time, over rows that cannot change once the receiver is runnable, so a
-    /// retry reconstructs the callback the first attempt saw instead of inheriting a copy. The two states the
-    /// rendezvous cannot produce fail the step critically rather than degrading into "no delivery", which is not
-    /// an absence of information but the statement that the exchange must be concluded.
+    /// Read per attempt, over rows that cannot change once the receiver is runnable, so a retry reconstructs
+    /// the same callback. The two states the rendezvous cannot produce fail the step critically rather than
+    /// degrading into "no delivery", which is a statement, not an absence.
     /// </remarks>
     private async Task<MailboxRendezvous> ResolveMailboxReceipt(
         Workflow workflow,

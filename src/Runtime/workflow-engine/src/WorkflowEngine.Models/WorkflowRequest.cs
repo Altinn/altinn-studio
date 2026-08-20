@@ -81,11 +81,9 @@ public sealed record WorkflowRequest
     public bool? IsHead { get; init; }
 
     /// <summary>
-    /// Declares this workflow a mailbox <em>receive workflow</em>: its first step consumes one message from the
-    /// named mailbox, and every later step is ordinary. It cannot also carry <see cref="StartAt"/> — a receiver
-    /// that finds neither its delivery nor a closed mailbox is born <see cref="PersistentItemStatus.Held"/>, and a
-    /// held row has no schedule to run on. There is no per-receiver timeout either; the mailbox's own deadline
-    /// bounds the whole exchange.
+    /// Declares this a receive workflow: the first step consumes one message, every later step is ordinary.
+    /// Incompatible with <see cref="StartAt"/> — a held row has no schedule — and there is no per-receiver
+    /// timeout: the mailbox's deadline bounds the exchange.
     /// </summary>
     [JsonPropertyName("mailbox")]
     public MailboxReference? Mailbox { get; init; }

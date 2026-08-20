@@ -115,11 +115,9 @@ public sealed record Workflow : PersistentItem
     public bool? IsHead { get; init; }
 
     /// <summary>
-    /// The mailbox this workflow receives from (<see cref="WorkflowRequest.Mailbox"/>), or <c>null</c> on every
-    /// ordinary workflow. Non-<c>null</c> is the marker that the first step's callback carries a mailbox delivery.
-    /// The workflow's <em>position</em> in that mailbox is deliberately not here: it lives on the receivers
-    /// registry, which keeps mailbox state in the mailbox subsystem's tables and costs the hot enqueue
-    /// <c>COPY</c> one nullable column rather than two.
+    /// The mailbox this workflow receives from, or <c>null</c> on every ordinary workflow. The position is
+    /// deliberately not here: it lives on the receivers registry, costing the hot enqueue <c>COPY</c> one
+    /// nullable column rather than two.
     /// </summary>
     public Guid? MailboxId { get; init; }
 

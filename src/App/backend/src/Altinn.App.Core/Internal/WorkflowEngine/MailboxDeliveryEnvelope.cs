@@ -3,20 +3,15 @@ using Altinn.App.Core.Exceptions;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// The tamper-evident envelope a forwarded message travels in. <c>ServiceTaskReplyForwarder</c> wraps the body
-/// before delivering it into the mailbox; <c>ExecuteServiceTask</c> unwraps it where the message is materialized
-/// for the app as <see cref="Features.Process.ServiceTaskContext.Reply"/>. The engine stores it as an opaque
-/// delivery payload and never looks inside.
+/// The tamper-evident envelope a forwarded message travels in: the forwarder wraps, the receive step
+/// unwraps, the engine stores it opaquely.
 /// </summary>
 /// <remarks>
-/// The same detached-HMAC construction the callback state blob uses (<see cref="WorkflowStateSigner"/>), under
-/// <see cref="SigningPurpose.MailboxDeliveryV1"/> so the two signature domains cannot be crossed. The signature
-/// covers the body, and the domain binds the mailbox id, the service task type whose handler reads it, and the
-/// idempotency key — each closing a distinct move available to a holder of engine API credentials.
-/// What it proves is round-tripping, not trustworthiness: the body originated outside the platform and remains
-/// untrusted input. Because the envelope is JSON, the body counts against the engine's
-/// <c>MaxMailboxPayloadSize</c> at its escaped size — roughly ×1.01 for plain ASCII and up to ×6 for control
-/// characters — so anything large belongs in Storage with the message carrying a reference.
+/// The state blob's detached-HMAC construction under <see cref="SigningPurpose.MailboxDeliveryV1"/>, so
+/// the domains cannot cross. The domain binds the mailbox id, service task type and idempotency key — each
+/// closing a distinct replay move. It proves round-tripping, not trustworthiness: the body remains
+/// untrusted input. JSON escaping counts against <c>MaxMailboxPayloadSize</c> (up to ×6), so anything large
+/// belongs in Storage.
 /// </remarks>
 internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
 {
@@ -31,14 +26,12 @@ internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
         signer.Sign(payload, SigningDomain.MailboxDelivery(mailboxId, serviceTaskType, idempotencyKey));
 
     /// <summary>
-    /// Unwraps a delivered message and returns the body the forwarder wrapped. Every argument is read from the
-    /// <em>delivered</em> callback and every one is covered by the signature, so verification is what makes them
-    /// trustworthy rather than verification trusting them.
+    /// Unwraps a delivered message. Every argument is read from the <em>delivered</em> callback and covered by
+    /// the signature, so verification is what makes them trustworthy.
     /// </summary>
     /// <exception cref="MailboxDeliveryEnvelopeException">
-    /// The delivered payload is not an envelope this app signed for exactly this message: it was never wrapped, was
-    /// altered, was signed by another app, was delivered into another mailbox or read by another handler, carries a
-    /// different idempotency key, or was signed with a code that has since expired.
+    /// Not an envelope this app signed for exactly this message — never wrapped, altered, another app's,
+    /// another mailbox's or handler's, a different key, or a code that has since expired.
     /// </exception>
     public string Unwrap(string payload, Guid mailboxId, string serviceTaskType, string idempotencyKey)
     {

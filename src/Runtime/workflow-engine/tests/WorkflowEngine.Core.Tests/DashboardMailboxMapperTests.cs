@@ -27,13 +27,11 @@ public class DashboardMailboxMapperTests
             ClaimedAt: null
         );
 
-    // Every shape the rendezvous can leave at a position, as the four facts a card can see. The cases are
-    // named in the arguments rather than in comments so a failure says which one broke.
+    // Every shape the rendezvous can leave at a position; the cases are named in the arguments.
     [InlineData("message only", true, false, false, false, "delivered")]
     [InlineData("parked receiver", false, true, true, false, "waiting")]
     [InlineData("receiver woken by its message", true, true, true, true, "consumed")]
     [InlineData("receiver born with its message", true, true, false, true, "consumed")]
-    // Parked, then released by the mailbox closing — the state the proposal's three cannot express.
     [InlineData("receiver released by the closure", false, true, true, true, "closed")]
     [InlineData("receiver born with the closing signal", false, true, false, true, "closed")]
     [Theory]
@@ -63,8 +61,6 @@ public class DashboardMailboxMapperTests
     [Fact]
     public void MapMailboxPosition_ReportsAParkDurationOnlyForAReceiverThatActuallyParked()
     {
-        // Zero would be a claim rather than an absence: a receiver born runnable did not wait for nothing, it
-        // never waited. That is also why the subtraction is anchored on held_at rather than released_at.
         var parked = DashboardMapper.MapMailboxPosition(
             Position(delivery: true, receiver: true, heldAt: _at, releasedAt: _at.AddSeconds(90))
         );
@@ -73,7 +69,6 @@ public class DashboardMailboxMapperTests
         var neverParked = DashboardMapper.MapMailboxPosition(Position(delivery: true, receiver: true, releasedAt: _at));
         Assert.Null(neverParked.ParkedForSeconds);
 
-        // And still parked: the interval has no end yet, so the server reports none and the card counts up.
         var stillParked = DashboardMapper.MapMailboxPosition(Position(delivery: false, receiver: true, heldAt: _at));
         Assert.Null(stillParked.ParkedForSeconds);
         Assert.Equal(_at, stillParked.HeldAt);
@@ -116,9 +111,6 @@ public class DashboardMailboxMapperTests
     [Fact]
     public void MapMailbox_OfAMintedMailboxWithNoPositions_RendersAsAMailboxWithAnEmptyLog()
     {
-        // The window between the mint and the first receiver, which a card must still show. Nothing about this
-        // shape is a special case in the mapper; it is here because it is the shape most likely to be broken by
-        // a rewrite that assumes a log.
         var mailbox = new MailboxResponse
         {
             Id = Guid.Parse("018f4e00-0000-7000-8000-0000000000cc"),

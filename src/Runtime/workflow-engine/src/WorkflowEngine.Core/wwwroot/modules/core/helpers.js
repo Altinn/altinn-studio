@@ -15,9 +15,8 @@ export const esc = (s) => {
 export const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
- * Escape a value for a double-quoted HTML attribute in generated markup. `esc()` leaves quotes intact,
- * which is right for element content and not for `attr="…"`: a double quote in a caller-supplied value
- * ends the attribute, and the rest is parsed as attributes of its own.
+ * Escape for a double-quoted HTML attribute: `esc()` leaves quotes intact, so a quote in a
+ * caller-supplied value would end the attribute.
  * @param {string|null|undefined} s
  */
 export const escAttr = (s) => esc(String(s ?? '')).replace(/"/g, '&quot;');
@@ -73,8 +72,7 @@ export const formatElapsed = (seconds) => {
 };
 
 /**
- * Span label for durations that can run to days — a mailbox deadline is a day-scale promise, where
- * `formatElapsed` tops out at hours. Delegates below an hour, so every duration is formatted the one way.
+ * Day-scale span label (`formatElapsed` tops out at hours); delegates below an hour.
  * @param {number} seconds
  */
 export const formatSpan = (seconds) => {

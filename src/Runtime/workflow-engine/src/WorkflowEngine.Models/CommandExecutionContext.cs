@@ -65,10 +65,9 @@ public sealed record CommandExecutionContext
     public DateTimeOffset? WaitDeadline { get; init; }
 
     /// <summary>
-    /// What the mailbox rendezvous produced for this step, or <c>null</c> on every step that does not receive from
-    /// a mailbox. Read from the deliveries log at the start of the attempt rather than carried on the step, because
-    /// the message may not have existed when the step was created — safe for exactly one reason: whether a delivery
-    /// exists at the receiver's position is frozen before the receiver becomes runnable.
+    /// What the rendezvous produced for this step; <c>null</c> for a step that receives from no mailbox. Read
+    /// per attempt rather than carried on the step — safe because delivery existence at the position is frozen
+    /// before the receiver becomes runnable.
     /// </summary>
     public MailboxReceipt? MailboxReceipt { get; init; }
 

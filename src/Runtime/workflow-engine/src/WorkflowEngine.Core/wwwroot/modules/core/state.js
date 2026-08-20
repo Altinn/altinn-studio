@@ -61,9 +61,8 @@
  */
 
 /**
- * One position of a mailbox's log, from both sides at once: the message standing there and the receive
- * workflow holding it. `parkedForSeconds` is absent while a receiver is still parked — count up from
- * `heldAt` instead — and absent for one that never parked at all.
+ * One position of a mailbox's log. `parkedForSeconds` is absent while a receiver is still parked
+ * (count up from `heldAt`) and for one that never parked.
  * @typedef {{
  *   position:           number,
  *   state:              'delivered' | 'consumed' | 'waiting' | 'closed',
@@ -78,8 +77,7 @@
  */
 
 /**
- * A mailbox as `/dashboard/mailboxes` reports it. `positions` is empty for a mailbox minted but not yet
- * delivered into or received from.
+ * A mailbox as `/dashboard/mailboxes` reports it; `positions` is empty for a freshly minted one.
  * @typedef {{
  *   id:                   string,
  *   namespace:            string,

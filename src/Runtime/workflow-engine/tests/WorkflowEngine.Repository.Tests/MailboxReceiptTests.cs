@@ -11,10 +11,8 @@ using WorkflowEngine.Repository.Tests.Fixtures;
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
-/// Covers the read a receive workflow's first step runs on: its position in the mailbox, and the message
-/// standing there or the closure that means none ever will. The property under test is not that the read
-/// returns the right row but that it cannot return a different one later, so the tests deliberately try to move
-/// the answer afterwards. The read is also asserted to write nothing and lock nothing.
+/// Covers the read a receive workflow's first step runs on. The property under test is that the answer
+/// cannot change on a later attempt, so the tests deliberately try to move it afterwards.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetime
@@ -30,8 +28,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_OfAWokenReceiver_CarriesTheMessageThatWokeIt()
     {
-        // Enqueue-first: the receiver parks, the delivery releases it, and what it reads is the very message
-        // whose transaction made it runnable.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -47,17 +43,12 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
         Assert.Equal("source-msg-1", receipt.Delivery.IdempotencyKey);
         Assert.Equal("""{"status":"confirmed"}""", receipt.Delivery.Payload);
 
-        // It parked, and the receipt says nothing about that — asserted so the pair with the next test is a real
-        // contrast: the two receivers differ in `held_at` and agree in everything the read produces.
         Assert.NotNull((await Registration(receiver)).HeldAt);
     }
 
     [Fact]
     public async Task Receipt_OfAReceiverBornOntoABacklogDelivery_CarriesThatMessage()
     {
-        // Delivery-first: the message is already at position 0 when the receiver is enqueued, so it is born
-        // runnable. This is the case the receivers registry exists for — without a recorded `seq` the read
-        // would find nothing and hand the closing signal to a receiver whose message was in the log.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -77,8 +68,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_OfEachReceiverInARelay_CarriesTheMessageAtItsOwnPosition()
     {
-        // Positions are matched pairwise, not "the next unread message": receiver n reads delivery n. Enqueued
-        // and delivered interleaved, so neither log's order alone could produce the pairing by accident.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -103,8 +92,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_OfAReceiverReleasedByAClose_IsTheClosingSignalAndSaysWhy()
     {
-        // The other of the two releases: nothing arrived at position 0 and nothing now can, so the read answers
-        // with the absence and the reason beside it.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -122,8 +109,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_AfterADeadlineClose_SaysDeadlineRatherThanRequest()
     {
-        // The reason is read from the mailbox row the close actually wrote, so the sweep's closures are told
-        // apart from a caller's without the read knowing anything about either.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -139,8 +124,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_OfAReceiverBornOntoAClosedMailbox_IsTheClosingSignal()
     {
-        // A receiver enqueued after the exchange ended: accepted, born runnable, and told immediately that
-        // nothing is coming, so the saga's replayed enqueue concludes rather than needing an error branch.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         await Close(repository, mailbox.Id);
@@ -156,8 +139,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_OfAReceiverPastTheLastDeliveredPosition_IsTheClosingSignal()
     {
-        // The relay's last hop, the ordinary way an exchange ends: the receiver enqueued for the message after
-        // the last one gets the closing signal, while the receiver behind it keeps the message it read.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var served = await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -184,8 +165,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_IsUnchanged_ByEverythingThatHappensToTheMailboxAfterwards()
     {
-        // The frozen-existence rule against the two things that could plausibly move it — a message landing at a
-        // neighboring position, and the mailbox closing underneath a receiver that already has its own.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -204,8 +183,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
         Assert.Equal(first, afterClose);
         Assert.Equal("mine", Assert.IsType<MailboxDelivery>(afterClose.Delivery).Payload);
 
-        // And the closing signal stays one: a closed mailbox refuses deliveries, so the receiver told "nothing is
-        // coming" can never be contradicted either.
         Assert.Equal(
             MailboxDeliveryResultKind.Closed,
             KindOf(await Deliver(repository, mailbox.Id, "source-msg-3", payload: "too late"))
@@ -215,8 +192,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_WritesNothing_NotEvenToTheRowsItReads()
     {
-        // "Nothing is written" is the step's defining property. Proved by transaction id rather than by re-reading
-        // the values: an UPDATE writing a column back unchanged would leave every field assertion green.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -232,8 +207,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_ReadsStraightThroughAHeldMailboxRowLock()
     {
-        // Every mailbox mutation takes the row lock as its first act; this read must not, or a receiver executing
-        // while a delivery or close is mid-flight would stall on a read that transaction cannot change.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -267,8 +240,6 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_OfAWorkflowThatHoldsNoPosition_IsUnregistered()
     {
-        // What a resume of a receiver that outlived its mailbox's retention reads. Not "no message": the whole
-        // log is gone, so nothing can be said about the position, and "the exchange closed" would be invented.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -284,10 +255,8 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task Receipt_AtAnUndeliveredPositionOfAnOpenMailbox_IsUndecided()
     {
-        // The state the rendezvous makes unreachable, reached the only way it can be — by asking out of turn. The
-        // receiver below is still `Held`, so nothing but a direct call can put the read in front of a position
-        // whose answer is not settled. Its own answer rather than "no message" because the two demand opposite
-        // responses: one says conclude the exchange, this one says the engine is wrong about something.
+        // Reached only by asking out of turn — the receiver below is still Held, so the engine would never
+        // run it. Constructed because the rendezvous makes this state unreachable.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -423,10 +392,7 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
         );
     }
 
-    /// <summary>
-    /// Stands in for retention having purged the mailbox out from under a receive workflow that outlived it — the
-    /// one reachable way a receiver ends up holding no position.
-    /// </summary>
+    /// <summary>Stands in for retention having purged the mailbox out from under a receiver that outlived it.</summary>
     private async Task DeleteRegistration(Guid workflowId)
     {
         await using var context = fixture.CreateDbContext();
@@ -437,8 +403,8 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     }
 
     /// <summary>
-    /// The transaction ids that last wrote each of the three rows the read touches. Any write by the read —
-    /// including one that stores a value back unchanged — advances the row's <c>xmin</c>.
+    /// The <c>xmin</c> of the three rows the read touches: any write — even one storing a value back
+    /// unchanged — advances it.
     /// </summary>
     private async Task<string> RowVersions(Guid mailboxId, Guid workflowId)
     {

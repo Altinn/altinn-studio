@@ -43,13 +43,10 @@ public class FiksArkivServiceTaskTest
         ServiceTaskStage stage = Assert.Single(pipeline.Stages);
         Assert.Equal("SendToArchive", stage.Name);
 
-        // The mailbox is opened by the stage that sends — the only stage that can publish its address — and its
-        // timeout must be an explicit domain deadline; there is no default to fall back on.
         ServiceTaskMailboxDeclaration mailbox = Assert.IsType<ServiceTaskMailboxDeclaration>(pipeline.Mailbox);
         Assert.Equal("SendToArchive", mailbox.StageName);
         Assert.Equal(TimeSpan.FromDays(7), mailbox.Options.Timeout);
 
-        // Nothing polls here, so no wait budget is declared: the mailbox's deadline bounds the wait.
         Assert.Null(pipeline.FinalStepOptions);
     }
 
@@ -67,9 +64,7 @@ public class FiksArkivServiceTaskTest
                 x.GenerateAndSendMessage(
                     "Task_1",
                     "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett",
-                    // klientMeldingId is the idempotency key for this send...
                     _workflowStepId,
-                    // ...and klientKorrelasjonsId is the address the archive echoes.
                     _mailboxId,
                     _executionReferenceTime,
                     dataMutator.Object,
@@ -188,8 +183,6 @@ public class FiksArkivServiceTaskTest
     [Fact]
     public async Task SendToArchive_OutsideItsOwnStage_CannotReadAMailboxAtAll()
     {
-        // The mailbox is readable in the declaring stage and nowhere else, so a send that ran anywhere else could
-        // not address itself. Pinned here because nothing else in this suite would notice it moving.
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         await using var fixture = CreateFixture();
 
@@ -203,9 +196,8 @@ public class FiksArkivServiceTaskTest
     [InlineData(false)]
     public async Task SendToArchive_FailedSend_ReturnsRetryableFailureRegardlessOfMoveToNextTask(bool moveToNextTask)
     {
-        // MoveToNextTask does not divert a failure to hand the message over: a stage cannot advance the process,
-        // and advancing past a send that never happened would leave nothing waiting for a receipt. The setting
-        // still governs how an error *from the archive* concludes the task.
+        // A stage cannot advance the process, so MoveToNextTask does not divert a failed send: nothing would
+        // be waiting for the receipt.
         var settings = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
@@ -235,8 +227,7 @@ public class FiksArkivServiceTaskTest
     [InlineData(false)]
     public async Task SendToArchive_CutOffAtTheExecutionDeadline_FailsRatherThanReportingSuccess(bool moveToNextTask)
     {
-        // The engine cancels the attempt's token at its execution deadline. Such an attempt may or may not have
-        // shipped the record, so it must never be reported as a conclusion.
+        // Cut off at the execution deadline, the shipment may or may not have left — never a conclusion.
         var settings = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = "reject" },
@@ -290,8 +281,6 @@ public class FiksArkivServiceTaskTest
         Assert.Contains("never confirmed the record", failed.ErrorMessage);
         Assert.Contains(expectedWording, failed.ErrorMessage);
         Assert.Contains("manual follow-up", failed.ErrorMessage);
-        // Nothing is recorded on this path, so a permanent verdict has nothing to save — and there is no message
-        // to hand to the app's response handler.
         dataMutator.VerifyNoOtherCalls();
         responseHandler.VerifyNoOtherCalls();
     }
@@ -316,7 +305,6 @@ public class FiksArkivServiceTaskTest
         );
 
         Assert.IsType<ServiceTaskAwaitNextReplyResult>(result);
-        // A known acknowledgement is ordinary progress, not something to alert on.
         loggerMock.Verify(
             TestHelpers.MatchLogEntry(LogLevel.Information, "has received the record", loggerMock.Object),
             Times.Once
@@ -336,8 +324,6 @@ public class FiksArkivServiceTaskTest
         );
 
         Assert.IsType<ServiceTaskAwaitNextReplyResult>(result);
-        // A message type the task does not model cannot conclude the exchange and still spends one of the
-        // mailbox's positions, so it is worth an operator's attention.
         loggerMock.Verify(
             TestHelpers.MatchLogEntry(LogLevel.Warning, "is not a type this task models", loggerMock.Object),
             Times.Once
@@ -377,7 +363,6 @@ public class FiksArkivServiceTaskTest
             .Verifiable(Times.Once);
 
         var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
-        // The default settings mark the instance complete, which the receipt path does before concluding.
         instanceClient
             .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
@@ -452,8 +437,6 @@ public class FiksArkivServiceTaskTest
     [Fact]
     public async Task HandleArchiveReply_Receipt_WithoutSuccessHandlingConfigured_AdvancesWithNoAction()
     {
-        // An app that configures no successHandling still expects the task to complete and the process to move on,
-        // with the BPMN's default transition rather than a named action.
         var settings = SettingsWithReceipt(successHandling: null);
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         AllowAnyBinaryDataElement(dataMutator);
@@ -467,14 +450,12 @@ public class FiksArkivServiceTaskTest
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
         Assert.True(success.AutoAdvanceProcess);
         Assert.Null(success.Action);
-        // No successHandling means no completion confirmation either.
         instanceClient.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task HandleArchiveReply_Receipt_MoveToNextTaskDisabledButMarkComplete_MarksAndStaysPut()
     {
-        // The fourth corner of the old 2x2: the two successHandling switches are independent.
         var settings = SettingsWithReceipt(
             successHandling: new FiksArkivSuccessHandlingSettings
             {
@@ -503,7 +484,6 @@ public class FiksArkivServiceTaskTest
     [Fact]
     public async Task HandleArchiveReply_ErrorMessage_WithoutErrorHandlingConfigured_FailsPermanently()
     {
-        // With no errorHandling configured the archive's rejection must not quietly advance the process.
         var settings = new FiksArkivSettings { ErrorHandling = null };
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         await using var fixture = CreateFixture(settings);
@@ -563,8 +543,6 @@ public class FiksArkivServiceTaskTest
     [Fact]
     public async Task HandleArchiveReply_ReceiptReportingFailure_IsTreatedAsAnError()
     {
-        // A kvittering that carries MappeFeilet/RegistreringFeilet is an error, not a receipt: it must not be
-        // saved as a confirmation record (the strict mutator mock proves nothing is).
         var settings = new FiksArkivSettings
         {
             ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
@@ -588,9 +566,8 @@ public class FiksArkivServiceTaskTest
     [Fact]
     public async Task HandleArchiveReply_ReceiptWithoutAReadablePayload_FailsRatherThanAdvancingWithoutEvidence()
     {
-        // The confirmation record is the artifact this task exists to produce, so advancing without one leaves the
-        // process asserting an archiving outcome it cannot show. The unreadable message stays available in the
-        // mailbox's record of the delivery.
+        // Advancing without the confirmation record would assert an outcome the process cannot show; the
+        // unreadable message stays available in the mailbox's record.
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         await using var fixture = CreateFixture();
         ServiceTaskReply reply = ReplyFactory(
@@ -605,7 +582,6 @@ public class FiksArkivServiceTaskTest
         var failed = Assert.IsType<ServiceTaskFailedResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("could not be read as an archive receipt", failed.ErrorMessage);
-        // The strict mutator mock proves nothing was staged: the message is read and nothing else happens.
         dataMutator.VerifyGet(x => x.Instance, Times.AtLeastOnce());
         dataMutator.VerifyNoOtherCalls();
     }
@@ -732,8 +708,6 @@ public class FiksArkivServiceTaskTest
         Assert.NotNull(seenMessage);
         Assert.Equal(messageType, seenMessage.Message.MessageType);
         Assert.Equal(_deliveredMessageId, seenMessage.Message.MessageId);
-        // The handler runs where the Fiks IO connection is long gone, so the message it is handed says so rather
-        // than pretending it can still answer the archive.
         Assert.Throws<InvalidOperationException>(() =>
         {
             _ = seenMessage.Message.GetDecryptedStream();
@@ -744,9 +718,8 @@ public class FiksArkivServiceTaskTest
     [Fact]
     public async Task HandleArchiveReply_AFailingResponseHandler_IsRetryableAndConcludesNothing()
     {
-        // The message is frozen at its position, so a retry hands the same message to the same handler — which is
-        // what a transient failure of the app's own dependency needs. The receipt is not saved and the process
-        // is not advanced (the strict mocks prove both).
+        // The message is frozen at its position, so a retry hands the same message to the same handler — what
+        // a transient app dependency needs. The strict mocks prove nothing was saved or advanced.
         var dataMutator = InstanceDataMutatorMockFactory(CreateInstance());
         var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         var responseHandler = new Mock<IFiksArkivResponseHandler>(MockBehavior.Strict);

@@ -7,10 +7,9 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Covers the rendezvous against a live engine: a held receiver released by its delivery or by the mailbox
-/// closing actually runs, the release survives a lost <c>NOTIFY</c>, and the release metrics say which cause
-/// did it. What the first step is <em>handed</em> belongs to <c>MailboxReceiptEndpointTests</c>, which is why
-/// the receivers below run plain webhook steps that read nothing.
+/// Covers the rendezvous against a live engine: a released receiver actually runs, the release survives a
+/// lost <c>NOTIFY</c>, and the release metrics name the cause. What the first step is <em>handed</em>
+/// belongs to <c>MailboxReceiptEndpointTests</c>.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
 public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
@@ -53,8 +52,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task Delivery_WakesAHeldReceiver_WhichThenRunsItsStepsLikeAnyOtherWorkflow()
     {
-        // Scoped to the release itself: the step it runs is a plain webhook, called with the payload the enqueue
-        // gave it. That the executor also hands a receive step the message that woke it is tested separately.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueHeldReceiver(mailbox.Id);
 
@@ -68,8 +65,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task Close_ReleasesAHeldReceiver_WhichThenRunsWithNoDelivery()
     {
-        // Closure is the other release, and the exchange's graceful ending. The mailbox reports the reason it
-        // closed, which is what the callback will eventually carry.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueHeldReceiver(mailbox.Id);
 
@@ -84,8 +79,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task Close_ReportsHowManyDeliveriesNobodyWasEnqueuedFor()
     {
-        // The unconsumed count on the close's own response, surviving the whole serialization path rather than
-        // only existing in the repository result.
         var mailbox = await MintMailbox();
         await EnqueueHeldReceiver(mailbox.Id);
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
@@ -106,9 +99,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task WakeThatCommittedWithoutItsNotify_IsStillClaimedOnTheNextFetchCycle()
     {
-        // Races table: a crash after the wake commits and before the NOTIFY reaches anyone. The release below is
-        // applied straight to the database — the exact statement the wake runs, committed, with no notification
-        // — so the processor has to find the receiver on its own next fetch cycle.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueHeldReceiver(mailbox.Id);
 
@@ -124,8 +114,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task ReleasedReceiversAreCountedByTheCauseThatReleasedThem()
     {
-        // The two tag values partition the counter exactly, because exactly two things release a receiver. Read
-        // against the `held` births, this is the relay's balance sheet.
         var delivered = await MintMailbox("step-delivered");
         var closed = await MintMailbox("step-closed");
         await EnqueueHeldReceiver(delivered.Id, "/delivered", "receiver-delivered");
@@ -136,7 +124,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
         await _client.DeliverToMailbox(delivered.Id, "source-msg-1");
         await _client.CloseMailbox(closed.Id);
 
-        // A delivery with nobody waiting for it is not a release, and neither is a repeated close.
         await _client.DeliverToMailbox(delivered.Id, "source-msg-2");
         (await _client.CloseMailboxRaw(closed.Id)).Dispose();
 
@@ -151,8 +138,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task WakeToClaimLatencyIsRecordedWhenAWokenReceiverIsPickedUp()
     {
-        // Nothing else measures this gap: a held receiver is invisible to every workflow-latency metric until the
-        // moment it is released.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueHeldReceiver(mailbox.Id);
 
@@ -172,10 +157,6 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     [Fact]
     public async Task WakeToClaimLatencyIsNotRecordedForAReceiverThatNeverWaited()
     {
-        // A receiver born with its delivery is claimed and run exactly like a woken one and carries a release
-        // stamp just as one does, so the only thing keeping it out of this histogram is `held_at`. It matters
-        // because the birth case is common whenever a counterparty answers before the relay's next hop is
-        // enqueued — timing those would fill a sub-second histogram with fetch-cycle latency.
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
 
@@ -194,10 +175,9 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
     #endregion
 
     /// <summary>
-    /// The wake's whole transaction with the notification left out: the counter bumped, the message appended at the
-    /// receiver's position, and the receiver released — committed, silently. The message half is not decoration: a
-    /// receiver released with nothing at its position on an open mailbox is a state the rendezvous cannot produce,
-    /// and the engine now refuses it rather than running the step.
+    /// The wake's whole transaction with the notification left out, committed silently — built faithfully
+    /// because a receiver released with nothing at its position on an open mailbox is a state the engine
+    /// refuses.
     /// </summary>
     private async Task ReleaseWithoutNotifying(Guid receiverId)
     {

@@ -58,9 +58,8 @@ public sealed record FiksArkivReceiptSettings
     /// Settings for the storage of the confirmation record (arkivkvittering).
     /// </summary>
     /// <remarks>
-    /// Written when the archive's receipt arrives, as part of the process transition that sent the record. A receipt
-    /// that cannot be read as an archive receipt fails the task instead of advancing with no confirmation record to
-    /// show. See <see cref="FiksArkivServiceTask"/> for the whole flow.
+    /// Written when the receipt arrives, in the transition that sent the record. An unreadable receipt fails
+    /// the task instead of advancing without evidence. See <see cref="FiksArkivServiceTask"/>.
     /// </remarks>
     [JsonPropertyName("confirmationRecord")]
     public required FiksArkivDataTypeSettings ConfirmationRecord { get; set; }
@@ -192,10 +191,8 @@ public sealed record FiksArkivDocumentSettings
 /// Represents the settings for success handling.
 /// </summary>
 /// <remarks>
-/// These describe what to do once <strong>the archive has confirmed the record</strong> — when its
-/// receipt arrives, not when the message was handed to Fiks IO. Nothing here applies to a send: the
-/// task is not finished until the archive has answered. Applied by
-/// <see cref="FiksArkivServiceTask"/>, which documents the whole flow.
+/// Applies once <strong>the archive has confirmed the record</strong> — not when the message was handed to
+/// Fiks IO. Applied by <see cref="FiksArkivServiceTask"/>.
 /// </remarks>
 public sealed record FiksArkivSuccessHandlingSettings
 {
@@ -236,10 +233,9 @@ public sealed record FiksArkivSuccessHandlingSettings
 /// Represents the settings for error handling.
 /// </summary>
 /// <remarks>
-/// These describe what to do when <strong>the archive reports that it could not create the record</strong>. They
-/// do not apply when the message cannot be handed to Fiks IO at all: that is retried and then fails the task,
-/// so a shipment that never left reaches monitoring instead of quietly advancing the process. Applied by
-/// <see cref="FiksArkivServiceTask"/>, which documents the whole flow.
+/// Applies when <strong>the archive reports it could not create the record</strong> — not when the message
+/// cannot be sent at all, which is retried and then fails the task. Applied by
+/// <see cref="FiksArkivServiceTask"/>.
 /// </remarks>
 public sealed record FiksArkivErrorHandlingSettings
 {
@@ -248,10 +244,8 @@ public sealed record FiksArkivErrorHandlingSettings
     /// create the record? Defaults to <c>true</c>.
     /// </summary>
     /// <remarks>
-    /// <c>false</c> fails the task instead, so the archive's rejection reaches monitoring rather than being absorbed
-    /// by the process. Note that omitting the whole <c>errorHandling</c> block is not the same as accepting these
-    /// defaults: with no block at all an error from the archive fails the task, while a block present with this
-    /// left at <c>true</c> advances down the reject path.
+    /// <c>false</c> fails the task so the rejection reaches monitoring. Omitting the whole block is not the
+    /// same as these defaults: with no block at all, an archive error fails the task.
     /// </remarks>
     [JsonPropertyName("moveToNextTask")]
     public bool MoveToNextTask { get; set; } = true;

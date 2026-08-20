@@ -43,8 +43,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
             new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = """{"status":"received"}""" }
         );
 
-        // 202 is the engine's marker for "this call effected the state change", the same distinction the mint
-        // draws between 201 and 200.
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         var delivery = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(
@@ -72,8 +70,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_ConcurrentMessages_AssignEveryPositionExactlyOnce()
     {
-        // The gapless log through the whole stack rather than at the repository alone: nothing between the HTTP
-        // handler and the row lock reorders, batches, or drops a position.
         const int Count = 12;
         var mailbox = await MintMailbox();
 
@@ -98,7 +94,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         var mailbox = await MintMailbox();
         var first = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1", """{"v":1}""");
 
-        // A forwarder retrying a transport failure resends, and may well resend a rebuilt body.
         using var response = await _client.DeliverToMailboxRaw(
             mailbox.Id,
             new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = """{"v":2}""" }
@@ -113,7 +108,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         Assert.Equal(first.Idx, replay.Idx);
         Assert.Equal(first.AcceptedAt, replay.AcceptedAt);
 
-        // The log did not grow: a replay occupies no position of its own.
         var read = await _client.GetMailbox(mailbox.Id);
         Assert.NotNull(read);
         Assert.Equal(1L, read.NextIdx);
@@ -122,9 +116,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_ReplayedKeyAfterTheMailboxClosed_StillReturns200()
     {
-        // The "accepted versus kept" rule at the HTTP boundary, and the one place a forwarder could be badly
-        // misled: 409 tells it to dead-letter, and this message is sitting at position 0 waiting for its
-        // receiver.
         var mailbox = await MintMailbox();
         var accepted = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.CloseMailbox(mailbox.Id);
@@ -158,8 +149,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
             new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = "{}" }
         );
 
-        // 409 always means too late, never too early: an early delivery is accepted and parks at its position, so
-        // a forwarder can dead-letter a 409 without inspecting anything else.
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
 
         var problem = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -169,8 +158,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_RefusedDelivery_IsRefusedAgainAndStoredNeitherTime()
     {
-        // The converse of the replay rule: what the engine refused, it keeps refusing, and neither attempt
-        // claimed the key or a position.
         var mailbox = await MintMailbox();
         await _client.CloseMailbox(mailbox.Id);
 
@@ -206,8 +193,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_PayloadOverTheCap_Returns413()
     {
-        // The cap is refused rather than truncated: a receiver reading half a message is worse than a forwarder
-        // learning its message will not fit.
         var mailbox = await MintMailbox();
         var oversized = new string('x', Settings(fixture).MaxMailboxPayloadSize + 1);
 
@@ -226,11 +211,9 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_PayloadCapCountsUtf8Bytes_NotCharacters()
     {
-        // The cap bounds what is stored, so it is measured on the encoded form.
         var mailbox = await MintMailbox();
         var cap = Settings(fixture).MaxMailboxPayloadSize;
 
-        // Three bytes each in UTF-8, so this is over the cap while being under it in characters.
         var multiByte = new string('あ', (cap / 2) + 1);
         using var refused = await _client.DeliverToMailboxRaw(
             mailbox.Id,
@@ -245,8 +228,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_LogAtItsCap_Returns429()
     {
-        // Fill the log to the configured cap. It is the only bound on what a single mailbox can cost, because
-        // deliveries deliberately skip the admission gate an ordinary enqueue must pass.
         var cap = Settings(fixture).MaxMailboxLogLength;
         var mailbox = await MintMailbox();
         for (int i = 0; i < cap; i++)
@@ -259,7 +240,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
 
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
 
-        // A different mailbox is unaffected — the bound is per mailbox.
         var other = await MintMailbox("step-2");
         await _client.DeliverToMailbox(other.Id, "source-msg-0");
     }
@@ -281,9 +261,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_OverLongIdempotencyKey_Returns400()
     {
-        // The key is varchar(200). Length has to be caught before the delivery reaches the database, because
-        // Postgres answers an over-long value with SQLSTATE 22001, which the retry classifier reads as
-        // transient.
         var mailbox = await MintMailbox();
 
         using var response = await _client.DeliverToMailboxRaw(
@@ -308,8 +285,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
 
         var read = await _client.GetMailbox(mailbox.Id);
 
-        // The counters describe positions, not calls: three requests, two positions, and both of them messages
-        // that arrived with nobody enqueued to read them.
         Assert.NotNull(read);
         Assert.Equal(2L, read.NextIdx);
         Assert.Equal(0L, read.NextSeq);
@@ -319,8 +294,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task GetMailbox_AfterClosing_StillReportsWhatArrived()
     {
-        // What the operator sees when an exchange ends with messages nobody read. The rows stay readable until
-        // retention purges them.
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.CloseMailbox(mailbox.Id);
@@ -349,7 +322,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         async Task Refuse(Guid mailboxId, MailboxDeliveryRequest request) =>
             (await _client.DeliverToMailboxRaw(mailboxId, request)).Dispose();
 
-        // One call per outcome the endpoint can answer with, except log_full, which costs a hundred deliveries.
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await Refuse(Guid.CreateVersion7(), new() { IdempotencyKey = "source-msg-1", Payload = "{}" });
@@ -364,8 +336,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         );
         await Refuse(mailbox.Id, new() { IdempotencyKey = "   ", Payload = "{}" });
 
-        // A storm of oversized or misaddressed forwards has to be visible in the mailbox metrics, not only in
-        // HTTP status codes, which is why the refusals are counted too.
         var measurements = collector.GetMeasurements("engine.mailboxes.deliveries.received");
         var byOutcome = measurements
             .GroupBy(m => (string)m.Tags.Single(t => t.Key == "outcome").Value!)

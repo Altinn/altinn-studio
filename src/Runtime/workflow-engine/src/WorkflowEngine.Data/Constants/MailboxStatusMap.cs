@@ -3,27 +3,20 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Data.Constants;
 
 /// <summary>
-/// The database vocabulary for a mailbox's <see cref="MailboxStatus"/> and
-/// <see cref="MailboxDisposedReason"/>. Lowercase text rather than the integer the workflow statuses use,
-/// because the values appear as literals in check constraints, partial index filters and raw SQL, where text
-/// stays readable in a psql session. The literals are <c>const</c> so the SQL interpolating them is provably
-/// constant (CA2100), and <c>MailboxStatusMapTests</c> pins each one to the enum member it stands for.
+/// The database vocabulary for mailbox status and disposal reason: lowercase text, because the values
+/// appear as literals in check constraints, index filters and raw SQL. <c>const</c> so interpolating SQL
+/// stays provably constant (CA2100); <c>MailboxStatusMapTests</c> pins each literal to its enum member.
 /// </summary>
 internal static class MailboxStatusMap
 {
-    /// <summary>Database literal for <see cref="MailboxStatus.Open"/>.</summary>
     public const string Open = "open";
 
-    /// <summary>Database literal for <see cref="MailboxStatus.Disposed"/>.</summary>
     public const string Disposed = "disposed";
 
-    /// <summary>Database literal for <see cref="MailboxDisposedReason.Request"/>.</summary>
     public const string ReasonRequest = "request";
 
-    /// <summary>Database literal for <see cref="MailboxDisposedReason.Deadline"/>.</summary>
     public const string ReasonDeadline = "deadline";
 
-    /// <summary>Renders a status as its database literal.</summary>
     public static string ToDbValue(MailboxStatus status) =>
         status switch
         {
@@ -32,7 +25,6 @@ internal static class MailboxStatusMap
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown mailbox status."),
         };
 
-    /// <summary>Renders a disposal reason as its database literal.</summary>
     public static string ToDbValue(MailboxDisposedReason reason) =>
         reason switch
         {
@@ -41,7 +33,6 @@ internal static class MailboxStatusMap
             _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown mailbox disposal reason."),
         };
 
-    /// <summary>Parses a database literal back to a status.</summary>
     public static MailboxStatus FromDbValue(string value) =>
         value switch
         {
@@ -50,7 +41,6 @@ internal static class MailboxStatusMap
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown mailbox status."),
         };
 
-    /// <summary>Parses a database literal back to a disposal reason.</summary>
     public static MailboxDisposedReason ReasonFromDbValue(string value) =>
         value switch
         {

@@ -36,9 +36,8 @@ internal sealed class WorkflowStateSigner
     /// </summary>
     /// <param name="payload">The exact bytes to transport and sign.</param>
     /// <param name="domain">
-    /// What this envelope is, and what it binds. Required, and constructible only through
-    /// <see cref="SigningDomain"/>'s factories, so a new call site cannot silently land in another
-    /// domain's signature space — see <see cref="SigningPurpose"/>.
+    /// What this envelope is and what it binds; constructible only through <see cref="SigningDomain"/>'s
+    /// factories, so a new call site cannot silently land in another domain's signature space.
     /// </param>
     public string Sign(string payload, SigningDomain domain)
     {
@@ -60,9 +59,7 @@ internal sealed class WorkflowStateSigner
     /// </summary>
     /// <param name="envelopeJson">The transported envelope.</param>
     /// <param name="domain">
-    /// The domain the caller expects this envelope to have been minted for. An envelope signed for a
-    /// different purpose, or for the same purpose bound to a different mailbox, fails verification
-    /// exactly like a tampered one.
+    /// The domain the caller expects; an envelope minted for another fails exactly like a tampered one.
     /// </param>
     public string Verify(string envelopeJson, SigningDomain domain)
     {
@@ -116,10 +113,9 @@ internal sealed class WorkflowStateSigner
     }
 
     /// <summary>
-    /// Base64(HMACSHA256(key = <see cref="DeriveKey"/>(code, domain), data = UTF8(payload))). Domain separation
-    /// lives entirely in the <em>key</em> rather than in the signed data: prefixing a tag onto the data leaves a
-    /// collision to argue away — an untagged payload equal to <c>tag + separator + P</c> signs identically to the
-    /// tagged <c>P</c>. Deriving the key removes the premise instead of documenting it.
+    /// Base64(HMACSHA256(key = <see cref="DeriveKey"/>(code, domain), data = UTF8(payload))). Domain
+    /// separation lives in the <em>key</em>, not the signed data: a data-prefix tag would leave a collision
+    /// (an untagged payload equal to <c>tag + separator + P</c>) to argue away.
     /// </summary>
     private static string ComputeSignature(string secret, SigningDomain domain, string payload)
     {
@@ -129,10 +125,9 @@ internal sealed class WorkflowStateSigner
     }
 
     /// <summary>
-    /// The per-domain signing key: <c>HMACSHA256(key = UTF8(code), data = UTF8(tag))</c>, so each domain signs under
-    /// a key nothing else can reach without the app-code. A domain with no tag
-    /// (<see cref="SigningPurpose.CallbackState"/>) uses the app-code directly — the original computation, kept
-    /// byte for byte so every state blob signed by an earlier version still verifies.
+    /// The per-domain key: <c>HMACSHA256(key = UTF8(code), data = UTF8(tag))</c>. A tagless domain
+    /// (<see cref="SigningPurpose.CallbackState"/>) uses the app-code directly — the original computation,
+    /// kept byte for byte so old state blobs still verify.
     /// </summary>
     private static byte[] DeriveKey(string secret, SigningDomain domain)
     {

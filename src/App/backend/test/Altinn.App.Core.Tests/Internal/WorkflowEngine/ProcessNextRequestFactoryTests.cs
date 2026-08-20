@@ -71,7 +71,6 @@ public class ProcessNextRequestFactoryTests
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
         var stepOptionsResolver = new ProcessStepOptionsResolver(
             [
-                // Only its DefaultStepOptions are read here; nothing executes.
                 new ExecuteServiceTask(
                     appImplFactory,
                     Mock.Of<IWorkflowEngineClient>(),
@@ -652,9 +651,8 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A pipeline answered by a message: one sending stage that opens the mailbox, and a conclusion that is the
-    /// reply handler rather than a step of the transition. The conclusion declares its own timeout so the receive
-    /// workflow's step can be shown to resolve the <c>Finally</c>'s options.
+    /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
+    /// shown to resolve the <c>Finally</c>'s options.
     /// </summary>
     private sealed class ArchivingTask : IPipelineServiceTask
     {
@@ -687,15 +685,11 @@ public class ProcessNextRequestFactoryTests
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // The conclusion is the reply handler and runs on the receive workflow, so Main expands to the stages and
-        // nothing else. Emitting it here too would conclude the task twice.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
         Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", sendStep.OperationId);
         Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageName is null);
 
-        // And Main's very last step is the enqueue of receiver 1 — the whole point of the step being in Main at
-        // all: the receiver exists before Main settles.
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
         Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
@@ -705,8 +699,6 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task Create_PipelineWithoutMailbox_EnqueuesNoReceiveWorkflow()
     {
-        // The guard on the branch above: an ordinary pipeline still concludes as a Main step and gains no enqueue
-        // step.
         var factory = CreateFactory(serviceTasks: new SigningTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
@@ -728,8 +720,6 @@ public class ProcessNextRequestFactoryTests
         EnqueueReceiveWorkflowPayload payload = ExtractReceiveEnqueuePayload(bundle);
         WorkflowRequest receiver = Assert.Single(payload.EnqueueRequest.Workflows);
 
-        // A head, so the instance's collection never reads all-settled while the exchange is open; depending on no
-        // head, so nothing an earlier transition left behind can condemn it.
         Assert.True(receiver.IsHead);
         Assert.False(receiver.DependsOnHeads);
         Assert.StartsWith(
@@ -738,14 +728,10 @@ public class ProcessNextRequestFactoryTests
             StringComparison.Ordinal
         );
 
-        // The three runtime-only values are deliberately absent here: the mailbox is not minted yet, the state
-        // blob is the enqueue step's own, and the callback token is minted at that step.
         Assert.Null(receiver.Mailbox);
         Assert.Null(receiver.State);
         Assert.Null(payload.EnqueueRequest.Context);
 
-        // Its one step is the pipeline's conclusion — the same step a non-mailbox task concludes with — and it
-        // resolves the Finally's options, not the send stage's and not the task's alone.
         StepRequest receiveStep = Assert.Single(receiver.Steps);
         var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
         Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
@@ -754,7 +740,6 @@ public class ProcessNextRequestFactoryTests
         Assert.Null(receivePayload.StageName);
         Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
 
-        // The receiver is findable by the same labels every workflow of this transition carries.
         Assert.Equal(bundle.Request.Labels, payload.EnqueueRequest.Labels);
     }
 

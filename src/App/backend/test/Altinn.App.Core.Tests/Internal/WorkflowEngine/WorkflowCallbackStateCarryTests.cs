@@ -36,10 +36,6 @@ public class WorkflowCallbackStateCarryTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
 
-    /// <summary>
-    /// The real service with real signing; the collaborators it needs only for form data are mocked, because a blob
-    /// with no form data never reaches them.
-    /// </summary>
     private static WorkflowCallbackStateService CreateService()
     {
         IAppMetadata appMetadata = CreateAppMetadata();
@@ -69,13 +65,11 @@ public class WorkflowCallbackStateCarryTests
     {
         WorkflowCallbackStateService service = CreateService();
 
-        // The declaring stage's callback: it minted, recorded the address, and its state was captured.
         var minting = new WorkflowCallbackStateCarry();
         minting.RecordMailbox(_mailboxId);
         InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
         string afterMint = await service.CaptureState(unitOfWork, minting);
 
-        // An ordinary step in between: it restores, knows nothing about mailboxes, and captures again.
         (InstanceDataUnitOfWork nextUnitOfWork, WorkflowCallbackStateCarry forwarded) = await service.RestoreState(
             _instanceId,
             afterMint,
@@ -84,7 +78,6 @@ public class WorkflowCallbackStateCarryTests
         Assert.Equal(_mailboxId, forwarded.MailboxId);
         string afterOrdinaryStep = await service.CaptureState(nextUnitOfWork, forwarded);
 
-        // The step that enqueues the receiver still finds the address.
         (_, WorkflowCallbackStateCarry atTheEnqueue) = await service.RestoreState(_instanceId, afterOrdinaryStep, "nb");
         Assert.Equal(_mailboxId, atTheEnqueue.MailboxId);
     }
@@ -92,8 +85,8 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public async Task Capture_WithoutTheCarry_DropsTheMailbox()
     {
-        // The mutation that would break the relay silently: capturing the instance data alone. The enqueue step
-        // then has no address, which is why it fails permanently rather than guessing.
+        // The silent-break mutation: capturing the instance data alone leaves the enqueue step with no address,
+        // which is why it fails permanently rather than guessing.
         WorkflowCallbackStateService service = CreateService();
         var minting = new WorkflowCallbackStateCarry();
         minting.RecordMailbox(_mailboxId);
@@ -108,19 +101,15 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public async Task Capture_AfterTheExchangeConcluded_DropsTheMailbox()
     {
-        // The conclusion has to un-say what the blob has said since the declaring stage: the workflow a conclusion
-        // starts inherits this very blob, and its own service task may open a mailbox.
         WorkflowCallbackStateService service = CreateService();
         var concluding = new WorkflowCallbackStateCarry();
         concluding.RecordMailbox(_mailboxId);
         InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
 
-        // Still carried while the exchange is open...
         string whileOpen = await service.CaptureState(unitOfWork, concluding);
         (_, WorkflowCallbackStateCarry open) = await service.RestoreState(_instanceId, whileOpen, "nb");
         Assert.Equal(_mailboxId, open.MailboxId);
 
-        // ...and gone the moment the handler concludes.
         concluding.RecordMailboxConcluded();
         string afterConclusion = await service.CaptureState(unitOfWork, concluding);
 
@@ -144,7 +133,6 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public void RecordMailbox_Twice_WithDifferentMailboxes_Throws()
     {
-        // A pipeline opens at most one mailbox; two would leave one published address unanswered.
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(_mailboxId);
 

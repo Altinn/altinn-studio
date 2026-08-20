@@ -61,8 +61,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task ReadsAMailboxWithItsDeadlineBothCountersAndItsReceiverLinked()
     {
-        // Asserted on the wire rather than on the DTO: an operator's whole view of an exchange is this payload, so
-        // a field that never serializes is a field that does not exist. The receiver's workflow id is the link.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id);
         var delivery = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
@@ -89,8 +87,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AReceiveWorkflowsCardCarriesTheMailboxItReadsFrom_AndAnOrdinaryOnesDoesNot()
     {
-        // The other half of the link. Without it a chains surface can render the mailbox block but cannot tell
-        // which of the rows under it is the receiver.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id);
         var ordinary = Assert
@@ -118,8 +114,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
         var receiverCard = workflows.Single(w => w.GetProperty("databaseId").GetGuid() == receiver);
         Assert.Equal(mailbox.Id, receiverCard.GetProperty("mailboxId").GetGuid());
 
-        // Absent rather than null: the dashboard payload omits every null field, so an ordinary workflow's card
-        // is byte-for-byte what it was before mailboxes existed.
         var ordinaryCard = workflows.Single(w => w.GetProperty("databaseId").GetGuid() == ordinary);
         Assert.False(ordinaryCard.TryGetProperty("mailboxId", out _));
     }
@@ -127,8 +121,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AClosedMailboxIsStillRead_WithItsReasonAndItsReleasedReceiver()
     {
-        // How a concluded exchange reads, and the reason the endpoint does not filter to open mailboxes: under a
-        // finished collection this is the ordinary case, and the one somebody looks up afterwards.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id);
         await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Held);
@@ -146,8 +138,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AMintedMailboxWithNoLogYet_ReadsBackWithAnEmptyPositionsArray()
     {
-        // The window the whole outbound leg of an exchange sits in. An empty array rather than an omitted field,
-        // so a card can render "no messages yet" without special-casing a missing property.
         await MintMailbox();
 
         var read = Assert.Single(Mailboxes(await Read()).EnumerateArray().ToList());
@@ -159,8 +149,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task NamingNoCollections_ReadsNothing_AndNamingOnlyOtherCollectionsReadsNothingEither()
     {
-        // A request naming no collections is what a chains surface with nothing on screen sends, and it must be
-        // an empty answer rather than every mailbox in the engine.
         await MintMailbox();
 
         foreach (var keys in new[] { null, "", "some-other-collection" })
@@ -168,7 +156,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
             var root = await Read(collectionKeys: keys);
             Assert.Equal(0, Mailboxes(root).GetArrayLength());
 
-            // The shape is the same either way, so a card never has to branch on a missing property.
             Assert.Equal(0, root.GetProperty("truncatedCollections").GetArrayLength());
         }
     }
@@ -176,9 +163,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AFullCollectionWindowIsReportedAsTruncated_ByName()
     {
-        // The endpoint's per-collection cap is 10, and a collection with more history must say so rather than
-        // quietly return its newest ten: a mailbox missing from a group is otherwise indistinguishable from an
-        // exchange that never had one. Reported per collection, because the limit is per collection.
         for (var i = 0; i < 11; i++)
             await MintMailbox($"step-{i}");
 
@@ -194,8 +178,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task ACollectionThatFitsIsNotReportedAsTruncated()
     {
-        // The other side of the boundary, and the one that keeps the flag meaningful: every ordinary collection
-        // holds a handful of mailboxes and must come back with nothing to report.
         await MintMailbox("step-a");
         await MintMailbox("step-b");
 
@@ -208,8 +190,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task SeveralCollectionsAreReadInOneCall_AndTheNamespaceFilterApplies()
     {
-        // One call per render pass rather than one per group, which keeps an open dashboard from issuing a burst
-        // of reads every time the live section ticks.
         var first = await MintMailbox("step-a", "collection-a");
         var second = await MintMailbox("step-b", "collection-b");
 
@@ -218,7 +198,6 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
         Assert.Contains(first.Id, both.Select(m => m.GetProperty("id").GetGuid()));
         Assert.Contains(second.Id, both.Select(m => m.GetProperty("id").GetGuid()));
 
-        // Both mailboxes live in the fixture's namespace, so a different one reads nothing.
         Assert.Equal(0, Mailboxes(await Read("collection-a,collection-b", ns: "ttd/other-app")).GetArrayLength());
     }
 }

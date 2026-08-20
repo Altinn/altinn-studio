@@ -94,9 +94,7 @@ internal sealed class DbMaintenanceService(
         var cutoff = now - settings.RetentionPeriod;
         var totalDeletedWorkflows = 0;
 
-        // Delete terminal workflows in batches until all eligible rows are drained. Bounded by the batch actually
-        // emptying rather than by it coming back short, so a batch size of zero ends the loop instead of
-        // running it forever. Same shape as PurgeExpiredMailboxes below.
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
         int deleted;
         do
         {
@@ -319,16 +317,10 @@ internal sealed class DbMaintenanceService(
     private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
 
     /// <summary>
-    /// Purges closed mailboxes past the retention cutoff, together with their deliveries and receiver
-    /// registrations. Only a <c>disposed</c> mailbox is purgeable — an open one is an exchange in progress however
-    /// old it looks — and it becomes purgeable once the instant it closed falls past the cutoff.
+    /// Purges closed mailboxes past the retention cutoff, with their deliveries and registrations. Children
+    /// first — the schema's <c>ON DELETE RESTRICT</c> enforces the order. Receive workflows purge
+    /// independently under the workflow sweep, which is why <c>workflow_id</c> carries no foreign key.
     /// </summary>
-    /// <remarks>
-    /// Children first, and the order is enforced by the schema: both child tables reference
-    /// <c>engine.mailboxes</c> with <c>ON DELETE RESTRICT</c>, so a purge written in the wrong order raises
-    /// SQLSTATE <c>23001</c>. The receive workflows that read those deliveries purge independently under the
-    /// workflow sweep, and nothing here waits for them — which is why <c>workflow_id</c> carries no foreign key.
-    /// </remarks>
     internal async Task PurgeExpiredMailboxes(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
     {
         using var activity = Metrics.Source.StartActivity("DbMaintenanceService.PurgeExpiredMailboxes");
@@ -336,8 +328,7 @@ internal sealed class DbMaintenanceService(
         var cutoff = now - settings.RetentionPeriod;
         var totalPurged = 0;
 
-        // Bounded by the batch actually emptying rather than by it coming back short, so a batch size of zero ends
-        // the loop instead of running it forever.
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
         int purged;
         do
         {
@@ -357,9 +348,8 @@ internal sealed class DbMaintenanceService(
         await using var conn = await dataSource.OpenConnectionAsync(ct);
         await using var tx = await conn.BeginTransactionAsync(ct);
 
-        // Claimed with SKIP LOCKED so a mailbox another pod is closing, delivering into, or purging is left alone
-        // — and, because the claim holds the row for the rest of this transaction, so none of those can begin
-        // against a mailbox on its way out.
+        // SKIP LOCKED leaves a mailbox another pod holds alone — and the claim holds the row, so nothing can
+        // begin against a mailbox on its way out.
         List<Guid> candidates = [];
         await using (var selectCmd = new NpgsqlCommand(Sql.SelectExpiredMailboxCandidatesCommand, conn, tx))
         {
@@ -626,8 +616,8 @@ internal sealed class DbMaintenanceService(
             FOR UPDATE SKIP LOCKED
             """;
 
-        // One statement for both child tables so the order between them cannot be got wrong: there is no order
-        // between them, and writing it as two statements would invite one.
+        // One statement for both child tables: there is no order between them, and two statements would
+        // invite one.
         internal const string DeleteExpiredMailboxChildrenCommand = """
             WITH purged_deliveries AS (
                 DELETE FROM engine.mailbox_deliveries

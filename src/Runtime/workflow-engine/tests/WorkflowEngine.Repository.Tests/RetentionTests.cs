@@ -176,9 +176,6 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_PreservesWorkflows_ReferencedByAHeldReceiver()
     {
-        // Held is in the Incomplete set the hold-back reads, so a parked mailbox receiver keeps the workflows it
-        // points at alive through dependency and link edges alike. That is what the design leans on when it
-        // says receive workflows need no synthetic edges.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -195,7 +192,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
             );
         }
 
-        // Aged well past the cutoff itself, so nothing but its status keeps it — or its targets — alive.
+        // Aged well past the cutoff, so nothing but its status keeps it — or its targets — alive.
         var receiverId = Guid.NewGuid();
         await InsertWorkflow(
             dataSource,
@@ -241,9 +238,8 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_WithAZeroBatchSize_EndsTheSweepInsteadOfSpinningForever()
     {
-        // A zero batch selects nothing, so every pass comes back short and a loop bounded by "came back short"
-        // never ends. Not hypothetical: EngineSettings.Retention defaults to a RetentionSettings whose
-        // BatchSize is zero, which is what PostgresFixture builds.
+        // A zero batch selects nothing, so a loop bounded by "came back short" never ends — and zero is what
+        // EngineSettings.Retention defaults to, and what PostgresFixture builds.
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(10));
         var ct = cts.Token;
@@ -266,7 +262,6 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Fail("PurgeExpiredWorkflows was still running ten seconds in at BatchSize == 0.");
         }
 
-        // And it purged nothing, which is why the loop has to end on an empty pass rather than a short one.
         await using var ctx = fixture.CreateDbContext();
         Assert.Equal(1, await ctx.Workflows.CountAsync(TestContext.Current.CancellationToken));
     }

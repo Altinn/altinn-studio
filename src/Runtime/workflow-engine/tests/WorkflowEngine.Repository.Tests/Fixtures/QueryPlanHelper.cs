@@ -161,10 +161,9 @@ internal static class QueryPlanHelper
     }
 
     /// <summary>
-    /// Asserts that the named index is read somewhere in the plan and that the given table is never read
-    /// sequentially. The bitmap-tolerant sibling of <see cref="AssertUsesIndexScan"/>: a query with no
-    /// <c>ORDER BY</c> matching the index is answered with a Bitmap Index Scan, which that method rejects. Bitmap
-    /// Index Scan nodes carry the index name but no relation name, so the two are checked separately.
+    /// Bitmap-tolerant sibling of <see cref="AssertUsesIndexScan"/>: a query with no matching <c>ORDER BY</c>
+    /// is answered with a Bitmap Index Scan, whose nodes carry the index name but no relation name — so the
+    /// index and the table's scan nodes are checked separately.
     /// </summary>
     public static void AssertUsesIndex(JsonElement plan, string tableName, string indexName)
     {

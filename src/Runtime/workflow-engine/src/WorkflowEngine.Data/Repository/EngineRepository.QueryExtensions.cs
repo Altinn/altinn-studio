@@ -39,12 +39,9 @@ internal static class EngineRepositoryQueryExtensions
         /// cancellation bypass.
         /// </summary>
         /// <remarks>
-        /// Deliberately close to the fetch gate's own conditions, because the predicate's whole value is being exact
-        /// about what a worker can claim: the gate's status list (<see cref="PersistentItemStatusMap.Fetchable"/>)
-        /// rather than the wider <see cref="PersistentItemStatusMap.Incomplete"/>; the timer gate, with the same
-        /// cancellation bypass; and the dependency gate, which matters now that a dependency can stay unsettled
-        /// indefinitely (a held mailbox receiver). Getting any of them wrong turns "wait until nothing can start" —
-        /// which the test harness relies on before truncating — into a wait that never ends.
+        /// Mirrors the fetch gate's own conditions — <see cref="PersistentItemStatusMap.Fetchable"/>, the timer
+        /// gate, and the dependency gate. Getting any of them wrong turns the harness's "wait until nothing can
+        /// start" into a wait that never ends.
         /// </remarks>
         public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
             dbContext.Workflows.Where(wf =>

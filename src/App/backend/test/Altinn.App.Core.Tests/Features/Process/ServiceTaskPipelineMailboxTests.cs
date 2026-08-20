@@ -55,8 +55,6 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void WithReplyFrom_ReturnsANewPipelineAndLeavesTheSourceUndeclared()
     {
-        // The immutability that matters: a caller holding the pre-declaration pipeline still holds a pipeline that
-        // opens no mailbox, so nothing about the declaration can leak into a cached or shared instance.
         ServiceTaskPipeline source = Compose();
 
         ServiceTaskPipeline declared = source.WithReplyFrom("SendToArchive", ThreeDays);
@@ -80,8 +78,6 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void WithReplyFrom_OnAPipelineWithNoStages_Throws()
     {
-        // Only a stage can open a mailbox: the conclusion runs after the sending is over, so a pipeline that is
-        // nothing but a conclusion has nobody to publish the address.
         ServiceTaskPipeline conclusionOnly = new ServiceTaskPipelineBuilder().Finally(_ =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
         );
@@ -130,8 +126,6 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void ResolvePipeline_DefineDiscardedTheDeclaration_Throws()
     {
-        // The hazard the returned-copy shape creates: a Define that calls WithReplyFrom for its side effect
-        // composes a task that never opens the mailbox its author wrote down.
         var task = new ScriptedTask(builder =>
         {
             ServiceTaskPipeline pipeline = Compose(builder);
@@ -158,9 +152,8 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void ResolvePipeline_DefineCachesTheDeclaredPipeline_StillResolves()
     {
-        // Caching violates Define's documented contract, but it must not be turned into a hard error by the
-        // discarded-declaration guard: the returned (cached) pipeline carries the declaration, and the per-call
-        // builder handed to this Define never saw a WithReplyFrom call.
+        // Caching violates Define's contract but must not become a hard error here: the returned pipeline
+        // carries the declaration, and this call's builder never saw WithReplyFrom.
         ServiceTaskPipeline cached = Compose().WithReplyFrom("SendToArchive", ThreeDays);
         var task = new ScriptedTask(_ => cached);
 
@@ -171,9 +164,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void ResolvePipeline_DefineDeclaresFromACachedUndeclaredBaseEachCall_ResolvesEveryTime()
     {
-        // The shape that actually broke under the v1/v2 mutable pipeline: a cached *undeclared* base with
-        // WithReplyFrom called per Define. The mutable design mutated the base, so the second call threw
-        // "already declares a mailbox".
+        // The shape that broke under the mutable pipeline: a cached undeclared base, WithReplyFrom per Define.
         ServiceTaskPipeline cachedBase = Compose();
         var task = new ScriptedTask(_ => cachedBase.WithReplyFrom("SendToArchive", ThreeDays));
 
@@ -185,8 +176,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void ResolvePipeline_SharedBaseDeclaredByOneTask_DoesNotPoisonAnother()
     {
-        // A base pipeline shared by two tasks, where A declares a mailbox from it and B wants none. Because the
-        // declaration marks the per-call builder rather than the shared base, A's cannot latch the base.
+        // A shared base: A's declaration marks A's per-call builder, so it cannot latch the base and fail B.
         ServiceTaskPipeline sharedBase = Compose();
         var taskA = new ScriptedTask(_ => sharedBase.WithReplyFrom("SendToArchive", ThreeDays));
         var taskB = new ScriptedTask(_ => sharedBase);

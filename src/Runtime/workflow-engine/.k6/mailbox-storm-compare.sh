@@ -1,109 +1,86 @@
 #!/usr/bin/env bash
-# Measures what mailbox traffic costs the engine's ordinary enqueue/processing path, and what one message
-# costs, by running the same measured workload with and without mailboxes and comparing the arms.
+# Measures what mailbox traffic costs the ordinary enqueue/processing path by running the same measured
+# workload with and without mailboxes and comparing the arms (interleaved, repeated, order rotated to control
+# session drift; gates derive from the measured spread — see lib/compare-summaries.mjs).
 #
 #   ./.k6/mailbox-storm-compare.sh
 #   REPEATS=7 DURATION=4m BASELINE_RATE=400 ./.k6/mailbox-storm-compare.sh
 #   ./.k6/mailbox-storm-compare.sh -e DELIVERY_PAYLOAD_BYTES=8192    # extra args reach every k6 run
 #
-# The arms are interleaved and repeated, and their order rotates each repeat: successive runs in a session
-# drift (JIT, page cache, table growth) by more than the effect being measured. Gates are derived from the
-# measured spread — see lib/compare-summaries.mjs. Repeats buy precision; DURATION buys resolution.
+# The exit code follows control-vs-storm (baseline-vs-storm with latency ungated under SKIP_CONTROL=1):
+# 1 for a measured difference, 0 otherwise including `inconclusive`; STRICT_INCONCLUSIVE=1 exits 2.
 #
-# The exit code follows the control-vs-storm comparison when a control arm ran, since both arms give the
-# engine the same number of extra workflows. With SKIP_CONTROL=1 it follows baseline-vs-storm with latency
-# ungated. Exit codes: 1 for a measured difference; 0 otherwise, `inconclusive` included, so an unresolved
-# comparison abstains rather than failing. `STRICT_INCONCLUSIVE=1` makes it exit 2 again.
-#
-# Requires: k6, node, docker/podman, and the engine stack (`make run`). Every run starts from a truncated
-# database. Two setup traps that silently invalidate a session:
-#
-#   1. `docker compose up -d --build` rebuilds the image but leaves the existing container on the old one.
-#      Use `docker compose --profile core up -d --force-recreate` and check the container's image id.
-#   2. A database that has ever carried another feature's migrations still carries its columns, and a wider
-#      `engine.workflows` is exactly the quantity the hot-path claim is about. The schema check below fails
-#      the session rather than measuring a contaminated table.
+# Requires k6, node, docker/podman and the engine stack (`make run`). Two setup traps:
+#   1. `docker compose up -d --build` leaves the existing container on the old image; use
+#      `--force-recreate` and check the image id.
+#   2. A database that ever carried another feature's migrations still carries its columns — the schema
+#      check fails the session rather than measuring a contaminated table.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
 RESULTS_DIR=${RESULTS_DIR:-.k6/results}      # where per-run summaries are written
-REPEATS=${REPEATS:-5}                        # runs per arm; 2 is the minimum that can gate, and the
-                                             # gate tightens as √n, so 5 is the shipped default
-DURATION=${DURATION:-3m}                     # per run. 3m rather than 2m because percentiles need
-                                             # observations: at 200/s a 3-minute run leaves p99 on ~360 of
-                                             # them against a 2-minute run's ~240
+REPEATS=${REPEATS:-5}                        # runs per arm; the gate tightens as √n
+DURATION=${DURATION:-3m}                     # 3m so p99 rests on ~360 observations, not ~240
 BASELINE_RATE=${BASELINE_RATE:-200}          # measured (non-mailbox) enqueues per second
 EXCHANGE_RATE=${EXCHANGE_RATE:-25}           # relay exchanges started per second in the storm arm
 BUFFER_RATE=${BUFFER_RATE:-25}               # deliveries/s into one mailbox, to the log-length cap
 EARLY_RATE=${EARLY_RATE:-5}                  # message-before-receiver exchanges per second
 CONTROL_RATE=${CONTROL_RATE:-55}             # ordinary workflows/s in the control arm. Only the
-                                             # seed: once a storm run exists this is re-derived from its
-                                             # measured impliedControlRate, and the comparator fails the
-                                             # comparison if the two drift apart
+                                             # seed; re-derived from measured impliedControlRate once a
+                                             # storm run exists
 CONTROL_SHAPE=${CONTROL_SHAPE:-webhook}      # what the gating control arm's extra workflows are:
-                                             # `webhook` (a receive workflow minus its mailbox block — an
-                                             # exact shape match) or `inproc` (an in-process step)
+                                             # `webhook` (a receive workflow minus its mailbox block) or
+                                             # `inproc` (an in-process step)
 CONTROL_REQ_RATE=${CONTROL_REQ_RATE:-0}      # >0 adds a REQUEST-matched control arm at that rate, on top
-                                             # of the workflow-matched one. A mailbox workload's
-                                             # request-to-workflow ratio is ~3.5:1 and an ordinary workload's
-                                             # is 1:1, so no single ordinary control matches both: the
-                                             # workflow-matched arm is an UPPER bound on the mechanism's cost
-                                             # and this one is a LOWER bound. Set it to the storm's total
-                                             # extra request rate; ~200 at the shipped configuration
+                                             # of the workflow-matched one. Mailbox request:workflow is
+                                             # ~3.5:1, so the workflow-matched arm is an UPPER bound on the
+                                             # mechanism's cost and this one a LOWER bound. ~200 at the
+                                             # shipped configuration
 CONTROL_INPROC=${CONTROL_INPROC:-0}          # 1 adds a SECOND control arm at CONTROL_SHAPE=inproc,
-                                             # compared for information only. Costs REPEATS more runs; it
-                                             # bounds how much the work *shape* alone can move the number
+                                             # compared for information only; bounds how much the work
+                                             # *shape* alone can move the number
 SKIP_CONTROL=${SKIP_CONTROL:-0}              # 1 drops the control arm (saves REPEATS runs)
 SKIP_LOW=${SKIP_LOW:-0}                      # 1 drops the single low-load run at the end
 WARMUP_DURATION=${WARMUP_DURATION:-30s}      # discarded first run; 0 to skip
 SWEEP_SCALE=${SWEEP_SCALE:-0}                # >0 seeds that many closed mailboxes AFTER every arm has
-                                             # run and prices the per-cadence scans against them, with a
-                                             # counterfactual. 0 skips it. The storm arms leave only ~5 000
-                                             # mailboxes, below the crossover where an index earns its place.
-                                             # 200000 is what the README's figures were measured at
+                                             # run and prices the per-cadence scans against them. The storm
+                                             # arms leave only ~5 000 mailboxes — below the index crossover.
+                                             # 200000 is what the README's figures used
 ENGINE_URL=${ENGINE_URL:-http://localhost:9090/api/v1/default}
 POSTGRES_CONTAINER=${POSTGRES_CONTAINER:-workflow-engine-postgres}
 POSTGRES_DB=${POSTGRES_DB:-workflow_engine}  # the database the engine under test is pointed at
 # `docker` is an alias for `podman` in some shells, and an alias does not survive into a script.
 CONTAINER_CLI=${CONTAINER_CLI:-$(command -v docker || command -v podman)}
 EXPECTED_EXEMPT_READS=${EXPECTED_EXEMPT_READS:-5}  # distinct READ statements that may mention a mailbox
-                                             # on a mailbox-free run. Each of the five is known: the deadline
-                                             # sweep's candidate scan, the overdue-mailboxes gauge, the two
-                                             # per-workflow reads that merely project mailbox_id, and this
-                                             # suite's own monitor. Pinned rather than left open, because a
-                                             # blanket read exemption would let a new unconditional mailbox
-                                             # read through in silence — the gauge is exactly that shape
+                                             # on a mailbox-free run; each of the five is known. Pinned
+                                             # because a blanket read exemption would let a new unconditional
+                                             # mailbox read through in silence
 
-# Size the load so BASELINE_RATE plus the storm's own work stays inside the engine's capacity: above roughly
-# three quarters of it every added workload stretches the tails, and the comparison stops being about this
+# Keep BASELINE_RATE plus the storm inside ~3/4 of engine capacity, or the tails stop being about this
 # feature.
 
 mkdir -p "$RESULTS_DIR"
 
-# The statement checks fail the session rather than only printing: a second unconditional mailbox statement
-# is the thing they exist to catch, so it must not be a line of output nobody's pipeline reads.
+# Statement-check failures fail the session, not just a line of output nobody's pipeline reads.
 statement_check_failed=0
 
 psql_engine() {
     "$CONTAINER_CLI" exec "$POSTGRES_CONTAINER" psql -q -U postgres -d "$POSTGRES_DB" "$@"
 }
 
-# `exec` without -i drops a heredoc on the floor silently, which is a seeding step that appears to succeed
-# and inserts nothing.
+# `exec` without -i silently drops a heredoc — a seeding step that appears to succeed and inserts nothing.
 psql_engine_stdin() {
     "$CONTAINER_CLI" exec -i "$POSTGRES_CONTAINER" psql -q -U postgres -d "$POSTGRES_DB" "$@"
 }
 
-# This script's own inspection queries land in pg_stat_statements too, and several name a mailbox table — so
-# without this marker the accounting below would bill the measurement to the feature.
+# Marks this script's own inspection queries so the accounting below does not bill them to the feature.
 INSPECT="/* k6-inspect */"   # placed AFTER the first keyword: a LEADING comment is stripped from
                              # the text pg_stat_statements records, so a prefix marker survives nowhere
 NOT_INSPECT="query !~ 'k6-inspect'"
 
 reset_db() {
-    # The three mailbox tables are named explicitly rather than left to the cascade: their foreign keys are
-    # ON DELETE RESTRICT, the only non-cascade FKs in the schema.
+    # The mailbox tables are named explicitly: their FKs are ON DELETE RESTRICT, so no cascade.
     psql_engine -c "SET lock_timeout='30s'; TRUNCATE engine.workflows, engine.steps, engine.workflow_dependency, engine.workflow_link, engine.workflow_collections, engine.idempotency_keys, engine.mailbox_deliveries, engine.mailbox_receivers, engine.mailboxes CASCADE" >/dev/null 2>&1
 }
 
@@ -112,17 +89,14 @@ reset_statement_stats() {
     psql_engine -c "SELECT pg_stat_statements_reset()" >/dev/null 2>&1
 }
 
-# pg_stat_statements is cluster-wide, so every query below is scoped to the database under test: a second
-# engine sharing the container would otherwise be counted as this run's traffic.
+# pg_stat_statements is cluster-wide; scope every query to the database under test.
 DB_SCOPE="dbid = (SELECT oid FROM pg_database WHERE datname = current_database())"
 
 # What names a mailbox: the three tables, or the one column the feature added to engine.workflows.
 MAILBOX_IDENTIFIERS="query ~* 'engine\.mailbox|mailbox_id'"
 
-# --- The schema check ---------------------------------------------------------------------------
-# The design's hot-path claim is "one nullable column on the enqueue COPY", which is a claim about the shape
-# of engine.workflows. Checked before a single number is measured, because a database carrying another
-# design's columns makes every row of every table below wrong in the same direction.
+# --- The schema check: the hot-path claim is about the shape of engine.workflows, so a database carrying
+# another design's columns is refused before a single number is measured -----------------------------
 assert_schema_is_this_trees() {
     local mailbox_columns foreign_columns
 
@@ -159,11 +133,8 @@ assert_schema_is_this_trees() {
     fi
 }
 
-# --- The edge check's positive control ------------------------------------------------------------
-# The storm-side edge check asserts that COPY engine.workflow_dependency and COPY engine.workflow_link never
-# run — but nothing in this suite creates an edge, so the check would read zero just as happily if the
-# statements were renamed or the filter mistyped. So enqueue one request that deliberately creates both edge
-# kinds first and confirm the check sees them.
+# --- The edge check's positive control: nothing in this suite creates an edge, so first prove the check
+# can see one at all — a zero that could not have been a one is not evidence ------------------------
 assert_edge_check_can_see_edges() {
     local dep_calls link_calls dep_rows link_rows status
 
@@ -201,20 +172,14 @@ assert_edge_check_can_see_edges() {
     reset_statement_stats
 }
 
-# --- The zero-statement check -------------------------------------------------------------------
-# The design's headline hot-path requirement is statement-level: after a run with no mailbox traffic, no
-# statement that writes or locks a mailbox should show a single call. Reads are exempt, but their count is
-# pinned (EXPECTED_EXEMPT_READS) so a future unconditional mailbox gauge cannot slip through in silence.
-#
-# Two exceptions are expected, both reported with their cost: the retention purge's mailbox candidate scan
-# (FOR UPDATE SKIP LOCKED, so a lock rather than a read — but gated on Retention.Interval, 2 hours by
-# default, so at any ordinary run length it is expected not to fire), and the enqueue path's bulk COPY
-# engine.workflows, which now names mailbox_id: not an extra statement, but one column wider.
+# --- The zero-statement check: after a mailbox-free run, no statement that writes or locks a mailbox may
+# show a call. Reads are exempt but counted (EXPECTED_EXEMPT_READS). Two expected exceptions, both
+# reported with their cost: the retention purge's candidate scan (a lock, but gated on the 2 h
+# Retention.Interval, so normally absent) and the enqueue COPY, now one column wider. -----------------
 assert_no_mailbox_writes() {
     local purge_filter gauge_filter copy_filter mutation known copied reads read_count read_list sweep gauge fetch unexpected
 
-    # pg_stat_statements normalizes literals to $N, so these filters are written against column names and
-    # clause structure rather than against the SQL's own strings.
+    # pg_stat_statements normalizes literals to $N, so the filters match column names and clause structure.
     purge_filter="regexp_replace(query, '\s+', ' ', 'g') LIKE 'SELECT m.id FROM engine.mailboxes m WHERE m.status = % AND m.disposed_at < %'"
     gauge_filter="regexp_replace(query, '\s+', ' ', 'g') LIKE 'SELECT count(*) FROM ( SELECT % FROM engine.mailboxes m WHERE m.status = % AND m.deadline <= %'"
     copy_filter="query ~* '^\s*COPY engine\.'"
@@ -259,10 +224,8 @@ assert_no_mailbox_writes() {
         FROM pg_stat_statements
         WHERE calls > 0 AND $DB_SCOPE AND $gauge_filter;" 2>/dev/null)
 
-    # The fetch gate's own profile, printed on both sides: the question is not whether this statement mentions a
-    # mailbox column (it does not, either way) but whether it gets dearer when mailboxes exist. Statement-name
-    # accounting cannot see a shared statement getting slower, and in the v2 design one did. This design creates
-    # no edges, so the prediction is that the two numbers agree.
+    # The fetch gate's profile, printed on both sides: statement-name accounting cannot see a shared
+    # statement getting dearer, and in v2 one demonstrably did.
     fetch=$(psql_engine -tAc "SELECT $INSPECT calls || ' calls, ' || round(mean_exec_time::numeric, 3) || ' ms mean'
         FROM pg_stat_statements
         WHERE calls > 0 AND $DB_SCOPE
@@ -307,8 +270,7 @@ assert_no_mailbox_writes() {
     fi
 }
 
-# --- The storm-side checks ----------------------------------------------------------------------
-# Three claims only a storm run can settle.
+# --- The storm-side checks: three claims only a storm run can settle ------------------------------
 assert_storm_side_claims() {
     local fetch contaminated dep_calls link_calls dep_rows link_rows per_message total_ms receivers deliveries
 
@@ -335,8 +297,8 @@ assert_storm_side_claims() {
         statement_check_failed=1
     fi
 
-    # The design's headline per-message claim, in its falsifiable form: a processed message costs one workflow
-    # with no dependency edge and no link edges. Both the statements and the rows are checked.
+    # The headline per-message claim, falsifiably: one workflow, no dependency or link edges. Statements
+    # and rows both, since either alone could be explained away.
     dep_calls=$(psql_engine -tAc "SELECT COALESCE(sum(calls), 0) FROM pg_stat_statements WHERE $DB_SCOPE AND query ~* 'COPY engine\.workflow_dependency';" 2>/dev/null)
     link_calls=$(psql_engine -tAc "SELECT COALESCE(sum(calls), 0) FROM pg_stat_statements WHERE $DB_SCOPE AND query ~* 'COPY engine\.workflow_link';" 2>/dev/null)
     dep_rows=$(psql_engine -tAc "SELECT $INSPECT count(*) FROM engine.workflow_dependency;" 2>/dev/null)
@@ -353,10 +315,9 @@ assert_storm_side_claims() {
         statement_check_failed=1
     fi
 
-    # Per-message statement accounting, with its limit stated rather than implied: it can only see statements
-    # the feature *names*, so it says nothing about a shared statement getting dearer — the fetch-gate
-    # comparison above covers that half. The two lists are split because `mailbox_id` on engine.workflows
-    # makes the ordinary status and enqueue reads mention a mailbox without being new statements.
+    # Per-message statement accounting. It only sees statements the feature *names* — the fetch-gate
+    # comparison covers shared statements — and the projection-only reads are listed apart because
+    # `mailbox_id` makes them mention a mailbox without being new.
     receivers=$(psql_engine -tAc "SELECT $INSPECT count(*) FROM engine.mailbox_receivers;" 2>/dev/null)
     deliveries=$(psql_engine -tAc "SELECT $INSPECT count(*) FROM engine.mailbox_deliveries;" 2>/dev/null)
 
@@ -394,8 +355,7 @@ assert_storm_side_claims() {
         ORDER BY calls * mean_exec_time DESC
         LIMIT 10;" 2>/dev/null | sed 's/^/      /'
 
-    # The sweep's per-cadence scan, priced rather than asserted. EXPLAIN runs the statement the sweep issues
-    # against the table the storm just filled.
+    # The sweep's per-cadence scan, priced by EXPLAIN against the table the storm just filled.
     echo
     echo "--- deadline sweep scan (after a storm run) — the plan's 'one indexed scan per cadence'"
     echo "    mailboxes in the table: $(psql_engine -tAc "SELECT $INSPECT count(*) FROM engine.mailboxes;" 2>/dev/null) ($(psql_engine -tAc "SELECT $INSPECT count(*) FROM engine.mailboxes WHERE status='open';" 2>/dev/null) open)"
@@ -411,12 +371,9 @@ assert_storm_side_claims() {
         ORDER BY m.disposed_at LIMIT 100 FOR UPDATE SKIP LOCKED;" 2>/dev/null | sed 's/^/      /'
 }
 
-# --- The per-cadence scans, priced at a realistic table size ---------------------------------------
-# The storm arms leave ~5 000 mailboxes behind. Both per-cadence scans are ORDER BY … LIMIT, where an index
-# only earns its place by stopping early, and step 5a put the crossover near 5 000–10 000 rows. So this
-# seeds a realistic retained population and prices the scans against it, taking the counterfactual by
-# disabling index scans for the statement rather than by dropping an index. It runs after every arm and
-# truncates when it is done.
+# --- The per-cadence scans, priced at a realistic table size: the storm leaves ~5 000 mailboxes, below
+# the crossover where the index earns its place, so seed a retained population and take the
+# counterfactual by disabling index scans (dropping one is destructive). Runs after every arm. -------
 measure_sweep_scans_at_scale() {
     [ "$SWEEP_SCALE" != "0" ] || return 0
 
@@ -461,8 +418,7 @@ SQL
         psql_engine -tAc "BEGIN; SET LOCAL enable_indexscan = off; SET LOCAL enable_indexonlyscan = off; SET LOCAL enable_bitmapscan = off; EXPLAIN (ANALYZE, BUFFERS, COSTS OFF, TIMING OFF, SUMMARY OFF) $query; ROLLBACK;" 2>/dev/null | sed 's/^/        /'
     }
 
-    # The sweep's two cases are reported apart: an empty tick is what it does on essentially every cadence, and
-    # quoting that as "the sweep's cost" would be quoting the cheap case.
+    # The empty tick and the tick with work are different questions; quote both.
     explain_both "deadline sweep candidates — 5 overdue (a tick WITH work)" \
         "SELECT $INSPECT m.id FROM engine.mailboxes m WHERE m.status = 'open' AND m.deadline <= now() ORDER BY m.deadline LIMIT 100"
 
@@ -482,12 +438,9 @@ SQL
     reset_db
 }
 
-# --- The fetch gate, sampled every run rather than once ------------------------------------------
-# The fetch gate feeds every worker and mentions no mailbox column in any arm, so the only way it can get
-# dearer is as a shared statement — which statement-name accounting cannot see, and which one v2 statement
-# demonstrably did (+58% under storm). One matched pair is not enough here: two mailbox-free runs of this
-# suite came out at 0.063 ms and 0.150 ms. So the mean is sampled after every run of every arm and reported
-# with the within-arm spread, which puts a noise floor under the claim.
+# --- The fetch gate, sampled every run: it mentions no mailbox column, so it can only get dearer as a
+# shared statement. Two mailbox-free runs came out 0.063 ms vs 0.150 ms, so one matched pair is not
+# enough — the mean is reported with its within-arm spread. ------------------------------------------
 FETCH_CSV="$RESULTS_DIR/fetch-gate.csv"
 
 sample_fetch_gate() {
@@ -520,9 +473,8 @@ report_fetch_gate() {
     echo "  a measurement. Raw samples are in $FETCH_CSV."
 }
 
-# The control arm has to add the same number of workflow executions the storm's receivers are, or the gating
-# comparison measures provisioning rather than the feature. Every storm summary reports what its own
-# configuration implied, so the rate comes from measurement rather than a constant.
+# The control arm must add the same workflow count the storm's receivers do, or the gate measures
+# provisioning. The rate comes from the storm summaries' own impliedControlRate.
 derive_control_rate() {
     local derived
     derived=$(node -e '
@@ -547,8 +499,7 @@ run_mode() {
     local duration=$3
     shift 3
     echo "--- k6 run: mode=$mode$tag duration=$duration"
-    # k6 exits 99 when an in-run threshold breaks, which is exactly the run whose numbers are worth comparing.
-    # The comparator is the judge; a non-zero exit here must not abort the session.
+    # k6 exits 99 on an in-run threshold break — exactly the run worth comparing. The comparator judges.
     k6 run .k6/mailbox-storm.js \
         -e "MODE=$mode" \
         -e "RUN_TAG=$tag" \
@@ -578,21 +529,17 @@ fi
 
 : > "$FETCH_CSV"
 
-# Clear the arm summaries a previous session left behind: `derive_control_rate` averages
-# `impliedControlRate` over every storm-*.json here, and a stale summary from a different feature's suite
-# silently pushed this one's control rate from 55/s to 103/s.
+# Stale summaries poison derive_control_rate's average (observed: 55/s silently became 103/s).
 rm -f "$RESULTS_DIR"/baseline-*.json "$RESULTS_DIR"/storm-*.json "$RESULTS_DIR"/control-*.json \
       "$RESULTS_DIR"/low.json
 
 arms=(baseline storm)
 [ "$SKIP_CONTROL" != "1" ] && arms+=(control)
-# The second control arm rides the same rotation rather than running as a block at the end: it is a fourth
-# position in the session's drift, not an afterthought appended to it.
+# The second control arm rides the same rotation — a fourth position in the drift, not an appendix.
 [ "$SKIP_CONTROL" != "1" ] && [ "$CONTROL_INPROC" = "1" ] && arms+=(control_inproc)
 [ "$SKIP_CONTROL" != "1" ] && [ "$CONTROL_REQ_RATE" != "0" ] && arms+=(control_req)
 
-# Discarded warm-up: a fresh stack pays for cold JIT, an empty plan cache and an unwarmed buffer pool, which
-# would otherwise land entirely on whichever arm runs first.
+# Discarded warm-up, so cold JIT/plan cache/buffer pool does not land on whichever arm runs first.
 if [ "$WARMUP_DURATION" != "0" ]; then
     reset_db
     run_mode baseline -warmup "$WARMUP_DURATION" "$@" >/dev/null 2>&1
@@ -600,7 +547,7 @@ if [ "$WARMUP_DURATION" != "0" ]; then
 fi
 
 for repeat in $(seq 1 "$REPEATS"); do
-    # Rotate the arm order every repeat so no arm keeps the same position in the session's drift.
+    # Rotate the arm order every repeat.
     count=${#arms[@]}
     for offset in $(seq 0 $((count - 1))); do
         arm=${arms[$(((offset + repeat - 1) % count))]}
@@ -609,23 +556,20 @@ for repeat in $(seq 1 "$REPEATS"); do
         case "$arm" in
             control | control_inproc) derive_control_rate ;;
         esac
-        # Reset before every run, not only the two that carry a statement check: the fetch-gate sample below is
-        # per-run, and a statistic accumulated across several runs is not one.
+        # Reset before every run: the fetch-gate sample is per-run.
         reset_statement_stats
 
-        # Both control arms run MODE=control and differ only in CONTROL_SHAPE; the run tag keeps their summaries
-        # apart (control-N.json against control-inproc-N.json).
+        # Both control arms run MODE=control; the run tag keeps their summaries apart.
         if [ "$arm" = "control_inproc" ]; then
             run_mode control "-inproc-$repeat" "$DURATION" -e CONTROL_SHAPE=inproc "$@"
             sample_fetch_gate control_inproc
             continue
         fi
 
-        # The request-matched arm differs only in its rate, which is deliberately NOT the derived one — matching
-        # requests means not matching workflows, and the comparator's provisioning row will say so.
+        # Deliberately NOT the derived rate: matching requests means not matching workflows, and the
+        # comparator's provisioning row will say so.
         if [ "$arm" = "control_req" ]; then
-            # Swap the rate around the call rather than passing a second -e CONTROL_RATE: k6's handling of a
-            # repeated -e key is not something this suite should depend on.
+            # Swapped around the call: k6's handling of a repeated -e key is not something to depend on.
             saved_control_rate=$CONTROL_RATE
             CONTROL_RATE=$CONTROL_REQ_RATE
             run_mode control "-req-$repeat" "$DURATION" -e "CONTROL_SHAPE=$CONTROL_SHAPE" "$@"
@@ -637,8 +581,8 @@ for repeat in $(seq 1 "$REPEATS"); do
         run_mode "$arm" "-$repeat" "$DURATION" -e "CONTROL_SHAPE=$CONTROL_SHAPE" "$@"
         sample_fetch_gate "$arm"
 
-        # One mailbox-free run settles the zero-statement claim and one storm run settles the rest. Both read the
-        # statement stats reset immediately before that run, so each check sees exactly one run's traffic.
+        # One mailbox-free run settles the zero-statement claim, one storm run the rest; the stats were reset
+        # just before each, so each check sees one run's traffic.
         if [ "$repeat" = "1" ] && [ "$arm" = "baseline" ]; then
             assert_no_mailbox_writes
         fi
@@ -672,17 +616,15 @@ if [ "$SKIP_CONTROL" != "1" ]; then
     node .k6/lib/compare-summaries.mjs --ungate-latency "$(join_runs baseline)" "$(join_runs control)" || true
 
     if [ "$CONTROL_INPROC" = "1" ]; then
-        # Information only, and its exit code is deliberately discarded: if the in-process and webhook-shaped
-        # controls land close together, the work shape's contribution to any storm difference is bounded by that
-        # gap.
+        # Information only: if inproc and webhook controls land close, the work shape's contribution to any
+        # storm difference is bounded by that gap.
         echo
         echo "===== secondary (NOT the gate) — how much the control's work SHAPE moves the number ====="
         echo "same workflow count, an in-process step instead of a webhook: the bracket on shape"
         node .k6/lib/compare-summaries.mjs "$(join_runs control)" "$(join_runs control-inproc)" || true
     fi
 
-    # The gate, when a control arm exists: the two arms do the same amount of engine work, so what separates
-    # them is what mailboxes cost as a mechanism. Baseline-vs-storm cannot be the gate on its own.
+    # The gate: same engine work in both arms, so the difference is what mailboxes cost as a mechanism.
     echo
     echo "=========== GATE — mailbox work vs equivalent ordinary work ($CONTROL_SHAPE-shaped control) ==========="
     echo "same engine work on both sides; a difference here is the feature's own cost"
@@ -691,8 +633,8 @@ if [ "$SKIP_CONTROL" != "1" ]; then
 fi
 
 if [ "$SKIP_CONTROL" != "1" ] && [ "$CONTROL_REQ_RATE" != "0" ]; then
-    # Information only, and its provisioning row is expected to fail: this arm matches the storm's REQUEST rate
-    # rather than its workflow count, so its Δ is a lower bound where the gate above is an upper bound.
+    # Information only; its provisioning row is expected to fail. Its Δ is a lower bound where the gate is
+    # an upper bound.
     echo
     echo "===== bracket (NOT the gate) — mailbox work vs REQUEST-matched ordinary work ====="
     echo "same requests/s on both sides, but ~3.5x the workflows on the control side: a LOWER bound"
@@ -703,8 +645,7 @@ measure_sweep_scans_at_scale
 
 report_fetch_gate
 
-# Per-hop latency at batch size 1, with a single ordinary enqueue beside it as the yardstick: the gate
-# reports what the mechanism costs the ordinary path, and this reports what each app call costs the app.
+# Per-hop latency at batch size 1: what each app call costs the app, which the gate cannot say.
 if [ "$SKIP_LOW" != "1" ]; then
     echo
     echo "===================== per-hop latency at idle ====================="

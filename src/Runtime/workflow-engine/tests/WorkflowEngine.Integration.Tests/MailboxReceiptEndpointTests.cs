@@ -7,10 +7,8 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Covers what a receive workflow's first step is actually handed by a live engine, and — the point of the step
-/// — that it is handed the same thing on every attempt. The three ways a receiver becomes runnable each get an
-/// end-to-end test, and then the same receivers are made to fail and run again, retryably and terminally. In
-/// between, the mailbox is closed underneath a receiver that already has its message.
+/// Covers what a receive workflow's first step is handed by a live engine — and that every attempt, retry
+/// and resume is handed the same thing.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
 public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
@@ -72,8 +70,6 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_WokenByItsDelivery_IsHandedThatMessage()
     {
-        // A released receiver used to run its steps with nothing to say for the message that released it; now the
-        // message is what its first step is called with.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id, "woken");
 
@@ -91,8 +87,6 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_BornOntoABacklogDelivery_IsHandedThatMessage()
     {
-        // The early-reply case, common whenever the external system is fast: the message is already in the log
-        // when the app enqueues the receiver for it. The receiver never parks and still gets its message.
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1", payload: """{"status":"confirmed"}""");
 
@@ -108,8 +102,6 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_ReleasedByAClose_IsHandedTheClosingSignalAndItsReason()
     {
-        // The exchange ending without a reply. The handler is called — that is the whole design: the app
-        // concludes in its own words rather than the engine writing a status.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id, "closed");
 
@@ -131,8 +123,6 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_ThatFailsAndRetries_ReadsTheSameMessageOnEveryAttempt()
     {
-        // Three executions of one step, driven by the engine's own retry ladder. The message is not carried
-        // between them — each attempt re-reads the log.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id, "retried", succeedOnAttempt: 3);
 
@@ -148,10 +138,8 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_WhoseMailboxClosesBetweenAttempts_StillReadsItsMessage()
     {
-        // The sharp case: between the failing attempt and the successful one the mailbox is closed, which a naive
-        // implementation would read as "no message will come" while the message is already at this receiver's
-        // position. The retry delay is deliberately long relative to the 50 ms poll below — at the default
-        // 100 ms the close can land after the second attempt, and the test would pass without exercising it.
+        // The retry delay is deliberately long relative to the 50 ms poll below: at the default 100 ms the
+        // close can land after the second attempt, and the test would pass without exercising its scenario.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(
             mailbox.Id,
@@ -177,8 +165,6 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_ThatFailedTerminallyAndIsResumed_ReadsTheSameMessageAfterTheResume()
     {
-        // A resume is the long way round: the workflow settled Failed and the step runs again from a cold start
-        // with nothing in memory, re-deriving the callback from the log.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id, "resumed", succeedOnAttempt: 2, failCritically: true);
 
@@ -199,8 +185,6 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     [Fact]
     public async Task Receiver_ThatFailedOnTheClosingSignal_ReadsTheSameClosingSignalAfterAResume()
     {
-        // The mirror, and it needs no external event: a closed mailbox refuses every further delivery, so the
-        // receiver that concluded "nothing is coming" cannot be contradicted while it is failed.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id, "closed-resumed", succeedOnAttempt: 2, failCritically: true);
 

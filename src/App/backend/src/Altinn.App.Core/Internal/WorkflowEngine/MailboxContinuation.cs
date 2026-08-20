@@ -1,11 +1,9 @@
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// What the mailbox relay must do next, as decided by the reply handler that just ran. A closed set of exactly
-/// two answers, and the type is where saga invariant 2 — <em>at most one execution concludes</em> — is made
-/// structural: <see cref="AwaitNextMessage"/> carries no way to express a closure and <see cref="Conclude"/>
-/// carries no way to express a successor, so no verdict can produce a value that means both. The constructor is
-/// private to this type, so a third answer cannot be added from outside this file.
+/// What the relay does next — a closed set of exactly two answers, which is where "at most one execution
+/// concludes" is made structural: neither member can express the other's action, and the private
+/// constructor keeps the set closed.
 /// </summary>
 internal abstract record MailboxContinuation
 {
@@ -17,10 +15,7 @@ internal abstract record MailboxContinuation
     /// <summary>The mailbox the exchange runs on.</summary>
     public Guid MailboxId { get; }
 
-    /// <summary>
-    /// The handler answered <c>AwaitNextReply</c>: enqueue the receiver for the exchange's next
-    /// message. Nothing is closed and nothing downstream is started.
-    /// </summary>
+    /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
         public AwaitNextMessage(Guid mailboxId, string serviceTaskType, long position)
@@ -30,15 +25,12 @@ internal abstract record MailboxContinuation
             Position = position;
         }
 
-        /// <summary>
-        /// The service task whose pipeline conclusion is the reply handler — the one step the
-        /// successor receiver runs.
-        /// </summary>
+        /// <summary>The service task whose pipeline conclusion is the reply handler.</summary>
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// The position the handler just answered. Used to name the successor for operators; the successor's own
-        /// position is assigned by the engine, never predicted here.
+        /// The position the handler just answered — names the successor for operators; the successor's own
+        /// position is the engine's to assign.
         /// </summary>
         public long Position { get; }
     }

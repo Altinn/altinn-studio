@@ -39,11 +39,9 @@ public sealed record AppCallbackPayload
     public required Guid WorkflowId { get; init; }
 
     /// <summary>
-    /// On a mailbox receive workflow's first step: the rendezvous this step was created to consume — the message
-    /// standing at the step's position, or the fact that none can ever stand there. <c>null</c> on every ordinary
-    /// callback. The engine reads it from its deliveries log at the start of each attempt, and whether a message
-    /// stands at the position is settled before the step can first run — which is what lets a handler treat an
-    /// absent <see cref="AppCallbackMailbox.Delivery"/> as an instruction rather than as a gap.
+    /// On a receive workflow's first step: the rendezvous this step consumes. <c>null</c> on every ordinary
+    /// callback. Read from the deliveries log per attempt, and settled before the step can first run — so an
+    /// absent <see cref="AppCallbackMailbox.Delivery"/> is an instruction, not a gap.
     /// </summary>
     [JsonPropertyName("mailbox")]
     public AppCallbackMailbox? Mailbox { get; init; }
@@ -112,32 +110,23 @@ public sealed record AppCallbackPayload
 /// </summary>
 public sealed record AppCallbackMailbox
 {
-    /// <summary>
-    /// The mailbox this step receives from — the reply address the app published when it opened the
-    /// exchange, and what the relay addresses to enqueue the next receiver or to close the mailbox.
-    /// </summary>
+    /// <summary>The reply address the app published — what the relay enqueues against or closes.</summary>
     [JsonPropertyName("id")]
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The step's position in the mailbox's receivers log: the first receiver of an exchange holds
-    /// <c>0</c>, the one its handler asks for next holds <c>1</c>, and so on. The message at
-    /// <see cref="Delivery"/> is the one delivered at this same position.
+    /// The step's position in the receivers log; <see cref="Delivery"/> is the message at this same position.
     /// </summary>
     [JsonPropertyName("seq")]
     public required long Seq { get; init; }
 
-    /// <summary>
-    /// The message standing at <see cref="Seq"/>, or <c>null</c> exactly when the mailbox closed
-    /// without one ever arriving there.
-    /// </summary>
+    /// <summary>The message at <see cref="Seq"/>, or <c>null</c> exactly when the mailbox closed without one.</summary>
     [JsonPropertyName("delivery")]
     public AppCallbackMailboxDelivery? Delivery { get; init; }
 
     /// <summary>
-    /// Why the mailbox closed, on a callback carrying no delivery; <c>null</c> whenever
-    /// <see cref="Delivery"/> is present. For the conclusion's wording only — both reasons demand
-    /// the same response.
+    /// Why the mailbox closed, when no delivery is present. Wording only — both reasons demand the same
+    /// response.
     /// </summary>
     [JsonPropertyName("disposedReason")]
     public MailboxDisposedReason? DisposedReason { get; init; }
@@ -147,8 +136,7 @@ public sealed record AppCallbackMailbox
 public sealed record AppCallbackMailboxDelivery
 {
     /// <summary>
-    /// The key the message was accepted under — the forwarding source's own message id. Stable across
-    /// every attempt of this step, so a handler may deduplicate its own side effects on it.
+    /// The forwarding source's own message id — stable across attempts, so a handler may deduplicate on it.
     /// </summary>
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
@@ -157,10 +145,7 @@ public sealed record AppCallbackMailboxDelivery
     [JsonPropertyName("payload")]
     public required string Payload { get; init; }
 
-    /// <summary>
-    /// When the engine accepted the message — the instant it became durable, not the instant this
-    /// step read it. On an early delivery the two can be far apart.
-    /// </summary>
+    /// <summary>When the engine accepted the message — not when this step read it.</summary>
     [JsonPropertyName("acceptedAt")]
     public required DateTimeOffset AcceptedAt { get; init; }
 }

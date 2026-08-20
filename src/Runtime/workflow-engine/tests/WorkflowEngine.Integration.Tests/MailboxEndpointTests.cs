@@ -51,8 +51,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         Assert.Equal(MailboxStatus.Open, mailbox.Status);
         Assert.Equal(mailbox.CreatedAt + mailbox.Timeout, mailbox.Deadline, TimeSpan.FromMilliseconds(1));
 
-        // The Location header points at the mailbox's own address, which is also the reply address the caller
-        // embeds in its outbound message.
         Assert.Equal(
             $"/api/v1/{EngineApiClient.DefaultNamespace}/mailboxes/{mailbox.Id}",
             response.Headers.Location?.ToString()
@@ -64,7 +62,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     {
         var first = await _client.MintMailbox("step-1", TimeSpan.FromDays(2));
 
-        // A retried step replays the same key, and may well ask for a different timeout.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest { IdempotencyKey = "step-1", Timeout = TimeSpan.FromDays(5) }
         );
@@ -92,8 +89,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_TimeoutAboveTheCap_Returns400()
     {
-        // The cap exists because the deadline bounds how long a receive workflow may park on a callback token
-        // that never refreshes; a mint asking past it is refused rather than clamped.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest { IdempotencyKey = "step-1", Timeout = TimeSpan.FromDays(9999) }
         );
@@ -112,9 +107,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_OverLongIdempotencyKey_Returns400()
     {
-        // Both keys are varchar(200). Length has to be caught before the mint reaches the database, because
-        // Postgres answers an over-long value with SQLSTATE 22001, which the retry classifier reads as
-        // transient — so a caller's typo would be retried until the command timeout.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest { IdempotencyKey = new string('k', 201), Timeout = TimeSpan.FromHours(1) }
         );
@@ -140,8 +132,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_EmptyCollectionKey_Returns400()
     {
-        // An empty collection key is rejected rather than accepted as its own cap bucket, matching how the
-        // enqueue endpoint treats a whitespace collection key.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest
             {
@@ -157,8 +147,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_CollectionAtItsCap_Returns429()
     {
-        // Fill one collection to the configured cap. The bound is aggregate: it is what stops a single instance's
-        // exchanges from consuming the engine without limit, which no per-exchange cap can do.
         var cap = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value.MaxOpenMailboxesPerCollection;
         for (int i = 0; i < cap; i++)
             await _client.MintMailbox($"step-{i}", TimeSpan.FromHours(1), collectionKey: "full-instance");
@@ -174,7 +162,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
 
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
 
-        // A different collection is unaffected — the budget is per collection, not per namespace.
         await _client.MintMailbox("elsewhere", TimeSpan.FromHours(1), collectionKey: "other-instance");
     }
 
@@ -205,16 +192,14 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         Assert.Equal(0L, read.NextIdx);
         Assert.Equal(0L, read.NextSeq);
 
-        // Zero because both logs are empty, not because the field is stubbed.
         Assert.Equal(0L, read.UnconsumedDeliveries);
     }
 
     [Fact]
     public async Task GetMailbox_EmitsUnconsumedDeliveriesOnTheWire()
     {
-        // Asserted against the raw JSON on purpose. UnconsumedDeliveries is a computed get-only property,
-        // so a typed round-trip recomputes it client-side from the two counters and would pass even if the
-        // server never emitted the field at all — which would leave consumers reading nothing.
+        // Asserted against the raw JSON: UnconsumedDeliveries is a computed get-only property, so a typed
+        // round-trip recomputes it client-side and would pass even if the server never emitted the field.
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
         using var response = await _client.GetMailboxRaw(minted.Id);
@@ -231,10 +216,8 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task GetMailbox_UnknownIdOrForeignNamespace_Returns404()
     {
-        // Arrange
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
-        // Act + Assert
         using var unknown = await _client.GetMailboxRaw(Guid.CreateVersion7());
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
 
@@ -249,14 +232,10 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task CloseMailbox_OpenMailbox_Returns202WithTheDisposal()
     {
-        // Arrange
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
-        // Act
         using var response = await _client.CloseMailboxRaw(minted.Id);
 
-        // 202 is the engine's marker for "this call effected the state change", the same distinction the mint
-        // draws between 201 and 200.
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         var closed = await response.Content.ReadFromJsonAsync<MailboxResponse>(TestContext.Current.CancellationToken);
@@ -274,7 +253,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
 
         using var response = await _client.CloseMailboxRaw(minted.Id);
 
-        // The repeat changed nothing, so it answers 200 rather than 202, and reports the original disposal.
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var repeat = await response.Content.ReadFromJsonAsync<MailboxResponse>(TestContext.Current.CancellationToken);
@@ -289,10 +267,8 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
         await _client.CloseMailbox(minted.Id);
 
-        // Act
         var read = await _client.GetMailbox(minted.Id);
 
-        // Closure is terminal and the row stays readable; nothing purges it here.
         Assert.NotNull(read);
         Assert.Equal(MailboxStatus.Disposed, read.Status);
     }
@@ -302,7 +278,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     {
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
-        // Act + Assert
         using var unknown = await _client.CloseMailboxRaw(Guid.CreateVersion7());
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
 
@@ -328,8 +303,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         await _client.CloseMailbox(minted.Id);
         await _client.CloseMailbox(minted.Id);
 
-        // One mailbox came into existence and one closed, whatever the number of calls. Counting replays would
-        // make the two counters describe request volume instead of exchange lifecycle.
         Assert.Equal(1, collector.GetCounterTotal("engine.mailboxes.created"));
 
         var closures = collector.GetMeasurements("engine.mailboxes.closed");

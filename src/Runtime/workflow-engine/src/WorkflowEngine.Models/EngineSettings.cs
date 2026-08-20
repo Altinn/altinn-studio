@@ -119,57 +119,41 @@ public sealed record EngineSettings
     [JsonPropertyName("minStepDeferDelay")]
     public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
 
-    /// <summary>
-    /// The largest timeout a caller may request when minting a mailbox. The engine stamps the mailbox's absolute
-    /// deadline as <c>now + timeout</c> at mint, so this is the longest a single exchange can stay open.
-    /// </summary>
+    /// <summary>The largest timeout a mint may request — the longest a single exchange can stay open.</summary>
     /// <remarks>
-    /// It is a term in the callback-token lifetime bound: a receive workflow parks on a token minted at its own
-    /// enqueue, so that token must outlive the park (this cap), the closure sweep's coarseness
-    /// (<see cref="MailboxSweepInterval"/>), the released receiver's own wait
-    /// (<see cref="MaxStepWaitBudget"/>), a resume at the terminal-retention edge
-    /// (<see cref="RetentionSettings.RetentionPeriod"/>) with its own full wait, and the final retry ladder.
-    /// <c>CallbackTokenLifetimeInvariantTests</c> pins that arithmetic against the operator's app-code rotation
-    /// policy, so raising this cap — or the wait budget, or retention — fails loudly.
+    /// A term in the callback-token lifetime bound: the token minted at a receiver's enqueue must outlive the
+    /// park, the sweep's coarseness, the wait budgets, retention and the retry ladder.
+    /// <c>CallbackTokenLifetimeInvariantTests</c> pins that arithmetic, so raising this fails loudly.
     /// </remarks>
     [JsonPropertyName("maxMailboxTimeout")]
     public TimeSpan MaxMailboxTimeout { get; set; } = TimeSpan.FromDays(21);
 
     /// <summary>
-    /// The number of simultaneously open mailboxes a single workflow collection should hold, as a best-effort
-    /// resource guard. A mint that would exceed it is rejected with <c>429 Too Many Requests</c> rather than
-    /// closing something, because the engine cannot know which exchange the app considers finished.
+    /// Best-effort cap on simultaneously open mailboxes per collection; an exceeding mint is refused with
+    /// <c>429</c> rather than something being closed.
     /// </summary>
     /// <remarks>
-    /// Not an exact bound: the count is evaluated against the mint statement's own snapshot, so concurrent mints
-    /// can each see room and the collection can settle by at most one per in-flight mint above this number. Making
-    /// it exact would mean serializing every mint behind a lock. The cap is scoped to a collection, so it does not
-    /// apply to a mailbox minted without a <c>collectionKey</c>.
+    /// Not exact: the count reads the mint statement's own snapshot, so concurrent mints can overshoot by at
+    /// most one each. A mailbox minted without a <c>collectionKey</c> is not capped.
     /// </remarks>
     [JsonPropertyName("maxOpenMailboxesPerCollection")]
     public int MaxOpenMailboxesPerCollection { get; set; } = 100;
 
     /// <summary>
-    /// The largest delivery payload, in bytes, a mailbox accepts. A delivery above this is refused with
-    /// <c>413 Content Too Large</c> and nothing is stored.
+    /// The largest delivery payload in UTF-8 bytes; larger is refused with <c>413</c> and nothing is stored.
     /// </summary>
     /// <remarks>
-    /// Measured on the UTF-8 bytes the caller sent, so the number in the error message is actionable. Large
-    /// content belongs in storage with the delivery carrying a reference: the payload is read back on every
-    /// attempt of the receiving workflow and kept until retention purges its mailbox.
+    /// Large content belongs in storage with the delivery carrying a reference: the payload is read back on
+    /// every attempt and kept until retention.
     /// </remarks>
     [JsonPropertyName("maxMailboxPayloadSize")]
     public int MaxMailboxPayloadSize { get; set; } = 256 * 1024;
 
-    /// <summary>
-    /// The most positions a mailbox's logs may hold. A delivery past it is refused with
-    /// <c>429 Too Many Requests</c>, leaving the exchange to conclude on the messages it already has.
-    /// </summary>
+    /// <summary>The most positions a mailbox's logs may hold; a delivery past it is refused with <c>429</c>.</summary>
     /// <remarks>
-    /// The only bound on how much a single mailbox can cost. Deliveries deliberately skip the admission check an
-    /// ordinary enqueue must pass, so without a cap one misbehaving counterparty could fill a mailbox without
-    /// limit. It bounds both logs, which are two views of the same exchange: delivery ingestion applies it to the
-    /// deliveries log, and the receiver-enqueue path applies the same number to the receivers log.
+    /// The only bound on one mailbox's cost — deliveries skip the ordinary admission check, so without it one
+    /// counterparty could fill a mailbox without limit. Applied to both logs: they are two views of one
+    /// exchange.
     /// </remarks>
     [JsonPropertyName("maxMailboxLogLength")]
     public int MaxMailboxLogLength { get; set; } = 100;
@@ -227,17 +211,14 @@ public sealed record EngineSettings
     public TimeSpan MaintenanceInterval { get; set; }
 
     /// <summary>
-    /// Interval at which the mailbox closure sweep looks for open mailboxes whose deadline has passed and closes
-    /// them. Deliberately coarser than <see cref="MaintenanceInterval"/>: a mailbox deadline is a day-scale
-    /// promise, and every tick with nothing overdue is one indexed scan.
+    /// Interval of the mailbox closure sweep, deliberately coarser than <see cref="MaintenanceInterval"/>:
+    /// a deadline is a day-scale promise, and a quiet tick is one indexed scan.
     /// </summary>
     /// <remarks>
-    /// It is a term in the callback-token lifetime bound — a receiver parks until the mailbox actually closes,
-    /// which is its deadline plus at most one of these intervals — so it is charged in the derivation on
-    /// <see cref="MaxMailboxTimeout"/> and pinned by <c>CallbackTokenLifetimeInvariantTests</c>. The default lives
-    /// in <c>Defaults.EngineSettings</c> only, and this property deliberately carries no initializer: the
-    /// normalizer reaches for <c>Defaults</c> only when the value is non-positive, so an initializer here would
-    /// leave the tripwire guarding a number the engine had stopped using.
+    /// A term in the token-lifetime bound (a receiver parks until deadline plus at most one interval), pinned
+    /// by <c>CallbackTokenLifetimeInvariantTests</c>. Deliberately no initializer: the default lives in
+    /// <c>Defaults.EngineSettings</c> alone, and an initializer here would win over it and leave the tripwire
+    /// guarding a number nothing uses.
     /// </remarks>
     [JsonPropertyName("mailboxSweepInterval")]
     public TimeSpan MailboxSweepInterval { get; set; }

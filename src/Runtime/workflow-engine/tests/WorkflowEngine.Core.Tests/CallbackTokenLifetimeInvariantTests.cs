@@ -4,42 +4,23 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Tripwire for the cross-component invariant that bounds how long the engine may keep a workflow alive:
-/// AppCommand callback tokens are minted once at enqueue and never refresh, so every callback the engine will
-/// ever make has to happen inside the signing app-code's remaining validity.
+/// Tripwire for the token-lifetime bound: callback tokens are minted once at enqueue and never refresh, so a
+/// receive workflow's worst-case lifetime must fit inside the signing app-code's guaranteed remaining validity
+/// (operator rotation policy in <c>src/Runtime/operator/internal/controller/appcodesync/controller.go</c>:
+/// 186d acceptance − 72d rotation = 114d). Raising the wait budget, the mailbox timeout or retention past the
+/// floor would otherwise surface only as receivers failing to authenticate weeks after enqueue.
 /// </summary>
-/// <remarks>
-/// The engine cannot read that validity — it is a property of the operator's app-code rotation policy in
-/// <c>src/Runtime/operator/internal/controller/appcodesync/controller.go</c> (186d acceptance, 72d rotation),
-/// which guarantees at least 114 days — so the invariant is asserted against that floor as a named constant,
-/// and a change to the controller's constants has this file as its grep target. Without it, raising the wait
-/// budget, the mailbox timeout or the retention period would surface only as receive workflows failing to
-/// authenticate weeks after enqueue.
-/// </remarks>
 public class CallbackTokenLifetimeInvariantTests
 {
-    /// <summary>
-    /// Remaining validity guaranteed for a freshly minted callback token: the operator's app-code acceptance
-    /// window (186d) minus its rotation interval (72d).
-    /// </summary>
+    /// <summary>The operator's acceptance window (186d) minus its rotation interval (72d).</summary>
     private static readonly TimeSpan _guaranteedTokenValidityAtEnqueue = TimeSpan.FromDays(114);
 
     /// <summary>
-    /// The worst-case lifetime of a receive workflow, measured from the moment its own callback token is minted —
-    /// its enqueue. In order: it parks for the mailbox's entire lifetime; the closure sweep's cadence elapses; the
-    /// released receiver waits out a full step wait budget; it fails, sits until the terminal-retention edge and is
-    /// resumed there, replaying the original token; it waits out a second full budget; and it exhausts its retry
-    /// ladder.
+    /// The worst-case lifetime of a receive workflow, from its own enqueue: park for the mailbox's lifetime,
+    /// plus one closure-sweep cadence, a full step wait budget, a resume at the terminal-retention edge
+    /// replaying the original token, a second full budget, and the retry ladder. The sweep term names
+    /// <see cref="EngineSettings.MailboxSweepInterval"/> so a slower sweep fails this bound loudly.
     /// </summary>
-    /// <remarks>
-    /// The anchor is what makes this different from an inherited-token design's, and is the entire justification
-    /// for <see cref="EngineSettings.MaxMailboxTimeout"/> being as large as it is: a receive workflow carries a
-    /// fresh token, so no wait an ancestor spent counts here and a relay's next hop is a new workflow with a new
-    /// token. The sweep term names <see cref="EngineSettings.MailboxSweepInterval"/> so that a sweep made slower
-    /// than this bound allows fails loudly; it is pinned to the service by
-    /// <c>MailboxSweepTests.SweepService_RunsOnTheMailboxSweepInterval_NotTheMaintenanceInterval</c>. One looseness
-    /// is left uncounted and predates mailboxes: the wait budget is per step.
-    /// </remarks>
     private static TimeSpan BoundedWorstCaseReceiverLifetime(EngineSettings settings) =>
         settings.MaxMailboxTimeout
         + settings.MailboxSweepInterval
@@ -67,8 +48,7 @@ public class CallbackTokenLifetimeInvariantTests
     [Fact]
     public void BoundedWorstCaseReceiverLifetime_MatchesTheDerivationOnMaxMailboxTimeout()
     {
-        // Pinned exactly rather than as an inequality, so movement in either direction fails: the arithmetic
-        // written down on EngineSettings.MaxMailboxTimeout is the artifact under test.
+        // Pinned exactly rather than as an inequality, so movement in either direction fails.
         var settings = Defaults.EngineSettings;
 
         Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
@@ -79,11 +59,8 @@ public class CallbackTokenLifetimeInvariantTests
     [Fact]
     public void TheDerivationsMailboxTerms_AreSourcedFromDefaults_NotFromPropertyInitializers()
     {
-        // Both tests above read Defaults.EngineSettings, which only guards the engine's real behavior while
-        // Defaults is what the engine really runs on — the normalizer reaches for Defaults only when a value is
-        // non-positive, so a property initializer would win and leave the tripwire guarding a number nothing
-        // uses. MailboxSweepInterval must carry no initializer at all; MaxMailboxTimeout inherited one and is
-        // held to the weaker rule that it agree with Defaults.
+        // The tests above read Defaults.EngineSettings, but a property initializer would win over Defaults in
+        // a host that configures nothing — so the tripwire would guard a number the engine stopped using.
         var unnormalized = UnnormalizedSettings();
 
         Assert.True(
@@ -99,8 +76,8 @@ public class CallbackTokenLifetimeInvariantTests
     }
 
     /// <summary>
-    /// An <see cref="EngineSettings"/> exactly as the type constructs itself, which is what a host gets before the
-    /// settings normalizer runs — and therefore what it keeps for any value the normalizer considers already set.
+    /// An <see cref="EngineSettings"/> exactly as the type constructs itself — what a host gets before the
+    /// settings normalizer runs.
     /// </summary>
     private static EngineSettings UnnormalizedSettings() =>
         new()

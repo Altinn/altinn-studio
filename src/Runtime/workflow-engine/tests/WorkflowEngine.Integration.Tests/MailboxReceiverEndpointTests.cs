@@ -47,15 +47,11 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
 
         var accepted = await _client.Enqueue(_helpers.CreateEnqueueRequest(Receiver(mailbox.Id)));
 
-        // Reading it back through the status API is what proves Held survives the whole serialization path rather
-        // than only the database column.
         var workflowId = Assert.Single(accepted.Workflows).DatabaseId;
         var status = await _client.GetWorkflow(workflowId);
         Assert.NotNull(status);
         Assert.Equal(PersistentItemStatus.Held, status.OverallStatus);
 
-        // The mailbox's receivers log advanced by exactly one, and nothing has been consumed from the deliveries
-        // log — the two logs move independently until they meet at a position.
         var afterwards = await _client.GetMailbox(mailbox.Id);
         Assert.NotNull(afterwards);
         Assert.Equal(1L, afterwards.NextSeq);
@@ -65,9 +61,6 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task Enqueue_HeldReceiver_StaysHeldUntilSomethingReleasesIt()
     {
-        // Held means unfetchable, and the engine is live in this fixture, so a receiver whose position holds no
-        // message and whose mailbox is open stays exactly where it was put. The only two things that ever change
-        // that are covered in MailboxRendezvousEndpointTests.
         var mailbox = await MintMailbox();
         var accepted = await _client.Enqueue(_helpers.CreateEnqueueRequest(Receiver(mailbox.Id)));
         var workflowId = Assert.Single(accepted.Workflows).DatabaseId;
@@ -83,8 +76,6 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task Enqueue_ReceiverForAClosedMailbox_IsAcceptedAndRunnable()
     {
-        // Accepted, not refused — and runnable, so it actually executes here rather than parking. What a receive
-        // step is handed is pinned in MailboxReceiptEndpointTests.
         var mailbox = await MintMailbox();
         await _client.CloseMailbox(mailbox.Id);
 
@@ -114,8 +105,6 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task Enqueue_ReceiverWithAStartAt_Returns400()
     {
-        // Rejected before the database rather than silently ignored: a held row has no schedule, so honoring both
-        // would mean quietly dropping one of the caller's two instructions.
         var mailbox = await MintMailbox();
 
         using var response = await _client.EnqueueRaw(
@@ -139,8 +128,6 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task Enqueue_WhenTheReceiversLogIsFull_Returns429()
     {
-        // The same answer the deliveries log gives at its own cap: the engine cannot know whether the app
-        // considered the exchange finished, so it says "no more" rather than closing the mailbox for it.
         var cap = Settings(fixture).MaxMailboxLogLength;
         var mailbox = await MintMailbox();
 
@@ -167,8 +154,6 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task ReceiversAreCountedByTheStateTheyWereBornIn()
     {
-        // The three tag values are the whole point of the counter: `held` rising without `delivered` following
-        // means counterparties have stopped answering. A refused enqueue is not a birth and appears in neither.
         var open = await MintMailbox("step-open");
         var withDelivery = await MintMailbox("step-delivered");
         await _client.DeliverToMailbox(withDelivery.Id, "source-msg-1");

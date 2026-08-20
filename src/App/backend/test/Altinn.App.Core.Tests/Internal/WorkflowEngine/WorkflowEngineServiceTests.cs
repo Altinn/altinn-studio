@@ -739,10 +739,9 @@ public class WorkflowEngineServiceTests
     [Fact]
     public async Task ResolveWorkflowTaskStatus_WhenHeadIsHeld_ReturnsProcessingWithoutAWaitingReason()
     {
-        // A Held head is a mailbox receive workflow parked until its message arrives or its mailbox closes — the
-        // whole of what remains of its transition. Reading it as settled would report the instance idle while an
-        // exchange is open. Nothing failed, so it is not Retrying, and no waiting reason is persisted for a
-        // mailbox: the wording is static per task and lives in the pipeline definition.
+        // A Held head is the whole of what remains of its transition; reading it as settled would report the
+        // instance idle while an exchange is open. Not Retrying — nothing failed — and no waiting reason is
+        // persisted: the wording is static per task.
         Guid headId = Guid.NewGuid();
         Guid instanceGuid = Guid.NewGuid();
         string collectionKey = instanceGuid.ToString();
@@ -792,10 +791,8 @@ public class WorkflowEngineServiceTests
     [Fact]
     public async Task ResumeAndWaitForWorkflow_HeldWorkflowInTheChain_KeepsTheChainUnsettled()
     {
-        // The frontier from the reading end, and from behind the head view: the collection's heads can look
-        // inactive while the chain is not settled — the anchored-chain guard exists for that disagreement.
-        // Observable because a settled read returns at once with the ordinary success shape, where an unsettled
-        // one keeps polling and is eventually reported as a timeout.
+        // Heads can look inactive while the chain is unsettled — the anchored-chain guard's case. Observable
+        // because a settled read returns at once where an unsettled one polls to timeout.
         Guid mainWorkflowId = Guid.NewGuid();
         Guid receiverWorkflowId = Guid.NewGuid();
         const string collectionKey = "collection-key";
@@ -819,9 +816,8 @@ public class WorkflowEngineServiceTests
                 )
             )
             .ReturnsAsync([
-                // Main is explicitly older than the receiver: ScopeToCurrentChain keeps the anchor by id and everything
-                // created strictly after it, and two consecutive UtcNow reads are not guaranteed to differ at
-                // one-second clock granularity.
+                // Main explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created strictly
+                // after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
                 CreateWorkflowStatus(
                     DateTimeOffset.UtcNow.AddSeconds(-1),
                     status: PersistentItemStatus.Completed,
@@ -872,9 +868,8 @@ public class WorkflowEngineServiceTests
     [Fact]
     public async Task ResumeAndWaitForWorkflow_ParkedHeldChain_ReleasesEarlyAsCommittedSuccess()
     {
-        // And the other half: a receiver may stay parked for the mailbox's whole lifetime, which is days by
-        // design. The committed chain releases early with the ordinary success shape and the read-path
-        // annotation takes over — exactly as it does for a deferring service task.
+        // A receiver may stay parked for days by design, so the committed chain releases early and the
+        // read-path annotation takes over — as for a deferring service task.
         Guid mainWorkflowId = Guid.NewGuid();
         Guid receiverWorkflowId = Guid.NewGuid();
         const string collectionKey = "collection-key";
@@ -918,9 +913,8 @@ public class WorkflowEngineServiceTests
                 )
             )
             .ReturnsAsync([
-                // Main is explicitly older than the receiver: ScopeToCurrentChain keeps the anchor by id and everything
-                // created strictly after it, and two consecutive UtcNow reads are not guaranteed to differ at
-                // one-second clock granularity.
+                // Main explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created strictly
+                // after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
                 CreateWorkflowStatus(
                     DateTimeOffset.UtcNow.AddSeconds(-1),
                     status: PersistentItemStatus.Completed,

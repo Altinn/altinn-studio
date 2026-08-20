@@ -4,9 +4,8 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Data.Tests.Constants;
 
 /// <summary>
-/// Pins the mailbox's two vocabularies together. The lowercase literals are baked into a check constraint, a
-/// partial index filter and several raw SQL statements, so a rename that only reached the enum would leave the
-/// engine writing values the database refuses — or worse, values it accepts and nothing reads back.
+/// Pins the enum members to the lowercase literals baked into the check constraints, index filters and raw
+/// SQL, so a rename that only reaches one side surfaces here.
 /// </summary>
 public class MailboxStatusMapTests
 {
@@ -45,8 +44,7 @@ public class MailboxStatusMapTests
     [Fact]
     public void UnknownDatabaseLiteral_Throws()
     {
-        // The parse is total over what the check constraint allows and deliberately not over anything else: a
-        // literal the constraint would have refused reaching this code means the schema and the map diverged.
+        // Total over what the check constraint allows, and deliberately not over anything else.
         Assert.Throws<ArgumentOutOfRangeException>(() => MailboxStatusMap.FromDbValue("closed"));
         Assert.Throws<ArgumentOutOfRangeException>(() => MailboxStatusMap.ReasonFromDbValue("timeout"));
     }

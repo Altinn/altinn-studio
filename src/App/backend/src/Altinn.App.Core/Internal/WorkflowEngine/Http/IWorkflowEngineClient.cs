@@ -84,44 +84,28 @@ internal interface IWorkflowEngineClient
     Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default);
 
     /// <summary>
-    /// Mints a mailbox — the durable inbox a service task publishes as its reply address. Idempotent on
-    /// <see cref="MailboxCreateRequest.IdempotencyKey"/> within the namespace, so a retried step is handed the
-    /// address it published on its first attempt rather than opening a second mailbox nobody was told about.
+    /// Mints a mailbox, idempotent on <see cref="MailboxCreateRequest.IdempotencyKey"/> within the namespace —
+    /// a retried step is handed the address it already published.
     /// </summary>
-    /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
-    /// <param name="request">The mint request: idempotency key, timeout, optional collection key</param>
-    /// <param name="ct">Cancellation token</param>
     /// <returns>
-    /// <see cref="MailboxMintResult.Minted"/> with the mailbox, or <see cref="MailboxMintResult.Rejected"/> when
-    /// the engine refused the request as invalid. Every other unsuccessful status throws.
+    /// <see cref="MailboxMintResult.Minted"/>, or <see cref="MailboxMintResult.Rejected"/> when the engine
+    /// refused the request as invalid. Every other unsuccessful status throws.
     /// </returns>
     Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default);
 
-    /// <summary>
-    /// Closes a mailbox for further messages. Terminal and idempotent: a repeat close — including one that lost the
-    /// race to the mailbox's own deadline — reports the original closure rather than overwriting it.
-    /// </summary>
-    /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
-    /// <param name="mailboxId">The mailbox to close</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <summary>Closes a mailbox. Terminal and idempotent: a repeat close reports the original closure.</summary>
     /// <returns>
-    /// The closed mailbox, or <see langword="null"/> when no mailbox with that id exists in the namespace
-    /// (<c>404</c>). Every other unsuccessful status throws, so it rides the caller's retry ladder.
+    /// The closed mailbox, or <see langword="null"/> on <c>404</c>. Every other unsuccessful status throws.
     /// </returns>
     Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default);
 
     /// <summary>
-    /// Delivers one message into a mailbox, appending it at the next gapless position. Idempotent on
-    /// <see cref="MailboxDeliveryRequest.IdempotencyKey"/> within the mailbox.
+    /// Delivers one message, idempotent on <see cref="MailboxDeliveryRequest.IdempotencyKey"/> within the
+    /// mailbox.
     /// </summary>
-    /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
-    /// <param name="mailboxId">The mailbox to deliver into</param>
-    /// <param name="request">The delivery: idempotency key and payload</param>
-    /// <param name="ct">Cancellation token</param>
     /// <returns>
-    /// The engine's status and, on <c>202</c>/<c>200</c>, the delivery it holds. Every documented status comes back
-    /// as a value rather than an exception, because each means something different to the forwarding channel and
-    /// only the forwarder knows what. Only a transport failure throws.
+    /// The engine's status (plus the delivery on <c>202</c>/<c>200</c>) as a value rather than an exception —
+    /// each status means something different to the forwarding channel. Only a transport failure throws.
     /// </returns>
     Task<MailboxDeliveryResult> DeliverToMailbox(
         string ns,
