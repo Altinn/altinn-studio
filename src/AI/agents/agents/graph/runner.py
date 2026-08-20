@@ -153,7 +153,8 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
             # from the LLM-written decline so it can't spill into fake
             # suggestion chips.
             raise GoalRejected(decline_text.replace("|", "/"))
-        _emit_chat_decline(state, event_sink, decline_text)
+        if not _emit_chat_decline(state, event_sink, decline_text):
+            raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
         return decline_text
 
     if state.allow_app_changes:
@@ -161,12 +162,14 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     return None
 
 
-def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> None:
+def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> bool:
     """Deliver an out-of-scope decline as a normal chat turn.
 
     A declined question is not an error: the frontend gets the same
     assistant_message + terminal status pair a real answer produces, and
     the decline lands in conversation history so follow-up turns see it.
+
+    Returns False when the session was cancelled and nothing was delivered.
     """
     decline_data = {
         "author": "assistant",
@@ -180,25 +183,27 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
     trace_id = state.trace_id or get_current_trace_id()
     if trace_id:
         decline_data["traceId"] = trace_id
-    event_sink.send(AgentEvent(
-        type="assistant_message",
-        session_id=state.session_id,
-        data=decline_data,
-    ))
-    try:
-        event_sink.add_to_conversation_history(state.session_id, "assistant", decline_text)
-    except Exception:
-        _log.warning("Could not store the decline in conversation history", exc_info=True)
-    event_sink.send(AgentEvent(
-        type="status",
-        session_id=state.session_id,
-        data={
-            "done": True,
-            "success": True,
-            "status": "completed",
-            "message": "Out-of-scope question declined",
-        },
-    ))
+    return event_sink.deliver_unless_cancelled(
+        state.session_id,
+        [
+            AgentEvent(
+                type="assistant_message",
+                session_id=state.session_id,
+                data=decline_data,
+            ),
+            AgentEvent(
+                type="status",
+                session_id=state.session_id,
+                data={
+                    "done": True,
+                    "success": True,
+                    "status": "completed",
+                    "message": "Out-of-scope question declined",
+                },
+            ),
+        ],
+        history=("assistant", decline_text),
+    )
 
 
 async def _validate_intent(state: AgentState):

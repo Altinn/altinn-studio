@@ -6,12 +6,14 @@ GoalRejected, and the read-only decline delivered as a normal chat turn.
 """
 
 import asyncio
+import threading
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from agents.graph.runner import GoalRejected, WorkflowCancelled, _gate_goal
 from agents.graph.state import AgentState
+from agents.services.events.jobs import EventSink
 from agents.services.llm.scope_checker import ScopeCheckResult, check_scope_async
 
 
@@ -150,7 +152,7 @@ class TestGateGoal:
 
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)
-        event_sink = _sink()
+        event_sink = EventSink()
         with patch(
             "agents.graph.runner.check_scope_async",
             new=AsyncMock(return_value=self._out_of_scope()),
@@ -158,17 +160,14 @@ class TestGateGoal:
             decline = await _gate_goal(state, event_sink=event_sink)
 
         assert decline == "Jeg kan bare hjelpe med Altinn-apputvikling."
-        sent_types = [call.args[0].type for call in event_sink.send.call_args_list]
-        assert sent_types == ["assistant_message", "status"]
-        message_event = event_sink.send.call_args_list[0].args[0]
-        assert message_event.data["content"] == decline
-        assert message_event.data["no_branch_operations"] is True
-        status_event = event_sink.send.call_args_list[1].args[0]
-        assert status_event.data["done"] is True
-        assert status_event.data["success"] is True
-        event_sink.add_to_conversation_history.assert_called_once_with(
-            "sess-1", "assistant", decline
-        )
+        sent = event_sink.get_events_since("sess-1", 0)
+        assert [event.type for event in sent] == ["assistant_message", "status"]
+        assert sent[0].data["content"] == decline
+        assert sent[0].data["no_branch_operations"] is True
+        assert sent[1].data["done"] is True
+        assert sent[1].data["success"] is True
+        history = event_sink.get_conversation_history("sess-1")
+        assert [entry["content"] for entry in history] == [decline]
 
     async def test_in_scope_write_mode_runs_intent_validation(self):
         state = _state(allow_app_changes=True, user_goal="legg til et tekstfelt")
@@ -239,3 +238,55 @@ class TestGateGoal:
                 await _gate_goal(state, event_sink=_sink(cancelled=True))
 
         check_scope.assert_not_awaited()
+
+    async def test_a_cancel_landing_mid_delivery_cannot_split_the_decline(self):
+        """The decline is all-or-nothing even if a cancel arrives while it is
+        being written."""
+        state = _state(allow_app_changes=False)
+        event_sink = EventSink()
+        cancelling = threading.Event()
+        original_send = event_sink.send
+
+        def send_and_let_the_cancel_race(event):
+            if event.type == "assistant_message":
+                cancel_thread.start()
+                cancelling.wait(timeout=2)
+            return original_send(event)
+
+        cancel_thread = threading.Thread(
+            target=lambda: (cancelling.set(), event_sink.cancel_session("sess-1"))
+        )
+        event_sink.send = send_and_let_the_cancel_race
+
+        with patch(
+            "agents.graph.runner.check_scope_async",
+            new=AsyncMock(return_value=self._out_of_scope()),
+        ):
+            decline = await _gate_goal(state, event_sink=event_sink)
+        cancel_thread.join(timeout=5)
+
+        assert decline == "Jeg kan bare hjelpe med Altinn-apputvikling."
+        delivered = [
+            event.type
+            for event in event_sink.get_events_since("sess-1", 0)
+            if event.type in ("assistant_message", "status")
+        ]
+        # Both halves, or neither. Never the message without its terminal status.
+        assert delivered == ["assistant_message", "status"]
+
+    async def test_a_decline_is_dropped_entirely_when_already_cancelled(self):
+        state = _state(allow_app_changes=False)
+        event_sink = EventSink()
+        event_sink.cancel_session("sess-1")
+        before = len(event_sink.get_events_since("sess-1", 0))
+
+        with patch(
+            "agents.graph.runner.check_scope_async",
+            new=AsyncMock(return_value=self._out_of_scope()),
+        ):
+            with pytest.raises(WorkflowCancelled):
+                await _gate_goal(state, event_sink=event_sink)
+
+        after = event_sink.get_events_since("sess-1", 0)
+        assert len(after) == before
+        assert event_sink.get_conversation_history("sess-1") == []

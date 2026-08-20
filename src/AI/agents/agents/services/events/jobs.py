@@ -91,7 +91,8 @@ class EventSink:
         self._buffers: Dict[str, _SessionBuffer] = {}
         self._developer_buffers: Dict[str, _SessionBuffer] = {}
         self._buf_lock = threading.Lock()
-        self._state_lock = threading.Lock()  # Protects _session_status, _cancelled, _conversation_history
+        # Reentrant so a caller can hold it across send()/add_to_conversation_history().
+        self._state_lock = threading.RLock()  # Protects _session_status, _cancelled, _conversation_history
         self._main_loop: Optional[asyncio.AbstractEventLoop] = None
         self._session_status: Dict[str, Dict[str, Any]] = {}
         self._conversation_history: Dict[str, List[Dict[str, Any]]] = {}
@@ -261,6 +262,31 @@ class EventSink:
                 "message": "Workflow cancelled by user",
             },
         ))
+
+    def deliver_unless_cancelled(
+        self,
+        session_id: str,
+        events: List[AgentEvent],
+        history: Optional[tuple] = None,
+    ) -> bool:
+        """Deliver events and history as one unit, or nothing at all.
+
+        Holding the state lock for the whole delivery stops a cancel landing
+        between an assistant_message and its terminal status, which would
+        leave the message delivered and the status dropped.
+        """
+        with self._state_lock:
+            if session_id in self._cancelled:
+                log.info(f"🛑 Skipping delivery for cancelled session {session_id}")
+                return False
+            for event in events:
+                self.send(event)
+            if history:
+                try:
+                    self.add_to_conversation_history(session_id, *history)
+                except Exception:
+                    log.warning("Could not store the message in conversation history", exc_info=True)
+        return True
 
     def is_cancelled(self, session_id: str) -> bool:
         """Check if a session has been cancelled."""
