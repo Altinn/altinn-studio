@@ -1,8 +1,7 @@
 /**
  * Filter callback for the Designsystemet Suggestion/Combobox. Matches the option's label (or the
  * displayed text) and its description against the current search text. When there is no search text,
- * or the search text equals a currently selected label, all options are shown. Ported from the
- * app-frontend `optionFilter` used by Dropdown and MultipleSelect.
+ * or the search text equals a currently selected label, all options are shown.
  */
 export function optionFilter(
   args: {
