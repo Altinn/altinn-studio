@@ -80,6 +80,10 @@ services:
       - OTEL_ENDPOINT=localhost:4317
       - OTEL_SERVICE_NAME=studio-loadbalancer
       - OTEL_TRACE=off
+    networks:
+      default:
+        aliases:
+          - studio.localhost
     volumes:
       - ./../load-balancer/local/www:/www:ro
       - ./../load-balancer/local/error-pages:/etc/nginx/error-pages:ro
