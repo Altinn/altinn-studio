@@ -98,6 +98,8 @@ spec:
             - https://github.com
           workflows:
             - implement-pr
+            - review-pr
+            - generic-run
       principalCredentialSelection:
         enabled: true
         onNoMatch: deny
@@ -153,6 +155,8 @@ spec:
           name: member-codex
           runtime:
             autonomy: trusted-local
+            effort: high
+            model: gpt-5.6-sol
             container:
               capabilities:
                 add:
@@ -214,11 +218,38 @@ spec:
             user: non-root
       workflowProfiles:
         - name: implement-pr
+          lifecycle:
+            completeOn:
+              - plugin.github.pr.merged
+              - plugin.github.pr.closed
+            failOn:
+              - plugin.agent.signal.failed
           workspaceInstructions: |
             - Install any tool needed for the task. For system packages, use `nvt-as-root <command>`; it runs directly as root or through passwordless sudo for non-root agents.
             - Work directly in the `Altinn/altinn-studio` checkout and push task branches to its `origin`; do not use a fork.
             - Create and update pull requests with `gh-auth --provider github-main --repo Altinn/altinn-studio`.
             - Use a Conventional Commits prefix in PR titles, such as `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, or `chore:`.
+            - Register the created pull request with `github-watch`. Do not invoke `nvt-work complete`; this workflow ends only when the pull request is merged or closed.
+        - name: review-pr
+          lifecycle:
+            completeOn:
+              - plugin.work.completed
+            failOn:
+              - plugin.work.failed
+          workspaceInstructions: |
+            - Install any tool needed for the review. For system packages, use `nvt-as-root <command>`; it runs directly as root or through passwordless sudo for non-root agents.
+            - Work directly in the `Altinn/altinn-studio` checkout and use `gh-auth --provider github-main --repo Altinn/altinn-studio` for GitHub operations.
+            - Post the review to the source pull request, then invoke `nvt-work complete`. Invoke `nvt-work fail` only when the result cannot be delivered.
+        - name: generic-run
+          lifecycle:
+            completeOn:
+              - plugin.work.completed
+            failOn:
+              - plugin.work.failed
+          workspaceInstructions: |
+            - Install any tool needed for the task. For system packages, use `nvt-as-root <command>`; it runs directly as root or through passwordless sudo for non-root agents.
+            - Work directly in the `Altinn/altinn-studio` checkout and use `gh-auth --provider github-main --repo Altinn/altinn-studio` for GitHub operations.
+            - Post the final result to the source thread, then invoke `nvt-work complete`. Invoke `nvt-work fail` only when the result cannot be delivered.
       suspend: false
       template:
         resources:
@@ -292,6 +323,8 @@ spec:
                 restart: never
                 source: builtin
                 when: before-agent
+              - name: work-control
+                source: builtin
               - config:
                   poll-seconds: 60
                 egress:
@@ -386,72 +419,6 @@ spec:
               enrollment-adapter: claude-oauth-file
               provider-template: principal-claude
         providers:
-          - config:
-              auth-file: /state/auth/codex-mirkosekulic.json
-              injection-claim-headers:
-                - claim-path:
-                    - https://api.openai.com/auth
-                    - chatgpt_account_id
-                  header: chatgpt-account-id
-              injection-hosts:
-                - chatgpt.com
-                - api.openai.com
-                - auth.openai.com
-              placeholder-file:
-                hosts:
-                  - chatgpt.com
-                  - api.openai.com
-                  - auth.openai.com
-                id-token-claims:
-                  - claim: chatgpt_account_id
-                    claim-path:
-                      - https://api.openai.com/auth
-                      - chatgpt_account_id
-                path: .codex/auth.json
-            name: codex-mirkoSekulic
-            plugin: codex-oauth
-          - config:
-              credentials-file: /state/auth/claude-jondyr.json
-              injection-extra-headers:
-                anthropic-beta: oauth-2025-04-20
-              injection-hosts:
-                - api.anthropic.com
-                - mcp-proxy.anthropic.com
-              placeholder-file:
-                hosts:
-                  - api.anthropic.com
-                  - mcp-proxy.anthropic.com
-                path: .claude/.credentials.json
-            name: claude-jondyr
-            plugin: claude-oauth
-          - config:
-              credentials-file: /state/auth/claude-nkylstad.json
-              injection-extra-headers:
-                anthropic-beta: oauth-2025-04-20
-              injection-hosts:
-                - api.anthropic.com
-                - mcp-proxy.anthropic.com
-              placeholder-file:
-                hosts:
-                  - api.anthropic.com
-                  - mcp-proxy.anthropic.com
-                path: .claude/.credentials.json
-            name: claude-nkylstad
-            plugin: claude-oauth
-          - config:
-              credentials-file: /state/auth/claude-erlinghauan.json
-              injection-extra-headers:
-                anthropic-beta: oauth-2025-04-20
-              injection-hosts:
-                - api.anthropic.com
-                - mcp-proxy.anthropic.com
-              placeholder-file:
-                hosts:
-                  - api.anthropic.com
-                  - mcp-proxy.anthropic.com
-                path: .claude/.credentials.json
-            name: claude-erlinghauan
-            plugin: claude-oauth
           - allow:
               methods:
                 - GET
@@ -684,6 +651,10 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
+      schedulingReactions:
+        accepted: "+1"
+        enabled: true
+        rejected: "-1"
       submission:
         admissionMode: profiled
         mode: scheduleAdmission
@@ -691,6 +662,11 @@ spec:
         scheduleNamespace: nvt
         tokenExpirationSeconds: 3600
         workflow: implement-pr
+        commandWorkflows:
+          pr-create: implement-pr
+          pr-continue: implement-pr
+          review: review-pr
+          run: generic-run
       tolerations:
         - effect: NoSchedule
           key: purpose

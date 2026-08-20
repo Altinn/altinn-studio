@@ -9,27 +9,33 @@ Flux Kustomization. Reconciliation is deliberately ordered as follows:
    ExternalSecret to become Ready;
 3. reconcile the NVT chart source and HelmRelease.
 
-The public chart is pinned to `0.8.57` (verified OCI digest
-`sha256:267d4f1a420bfdab10f3f54c72d8082d2c007648a1710134367801278d30f02d`),
+The public chart is pinned to `0.8.71` (verified OCI digest
+`sha256:4792e55ed408a967f41bf7bc9414eacc6073f19cb5fdd4248303cdb9d47b942a`),
 using the Flux v1 OCIRepository `ref.digest` selector rather than its mutable
-tag. It resolves the coordinated `0.8.57-fc6a567` production images without
+tag. It resolves the coordinated `0.8.71-930b0b2` production images without
 component overrides. All execution profiles explicitly select the built-in
 Kubernetes Pod driver. The staging release has `producer.enabled: true`,
 `agentSchedule.suspend: false`, and the verified `kata-vm-isolation`
 RuntimeClass. Its shared AgentRun template carries the matching
 `purpose=nvt-agent:NoSchedule` toleration, and the schedule admits at most two
 concurrent mediated AgentRuns.
-The `mirkoSekulic` execution profile explicitly adds `SYS_PTRACE` to its agent
-container for approved debugging and profiling; no other profile or container
-inherits that capability.
-The producer requests the `implement-pr` workflow, which permits task-required
-tool installation and directs branch pushes and pull-request operations through
-the single `github-main` broker provider for `Altinn/altinn-studio`.
+The Codex execution profile explicitly adds `SYS_PTRACE` to its agent container
+for approved debugging and profiling; the Claude profile and other containers
+do not inherit that capability.
+The producer maps `pr create`, `pr continue`, `review`, and `run` to explicit
+workflow profiles. Review and generic work terminate only after the agent has
+delivered its result and emitted `plugin.work.completed`; PR workflows remain
+active until the pull request is merged or closed. Scheduling outcomes are
+acknowledged with best-effort `+1` or `-1` reactions.
+All workflows permit task-required tool installation and direct GitHub work
+through the single `github-main` broker provider for `Altinn/altinn-studio`.
 Codex and Claude profiles configure their native continuation commands, so a
 recreated Pod resumes the durable session instead of replaying the initial task.
 Each Kata AgentRun requests and is limited to 2 CPU and 8 GiB memory. Git
 commit attribution is explicitly pinned to the `nvt-agent` GitHub App bot.
-The shared non-secret bootstrap preseed suppresses Claude first-run prompts and
+Codex runs use `gpt-5.6-sol` with high reasoning effort. Claude does not pin a
+model or effort and therefore follows the installed Claude Code defaults. The
+shared non-secret bootstrap preseed suppresses Claude first-run prompts and
 trusts the agent's `/workspace` startup directory. Codex ignores these Claude
 configuration files.
 
@@ -38,10 +44,6 @@ configuration files.
 Create these Key Vault entries outside Git. Never paste their values into this
 repository:
 
-- `nvt-codex-mirkosekulic-credentials`
-- `nvt-claude-jondyr-credentials`
-- `nvt-claude-nkylstad-credentials`
-- `nvt-claude-erlinghauan-credentials`
 - `nvt-agent-private-key-pem`
 - `nvt-agent-gateway-oauth-client-secret`
 - `nvt-gateway-session-secret`
@@ -81,10 +83,9 @@ identity but has an independent session cookie. Each GitHub subject can modify
 only its configured Codex or Claude slot. The gateway links to the portal but
 does not proxy it or share its session.
 
-Profile selection uses the verified immutable GitHub subjects `23359247`
-(`mirkoSekulic`) and `1525466` (`Jondyr`). The second profile remains named
-`jondyr`; only the producer allowlist uses GitHub's canonical, case-sensitive
-login spelling.
+Profile selection uses the authenticated principal's portal-owned credential
+template. A Codex enrollment selects `member-codex`; a Claude enrollment
+selects `member-claude`. The schedule denies principals without an enrollment.
 
 The deployment uses the exact `kata-vm-isolation` RuntimeClass. RuntimeClass
 scheduling selects the AKS Kata pool, while the AgentRun toleration permits the
@@ -112,11 +113,10 @@ node-local data and uses the NVT pool's separately configured 256 GiB OS disk.
 
 Broker refresh rotation is written only to its PVC. The portal patches the
 pre-created `nvt-portal-seed` Secret, and the broker's seed supervisor imports
-accepted replacements atomically. `nvt-broker-seed` remains an External
-Secrets-managed recovery source during rollout, but it is no longer consumed
-by the release and cannot overwrite portal enrollment. Deleting the namespace
-or both broker storage and `nvt-portal-seed` loses the current credentials, so
-retain a separate recovery procedure until portal enrollment is proven.
+accepted replacements atomically. Principal credentials are portal-owned; no
+static Key Vault credential seed or static Codex/Claude provider is deployed.
+Deleting the namespace or both broker storage and `nvt-portal-seed` loses the
+current credentials, so retain a separate recovery procedure.
 
 ## Rollback and kill switch
 
