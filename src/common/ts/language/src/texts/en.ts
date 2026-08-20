@@ -423,7 +423,8 @@ export function en() {
     'validation_errors.formatMaximum': 'Maximum valid value is {0}',
     'map_component.selectedLocation': 'Selected location: {0}° north, {1}° east',
     'map_component.noSelectedLocation': 'No selected location',
-    'map_component.ariaLabel': 'Interactive map. Use the arrow keys to pan, and plus and minus to zoom.',
+    'map_component.ariaLabel':
+      'Interactive map. Use the arrow keys to pan, and plus and minus to zoom.',
     'map_component.zoomIn': 'Zoom in',
     'map_component.zoomOut': 'Zoom out',
     'multiple_select_component.no_options': 'No options available',
@@ -487,7 +488,8 @@ export function en() {
     'process_workflow.failure_kind.unknown': 'Unknown cause',
     'process_workflow.still_working':
       'This is taking longer than usual. Your information is saved, and we’ll continue automatically — you can safely close this page and come back later.',
-    'process_workflow.connection_trouble': 'We’re having trouble reaching the service right now. Retrying…',
+    'process_workflow.connection_trouble':
+      'We’re having trouble reaching the service right now. Retrying…',
     'pdfPreview.error': 'Could not show PDF preview',
     'pdfPreview.defaultButtonText': 'Preview PDF',
     'taskTypes.data': 'Fill out',

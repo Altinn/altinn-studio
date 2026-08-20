@@ -20,6 +20,8 @@ This area contains the experimental agent platform described in `README.md`.
   bundle selection, `agentd` and `agentctl`. It builds on the lower crates above.
 - The backend owns Sandbox lifecycle, execution, runtime file transfer, storage and mount behavior; do not split
   those into speculative replaceable component traits.
+- A Provider pairs a Sandbox Backend with an Image Backend over one image materialization domain. Both expose
+  discovery-first, per-Platform capabilities; Backend trait operations are required and have no default behavior.
 - A Network Backend is independently selectable from a Sandbox Backend. They negotiate an owned Network Endpoint:
   raw Ethernet/IP packets, intercepted TCP streams and UDP datagrams, or a jointly implemented versioned control
   protocol. The Network Backend consumes the endpoint and owns host authorization and endpoint driving; a trusted
@@ -50,15 +52,4 @@ Use Tokio's `LocalRuntime` for asynchronous work. Keep control-plane state singl
 
 ## Development
 
-```sh
-make build
-make fmt
-make lint
-make test
-make check
-make check-platforms
-```
-
-`make check` runs formatting checks, strict Clippy analysis, builds, and tests for the Rust workspace.
-`make check-platforms` runs Clippy over the portable crates' Windows and macOS code after their Rust
-standard-library targets are installed. Concrete Backends still require the documented native test matrix.
+Run `make help` in this directory to list the available development targets.

@@ -1078,7 +1078,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains("WithData(vedlegg.Innhold)", File.ReadAllText(path));
         Assert.DoesNotContain("new MemoryStream(", File.ReadAllText(path));
         Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, w => w.Contains("could not be classified"));
+        Assert.Contains(result.Warnings, w => w.Contains("could not be rewritten automatically"));
     }
 
     [Fact]
@@ -1340,16 +1340,18 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // Provably bytes - wrapped.
         Assert.Contains("WithData(new MemoryStream(raw))", migrated);
-        Assert.Contains("WithData(new MemoryStream(vedlegg.Innhold))", migrated);
         Assert.Contains("WithData(new MemoryStream(Encoding.UTF8.GetBytes(_text)))", migrated);
         Assert.Contains("WithData(new MemoryStream(\"literal\"u8.ToArray()))", migrated);
+
+        // Provably ReadOnlyMemory<byte> (declared in the app) - reported, never wrapped: the
+        // MemoryStream constructor takes an array, so the wrap would not compile.
+        Assert.Contains("WithData(vedlegg.Innhold);", migrated);
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("cannot be wrapped in a MemoryStream directly"));
 
         // Provably a stream - untouched. Wrapping either of these would not compile.
         Assert.Contains("WithData(new MemoryStream(_bytes));", migrated);
         Assert.DoesNotContain("new MemoryStream(new MemoryStream", migrated);
         Assert.Contains("WithData(open);", migrated);
-
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
     }
 
     [Fact]
@@ -1372,7 +1374,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         // `var` writes out no type, but its initializer settles it - the common shape for a payload
         // fetched from a client, and the one real-world case that would otherwise need a hand edit.
         Assert.Contains("WithData(new MemoryStream(bytes))", migrated);
-        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        Assert.DoesNotContain(_lastMigrationWarnings, w => w.Contains("could not be rewritten automatically"));
     }
 
     [Fact]
@@ -1393,7 +1395,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
 
         // `var` with an unrecognisable initializer stays unknown, so guessing would risk wrapping a Stream.
-        Assert.Contains(_lastMigrationWarnings, w => w.Contains("could not be classified"));
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("could not be rewritten automatically"));
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
     }
 
