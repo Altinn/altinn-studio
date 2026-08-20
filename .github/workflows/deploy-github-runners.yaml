@@ -138,7 +138,7 @@ jobs:
           echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
   build-prepared-image:
-    name: Build prepared Sandbox image
+    name: Build prepared runner image
     needs: build-images
     runs-on: ubuntu-latest
     environment: dev
@@ -165,7 +165,7 @@ jobs:
       - name: az acr login
         run: az acr login --name "${REGISTRY_NAME}"
 
-      - name: Export prepared Sandbox image
+      - name: Export prepared runner image
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
           COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
@@ -194,7 +194,7 @@ jobs:
             "${COORDINATOR_IMAGE}" \
             export
 
-      - name: Build and publish prepared Sandbox image
+      - name: Build and publish prepared runner image
         id: prepared-image
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
@@ -271,14 +271,14 @@ jobs:
             .metadata.annotations["altinn.studio/runner-image-tag"] = strenv(IMAGE_TAG) |
             .metadata.annotations["altinn.studio/prepared-image"] = strenv(PREPARED_IMAGE) |
             .metadata.annotations["altinn.studio/prepared-image-tag"] = strenv(IMAGE_TAG)
-          ' scaledjob-sandbox.yaml
+          ' scaledjob.yaml
 
-          test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob-sandbox.yaml)" = "${COORDINATOR_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image"]' scaledjob-sandbox.yaml)" = "${RUNNER_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image"]' scaledjob-sandbox.yaml)" = "${PREPARED_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob.yaml)" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image"]' scaledjob.yaml)" = "${RUNNER_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image"]' scaledjob.yaml)" = "${PREPARED_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
 
           RENDERED="$(kubectl kustomize .)"
           test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 log() {
-  printf '[sandbox-runner] %s\n' "$*" >&2
+  printf '[github-runner] %s\n' "$*" >&2
 }
 
 if (( EUID != 0 )); then

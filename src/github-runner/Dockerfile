@@ -11,7 +11,7 @@ ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278
 
 USER root
 
-COPY run-sandbox.sh /usr/local/bin/altinn-github-runner-sandbox
+COPY run.sh /usr/local/bin/altinn-github-runner
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
       build-essential \
@@ -137,7 +137,7 @@ RUN KUBECTL_SHA256="$(curl -fsSL \
     && echo "${KUBECTL_SHA256}  /tmp/kubectl" | sha256sum -c - \
     && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
     && rm -f /tmp/kubectl \
-    && chmod 0755 /usr/local/bin/altinn-github-runner-sandbox
+    && chmod 0755 /usr/local/bin/altinn-github-runner
 
 ENV CGO_ENABLED=1
 ENV DOTNET_ROOT=/usr/share/dotnet
@@ -154,4 +154,4 @@ ENV PATH=/opt/tools/go/current/bin:/opt/tools/node/current/bin:/usr/share/dotnet
 USER runner
 WORKDIR /home/runner
 
-ENTRYPOINT ["/usr/local/bin/altinn-github-runner-sandbox"]
+ENTRYPOINT ["/usr/local/bin/altinn-github-runner"]

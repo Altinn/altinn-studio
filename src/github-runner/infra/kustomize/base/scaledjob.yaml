@@ -4,7 +4,7 @@ metadata:
   name: github-runners-sandbox
   labels:
     app.kubernetes.io/name: github-runner
-    app.kubernetes.io/component: runner-sandbox
+    app.kubernetes.io/component: runner
   annotations:
     altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest
     altinn.studio/image-tag: latest
@@ -32,7 +32,7 @@ spec:
           cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         labels:
           app.kubernetes.io/name: github-runner
-          app.kubernetes.io/component: runner-sandbox
+          app.kubernetes.io/component: runner
       spec:
         automountServiceAccountToken: false
         restartPolicy: Never
