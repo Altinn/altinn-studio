@@ -25,6 +25,19 @@ Important considerations:
 - Agents should be able to use standard development tools, including Docker or Podman, `strace` and `perf` inside a
   Linux Sandbox
 
+## Development
+
+The seven Rust crates under this directory are part of the repository-level Cargo workspace. Shared Cargo metadata,
+the lockfile and rustfmt configuration live at the repository root. Run the experimental checks from the repository
+root with:
+
+```sh
+make -C src/experimental check
+```
+
+The full check includes ignored KVM integration tests. Environments without KVM, including pull-request runners,
+should use `make -C src/experimental check-ci`.
+
 ## High-level Architecture
 
 - Client-server-operator model
