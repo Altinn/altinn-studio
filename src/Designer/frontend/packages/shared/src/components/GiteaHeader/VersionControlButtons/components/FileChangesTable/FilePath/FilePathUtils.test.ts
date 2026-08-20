@@ -1,4 +1,4 @@
-import { convertPureGitDiffToUserFriendlyDiff } from 'app-shared/components/GiteaHeader/VersionControlButtons/components/ShareChangesPopover/CommitAndPushContent/FileChangesInfoModal/FilePath/FilePathUtils';
+import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
 
 const diffStringMock = `diff --git a/fileName.json b/fileName.json
 index 0909a03..527e226 100644

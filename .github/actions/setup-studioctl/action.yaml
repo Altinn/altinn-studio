@@ -39,3 +39,10 @@ runs:
         echo "STUDIOCTL_INTERNAL_DEV=true" >> "$GITHUB_ENV"
         echo "$studioctl_home/bin" >> "$GITHUB_PATH"
       shell: bash
+
+    - name: Set up LocalTest hostnames
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo --preserve-env=STUDIOCTL_HOME,STUDIOCTL_INTERNAL_DEV \
+          "$(command -v studioctl)" env hosts add
