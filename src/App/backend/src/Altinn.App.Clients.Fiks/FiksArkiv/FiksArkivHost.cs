@@ -206,13 +206,9 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 SendersReference: sendersReference,
                 MessageLifetime: TimeSpan.FromDays(2),
                 Payload: messagePayloads,
-                // klientKorrelasjonsId is the field Fiks IO echoes on every reply (klientMeldingId is
-                // the sender's own reference to one message and is *not* returned), so the reply
-                // address rides here — it is what routes the archive's answers into the mailbox the
-                // waiting task reads from. A caller that supplied no reply address gets the instance
-                // reference it always carried, and its answers are not routable to a task. The
-                // instance reference still reaches the archive either way, as the korrespondansepart
-                // reference inside the arkivmelding itself.
+                // klientKorrelasjonsId is the field Fiks IO echoes on every reply (klientMeldingId is not returned), so
+                // the reply address rides here — it is what routes the archive's answers into the mailbox the waiting
+                // task reads from. A caller that supplied none gets the instance reference it always carried.
                 CorrelationId: replyAddress?.ToString()
                     ?? _fiksArkivConfigResolver.GetCorrelationId(dataAccessor.Instance)
             ),
@@ -235,43 +231,17 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     }
 
     /// <summary>
-    /// Hands a message received from Fiks Arkiv to the service task waiting for it, and does nothing
-    /// else with it.
+    /// Hands a message received from Fiks Arkiv to the service task waiting for it, and does nothing else with it.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// The subscriber deliberately performs no archiving logic of its own: it decrypts the payloads —
-    /// which needs the live Fiks IO connection and so can only be done here — and delivers them into the
-    /// mailbox the send opened, where the reply handler processes them inside the process transition they
-    /// belong to, with its retries, ordering and durability. <strong>What the answer then does — the
-    /// confirmation record, <c>successHandling</c>, <c>errorHandling</c>, the exchange's deadline, and the
-    /// call to <see cref="IFiksArkivResponseHandler"/> — is documented on
-    /// <see cref="FiksArkivServiceTask"/>, which is the authoritative account.</strong> None of it happens
-    /// here.
-    /// </para>
-    /// <para>
-    /// Whether Fiks IO should redeliver the message is the one decision left here, and it follows the
-    /// forwarder's verdict on whether trying again could ever help. Two conditions are settled without
-    /// forwarding at all: a message with no usable reply address (nothing can be addressed) and a
-    /// forwarding outcome that no retry can change. Both are acknowledged so they leave the queue
-    /// instead of redelivering forever, and logged as errors so they reach monitoring. If the
-    /// acknowledgement itself fails, the generic catch takes over and deliberately does <em>not</em>
-    /// acknowledge in Production, so Fiks IO redelivers and the failure raises alarms.
-    /// </para>
-    /// <para>
-    /// Every read of the received message happens <em>inside</em> the try, the telemetry activity
-    /// included: the message came from outside, any of its properties may throw, and a throw above the
-    /// try would escape the listener entirely — no error log, no <c>Errored</c> activity, and no
-    /// acknowledgement in any environment. Hence the activity handle declared here and started in there.
-    /// The one property known to throw, the base64-decoded correlation id, is additionally guarded at its
-    /// own read: an undecodable one is an ordinary "no reply address" rather than a fault, because it is
-    /// what another integration sharing this Fiks IO account routinely produces.
-    /// </para>
-    /// <para>
-    /// There is no longer any need to hold a message back while the sending transition finishes. An
-    /// early answer is first-class: the mailbox accepts it and the receiver enqueued for its position
-    /// reads it whenever it is created.
-    /// </para>
+    /// The subscriber performs no archiving logic of its own: it decrypts the payloads — which needs the live
+    /// Fiks IO connection and so can only be done here — and delivers them into the mailbox the send opened. What
+    /// the answer then does is documented on <see cref="FiksArkivServiceTask"/>, the authoritative account.
+    /// Whether Fiks IO should redeliver is the one decision left here, and it follows the forwarder's verdict. Two
+    /// conditions are settled without forwarding: no usable reply address, and an outcome no retry can change;
+    /// both are acknowledged so they leave the queue, and logged as errors. Every read of the received message
+    /// happens inside the try, the telemetry activity included, because the message came from outside and a throw
+    /// above the try would escape the listener with no log and no acknowledgement in any environment.
     /// </remarks>
     internal async Task IncomingMessageListener(FiksIOReceivedMessage message)
     {
@@ -305,8 +275,8 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 message.IsErrorResponse ? Telemetry.Fiks.FiksResult.Error : Telemetry.Fiks.FiksResult.Success
             );
 
-            // The archive echoes the correlation id the request carried; that value is the id of the
-            // mailbox the waiting task opened for this exchange.
+            // The archive echoes the correlation id the request carried; that value is the id of the mailbox the
+            // waiting task opened for this exchange.
             if (!Guid.TryParse(correlationId, out Guid mailboxId) || mailboxId == Guid.Empty)
             {
                 _logger.LogError(
@@ -319,10 +289,9 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 return;
             }
 
-            // The forwarding failure is caught and turned into a verdict here, rather than in a sibling
-            // catch, so that the responder call itself stays inside this try: a throw from Ack or
-            // NackWithRequeue in a sibling catch would escape the listener with nothing to handle it —
-            // the same escape the activity handle above closes for the metadata reads.
+            // The forwarding failure is caught and turned into a verdict here rather than in a sibling catch, so the
+            // responder call stays inside this try: a throw from Ack or NackWithRequeue in a sibling catch would
+            // escape the listener with nothing to handle it.
             bool forwarded = false;
             bool requestRedelivery = false;
             try
@@ -346,9 +315,8 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 }
                 else
                 {
-                    // Settled: no amount of redelivery will place this message anywhere, so requeuing
-                    // it would only loop the queue. Acknowledged and logged as an error instead, which
-                    // is what reaches monitoring.
+                    // Settled: no amount of redelivery will place this message anywhere. Acknowledged and logged as an
+                    // error instead, which is what reaches monitoring.
                     _logger.LogError(
                         e,
                         "Fiks Arkiv message {MessageId} could not be delivered to a waiting service task ({Outcome}) and will not be retried: {Error}",
@@ -390,23 +358,18 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     }
 
     /// <summary>
-    /// Whether Fiks IO should be asked to deliver this message again.
+    /// Whether Fiks IO should be asked to deliver this message again. Decided per
+    /// <see cref="ServiceTaskReplyForwardException.Outcome"/> rather than by
+    /// <see cref="ServiceTaskReplyForwardException.IsTransient"/> alone, so no verdict is a default that drifted.
+    /// Three settled ones are easy to misread: a full mailbox never frees a slot, <c>Late</c> means the exchange
+    /// has already concluded, and a rejected submission is wrong rather than badly timed. An unknown outcome falls
+    /// back to the platform's own classification.
     /// </summary>
-    /// <remarks>
-    /// Decided per <see cref="ServiceTaskReplyForwardException.Outcome"/> rather than by
-    /// <see cref="ServiceTaskReplyForwardException.IsTransient"/> alone, so each outcome's verdict is
-    /// stated here and none of them is a default that drifted. Three of the settled ones are easy to
-    /// misread: a full mailbox never frees a slot, so retrying it loops against a cap that cannot recede;
-    /// <c>Late</c> means the exchange has already concluded, never that the answer came too early; and a
-    /// rejected submission is wrong rather than badly timed, so replaying it is rejected the same way.
-    /// An outcome this subscriber has not been taught falls back to the platform's own classification,
-    /// which is maintained alongside the enum.
-    /// </remarks>
     private static bool ShouldRequestRedelivery(ServiceTaskReplyForwardException exception) =>
         exception.Outcome switch
         {
-            // Nothing left the app, and the next attempt can succeed: the engine may come back, and the
-            // callback code is re-read on every call.
+            // Nothing left the app, and the next attempt can succeed: the engine may come back, and the callback
+            // code is re-read on every call.
             ServiceTaskReplyForwardOutcome.EngineUnavailable => true,
             ServiceTaskReplyForwardOutcome.SigningUnavailable => true,
 
@@ -420,8 +383,8 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         };
 
     /// <summary>
-    /// Decrypts the message and delivers it into the mailbox whose id the archive echoed back as the
-    /// correlation id.
+    /// Decrypts the message and delivers it into the mailbox whose id the archive echoed back as the correlation
+    /// id.
     /// </summary>
     private async Task ForwardReply(FiksIOReceivedMessage message, Guid mailboxId)
     {
@@ -445,8 +408,8 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             ],
         };
 
-        // Resolved per message from a scope rather than injected: this is a singleton BackgroundService,
-        // and holding a transient forwarder would pin its HttpClient for the process lifetime.
+        // Resolved per message from a scope rather than injected: this is a singleton BackgroundService, and
+        // holding a transient forwarder would pin its HttpClient for the process lifetime.
         await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
         var forwarder = scope.ServiceProvider.GetRequiredService<IServiceTaskReplyForwarder>();
 
@@ -458,11 +421,9 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             mailboxId
         );
 
-        // The Fiks IO message id is the delivery's idempotency key, which is what makes Fiks IO's
-        // at-least-once delivery and any retry of this call safe: the second forward is recognized as a
-        // replay of the position the first one took. The service task type is named rather than derived,
-        // so an envelope can never be sealed against the wrong handler. The payload is handed over
-        // unwrapped — the forwarder applies the integrity envelope itself.
+        // The Fiks IO message id is the delivery's idempotency key, which is what makes Fiks IO's at-least-once
+        // delivery and any retry of this call safe. The service task type is named rather than derived, so an
+        // envelope can never be sealed against the wrong handler; the payload is handed over unwrapped.
         await forwarder.ForwardReply(
             mailboxId,
             AltinnTaskTypes.FiksArkiv,
@@ -472,15 +433,11 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     }
 
     /// <summary>
-    /// The message's correlation id, or <c>null</c> when it does not have a readable one.
+    /// The message's correlation id, or <c>null</c> when it does not have a readable one. Reading the property
+    /// base64-decodes the raw header, which throws on anything outside the base64 alphabet — and a Fiks IO account
+    /// can receive messages from integrations that put a human-readable string there. Since this field decides
+    /// where a reply is routed, an undecodable one must be an ordinary "no correlation id" rather than a fault.
     /// </summary>
-    /// <remarks>
-    /// Reading the property base64-decodes the raw header, which throws on anything outside the base64
-    /// alphabet — and a Fiks IO account can receive messages from integrations that put a
-    /// human-readable string there. Since this field now decides where a reply is routed, an undecodable
-    /// one must be an ordinary "no correlation id" (acknowledged and logged by the caller) rather than a
-    /// fault, which in production would leave the message redelivering forever.
-    /// </remarks>
     private string? ReadCorrelationId(FiksIOReceivedMessage message)
     {
         try

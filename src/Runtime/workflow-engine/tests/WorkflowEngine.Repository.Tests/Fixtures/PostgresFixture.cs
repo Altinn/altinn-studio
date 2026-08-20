@@ -50,23 +50,13 @@ public sealed class PostgresFixture : IAsyncLifetime
     internal EngineSettings Settings => _settings.Value;
 
     /// <summary>
-    /// The one connection pool everything this fixture builds shares.
+    /// The one connection pool everything this fixture builds shares. An <see cref="NpgsqlDataSource"/> owns a
+    /// private pool that lives until it is disposed, so building one per <c>CreateRepository</c> call would retain
+    /// an identical pool per call site — over a hundred of them against a container that allows a hundred
+    /// connections, and whichever class runs when the limit is reached is not the class that broke it. Nothing the
+    /// factory methods vary needs a data source of its own, and a shared pool still hands each concurrent caller
+    /// its own connection.
     /// </summary>
-    /// <remarks>
-    /// One pool for the whole collection, deliberately. An <see cref="NpgsqlDataSource"/> owns a private
-    /// pool that lives until it is disposed, so building one per <c>CreateRepository</c> call would retain
-    /// an identical pool per call site — and this collection has over a hundred of them against a
-    /// container that allows a hundred connections. The failure mode is the nastiest kind: whichever test
-    /// class happens to run when the limit is reached goes red with <c>53300: sorry, too many clients
-    /// already</c>, so the class that broke it is never the class that reports it.
-    /// <para>
-    /// Nothing the factory methods below vary needs a data source of its own: the interceptor lives on
-    /// <see cref="DbContextOptions"/>, the settings and the time provider on the repository, and a shared
-    /// pool still hands each concurrent caller its own connection. <see cref="DbMaintenanceService"/> is
-    /// safe to hand it to as well — it opens connections and creates commands, and never disposes the
-    /// data source it is given.
-    /// </para>
-    /// </remarks>
     private NpgsqlDataSource DataSource =>
         _dataSource ?? throw new InvalidOperationException("The fixture has not been initialized yet.");
 

@@ -17,16 +17,11 @@ internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineComman
     public string? AutoAdvanceAction { get; init; }
 
     /// <summary>
-    /// What the mailbox relay must do once this callback's data changes are saved and re-captured:
-    /// enqueue the exchange's next receiver, or close the mailbox and start what comes after it.
-    /// <c>null</c> on every callback that is not a mailbox reply handler's, which is nearly all of
-    /// them.
+    /// What the mailbox relay must do once this callback's data changes are saved and re-captured: enqueue the
+    /// exchange's next receiver, or close the mailbox and start what comes after it. <c>null</c> on every callback
+    /// that is not a mailbox reply handler's. It rides the result rather than being acted on inside the command
+    /// because the successor must start on the state this handler <em>published</em>.
     /// </summary>
-    /// <remarks>
-    /// It rides the result rather than being acted on inside the command because the successor must
-    /// start on the state this handler <em>published</em> — saved, re-captured and re-signed — not on
-    /// the state it received. <see cref="MailboxRelay"/> is where acting on it lives.
-    /// </remarks>
     public MailboxContinuation? MailboxContinuation { get; init; }
 }
 

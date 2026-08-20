@@ -16,9 +16,8 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 /// <summary>
-/// The state blob's non-data half, end to end through the service that writes and reads it: the mailbox
-/// a stage minted has to reach a step that runs several callbacks later, and the blob is the only
-/// channel between them.
+/// The state blob's non-data half, end to end through the service that writes and reads it: the mailbox a stage
+/// minted has to reach a step that runs several callbacks later, and the blob is the only channel between them.
 /// </summary>
 public class WorkflowCallbackStateCarryTests
 {
@@ -38,8 +37,8 @@ public class WorkflowCallbackStateCarryTests
         };
 
     /// <summary>
-    /// The real service with real signing; the collaborators it needs only for form data are mocked,
-    /// because a blob with no form data never reaches them.
+    /// The real service with real signing; the collaborators it needs only for form data are mocked, because a blob
+    /// with no form data never reaches them.
     /// </summary>
     private static WorkflowCallbackStateService CreateService()
     {
@@ -93,8 +92,8 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public async Task Capture_WithoutTheCarry_DropsTheMailbox()
     {
-        // The mutation that would break the relay silently: capturing the instance data alone. The
-        // enqueue step then has no address, which is why it fails permanently rather than guessing.
+        // The mutation that would break the relay silently: capturing the instance data alone. The enqueue step
+        // then has no address, which is why it fails permanently rather than guessing.
         WorkflowCallbackStateService service = CreateService();
         var minting = new WorkflowCallbackStateCarry();
         minting.RecordMailbox(_mailboxId);
@@ -109,10 +108,8 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public async Task Capture_AfterTheExchangeConcluded_DropsTheMailbox()
     {
-        // The conclusion has to un-say what the blob has said since the declaring stage. The workflow
-        // a conclusion starts inherits this very blob, and its own service task may open a mailbox —
-        // a blob still naming the finished exchange's would make that mint refuse, failing the next
-        // transition permanently and blaming an exchange that ended days earlier.
+        // The conclusion has to un-say what the blob has said since the declaring stage: the workflow a conclusion
+        // starts inherits this very blob, and its own service task may open a mailbox.
         WorkflowCallbackStateService service = CreateService();
         var concluding = new WorkflowCallbackStateCarry();
         concluding.RecordMailbox(_mailboxId);
@@ -147,8 +144,7 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public void RecordMailbox_Twice_WithDifferentMailboxes_Throws()
     {
-        // A pipeline opens at most one mailbox; two would leave one published address unanswered, so
-        // there is no winner to pick.
+        // A pipeline opens at most one mailbox; two would leave one published address unanswered.
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(_mailboxId);
 

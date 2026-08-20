@@ -1,10 +1,7 @@
 [files]
-# Hidden directories are scanned. Without this, `typos` skips every dot-directory before any exclude
-# is consulted — so .k6 and .claude were never checked, and dropping their excludes would have widened
-# nothing while reading like it had. wwwroot's exclude was doing real work and is gone too; between
-# them the two hid seven en-GB spellings this config now catches. An exclude, or a default, that
-# quietly covers something reads exactly like a pass; put a false positive in extend-words below
-# rather than a directory back here.
+# Hidden directories are scanned: without this, `typos` skips every dot-directory before any exclude is
+# consulted, so .k6 and .claude were never checked. Put a false positive in extend-words below rather
+# than a directory back in extend-exclude.
 ignore-hidden = false
 extend-exclude = [
     "**/bin/**",

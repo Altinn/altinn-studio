@@ -33,17 +33,12 @@ public sealed record FiksIOReceivedMessage
     /// </remarks>
     public FiksIOMessageResponder Responder { get; init; }
 
-    /// <summary>
-    /// Indicates whether this message is being read away from the Fiks IO connection it arrived on.
-    /// </summary>
+    /// <summary>Indicates whether this message is being read away from the Fiks IO connection it arrived on.</summary>
     /// <remarks>
-    /// <see langword="false"/> for a message handed to a Fiks IO subscriber as it arrives — everything
-    /// works, including <see cref="Responder"/> and the stream members. <see langword="true"/> for one
-    /// replayed later, for instance in a service task's reply handler: every value the message carried
-    /// is still there, but the members that would need the connection throw
-    /// <see cref="InvalidOperationException"/>. <strong>Ask this rather than catching that</strong> —
-    /// code that runs in both places can branch on it, and a long exchange is a bad place to discover
-    /// the difference.
+    /// <see langword="false"/> for a message handed to a Fiks IO subscriber as it arrives — everything works,
+    /// including <see cref="Responder"/> and the stream members. <see langword="true"/> for one replayed later,
+    /// where every value the message carried is still there but the members that need the connection throw
+    /// <see cref="InvalidOperationException"/>. Ask this rather than catching that.
     /// </remarks>
     public bool IsReplayed => Message.IsReplayed;
 
@@ -77,16 +72,10 @@ public sealed record FiksIOReceivedMessage
     }
 
     /// <summary>
-    /// Rebuilds a message that was received earlier, for code that reads it away from the Fiks IO
-    /// connection it arrived on.
+    /// Rebuilds a message that was received earlier, for code that reads it away from the Fiks IO connection it
+    /// arrived on. Everything the message carried is answered from the replayed values; the members that would need
+    /// the live connection throw <see cref="InvalidOperationException"/> rather than inventing an answer.
     /// </summary>
-    /// <remarks>
-    /// Everything the message carried — its ids, its type, its headers and its decrypted payloads — is
-    /// answered from the replayed values. The members that would need the live connection
-    /// (<see cref="FiksIOReceivedMessageContent.GetEncryptedStream"/> and its siblings, and every
-    /// member of <see cref="Responder"/>) throw <see cref="InvalidOperationException"/> rather than
-    /// answering with something invented.
-    /// </remarks>
     internal static FiksIOReceivedMessage Replay(FiksIOReplayedMessage replayed) => new(replayed);
 }
 
@@ -206,9 +195,8 @@ public sealed record FiksIOReceivedMessageContent
     private FiksIOReplayedMessage? _replayed { get; }
 
     /// <summary>
-    /// The live Fiks IO message this content wraps. Exactly one of the two constructors runs, so this
-    /// is non-null wherever <see cref="_replayed"/> is null — the throw is unreachable and exists only
-    /// so no member has to assert it.
+    /// The live Fiks IO message this content wraps. Exactly one of the two constructors runs, so this is non-null
+    /// wherever <see cref="_replayed"/> is null and the throw is unreachable.
     /// </summary>
     private IMottattMelding _live =>
         _mottattMelding

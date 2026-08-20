@@ -22,11 +22,10 @@ internal sealed record SignedWorkflowState
     public required string Payload { get; init; }
 
     /// <summary>
-    /// The detached signature over <see cref="Payload"/>, computed by
-    /// <c>WorkflowStateSigner.ComputeSignature</c> — Base64 of an HMAC-SHA256 taken under a key derived
-    /// from the app-code and the envelope's <c>SigningDomain</c>. The domain is not carried here: the
-    /// verifier states which one it expects, so an envelope minted for another fails exactly like a
-    /// tampered one. See that method for the derivation and why it is keyed rather than tagged.
+    /// The detached signature over <see cref="Payload"/>, computed by <c>WorkflowStateSigner.ComputeSignature</c> —
+    /// Base64 of an HMAC-SHA256 taken under a key derived from the app-code and the envelope's
+    /// <c>SigningDomain</c>. The domain is not carried here: the verifier states which one it expects, so an
+    /// envelope minted for another fails exactly like a tampered one.
     /// </summary>
     [JsonPropertyName("signature")]
     public required string Signature { get; init; }

@@ -21,11 +21,9 @@ public class PublicApiTests
         // Act
         var publicApi = assembly.GeneratePublicApi(new ApiGeneratorOptions { ExcludeAttributes = _excludedAttributes });
 
-        // Assert — the trailing newline is the file's own convention, and Verify writes exactly
-        // what it is given: without it every rewrite drops the last newline and the next change
-        // churns an extra line putting it back. A literal "\n" rather than Environment.NewLine:
-        // the file is committed with LF, and the Windows leg of the build would otherwise depend on
-        // Verify normalizing the difference away.
+        // The trailing newline is the file's own convention and Verify writes exactly what it is given, so without
+        // it every rewrite drops the last newline. A literal "\n" rather than Environment.NewLine: the file is
+        // committed with LF.
         await Verify(publicApi + "\n");
     }
 }

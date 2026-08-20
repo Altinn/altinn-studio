@@ -4,23 +4,15 @@ using WorkflowEngine.Resilience.JsonConverters;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Lifecycle status of a mailbox.
+/// Lifecycle status of a mailbox. Persisted as the lowercase text values <c>open</c> and <c>disposed</c>,
+/// constrained by a database check constraint.
 /// </summary>
-/// <remarks>
-/// Persisted as the lowercase text values <c>open</c> and <c>disposed</c>, constrained by a database
-/// check constraint. The wire representation follows the engine's enum convention (PascalCase out,
-/// case-insensitive in) via <see cref="FlexibleEnumConverter{TEnum}"/>.
-/// </remarks>
 [JsonConverter(typeof(FlexibleEnumConverter<MailboxStatus>))]
 public enum MailboxStatus
 {
-    /// <summary>
-    /// The mailbox accepts deliveries.
-    /// </summary>
+    /// <summary>The mailbox accepts deliveries.</summary>
     Open = 0,
 
-    /// <summary>
-    /// The mailbox is closed for deliveries. Terminal: nothing reopens a mailbox.
-    /// </summary>
+    /// <summary>The mailbox is closed for deliveries. Terminal: nothing reopens a mailbox.</summary>
     Disposed = 1,
 }

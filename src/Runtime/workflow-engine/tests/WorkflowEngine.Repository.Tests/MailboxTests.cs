@@ -48,15 +48,12 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_FreshKey_CreatesAnOpenMailboxWithItsDeadlineStamped()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var now = DateTimeOffset.UtcNow;
         var timeout = TimeSpan.FromDays(3);
 
-        // Act
         var result = await Mint(repository, "key-1", timeout, collectionKey: "col-1", now: now);
 
-        // Assert
         var mailbox = AssertMinted(result);
         Assert.Equal(Ns, mailbox.Namespace);
         Assert.Equal("key-1", mailbox.IdempotencyKey);
@@ -79,30 +76,27 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_WithoutCollectionKey_IsAccepted()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
 
-        // Act
         var result = await Mint(repository, "key-1", collectionKey: null);
 
-        // Assert — the collection reference is grouping only, so a mailbox without one is ordinary.
+        // The collection reference is grouping only, so a mailbox without one is ordinary.
         Assert.Null(AssertMinted(result).CollectionKey);
     }
 
     [Fact]
     public async Task MintMailbox_ReplayedKey_ReturnsTheOriginalMailboxUnchanged()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var first = AssertMinted(
             await Mint(repository, "key-1", TimeSpan.FromHours(1), now: DateTimeOffset.UtcNow.AddMinutes(-30))
         );
 
-        // Act — the same key, now with a different timeout and a later clock.
+        // The same key, now with a different timeout and a later clock.
         var replay = await Mint(repository, "key-1", TimeSpan.FromDays(7), now: DateTimeOffset.UtcNow);
 
-        // Assert — the replay is answered by the mailbox that already exists; nothing is re-stamped, so
-        // a retried step cannot quietly extend the exchange it is replaying.
+        // The replay is answered by the mailbox that already exists; nothing is re-stamped, so a retried step
+        // cannot quietly extend the exchange it is replaying.
         var existing = Assert.IsType<MailboxMintResult.Existing>(replay).Mailbox;
         Assert.Equal(first.Id, existing.Id);
         Assert.Equal(first.Timeout, existing.Timeout);
@@ -116,7 +110,6 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_ReplayedKeyAfterClose_StillReturnsTheClosedMailbox()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
         await repository.CloseMailbox(
@@ -127,12 +120,10 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        // Act
         var replay = await Mint(repository, "key-1");
 
-        // Assert — the key stays bound to the mailbox it minted for as long as the row lives. A replay
-        // after closure is answered honestly rather than by minting a second mailbox behind the
-        // caller's back.
+        // The key stays bound to the mailbox it minted for as long as the row lives, so a replay after closure is
+        // answered honestly rather than by minting a second mailbox behind the caller's back.
         var existing = Assert.IsType<MailboxMintResult.Existing>(replay).Mailbox;
         Assert.Equal(minted.Id, existing.Id);
         Assert.Equal(MailboxStatus.Disposed, existing.Status);
@@ -141,14 +132,12 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_SameKeyConcurrently_CreatesExactlyOneMailbox()
     {
-        // Arrange — separate repositories so the two mints run on separate connections.
         var repositories = Enumerable.Range(0, 8).Select(_ => fixture.CreateRepository()).ToArray();
 
-        // Act
         var results = await Task.WhenAll(repositories.Select(r => Mint(r, "contested")));
 
-        // Assert — the unique index is the mint's serialization point: one winner, and every loser is
-        // handed the winner's mailbox rather than an error or an empty answer.
+        // The unique index is the mint's serialization point: one winner, and every loser is handed the winner's
+        // mailbox rather than an error or an empty answer.
         Assert.Single(results.OfType<MailboxMintResult.Minted>());
 
         var ids = results
@@ -171,14 +160,12 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_SameKeyInDifferentNamespaces_AreIndependentMailboxes()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
 
-        // Act
         var a = AssertMinted(await Mint(repository, "key-1", ns: "ns-a"));
         var b = AssertMinted(await Mint(repository, "key-1", ns: "ns-b"));
 
-        // Assert — the key is unique per namespace, not globally.
+        // The key is unique per namespace, not globally.
         Assert.NotEqual(a.Id, b.Id);
     }
 
@@ -189,15 +176,12 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_CollectionAtItsCap_IsRefused()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         for (int i = 0; i < 3; i++)
             AssertMinted(await Mint(repository, $"key-{i}", collectionKey: "col-1", cap: 3));
 
-        // Act
         var refused = await Mint(repository, "key-3", collectionKey: "col-1", cap: 3);
 
-        // Assert
         Assert.IsType<MailboxMintResult.AtCollectionCapacity>(refused);
 
         await using var context = fixture.CreateDbContext();
@@ -207,8 +191,7 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_CollectionAtItsCap_StillAnswersAReplay()
     {
-        // Arrange — the collection is full, and one of the mailboxes filling it is the one being
-        // replayed.
+        // The collection is full, and one of the mailboxes filling it is the one being replayed.
         var repository = fixture.CreateRepository();
         var first = AssertMinted(await Mint(repository, "key-0", collectionKey: "col-1", cap: 2));
         AssertMinted(await Mint(repository, "key-1", collectionKey: "col-1", cap: 2));
@@ -216,22 +199,20 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
         // Act
         var replay = await Mint(repository, "key-0", collectionKey: "col-1", cap: 2);
 
-        // Assert — a replay creates nothing, so the cap has nothing to say about it. Refusing here would
-        // strand a retrying step whose mailbox id is already in a counterparty's hands.
+        // A replay creates nothing, so the cap has nothing to say about it. Refusing here would strand a retrying
+        // step whose mailbox id is already in a counterparty's hands.
         Assert.Equal(first.Id, Assert.IsType<MailboxMintResult.Existing>(replay).Mailbox.Id);
     }
 
     [Fact]
     public async Task MintMailbox_CapCountsOnlyOpenMailboxes_SoClosingOneFreesASlot()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var first = AssertMinted(await Mint(repository, "key-0", collectionKey: "col-1", cap: 1));
         Assert.IsType<MailboxMintResult.AtCollectionCapacity>(
             await Mint(repository, "key-1", collectionKey: "col-1", cap: 1)
         );
 
-        // Act
         await repository.CloseMailbox(
             first.Id,
             Ns,
@@ -241,19 +222,17 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
         );
         var afterClose = await Mint(repository, "key-1", collectionKey: "col-1", cap: 1);
 
-        // Assert — the cap bounds concurrent exchanges, not the collection's history.
+        // The cap bounds concurrent exchanges, not the collection's history.
         AssertMinted(afterClose);
     }
 
     [Fact]
     public async Task MintMailbox_CapIsScopedToOneCollectionAndOneNamespace()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         AssertMinted(await Mint(repository, "key-0", collectionKey: "col-1", cap: 1));
 
-        // Act + Assert — a different collection, and the same collection key in another namespace, each
-        // get their own budget.
+        // A different collection, and the same collection key in another namespace, each get their own budget.
         AssertMinted(await Mint(repository, "key-1", collectionKey: "col-2", cap: 1));
         AssertMinted(await Mint(repository, "key-2", collectionKey: "col-1", cap: 1, ns: "other-ns"));
     }
@@ -261,16 +240,10 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_CapIsBestEffort_SoAMintSeesOnlyTheOpenMailboxesItsOwnSnapshotShows()
     {
-        // A characterization test for what the cap is, as opposed to what "maximum" suggests. The count
-        // is evaluated against the snapshot the mint statement runs on, so a mailbox that exists but is
-        // not yet committed is invisible to it and the mint is admitted — which is exactly why mints in
-        // flight together can each see room and the collection can settle above the cap.
-        //
-        // Demonstrated with an uncommitted row rather than by racing real mints: the property under test
-        // is snapshot visibility, and holding a transaction open exhibits it directly instead of hoping a
-        // burst interleaves. Racing would also make the test punish an improvement — if the cap were ever
-        // made exact, a race-based test would fail the build for it, while this one simply stops passing
-        // for a stated reason.
+        // A characterization test for what the cap is, as opposed to what "maximum" suggests: the count is
+        // evaluated against the mint statement's own snapshot, so an uncommitted mailbox is invisible to it.
+        // Demonstrated with an uncommitted row rather than by racing real mints, which would also make the test
+        // punish an improvement if the cap were ever made exact.
         var repository = fixture.CreateRepository();
         const string CollectionKey = "col-1";
 
@@ -299,14 +272,13 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             await insert.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
-        // The collection already holds an open mailbox, but not one this mint's snapshot can see, so the
-        // cap of one does not bind and the mint is admitted. Nothing here raced; the outcome is forced.
+        // The collection already holds an open mailbox, but not one this mint's snapshot can see. Nothing raced.
         AssertMinted(await Mint(repository, "admitted", collectionKey: CollectionKey, cap: 1));
 
         await uncommitted.CommitAsync(TestContext.Current.CancellationToken);
 
-        // Two open mailboxes now sit in a collection capped at one — the overshoot, bounded by what was
-        // in flight. The guard itself still guards: the next mint sees the real count and is refused.
+        // Two open mailboxes in a collection capped at one — the overshoot, bounded by what was in flight. The
+        // guard still guards: the next mint sees the real count and is refused.
         await using var context = fixture.CreateDbContext();
         Assert.Equal(
             2,
@@ -323,11 +295,9 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_WithoutCollectionKey_IsNotCapped()
     {
-        // A characterization test, not an endorsement: the cap is per collection, so a mailbox minted
-        // without a collection key has nothing to be counted against and is admitted no matter how many
-        // already exist. The app library always supplies a collection key, which is what makes this
-        // acceptable; if a caller that omits it ever needs bounding, the bound has to be a different one
-        // (namespace-wide) rather than this one reinterpreted.
+        // A characterization test, not an endorsement: the cap is per collection, so a mailbox minted without a
+        // collection key has nothing to be counted against. The app library always supplies one, and bounding a
+        // caller that omits it would take a different (namespace-wide) bound rather than this one reinterpreted.
         var repository = fixture.CreateRepository();
 
         for (int i = 0; i < 5; i++)
@@ -344,14 +314,11 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetMailbox_ExistingMailbox_ReturnsIt()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1", collectionKey: "col-1"));
 
-        // Act
         var read = await repository.GetMailbox(minted.Id, Ns, TestContext.Current.CancellationToken);
 
-        // Assert
         Assert.NotNull(read);
         Assert.Equal(minted.Id, read.Id);
         Assert.Equal(minted.Deadline, read.Deadline);
@@ -361,11 +328,10 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task GetMailbox_UnknownIdOrForeignNamespace_ReturnsNull()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
 
-        // Act + Assert — the namespace is part of the address, not a filter applied afterwards.
+        // The namespace is part of the address, not a filter applied afterwards.
         Assert.Null(await repository.GetMailbox(Guid.CreateVersion7(), Ns, TestContext.Current.CancellationToken));
         Assert.Null(await repository.GetMailbox(minted.Id, "other-ns", TestContext.Current.CancellationToken));
     }
@@ -377,12 +343,10 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_OpenMailbox_MarksItDisposedByRequest()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
         var closedAt = DateTimeOffset.UtcNow;
 
-        // Act
         var result = await repository.CloseMailbox(
             minted.Id,
             Ns,
@@ -391,7 +355,6 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        // Assert
         var closed = Assert.IsType<MailboxCloseResult.Closed>(result).Mailbox;
         Assert.Equal(MailboxStatus.Disposed, closed.Status);
         Assert.Equal(MailboxDisposedReason.Request, closed.DisposedReason);
@@ -402,9 +365,7 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_ChangesNothingButTheDisposalFields()
     {
-        // Closing means one thing — closed for deliveries. It is not a place to also adjust the
-        // deadline, the counters or the collection reference, and pinning that keeps later steps from
-        // quietly widening it.
+        // Closing means one thing — closed for deliveries — and pinning that keeps later steps from widening it.
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1", collectionKey: "col-1"));
 
@@ -429,7 +390,6 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_Repeat_ReportsTheOriginalDisposal()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
         var firstClose = DateTimeOffset.UtcNow.AddMinutes(-5);
@@ -441,7 +401,6 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        // Act
         var repeat = await repository.CloseMailbox(
             minted.Id,
             Ns,
@@ -450,7 +409,7 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        // Assert — idempotent, and the answer describes the close that happened rather than this call.
+        // Idempotent, and the answer describes the close that happened rather than this call.
         var already = Assert.IsType<MailboxCloseResult.AlreadyClosed>(repeat).Mailbox;
         Assert.NotNull(already.DisposedAt);
         Assert.Equal(firstClose, already.DisposedAt.Value, TimeSpan.FromMilliseconds(1));
@@ -459,7 +418,6 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_AfterAnotherReasonClosedIt_KeepsTheOriginalReason()
     {
-        // Arrange — a mailbox already closed for a different reason than the one this call carries.
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
         await repository.CloseMailbox(
@@ -470,7 +428,6 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        // Act
         var repeat = await repository.CloseMailbox(
             minted.Id,
             Ns,
@@ -479,8 +436,8 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        // Assert — first close wins outright. Whoever closed it is what the reason has to say, because
-        // consumers word their conclusion from it.
+        // First close wins outright. Whoever closed it is what the reason has to say, because consumers word
+        // their conclusion from it.
         var already = Assert.IsType<MailboxCloseResult.AlreadyClosed>(repeat).Mailbox;
         Assert.Equal(MailboxDisposedReason.Deadline, already.DisposedReason);
     }
@@ -488,11 +445,9 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_UnknownIdOrForeignNamespace_ReturnsNotFound()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
 
-        // Act + Assert
         Assert.IsType<MailboxCloseResult.NotFound>(
             await repository.CloseMailbox(
                 Guid.CreateVersion7(),
@@ -522,12 +477,10 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DisposalFields_MustBeWrittenTogetherWithTheStatus()
     {
-        // Pins ck_mailboxes_disposal_is_complete. Every code path today writes the three disposal fields
-        // in one statement, so the constraint is invisible in normal operation — which is precisely why
-        // it is worth an explicit test: the steps that add the closure sweep and the receiver release are
-        // the ones that could write a status without its reason and instant, and MailboxResponse's
-        // contract ("disposedReason is null exactly while the mailbox is open") is only true if the
-        // schema refuses the half-written form.
+        // Pins ck_mailboxes_disposal_is_complete. Every code path writes the three disposal fields in one
+        // statement, so the constraint is invisible in normal operation — and MailboxResponse's contract
+        // ("disposedReason is null exactly while the mailbox is open") is only true if the schema refuses the
+        // half-written form.
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
 
@@ -542,8 +495,7 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(PostgresErrorCodes.CheckViolation, halfWritten.SqlState);
         Assert.Contains("ck_mailboxes_disposal_is_complete", halfWritten.Message, StringComparison.Ordinal);
 
-        // The mirror image is refused too, which is what makes the contract biconditional rather than
-        // merely "a disposed mailbox has its fields".
+        // The mirror image is refused too, which is what makes the contract biconditional.
         var stampedWhileOpen = await Assert.ThrowsAsync<PostgresException>(async () =>
             await context.Database.ExecuteSqlAsync(
                 $"UPDATE engine.mailboxes SET disposed_at = now() WHERE id = {minted.Id}",
@@ -565,10 +517,8 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_ConcurrentCalls_ExactlyOneCloses_AndTheRestReplayTheSameDisposal()
     {
-        // The semantic half of the lock-first discipline. Under a read-then-write implementation every
-        // caller could observe "open" and every caller could then write its own disposal, producing
-        // several closes with different timestamps. Taking the row lock before reading anything is what
-        // collapses them onto one.
+        // The semantic half of the lock-first discipline: under read-then-write every caller could observe
+        // "open" and then write its own disposal, producing several closes with different timestamps.
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
         var closers = Enumerable.Range(0, 8).Select(_ => fixture.CreateRepository()).ToArray();
@@ -604,14 +554,10 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CloseMailbox_CannotEvenReadTheMailboxWhileItsRowLockIsHeldElsewhere()
     {
-        // The structural half, and it is exercised through the one verdict a read-before-lock
-        // implementation could reach without ever writing: the mailbox is *already closed* before the
-        // racing close starts. Such an implementation would read the disposed row from its own snapshot
-        // and answer AlreadyClosed immediately, so it is red here; this one takes SELECT ... FOR UPDATE as
-        // the transaction's first act and cannot answer until the lock is free.
-        //
-        // Racing a close against an *open* mailbox would prove nothing — that close has to write, and a
-        // write blocks on the row lock whatever order the code reads in.
+        // The structural half, exercised through the one verdict a read-before-lock implementation could reach
+        // without ever writing: the mailbox is already closed before the racing close starts, so such an
+        // implementation would answer AlreadyClosed from its own snapshot. Racing against an open mailbox
+        // would prove nothing — that close has to write, and a write blocks on the row lock either way.
         var repository = fixture.CreateRepository();
         var minted = AssertMinted(await Mint(repository, "key-1"));
         Assert.IsType<MailboxCloseResult.Closed>(
@@ -663,10 +609,9 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     #region The workflow sweeps stay out of it
 
     /// <summary>
-    /// Retention settings for the sweeps below. Built here rather than taken from the fixture because
-    /// the fixture leaves <see cref="RetentionSettings"/> at its zero-valued default, and a zero
-    /// <c>BatchSize</c> makes the purge loop's <c>while (deleted &gt;= batchSize)</c> condition never
-    /// terminate.
+    /// Retention settings for the sweeps below. Built here because the fixture leaves
+    /// <see cref="RetentionSettings"/> at its zero-valued default, and a zero <c>BatchSize</c> makes the purge
+    /// loop's condition never terminate.
     /// </summary>
     private static readonly RetentionSettings _retention = new()
     {
@@ -678,11 +623,8 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task OverdueMailbox_IsClosedOnlyByTheMailboxSweep_NeverByTheWorkflowSweeps()
     {
-        // Mailboxes are not workflows, and the sweeps that recover workflows must keep not knowing they
-        // exist. The deadline is enforced by one sweep of its own, and this pins which one: every
-        // workflow-shaped sweep runs against an overdue mailbox first and leaves it exactly as it was,
-        // and only the mailbox sweep closes it. (Started life as a characterization test for the gap
-        // where nothing enforced the deadline; the second half is what closed it.)
+        // Mailboxes are not workflows, and the sweeps that recover workflows must keep not knowing they exist:
+        // every workflow-shaped sweep runs against an overdue mailbox first and leaves it exactly as it was.
         var repository = fixture.CreateRepository();
         var maintenance = fixture.CreateMaintenanceService();
         var minted = AssertMinted(
@@ -712,8 +654,8 @@ public sealed class MailboxTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task DisposedMailboxPastRetention_IsPurgedByTheMailboxRetentionSweep_NotTheWorkflowOne()
     {
-        // The mirror image, on the retention side: the workflow purge never sees a mailbox, so the closed
-        // one survives it untouched and goes only when the purge written for mailboxes runs.
+        // The mirror image on the retention side: the workflow purge never sees a mailbox, so the closed one
+        // survives it and goes only when the purge written for mailboxes runs.
         var repository = fixture.CreateRepository();
         var maintenance = fixture.CreateMaintenanceService();
         var longAgo = DateTimeOffset.UtcNow - _retention.RetentionPeriod - TimeSpan.FromDays(1);

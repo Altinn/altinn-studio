@@ -3,18 +3,13 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Clients.Fiks.FiksArkiv.Models;
 
 /// <summary>
-/// A received Fiks Arkiv message, reduced to what is needed to process it later and elsewhere. This
-/// is the body the Fiks IO subscriber delivers into the mailbox, and the body
-/// <see cref="FiksArkivServiceTask"/> reads back off <c>ServiceTaskContext.Reply</c>.
-/// </summary>
-/// <remarks>
-/// The subscriber cannot hand the received message itself over: decryption needs the live Fiks IO
-/// connection, which the reply handler — running on another callback, possibly on another pod,
-/// minutes or days later — does not have. So the subscriber decrypts on the spot and delivers this,
-/// and everything downstream reads the message from here. The transport metadata beside the payloads
-/// is what lets the reply handler rebuild a replayed <c>FiksIOReceivedMessage</c> for
+/// A received Fiks Arkiv message, reduced to what is needed to process it later and elsewhere. This is the body
+/// the Fiks IO subscriber delivers into the mailbox, and the body <see cref="FiksArkivServiceTask"/> reads back
+/// off <c>ServiceTaskContext.Reply</c>: decryption needs the live Fiks IO connection, which the reply handler
+/// does not have, so the subscriber decrypts on the spot. The transport metadata beside the payloads is what
+/// lets the reply handler rebuild a replayed <c>FiksIOReceivedMessage</c> for
 /// <see cref="IFiksArkivResponseHandler"/>.
-/// </remarks>
+/// </summary>
 internal sealed record StoredFiksArkivMessage
 {
     /// <summary>
@@ -66,16 +61,12 @@ internal sealed record StoredFiksArkivMessage
     [JsonPropertyName("headers")]
     public Dictionary<string, string>? Headers { get; init; }
 
-    /// <summary>
-    /// The decrypted payloads attached to the message, in the order Fiks IO delivered them.
-    /// </summary>
+    /// <summary>The decrypted payloads attached to the message, in the order Fiks IO delivered them.</summary>
     [JsonPropertyName("payloads")]
     public IReadOnlyList<StoredFiksArkivPayload>? Payloads { get; init; }
 }
 
-/// <summary>
-/// A single decrypted payload entry from a Fiks Arkiv message.
-/// </summary>
+/// <summary>A single decrypted payload entry from a Fiks Arkiv message.</summary>
 internal sealed record StoredFiksArkivPayload
 {
     /// <summary>The filename of the payload (e.g. <c>arkivmelding.xml</c>).</summary>

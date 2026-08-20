@@ -8,14 +8,10 @@ namespace WorkflowEngine.App.Tests.Commands.AppCommand;
 
 /// <summary>
 /// Unit tests for the mailbox block on the app callback: that it says on the wire exactly what the engine
-/// decided, and that it says nothing at all on an ordinary callback.
+/// decided, and that it says nothing at all on an ordinary callback. The engine owns what a receive step is
+/// told, so these are about faithfulness rather than logic — in particular that an absent delivery reaches the
+/// app with its reason.
 /// </summary>
-/// <remarks>
-/// The engine owns what a receive step is told; this layer only serializes it. So the tests here are
-/// about faithfulness rather than about logic — in particular that an absent delivery reaches the app as
-/// an absent delivery <em>with its reason</em>, since that pair is what lets a handler word a conclusion
-/// without ever having to work out which kind of ending it is looking at.
-/// </remarks>
 public class AppCommandMailboxTests
 {
     private static readonly Guid _mailboxId = Guid.Parse("018f4e00-0000-7000-8000-00000000ffff");
@@ -43,10 +39,8 @@ public class AppCommandMailboxTests
     [Fact]
     public async Task Callback_OfAnOrdinaryStep_CarriesNoMailboxBlock()
     {
-        // Null rather than present-and-empty — the block is on the wire and carries no value, like every
-        // other optional field on this payload. A handler distinguishes "this is a reply handler" from
-        // "this is any other command" on the block having a value, so an empty object would be a third
-        // state to reason about.
+        // Null rather than present-and-empty: a handler distinguishes "this is a reply handler" from "this is any
+        // other command" on the block having a value, so an empty object would be a third state.
         Assert.Null((await SendWith(null)).Mailbox);
     }
 
@@ -88,9 +82,7 @@ public class AppCommandMailboxTests
     [InlineData(MailboxDisposedReason.Deadline)]
     public async Task Callback_OfAReceiveStepWithNoMessage_CarriesTheReasonExplicitly(MailboxDisposedReason reason)
     {
-        // Both reasons on the wire, because the whole value of carrying one is that the two are told
-        // apart. Inferring "the deadline passed" from an absent delivery would be a guess, and the
-        // conclusion the app writes is read by a person.
+        // Both reasons on the wire, because the whole value of carrying one is that the two are told apart.
         var payload = await SendWith(MailboxReceipt.Closed(_mailboxId, seq: 1, reason));
 
         var mailbox = Assert.IsType<AppCallbackMailbox>(payload.Mailbox);
@@ -103,9 +95,8 @@ public class AppCommandMailboxTests
     [Fact]
     public async Task Callback_SerializesTheMailboxBlockUnderItsWireNames()
     {
-        // Asserted over the raw JSON rather than through a round trip, because the app keeps its own
-        // curated copy of this contract and matches on property names. A round trip through the engine's
-        // own record would agree with itself whatever the names were.
+        // Asserted over the raw JSON rather than through a round trip, because the app keeps its own curated copy
+        // of this contract and matches on property names.
         using var fixture = AppCommandTestFixture.Create();
         var command = fixture.GetAppCommand();
         var data = new AppCommandData { CommandKey = "handle-reply" };
@@ -126,8 +117,8 @@ public class AppCommandMailboxTests
         Assert.Equal(_mailboxId, mailbox.GetProperty("id").GetGuid());
         Assert.Equal(0L, mailbox.GetProperty("seq").GetInt64());
         Assert.Equal(JsonValueKind.Null, mailbox.GetProperty("delivery").ValueKind);
-        // Pascal-cased on the wire, as every other engine enum is: FlexibleEnumConverter writes
-        // `ToString()` and reads case-insensitively, so a consumer may send either casing back.
+        // Pascal-cased on the wire, as every other engine enum is: FlexibleEnumConverter writes `ToString()` and
+        // reads case-insensitively.
         Assert.Equal("Deadline", mailbox.GetProperty("disposedReason").GetString());
     }
 }

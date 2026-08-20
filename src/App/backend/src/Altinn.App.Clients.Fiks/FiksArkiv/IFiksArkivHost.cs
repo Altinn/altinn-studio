@@ -16,11 +16,9 @@ public interface IFiksArkivHost
     /// which must be capable of generating the given message type.
     /// </summary>
     /// <remarks>
-    /// Sends without a reply address, so the recipient's answers cannot be routed back to a waiting
-    /// service task: the Fiks IO subscriber recognizes an answer by the reply address the request
-    /// published, and this overload publishes the instance reference in its place. Use the overload
-    /// taking a <c>replyAddress</c> for anything whose answer must reach the task that sent it — that is
-    /// what <see cref="FiksArkivServiceTask"/> does, with the mailbox it opened.
+    /// Sends without a reply address, so the recipient's answers cannot be routed back to a waiting service task:
+    /// this overload publishes the instance reference in its place. Use the overload taking a <c>replyAddress</c>
+    /// for anything whose answer must reach the task that sent it.
     /// </remarks>
     /// <param name="taskId">The task ID the message is generated from</param>
     /// <param name="messageType">The Fiks Arkiv message type (create, update, etc)</param>
@@ -55,10 +53,9 @@ public interface IFiksArkivHost
     /// <param name="dataMutator">The active instance data mutator.</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <remarks>
-    /// The archive record is staged into the unit of work before the shipment leaves, and a failed send
-    /// discards it with the rest of the attempt's data changes — so a record is never left behind for a
-    /// message that never went, and a throw between the staging and the send cannot make the retry send
-    /// a second copy.
+    /// The archive record is staged into the unit of work before the shipment leaves, and a failed send discards it
+    /// with the rest of the attempt's data changes — so a record is never left behind for a message that never
+    /// went, and a throw between the staging and the send cannot make the retry send a second copy.
     /// </remarks>
     Task<FiksIOMessageResponse> GenerateAndSendMessage(
         string taskId,

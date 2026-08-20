@@ -50,10 +50,9 @@ public static class ServiceCollectionExtensions
 
         services.AddFiksIOClient();
         services.AddAltinnCdnClient();
-        // Transient, like every other service task: the task is stateless, `Define` runs per
-        // resolution, and it depends on IFiksArkivInstanceClient, which builds HTTP clients from an
-        // IHttpClientFactory. A singleton would pin one of those for the process lifetime, so its
-        // handler would never rotate and DNS changes to the Storage endpoint would never be picked up.
+        // Transient, like every other service task: `Define` runs per resolution, and a singleton would pin one
+        // IFiksArkivInstanceClient's HTTP handler for the process lifetime so DNS changes would never be picked
+        // up.
         services.AddTransient<IPipelineServiceTask, FiksArkivServiceTask>();
         services.AddSingleton<FiksArkivHost>();
         services.AddSingleton<IFiksArkivHost>(sp => sp.GetRequiredService<FiksArkivHost>());

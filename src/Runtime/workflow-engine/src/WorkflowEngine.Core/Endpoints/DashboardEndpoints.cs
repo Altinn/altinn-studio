@@ -436,19 +436,12 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
-        // The mailboxes of the collections a chains surface is currently showing. A fetch rather than a
-        // field on the live stream: mailboxes are not workflows, so nothing in that payload's shape or its
-        // fingerprint loop accommodates them, and putting a three-table read on a two-second loop for every
-        // open dashboard would charge every engine for a feature most of them do not use. The caller names
-        // the collections it is rendering, which is what keeps the read proportional to the screen rather
-        // than to the number of mailboxes the engine retains.
-        //
-        // Two caps, and the total cost is their product. The per-collection one is what keeps a busy
-        // collection's history from crowding another collection's mailbox off the payload entirely: a global
-        // limit ordered newest-first drops its casualties at the older end across all keys at once, and a
-        // group that comes back with no mailbox looks exactly like an exchange that never had one. The keys
-        // whose window was full come back named, so a group with an unshown tail can say so — the same
-        // choice /dashboard/graph makes with `truncated`, and for the sharper version of the same reason.
+        // The mailboxes of the collections a chains surface is currently showing. A fetch rather than a field on
+        // the live stream: mailboxes are not workflows, and putting a three-table read on a two-second loop for
+        // every open dashboard would charge every engine for a feature most do not use. Two caps, and the total
+        // cost is their product; the per-collection one is what keeps a busy collection's history from crowding
+        // another collection's mailbox off the payload entirely. The keys whose window was full come back
+        // named, as /dashboard/graph does with `truncated`.
         const int mailboxCollectionCap = 100;
         const int mailboxesPerCollectionCap = 10;
         app.MapGet(
@@ -457,8 +450,8 @@ internal static class DashboardEndpoints
                 {
                     string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
-                    // Extra keys are dropped rather than reported: a surface showing more than a hundred
-                    // collections at once is showing a window, and which hundred is its own choice.
+                    // Extra keys are dropped rather than reported: a surface showing more than a hundred collections at
+                    // once is showing a window, and which hundred is its own choice.
                     string[] keys =
                     [
                         .. (collectionKeys ?? string.Empty)

@@ -36,17 +36,15 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_FirstMessage_Returns202WithItsPosition()
     {
-        // Arrange
         var mailbox = await MintMailbox();
 
-        // Act
         using var response = await _client.DeliverToMailboxRaw(
             mailbox.Id,
             new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = """{"status":"received"}""" }
         );
 
-        // Assert — 202 is the engine's marker for "this call effected the state change", the same
-        // distinction the mint draws between 201 and 200.
+        // 202 is the engine's marker for "this call effected the state change", the same distinction the mint
+        // draws between 201 and 200.
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         var delivery = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(
@@ -62,23 +60,20 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_SeveralMessages_TakeConsecutivePositions()
     {
-        // Arrange
         var mailbox = await MintMailbox();
 
-        // Act
         var first = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         var second = await _client.DeliverToMailbox(mailbox.Id, "source-msg-2");
         var third = await _client.DeliverToMailbox(mailbox.Id, "source-msg-3");
 
-        // Assert
         Assert.Equal([0L, 1L, 2L], new[] { first.Idx, second.Idx, third.Idx });
     }
 
     [Fact]
     public async Task DeliverToMailbox_ConcurrentMessages_AssignEveryPositionExactlyOnce()
     {
-        // The gapless log through the whole stack rather than at the repository alone: nothing between
-        // the HTTP handler and the row lock reorders, batches, or drops a position.
+        // The gapless log through the whole stack rather than at the repository alone: nothing between the HTTP
+        // handler and the row lock reorders, batches, or drops a position.
         const int Count = 12;
         var mailbox = await MintMailbox();
 
@@ -100,17 +95,15 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_ReplayedKey_Returns200WithTheOriginalPosition()
     {
-        // Arrange
         var mailbox = await MintMailbox();
         var first = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1", """{"v":1}""");
 
-        // Act — a forwarder retrying a transport failure resends, and may well resend a rebuilt body.
+        // A forwarder retrying a transport failure resends, and may well resend a rebuilt body.
         using var response = await _client.DeliverToMailboxRaw(
             mailbox.Id,
             new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = """{"v":2}""" }
         );
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var replay = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(
@@ -129,9 +122,9 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_ReplayedKeyAfterTheMailboxClosed_StillReturns200()
     {
-        // The "accepted versus kept" rule at the HTTP boundary, and the one place a forwarder could be
-        // badly misled: 409 tells it to dead-letter, and this message is not lost — it is sitting at
-        // position 0 waiting for its receiver.
+        // The "accepted versus kept" rule at the HTTP boundary, and the one place a forwarder could be badly
+        // misled: 409 tells it to dead-letter, and this message is sitting at position 0 waiting for its
+        // receiver.
         var mailbox = await MintMailbox();
         var accepted = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.CloseMailbox(mailbox.Id);
@@ -157,18 +150,16 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_ClosedMailbox_Returns409SayingHowItClosed()
     {
-        // Arrange
         var mailbox = await MintMailbox();
         await _client.CloseMailbox(mailbox.Id);
 
-        // Act
         using var response = await _client.DeliverToMailboxRaw(
             mailbox.Id,
             new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = "{}" }
         );
 
-        // Assert — 409 always means too late, never too early: an early delivery is accepted and parks at
-        // its position, so a forwarder can dead-letter a 409 without inspecting anything else.
+        // 409 always means too late, never too early: an early delivery is accepted and parks at its position, so
+        // a forwarder can dead-letter a 409 without inspecting anything else.
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
 
         var problem = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -178,8 +169,8 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_RefusedDelivery_IsRefusedAgainAndStoredNeitherTime()
     {
-        // The converse of the replay rule: what the engine refused, it keeps refusing, and neither
-        // attempt claimed the key or a position.
+        // The converse of the replay rule: what the engine refused, it keeps refusing, and neither attempt
+        // claimed the key or a position.
         var mailbox = await MintMailbox();
         await _client.CloseMailbox(mailbox.Id);
 
@@ -198,11 +189,9 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_UnknownIdOrForeignNamespace_Returns404()
     {
-        // Arrange
         var mailbox = await MintMailbox();
         var request = new MailboxDeliveryRequest { IdempotencyKey = "source-msg-1", Payload = "{}" };
 
-        // Act + Assert
         using var unknown = await _client.DeliverToMailboxRaw(Guid.CreateVersion7(), request);
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
 
@@ -217,8 +206,8 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_PayloadOverTheCap_Returns413()
     {
-        // The cap is refused rather than truncated: a receiver reading half a message is worse than a
-        // forwarder learning its message will not fit and dead-lettering it.
+        // The cap is refused rather than truncated: a receiver reading half a message is worse than a forwarder
+        // learning its message will not fit.
         var mailbox = await MintMailbox();
         var oversized = new string('x', Settings(fixture).MaxMailboxPayloadSize + 1);
 
@@ -237,13 +226,11 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_PayloadCapCountsUtf8Bytes_NotCharacters()
     {
-        // The cap bounds what is stored, so it is measured on the encoded form. A payload of multi-byte
-        // characters that fits by character count and not by byte count is refused, and the same number
-        // of ASCII characters is accepted.
+        // The cap bounds what is stored, so it is measured on the encoded form.
         var mailbox = await MintMailbox();
         var cap = Settings(fixture).MaxMailboxPayloadSize;
 
-        // Three bytes each in UTF-8, so this is comfortably over the cap while being under it in chars.
+        // Three bytes each in UTF-8, so this is over the cap while being under it in characters.
         var multiByte = new string('あ', (cap / 2) + 1);
         using var refused = await _client.DeliverToMailboxRaw(
             mailbox.Id,
@@ -258,21 +245,18 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_LogAtItsCap_Returns429()
     {
-        // Arrange — fill the log to the configured cap. It is the only bound on what a single mailbox can
-        // cost, because deliveries deliberately skip the admission gate an ordinary enqueue must pass: a
-        // delivery refused for backpressure is a message an external system may never send again.
+        // Fill the log to the configured cap. It is the only bound on what a single mailbox can cost, because
+        // deliveries deliberately skip the admission gate an ordinary enqueue must pass.
         var cap = Settings(fixture).MaxMailboxLogLength;
         var mailbox = await MintMailbox();
         for (int i = 0; i < cap; i++)
             await _client.DeliverToMailbox(mailbox.Id, $"source-msg-{i}");
 
-        // Act
         using var response = await _client.DeliverToMailboxRaw(
             mailbox.Id,
             new MailboxDeliveryRequest { IdempotencyKey = "one-too-many", Payload = "{}" }
         );
 
-        // Assert
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
 
         // A different mailbox is unaffected — the bound is per mailbox.
@@ -297,10 +281,9 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliverToMailbox_OverLongIdempotencyKey_Returns400()
     {
-        // The key is varchar(200). Length has to be caught before the delivery reaches the database,
-        // because Postgres answers an over-long value with SQLSTATE 22001, which the repository's retry
-        // classifier reads as transient — so a forwarder's malformed message id would otherwise be
-        // retried until the database command timeout and then logged as a suspected outage.
+        // The key is varchar(200). Length has to be caught before the delivery reaches the database, because
+        // Postgres answers an over-long value with SQLSTATE 22001, which the retry classifier reads as
+        // transient.
         var mailbox = await MintMailbox();
 
         using var response = await _client.DeliverToMailboxRaw(
@@ -318,17 +301,15 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task GetMailbox_AfterDeliveries_ReportsTheRealCountersAndUnconsumedCount()
     {
-        // Arrange
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-2");
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
 
-        // Act
         var read = await _client.GetMailbox(mailbox.Id);
 
-        // Assert — the counters describe positions, not calls: three requests, two positions, and both of
-        // them messages that arrived with nobody enqueued to read them.
+        // The counters describe positions, not calls: three requests, two positions, and both of them messages
+        // that arrived with nobody enqueued to read them.
         Assert.NotNull(read);
         Assert.Equal(2L, read.NextIdx);
         Assert.Equal(0L, read.NextSeq);
@@ -338,8 +319,8 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task GetMailbox_AfterClosing_StillReportsWhatArrived()
     {
-        // What the operator sees when an exchange ends with messages nobody read — the leftover class the
-        // design handles rather than assumes away. The rows stay readable until retention purges them.
+        // What the operator sees when an exchange ends with messages nobody read. The rows stay readable until
+        // retention purges them.
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.CloseMailbox(mailbox.Id);
@@ -359,7 +340,6 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
     [Fact]
     public async Task DeliveriesAreCountedForEveryOutcome_IncludingTheOnesRefusedBeforeTheDatabase()
     {
-        // Arrange
         var mailbox = await MintMailbox();
         var closed = await MintMailbox("step-closed");
         await _client.CloseMailbox(closed.Id);
@@ -369,8 +349,7 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         async Task Refuse(Guid mailboxId, MailboxDeliveryRequest request) =>
             (await _client.DeliverToMailboxRaw(mailboxId, request)).Dispose();
 
-        // Act — one call per outcome the endpoint can answer with, except log_full, which costs a hundred
-        // deliveries to reach and is counted by the same line as the rest.
+        // One call per outcome the endpoint can answer with, except log_full, which costs a hundred deliveries.
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await Refuse(Guid.CreateVersion7(), new() { IdempotencyKey = "source-msg-1", Payload = "{}" });
@@ -385,8 +364,8 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         );
         await Refuse(mailbox.Id, new() { IdempotencyKey = "   ", Payload = "{}" });
 
-        // Assert — a storm of oversized or misaddressed forwards has to be visible in the mailbox
-        // metrics, not only in HTTP status codes, which is why the refusals are counted too.
+        // A storm of oversized or misaddressed forwards has to be visible in the mailbox metrics, not only in
+        // HTTP status codes, which is why the refusals are counted too.
         var measurements = collector.GetMeasurements("engine.mailboxes.deliveries.received");
         var byOutcome = measurements
             .GroupBy(m => (string)m.Tags.Single(t => t.Key == "outcome").Value!)

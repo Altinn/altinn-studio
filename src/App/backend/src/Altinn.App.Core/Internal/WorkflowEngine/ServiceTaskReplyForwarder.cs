@@ -10,30 +10,22 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Seals a received message into its tamper-evident envelope and delivers it into the mailbox that
-/// addresses it, over the same authenticated app→engine channel that carries enqueues.
+/// Seals a received message into its tamper-evident envelope and delivers it into the mailbox that addresses
+/// it, over the same authenticated app→engine channel that carries enqueues.
 /// </summary>
 /// <remarks>
+/// One policy lives here and nowhere else: the status mapping. <c>202</c> (appended) and <c>200</c> (this key
+/// had already delivered into this mailbox) are both success, which is what makes the two overlapping
+/// at-least-once deliveries safe. Everything else surfaces as a
+/// <see cref="ServiceTaskReplyForwardException"/> rather than being swallowed here, because only the receiving
+/// channel can decide whether its message should be dead-lettered, reported, redelivered or dropped. Retrying
+/// is for transport failures alone: a <c>409</c> always means too late and a <c>400</c> means the submission
+/// itself was wrong.
 /// <para>
-/// One policy lives here and nowhere else: <strong>the status mapping</strong>. <c>202</c> (the message
-/// was appended) and <c>200</c> (this key had already delivered a message into this mailbox) are both
-/// success, which is what makes the two overlapping at-least-once deliveries safe: the source
-/// redelivering its message, and a retry of the forwarding call itself. Everything else surfaces to the
-/// caller as a <see cref="ServiceTaskReplyForwardException"/> rather than being swallowed here — a
-/// message nothing will process is a fact about the receiving channel's message, and only that channel
-/// can decide whether it should be dead-lettered, reported, redelivered, or dropped. Retrying is for
-/// transport failures alone: a <c>409</c> always means too late (an early message is accepted, so it
-/// never means too early) and a <c>400</c> means the submission itself was wrong, so replaying either
-/// just repeats it.
-/// </para>
-/// <para>
-/// <strong>There is no lookup here, deliberately.</strong> The forwarder builds nothing that has to
-/// match what the engine already holds: the receive workflow — its handler, its step options, its
-/// shape — was declared by the app-lib when the receiver was enqueued, so a delivery is a mailbox id, a
-/// key and a body. The one thing the forwarder must know beyond the address is which task's handler
-/// reads the message, and it is <em>told</em> that by its caller rather than deriving it, because a
-/// derivation can be wrong at signing time and then sign its own mistake — an envelope that verifies
-/// perfectly against the wrong handler.
+/// There is no lookup here, deliberately: the receive workflow was declared by the app-lib when the receiver
+/// was enqueued, so a delivery is a mailbox id, a key and a body. Which task's handler reads the message is
+/// <em>told</em> by the caller rather than derived, because a derivation can be wrong at signing time and then
+/// sign its own mistake.
 /// </para>
 /// </remarks>
 internal sealed class ServiceTaskReplyForwarder(
@@ -61,9 +53,8 @@ internal sealed class ServiceTaskReplyForwarder(
         MailboxDeliveryResult result;
         try
         {
-            // Sealing reads the app's callback code, which is absent during a mounting or rotation gap.
-            // That is an ordinary undeliverable-message outcome for the caller, not an exception
-            // escaping past a documented contract — so it is inside the try.
+            // Sealing reads the app's callback code, which is absent during a mounting or rotation gap — an ordinary
+            // undeliverable-message outcome for the caller, so it is inside the try.
             string sealedPayload = envelope.Wrap(payload, mailboxId, serviceTaskType, idempotencyKey);
 
             var request = new MailboxDeliveryRequest { IdempotencyKey = idempotencyKey, Payload = sealedPayload };
@@ -72,10 +63,8 @@ internal sealed class ServiceTaskReplyForwarder(
         }
         catch (WorkflowCallbackSecretNotFoundException ex)
         {
-            // Unfiltered on purpose: this exception can never be a cancellation, so a filter guarding
-            // against one would only be a tautology to read past.
-            // Nothing left the app: the message is not accepted, and the code is re-read on every call,
-            // so the next attempt after the secret lands succeeds.
+            // Unfiltered on purpose: this exception can never be a cancellation. Nothing left the app, and the code
+            // is re-read on every call, so the next attempt after the secret lands succeeds.
             throw Failure(
                 ServiceTaskReplyForwardOutcome.SigningUnavailable,
                 mailboxId,
@@ -86,10 +75,9 @@ internal sealed class ServiceTaskReplyForwarder(
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
-            // Transport failure, or the client's own timeout: the message is not accepted, and
-            // forwarding it again is the right response. The filter deliberately tests the exception
-            // rather than just the token, so a genuine failure racing an unrelated cancellation still
-            // surfaces classified instead of escaping unwrapped.
+            // Transport failure, or the client's own timeout: forwarding again is the right response. The filter
+            // tests the exception rather than just the token, so a genuine failure racing an unrelated
+            // cancellation still surfaces classified instead of escaping unwrapped.
             throw Failure(
                 ServiceTaskReplyForwardOutcome.EngineUnavailable,
                 mailboxId,
@@ -135,24 +123,20 @@ internal sealed class ServiceTaskReplyForwarder(
         status switch
         {
             HttpStatusCode.NotFound => ServiceTaskReplyForwardOutcome.Unroutable,
-            // Always too late, never too early: a mailbox refuses deliveries only once it is closed, and
-            // a message that precedes its receiver is accepted and waits at its position.
+            // Always too late, never too early: a mailbox refuses deliveries only once closed, and a message that
+            // precedes its receiver is accepted and waits at its position.
             HttpStatusCode.Conflict => ServiceTaskReplyForwardOutcome.Late,
             HttpStatusCode.RequestEntityTooLarge => ServiceTaskReplyForwardOutcome.PayloadTooLarge,
             HttpStatusCode.TooManyRequests => ServiceTaskReplyForwardOutcome.MailboxFull,
-            // The 4xx family the engine does not document, and which resolves on its own: a token the
-            // app could not present or that had expired, a gateway refusing while an authorization
-            // incident is in progress, a request timed out in front of the engine. These are timing and
-            // infrastructure conditions, not verdicts on this message — the same reasoning that makes
-            // SigningUnavailable transient for a secret that has not been mounted yet. Classifying them
-            // permanently would have the receiving channel dead-letter real business messages that
-            // would have been accepted minutes later.
+            // The 4xx family the engine does not document, and which resolves on its own: a token the app could not
+            // present or that had expired, a gateway refusing during an authorization incident, a request timed
+            // out in front of the engine. Classifying them permanently would have the receiving channel
+            // dead-letter real business messages that would have been accepted minutes later.
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.RequestTimeout =>
                 ServiceTaskReplyForwardOutcome.EngineUnavailable,
-            // Any other 4xx the engine did not document here is a verdict on this submission — malformed,
-            // out of bounds, addressed at nothing — and will be reached again by a replay of the same
-            // bytes; anything else means the engine did not answer as itself, which the retryable
-            // outcome covers.
+            // Any other 4xx is a verdict on this submission and will be reached again by a replay of the same
+            // bytes; anything else means the engine did not answer as itself, which the retryable outcome
+            // covers.
             >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError =>
                 ServiceTaskReplyForwardOutcome.Rejected,
             _ => ServiceTaskReplyForwardOutcome.EngineUnavailable,
@@ -180,9 +164,8 @@ internal sealed class ServiceTaskReplyForwarder(
         };
 
     /// <remarks>
-    /// Builds the exception without logging it. The caller is the one deciding what an undeliverable
-    /// message means, and it has the whole exception in hand — logging here would only duplicate
-    /// whatever it records, at a severity this class cannot know is right.
+    /// Builds the exception without logging it: the caller decides what an undeliverable message means and has the
+    /// whole exception in hand.
     /// </remarks>
     private static ServiceTaskReplyForwardException Failure(
         ServiceTaskReplyForwardOutcome outcome,

@@ -1,6 +1,5 @@
 [files]
-# Hidden directories are scanned; see the note in the engine's typos.toml. Without this, .k6 here was
-# skipped before its exclude was ever consulted, so neither was doing anything.
+# Hidden directories are scanned; see the note in the engine's typos.toml.
 ignore-hidden = false
 extend-exclude = [
     "**/bin/**",

@@ -31,9 +31,9 @@ public class ExecuteServiceTaskReplyTests
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
 
     /// <summary>
-    /// The real envelope, not a stub: a delivered message only reaches a handler if it opens against
-    /// this mailbox, this service task and this idempotency key, so every test that expects a message
-    /// to arrive must seal it the way the forwarder does.
+    /// The real envelope, not a stub: a delivered message only reaches a handler if it opens against this mailbox,
+    /// this service task and this idempotency key, so every test that expects a message to arrive must seal it the
+    /// way the forwarder does.
     /// </summary>
     private static readonly MailboxDeliveryEnvelope _envelope = TestMailboxDeliveryEnvelope.Create();
 
@@ -235,10 +235,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Conclusion_WithAnEmptyMessage_StillReadsAMessage()
     {
-        // The distinction the whole conclusion protocol rests on: a sender that delivers an empty
-        // body produces a reply whose Payload is empty, never a null Reply. Inferring the closing
-        // signal from an absent payload would conclude an exchange degraded because a forwarder sent
-        // nothing.
+        // The distinction the whole conclusion protocol rests on: a sender that delivers an empty body produces a
+        // reply whose Payload is empty, never a null Reply.
         var task = new ArchivingTask();
         AppCallbackMailbox empty = Delivered(body: "");
 
@@ -257,9 +255,8 @@ public class ExecuteServiceTaskReplyTests
         MailboxClosedReason appReason
     )
     {
-        // A null Reply means exactly one thing — conclude — and the reason rides beside it for the
-        // wording only. Both map through rather than one of them being the default, because a
-        // silently defaulted reason would word every timeout as a deliberate closure.
+        // A null Reply means exactly one thing — conclude — and the reason rides beside it for the wording only.
+        // Both map through, because a silently defaulted reason would word every timeout as a closure.
         var task = new ArchivingTask();
 
         await CreateCommand(task)
@@ -272,8 +269,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Stage_OfADeclaringPipeline_CannotReadAReply()
     {
-        // A stage runs once, before the exchange opens or as part of opening it. Reading Reply there
-        // must not answer null — null is the instruction to conclude.
+        // A stage runs once, before the exchange opens or as part of opening it. Reading Reply there must not
+        // answer null — null is the instruction to conclude.
         var task = new ArchivingTask();
 
         await CreateCommand(task)
@@ -303,9 +300,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Conclusion_OfATaskWithNoMailbox_HandedARendezvous_FailsPermanently()
     {
-        // The declaration was removed while an exchange was in flight, or the workflow belongs to a
-        // different task. Either way the handler cannot answer for an exchange it does not know it
-        // is in.
+        // The declaration was removed while an exchange was in flight, or the workflow belongs to a different
+        // task. Either way the handler cannot answer for an exchange it does not know it is in.
         var task = new PlainTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
@@ -320,11 +316,10 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Conclusion_ReadsBackExactlyWhatTheForwarderForwarded()
     {
-        // The two halves of the envelope meeting, with nothing hand-written between them: the real
-        // forwarder seals a body and submits it, and the payload it actually sent is what the receive
-        // step is handed. Every other test in this file constructs the sealed payload itself, so this is
-        // the one that would catch the two ends binding different things — a forwarder that dropped the
-        // service task type, say, would pass its own tests and this would go red.
+        // The two halves of the envelope meeting, with nothing hand-written between them: the real forwarder seals
+        // a body and submits it, and the payload it actually sent is what the receive step is handed. Every
+        // other test here constructs the sealed payload itself, so this is the one that would catch the two
+        // ends binding different things.
         var mailboxId = Guid.CreateVersion7();
         const string forwardedBody = """{"status":"mottatt","meldingId":"abc"}""";
         const string sourceMessageId = "fiks-message-99";
@@ -392,9 +387,9 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Conclusion_WithAMessageThisAppNeverSealed_FailsPermanentlyWithoutRunningTheHandler()
     {
-        // What a party posting straight to the engine's delivery endpoint produces. The handler must
-        // never be handed content nothing vouched for, so the step fails before it runs — permanently,
-        // because the bytes at that position never change and no retry re-derives a different answer.
+        // What a party posting straight to the engine's delivery endpoint produces. The handler must never be
+        // handed content nothing vouched for, so the step fails before it runs — permanently, because the bytes
+        // at that position never change.
         var task = new ArchivingTask();
         AppCallbackMailbox unsealed = Delivered() with
         {
@@ -413,15 +408,15 @@ public class ExecuteServiceTaskReplyTests
     public static TheoryData<string, Guid, string, string> ForeignSeals =>
         new()
         {
-            // Sealed for another mailbox: a message validly forwarded into one exchange, re-delivered
-            // into another exchange of the same app by someone holding engine API credentials.
+            // Sealed for another mailbox: a message validly forwarded into one exchange, re-delivered into another
+            // exchange of the same app by someone holding engine API credentials.
             { "mailbox", new Guid("018f4e00-0000-7000-8000-0000000000bb"), "archiving", "fiks-message-42" },
-            // Sealed for another handler: the mailbox is unchanged, so the address binding alone would
-            // not catch it. A receiver enqueued against this mailbox naming a different
-            // mailbox-declaring task would otherwise read this message and conclude this exchange.
+            // Sealed for another handler: the mailbox is unchanged, so the address binding alone would not catch
+            // it. A receiver enqueued against this mailbox naming a different mailbox-declaring task would
+            // otherwise read this message and conclude this exchange.
             { "service task", _mailboxId, "someOtherArchivingTask", "fiks-message-42" },
-            // Relabelled: the same captured envelope re-delivered under a fresh idempotency key, which
-            // the engine accepts as a new message — and which the handler is told to deduplicate on.
+            // Relabelled: the same captured envelope re-delivered under a fresh idempotency key, which the engine
+            // accepts as a new message.
             { "idempotency key", _mailboxId, "archiving", "fiks-message-43" },
         };
 
@@ -434,9 +429,8 @@ public class ExecuteServiceTaskReplyTests
         string sealedForKey
     )
     {
-        // Each binding, checked from the receiving end: the three values the envelope covers are all read
-        // from the delivered callback, so opening it is what makes them trustworthy rather than the
-        // opening trusting them.
+        // Each binding, checked from the receiving end: the three values the envelope covers are all read from the
+        // delivered callback, so opening it is what makes them trustworthy.
         Assert.NotEmpty(what);
         var task = new ArchivingTask();
         AppCallbackMailbox foreign = Delivered() with
@@ -459,9 +453,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Conclusion_OnAClosedMailbox_NeedsNoEnvelope()
     {
-        // The closing signal carries no message, so there is nothing to open — and the conclusion must
-        // still run. A guard that demanded an envelope on every rendezvous would strand every exchange
-        // that ends by deadline or by request.
+        // The closing signal carries no message, so there is nothing to open — and the conclusion must still run.
+        // A guard demanding an envelope on every rendezvous would strand every exchange that ends by deadline.
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
@@ -475,9 +468,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task Stage_HandedARendezvous_FailsPermanently()
     {
-        // The engine puts the block on a receive workflow's first step and nowhere else, and a
-        // receive workflow's one step is the conclusion. A stage carrying one means the workflow was
-        // not built by this app-lib's expansion.
+        // The engine puts the block on a receive workflow's first step and nowhere else, and a receive workflow's
+        // one step is the conclusion. A stage carrying one means the workflow was not built by this expansion.
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
@@ -493,9 +485,8 @@ public class ExecuteServiceTaskReplyTests
     [InlineData(false)]
     public async Task Conclusion_HandedAnAmbiguousRendezvous_FailsPermanently(bool both)
     {
-        // Exactly one of the message and the closure reason is present, by the engine's contract.
-        // Reading "neither" as a closure would let a malformed callback end an exchange, and an
-        // absent message is an instruction, not an absence of information.
+        // Exactly one of the message and the closure reason is present, by the engine's contract. Reading
+        // "neither" as a closure would let a malformed callback end an exchange.
         var task = new ArchivingTask();
         AppCallbackMailbox ambiguous = both
             ? Delivered() with
@@ -516,9 +507,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task AwaitNextReply_FromATaskThatAnswersNoMessage_IsRejectedNonRetryably()
     {
-        // There is no next message to await outside an exchange, and no receiver to enqueue. It must
-        // not fall through to an ordinary success, which would settle a task that believes it is
-        // still waiting.
+        // There is no next message to await outside an exchange, and no receiver to enqueue. It must not fall
+        // through to an ordinary success, which would settle a task that believes it is still waiting.
         var task = new PlainTask { Verdict = ServiceTaskResult.AwaitNextReply() };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
@@ -549,9 +539,8 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task AwaitNextReply_OnAClosedMailbox_IsRejectedNonRetryably()
     {
-        // The contract violation the engine explicitly leaves to the app-lib. It is reachable
-        // through the command, not just through the relay's own unit, because that is where an app
-        // author's handler actually returns it.
+        // The contract violation the engine explicitly leaves to the app-lib. Reachable through the command, not
+        // just the relay's own unit, because that is where an app author's handler actually returns it.
         var task = new ArchivingTask { Verdict = ServiceTaskResult.AwaitNextReply() };
 
         ProcessEngineCommandResult result = await CreateCommand(task)

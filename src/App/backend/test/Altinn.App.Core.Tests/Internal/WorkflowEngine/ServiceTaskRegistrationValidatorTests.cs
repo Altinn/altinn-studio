@@ -191,9 +191,8 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "discardedMailbox";
 
-        // The violation: WithReplyFrom returns the declared pipeline, so calling it for its side
-        // effect and returning the pipeline from before it composes a task whose mailbox is never
-        // opened.
+        // The violation: WithReplyFrom returns the declared pipeline, so calling it for its side effect composes a
+        // task whose mailbox is never opened.
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
         {
             ServiceTaskPipeline composed = pipeline.Stage("Send", NoopStage).Finally(NoopFinally);

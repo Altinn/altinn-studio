@@ -41,9 +41,8 @@ internal sealed class WorkflowCallbackStateService
     /// </summary>
     /// <param name="unitOfWork">The instance data this callback (or enqueue) is publishing.</param>
     /// <param name="carry">
-    /// The callback's non-data bookkeeping, as restored and possibly added to by the command that just
-    /// ran. Omitted at enqueue time, where nothing has been carried yet — and omitting it is what
-    /// <em>drops</em> the carry, so every capture that continues a workflow must pass it along.
+    /// The callback's non-data bookkeeping, as restored and possibly added to by the command that just ran. Omitting
+    /// it is what <em>drops</em> the carry, so every capture that continues a workflow must pass it along.
     /// </param>
     public async Task<string> CaptureState(InstanceDataUnitOfWork unitOfWork, WorkflowCallbackStateCarry? carry = null)
     {
@@ -60,8 +59,8 @@ internal sealed class WorkflowCallbackStateService
         {
             Instance = unitOfWork.Instance,
             FormData = formData,
-            // A concluded exchange stops traveling: the workflow this blob starts may itself open a
-            // mailbox, and a blob still naming the finished one would make that mint refuse.
+            // A concluded exchange stops traveling: the workflow this blob starts may itself open a mailbox, and a blob
+            // still naming the finished one would make that mint refuse.
             MailboxId = carry is { MailboxConcluded: false } ? carry.MailboxId : null,
         };
         string payload = JsonSerializer.Serialize(callbackState);

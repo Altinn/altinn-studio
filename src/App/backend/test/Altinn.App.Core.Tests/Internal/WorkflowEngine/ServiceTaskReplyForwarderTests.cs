@@ -71,8 +71,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_DeliversToTheMailboxTheAddressNames()
     {
-        // The reply address the external system echoed back IS the mailbox id, so it is what addresses
-        // the delivery — no separate correlation identity is invented anywhere.
+        // The reply address the external system echoed back IS the mailbox id, so no separate correlation identity
+        // is invented anywhere.
         var mailboxId = Guid.CreateVersion7();
         string? observedNamespace = null;
         Guid observedMailboxId = default;
@@ -90,7 +90,7 @@ public class ServiceTaskReplyForwarderTests
         await CreateSut().ForwardReply(mailboxId, TaskType, Body, Key);
 
         // Namespace is {org}/{app} — the engine's isolation boundary — and the delivery rides the same
-        // authenticated app→engine client the enqueue does, rather than a second channel of its own.
+        // authenticated app→engine client the enqueue does.
         Assert.Equal("ttd/test-app", observedNamespace);
         Assert.Equal(mailboxId, observedMailboxId);
         Assert.NotNull(observedRequest);
@@ -99,9 +99,9 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_SendsTheSourcesMessageIdAsTheDeliveryIdempotencyKey()
     {
-        // The value the engine deduplicates on, and — by the same token — the value the handler reads
-        // back as ServiceTaskReply.IdempotencyKey and keys its own side effects on. The two must be the
-        // same string, or the platform's dedup and the handler's dedup are about different things.
+        // The value the engine deduplicates on is also the value the handler reads back as
+        // ServiceTaskReply.IdempotencyKey. The two must be the same string, or the platform's dedup and the
+        // handler's dedup are about different things.
         var mailboxId = Guid.CreateVersion7();
         MailboxDeliveryRequest? observedRequest = null;
         SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
@@ -114,9 +114,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_WrapsTheBodyInTheIntegrityEnvelopeBoundToTheWholeMessage()
     {
-        // What travels is the envelope, not the raw body — and it must be this app's, minted for this
-        // mailbox, this handler and this message id, so the handler can tell a round-tripped message
-        // from a fabricated or replayed one.
+        // What travels is the envelope, not the raw body — and it must be this app's, minted for this mailbox,
+        // this handler and this message id.
         var mailboxId = Guid.CreateVersion7();
         MailboxDeliveryRequest? observedRequest = null;
         SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
@@ -154,12 +153,10 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_OffersTheMessageWithoutFirstAskingWhetherTheMailboxIsOpen()
     {
-        // The accepted-versus-kept rule, from the forwarder's side. The engine looks up the idempotency
-        // key *before* it checks whether the mailbox is closed, so a message it already holds replays as
-        // 200 even after closure — an idempotency hit outranks "too late". A forwarder that read the
-        // mailbox's status first and dead-lettered on "closed" would throw away a message the platform is
-        // still holding for its receiver, and it would do so without the engine ever being asked.
-        // So: exactly one call, and it is the delivery.
+        // The accepted-versus-kept rule, from the forwarder's side. The engine looks up the idempotency key
+        // *before* it checks whether the mailbox is closed, so a message it already holds replays as 200 even
+        // after closure. A forwarder that read the status first and dead-lettered on "closed" would throw away
+        // a message the platform is still holding for its receiver.
         SetupDelivery(HttpStatusCode.OK);
         var mailboxId = Guid.CreateVersion7();
 
@@ -180,22 +177,18 @@ public class ServiceTaskReplyForwarderTests
 
     [Theory]
     [InlineData(HttpStatusCode.NotFound, ServiceTaskReplyForwardOutcome.Unroutable, false)]
-    // Always too late, never too early: deliveries precede receivers happily, so the engine has no
-    // "too early" answer and a 409 can only mean the mailbox is closed.
+    // Always too late, never too early: deliveries precede receivers happily, so a 409 can only mean the
+    // mailbox is closed.
     [InlineData(HttpStatusCode.Conflict, ServiceTaskReplyForwardOutcome.Late, false)]
     [InlineData(HttpStatusCode.RequestEntityTooLarge, ServiceTaskReplyForwardOutcome.PayloadTooLarge, false)]
-    // Not transient: the mailbox's log length never goes back down, whatever happens to the messages in
-    // it.
+    // Not transient: the mailbox's log length never goes back down.
     [InlineData(HttpStatusCode.TooManyRequests, ServiceTaskReplyForwardOutcome.MailboxFull, false)]
     // The one answer a forwarder must never retry: the submission itself was wrong.
     [InlineData(HttpStatusCode.BadRequest, ServiceTaskReplyForwardOutcome.Rejected, false)]
     // An undocumented 4xx that is still a verdict on these bytes: a replay reaches it again.
     [InlineData(HttpStatusCode.UnprocessableEntity, ServiceTaskReplyForwardOutcome.Rejected, false)]
     // The undocumented 4xx family that is *not* a verdict on the message but a condition in front of the
-    // engine — an unpresentable or expired token, a gateway refusing mid-incident, a request timed out
-    // before it arrived. Dead-lettering these destroys business messages that would have been accepted
-    // minutes later, which is the same reasoning that makes SigningUnavailable transient for a secret
-    // that has not been mounted yet.
+    // engine. Dead-lettering these destroys business messages that would have been accepted minutes later.
     [InlineData(HttpStatusCode.Unauthorized, ServiceTaskReplyForwardOutcome.EngineUnavailable, true)]
     [InlineData(HttpStatusCode.Forbidden, ServiceTaskReplyForwardOutcome.EngineUnavailable, true)]
     [InlineData(HttpStatusCode.RequestTimeout, ServiceTaskReplyForwardOutcome.EngineUnavailable, true)]
@@ -207,8 +200,8 @@ public class ServiceTaskReplyForwarderTests
         bool expectedTransient
     )
     {
-        // A message nothing will process is not the forwarder's decision to swallow: the receiving
-        // channel is the only thing that can dead-letter, report or drop the message it came from.
+        // A message nothing will process is not the forwarder's decision to swallow: the receiving channel is the
+        // only thing that can dead-letter, report or drop the message it came from.
         var mailboxId = Guid.CreateVersion7();
         SetupDelivery(status);
 
@@ -225,12 +218,10 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_MailboxClosed_IsLateAndCannotTellWhichWayItClosed()
     {
-        // The two closure reasons are deliberately indistinguishable here, which is why this is one case
-        // and not a theory over both: the engine answers 409 whether the mailbox was closed by request or
-        // by its deadline, and names which only in the ProblemDetails sentence. Both mean one thing to a
-        // forwarder — too late — so there is nothing for the outcome to branch on. What this pins is that
-        // 409 is Late and settled, and that the engine's own words travel through, so a dead-letter record
-        // reads "closed at its deadline" rather than "409".
+        // The two closure reasons are deliberately indistinguishable here, which is why this is one case and not a
+        // theory over both: the engine answers 409 either way and names which only in the ProblemDetails
+        // sentence. What this pins is that 409 is Late and settled, and that the engine's own words travel
+        // through.
         const string detail = "Mailbox was closed at its deadline and no longer accepts deliveries.";
         _client
             .Setup(x =>
@@ -281,10 +272,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_NoSigningCodeAvailable_SurfacesAsTransientWithoutDelivering()
     {
-        // Sealing the message reads the app's callback code, which is missing while the secret is being
-        // mounted or every code in it has expired. The caller is told, in the one currency this API
-        // speaks — an outcome it can branch on — rather than being handed an exception its catch block
-        // was never told about.
+        // Sealing the message reads the app's callback code, which is missing while the secret is being mounted or
+        // every code in it has expired. The caller is told in the one currency this API speaks.
         var mailboxId = Guid.CreateVersion7();
 
         var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
@@ -301,8 +290,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_AcceptedButUnreadableResponseBody_StillSucceeds()
     {
-        // The status is the outcome; the body only names the assigned position for a log line. Reporting
-        // a failure here would make the caller forward again for a message the engine has already taken.
+        // The status is the outcome; the body only names the assigned position for a log line. Reporting a failure
+        // here would make the caller forward again for a message the engine has already taken.
         _client
             .Setup(x =>
                 x.DeliverToMailbox(
@@ -342,9 +331,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_NonCancellationFailureRacingACancelledToken_IsStillClassified()
     {
-        // The narrow race an earlier review of this shape flagged: with a filter reading only the token,
-        // a genuine transport failure that happened to coincide with a cancellation escaped unwrapped,
-        // past the documented contract. The filter tests the exception too, so it does not.
+        // The narrow race an earlier review flagged: with a filter reading only the token, a genuine transport
+        // failure that coincided with a cancellation escaped unwrapped. The filter tests the exception too.
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
         _client
@@ -371,8 +359,8 @@ public class ServiceTaskReplyForwarderTests
     [InlineData("   ")]
     public async Task ForwardReply_WithoutAnIdempotencyKey_IsACallerError(string? idempotencyKey)
     {
-        // The engine requires it — it is the whole of the deduplication story — so a caller with nothing
-        // to supply has a bug rather than an undeliverable message.
+        // The engine requires it — it is the whole of the deduplication story — so a caller with nothing to supply
+        // has a bug rather than an undeliverable message.
         await Assert.ThrowsAnyAsync<ArgumentException>(() =>
             CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, idempotencyKey!)
         );
@@ -384,9 +372,8 @@ public class ServiceTaskReplyForwarderTests
     [InlineData("   ")]
     public async Task ForwardReply_WithoutSayingWhichTaskAnswersIt_IsACallerError(string? serviceTaskType)
     {
-        // The service task type is bound into the envelope, so a blank one would seal the message under a
-        // key no handler derives — a message that reaches the engine and then fails at every handler. It
-        // is a constant in the calling code, so this is a bug to fail on, not a message to deliver.
+        // The service task type is bound into the envelope, so a blank one would seal the message under a key no
+        // handler derives. It is a constant in the calling code, so this is a bug to fail on.
         await Assert.ThrowsAnyAsync<ArgumentException>(() =>
             CreateSut().ForwardReply(Guid.CreateVersion7(), serviceTaskType!, Body, Key)
         );
@@ -395,8 +382,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_WithoutABody_IsACallerError()
     {
-        // An empty body is legitimate and delivered; a null one is a caller that has not decided what it
-        // is forwarding.
+        // An empty body is legitimate and delivered; a null one is a caller that has not decided what it is
+        // forwarding.
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, null!, Key)
         );
@@ -405,8 +392,8 @@ public class ServiceTaskReplyForwarderTests
     [Fact]
     public async Task ForwardReply_WithAnEmptyBody_IsDelivered()
     {
-        // A message can carry its whole meaning in its arrival, and the handler reads an empty Payload
-        // rather than a closure. Nothing on this path may confuse the two.
+        // A message can carry its whole meaning in its arrival, and the handler reads an empty Payload rather
+        // than a closure.
         MailboxDeliveryRequest? observedRequest = null;
         SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
         var mailboxId = Guid.CreateVersion7();

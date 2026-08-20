@@ -4,9 +4,8 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Tests for the one derivation the dashboard's mailbox card performs: naming a position's state from the
-/// two sides of the rendezvous standing at it. Pure and exhaustive, following the split the mailbox steps
-/// have used throughout — wiring proved once against a real database, mappings proved over every input.
+/// Tests for the one derivation the dashboard's mailbox card performs: naming a position's state from the two
+/// sides of the rendezvous standing at it.
 /// </summary>
 public class DashboardMailboxMapperTests
 {
@@ -28,25 +27,14 @@ public class DashboardMailboxMapperTests
             ClaimedAt: null
         );
 
-    // Every shape the rendezvous can leave at a position, as the four facts a card can see: whether a
-    // message stands there, whether a receiver holds it, and whether that receiver ever parked and was
-    // ever released. The cases are named in the arguments rather than in comments so a failure says which
-    // one broke.
-    //
-    // A message with nobody enqueued for it — the unconsumed delivery.
+    // Every shape the rendezvous can leave at a position, as the four facts a card can see. The cases are
+    // named in the arguments rather than in comments so a failure says which one broke.
     [InlineData("message only", true, false, false, false, "delivered")]
-    // A receiver parked with nothing at its position: the exchange is waiting on a counterparty.
     [InlineData("parked receiver", false, true, true, false, "waiting")]
-    // Woken by its message: it parked, and then the delivery released it.
     [InlineData("receiver woken by its message", true, true, true, true, "consumed")]
-    // Born runnable with its message already there — never parked, so no held stamp.
     [InlineData("receiver born with its message", true, true, false, true, "consumed")]
-    // Parked, then released by the mailbox closing: no message ever came, and the wait is over. This is the
-    // state the three the proposal names cannot express, and folding it into either of its neighbors would
-    // misreport how a timed-out exchange ends.
+    // Parked, then released by the mailbox closing — the state the proposal's three cannot express.
     [InlineData("receiver released by the closure", false, true, true, true, "closed")]
-    // Born with the closing signal: the mailbox was already closed when it was enqueued, so it never waited
-    // and never had a message either.
     [InlineData("receiver born with the closing signal", false, true, false, true, "closed")]
     [Theory]
     public void MapMailboxPosition_NamesEveryStateTheRendezvousCanLeaveAtAPosition(
@@ -75,9 +63,8 @@ public class DashboardMailboxMapperTests
     [Fact]
     public void MapMailboxPosition_ReportsAParkDurationOnlyForAReceiverThatActuallyParked()
     {
-        // Zero would be a claim rather than an absence: a receiver born runnable did not wait for nothing,
-        // it never waited. Null is what lets a card leave the column blank for it, and it is why held_at
-        // rather than released_at is what the subtraction is anchored on.
+        // Zero would be a claim rather than an absence: a receiver born runnable did not wait for nothing, it
+        // never waited. That is also why the subtraction is anchored on held_at rather than released_at.
         var parked = DashboardMapper.MapMailboxPosition(
             Position(delivery: true, receiver: true, heldAt: _at, releasedAt: _at.AddSeconds(90))
         );
@@ -86,8 +73,7 @@ public class DashboardMailboxMapperTests
         var neverParked = DashboardMapper.MapMailboxPosition(Position(delivery: true, receiver: true, releasedAt: _at));
         Assert.Null(neverParked.ParkedForSeconds);
 
-        // And still parked: the interval has no end yet, so the server reports none and the card counts up
-        // from heldAt.
+        // And still parked: the interval has no end yet, so the server reports none and the card counts up.
         var stillParked = DashboardMapper.MapMailboxPosition(Position(delivery: false, receiver: true, heldAt: _at));
         Assert.Null(stillParked.ParkedForSeconds);
         Assert.Equal(_at, stillParked.HeldAt);
@@ -96,8 +82,6 @@ public class DashboardMailboxMapperTests
     [Fact]
     public void MapMailbox_CarriesTheDeadlineTheCountersAndTheUnconsumedCount()
     {
-        // The mailbox's own facts, and the three numbers an operator reads together: how many messages
-        // arrived, how many receivers were enqueued, and the gap between them.
         var mailbox = new MailboxResponse
         {
             Id = Guid.Parse("018f4e00-0000-7000-8000-0000000000bb"),
@@ -132,10 +116,9 @@ public class DashboardMailboxMapperTests
     [Fact]
     public void MapMailbox_OfAMintedMailboxWithNoPositions_RendersAsAMailboxWithAnEmptyLog()
     {
-        // The window between the mint and the first receiver, which a card must still show — an exchange
-        // whose reply address has gone out and whose counterparty has not answered is exactly what somebody
-        // is watching the dashboard for. Nothing about this shape is a special case in the mapper; the test
-        // is here because it is the shape most likely to be broken by a rewrite that assumes a log.
+        // The window between the mint and the first receiver, which a card must still show. Nothing about this
+        // shape is a special case in the mapper; it is here because it is the shape most likely to be broken by
+        // a rewrite that assumes a log.
         var mailbox = new MailboxResponse
         {
             Id = Guid.Parse("018f4e00-0000-7000-8000-0000000000cc"),

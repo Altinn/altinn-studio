@@ -42,8 +42,7 @@ export const WEBHOOK_URL = __ENV.WEBHOOK_URL || 'http://wiremock:8080/webhook-ca
  *
  * @param {object} [overrides] - optional fixed values
  * @param {string} [overrides.collectionKey] - collection to enqueue into, instead of a fresh one.
- *   Pass this when several workflows belong to one exchange, the way an app groups an instance's
- *   workflows; leave it out and every request lands in a collection of its own.
+ *   Pass this when several workflows belong to one exchange.
  * @param {string} [overrides.idempotencyKey] - enqueue key, instead of a fresh one
  */
 export function buildRequestParams(overrides) {

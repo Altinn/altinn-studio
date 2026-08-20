@@ -3,13 +3,10 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 /// <summary>
-/// Request to deliver one message into a mailbox.
+/// Request to deliver one message into a mailbox. The engine, not the caller, owns the delivery's position: a
+/// caller identifies its message by <see cref="IdempotencyKey"/>, so an at-least-once forwarder that sends the
+/// same message twice gets one delivery at one position rather than two.
 /// </summary>
-/// <remarks>
-/// The engine, not the caller, owns the delivery's position: a caller identifies its message by
-/// <see cref="IdempotencyKey"/> instead, so an at-least-once forwarder that sends the same message twice
-/// gets one delivery at one position rather than two.
-/// </remarks>
 internal sealed record MailboxDeliveryRequest
 {
     /// <summary>

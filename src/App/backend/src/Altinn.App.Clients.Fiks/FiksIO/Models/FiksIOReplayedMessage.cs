@@ -1,15 +1,11 @@
 namespace Altinn.App.Clients.Fiks.FiksIO.Models;
 
 /// <summary>
-/// A Fiks IO message that has already been received, decrypted and handed on, reduced to the values a
-/// later reader needs. It is what a <see cref="FiksIOReceivedMessage"/> is rebuilt from when the live
-/// Fiks IO connection is no longer available — see <see cref="FiksIOReceivedMessage.Replay"/>.
+/// A Fiks IO message that has already been received, decrypted and handed on, reduced to the values a later
+/// reader needs — what a <see cref="FiksIOReceivedMessage"/> is rebuilt from when the live connection is gone.
+/// A plain value type in the Fiks IO layer rather than a reference to whatever the caller serialized, so the
+/// transport layer never learns what an archive message looks like.
 /// </summary>
-/// <remarks>
-/// Deliberately a plain value type in the Fiks IO layer rather than a reference to whatever the caller
-/// serialized: the Fiks Arkiv client maps its own stored shape onto this one, so the transport layer
-/// never learns what an archive message looks like.
-/// </remarks>
 internal sealed record FiksIOReplayedMessage
 {
     /// <summary>The Fiks IO message id.</summary>

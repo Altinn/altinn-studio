@@ -65,16 +65,11 @@ public sealed record CommandExecutionContext
     public DateTimeOffset? WaitDeadline { get; init; }
 
     /// <summary>
-    /// What the mailbox rendezvous produced for this step, or <c>null</c> on every step that does not
-    /// receive from a mailbox — which is every step of an ordinary workflow, and every step after the
-    /// first of a receive workflow.
+    /// What the mailbox rendezvous produced for this step, or <c>null</c> on every step that does not receive from
+    /// a mailbox. Read from the deliveries log at the start of the attempt rather than carried on the step, because
+    /// the message may not have existed when the step was created — safe for exactly one reason: whether a delivery
+    /// exists at the receiver's position is frozen before the receiver becomes runnable.
     /// </summary>
-    /// <remarks>
-    /// Read from the deliveries log at the start of the attempt rather than carried on the step, because
-    /// the message may not have existed when the step was created. That late binding is safe for exactly
-    /// one reason: whether a delivery exists at the receiver's position is frozen before the receiver
-    /// becomes runnable, so re-reading it on a retry or after a resume cannot produce a different answer.
-    /// </remarks>
     public MailboxReceipt? MailboxReceipt { get; init; }
 
     /// <summary>

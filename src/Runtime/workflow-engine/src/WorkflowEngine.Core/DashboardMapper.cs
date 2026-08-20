@@ -30,8 +30,8 @@ internal sealed record DashboardWorkflowDto(
     string Status,
     string? TraceId,
     string? CollectionKey,
-    // Null on every ordinary workflow: it is the receive workflow's marker, and what lets a card be
-    // matched to the mailbox block it reads from without a second lookup.
+    // Null on every ordinary workflow: the receive workflow's marker, and what matches a card to the
+    // mailbox block it reads from without a second lookup.
     Guid? MailboxId,
     string Namespace,
     Dictionary<string, string>? Labels,
@@ -51,27 +51,10 @@ internal sealed record DashboardWorkflowDto(
 );
 
 /// <summary>
-/// One position of a mailbox's log as a dashboard card shows it.
+/// One position of a mailbox's log as a dashboard card shows it. <c>ParkedForSeconds</c> is null for a receiver
+/// that never parked, which is what makes the number readable: zero would claim it waited and was released
+/// instantly.
 /// </summary>
-/// <param name="Position">The shared position of the two logs — a delivery's <c>idx</c>, a receiver's <c>seq</c>.</param>
-/// <param name="State">
-/// The position in one word: see <see cref="DashboardMailboxPositionState"/> for what each means.
-/// </param>
-/// <param name="DeliveryKey">
-/// The forwarding source's own message id, when a message stands here. It is what an operator matches
-/// against the sending system's logs, which is the whole reason it is on a card rather than only the
-/// position.
-/// </param>
-/// <param name="AcceptedAt">When the engine accepted the message standing here.</param>
-/// <param name="ReceiverWorkflowId">The receive workflow holding this position, when one does — the link.</param>
-/// <param name="HeldAt">When the receiver parked here, or null when it was born runnable.</param>
-/// <param name="ReleasedAt">When the receiver became runnable — its birth, or its release.</param>
-/// <param name="ClaimedAt">When a worker first claimed the released receiver.</param>
-/// <param name="ParkedForSeconds">
-/// How long the receiver was parked before it was released, or has been parked so far when it still is.
-/// Null for a receiver that never parked, which is what makes the number readable: zero would claim it
-/// waited and was released instantly.
-/// </param>
 internal sealed record DashboardMailboxPositionDto(
     long Position,
     string State,
@@ -86,14 +69,10 @@ internal sealed record DashboardMailboxPositionDto(
 
 /// <summary>
 /// The four states one position of a mailbox's log can be in, as the dashboard names them.
+/// <see cref="Closed"/> is neither of the two it could have been folded into: a receiver released by the
+/// mailbox closing is not <see cref="Waiting"/>, because its wait is over, and not <see cref="Consumed"/>,
+/// because it was handed the closing signal rather than a message.
 /// </summary>
-/// <remarks>
-/// The proposal names three — delivered, consumed, waiting. <see cref="Closed"/> is the fourth, and it
-/// is neither of the two it could have been folded into: a receiver released by the mailbox closing is
-/// not <see cref="Waiting"/>, because its wait is over, and it is not <see cref="Consumed"/>, because it
-/// was handed the closing signal rather than a message. Folding it either way would misreport the
-/// ordinary end of an exchange that timed out — the case an operator opens the dashboard for.
-/// </remarks>
 internal static class DashboardMailboxPositionState
 {
     /// <summary>A message stands here and no receiver has been enqueued for it — an unconsumed delivery.</summary>
@@ -188,9 +167,7 @@ internal static class DashboardMapper
         );
     }
 
-    /// <summary>
-    /// Projects one mailbox snapshot into its card shape.
-    /// </summary>
+    /// <summary>Projects one mailbox snapshot into its card shape.</summary>
     internal static DashboardMailboxDto MapMailbox(MailboxSnapshot snapshot)
     {
         MailboxResponse mailbox = snapshot.Mailbox;
@@ -211,9 +188,7 @@ internal static class DashboardMapper
         );
     }
 
-    /// <summary>
-    /// Projects one position into its card shape, naming the state it is in.
-    /// </summary>
+    /// <summary>Projects one position into its card shape, naming the state it is in.</summary>
     internal static DashboardMailboxPositionDto MapMailboxPosition(MailboxPosition position) =>
         new(
             position.Position,
@@ -231,20 +206,11 @@ internal static class DashboardMapper
 
     /// <summary>
     /// Names one position's state, deciding from the receiver side first because that is the side that
-    /// distinguishes the three states a receiver can be in.
+    /// distinguishes the three states a receiver can be in. A position with no receiver is a message nobody has
+    /// been enqueued for, and no other reason for such a position to exist: the read builds its positions from the
+    /// rows of the two logs. The last branch is where <c>held_at</c> earns its keep — a receiver still parked and
+    /// one the closing mailbox released look identical in the workflow's status once it has settled.
     /// </summary>
-    /// <remarks>
-    /// A position with no receiver is a message nobody has been enqueued for, and there is no other reason
-    /// for such a position to exist: the read builds its positions from the rows of the two logs, so a
-    /// position with neither a message nor a receiver at it is not something it can return. That is pinned
-    /// against a real database rather than defended here, where the check could only be dead code.
-    /// <para>
-    /// The last branch is where <c>held_at</c> earns its keep. A receiver with no message that is still
-    /// parked and one that the closing mailbox released look identical in the workflow's status once it has
-    /// settled, and telling them apart is the difference between "this exchange is waiting on a
-    /// counterparty" and "this exchange gave up".
-    /// </para>
-    /// </remarks>
     private static string MapMailboxPositionState(MailboxPosition position)
     {
         if (position.ReceiverWorkflowId is null)

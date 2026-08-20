@@ -6,15 +6,11 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Covers the delivery-outcome metric tag for every result the ingestion path can produce.
+/// Covers the delivery-outcome metric tag for every result the ingestion path can produce. Each value names a
+/// different problem with a different fix, so a result mapped to the wrong tag would be invisible in exactly
+/// the situation the metric exists for. Covered here rather than through the endpoint because the mapping is
+/// pure and some outcomes cost a filled log or an oversized payload to reach.
 /// </summary>
-/// <remarks>
-/// The tag is what makes <c>engine.mailboxes.deliveries.received</c> worth alerting on — each value
-/// names a different problem with a different fix — so a result that mapped to the wrong tag, or to a
-/// tag nobody has a dashboard for, would be invisible in exactly the situation the metric exists for.
-/// Covered here rather than through the endpoint because the mapping is pure: reaching some of these
-/// outcomes over HTTP costs a filled log or an oversized payload each.
-/// </remarks>
 public sealed class MailboxDeliveryOutcomeTagTests
 {
     private static readonly MailboxDeliveryResponse _delivery = new()
@@ -41,8 +37,8 @@ public sealed class MailboxDeliveryOutcomeTagTests
     };
 
     /// <summary>
-    /// Every delivery outcome paired with the tag it must report. Adding a result without adding it here
-    /// fails <see cref="EveryDeliveryOutcome_IsCovered"/>.
+    /// Every delivery outcome paired with the tag it must report. Adding a result without adding it here fails
+    /// <see cref="EveryDeliveryOutcome_IsCovered"/>.
     /// </summary>
     private static readonly (MailboxDeliveryResult Result, string Tag)[] _cases =
     [
@@ -69,10 +65,9 @@ public sealed class MailboxDeliveryOutcomeTagTests
     [Fact]
     public void EveryDeliveryOutcome_IsCovered()
     {
-        // The mapping's switch has an UnreachableException default, so an uncovered result would throw at
-        // runtime — inside the metric line of a request that had otherwise succeeded. Enumerating the
-        // type's own nested results is what makes this test notice a new one instead of waiting for
-        // somebody to remember to add a case above.
+        // The mapping's switch has an UnreachableException default, so an uncovered result would throw at runtime
+        // inside the metric line of a request that had otherwise succeeded. Enumerating the type's own nested
+        // results is what makes this test notice a new one.
         var declared = typeof(MailboxDeliveryResult)
             .GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
             .Where(t => t.IsSealed && typeof(MailboxDeliveryResult).IsAssignableFrom(t))

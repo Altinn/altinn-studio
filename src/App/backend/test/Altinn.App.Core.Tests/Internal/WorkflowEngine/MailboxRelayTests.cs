@@ -24,9 +24,8 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 /// <summary>
-/// The relay saga: the three invariants the mailbox design trades an engine-enforced conclusion for.
-/// Every test here exists because the property it pins is one a wrong implementation would still
-/// compile with.
+/// The relay saga: the three invariants the mailbox design trades an engine-enforced conclusion for. Every test
+/// here exists because the property it pins is one a wrong implementation would still compile with.
 /// </summary>
 public class MailboxRelayTests
 {
@@ -38,8 +37,8 @@ public class MailboxRelayTests
     private static readonly Guid _stepId = new("018f4e00-0000-7000-8000-0000000000fe");
 
     /// <summary>
-    /// One log of every engine call the relay makes, in the order it made them — across both the
-    /// engine client and the process engine, because the ordering invariant spans the two.
+    /// One log of every engine call the relay makes, in the order it made them — across both the engine client and
+    /// the process engine, because the ordering invariant spans the two.
     /// </summary>
     private sealed class RelayRecorder
     {
@@ -247,10 +246,9 @@ public class MailboxRelayTests
     [Fact]
     public async Task Conclusion_ClosesTheMailboxBeforeEnqueueingTheAfterWorkflow()
     {
-        // Saga invariant 1, and the whole reason the two calls live in one method. The reverse order
-        // compiles and passes every other test in this file: it opens a window in which the
-        // continuation runs while the mailbox still accepts messages, so a message could be
-        // delivered into an exchange the app has already concluded and would never be read.
+        // Saga invariant 1, and the whole reason the two calls live in one method. The reverse order compiles and
+        // passes every other test in this file: it opens a window in which the continuation runs while the
+        // mailbox still accepts messages.
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
@@ -267,9 +265,8 @@ public class MailboxRelayTests
     [Fact]
     public async Task Conclusion_WithoutAutoAdvance_StillClosesTheMailbox()
     {
-        // A task that concludes without advancing the process starts nothing — but the exchange is
-        // over either way, and an open mailbox nobody will ever read from is a leak that only its
-        // deadline closes.
+        // A task that concludes without advancing the process starts nothing — but the exchange is over either
+        // way, and an open mailbox nobody will read from is a leak that only its deadline closes.
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
@@ -285,8 +282,8 @@ public class MailboxRelayTests
     [Fact]
     public async Task PermanentlyFailedConclusion_ClosesTheMailboxAndStartsNothing()
     {
-        // The failure path carries no published state, so the relay must not reach for one. The close
-        // still happens: an exchange the app gave up on must stop accepting messages.
+        // The failure path carries no published state, so the relay must not reach for one. The close still
+        // happens: an exchange the app gave up on must stop accepting messages.
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
@@ -307,12 +304,9 @@ public class MailboxRelayTests
     [Fact]
     public void MailboxContinuation_HasExactlyTwoAnswers_AndNeitherCanMeanBoth()
     {
-        // Saga invariant 2 is structural, and this is the structure: the continuation type's
-        // constructor is private to itself, so the set is closed at two, and neither member carries
-        // any way to express the other's action. A handler that asked for another message cannot
-        // also dispose; the concluding handler cannot also enqueue a successor. Nothing is left for
-        // review to catch, which is the point — the alternative was a bool a wrong branch could read
-        // the wrong way.
+        // Saga invariant 2 is structural, and this is the structure: the continuation type's constructor is
+        // private to itself, so the set is closed at two, and neither member carries any way to express the
+        // other's action. The alternative was a bool a wrong branch could read the wrong way.
         Type[] members = typeof(MailboxContinuation)
             .GetNestedTypes(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
             .Where(t => typeof(MailboxContinuation).IsAssignableFrom(t))
@@ -323,10 +317,9 @@ public class MailboxRelayTests
         Assert.Contains(typeof(MailboxContinuation.Conclude), members);
         Assert.All(members, member => Assert.True(member.IsSealed));
 
-        // Every real constructor on the base is private, so a third answer cannot be declared outside
-        // the file that declares these two. The record's synthesized copy constructor is protected and
-        // is excluded deliberately: it can only clone an instance that already exists, so it adds no
-        // member to the set — and the relay's switch throws on anything that is not one of the two.
+        // Every real constructor on the base is private, so a third answer cannot be declared outside the file
+        // that declares these two. The record's synthesized copy constructor is excluded deliberately: it can
+        // only clone an instance that already exists.
         Assert.All(
             typeof(MailboxContinuation).GetConstructors(
                 System.Reflection.BindingFlags.Instance
@@ -349,9 +342,8 @@ public class MailboxRelayTests
     [Fact]
     public async Task AwaitingTheNextMessage_ClosesNothing()
     {
-        // The other half of "at most one concludes": the continuing handler must not dispose. If it
-        // did, the successor it just enqueued would be born holding the closing signal, and the
-        // exchange would end on a message that never came.
+        // The other half of "at most one concludes": if the continuing handler disposed, the successor it just
+        // enqueued would be born holding the closing signal.
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
@@ -369,10 +361,8 @@ public class MailboxRelayTests
     [Fact]
     public void AwaitNextReply_OnAClosedMailbox_IsRejectedNonRetryably()
     {
-        // The one contract violation the engine explicitly does not enforce — it guarantees only the
-        // callback's meaning. A callback with no message means the mailbox is closed and no message
-        // can ever arrive at this position, so there is no next message to ask for; a retry
-        // re-derives the same closed truth, so the ladder cannot help.
+        // The one contract violation the engine explicitly does not enforce. A callback with no message means the
+        // mailbox is closed, so there is no next message to ask for, and a retry re-derives the same truth.
         var carry = new WorkflowCallbackStateCarry();
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
@@ -387,8 +377,7 @@ public class MailboxRelayTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxExchangeAlreadyClosed", failed.ExceptionType);
         Assert.Null(failed.MailboxContinuation);
-        // It is a violation, not a conclusion: nothing here may close the mailbox on the handler's
-        // behalf, and the blob must keep saying what it said.
+        // It is a violation, not a conclusion: nothing here may close the mailbox on the handler's behalf.
         Assert.False(carry.MailboxConcluded);
     }
 
@@ -399,9 +388,8 @@ public class MailboxRelayTests
     [Fact]
     public async Task EverySagaEnqueue_KeysOffTheExecutingStep()
     {
-        // Saga invariant 3. Both keys are functions of this step's id and nothing else — not the
-        // workflow, not the mailbox, not a clock — so a crashed attempt's replay lands on the
-        // workflow the first attempt created instead of forking the relay into two.
+        // Saga invariant 3. Both keys are functions of this step's id and nothing else, so a crashed attempt's
+        // replay lands on the workflow the first attempt created instead of forking the relay into two.
         var stepId = new Guid("018f4e00-0000-7000-8000-00000000dead");
 
         var awaiting = new RelayRecorder();
@@ -442,9 +430,8 @@ public class MailboxRelayTests
     [Fact]
     public async Task ReplayedAttemptOfOneStep_ProducesTheSameKeys()
     {
-        // The property the key derivation exists for, stated as the retry it protects: the engine
-        // hands a retried step the same step id, so a second attempt of the same hop enqueues under
-        // the same key and the engine deduplicates it.
+        // The property the key derivation exists for, stated as the retry it protects: the engine hands a retried
+        // step the same step id, so a second attempt enqueues under the same key and is deduplicated.
         var stepId = Guid.NewGuid();
         var recorder = new RelayRecorder();
         MailboxRelay relay = CreateRelay(recorder);
@@ -462,12 +449,10 @@ public class MailboxRelayTests
     [InlineData(false)]
     public void AVerdictThatWouldMakeAKeyedCall_IsRefusedWhenTheEngineSuppliedNoStepId(bool awaitNext)
     {
-        // Saga invariant 3 from the other side: the key must exist before a continuation promises to
-        // use it. StepId is deliberately not required on the callback payload — an engine predating
-        // the field leaves it empty — and an empty id is a constant, so every exchange in this
-        // application would enqueue under the same two keys and all but the first would silently
-        // stall. Reachable exactly where this design lives: an engine rolled back while a receiver is
-        // Held, days into an exchange.
+        // Saga invariant 3 from the other side: the key must exist before a continuation promises to use it.
+        // StepId is deliberately not required on the payload, and an empty id is a constant — so every exchange
+        // in this application would enqueue under the same two keys and all but the first would stall.
+        // Reachable exactly where this design lives: an engine rolled back while a receiver is Held.
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(_mailboxId);
 
@@ -482,8 +467,7 @@ public class MailboxRelayTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
-        // Refused before anything exists to act on: nothing is closed, nothing is enqueued, and the
-        // blob still says what it said.
+        // Refused before anything exists to act on: nothing is closed, nothing is enqueued.
         Assert.Null(failed.MailboxContinuation);
         Assert.False(carry.MailboxConcluded);
     }
@@ -491,10 +475,9 @@ public class MailboxRelayTests
     [Fact]
     public void AVerdictThatMakesNoKeyedCall_IsUnaffectedByAMissingStepId()
     {
-        // The guard is narrow on purpose. A conclusion that starts nothing only closes the mailbox,
-        // which takes no key; a retryable failure and a deferral touch nothing at all. Refusing these
-        // as well would turn a working callback permanently failed over a key it never uses — and
-        // would take the close with it.
+        // The guard is narrow on purpose. A conclusion that starts nothing only closes the mailbox, which takes no
+        // key; a retryable failure and a deferral touch nothing. Refusing these would turn a working callback
+        // permanently failed over a key it never uses — and would take the close with it.
         var carry = new WorkflowCallbackStateCarry();
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(
@@ -547,10 +530,9 @@ public class MailboxRelayTests
     [Fact]
     public async Task SuccessorReceiver_IsAHeadThatDependsOnNoHead_AndCarriesTheExchangesMailbox()
     {
-        // The same shape the first receiver gets, because it is the same kind of workflow. A head, so
-        // the exchange stays visible to everything that reads the collection's frontier; depending on
-        // no head, so neither the receiver that enqueued it nor a terminal head an earlier transition
-        // left behind gates a workflow whose only release is the rendezvous.
+        // The same shape the first receiver gets, because it is the same kind of workflow: a head, so the exchange
+        // stays visible to readers of the collection's frontier; depending on no head, so nothing gates a
+        // workflow whose only release is the rendezvous.
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
@@ -571,12 +553,9 @@ public class MailboxRelayTests
         Assert.Equal(_mailboxId, successor.Mailbox?.Id);
         Assert.Equal("published-state", successor.State);
 
-        // The transition's labels, which is where "the same shape as the first receiver" stops being
-        // a comment and starts being checkable. Two readers need them: the read-path annotation takes
-        // the task it names from processNextTargetTask, and the lookup that finds the instance's
-        // collection at all filters on processNextTargetId. A successor without them reports a failed
-        // exchange with no task, and becomes invisible to the frontier lookup once retention has
-        // purged the earlier workflows of the transition.
+        // The transition's labels, which is where "the same shape as the first receiver" becomes checkable. Two
+        // readers need them: the read-path annotation takes its task from processNextTargetTask, and the lookup
+        // that finds the instance's collection at all filters on processNextTargetId.
         Assert.NotNull(request.Labels);
         Assert.Equal(
             _instanceGuid.ToString("N", CultureInfo.InvariantCulture),
@@ -584,8 +563,8 @@ public class MailboxRelayTests
         );
         Assert.Equal("Task_2:0", request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
         Assert.Equal("Task_2", request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
-        // The task the transition left cannot be recovered from a later hop, and no lookup a receiver
-        // is the answer to uses it.
+        // The task the transition left cannot be recovered from a later hop, and no lookup a receiver answers
+        // uses it.
         Assert.False(request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel));
 
         // One step, and it is the pipeline's conclusion — a null stage name, here as everywhere else.
@@ -597,13 +576,9 @@ public class MailboxRelayTests
     [Fact]
     public async Task SuccessorReceiver_CarriesAFreshCallbackTokenAndTheTransitionsLockToken()
     {
-        // Per-hop credential freshness, and the one thing that is deliberately not fresh. The
-        // callback token is minted at this hop, from whatever app code is current now — together
-        // with the state blob, re-signed by the same code above, that is what lets an exchange
-        // outlive the code that opened it. The instance lock token is carried verbatim, exactly as
-        // every other workflow this app-lib enqueues carries it: re-acquiring an instance lock from
-        // inside a callback is a different feature, and a deferring service task with a long wait
-        // budget already outlives the lock's five-minute TTL the same way.
+        // Per-hop credential freshness, and the one thing deliberately not fresh. The callback token is minted at
+        // this hop from whatever app code is current; the instance lock token is carried verbatim, exactly as
+        // every other workflow this app-lib enqueues carries it.
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
@@ -624,9 +599,8 @@ public class MailboxRelayTests
     [Fact]
     public async Task AfterWorkflow_DependsOnTheConcludingReceiverAndCarriesItsPublishedState()
     {
-        // The conclusion's own workflow: it waits for the receiver that concluded (so it cannot run
-        // while the conclusion's data is still being saved) and starts on the state that conclusion
-        // published.
+        // The conclusion's own workflow: it waits for the receiver that concluded and starts on the state that
+        // conclusion published.
         var workflowId = Guid.NewGuid();
         var recorder = new RelayRecorder();
 
@@ -653,10 +627,8 @@ public class MailboxRelayTests
     [Fact]
     public void Success_ConcludesAndStopsTheMailboxIdTraveling()
     {
-        // The conclusion has to un-say what the blob has been saying since the declaring stage. The
-        // workflow this conclusion starts inherits its captured blob, and its own service task may
-        // open a mailbox — a blob still naming the finished exchange's mailbox would make that mint
-        // refuse and fail the next transition permanently.
+        // The conclusion has to un-say what the blob has been saying since the declaring stage: the workflow it
+        // starts inherits the captured blob, and its own service task may open a mailbox.
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(_mailboxId);
 
@@ -736,16 +708,14 @@ public class MailboxRelayTests
         Assert.True(failed.NonRetryable);
         Assert.Contains("the archive never confirmed", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
-        // And it records nothing on the carry: a failing callback publishes no blob at all, so there
-        // would be no consumer for the record. Asserting one would pin an effect nothing can observe.
+        // And it records nothing on the carry: a failing callback publishes no blob at all.
         Assert.False(carry.MailboxConcluded);
     }
 
     [Fact]
     public void FailedRetryable_StartsNoSagaAtAll()
     {
-        // Nothing is closed and nothing is enqueued, so the next attempt is handed the same message
-        // and the handler may still reach any verdict.
+        // Nothing is closed and nothing is enqueued, so the next attempt is handed the same message.
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(_mailboxId);
 

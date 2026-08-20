@@ -48,10 +48,9 @@ public class ServiceTaskContextTests
     [Fact]
     public void ToString_WithNoMailbox_DoesNotThrowAndReadsNone()
     {
-        // The record's synthesized PrintMembers would read every public property, including the
-        // computed Mailbox whose getter throws when no mailbox was minted — which is almost every
-        // execution. A custom PrintMembers must keep ToString safe (a debug log, a debugger watch, an
-        // assertion-failure message all call it) and print the mailbox as <none>.
+        // The record's synthesized PrintMembers would read every public property, including the computed Mailbox
+        // whose getter throws when no mailbox was minted — which is almost every execution. ToString has to stay
+        // safe: a debug log, a debugger watch and an assertion-failure message all call it.
         var context = CreateContext(waitDeadline: null);
 
         string? rendered = null;
@@ -79,10 +78,8 @@ public class ServiceTaskContextTests
     [Fact]
     public void ToString_WithNoReply_DoesNotThrowAndReadsNone()
     {
-        // Reply and ReplyClosedReason have the same shape as Mailbox — computed getters that throw
-        // wherever they do not apply — so the hand-written PrintMembers must never read them either.
-        // This is the obligation the mailbox stack has carried since the mint landed: a synthesized
-        // ToString would throw from a debug log on every ordinary service-task execution.
+        // Reply and ReplyClosedReason have the same shape as Mailbox — computed getters that throw wherever they do
+        // not apply — so the hand-written PrintMembers must never read them either.
         var context = CreateContext(waitDeadline: null) with
         {
             ReplyUnavailableReason = "this task is not answered by a message",
@@ -122,8 +119,8 @@ public class ServiceTaskContextTests
     [Fact]
     public void ToString_WithAClosedMailbox_RendersTheClosure()
     {
-        // The third state: this execution answers a mailbox, but no message stands at its position.
-        // Reply is null — the instruction to conclude — and the reason is available for the wording.
+        // The third state: this execution answers a mailbox, but no message stands at its position. Reply is null
+        // — the instruction to conclude — and the reason is available for the wording.
         var context = CreateContext(waitDeadline: null) with
         {
             MailboxClosedReasonOrDefault = MailboxClosedReason.Deadline,

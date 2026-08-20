@@ -7,9 +7,8 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Covers <c>GET /dashboard/mailboxes</c> end to end: what a mailbox looks like on the wire, and the two
-/// caps that keep the read proportional to what a dashboard is showing rather than to what the engine
-/// retains.
+/// Covers <c>GET /dashboard/mailboxes</c> end to end: what a mailbox looks like on the wire, and the two caps
+/// that keep the read proportional to what a dashboard is showing rather than to what the engine retains.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
 public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
@@ -62,10 +61,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task ReadsAMailboxWithItsDeadlineBothCountersAndItsReceiverLinked()
     {
-        // Everything the card is specified to show, asserted on the wire rather than on the DTO: an
-        // operator's whole view of an exchange is this payload, so a field that never serializes is a field
-        // that does not exist. The receiver's workflow id is the link, and it has to be the id the enqueue
-        // returned or the card links to nothing.
+        // Asserted on the wire rather than on the DTO: an operator's whole view of an exchange is this payload, so
+        // a field that never serializes is a field that does not exist. The receiver's workflow id is the link.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id);
         var delivery = await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
@@ -92,9 +89,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AReceiveWorkflowsCardCarriesTheMailboxItReadsFrom_AndAnOrdinaryOnesDoesNot()
     {
-        // The other half of the link. Without it a chains surface can render the mailbox block but cannot
-        // tell which of the rows under it is the receiver, and the field is nullable precisely so that
-        // saying so costs an ordinary workflow's card nothing.
+        // The other half of the link. Without it a chains surface can render the mailbox block but cannot tell
+        // which of the rows under it is the receiver.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id);
         var ordinary = Assert
@@ -122,8 +118,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
         var receiverCard = workflows.Single(w => w.GetProperty("databaseId").GetGuid() == receiver);
         Assert.Equal(mailbox.Id, receiverCard.GetProperty("mailboxId").GetGuid());
 
-        // Absent rather than null: the dashboard payload omits every null field, so an ordinary workflow's
-        // card is byte-for-byte what it was before mailboxes existed.
+        // Absent rather than null: the dashboard payload omits every null field, so an ordinary workflow's card
+        // is byte-for-byte what it was before mailboxes existed.
         var ordinaryCard = workflows.Single(w => w.GetProperty("databaseId").GetGuid() == ordinary);
         Assert.False(ordinaryCard.TryGetProperty("mailboxId", out _));
     }
@@ -131,9 +127,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AClosedMailboxIsStillRead_WithItsReasonAndItsReleasedReceiver()
     {
-        // How a concluded exchange reads, and the reason the endpoint does not filter to open mailboxes:
-        // under a finished collection this is the ordinary case, and it is the one somebody looks up
-        // afterwards to find out why the exchange ended.
+        // How a concluded exchange reads, and the reason the endpoint does not filter to open mailboxes: under a
+        // finished collection this is the ordinary case, and the one somebody looks up afterwards.
         var mailbox = await MintMailbox();
         var receiver = await EnqueueReceiver(mailbox.Id);
         await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Held);
@@ -151,8 +146,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AMintedMailboxWithNoLogYet_ReadsBackWithAnEmptyPositionsArray()
     {
-        // The window the whole outbound leg of an exchange sits in. An empty array rather than an omitted
-        // field, so a card can render "no messages yet" without special-casing a missing property.
+        // The window the whole outbound leg of an exchange sits in. An empty array rather than an omitted field,
+        // so a card can render "no messages yet" without special-casing a missing property.
         await MintMailbox();
 
         var read = Assert.Single(Mailboxes(await Read()).EnumerateArray().ToList());
@@ -164,8 +159,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task NamingNoCollections_ReadsNothing_AndNamingOnlyOtherCollectionsReadsNothingEither()
     {
-        // The scope, from the endpoint's side. A request naming no collections is what a chains surface with
-        // nothing on screen sends, and it must be an empty answer rather than every mailbox in the engine.
+        // A request naming no collections is what a chains surface with nothing on screen sends, and it must be
+        // an empty answer rather than every mailbox in the engine.
         await MintMailbox();
 
         foreach (var keys in new[] { null, "", "some-other-collection" })
@@ -181,11 +176,9 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task AFullCollectionWindowIsReportedAsTruncated_ByName()
     {
-        // The endpoint's per-collection cap is 10, and a collection with more history than that must say so
-        // rather than quietly return its newest ten: a mailbox missing from a group is otherwise
-        // indistinguishable from an exchange that never had one. Reported per collection rather than as a
-        // single flag, because the limit is per collection — a card needs to know whether the group it is
-        // drawing has an unshown tail, not whether something somewhere was cut.
+        // The endpoint's per-collection cap is 10, and a collection with more history must say so rather than
+        // quietly return its newest ten: a mailbox missing from a group is otherwise indistinguishable from an
+        // exchange that never had one. Reported per collection, because the limit is per collection.
         for (var i = 0; i < 11; i++)
             await MintMailbox($"step-{i}");
 
@@ -201,8 +194,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task ACollectionThatFitsIsNotReportedAsTruncated()
     {
-        // The other side of the boundary, and the one that keeps the flag meaningful: every ordinary
-        // collection holds a handful of mailboxes and must come back with nothing to report.
+        // The other side of the boundary, and the one that keeps the flag meaningful: every ordinary collection
+        // holds a handful of mailboxes and must come back with nothing to report.
         await MintMailbox("step-a");
         await MintMailbox("step-b");
 
@@ -215,8 +208,8 @@ public sealed class DashboardMailboxEndpointTests(EngineAppFixture<Program> fixt
     [Fact]
     public async Task SeveralCollectionsAreReadInOneCall_AndTheNamespaceFilterApplies()
     {
-        // One call per render pass rather than one per group, which is what keeps an open dashboard from
-        // issuing a burst of reads every time the live section ticks.
+        // One call per render pass rather than one per group, which keeps an open dashboard from issuing a burst
+        // of reads every time the live section ticks.
         var first = await MintMailbox("step-a", "collection-a");
         var second = await MintMailbox("step-b", "collection-b");
 

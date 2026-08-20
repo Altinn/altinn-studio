@@ -213,15 +213,10 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     }
 
     /// <summary>
-    /// Projects the engine's mailbox receipt onto the callback, or <c>null</c> when this step receives
-    /// from no mailbox.
+    /// Projects the engine's mailbox receipt onto the callback, or <c>null</c> when this step receives from no
+    /// mailbox. A projection and nothing more: the delivery is not re-derived here and the absence of one is not
+    /// re-interpreted.
     /// </summary>
-    /// <remarks>
-    /// A projection and nothing more: the engine decides what a receive workflow's step is told, this
-    /// only says it on the wire. In particular the delivery is not re-derived here and the absence of one
-    /// is not re-interpreted — a receipt without a delivery already means the mailbox is closed, and the
-    /// reason travels beside it so a handler never has to work out which kind of ending it is looking at.
-    /// </remarks>
     private static AppCallbackMailbox? MailboxBlock(CommandExecutionContext context)
     {
         if (context.MailboxReceipt is not { } receipt)
@@ -292,8 +287,7 @@ internal static partial class AppCommandDescriptorLogs
         Guid instanceGuid
     );
 
-    // Ids and shape only. The delivery's body is a forwarded external message and is never logged, for
-    // the same reason the payload above is not.
+    // Ids and shape only: the delivery's body is a forwarded external message and is never logged.
     [LoggerMessage(
         LogLevel.Information,
         "AppCommand '{CommandKey}' receives from mailbox {MailboxId} at position {Seq} (workflowId: {WorkflowId}, delivered: {Delivered}, closed: {DisposedReason})"

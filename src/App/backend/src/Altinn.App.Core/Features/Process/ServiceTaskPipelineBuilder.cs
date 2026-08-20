@@ -16,13 +16,11 @@ public sealed class ServiceTaskPipelineBuilder
     private readonly List<ServiceTaskStage> _stages = [];
 
     /// <summary>
-    /// Whether a <see cref="ServiceTaskPipeline.WithReplyFrom"/> declaration was made on any pipeline
-    /// that originated from this builder. The builder is created fresh for each
-    /// <see cref="ServiceTaskLookupExtensions.ResolvePipeline"/> call and handed into a single
-    /// <see cref="IPipelineServiceTask.Define"/>, so this records "did <em>this</em> Define declare a
-    /// mailbox" without any state that could persist or leak to another task — which is why the mark
-    /// lives here rather than on the immutable pipeline. See
-    /// <see cref="ServiceTaskLookupExtensions.ResolvePipeline"/> for how it is checked.
+    /// Whether a <see cref="ServiceTaskPipeline.WithReplyFrom"/> declaration was made on any pipeline that
+    /// originated from this builder. The builder is created fresh for each
+    /// <see cref="ServiceTaskLookupExtensions.ResolvePipeline"/> call, so this records "did <em>this</em> Define
+    /// declare a mailbox" without state that could leak to another task — which is why the mark lives here rather
+    /// than on the immutable pipeline.
     /// </summary>
     internal bool MailboxDeclared { get; private set; }
 
