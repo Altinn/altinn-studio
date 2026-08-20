@@ -114,6 +114,7 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
             FilesChanged = request.FilesChanged,
             Sources = request.Sources,
             TraceId = request.TraceId,
+            EventId = request.EventId,
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);

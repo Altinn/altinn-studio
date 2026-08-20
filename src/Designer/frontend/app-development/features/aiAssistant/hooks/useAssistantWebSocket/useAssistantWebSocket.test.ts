@@ -1,14 +1,36 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { WorkflowEvent } from '@studio/assistant';
 import { useAssistantWebSocket } from './useAssistantWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
 const mockInvoke = jest.fn();
+type MockConnection = {
+  on: jest.Mock;
+  off: jest.Mock;
+  invoke: jest.Mock;
+  state: string;
+  onreconnecting: jest.Mock;
+  onreconnected: jest.Mock;
+  onclose: jest.Mock;
+};
 // A fresh connection object per test: the hook registers its dispatcher once
 // per connection (WeakSet), so reusing one object across tests would leak
 // registration state between them.
-let mockConnection: { on: jest.Mock; off: jest.Mock; invoke: jest.Mock };
-let mockConnections: Array<typeof mockConnection>;
+let mockConnection: MockConnection;
+let mockConnections: Array<MockConnection>;
+
+// Never settles by default, so the post-start publish stays out of act().
+let mockWhenStarted: () => Promise<void> = () => new Promise<void>(() => {});
+
+const createMockConnection = (state = 'Connected'): MockConnection => ({
+  on: jest.fn(),
+  off: jest.fn(),
+  invoke: mockInvoke,
+  state,
+  onreconnecting: jest.fn(),
+  onreconnected: jest.fn(),
+  onclose: jest.fn(),
+});
 
 jest.mock('app-shared/websockets/WSConnector', () => ({
   WSConnector: {
@@ -16,6 +38,7 @@ jest.mock('app-shared/websockets/WSConnector', () => ({
       get connections() {
         return mockConnections;
       },
+      whenStarted: () => mockWhenStarted(),
     })),
   },
 }));
@@ -24,8 +47,9 @@ const mockGetInstance = WSConnector.getInstance as jest.Mock;
 
 describe('useAssistantWebSocket', () => {
   beforeEach(() => {
-    mockConnection = { on: jest.fn(), off: jest.fn(), invoke: mockInvoke };
+    mockConnection = createMockConnection();
     mockConnections = [mockConnection];
+    mockWhenStarted = () => new Promise<void>(() => {});
   });
 
   afterEach(() => {
@@ -38,6 +62,55 @@ describe('useAssistantWebSocket', () => {
     expect(mockGetInstance).toHaveBeenCalledWith(expect.any(Array), ['ReceiveAgentMessage']);
     expect(mockConnection.on).toHaveBeenCalledWith('ReceiveAgentMessage', expect.any(Function));
     expect(result.current.connectionStatus).toBe('connected');
+  });
+
+  it('settles the status once the initial start resolves', async () => {
+    mockConnection = createMockConnection('Connecting');
+    mockConnections = [mockConnection];
+    mockWhenStarted = () => Promise.resolve();
+
+    const { result } = renderUseAssistantWebSocket();
+    expect(result.current.connectionStatus).toBe('connecting');
+
+    mockConnection.state = 'Connected';
+
+    await waitFor(() => expect(result.current.connectionStatus).toBe('connected'));
+  });
+
+  it('reports connecting while the hub connection is still starting', () => {
+    mockConnection = createMockConnection('Connecting');
+    mockConnections = [mockConnection];
+
+    const { result } = renderUseAssistantWebSocket();
+
+    expect(result.current.connectionStatus).toBe('connecting');
+  });
+
+  it('reports connecting again while SignalR is reconnecting', () => {
+    const { result } = renderUseAssistantWebSocket();
+    const onReconnecting = mockConnection.onreconnecting.mock.calls[0][0];
+
+    act(() => onReconnecting());
+
+    expect(result.current.connectionStatus).toBe('connecting');
+  });
+
+  it('reports error when the hub connection closes with an error', () => {
+    const { result } = renderUseAssistantWebSocket();
+    const onClose = mockConnection.onclose.mock.calls[0][0];
+
+    act(() => onClose(new Error('Hub gone')));
+
+    expect(result.current.connectionStatus).toBe('error');
+  });
+
+  it('reports disconnected when the hub connection closes cleanly', () => {
+    const { result } = renderUseAssistantWebSocket();
+    const onClose = mockConnection.onclose.mock.calls[0][0];
+
+    act(() => onClose());
+
+    expect(result.current.connectionStatus).toBe('disconnected');
   });
 
   it('registers a single dispatcher even when the hook mounts twice', () => {

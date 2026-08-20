@@ -40,15 +40,19 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
     if (!connection) return undefined;
 
     ensureAgentMessageDispatcher(connection);
+    ensureConnectionStatusTracker(connection);
     const subscriber = (message: WorkflowEvent) => messageCallbackRef.current?.(message);
     agentMessageSubscribers.add(subscriber);
-    setConnectionStatus('connected');
+    connectionStatusSubscribers.add(setConnectionStatus);
+    setConnectionStatus(readConnectionStatus(connection));
+    // The initial start fires no lifecycle callback, so settle the status once it resolves.
+    wsInstance
+      .whenStarted?.()
+      .then(() => publishConnectionStatus(readConnectionStatus(connection)));
 
     return () => {
-      // Remove only this mount's subscriber — the connection and its single
-      // dispatcher stay alive for the next mount (and for other subscribers).
       agentMessageSubscribers.delete(subscriber);
-      setConnectionStatus('disconnected');
+      connectionStatusSubscribers.delete(setConnectionStatus);
     };
   }, []);
 
@@ -132,12 +136,38 @@ function getAltinitySignalRConnection(wsInstance: any): any | null {
   return connections[ALTINITY_CONNECTION_INDEX];
 }
 
-// Module-level fan-out: the shared connection gets exactly ONE SignalR handler
-// (registered once per connection), which dispatches to the current mounts'
-// subscribers. Mount/unmount only touches the subscriber set — it never calls
-// connection.off, which would silently drop every other mount's handler.
 const agentMessageSubscribers = new Set<(message: WorkflowEvent) => void>();
 const dispatchedConnections = new WeakSet<object>();
+const connectionStatusSubscribers = new Set<(status: ConnectionStatus) => void>();
+const statusTrackedConnections = new WeakSet<object>();
+
+function readConnectionStatus(connection: any): ConnectionStatus {
+  switch (connection?.state) {
+    case 'Connected':
+      return 'connected';
+    case 'Connecting':
+    case 'Reconnecting':
+      return 'connecting';
+    default:
+      return 'disconnected';
+  }
+}
+
+function publishConnectionStatus(status: ConnectionStatus): void {
+  connectionStatusSubscribers.forEach((subscriber) => subscriber(status));
+}
+
+// SignalR cannot detach onclose/onreconnecting, so register once per connection.
+function ensureConnectionStatusTracker(connection: any): void {
+  if (statusTrackedConnections.has(connection)) return;
+  statusTrackedConnections.add(connection);
+
+  connection.onreconnecting?.(() => publishConnectionStatus('connecting'));
+  connection.onreconnected?.(() => publishConnectionStatus('connected'));
+  connection.onclose?.((error?: Error) =>
+    publishConnectionStatus(error ? 'error' : 'disconnected'),
+  );
+}
 
 function ensureAgentMessageDispatcher(connection: any): void {
   if (dispatchedConnections.has(connection)) return;

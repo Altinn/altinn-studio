@@ -29,10 +29,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
 /// <para>
-/// Assumes a single Designer replica: the agents service streams every event for a
-/// developer to each of that developer's connections, so a second replica would open its
-/// own connection, receive the same events, and persist duplicate assistant messages.
-/// Server-side persistence needs an idempotency key before the deployment scales out.
+/// Every replica sees every event, so persistence is deduplicated on the agent's event id.
 /// </para>
 /// </summary>
 public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
@@ -324,6 +321,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
             List<ChatSourceEntity>? sources = data["sources"]
                 ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
             string? traceId = data["traceId"]?.GetValue<string>();
+            string? eventId = data["eventId"]?.GetValue<string>();
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
@@ -332,7 +330,8 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                 AttachmentFileNames: null,
                 filesChanged,
                 sources,
-                traceId
+                traceId,
+                eventId
             );
 
             using var scope = _scopeFactory.CreateScope();

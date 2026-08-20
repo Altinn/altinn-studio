@@ -350,7 +350,7 @@ class _SinkStub:
 
 
 class TestEmitWorkflowCompletion:
-    def _emit(self, monkeypatch, trace_id):
+    def _emit(self, monkeypatch, trace_id, state_trace_id=None):
         stub = _SinkStub()
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
         monkeypatch.setattr(
@@ -364,7 +364,9 @@ class TestEmitWorkflowCompletion:
             turns=1,
         )
         ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
-        _emit_workflow_completion(_state(), result, ctx)
+        state = _state()
+        state.trace_id = state_trace_id
+        _emit_workflow_completion(state, result, ctx)
         return next(e for e in stub.events if e.type == "assistant_message")
 
     def test_assistant_message_carries_trace_id(self, monkeypatch):
@@ -374,6 +376,14 @@ class TestEmitWorkflowCompletion:
     def test_assistant_message_omits_trace_id_when_tracing_is_off(self, monkeypatch):
         message = self._emit(monkeypatch, trace_id=None)
         assert "traceId" not in message.data
+
+    def test_trace_id_captured_on_state_survives_a_lost_otel_context(self, monkeypatch):
+        message = self._emit(monkeypatch, trace_id=None, state_trace_id="trace-root")
+        assert message.data["traceId"] == "trace-root"
+
+    def test_state_trace_id_takes_precedence_over_the_live_lookup(self, monkeypatch):
+        message = self._emit(monkeypatch, trace_id="trace-live", state_trace_id="trace-root")
+        assert message.data["traceId"] == "trace-root"
 
 
 # ---------------------------------------------------------------------------

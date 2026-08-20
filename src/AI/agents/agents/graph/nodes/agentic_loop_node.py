@@ -599,7 +599,7 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
     # The Langfuse trace id doubles as the run's identity on the event: the
     # frontend uses it to dedupe redelivered events and to submit feedback
     # on the answer (PUT chat/feedback/{traceId}).
-    trace_id = get_current_trace_id()
+    trace_id = state.trace_id or get_current_trace_id()
     if trace_id:
         message_data["traceId"] = trace_id
     sink.send(

@@ -55,4 +55,9 @@ public class ChatMessageDbModel
     /// Langfuse trace id of the agent run that produced this message.
     /// </summary>
     public string? TraceId { get; set; }
+
+    /// <summary>
+    /// Id of the agent event this message was persisted from. Unique per thread.
+    /// </summary>
+    public string? EventId { get; set; }
 }

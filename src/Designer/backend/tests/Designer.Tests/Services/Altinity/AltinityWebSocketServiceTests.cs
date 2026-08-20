@@ -131,6 +131,16 @@ public class AltinityWebSocketServiceTests
         await service.TryPersistAssistantMessageAsync(message);
 
         Assert.Null(message["data"]!["persistedMessageId"]);
+        _chatServiceMock.Verify(
+            s =>
+                s.CreateMessageAsync(
+                    s_threadId,
+                    It.IsAny<CreateChatMessageRequest>(),
+                    s_editingContext,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -153,6 +163,16 @@ public class AltinityWebSocketServiceTests
         await service.TryPersistAssistantMessageAsync(message);
 
         Assert.Null(message["data"]!["persistedMessageId"]);
+        _chatServiceMock.Verify(
+            s =>
+                s.CreateMessageAsync(
+                    s_threadId,
+                    It.IsAny<CreateChatMessageRequest>(),
+                    s_editingContext,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]

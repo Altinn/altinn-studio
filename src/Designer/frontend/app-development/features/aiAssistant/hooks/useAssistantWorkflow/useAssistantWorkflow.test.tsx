@@ -14,6 +14,7 @@ import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebS
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { renderHookWithProviders } from '../../../../test/mocks';
 import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 jest.mock('../useAssistantWebSocket/useAssistantWebSocket');
 jest.mock('app-shared/hooks/queries/useCurrentBranchQuery');
@@ -356,6 +357,50 @@ describe('useAssistantWorkflow', () => {
     });
 
     expect(threads.createMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a redelivered assistant_message when the first persist failed', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      createMessage: jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Persist failed'))
+        .mockResolvedValue({ id: 'persisted-message-id' }),
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAssistantWorkflow(threads);
+
+    const event: AssistantMessageEvent = {
+      type: 'assistant_message',
+      session_id: 'thread-a',
+      data: { content: 'Svar', traceId: 'trace-retry', mode: 'chat' },
+    };
+
+    await act(async () => {
+      capturedOnAgentMessage!(event);
+    });
+    await act(async () => {
+      capturedOnAgentMessage!(event);
+    });
+
+    expect(threads.createMessage).toHaveBeenCalledTimes(2);
+    consoleErrorSpy.mockRestore();
   });
 
   it('evicts the oldest dedupe keys so late duplicates of old runs are reprocessed', async () => {
@@ -1240,6 +1285,78 @@ describe('useAssistantWorkflow', () => {
     expect(threads.deleteMessage).not.toHaveBeenCalled();
     expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
   });
+
+  it('resets the repository when the finished run belongs to this app', async () => {
+    const resetRepoChanges = jest.fn().mockResolvedValue(undefined);
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAssistantWorkflow(threads, { resetRepoChanges });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', mode: 'edit' },
+      });
+    });
+
+    expect(resetRepoChanges).toHaveBeenCalled();
+  });
+
+  it("does not reset this app's repository for a run belonging to another app", async () => {
+    const resetRepoChanges = jest.fn().mockResolvedValue(undefined);
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAssistantWorkflow(threads, { resetRepoChanges });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-from-other-app',
+        data: { content: 'Svar', mode: 'edit' },
+      });
+    });
+
+    expect(resetRepoChanges).not.toHaveBeenCalled();
+  });
 });
 
 const createThreadState = (
@@ -1257,9 +1374,12 @@ const createThreadState = (
   ...overrides,
 });
 
-const renderUseAssistantWorkflow = (threads: AssistantThreadState) => {
+const renderUseAssistantWorkflow = (
+  threads: AssistantThreadState,
+  queries: Partial<ServicesContextProps> = {},
+) => {
   const queryClient = new QueryClient();
-  return renderHookWithProviders({}, queryClient)(() => useAssistantWorkflow(threads))
+  return renderHookWithProviders(queries, queryClient)(() => useAssistantWorkflow(threads))
     .renderHookResult;
 };
 

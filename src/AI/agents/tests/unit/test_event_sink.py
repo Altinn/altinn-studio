@@ -96,3 +96,49 @@ class TestStatusElapsedStamping:
 
         [event] = sink.get_developer_events_since(DEVELOPER, 0)
         assert event.data["elapsed_ms"] == 1234
+
+
+class TestAssistantMessageEventId:
+    """Server-side persistence in Designer dedupes on this id."""
+
+    def test_assistant_messages_are_stamped_with_an_event_id(self):
+        sink = _sink_with_session()
+
+        sink.send(_event("assistant_message", response="Ferdig"))
+
+        [event] = sink.get_developer_events_since(DEVELOPER, 0)
+        assert event.data["eventId"]
+
+    def test_replayed_event_keeps_the_same_event_id(self):
+        sink = _sink_with_session()
+        sink.send(_event("assistant_message", response="Ferdig"))
+
+        first = sink.get_developer_events_since(DEVELOPER, 0)[0].data["eventId"]
+        replayed = sink.get_developer_events_since(DEVELOPER, 0)[0].data["eventId"]
+
+        assert replayed == first
+
+    def test_separate_messages_get_distinct_event_ids(self):
+        sink = _sink_with_session()
+
+        sink.send(_event("assistant_message", response="Første"))
+        sink.send(_event("assistant_message", response="Andre"))
+
+        first, second = sink.get_developer_events_since(DEVELOPER, 0)
+        assert first.data["eventId"] != second.data["eventId"]
+
+    def test_existing_event_id_is_not_overwritten(self):
+        sink = _sink_with_session()
+
+        sink.send(_event("assistant_message", response="Ferdig", eventId="supplied"))
+
+        [event] = sink.get_developer_events_since(DEVELOPER, 0)
+        assert event.data["eventId"] == "supplied"
+
+    def test_other_event_types_are_not_stamped(self):
+        sink = _sink_with_session()
+
+        sink.send(_event("status", message="Skanner repo"))
+
+        [event] = sink.get_developer_events_since(DEVELOPER, 0)
+        assert "eventId" not in event.data

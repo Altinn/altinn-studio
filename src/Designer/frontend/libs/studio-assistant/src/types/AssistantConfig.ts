@@ -18,8 +18,8 @@ export interface AssistantMessageData {
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
   traceId?: string;
-  /** Set by the Designer backend when it persisted this message server-side —
-   *  clients must render it without persisting their own copy. */
+  eventId?: string;
+  /** Present when the backend already persisted this message; do not persist a copy. */
   persistedMessageId?: string;
 }
 

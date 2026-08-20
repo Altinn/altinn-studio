@@ -231,6 +231,12 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     ],
   );
 
+  // Agent events reach every tab, including tabs open on other apps.
+  const ownsThread = useCallback(
+    (threadId: string) => threads.chatThreads.some((thread) => thread.id === threadId),
+    [threads.chatThreads],
+  );
+
   const resetRepoForSession = useCallback(
     (sessionId: string) => {
       const branch = buildSessionBranchName(sessionId);
@@ -249,13 +255,11 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (!threadId) return;
 
       const assistantMessage = event.data;
-      if (assistantMessage.traceId) {
-        const traceKey = `${threadId}:${assistantMessage.traceId}`;
+      const traceKey = assistantMessage.traceId ? `${threadId}:${assistantMessage.traceId}` : null;
+      if (traceKey) {
         const handledTraceIds = handledAssistantTraceIdsRef.current;
         if (handledTraceIds.has(traceKey)) return;
         handledTraceIds.add(traceKey);
-        // Bounded FIFO — duplicates arrive close to the original, so only
-        // recent keys matter.
         if (handledTraceIds.size > MAX_HANDLED_TRACE_IDS) {
           handledTraceIds.delete(handledTraceIds.values().next().value);
         }
@@ -284,21 +288,27 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
           sources: assistantMessage.sources || [],
           traceId: assistantMessage.traceId,
         };
-        const persisted = await createMessage(threadId, finalAssistantMessage);
+        try {
+          const persisted = await createMessage(threadId, finalAssistantMessage);
 
-        if (assistantMessage.traceId && persisted?.id) {
-          setTraceIdsByMessageId((prev) => ({
-            ...prev,
-            [persisted.id]: assistantMessage.traceId,
-          }));
+          if (assistantMessage.traceId && persisted?.id) {
+            setTraceIdsByMessageId((prev) => ({
+              ...prev,
+              [persisted.id]: assistantMessage.traceId,
+            }));
+          }
+        } catch (error) {
+          // Release the dedupe key, or a redelivery of this answer is dropped for good.
+          if (traceKey) handledAssistantTraceIdsRef.current.delete(traceKey);
+          console.error('Failed to persist assistant message:', error);
         }
       }
 
-      if (!shouldSkipBranchOps(assistantMessage)) {
+      if (!shouldSkipBranchOps(assistantMessage) && ownsThread(threadId)) {
         resetRepoForSession(threadId);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
+    [resetRepoForSession, ownsThread, markWorkflowCompleted, createMessage, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(

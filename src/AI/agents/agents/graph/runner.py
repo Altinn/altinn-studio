@@ -169,7 +169,7 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
     }
     # Same event identity as a real answer: lets the frontend dedupe
     # redelivered events and submit feedback on the decline.
-    trace_id = get_current_trace_id()
+    trace_id = state.trace_id or get_current_trace_id()
     if trace_id:
         decline_data["traceId"] = trace_id
     event_sink.send(AgentEvent(
@@ -267,6 +267,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 "app_name": state.app_name,
             },
         ) as root_span:
+            state.trace_id = get_current_trace_id()
             with propagate_attributes(user_id=state.org):
                 try:
                     decline_text = await _gate_goal(state, event_sink)

@@ -5,6 +5,7 @@ export class WSConnector {
   private connections: Array<HubConnection> = [];
   private static instances: Map<string, WSConnector> = new Map();
   private clientsName: Array<string> = [];
+  private startPromises: Array<Promise<void>> = [];
 
   constructor(
     private readonly webSocketUrls: Array<string>,
@@ -63,11 +64,17 @@ export class WSConnector {
     ];
   }
 
+  public whenStarted(): Promise<void> {
+    return Promise.all(this.startPromises).then(() => undefined);
+  }
+
   private startConnections(): void {
     this.connections.forEach((connection: HubConnection) => this.startConnection(connection));
   }
 
   private startConnection(connection: HubConnection): void {
-    connection.start().catch((e) => console.error('Connection failed: ', e));
+    this.startPromises.push(
+      connection.start().catch((e) => console.error('Connection failed: ', e)),
+    );
   }
 }

@@ -4,6 +4,7 @@ import asyncio
 import logging
 import threading
 import time
+import uuid
 from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
@@ -146,6 +147,7 @@ class EventSink:
                 if started is not None:
                     event.data.setdefault("elapsed_ms", int((time.monotonic() - started) * 1000))
             if event.type == "assistant_message":
+                event.data.setdefault("eventId", uuid.uuid4().hex)
                 self._session_status.setdefault(event.session_id, {"status": "running"})
                 self._session_status[event.session_id]["last_message"] = event.data
             elif event.type == "done":
