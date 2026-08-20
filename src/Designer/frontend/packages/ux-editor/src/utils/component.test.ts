@@ -23,6 +23,7 @@ describe('Component utils', () => {
         (v) =>
           v !== ComponentType.OrganisationLookup &&
           v !== ComponentType.Header &&
+          v !== ComponentType.FileUploadWithTag &&
           !containerComponentTypes.includes(v),
       ),
     )('Generates component of type %s with given ID', (componentType) => {

@@ -94,8 +94,6 @@ export const layoutMock: IInternalLayout = {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
     [component3IdMock]: component3Mock,
-    [componentMocks[ComponentType.FileUploadWithTag].id]:
-      componentMocks[ComponentType.FileUploadWithTag],
     ComponentWithOptionsMock: componentWithOptionsMock,
   },
   containers: {
@@ -128,7 +126,6 @@ export const layoutMock: IInternalLayout = {
     [container2IdMock]: [
       component2IdMock,
       component3IdMock,
-      componentMocks[ComponentType.FileUploadWithTag].id,
     ],
   },
   customRootProperties: customRootPropertiesMock,
@@ -150,7 +147,6 @@ export const layout1Mock: ExternalFormLayout = {
         children: [
           component2IdMock,
           component3IdMock,
-          componentMocks[ComponentType.FileUploadWithTag].id,
         ],
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       },
@@ -164,7 +160,6 @@ export const layout1Mock: ExternalFormLayout = {
         type: component2TypeMock,
       },
       componentMocks[ComponentType.FileUpload],
-      componentMocks[ComponentType.FileUploadWithTag],
       {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,

@@ -397,6 +397,7 @@ describe('formLayoutUtils', () => {
         (v) =>
           v !== ComponentType.OrganisationLookup &&
           v !== ComponentType.Header &&
+          v !== ComponentType.FileUploadWithTag &&
           !containerComponentTypes.includes(v),
       ),
     )('Adds a new component to the layout when the given type is %s', (componentType) => {
