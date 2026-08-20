@@ -7,6 +7,11 @@ const PANEL_VARIANTS = ['info', 'warning', 'error', 'success'] as const;
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Panel', en: 'Panel' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,

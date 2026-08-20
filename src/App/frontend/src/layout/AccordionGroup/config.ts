@@ -3,6 +3,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'AccordionGroup (Nestet trekkspilliste)', en: 'AccordionGroup' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,

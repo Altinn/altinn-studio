@@ -3,6 +3,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Summary', en: 'Summary' },
+    lifecycle: { status: 'deprecated', replacedBy: 'Summary2' },
+  },
   directRendering: true,
   capabilities: {
     renderInTable: false,

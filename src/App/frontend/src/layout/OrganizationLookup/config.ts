@@ -3,6 +3,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'OrganisationLookup', en: 'OrganisationLookup' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,

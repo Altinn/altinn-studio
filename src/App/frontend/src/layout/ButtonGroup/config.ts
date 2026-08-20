@@ -3,6 +3,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'ButtonGroup', en: 'ButtonGroup' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,

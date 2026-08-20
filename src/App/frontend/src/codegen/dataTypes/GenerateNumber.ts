@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -36,5 +37,9 @@ export class GenerateNumber extends DescribableCodeGenerator<number> {
       minimum: this.minimum,
       maximum: this.maximum,
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { type: 'number', ...this.componentCatalogMetadata() };
   }
 }

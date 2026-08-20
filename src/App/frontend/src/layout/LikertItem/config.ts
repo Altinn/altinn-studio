@@ -5,6 +5,13 @@ import { CompCategory } from 'src/layout/common';
 export const Config = asOptionsComponent(
   new CG.component({
     category: CompCategory.Form,
+    availability: 'internal',
+    metadata: {
+      name: {
+        nb: 'LikertItem',
+        en: 'LikertItem',
+      },
+    },
     capabilities: {
       renderInTable: false,
       renderInButtonGroup: false,

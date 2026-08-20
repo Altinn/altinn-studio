@@ -7,6 +7,11 @@ import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 export const Config = asUploaderComponent(
   new CG.component({
     category: CompCategory.Form,
+    availability: 'configurable',
+    metadata: {
+      name: { nb: 'FileUpload', en: 'FileUpload' },
+      lifecycle: { status: 'stable' },
+    },
     capabilities: {
       renderInTable: false,
       renderInButtonGroup: false,

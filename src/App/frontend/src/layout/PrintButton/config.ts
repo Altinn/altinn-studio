@@ -3,6 +3,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Action,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'PrintButton', en: 'PrintButton' },
+    lifecycle: { status: 'deprecated', replacedBy: 'PDFPreviewButton' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: true,

@@ -3,6 +3,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Group', en: 'Group' },
+    lifecycle: { status: 'stable' },
+  },
   directRendering: true,
   capabilities: {
     renderInTable: false,

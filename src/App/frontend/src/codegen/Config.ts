@@ -1,8 +1,13 @@
+import type { ComponentMetadata } from '@app/layout-contract';
+
 import type { CompCategory } from 'src/layout/common';
 
 export interface RequiredComponentConfig {
   category: CompCategory;
   directRendering?: boolean;
+  /** Whether app developers may configure this component, or it only exists inside the runtime. */
+  availability: 'configurable' | 'internal';
+  metadata: ComponentMetadata;
   capabilities: CompCapabilities;
   functionality: FunctionalityConfig;
 }

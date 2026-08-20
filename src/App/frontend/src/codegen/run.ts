@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { format, resolveConfig } from 'prettier';
 
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { generateAllCommonTypes, generateCommonTypeScript } from 'src/codegen/Common';
+import { generateComponentCatalog } from 'src/codegen/ComponentCatalog';
 import { LayoutSchemaV1 } from 'src/codegen/schemas/layout.schema.v1';
 import { LayoutSettingsSchemaV1 } from 'src/codegen/schemas/layoutSettings.schema.v1';
 import { getWrittenPaths, saveFile, saveTsFile } from 'src/codegen/tools';
@@ -12,6 +15,11 @@ import type { SchemaFileProps } from 'src/codegen/SchemaFile';
 type ComponentList = { [folder: string]: string };
 
 const GENERATED_FILE_PATTERN = /\.generated\.(ts|tsx)$/;
+const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../..');
+const COMPONENT_CATALOG_OUTPUT = path.join(
+  REPOSITORY_ROOT,
+  'src/common/ts/layout-contract/src/component-catalog.generated.ts',
+);
 
 function toPosixPath(p: string): string {
   return p.split(path.sep).join('/');
@@ -127,6 +135,17 @@ async function getComponentList(): Promise<[ComponentList, string[]]> {
   }
 
   const schemaProps: SchemaFileProps = { configMap, componentList, sortedKeys };
+  const prettierConfig = await resolveConfig(COMPONENT_CATALOG_OUTPUT);
+  promises.push(
+    saveFile(
+      COMPONENT_CATALOG_OUTPUT,
+      await format(generateComponentCatalog(schemaProps), {
+        ...prettierConfig,
+        parser: 'typescript',
+        filepath: COMPONENT_CATALOG_OUTPUT,
+      }),
+    ),
+  );
   const schemas = [new LayoutSchemaV1(schemaProps), new LayoutSettingsSchemaV1(schemaProps)];
 
   const schemaPathBase = 'schemas/json/';

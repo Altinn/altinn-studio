@@ -6,6 +6,11 @@ import { CompCategory } from 'src/layout/common';
 export const Config = asOptionsComponent(
   new CG.component({
     category: CompCategory.Presentation,
+    availability: 'configurable',
+    metadata: {
+      name: { nb: 'Option', en: 'Option' },
+      lifecycle: { status: 'stable' },
+    },
     capabilities: {
       renderInTable: true,
       renderInButtonGroup: false,

@@ -7,6 +7,11 @@ export const Config = asOptionsComponent(
   asUploaderComponent(
     new CG.component({
       category: CompCategory.Form,
+      availability: 'configurable',
+      metadata: {
+        name: { nb: 'FileUploadWithTag', en: 'FileUploadWithTag' },
+        lifecycle: { status: 'stable' },
+      },
       capabilities: {
         renderInTable: false,
         renderInButtonGroup: false,

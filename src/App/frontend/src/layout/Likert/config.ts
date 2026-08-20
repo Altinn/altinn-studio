@@ -5,6 +5,11 @@ import { CompCategory } from 'src/layout/common';
 export const Config = asOptionsComponent(
   new CG.component({
     category: CompCategory.Container,
+    availability: 'configurable',
+    metadata: {
+      name: { nb: 'Likert', en: 'Likert' },
+      lifecycle: { status: 'stable' },
+    },
     directRendering: true,
     capabilities: {
       renderInTable: false,

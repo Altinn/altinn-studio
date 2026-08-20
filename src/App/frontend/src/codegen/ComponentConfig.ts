@@ -1,3 +1,4 @@
+import type { ComponentDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
@@ -320,6 +321,7 @@ export class ComponentConfig {
        }`,
       `export type TypeConfig = {
          category: ${CompCategory}.${this.config.category},
+         availability: '${this.config.availability}';
          layout: ${this.inner};
          summaryOverrides: ${this.getSummaryOverridesImport('plain')?.toTypeScript() ?? 'undefined'};
          summaryOverridesWithRef: ${this.getSummaryOverrides()?.toTypeScript() ?? 'undefined'};
@@ -327,6 +329,15 @@ export class ComponentConfig {
     ];
 
     return staticElements.join('\n\n');
+  }
+
+  public generateComponentCatalogEntry(): ComponentDefinition {
+    this.beforeFinalizing();
+    return {
+      kind: this.config.category === CompCategory.Container ? 'container' : 'component',
+      metadata: this.config.metadata,
+      properties: this.inner.componentCatalogProperties(),
+    };
   }
 
   public generateDefClass(): string {

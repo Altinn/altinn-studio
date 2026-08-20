@@ -5,6 +5,11 @@ import { CompCategory } from 'src/layout/common';
 export const Config = asAttachmentUploader(
   new CG.component({
     category: CompCategory.Form,
+    availability: 'configurable',
+    metadata: {
+      name: { nb: 'Bildeopplaster', en: 'Image Uploader' },
+      lifecycle: { status: 'stable' },
+    },
     capabilities: {
       renderInTable: true,
       renderInButtonGroup: false,

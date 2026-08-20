@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { GenerateNumber } from 'src/codegen/dataTypes/GenerateNumber';
@@ -21,5 +22,9 @@ export class GenerateInteger extends GenerateNumber {
       ...super.toJsonSchemaDefinition(),
       type: 'integer',
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { type: 'integer', ...this.componentCatalogMetadata() };
   }
 }

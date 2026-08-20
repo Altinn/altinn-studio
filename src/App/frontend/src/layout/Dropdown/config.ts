@@ -6,6 +6,11 @@ import { CompCategory } from 'src/layout/common';
 export const Config = asOptionsComponent(
   new CG.component({
     category: CompCategory.Form,
+    availability: 'configurable',
+    metadata: {
+      name: { nb: 'Nedtrekksliste', en: 'Dropdown' },
+      lifecycle: { status: 'stable' },
+    },
     capabilities: {
       renderInTable: true,
       renderInButtonGroup: false,

@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -29,5 +30,9 @@ export class GenerateString extends DescribableCodeGenerator<string> {
       type: 'string',
       pattern: this.pattern?.source,
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { type: 'string', ...this.componentCatalogMetadata() };
   }
 }

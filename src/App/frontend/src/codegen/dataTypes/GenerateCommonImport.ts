@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
@@ -79,6 +80,14 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
 
     this.freeze('toTypeScriptDefinition');
     return _import.toTypeScriptDefinition(undefined);
+  }
+
+  toComponentCatalog(): PropertyValueDefinition {
+    return getSourceForCommon(this.key, 'JsonSchema').toComponentCatalog();
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return getSourceForCommon(this.key, 'JsonSchema').toComponentCatalogDefinition();
   }
 
   getName(respectVariationDifferences = true): string {

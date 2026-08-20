@@ -4,6 +4,11 @@ import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from 'src/layout/Input/const
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Input', en: 'Input' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,

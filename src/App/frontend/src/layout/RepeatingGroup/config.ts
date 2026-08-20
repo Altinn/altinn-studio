@@ -4,6 +4,11 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'RepeatingGroup', en: 'RepeatingGroup' },
+    lifecycle: { status: 'stable' },
+  },
   directRendering: true,
   capabilities: {
     renderInTable: false,
