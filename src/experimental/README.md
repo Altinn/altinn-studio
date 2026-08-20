@@ -55,7 +55,7 @@ Host
 Sandbox
 └── Agent Runtime
     ├── sessiond       Session, harness and plugin runtime
-    └── sessionctl     Local Agent Runtime CLI
+    └── sessionctl     Local Agent Runtime CLI (agent.spawn, session.spawn)
 ```
 
 `agentctl` may also be installed inside a Sandbox as an authorized client of the host `agentd`; it remains separate
@@ -135,6 +135,10 @@ This working plan will be removed when the initial Agent deliverable is complete
     authorization and secret-store implementations
   - Reconcile applied Agents into retained Sandboxes, adopt them after `agentd` restarts and report useful status
   - Keep the Agent manifest declarative while keeping Sessions imperative
+  - Prefer to keep management and control plane logic in `agentd` as opposed to `sessiond`, consider whether `sessiond` is needed (what needs in-sandbox automation?).
+    The idea is that agent sessions may use and mutate the in-sandbox environment as much as they want. There is also some "host exposure" depending on devices exposed
+    through libkrun and our infrastructure.
+  - All logic that is harness-specific should exist in and be contained by harness-specific adapters. It should be simple to add support for another harness
 - Implement persistent, harness-neutral Sessions in the Agent Runtime
   - Use this public data model; the control plane assigns the UUID, and `CreateSession.workingDirectory` defaults to
     `$HOME/code` while the resulting `Session.workingDirectory` is always the resolved absolute Sandbox path:
