@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"altinn.studio/k8s-kvm-device-plugin/internal/plugin"
+	"altinn.studio/sandbox-node/internal/plugin"
 )
 
 func main() {

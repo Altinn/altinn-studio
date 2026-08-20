@@ -1,11 +1,11 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: k8s-kvm-device-plugin
+  name: sandbox-node
   namespace: default
 spec:
   interval: 5m
-  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/k8s-kvm-device-plugin-repo
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/sandbox-node-repo
   ref:
     tag: ${ENVIRONMENT}
   provider: azure
@@ -13,14 +13,14 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: k8s-kvm-device-plugin
+  name: sandbox-node
   namespace: default
 spec:
   interval: 5m
   targetNamespace: kube-system
   sourceRef:
     kind: OCIRepository
-    name: k8s-kvm-device-plugin
+    name: sandbox-node
     namespace: default
   path: ./prod
   prune: true

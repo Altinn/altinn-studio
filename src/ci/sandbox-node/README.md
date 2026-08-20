@@ -1,13 +1,15 @@
-# Kubernetes KVM device plugin
+# Sandbox node integration
 
-`k8s-kvm-device-plugin` advertises eight logical access slots for the host `/dev/kvm` character
-device as the Kubernetes extended resource `devices.altinn.studio/kvm`. It exists so independent
-sandbox coordinators can share a large node and create microVMs without running as privileged
-containers.
+`sandbox-node` prepares local Sandbox storage and advertises eight logical access slots for the host
+`/dev/kvm` character device as the Kubernetes extended resource `devices.altinn.studio/kvm`. It lets
+independent Sandbox coordinators share a large node without running as privileged containers.
 
 ## Behaviour
 
-- Refuses to register unless `/dev/kvm` exists and is a character device.
+- Identifies Azure local NVMe data disks by their documented controller model.
+- Idempotently assembles them as RAID0, formats the array as reflink-enabled XFS and mounts it at
+  `/var/lib/altinn/sandbox`.
+- Refuses to register unless storage preparation succeeds and `/dev/kvm` is a character device.
 - Registers eight healthy `devices.altinn.studio/kvm` slots (`kvm-0` through `kvm-7`) with kubelet.
 - Allocates `/dev/kvm` with `rw` device-cgroup permissions.
 - Reports the device unhealthy if the character device disappears.
@@ -20,5 +22,5 @@ before the runner workload is enabled.
 
 The slots are scheduler capacity, not distinct physical devices: every slot injects the same
 shareable `/dev/kvm`. Each coordinator requests one slot and creates one Sandbox. CPU, memory and
-ephemeral-storage requests normally limit packing before the eight-slot ceiling on the homogeneous
-`Standard_D32ds_v5` Sandbox pool.
+CPU and memory requests normally limit packing before the eight-slot ceiling on the homogeneous
+`Standard_D32ds_v6` Sandbox pool.

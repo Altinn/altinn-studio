@@ -91,6 +91,10 @@ spec:
                 valueFrom:
                   fieldRef:
                     fieldPath: metadata.name
+              - name: POD_UID
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.uid
               - name: SANDBOX_PROVIDER_HOME
                 value: /var/lib/altinn/sandbox-provider
               - name: SANDBOX_CACHE_HOME
@@ -138,32 +142,32 @@ spec:
                     key: appPrivateKey
             resources:
               requests:
-                # Limit each D32 node to four runners to protect shared OS-disk bandwidth.
-                cpu: "7"
+                cpu: "4"
                 memory: 14Gi
-                ephemeral-storage: 120Gi
+                ephemeral-storage: 2Gi
                 devices.altinn.studio/kvm: "1"
               limits:
-                cpu: "7"
+                cpu: "4"
                 memory: 14Gi
-                ephemeral-storage: 120Gi
+                ephemeral-storage: 4Gi
                 devices.altinn.studio/kvm: "1"
             volumeMounts:
               - name: provider-home
                 mountPath: /var/lib/altinn/sandbox-provider
+                subPathExpr: $(POD_UID)
               - name: provider-cache
                 mountPath: /var/cache/altinn/sandbox
               - name: tmp
                 mountPath: /tmp
         volumes:
           - name: provider-home
-            emptyDir:
-              # Leave room within the 120Gi Pod limit for /tmp, logs and writable image layers.
-              sizeLimit: 110Gi
+            hostPath:
+              path: /var/lib/altinn/sandbox/homes
+              type: Directory
           - name: provider-cache
             hostPath:
-              path: /var/lib/altinn/microsandbox-cache
-              type: DirectoryOrCreate
+              path: /var/lib/altinn/sandbox/cache
+              type: Directory
           - name: tmp
             emptyDir:
               sizeLimit: 1Gi

@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/gitea-runner/**'
+      - 'src/ci/gitea-runner/**'
       - '.github/workflows/gitea-runner-test.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t gitea-runner-test .
-        working-directory: src/gitea-runner
+        working-directory: src/ci/gitea-runner
 
       - name: Test renovate command is available
         run: |

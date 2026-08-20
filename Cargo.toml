@@ -7,7 +7,7 @@ members = [
   "src/experimental/sandbox",
   "src/experimental/sandbox/examples/self-dev",
   "src/experimental/sandbox-microsandbox",
-  "src/github-runner/coordinator",
+  "src/ci/github-runner/coordinator",
 ]
 resolver = "3"
 

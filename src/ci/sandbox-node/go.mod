@@ -1,4 +1,4 @@
-module altinn.studio/k8s-kvm-device-plugin
+module altinn.studio/sandbox-node
 
 go 1.26.6
 

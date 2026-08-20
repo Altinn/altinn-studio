@@ -65,6 +65,10 @@ app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
 Early agent-platform architecture with a reusable sandbox SDK and a separate agent automation layer.
 
+### Continuous integration — [`src/ci`](src/ci/AGENTS.md)
+
+Runner images and cluster integration used to execute GitHub and Gitea CI workloads.
+
 ### Shared code
 
 | Area                                                 | What it is                                                                                                                             |
@@ -82,10 +86,6 @@ Small build/ops images and configs, documented here rather than individually:
 
 - `gitea` — custom image for the self-hosted Gitea (Studio's "Repositories" Git server).
 - `gitea-proxy` — nginx+njs proxy restricting Gitea API-key/basic-auth to git + REST API only.
-- `gitea-runner` — Gitea Actions CI runner image (also runs Renovate jobs).
-- [`github-runner`](src/github-runner/AGENTS.md) — GitHub Actions runner image, Sandbox coordinator and KEDA-backed
-  self-hosted runners.
-- `runner-org-sync` — Go CronJob syncing the Altinn org list into per-org Gitea runners (KEDA scaling).
 - `lhci-server` — Lighthouse CI server (Node + Postgres) tracking frontend performance.
 - `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
 

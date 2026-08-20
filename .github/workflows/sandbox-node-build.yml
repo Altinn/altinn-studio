@@ -1,12 +1,12 @@
-name: k8s-kvm-device-plugin - Build
+name: sandbox-node - Build
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/Runtime/k8s-kvm-device-plugin/**'
-      - '.github/workflows/deploy-k8s-kvm-device-plugin.yaml'
-      - '.github/workflows/runtime-k8s-kvm-device-plugin-build.yml'
+      - 'src/ci/sandbox-node/**'
+      - '.github/workflows/deploy-sandbox-node.yaml'
+      - '.github/workflows/sandbox-node-build.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: src/Runtime/k8s-kvm-device-plugin
+        working-directory: src/ci/sandbox-node
 
     steps:
       - name: Checkout code
@@ -37,8 +37,8 @@ jobs:
 
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
-          go-version-file: src/Runtime/k8s-kvm-device-plugin/go.mod
-          cache-dependency-path: src/Runtime/k8s-kvm-device-plugin/go.sum
+          go-version-file: src/ci/sandbox-node/go.mod
+          cache-dependency-path: src/ci/sandbox-node/go.sum
 
       - name: Check formatting
         run: |
@@ -56,3 +56,6 @@ jobs:
 
       - name: Build container
         run: docker build --file Dockerfile .
+
+      - name: Build storage-init container
+        run: docker build --file Dockerfile.init .

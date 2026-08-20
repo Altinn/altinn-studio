@@ -1798,6 +1798,7 @@ dependencies = [
  "sandbox",
  "sandbox-microsandbox",
  "serde",
+ "tempfile",
  "tokio",
 ]
 

@@ -10,8 +10,8 @@ on:
       - 'src/experimental/sandbox/**'
       - 'src/experimental/sandbox-authorization/**'
       - 'src/experimental/sandbox-microsandbox/**'
-      - 'src/github-runner/Dockerfile.coordinator'
-      - 'src/github-runner/coordinator/**'
+      - 'src/ci/github-runner/Dockerfile.coordinator'
+      - 'src/ci/github-runner/coordinator/**'
       - '.github/workflows/github-runner-build.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        working-directory: src/github-runner/coordinator
+        working-directory: src/ci/github-runner/coordinator
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -68,7 +68,7 @@ jobs:
 
       - name: Check Microsandbox version pins
         run: |
-          runtime_version="$(sed -n 's/^ARG MICROSANDBOX_RUNTIME_VERSION=//p' "${GITHUB_WORKSPACE}/src/github-runner/Dockerfile.coordinator")"
+          runtime_version="$(sed -n 's/^ARG MICROSANDBOX_RUNTIME_VERSION=//p' "${GITHUB_WORKSPACE}/src/ci/github-runner/Dockerfile.coordinator")"
           lock_version="$(awk '
             $0 == "name = \"microsandbox\"" { found = 1; next }
             found && /^version = / { gsub(/"/, "", $3); print $3; exit }

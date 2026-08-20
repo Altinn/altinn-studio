@@ -7,11 +7,11 @@ RUN apt-get update \
 WORKDIR /source
 COPY Cargo.toml Cargo.lock ./
 COPY src/experimental src/experimental
-COPY src/github-runner/coordinator src/github-runner/coordinator
+COPY src/ci/github-runner/coordinator src/ci/github-runner/coordinator
 RUN cargo build \
     --locked \
     --release \
-    --manifest-path src/github-runner/coordinator/Cargo.toml \
+    --manifest-path src/ci/github-runner/coordinator/Cargo.toml \
     && strip --strip-unneeded \
       /source/target/release/coordinator \
       /source/target/release/sandbox-image
