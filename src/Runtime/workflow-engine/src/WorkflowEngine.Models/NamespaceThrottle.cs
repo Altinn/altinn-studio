@@ -64,4 +64,8 @@ public sealed record NamespaceThrottle
 /// A canary workflow probing recovery for a throttled namespace: the workflow id and its requeue
 /// count recorded when it was selected as a canary.
 /// </summary>
+/// <param name="WorkflowId">Id of the workflow serving as a canary.</param>
+/// <param name="RequeueCount">The current step's requeue count recorded at selection — the
+/// baseline a later observation is compared against, which is what makes the canary verdict
+/// race-free against the canary being mid-attempt at sweep time.</param>
 public sealed record ThrottleCanary(Guid WorkflowId, int RequeueCount);

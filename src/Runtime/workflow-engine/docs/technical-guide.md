@@ -922,8 +922,10 @@ All via `EngineSettings` (bound from `appsettings.json`):
 
 Per-namespace failure-storm throttling (see the failure-throttling ADR). Ships dark: with
 `Enabled: false` (the default) the sweep does not run and the fetch query variant without the
-`throttled_until` predicate is selected at startup, so the schema is fully inert. The sweep and
-handler behavior land separately; only the schema and configuration exist today.
+`throttled_until` predicate is selected at startup, so the schema is fully inert. What exists
+today is the schema, the configuration, and the fetch gate — an enabled repository already skips
+workflows parked behind a future `throttled_until`, but nothing writes that column yet. The sweep
+(the writer) and the handler cooperation land separately.
 
 | Setting                            | Default | Description                                             |
 | ---------------------------------- | ------- | ------------------------------------------------------- |
