@@ -1,12 +1,13 @@
 [workspace]
 members = [
-  "agent-runtime",
-  "agent-runtime-protocol",
-  "agent",
-  "sandbox-authorization",
-  "sandbox",
-  "sandbox/examples/self-dev",
-  "sandbox-microsandbox",
+  "src/experimental/agent-runtime",
+  "src/experimental/agent-runtime-protocol",
+  "src/experimental/agent",
+  "src/experimental/sandbox-authorization",
+  "src/experimental/sandbox",
+  "src/experimental/sandbox/examples/self-dev",
+  "src/experimental/sandbox-microsandbox",
+  "src/github-runner/coordinator",
 ]
 resolver = "3"
 
@@ -23,6 +24,7 @@ clap = { version = "4.6.6", features = ["derive"] }
 futures-core = "0.3.34"
 futures-util = "0.3.34"
 ignore = "0.4.33"
+jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", default-features = false, features = ["net"] }
 microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", package = "microsandbox-image" }
 microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", package = "microsandbox-network" }
@@ -31,6 +33,9 @@ microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.gi
 # Cargo's output directory; the host runtime is installed automatically on
 # first use into the control-plane home.
 microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", branch = "main-digdir", default-features = false, features = ["prebuilt"] }
+reqwest = { version = "0.13.4", features = ["json"] }
+sandbox = { path = "src/experimental/sandbox" }
+sandbox-microsandbox = { path = "src/experimental/sandbox-microsandbox" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_yaml_ng = "0.10.0"

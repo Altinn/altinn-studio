@@ -8,16 +8,16 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
 
 fmt: ## Format Rust code
-	cargo fmt
+	cargo fmt -p github-runner-coordinator
 
 fmt-check: ## Verify Rust formatting
-	cargo fmt --check
+	cargo fmt -p github-runner-coordinator --check
 
 lint: ## Run strict Clippy analysis
-	cargo clippy --all-targets --all-features --locked
+	cargo clippy -p github-runner-coordinator --all-targets --all-features --locked
 
 test: ## Run all tests
-	cargo test --all-targets --locked
+	cargo test -p github-runner-coordinator --all-targets --locked
 
 deps-check: ## Check for unused direct dependencies
 	cargo machete --with-metadata .

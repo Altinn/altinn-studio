@@ -48,6 +48,7 @@ logs/
 *.nupkg
 
 ## Compiled binaries (Go builds, cross-compiles)
+/target/
 *.exe
 *.dll
 *.so
