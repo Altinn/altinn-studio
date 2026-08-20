@@ -225,14 +225,18 @@ internal sealed class ServiceOwnerPolicyMigrator
         // process end, which the placeholder shortcut below would otherwise skip.
         var (metadataOrg, metadataApp) = await GetOrgAndAppFromApplicationMetadata();
 
-        var usesPlaceholders =
-            HasMatchWithValue(root, OrgAttributeId, ResourceCategory, "[ORG]")
-            || HasMatchWithValue(root, AppAttributeId, ResourceCategory, "[APP]");
-        if (usesPlaceholders)
-            return ("[ORG]", "[APP]");
+        // Resolved per attribute rather than as a pair: a hand-edited policy can carry the org
+        // placeholder next to a substituted app value (or the reverse), and assuming both follow the
+        // same convention would compare a substituted value against a placeholder, fail the resource
+        // match, and insert a rule for grants the policy already makes.
+        var org = HasMatchWithValue(root, OrgAttributeId, ResourceCategory, "[ORG]")
+            ? "[ORG]"
+            : metadataOrg ?? FindFirstMatchValue(root, OrgAttributeId, ResourceCategory) ?? "[ORG]";
 
-        var org = metadataOrg ?? FindFirstMatchValue(root, OrgAttributeId, ResourceCategory) ?? "[ORG]";
-        var app = metadataApp ?? FindFirstMatchValue(root, AppAttributeId, ResourceCategory) ?? "[APP]";
+        var app = HasMatchWithValue(root, AppAttributeId, ResourceCategory, "[APP]")
+            ? "[APP]"
+            : metadataApp ?? FindFirstMatchValue(root, AppAttributeId, ResourceCategory) ?? "[APP]";
+
         return (org, app);
     }
 

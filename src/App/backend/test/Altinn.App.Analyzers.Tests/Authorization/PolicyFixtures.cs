@@ -46,7 +46,9 @@ internal static class PolicyFixtures
         bool condition = false,
         string org = Org,
         string app = App,
-        string matchId = StringEqualIgnoreCase
+        string matchId = StringEqualIgnoreCase,
+        string taskMatchId = StringEqual,
+        string endEventMatchId = StringEqual
     )
     {
         var resource = new StringBuilder();
@@ -54,12 +56,12 @@ internal static class PolicyFixtures
         resource.Append(Match(StringEqual, app, "urn:altinn:app", ResourceCategory));
         if (task is not null)
         {
-            resource.Append(Match(StringEqual, task, "urn:altinn:task", ResourceCategory));
+            resource.Append(Match(taskMatchId, task, "urn:altinn:task", ResourceCategory));
         }
 
         if (endEvent is not null)
         {
-            resource.Append(Match(StringEqual, endEvent, "urn:altinn:end-event", ResourceCategory));
+            resource.Append(Match(endEventMatchId, endEvent, "urn:altinn:end-event", ResourceCategory));
         }
 
         return Rule(

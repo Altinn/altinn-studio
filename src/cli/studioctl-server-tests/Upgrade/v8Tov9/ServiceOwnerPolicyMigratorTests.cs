@@ -164,6 +164,28 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task PolicyMixingAPlaceholderWithASubstitutedValue_IsStillReadCorrectly()
+    {
+        // A hand-edited policy can carry the org placeholder next to a substituted app value.
+        // Resolving the two as a pair would compare 'myapp' against '[APP]', fail the resource match,
+        // and insert a rule for grants this policy plainly already makes.
+        var policy = Policy(
+            Rule(
+                "1",
+                AnyOf(AllOf(SubjectOrg("[ORG]"))),
+                AnyOf(AllOf(ResourceOrg("[ORG]"), ResourceApp("myapp"))),
+                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
+            )
+        );
+
+        var result = await MigrateResult(policy);
+
+        Assert.Empty(result.Warnings);
+        Assert.False(result.ManualActionRequired);
+        Assert.Equal(policy, PolicyAfter());
+    }
+
+    [Fact]
     public async Task TaskScopedGrant_DoesNotCountAsStateIndependentBaseline()
     {
         var policy = Policy(

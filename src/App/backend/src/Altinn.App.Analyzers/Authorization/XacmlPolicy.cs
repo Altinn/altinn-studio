@@ -63,13 +63,32 @@ internal sealed class XacmlPolicy
     /// </summary>
     internal bool HasDenyRules { get; }
 
-    /// <summary>Parses the policy, or returns null when it is not a readable XACML policy document.</summary>
+    /// <summary>
+    /// The XACML 3.0 core schema namespace, which every Studio-generated policy declares. Requiring
+    /// it is what makes the structural reading below sound: the element names this class looks for
+    /// (<c>Rule</c>, <c>AnyOf</c>, <c>AllOf</c>, <c>Match</c>) only carry XACML 3.0 semantics inside
+    /// it. An XACML 2.0 policy, for instance, spells its target out as
+    /// <c>Target/Subjects/Resources/Actions</c> - reading that as 3.0 would find no <c>AnyOf</c> at
+    /// all and conclude that every rule applies to every request.
+    /// </summary>
+    private const string Xacml30Namespace = "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17";
+
+    /// <summary>
+    /// Parses the policy, or returns null when it is not a document this analysis can read as an
+    /// XACML 3.0 policy - which the caller reports as not verifiable rather than as a missing grant.
+    /// </summary>
     internal static XacmlPolicy? TryParse(string xml)
     {
         try
         {
             var document = XDocument.Parse(xml, LoadOptions.SetLineInfo);
-            return document.Root is { } root && root.Name.LocalName == "Policy" ? new XacmlPolicy(root) : null;
+            if (document.Root is not { } root || root.Name.LocalName != "Policy")
+            {
+                return null;
+            }
+
+            // Compared as a namespace, so any prefix (or none) works - only the URI matters.
+            return root.Name.Namespace == Xacml30Namespace ? new XacmlPolicy(root) : null;
         }
         catch (XmlException)
         {
@@ -88,16 +107,18 @@ internal sealed class XacmlPolicy
     /// </summary>
     internal (string Org, string App) ResolveOrgAndApp(string? metadataOrg, string? metadataApp)
     {
-        if (
-            HasMatchWithValue(OrgAttributeId, ResourceCategory, OrgPlaceholder)
-            || HasMatchWithValue(AppAttributeId, ResourceCategory, AppPlaceholder)
-        )
-        {
-            return (OrgPlaceholder, AppPlaceholder);
-        }
+        // Resolved per attribute rather than as a pair: a hand-edited policy can carry the org
+        // placeholder next to a substituted app value (or the reverse), and assuming both follow the
+        // same convention would compare a substituted value against a placeholder, fail the resource
+        // match, and report a grant the policy plainly makes as missing.
+        var org = HasMatchWithValue(OrgAttributeId, ResourceCategory, OrgPlaceholder)
+            ? OrgPlaceholder
+            : metadataOrg ?? FirstMatchValue(OrgAttributeId, ResourceCategory) ?? OrgPlaceholder;
 
-        var org = metadataOrg ?? FirstMatchValue(OrgAttributeId, ResourceCategory) ?? OrgPlaceholder;
-        var app = metadataApp ?? FirstMatchValue(AppAttributeId, ResourceCategory) ?? AppPlaceholder;
+        var app = HasMatchWithValue(AppAttributeId, ResourceCategory, AppPlaceholder)
+            ? AppPlaceholder
+            : metadataApp ?? FirstMatchValue(AppAttributeId, ResourceCategory) ?? AppPlaceholder;
+
         return (org, app);
     }
 
@@ -260,9 +281,7 @@ internal sealed class XacmlPolicy
                 return MatchOutcome.Unknown;
             }
 
-            return MatchValue(match) is { } taskId && taskScope.Contains(taskId)
-                ? MatchOutcome.Satisfied
-                : MatchOutcome.Unsatisfied;
+            return ValueIsOneOf(match, taskScope);
         }
 
         if (category == ResourceCategory && attributeId == EndEventAttributeId)
@@ -280,9 +299,7 @@ internal sealed class XacmlPolicy
                 return MatchOutcome.Unknown;
             }
 
-            return MatchValue(match) is { } endEventId && endEventIds.Contains(endEventId)
-                ? MatchOutcome.Satisfied
-                : MatchOutcome.Unsatisfied;
+            return ValueIsOneOf(match, endEventIds);
         }
 
         // Some resource or environment attribute this analysis does not model. Whether the app's
@@ -296,17 +313,46 @@ internal sealed class XacmlPolicy
     /// </summary>
     private static MatchOutcome ValueMatches(XElement match, string expected)
     {
-        var matchId = match.Attribute("MatchId")?.Value;
-        if (matchId != StringEqual && matchId != StringEqualIgnoreCase)
+        if (!IsModelledEquality(match))
         {
             return MatchOutcome.Unknown;
         }
 
         // Both functions are compared case-insensitively on purpose: the org and app values are
-        // case-insensitive in practice, and the policy templates mix '[ORG]' with '[org]'.
+        // case-insensitive in practice, and the policy templates mix '[ORG]' with '[org]'. Being
+        // lenient here can only ever find a grant that a case-sensitive reading would miss, which is
+        // the direction that does not fail a build wrongly.
         return string.Equals(MatchValue(match), expected, StringComparison.OrdinalIgnoreCase)
             ? MatchOutcome.Satisfied
             : MatchOutcome.Unsatisfied;
+    }
+
+    /// <summary>
+    /// Whether a Match's literal is one of a set of ids - how task and end-event scoping is checked.
+    /// Ids are compared exactly (BPMN ids are case-sensitive), but the declared match function still
+    /// has to be one this analysis models, or the answer is unknown rather than a verdict.
+    /// </summary>
+    private static MatchOutcome ValueIsOneOf(XElement match, HashSet<string> allowedIds)
+    {
+        if (!IsModelledEquality(match))
+        {
+            return MatchOutcome.Unknown;
+        }
+
+        return MatchValue(match) is { } value && allowedIds.Contains(value)
+            ? MatchOutcome.Satisfied
+            : MatchOutcome.Unsatisfied;
+    }
+
+    /// <summary>
+    /// Whether the Match declares one of the two string-equality functions this analysis understands.
+    /// Anything else - a regular expression, a bag function - is not modelled, and a Match using one
+    /// can neither be confirmed nor ruled out.
+    /// </summary>
+    private static bool IsModelledEquality(XElement match)
+    {
+        var matchId = match.Attribute("MatchId")?.Value;
+        return matchId == StringEqual || matchId == StringEqualIgnoreCase;
     }
 
     private IEnumerable<XElement> Rules() => Children(_root, "Rule");

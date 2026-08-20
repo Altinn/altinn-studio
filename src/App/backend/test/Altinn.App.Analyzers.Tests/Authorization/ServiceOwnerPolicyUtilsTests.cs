@@ -235,6 +235,109 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
+    public void A_Policy_Element_Outside_The_Xacml_Namespace_Is_Inconclusive()
+    {
+        // Reading a non-XACML-3.0 document with XACML 3.0 element names is guesswork in both
+        // directions: a document with no rules at all would look like a policy granting nothing,
+        // and an XACML 2.0 policy (whose target is Subjects/Resources/Actions, not AnyOf) would look
+        // like one whose every rule applies to every request.
+        var diagnostics = Collect(
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <Policy xmlns="urn:example:not-xacml">
+              <Rule Effect="Permit" />
+            </Policy>
+            """,
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data"))
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(NotVerifiable, diagnostic.Id);
+    }
+
+    [Fact]
+    public void The_Xacml_Namespace_Is_Recognised_When_Declared_Without_A_Prefix()
+    {
+        // Only the namespace URI matters, not how a document happens to bind it.
+        var policy = PolicyFixtures
+            .Policy(PolicyFixtures.StandardOrgRules)
+            .Replace("xmlns:xacml=", "xmlns=", StringComparison.Ordinal)
+            .Replace("<xacml:", "<", StringComparison.Ordinal)
+            .Replace("</xacml:", "</", StringComparison.Ordinal);
+
+        var diagnostics = Collect(policy, ProcessFixtures.Process(new ProcessTask("Task_1", "data")));
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void An_Org_Placeholder_Beside_A_Substituted_App_Value_Is_Still_Read_Correctly()
+    {
+        // A hand-edited policy can mix the two conventions. Treating them as a pair would compare
+        // 'myapp' against '[APP]', fail the resource match, and report grants the policy plainly
+        // makes as missing.
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"], org: "[ORG]", app: "myapp")),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(id: "ttd/myapp")
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void An_App_Placeholder_Beside_A_Substituted_Org_Value_Is_Still_Read_Correctly()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"], org: "ttd", app: "[APP]")),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(id: "ttd/myapp")
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void A_Task_Scope_Declared_With_An_Unmodelled_Match_Function_Is_Inconclusive()
+    {
+        // A regular-expression task match could well cover Task_2; this analysis cannot tell, so it
+        // must not report the grant as missing.
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.StandardOrgRules,
+                PolicyFixtures.OrgRule(
+                    ["confirm"],
+                    task: "Task_.*",
+                    taskMatchId: "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match"
+                )
+            ),
+            ProcessFixtures.Process(new ProcessTask("Task_2", "confirmation"))
+        );
+
+        Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));
+        Assert.Equal(["confirm"], Actions(diagnostics, NotVerifiable));
+    }
+
+    [Fact]
+    public void An_End_Event_Scope_Declared_With_An_Unmodelled_Match_Function_Is_Inconclusive()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.OrgRule(["read", "write"]),
+                PolicyFixtures.OrgRule(
+                    ["complete"],
+                    endEvent: "EndEvent.*",
+                    endEventMatchId: "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match"
+                )
+            ),
+            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+        );
+
+        Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));
+        Assert.Equal(["complete"], Actions(diagnostics, NotVerifiable));
+    }
+
+    [Fact]
     public void An_Unreadable_Process_Is_Reported_But_The_Baseline_Is_Still_Checked()
     {
         var diagnostics = Collect(PolicyFixtures.Policy(PolicyFixtures.RoleRule("read")), "<bpmn:definitions");
