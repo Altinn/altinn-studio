@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/AI/agents/**'
+      - '.github/workflows/altinity-build-test.yaml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
 
