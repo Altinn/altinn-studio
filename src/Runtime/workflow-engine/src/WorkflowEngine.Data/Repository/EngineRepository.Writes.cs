@@ -372,10 +372,14 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
+        // The pairs repeat, and the repeat is ordinary rather than exotic: three requests sharing one
+        // (namespace, key) leave two intra-batch duplicates classifying against the same stored row.
+        // Distinct() keeps the unnest a set, so the join cannot hand back that row once per repeat.
         var (keys, namespaces) = existingRequestIndices
             .Select(i =>
                 (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
             )
+            .Distinct()
             .ToArray()
             .Unzip();
 
@@ -391,10 +395,13 @@ internal sealed partial class EngineRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var existingLookup = existingEntities.ToDictionary(
-            e => (e.IdempotencyKey, e.Namespace),
-            e => (hash: e.RequestBodyHash, workflowIds: e.WorkflowIds)
-        );
+        // Indexer rather than ToDictionary, and not only as a belt to Distinct's braces: a duplicate
+        // key here throws ArgumentException from inside the flush, which fails every unrelated caller
+        // the write buffer batched into the same transaction. A repeated row carries the same stored
+        // values by construction, so keeping the last one is not a choice between answers.
+        var existingLookup = new Dictionary<(string Key, string Namespace), (byte[] Hash, Guid[] WorkflowIds)>();
+        foreach (var entity in existingEntities)
+            existingLookup[(entity.IdempotencyKey, entity.Namespace)] = (entity.RequestBodyHash, entity.WorkflowIds);
 
         foreach (var i in existingRequestIndices)
         {
@@ -402,8 +409,8 @@ internal sealed partial class EngineRepository
             var compositeKey = (req.Metadata.IdempotencyKey, WorkflowNamespace.Normalize(req.Metadata.Namespace));
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
-                if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
-                    results[i] = BatchEnqueueResult.Duplicate(existing.workflowIds);
+                if (existing.Hash.AsSpan().SequenceEqual(req.RequestBodyHash))
+                    results[i] = BatchEnqueueResult.Duplicate(existing.WorkflowIds);
                 else
                     results[i] = BatchEnqueueResult.Conflicted();
             }
