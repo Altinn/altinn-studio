@@ -6,10 +6,10 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
-import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import type { FormItemConfigs } from '../data/formItemConfig';
+import type { FormItemConfigs, SupportedComponentType } from '../data/formItemConfig';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import * as formItemUtils from './formItemUtils';
@@ -305,14 +305,14 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends ComponentType | CustomComponentType>(
+export const addItemOfType = <T extends SupportedComponentType>(
   layout: IInternalLayout,
   componentType: T,
   id: string,
   parentId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
-  const newItem = generateFormItem(componentType as keyof FormItemConfigs, id);
+  const newItem = generateFormItem(componentType, id);
   return newItem.itemType === 'CONTAINER'
     ? addContainer(layout, newItem, id, parentId, position)
     : addComponent(layout, newItem, parentId, position);
