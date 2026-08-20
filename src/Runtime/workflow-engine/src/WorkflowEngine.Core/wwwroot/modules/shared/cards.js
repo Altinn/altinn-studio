@@ -302,7 +302,7 @@ export const revealCard = (wfId) => revealFirstVisible(`[data-wfkey="${CSS.escap
 const rerenderCards = (wfKey) => {
     const wf = workflowData[wfKey];
     if (!wf) return;
-    for (const el of document.querySelectorAll(`[data-wfkey="${wfKey}"]`)) {
+    for (const el of document.querySelectorAll(`[data-wfkey="${CSS.escape(wfKey)}"]`)) {
         const card = /** @type {HTMLElement} */ (el);
         if (card.closest('#scheduled-workflows')) continue;
         const isStatic = !card.closest('#live-workflows');

@@ -46,6 +46,13 @@ public static class HttpChatterHelpers
     // localhost:{port} — dynamic port numbers from WireMock / test servers
     private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
+    // One entry of a scrubbed JSON map keyed by workflow id, e.g. `        "Guid_2": "Completed",`.
+    // The value pattern is deliberately narrow (a plain string, number, bool or null) so a key whose
+    // value spans lines cannot be mistaken for a single-line entry and reordered.
+    private static readonly Regex ScrubbedGuidEntryPattern = new(
+        @"^(?<indent>[ \t]*)""Guid_(?<n>\d+)"": (?<value>""[^""\\]*""|-?\d+(?:\.\d+)?|true|false|null)(?<comma>,?)(?<cr>\r?)$"
+    );
+
     // W3C traceparent / ProblemDetails traceId: version-traceId-spanId-flags (e.g. "00-{32 hex}-{16 hex}-01").
     // Surfaces in 4xx ProblemDetails responses regardless of whether the traceparent header was scrubbed.
     private static readonly Regex TraceParentPattern = new(
@@ -260,7 +267,70 @@ public static class HttpChatterHelpers
         // 4. Replace dynamic port numbers
         result = LocalhostPortPattern.Replace(result, "localhost:{PORT}");
 
+        // 5. Put JSON objects keyed by workflow id in a fixed order
+        result = SortScrubbedGuidMaps(result);
+
         return result;
+    }
+
+    /// <summary>
+    /// Orders the entries of every JSON object whose keys are all scrubbed GUID tokens.
+    /// <para>
+    /// The dependency graph's <c>dependencies</c>, <c>dependents</c> and <c>links</c> are maps keyed by
+    /// workflow id, and they arrive in whatever order the join produced — so the same exchange writes a
+    /// different file under a different query plan, and the snapshot dirties the working copy on runs
+    /// that changed nothing. Order is not part of what these objects mean, so the recorder fixes it.
+    /// </para>
+    /// <para>
+    /// It has to happen <em>after</em> scrubbing. Sorting the raw ids would be no more stable than the
+    /// join's own order: uuidv7 values minted inside one millisecond differ only in their random bits,
+    /// so their relative order is a coin toss per run. The scrubbed tokens are numbered by first
+    /// appearance in the document, which is the same on every run, so sorting by token number is.
+    /// </para>
+    /// </summary>
+    private static string SortScrubbedGuidMaps(string text)
+    {
+        var lines = text.Split('\n');
+        var output = new List<string>(lines.Length);
+
+        var i = 0;
+        while (i < lines.Length)
+        {
+            if (!ScrubbedGuidEntryPattern.IsMatch(lines[i]))
+            {
+                output.Add(lines[i]);
+                i++;
+                continue;
+            }
+
+            // A run of consecutive sibling entries is one map. Sort the entries by token number but
+            // keep each slot's own punctuation — indentation, trailing comma, trailing CR — so an
+            // object that continues past the run stays syntactically intact.
+            var slots = new List<Match>();
+            while (i < lines.Length && ScrubbedGuidEntryPattern.Match(lines[i]) is { Success: true } match)
+            {
+                slots.Add(match);
+                i++;
+            }
+
+            var entries = slots
+                .Select(slot => (Token: int.Parse(slot.Groups["n"].Value), Value: slot.Groups["value"].Value))
+                .OrderBy(entry => entry.Token)
+                .ToArray();
+
+            for (var slot = 0; slot < slots.Count; slot++)
+            {
+                output.Add(
+                    slots[slot].Groups["indent"].Value
+                        + $"\"Guid_{entries[slot].Token}\": "
+                        + entries[slot].Value
+                        + slots[slot].Groups["comma"].Value
+                        + slots[slot].Groups["cr"].Value
+                );
+            }
+        }
+
+        return string.Join('\n', output);
     }
 
     /// <summary>

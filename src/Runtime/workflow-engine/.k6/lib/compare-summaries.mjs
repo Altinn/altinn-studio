@@ -46,7 +46,7 @@
 // because the two are not the same function of n: the expected range GROWS with the number of
 // repeats (1.69σ at n=3, 2.33σ at n=5, 3.08σ at n=10), so a range-based tolerance gets *coarser*
 // the more evidence you collect — the opposite of what repeating a measurement is for. Converting
-// range to σ via the Shewhart d₂ constant and dividing by √n restores the expected behaviour, and
+// range to σ via the Shewhart d₂ constant and dividing by √n restores the expected behavior, and
 // makes "raise REPEATS" honest advice for the one route where it helps.
 
 import { readFileSync } from 'node:fs';
@@ -180,7 +180,7 @@ const RECORDED_PRICE = {
     receiverRate: 55.0,
     receiverRateTolerance: 0.1,
     // **The machine guard.** A fraction travels across hardware better than milliseconds do, but not
-    // freely: at fixed offered load a faster machine sits at lower utilization, a queueing cost shrinks,
+    // freely: at fixed offered load a faster machine sits at lower utilization, a queuing cost shrinks,
     // and a two-sided gate would then fail as "CHEAPER" on hardware that is simply better. So the
     // reference arm's own p95 mean is recorded as the operating point a price belongs to.
     referenceP95Ms: 2.64,
@@ -317,7 +317,7 @@ function priceInapplicableReason() {
             return (
                 `this session's ${referenceMode} arm sits at ${fmt(mean(referenceP95))} ms p95 against the ` +
                 `${fmt(RECORDED_PRICE.referenceP95Ms)} ms the price was recorded at (${fmt(machineDrift * 100, 0)}% apart) — ` +
-                `different hardware or a different utilization point, where a queueing cost does not carry over`
+                `different hardware or a different utilization point, where a queuing cost does not carry over`
             );
         }
     }
@@ -686,7 +686,7 @@ compareArms('engine active workflows (max)', 'engine.activeMax', {
 // --- The gate's own premise -------------------------------------------------------------------
 // control-vs-storm only isolates the mechanism if both arms actually gave the engine the same amount
 // of extra work. Every storm run reports what its configuration implies, so the premise is checked
-// rather than assumed: an under-provisioned control arm biases the comparison in the storm's favour.
+// rather than assumed: an under-provisioned control arm biases the comparison in the storm's favor.
 {
     const stormArm = [reference, candidate].flat().filter((r) => r.summary.mode === 'storm');
     const controlArm = [reference, candidate].flat().filter((r) => r.summary.mode === 'control');
@@ -1078,7 +1078,7 @@ if (stormRuns.length > 0) {
 // genuine FAIL (spread inside the reproducibility ceiling, difference outside the tolerance) still
 // exits 1 and should be believed.
 //
-// `STRICT_INCONCLUSIVE=1` restores blocking behaviour for anyone who wants "cannot tell" to stop a
+// `STRICT_INCONCLUSIVE=1` restores blocking behavior for anyone who wants "cannot tell" to stop a
 // pipeline. It is opt-in because the default has to be the honest one, not the loudest one.
 const strictInconclusive = process.env.STRICT_INCONCLUSIVE === '1';
 

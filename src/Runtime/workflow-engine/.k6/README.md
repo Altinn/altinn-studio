@@ -209,6 +209,15 @@ listed metric reads:
   that agrees on a size turns the ceiling into a price;
 - **`FAIL`**, flagged `PAST THE CEILING` the way the escalation path is flagged, beyond that.
 
+**What the ceiling costs in absolute terms belongs here and not only in the run output.** It is a
+fraction of the reference arm's own mean, so against the control arm measured below (p95 2.636 ms) it
+is ≈0.28 ms, and the `PAST THE CEILING` line sits at that plus the run's own tolerance — on these
+sessions, around a fifth of the control mean rather than a few percent of it. That is the size of p95
+regression this gate stops short of failing: anything smaller reads `inconclusive`, which is never a
+`pass` but is not a failure either. The comparator prints the exact figures for the run in front of it
+in the same note; this is what they amount to. A recorded price would shrink the band back to the
+tolerance, which is the other reason a third session is worth having.
+
 The ceiling is **necessary rather than convenient**: an unconditional route to `inconclusive` would
 recreate the unfalsifiable-metric hole the escalation rule exists to close. It is also **one-sided**,
 covering only the dearer direction — a candidate arm coming out materially cheaper is a broken premise,
