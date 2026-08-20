@@ -15,12 +15,7 @@ export class WSConnector {
     this.clientsName = clientsName;
   }
 
-  // Singleton per hub set: independent features (sync hub, Altinity hub)
-  // each get one shared connection for their URLs without clobbering each
-  // other. A single global instance would hand the second feature the first
-  // feature's connection. Note that only the URLs key the instance: the first
-  // caller's clientsName wins, so features sharing a hub URL must also share
-  // the same client names (or register handlers directly on the connection).
+  // Keyed by URL only, so the first caller's clientsName wins.
   public static getInstance(webSocketUrls: Array<string>, clientsName: Array<string>): WSConnector {
     const instanceKey = [...webSocketUrls].sort().join(';');
     let instance = WSConnector.instances.get(instanceKey);
@@ -31,11 +26,19 @@ export class WSConnector {
     return instance;
   }
 
-  public onMessageReceived<T>(callback: (message: T) => void): void {
+  // Callers must unsubscribe, or handlers stack on the shared connection.
+  public onMessageReceived<T>(callback: (message: T) => void): () => void {
+    const handler = (message: T) => callback(message);
+    this.forEachClientConnection((clientName, connection) => connection.on(clientName, handler));
+    return () =>
+      this.forEachClientConnection((clientName, connection) => connection.off(clientName, handler));
+  }
+
+  private forEachClientConnection(
+    action: (clientName: string, connection: HubConnection) => void,
+  ): void {
     this.clientsName.forEach((clientName) => {
-      this.connections.forEach((connection) => {
-        connection.on(clientName, (message: T) => callback(message));
-      });
+      this.connections.forEach((connection) => action(clientName, connection));
     });
   }
 

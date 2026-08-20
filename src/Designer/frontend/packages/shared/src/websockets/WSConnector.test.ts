@@ -1,21 +1,33 @@
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/WSConnectorMissingWebSocketUrlsException';
 
-jest.mock('@microsoft/signalr', () => ({
-  ...jest.requireActual('@microsoft/signalr'),
-  HubConnection: jest.fn().mockReturnValue({
+jest.mock('@microsoft/signalr', () => {
+  const connection = {
     start: jest.fn().mockResolvedValue('started'),
-  }),
-  HubConnectionBuilder: jest.fn(() => ({
-    withUrl: jest.fn().mockReturnThis(),
-    withAutomaticReconnect: jest.fn().mockReturnThis(),
-    build: jest.fn().mockReturnValue({
-      start: jest.fn().mockResolvedValue('started'),
-    }),
-  })),
-}));
+    on: jest.fn(),
+    off: jest.fn(),
+  };
+  return {
+    ...jest.requireActual('@microsoft/signalr'),
+    __mockConnection: connection,
+    HubConnection: jest.fn().mockReturnValue(connection),
+    HubConnectionBuilder: jest.fn(() => ({
+      withUrl: jest.fn().mockReturnThis(),
+      withAutomaticReconnect: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue(connection),
+    })),
+  };
+});
+
+const { __mockConnection: mockConnection } = jest.requireMock('@microsoft/signalr');
+const clientOne = 'MessageClientOne';
+const clientTwo = 'MessageClientTwo';
 
 describe('WSConnector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should create an instance of WSConnector using singleton pattern', () => {
     const webSocketUrls: Array<string> = [
       'ws://jest-test-mocked-url.com',
@@ -61,5 +73,37 @@ describe('WSConnector', () => {
         'No WebSocket URLs provided. WebSocket urls needed to connect to the WS Server',
       ),
     );
+  });
+
+  it('should register the handler for every client name', () => {
+    const connector = new WSConnector(['ws://jest-test-subscribe.com'], [clientOne, clientTwo]);
+
+    connector.onMessageReceived(jest.fn());
+
+    expect(mockConnection.on).toHaveBeenCalledWith(clientOne, expect.any(Function));
+    expect(mockConnection.on).toHaveBeenCalledWith(clientTwo, expect.any(Function));
+  });
+
+  it('should remove exactly the registered handler when unsubscribing', () => {
+    const connector = new WSConnector(['ws://jest-test-unsubscribe.com'], [clientOne]);
+
+    const unsubscribe = connector.onMessageReceived(jest.fn());
+    const registeredHandler = mockConnection.on.mock.calls[0][1];
+    expect(mockConnection.off).not.toHaveBeenCalled();
+
+    unsubscribe();
+
+    expect(mockConnection.off).toHaveBeenCalledWith(clientOne, registeredHandler);
+  });
+
+  it('should not leave the previous handler attached when re-subscribing', () => {
+    const connector = new WSConnector(['ws://jest-test-resubscribe.com'], [clientOne]);
+
+    const unsubscribeFirst = connector.onMessageReceived(jest.fn());
+    unsubscribeFirst();
+    connector.onMessageReceived(jest.fn());
+
+    expect(mockConnection.on).toHaveBeenCalledTimes(2);
+    expect(mockConnection.off).toHaveBeenCalledTimes(1);
   });
 });

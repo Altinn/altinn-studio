@@ -29,10 +29,7 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
 
   useEffect(() => {
-    // One shared connection per browser tab (WSConnector.getInstance is keyed
-    // by hub URL). Creating a connection per mount leaked the previous one on
-    // every remount and, with a live handler still attached (e.g. during HMR),
-    // delivered every agent event twice — duplicate assistant bubbles.
+    // One shared connection per browser tab (WSConnector.getInstance is keyed by hub URL).
     const wsInstance = WSConnector.getInstance(
       [altinityWebSocketHub()],
       [AltinityClientsName.ReceiveAgentMessage],

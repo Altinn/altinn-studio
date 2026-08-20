@@ -346,7 +346,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     )
     {
         var enrichedRequest = EnrichRequestWithRepoUrl(request);
-        var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
+        using var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
         var response = await SendRequestToAltinityAsync(httpRequest);
 
         return response;
@@ -429,7 +429,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             granted
         );
 
-        var httpRequest = new HttpRequestMessage(
+        using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,
             $"{_altinitySettings.AgentUrl}/api/agent/permission/{sessionId}"
         )
@@ -457,7 +457,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         // The agents service rejects cancellation without the caller's identity —
         // it verifies the caller owns the session.
-        var httpRequest = new HttpRequestMessage(
+        using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,
             $"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}"
         );
@@ -472,7 +472,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     {
         var httpClient = _httpClientFactory.CreateClient();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_altinitySettings.TimeoutSeconds));
-        var response = await httpClient.SendAsync(httpRequest, cts.Token);
+        using var response = await httpClient.SendAsync(httpRequest, cts.Token);
         string responseContent = await response.Content.ReadAsStringAsync(cts.Token);
 
         if (!response.IsSuccessStatusCode)
