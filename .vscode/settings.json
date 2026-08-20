@@ -10,6 +10,7 @@
     "https://altinncdn.no/": true
   },
   "rust-analyzer.linkedProjects": [
-    "./src/experimental/Cargo.toml"
+    "./src/experimental/Cargo.toml",
+    "./src/github-runner/coordinator/Cargo.toml"
   ]
 }

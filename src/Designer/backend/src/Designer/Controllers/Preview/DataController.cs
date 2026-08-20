@@ -5,6 +5,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Preview;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
@@ -24,7 +25,8 @@ namespace Altinn.Studio.Designer.Controllers.Preview;
 public class DataController(
     IInstanceService instanceService,
     IDataService dataService,
-    IAltinnGitRepositoryFactory altinnGitRepositoryFactory
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    IAppVersionService appVersionService
 ) : Controller
 {
     // <summary>
@@ -40,7 +42,9 @@ public class DataController(
             app,
             developer
         );
-        if (!altinnAppGitRepository.AppUsesLayoutSets())
+        // v9 apps never have layout-sets.json; they must never be routed to the v3 (Old*) controllers.
+        bool isV9App = appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org!, app!, developer));
+        if (!isV9App && !altinnAppGitRepository.AppUsesLayoutSets())
         {
             RouteValueDictionary routeData = context.RouteData.Values;
             foreach (var queryParam in context.HttpContext.Request.Query)

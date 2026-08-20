@@ -11,6 +11,8 @@ const packagesToTransform = [
   'diagram-js',
   'didi',
   'dnd-core',
+  'domhandler',
+  'domelementtype',
   'domify',
   'htm',
   'ids',

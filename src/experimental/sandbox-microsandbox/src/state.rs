@@ -316,7 +316,7 @@ mod tests {
                 dockerfile: PathBuf::from("Dockerfile"),
             },
             platform: Platform::new("linux", "amd64"),
-            digest: "sha256:1234".to_string(),
+            manifest_digest: "sha256:1234".to_string(),
         }
     }
 
