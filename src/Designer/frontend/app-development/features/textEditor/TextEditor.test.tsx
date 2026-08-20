@@ -67,7 +67,28 @@ describe('TextEditor', () => {
     });
     await user.type(searchInput, search);
 
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ search });
+    await waitFor(() =>
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ search }, { replace: true }),
+    );
+  });
+
+  it('updates the search field immediately, but the search query only once per typing burst', async () => {
+    const user = userEvent.setup();
+
+    renderTextEditorWithData();
+
+    const search = 'abcd';
+    const searchInput = screen.getByRole('searchbox', {
+      name: textMock('text_editor.search_for_text'),
+    });
+    await user.type(searchInput, search);
+
+    expect(searchInput).toHaveValue(search);
+
+    await waitFor(() =>
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ search }, { replace: true }),
+    );
+    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
   });
 
   it('adds new text resource when clicking add button', async () => {
