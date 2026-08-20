@@ -53,6 +53,27 @@ dotnet csharpier check .
 dotnet minver
 ```
 
+**Line endings are CRLF here, and that is load-bearing:**
+
+`.gitattributes` declares `/src/App/backend/**/*.cs text eol=crlf` and `.editorconfig` sets
+`end_of_line = crlf` to match. The two are a pair, and the second is not a style preference —
+**CSharpier rewrites every source file to the `.editorconfig` setting as part of the build**, so that
+setting, not the checkout, decides the line endings the compiler sees. Two things follow.
+
+- **The source generator's output depends on it.** A raw string literal carries its **source file's**
+  line endings, and `SourceTextGenerator` and its siblings also emit **39 hardcoded `\r\n`**
+  sequences. With the CRLF setting the two agree and the generated text is uniform. Flip
+  `.editorconfig` to `lf` and CSharpier rewrites the sources to LF at build time, so the literals
+  become LF while the 39 hardcoded sequences stay CRLF — the output goes mixed, and CSharpier's own
+  formatting of it no longer matches. That breaks `Altinn.App.SourceGenerator.Tests` (3 tests, one of
+  them only visible on a build server — see below) and makes `dotnet csharpier check .` report 1494
+  of 1505 files unformatted against a CRLF checkout. So an LF setting is not a one-line change:
+  **the 39 sites have to move with it.**
+- **`AutoVerify(includeBuildServer: false)` hides one of these locally.** A Verify snapshot that
+  disagrees is silently rewritten on a developer machine and the test reports green; CI fails it.
+  Set `TF_BUILD=true` (or another build-server variable) when you want the CI verdict locally —
+  `Altinn.App.SourceGenerator.Tests.DiagnosticTests.RunJsonError` is the one that only appears then.
+
 ## Architecture Overview
 
 The solution follows a **layered architecture** with feature-based organization:
