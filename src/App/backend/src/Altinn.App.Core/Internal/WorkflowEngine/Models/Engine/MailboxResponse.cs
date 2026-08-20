@@ -19,15 +19,11 @@ internal sealed record MailboxResponse
     [JsonPropertyName("namespace")]
     public required string Namespace { get; init; }
 
-    /// <summary>
-    /// The caller's key for the mint that created this mailbox, unique within the namespace.
-    /// </summary>
+    /// <summary>The caller's key for the mint that created this mailbox, unique within the namespace.</summary>
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
 
-    /// <summary>
-    /// The workflow-collection key the mailbox is grouped under, when one was supplied.
-    /// </summary>
+    /// <summary>The workflow-collection key the mailbox is grouped under, when one was supplied.</summary>
     [JsonPropertyName("collectionKey")]
     public string? CollectionKey { get; init; }
 
@@ -72,10 +68,9 @@ internal sealed record MailboxResponse
     public required long NextSeq { get; init; }
 
     /// <summary>
-    /// The number of accepted deliveries no receiver was ever enqueued for, as the engine computed
-    /// and sent it. Carried through rather than recomputed from the counters here: duplicating the
-    /// engine's arithmetic is the one drift the wire-contract guard cannot catch, since the guard
-    /// only checks that a field of this name and shape exists.
+    /// The number of accepted deliveries no receiver was ever enqueued for, as the engine computed and sent it.
+    /// Carried through rather than recomputed from the counters here: duplicating the engine's arithmetic is the
+    /// one drift the wire-contract guard cannot catch.
     /// </summary>
     [JsonPropertyName("unconsumedDeliveries")]
     public long UnconsumedDeliveries { get; init; }

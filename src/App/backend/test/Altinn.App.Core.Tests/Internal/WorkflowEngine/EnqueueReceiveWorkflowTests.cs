@@ -12,9 +12,9 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 /// <summary>
-/// The Main workflow's last step for a service task that opens a mailbox: what it enqueues, what it
-/// keys the enqueue on, and — the property the whole ordering convention rests on — that Main cannot
-/// complete without it having succeeded.
+/// The Main workflow's last step for a service task that opens a mailbox: what it enqueues, what it keys the
+/// enqueue on, and — the property the whole ordering convention rests on — that Main cannot complete without it
+/// having succeeded.
 /// </summary>
 public class EnqueueReceiveWorkflowTests
 {
@@ -80,8 +80,8 @@ public class EnqueueReceiveWorkflowTests
         };
 
     /// <summary>
-    /// A carry as the callback controller would have restored it: the mailbox id the declaring stage
-    /// recorded when it minted, having ridden the state blob through every step in between.
+    /// A carry as the callback controller would have restored it: the mailbox id the declaring stage recorded when
+    /// it minted, having ridden the state blob through every step in between.
     /// </summary>
     private static WorkflowCallbackStateCarry CreateCarry(Guid? mailboxId)
     {
@@ -147,11 +147,10 @@ public class EnqueueReceiveWorkflowTests
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Equal("ttd/test-app", captured.Namespace);
-        // Every engine call made from inside a callback is keyed off the executing step, so a crashed
-        // attempt's replay deduplicates instead of parking a second receiver at a second position.
+        // Every engine call made from inside a callback is keyed off the executing step, so a crashed attempt's
+        // replay deduplicates instead of parking a second receiver at a second position.
         Assert.Equal($"{_stepId}:mailbox-receive", captured.IdempotencyKey);
-        // The instance's collection — the same one the transition's workflows live in, which is what
-        // puts the receiver in the frontier everything else reads.
+        // The instance's collection — the same one the transition's workflows live in.
         Assert.Equal(_instanceId.InstanceGuid.ToString(), captured.CollectionKey);
 
         Assert.NotNull(captured.Request);
@@ -159,8 +158,7 @@ public class EnqueueReceiveWorkflowTests
         Assert.Equal(_mailboxId, receiver.Mailbox?.Id);
         Assert.True(receiver.IsHead);
         Assert.False(receiver.DependsOnHeads);
-        // The receiver starts on this step's own state blob — which already carries the mailbox id, so
-        // the handler that runs on the receiver can address the mailbox it is answering on.
+        // The receiver starts on this step's own state blob, which already carries the mailbox id.
         Assert.Equal(SignedTestState, receiver.State);
         // A receiver is Held until its message arrives, so it must carry no schedule of its own.
         Assert.Null(receiver.StartAt);
@@ -169,13 +167,10 @@ public class EnqueueReceiveWorkflowTests
     [Fact]
     public async Task Execute_MintsTheReceiversCallbackTokenAtItsOwnEnqueue()
     {
-        // The receiver's context is built here, with a token minted here, rather than the Main
-        // workflow's being reused. What that buys is per-hop freshness for the relay — each hop is
-        // enqueued from inside the previous hop's callback and draws from whatever app code is current
-        // then. It does *not* extend receiver 1's life: GenerateToken sets Expires to the signing
-        // code's own expiry, so a mint seconds after the transition's enqueue picks the same code, and
-        // the state blob the receiver starts on is signed by that code too. Both die together, which
-        // bounds receiver 1 at the signing code's expiry rather than at the mailbox's deadline.
+        // The receiver's context is built here, with a token minted here, rather than the Main workflow's being
+        // reused. What that buys is per-hop freshness for the relay. It does *not* extend receiver 1's life: the
+        // token expires with its signing code, and the state blob the receiver starts on is signed by that code
+        // too, so both die together at the signing code's expiry rather than at the mailbox's deadline.
         (Mock<IWorkflowEngineClient> client, Captured captured) = CreateClient();
         var tokens = new CountingTokenGenerator();
         var command = new EnqueueReceiveWorkflow(client.Object, tokens);
@@ -197,9 +192,8 @@ public class EnqueueReceiveWorkflowTests
     [Fact]
     public async Task Execute_WhenTheEnqueueFails_FailsTheStepRetryably()
     {
-        // The frontier property, at the only place it can be enforced: Main must not complete having
-        // published a reply address with nothing listening on it. The step stays unfinished — and Main
-        // therefore unsettled — until the receiver exists.
+        // The frontier property, at the only place it can be enforced: Main must not complete having published a
+        // reply address with nothing listening on it. The step stays unfinished until the receiver exists.
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
             .Setup(c =>
@@ -226,8 +220,8 @@ public class EnqueueReceiveWorkflowTests
     [Fact]
     public async Task Execute_WithoutACarriedMailbox_FailsPermanently()
     {
-        // The mint's key is the declaring stage's step id, which nothing here can re-derive, so a blob
-        // that arrives without the id cannot be repaired by retrying.
+        // The mint's key is the declaring stage's step id, which nothing here can re-derive, so a blob that
+        // arrives without the id cannot be repaired by retrying.
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
 
@@ -255,8 +249,7 @@ public class EnqueueReceiveWorkflowTests
     [Fact]
     public async Task Execute_WithoutAStepId_FailsPermanently()
     {
-        // An empty key is a constant: every mailbox exchange in the namespace would collapse onto one
-        // enqueue, so the first receiver ever enqueued would be the only one.
+        // An empty key is a constant: every mailbox exchange in the namespace would collapse onto one enqueue.
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
 

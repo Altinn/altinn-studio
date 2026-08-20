@@ -176,12 +176,9 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_PreservesWorkflows_ReferencedByAHeldReceiver()
     {
-        // Held is in the Incomplete set, which is what the hold-back reads, so a mailbox receiver parked
-        // indefinitely keeps the workflows it points at alive for as long as it waits — through a
-        // dependency edge and through a link edge alike. That is the property the design leans on when
-        // it says receive workflows need no synthetic edges: they are ordinary rows protected by
-        // ordinary rules. Had Held landed outside Incomplete, a long-running exchange would quietly lose
-        // the rows its receiver still refers to.
+        // Held is in the Incomplete set the hold-back reads, so a parked mailbox receiver keeps the workflows it
+        // points at alive through dependency and link edges alike. That is what the design leans on when it
+        // says receive workflows need no synthetic edges.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -244,12 +241,9 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_WithAZeroBatchSize_EndsTheSweepInsteadOfSpinningForever()
     {
-        // A zero batch selects nothing, so every pass comes back short and a loop bounded by "came
-        // back short" never ends. That is not hypothetical: EngineSettings.Retention defaults to a
-        // RetentionSettings whose BatchSize is zero, so any settings object built without a Retention
-        // block carries it — PostgresFixture builds exactly that, and it hung a test run for ten
-        // minutes. ValidateEngineSettings keeps production out of that state, which is a different
-        // guarantee from the loop terminating.
+        // A zero batch selects nothing, so every pass comes back short and a loop bounded by "came back short"
+        // never ends. Not hypothetical: EngineSettings.Retention defaults to a RetentionSettings whose
+        // BatchSize is zero, which is what PostgresFixture builds.
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(10));
         var ct = cts.Token;
@@ -272,8 +266,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Fail("PurgeExpiredWorkflows was still running ten seconds in at BatchSize == 0.");
         }
 
-        // And it purged nothing, because a zero batch selects nothing — which is why the loop has to
-        // end on an empty pass rather than on a short one.
+        // And it purged nothing, which is why the loop has to end on an empty pass rather than a short one.
         await using var ctx = fixture.CreateDbContext();
         Assert.Equal(1, await ctx.Workflows.CountAsync(TestContext.Current.CancellationToken));
     }

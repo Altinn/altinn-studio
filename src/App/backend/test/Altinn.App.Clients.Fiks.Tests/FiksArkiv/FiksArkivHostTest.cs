@@ -432,9 +432,8 @@ public class FiksArkivHostTest
         string messageType
     )
     {
-        // The subscriber classifies nothing: an error, an acknowledgement and the receipt are all
-        // forwarded the same way, because what a message means is the waiting task's business and the
-        // subscriber has no process state to decide it against.
+        // The subscriber classifies nothing: an error, an acknowledgement and the receipt are all forwarded the
+        // same way, because what a message means is the waiting task's business.
         var fiksIOClientMock = new Mock<IFiksIOClient>();
         var forwarder = RecordingForwarder(out var forwarded);
         var messageId = Guid.NewGuid();
@@ -581,9 +580,8 @@ public class FiksArkivHostTest
     [InlineData("Unknown", true)]
     public async Task MessageReceivedHandler_HandlesErrorIfThrown(string environment, bool shouldAck)
     {
-        // Nothing registered the forwarder, so resolving it throws something that is not a forwarding
-        // verdict — the unrecoverable class. It happens after the message has been read and logged,
-        // which is what makes both log assertions below meaningful.
+        // Nothing registered the forwarder, so resolving it throws something that is not a forwarding verdict —
+        // the unrecoverable class. It happens after the message has been read and logged.
         var loggerMock = new Mock<ILogger<FiksArkivHost>>();
         var svarSenderMock = new Mock<ISvarSender>();
         FiksIOReceivedMessage message = ReceivedMessage(

@@ -14,17 +14,10 @@ using WorkflowEngine.Telemetry;
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
-/// Covers the rendezvous itself: the two — and only two — things that release a parked receiver, the
-/// transaction each of them shares with its cause, and every row of the design's races table that is
-/// decided in the database rather than in a live engine.
+/// Covers the rendezvous itself: the two things that release a parked receiver, and the transaction each of
+/// them shares with its cause. A held receiver has no timer, so the atomicity claims are proved by transaction
+/// id — a test that merely observes the pair stays green on a split transaction.
 /// </summary>
-/// <remarks>
-/// A held receiver has no timer of its own. That is the design's central bet, and it is only payable
-/// because a release cannot be lost: the wake is inside the delivery's transaction, the closure release
-/// is inside the close's, and the mailbox row lock leaves no interleaving in which a message is durable
-/// and its wake is not. Tests that observe the pair from outside cannot establish that — they stay green
-/// on a split transaction — so the atomicity claims here are proved by transaction id.
-/// </remarks>
 [Collection(PostgresCollection.Name)]
 public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLifetime
 {
@@ -39,9 +32,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Delivery_AtAParkedReceiversPosition_ReleasesItInTheSameCall()
     {
-        // The rendezvous, in its simplest shape. The receiver was born held because nothing sat at its
-        // position; the delivery that lands there is what makes it runnable, and the same call that
-        // accepted the message reports having done so.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -54,9 +44,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         Assert.True(accepted.ReleasedReceiver);
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(receiver));
 
-        // Released to the front of the fetch order, exactly as v2 released a held link: a null backoff
-        // sorts first under `backoff_until NULLS FIRST`, so the receiver runs on the next cycle rather
-        // than behind whatever timers happen to be pending.
+        // A null backoff sorts first under `backoff_until NULLS FIRST`, so the receiver runs on the next cycle.
         var row = await WorkflowRow(receiver);
         Assert.Null(row.BackoffUntil);
 
@@ -68,9 +56,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Delivery_AtAPositionNobodyIsWaitingAt_ReleasesNothing()
     {
-        // The other half of the pair step 2 pinned as a gap: acceptance is still not consumption. A
-        // message that arrives before its receiver simply sits at its position, and the enqueue's own
-        // `seq < next_idx` comparison under the same lock is what finds it.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -85,9 +70,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Delivery_ReleasesOnlyTheReceiverStandingAtItsOwnPosition()
     {
-        // FIFO is the two gapless counters and nothing else — no dependency edges, no ordering column.
-        // The delivery at position 0 therefore belongs to the receiver at seq 0 and to no other, and the
-        // receiver at seq 1 stays parked with a message already in the mailbox.
+        // FIFO is the two gapless counters and nothing else: position 0's delivery belongs to seq 0 alone.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var first = await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -100,8 +83,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         Assert.NotNull((await Registration(first)).ReleasedAt);
         Assert.Null((await Registration(second)).ReleasedAt);
 
-        // And the second message reaches the second receiver, in order, without either of them knowing
-        // the other exists.
         await Deliver(repository, mailbox.Id, "msg-2");
 
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(second));
@@ -110,16 +91,9 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Delivery_AndTheWakeItPerforms_ShareOneTransactionId()
     {
-        // The step's central claim, and the one that cannot be established by observation. Polling the
-        // delivery row and the workflow row from outside would stay green if the wake were moved into a
-        // second transaction after the insert — two reads have essentially no chance of landing inside
-        // that window — and yet that split is exactly the bug worth catching: a held receiver has no
-        // timer, so a message that is durable while its wake is lost parks the receiver until the
-        // mailbox's deadline with its answer sitting one row away.
-        //
-        // PostgreSQL records the transaction that last wrote each row in xmin. Equal xmin across the
-        // delivery, the woken workflow and the registration's release stamp therefore *is* the proof, and it
-        // goes red the moment any of the three leaves the delivery's transaction.
+        // PostgreSQL records the transaction that last wrote each row in xmin, so equal xmin across the delivery,
+        // the woken workflow and the release stamp is the proof. Observation cannot establish it: two reads have
+        // essentially no chance of landing inside the window a split transaction would open.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -137,11 +111,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Delivery_Replayed_ReleasesNothingASecondTime()
     {
-        // Races table: a duplicate idempotency key replays the original position. It must not replay the
-        // wake with it — the receiver it woke may already be running, or done, and a second release
-        // would either resurrect a settled workflow or overwrite the instant the first release recorded.
-        // The replay refuses before it reaches the append, so neither can happen; this pins that the
-        // guards, not the ordering, are what make it true.
+        // A second release would resurrect a settled receiver or overwrite the first release's instant. The replay
+        // refuses before the append, so this pins that the guards, not the ordering, are what make it true.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -158,10 +129,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Delivery_ConcurrentDeliveries_EachReleaseTheReceiverAtTheirOwnPosition()
     {
-        // Races table: two deliveries ingested concurrently. Step 2 pinned that the positions stay
-        // gapless; the wake adds a second thing that must not be scrambled by the interleaving, since
-        // each delivery is now responsible for exactly one receiver. Every receiver ends up released
-        // exactly once, and no position is released twice.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receivers = new List<Guid>();
@@ -190,11 +157,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_ReleasesEveryParkedReceiver()
     {
-        // Closure is the design's other exit, and it releases *every* parked receiver rather than the
-        // next one:
-        // the mailbox can accept no further deliveries, so every parked receiver's truth is frozen at the
-        // same instant and each of them has to run the no-delivery path. Leaving any behind would leave a
-        // receiver nothing could ever release.
+        // Every parked receiver, not the next one: a closed mailbox accepts nothing further, so all their truths
+        // were frozen at the same instant.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receivers = new List<Guid>();
@@ -209,7 +173,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         {
             Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(receiver));
 
-            // Stamped with the close's own instant, so the registry row says which closure released it.
             Assert.Equal(closed.Mailbox.DisposedAt, (await Registration(receiver)).ReleasedAt);
         }
     }
@@ -217,10 +180,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_AndTheReceiversItReleases_ShareOneTransactionId()
     {
-        // The closure release carries the same atomicity requirement as the wake and for the same
-        // reason: a mailbox that is durably closed while a receiver stays held is a receiver nothing can
-        // ever release — the close is idempotent, so no retry would revisit it. Proved by transaction id
-        // rather than observed, for the reason the wake's twin explains.
+        // Proved by transaction id for the reason the wake's twin explains: a mailbox durably closed while a
+        // receiver stays held is a receiver nothing can ever release, and the close is idempotent.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -238,11 +199,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_ReportsTheDeliveriesNoReceiverWasEverEnqueuedFor()
     {
-        // The one leftover class the design handles rather than assumes away: messages accepted at
-        // positions no receiver ever claimed — they arrived while the app was concluding, or past the
-        // relay's last hop. The close reports them so an operator can see what turned up too late, and
-        // the number is checked here against the rows themselves rather than trusted from the arithmetic
-        // that derives it.
+        // Checked against the rows themselves rather than trusted from the arithmetic that derives it.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -263,9 +220,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_WithMoreReceiversThanDeliveries_ReportsNoneUnconsumed()
     {
-        // The other side of the same arithmetic, and the reason it is a `max(0, …)`: receivers that
-        // outnumber deliveries mean messages that never came, not messages nobody read. Every one of
-        // those receivers is released here and concludes on the no-delivery path.
+        // The reason it is a max(0, …): receivers outnumbering deliveries mean messages that never came.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -292,10 +247,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_LeavesAReceiverItsOwnDeliveryAlreadyWoke()
     {
-        // Races table: closure versus a receiver that is no longer parked. Its truth was frozen when the
-        // wake released it, so the close must neither re-release it nor restamp the instant that says
-        // *why* it became runnable — the difference between "your message arrived" and "no message ever
-        // will" is the whole content of the callback the app is about to get.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var woken = await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -313,14 +264,9 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_LeavesAReleasedReceiverThatIsAlreadyRunning()
     {
-        // Races table: closure versus an in-flight (Processing) receiver. A close that reset it to
-        // Enqueued would hand a second worker a workflow another is already executing.
-        //
-        // What actually keeps it out of the release here is the *release stamp*: the wake wrote
-        // released_at when it made this receiver runnable, and the closure release only walks registrations
-        // that carry none. The status guard is a second, independent reason and is pinned separately
-        // below — dropping either one alone leaves this test green, which is precisely why the claim
-        // that "the status guard makes this safe" would have been wrong.
+        // What keeps it out of the release is the release stamp, not the status guard: the closure release only
+        // walks registrations carrying none. The status guard is a second, independent reason, pinned separately
+        // below — dropping either alone leaves this test green.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var running = await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -341,15 +287,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_LeavesARunningReceiverAloneEvenWithNoReleaseStampToExcludeIt()
     {
-        // The status guard on its own, with the release stamp deliberately taken away so that nothing
-        // else can be doing the work. The state below is one a correct engine cannot reach — a receiver
-        // is only Processing because a release made it runnable, and that release stamped the
-        // registration —
-        // so it is constructed rather than arrived at, exactly so that one guard stands alone.
-        //
-        // What it defends is worth the artificial setup: the release writes to engine.workflows through
-        // a join, and `status = Held` is the only thing in that statement that knows the difference
-        // between a workflow parked and a workflow being executed by a worker holding its lease.
+        // The status guard on its own, with the release stamp taken away so nothing else can do the work. The
+        // state below is one a correct engine cannot reach, so it is constructed rather than arrived at.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var running = await EnqueueReceiver(repository, mailbox.Id);
@@ -369,10 +308,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_Repeated_ReleasesNothingAndKeepsTheOriginalDisposal()
     {
-        // Races table: a DELETE racing the deadline sweep. Both run this same routine under this same
-        // lock, so the second one finds a disposed mailbox and does nothing at all — it neither
-        // overwrites the reason and instant the first recorded, nor re-releases receivers the first
-        // released, which by then may be running or settled.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -391,9 +326,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_ConcurrentClosesWithDifferentReasons_ReleaseEachReceiverExactlyOnce()
     {
-        // The same idempotence under real contention rather than in sequence, and with the two reasons
-        // that will race in production once the sweep exists. Whoever wins the mailbox row lock does the
-        // whole routine; the losers find it disposed and add nothing.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         for (int i = 0; i < 4; i++)
@@ -425,12 +357,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_BlockedBehindAnInFlightDelivery_SeesTheReceiverThatDeliveryWoke()
     {
-        // Races table, delivery versus closure — the interleaving step 2 could not pin, because closure
-        // had no release half to observe. Delivery-first: the message is accepted and its receiver woken,
-        // and the close that was waiting behind it finds one fewer receiver to release. The alternative
-        // the lock rules out is the dangerous one — a close that read the mailbox before the delivery
-        // committed would release the receiver as "no message will ever come" while its message was
-        // already durable at its position.
+        // Delivery-first. The order the lock rules out is the dangerous one: a close that read the mailbox before
+        // the delivery committed would release the receiver as "no message will ever come".
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var woken = await EnqueueReceiver(repository, mailbox.Id, "r0");
@@ -440,8 +368,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         await blocker.OpenAsync(TestContext.Current.CancellationToken);
         await using var deliveryTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
 
-        // Stands in for the delivery's own transaction, mid-flight: mailbox row locked, message appended
-        // at position 0, receiver released — the exact state DeliverToMailbox holds just before it commits.
+        // The exact state DeliverToMailbox holds just before it commits.
         await ExecuteInFlightDelivery(blocker, deliveryTx, mailbox.Id, woken);
 
         var close = Close(repository, mailbox.Id);
@@ -461,11 +388,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_BlockedBehindAnInFlightReceiverEnqueue_ReleasesTheRegistrationItLeftBehind()
     {
-        // Races table, closure versus a receiver being born — the interleaving step 3 left to this step,
-        // where closure gained something to do about it. Enqueue-first: the receiver parks, and the close
-        // waiting behind it releases the registration the enqueue had just made. Neither order can strand
-        // it, which is what lets the app enqueue a successor without checking whether the mailbox is
-        // still open.
+        // Enqueue-first. Neither order can strand the receiver, which is what lets the app enqueue a successor
+        // without checking whether the mailbox is still open.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -490,16 +414,9 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Wake_HoldsTheMailboxRowWhileItWaitsForTheReceiversWorkflowRow()
     {
-        // The compound lock order, asserted rather than described. The design's one compound acquisition
-        // is mailbox row → workflow row, and the whole "acyclic by inspection" argument rests on nothing
-        // ever taking them the other way round: an inspection is only as good as the direction actually
-        // being what it says.
-        //
-        // So: hold the receiver's *workflow* row, then start a delivery that must wake it. If the order
-        // is mailbox-then-workflow, the delivery is now stuck on the workflow row while still holding the
-        // mailbox row — which a third session can detect, because its own NOWAIT attempt on the mailbox
-        // row fails instead of succeeding. An implementation that took the workflow row first, or that
-        // released the mailbox row before waking, would let that attempt through.
+        // The compound lock order, asserted rather than described: hold the receiver's workflow row, then start a
+        // delivery that must wake it. If the order is mailbox-then-workflow the delivery is stuck on the workflow
+        // row while still holding the mailbox row, which a third session's NOWAIT attempt detects.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -554,11 +471,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task ReceiverReleasedByClosure_CanNeverBeGivenADeliveryAfterwards()
     {
-        // Races table: a delivery versus the retry of a failed receiver. The design refuses to solve that
-        // with bookkeeping and solves it structurally instead — a receiver released by closure runs on a
-        // mailbox that refuses every further delivery, so its position can never be filled, and every
-        // attempt and retry re-derives the same absence from the same rows. Pinned here as a property of
-        // the database; MailboxReceiptTests pins the executor's side of the same absence.
+        // Solved structurally rather than by bookkeeping: a receiver released by closure runs on a mailbox that
+        // refuses every further delivery, so every retry re-derives the same absence from the same rows.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -576,10 +490,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task ReceiverReleasedByItsDelivery_KeepsThatDeliveryWhateverArrivesLater()
     {
-        // The freeze from the other direction. A woken receiver's position holds the message that woke
-        // it, and nothing can replace it: positions are a primary key, later messages take later
-        // positions, and a resend of the same message replays the position it already has. So the answer
-        // a retry re-derives is the answer the first attempt saw.
+        // The freeze from the other direction: positions are a primary key, later messages take later positions,
+        // and a resend replays the position it already has.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -605,11 +517,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task FetchAndLock_StampsAWokenReceiversClaimExactlyOnce()
     {
-        // The measurement's honesty, not its value. The stamp is what makes wake-to-claim latency mean
-        // "how long the release took to become a running workflow" rather than "how long ago the release
-        // was" — without it a receiver that fails and climbs its retry ladder would report the whole
-        // ladder as wake latency on every claim, and the percentiles of a metric that exists to show a
-        // sub-second gap would be measuring the retry strategy.
+        // Without the stamp, a receiver that fails and climbs its retry ladder would report the whole ladder as
+        // wake latency on every claim.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var receiver = await EnqueueReceiver(repository, mailbox.Id);
@@ -619,7 +528,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         var firstClaim = (await Registration(receiver)).ClaimedAt;
         Assert.NotNull(firstClaim);
 
-        // Back to runnable, as a retry or a resume would leave it, and claimed again.
         await ForceStatus(receiver, PersistentItemStatus.Enqueued);
         Assert.Single(await repository.FetchAndLockWorkflows(count: 10, TestContext.Current.CancellationToken));
 
@@ -629,12 +537,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task FetchAndLock_LeavesAReceiverBornRunnableUnmeasured()
     {
-        // A receiver born with its delivery was never woken, so there is nothing to time. It does
-        // register — every receiver does, because the position is what the executor reads its delivery
-        // by — so the exclusion has to be explicit: `held_at` is null, and the measurement's projection
-        // skips exactly those rows. Pinned because the natural mistake is to measure "mailbox receiver
-        // claimed", which would fold the birth case into the histogram and bury the sub-second gap it
-        // exists to show under ordinary poll latency.
+        // A receiver born with its delivery was never woken, so there is nothing to time. It still registers, so
+        // the exclusion has to be explicit: `held_at` is null, and the measurement's projection skips those rows.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         await Deliver(repository, mailbox.Id, "msg-1");
@@ -644,9 +548,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
 
         Assert.Single(await repository.FetchAndLockWorkflows(count: 10, TestContext.Current.CancellationToken));
 
-        // No sample, which is the property the test is named for. Asserted here rather than only in the
-        // integration suite so the guard sits beside the projection it guards: deleting the `held_at`
-        // case from that projection has to turn a Repository test red, not just a distant one.
+        // Asserted here rather than only in the integration suite, so deleting the `held_at` case from the
+        // projection turns a Repository test red.
         Assert.Empty(wakeLatency.Samples);
 
         var registration = await Registration(receiver);
@@ -654,18 +557,16 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         Assert.Null(registration.HeldAt);
         Assert.NotNull(registration.ReleasedAt);
 
-        // Claimed all the same: `claimed_at` means what it says for every receiver, and only the
-        // histogram sample is withheld. Asserting the stamp is what keeps the two apart — a change that
-        // skipped the whole statement for born-runnable receivers would satisfy the assertion above
-        // while breaking the measurement for everyone else.
+        // Claimed all the same: only the histogram sample is withheld. A change that skipped the whole statement
+        // for born-runnable receivers would satisfy the assertion above while breaking everyone else's.
         Assert.NotNull(registration.ClaimedAt);
     }
 
     [Fact]
     public async Task FetchAndLock_MeasuresAWokenReceiver()
     {
-        // The positive half, in the same place and against the same listener, so "no sample" above is
-        // read as an exclusion rather than as a measurement that never fires at all.
+        // The positive half, in the same place and against the same listener, so "no sample" above reads as an
+        // exclusion rather than a measurement that never fires.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         await EnqueueReceiver(repository, mailbox.Id);
@@ -682,11 +583,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task FetchAndLock_OfOrdinaryWorkflows_IssuesNoMailboxStatementAtAll()
     {
-        // The hot path's price, unchanged. The claim query itself is untouched by this step — the
-        // measurement runs afterwards, on the ids that query already returned — and a batch holding no
-        // receiver returns from it before issuing any SQL. Asserted over the statements actually sent
-        // rather than over their effect, because a statement that matches nothing has the same effect as
-        // no statement and a very different cost on the engine's busiest loop.
+        // Asserted over the statements actually sent rather than their effect: a statement that matches nothing
+        // has the same effect as no statement and a very different cost on the engine's busiest loop.
         var interceptor = new SqlCapturingInterceptor();
         var repository = fixture.CreateRepositoryWithInterceptor(interceptor);
         var mailbox = await MintMailbox(repository);
@@ -694,16 +592,14 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         await Deliver(repository, mailbox.Id, "msg-1");
         await EnqueueOrdinary(repository);
 
-        // The ordinary workflow alone: the receiver is parked out of reach behind its Held status.
         await ForceStatus(receiver, PersistentItemStatus.Held);
         interceptor.Clear();
         await repository.FetchAndLockWorkflows(count: 10, TestContext.Current.CancellationToken);
 
-        // `mailbox_id` rides the entity load as an ordinary column and always will; what must be absent
-        // is any statement against the rendezvous tables.
+        // `mailbox_id` rides the entity load as an ordinary column; what must be absent is any statement against
+        // the rendezvous tables.
         Assert.DoesNotContain(interceptor.Queries, q => q.Sql.Contains("mailbox_receivers", StringComparison.Ordinal));
 
-        // The same fetch with the receiver runnable: exactly one statement, and it is the measurement.
         await ForceStatus(receiver, PersistentItemStatus.Enqueued);
         interceptor.Clear();
         await repository.FetchAndLockWorkflows(count: 10, TestContext.Current.CancellationToken);
@@ -830,10 +726,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         );
     }
 
-    /// <summary>
-    /// Moves a workflow to <paramref name="status"/> without going through the engine, standing in for a
-    /// state a test needs to start from rather than reach.
-    /// </summary>
+    /// <summary>Moves a workflow to <paramref name="status"/> without going through the engine.</summary>
     private async Task ForceStatus(Guid workflowId, PersistentItemStatus status)
     {
         await using var context = fixture.CreateDbContext();
@@ -844,8 +737,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     }
 
     /// <summary>
-    /// Takes a registration's release stamp away again, so a test can isolate the release statement's other
-    /// guard. Constructs a state the engine itself never produces.
+    /// Takes a registration's release stamp away, so a test can isolate the release statement's other guard.
+    /// Constructs a state the engine itself never produces.
     /// </summary>
     private async Task ClearReleaseStamp(Guid workflowId)
     {
@@ -857,9 +750,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     }
 
     /// <summary>
-    /// The transaction that last wrote a row, as PostgreSQL recorded it in <c>xmin</c>. Equal ids across
-    /// two rows mean one transaction wrote both — the only way to establish atomicity from outside, since
-    /// any test that merely observes the pair stays green when the transaction is split.
+    /// The transaction that last wrote a row, as PostgreSQL recorded it in <c>xmin</c>. Equal ids across two rows
+    /// mean one transaction wrote both — the only way to establish atomicity from outside.
     /// </summary>
     private async Task<string> TransactionId(string table, string column, Guid id)
     {
@@ -877,9 +769,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     }
 
     /// <summary>
-    /// The exact statements a delivery holds uncommitted at the moment it has appended a message and
-    /// woken the receiver at that position: the mailbox row locked, the counter bumped, the message
-    /// inserted, the workflow released and the registration stamped.
+    /// The exact statements a delivery holds uncommitted once it has appended a message and woken the receiver at
+    /// that position.
     /// </summary>
     private static async Task ExecuteInFlightDelivery(
         NpgsqlConnection conn,
@@ -924,16 +815,10 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     }
 
     /// <summary>
-    /// The state an enqueue flush holds uncommitted once it has parked a receiver: the mailbox row
-    /// locked, the receivers counter advanced, the workflow row written <c>Held</c>, and its registration
-    /// written held and unreleased.
+    /// The state an enqueue flush holds uncommitted once it has parked a receiver. The row shape has to match the
+    /// flush's exactly, <c>held_at</c> included: neither release statement reads that column, so a stand-in that
+    /// left it null would pass while modeling a row the schema calls impossible.
     /// </summary>
-    /// <remarks>
-    /// The row shape has to match the flush's exactly, <c>held_at</c> included. Neither release statement
-    /// reads that column, so a stand-in that left it null would pass — while modeling a row the schema's
-    /// own documentation calls impossible, in a test whose entire value is that it reproduces the real
-    /// flush. A copy of production SQL is only worth what its fidelity is worth.
-    /// </remarks>
     private static async Task ExecuteInFlightReceiverEnqueue(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
@@ -973,9 +858,8 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     }
 
     /// <summary>
-    /// Collects the wake-to-claim histogram's samples for as long as it is alive, following
-    /// <c>DbRetryTelemetryTests.DbTelemetryCollector</c> — a listener rather than the TestKit's collector,
-    /// which this project deliberately does not reference.
+    /// Collects the wake-to-claim histogram's samples, following <c>DbRetryTelemetryTests.DbTelemetryCollector</c>
+    /// rather than the TestKit's collector, which this project deliberately does not reference.
     /// </summary>
     private sealed class WakeLatencyCollector : IDisposable
     {

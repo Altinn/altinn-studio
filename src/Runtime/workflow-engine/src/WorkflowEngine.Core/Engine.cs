@@ -64,14 +64,9 @@ internal interface IEngine
 
     /// <summary>
     /// Mints a mailbox, generating its id and stamping its absolute deadline from the requested timeout.
-    /// Idempotent on the caller's key within the namespace.
+    /// Idempotent on the caller's key within the namespace. Validates the request itself and answers
+    /// <see cref="MailboxMintResult.Invalid"/> when it is inadmissible, so a caller need not pre-validate.
     /// </summary>
-    /// <remarks>
-    /// Validates the request itself and answers <see cref="MailboxMintResult.Invalid"/> when it is
-    /// inadmissible — an idempotency or collection key that is empty, whitespace, or longer than the 200
-    /// characters the schema stores, or a timeout that is not positive or exceeds
-    /// <see cref="EngineSettings.MaxMailboxTimeout"/>. A caller need not pre-validate.
-    /// </remarks>
     Task<MailboxMintResult> MintMailbox(
         string ns,
         MailboxCreateRequest request,
@@ -85,16 +80,11 @@ internal interface IEngine
     Task<MailboxCloseResult> CloseMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Delivers one message into a mailbox, appending it to the deliveries log at the next gapless
-    /// position. Idempotent on the caller's key within the mailbox.
+    /// Delivers one message into a mailbox, appending it to the deliveries log at the next gapless position.
+    /// Idempotent on the caller's key within the mailbox. Validates the request itself and answers
+    /// <see cref="MailboxDeliveryResult.Invalid"/> or <see cref="MailboxDeliveryResult.PayloadTooLarge"/> before
+    /// the database, so a caller need not pre-validate.
     /// </summary>
-    /// <remarks>
-    /// Validates the request itself and answers <see cref="MailboxDeliveryResult.Invalid"/> or
-    /// <see cref="MailboxDeliveryResult.PayloadTooLarge"/> before the database when it is inadmissible —
-    /// an idempotency key that is empty, whitespace, or longer than the 200 characters the schema stores,
-    /// or a payload above <see cref="EngineSettings.MaxMailboxPayloadSize"/>. A caller need not
-    /// pre-validate.
-    /// </remarks>
     Task<MailboxDeliveryResult> DeliverToMailbox(
         Guid mailboxId,
         string ns,
@@ -310,9 +300,9 @@ internal sealed class Engine(
             var hash = request.ComputeHash();
             var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
 
-            // Decided inside the flush, under the mailbox's row lock, so they arrive as outcomes rather
-            // than as pre-flight validation errors — and they carry no workflow ids to report, which is
-            // why they answer before the zip below.
+            // Decided inside the flush, under the mailbox's row lock, so they arrive as outcomes rather than as
+            // pre-flight validation errors — and they carry no workflow ids, which is why they answer before the
+            // zip below.
             if (outcome.Status is BatchEnqueueResultStatus.MailboxNotFound)
             {
                 activity?.Errored(errorMessage: outcome.Message);
@@ -485,15 +475,11 @@ internal sealed class Engine(
     private const int MaxMailboxKeyLength = 200;
 
     /// <summary>
-    /// Validates a mint request before it can reach the database.
+    /// Validates a mint request before it can reach the database. Length in particular has to be caught here: both
+    /// keys are <c>varchar(200)</c>, and Postgres answers an over-long value with SQLSTATE 22001, which the
+    /// repository's retry classifier reads as transient — so a caller's typo would be retried until the command
+    /// timeout and logged as a suspected database outage.
     /// </summary>
-    /// <remarks>
-    /// Length in particular has to be caught here. Both keys are <c>varchar(200)</c>, and Postgres
-    /// answers an over-long value with SQLSTATE 22001, which the repository's retry classifier reads as
-    /// transient — so a caller's typo would be retried until the database command timeout and then
-    /// logged as a suspected database outage. That is a slow, noisy, and entirely wrong answer to a
-    /// plain input error.
-    /// </remarks>
     private MailboxMintResult.Invalid? ValidateMailboxRequest(MailboxCreateRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
@@ -538,8 +524,7 @@ internal sealed class Engine(
 
         var now = timeProvider.GetUtcNow();
 
-        // Time-ordered so a mailbox id sorts by mint time wherever ids are listed, matching how every
-        // other engine-generated id behaves.
+        // Time-ordered so a mailbox id sorts by mint time, as every other engine-generated id does.
         var mailboxId = Guid.CreateVersion7(now);
 
         var result = await repository.MintMailbox(
@@ -566,10 +551,9 @@ internal sealed class Engine(
         CancellationToken cancellationToken = default
     )
     {
-        // The closure metrics — the close itself and the receivers it released — are published by the
-        // repository, after the transaction that performed them commits. They belong to the routine
-        // rather than to this entry point, because the deadline sweep runs the same routine without
-        // passing through here.
+        // The closure metrics are published by the repository, after the transaction that performed them commits:
+        // they belong to the routine rather than this entry point, since the deadline sweep runs the same
+        // routine without passing through here.
         return await repository.CloseMailbox(
             mailboxId,
             ns,
@@ -580,16 +564,11 @@ internal sealed class Engine(
     }
 
     /// <summary>
-    /// Validates a delivery request before it can reach the database.
+    /// Validates a delivery request before it can reach the database. The key's length has to be caught here for
+    /// the reason <see cref="ValidateMailboxRequest"/> documents. The payload cap is checked here for a different
+    /// reason: it needs no row state, so refusing early keeps an oversized delivery from spending a connection and
+    /// a transaction on an answer that was knowable from the request alone.
     /// </summary>
-    /// <remarks>
-    /// The key's length has to be caught here for the reason
-    /// <see cref="ValidateMailboxRequest"/> documents: <c>idempotency_key</c> is <c>varchar(200)</c>, and
-    /// Postgres answers an over-long value with SQLSTATE 22001, which the repository's retry classifier
-    /// reads as transient. The payload cap is checked here for a different reason — it needs no row
-    /// state, so refusing early is what keeps an oversized delivery from spending a database connection
-    /// and a transaction on an answer that was knowable from the request alone.
-    /// </remarks>
     private MailboxDeliveryResult? ValidateMailboxDeliveryRequest(MailboxDeliveryRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
@@ -600,8 +579,8 @@ internal sealed class Engine(
                 $"IdempotencyKey '{request.IdempotencyKey[..50]}...' is {request.IdempotencyKey.Length} characters, maximum is {MaxMailboxKeyLength}."
             );
 
-        // Not redundant with the property being declared required: `required` makes the property appear
-        // in the JSON, not be non-null in it, and an explicit null binds straight through.
+        // Not redundant with the property being declared required: `required` makes the property appear in the
+        // JSON, not be non-null in it, and an explicit null binds straight through.
         if (request.Payload is null)
             return new MailboxDeliveryResult.Invalid("Payload is required.");
 
@@ -635,11 +614,9 @@ internal sealed class Engine(
                 cancellationToken
             );
 
-        // Counted for every outcome, the pre-lock refusals included, so a storm of oversized or
-        // misaddressed forwards is visible in the mailbox metrics and not only in HTTP status codes.
-        // The outcome tag stays here because it is the only counter that covers refusals decided before
-        // the database is reached. The wake the delivery may have performed is counted by the repository,
-        // beside the release itself.
+        // Counted for every outcome, the pre-lock refusals included, so a storm of oversized or misaddressed
+        // forwards is visible in the mailbox metrics and not only in HTTP status codes. The wake the delivery
+        // may have performed is counted by the repository, beside the release itself.
         Metrics.MailboxDeliveriesReceived.Add(1, ("outcome", MailboxDeliveryOutcomeTag(result)));
 
         return result;
@@ -647,9 +624,8 @@ internal sealed class Engine(
 
     /// <summary>
     /// The <c>outcome</c> tag value for one delivery result. Internal rather than private so
-    /// <c>MailboxDeliveryOutcomeTagTests</c> can cover every case directly — reaching the rarer ones
-    /// through the endpoint costs a filled log or a malformed request each, and one of them would
-    /// otherwise go untested.
+    /// <c>MailboxDeliveryOutcomeTagTests</c> can cover every case directly — reaching the rarer ones through the
+    /// endpoint costs a filled log or a malformed request each.
     /// </summary>
     internal static string MailboxDeliveryOutcomeTag(MailboxDeliveryResult result) =>
         result switch
@@ -795,10 +771,9 @@ internal sealed class Engine(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
 
-            // A receive workflow's declaration. "At most one mailbox block per workflow" needs no check —
-            // it is the shape of WorkflowRequest.Mailbox — and neither does "the delivery lands in the
-            // first step and nowhere else", which is where the executor reads it and the only place it
-            // could be. What is checkable, and what a caller can get wrong, is the rest.
+            // A receive workflow's declaration. "At most one mailbox block per workflow" needs no check — it is the
+            // shape of WorkflowRequest.Mailbox — and neither does "the delivery lands in the first step", which is
+            // where the executor reads it. What is checkable is the rest.
             if (workflow.Mailbox is { } mailbox)
             {
                 if (mailbox.Id == Guid.Empty)
@@ -806,16 +781,15 @@ internal sealed class Engine(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox with an empty id."
                     );
 
-                // A receiver that finds neither its delivery nor a closed mailbox is born Held, and a held
-                // row has no schedule: nothing ever consults its StartAt, so honoring both would mean
-                // silently ignoring one of them.
+                // A receiver that finds neither its delivery nor a closed mailbox is born Held, and a held row has no
+                // schedule: nothing consults its StartAt, so honoring both would mean silently ignoring one.
                 if (workflow.StartAt is { } startAt)
                     return new RequestConstraintValidationResult.Invalid(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares both a mailbox and a startAt ({startAt:O}); a mailbox receiver has no schedule."
                     );
 
-                // Without a step there is nothing for the delivery to be handed to, so the workflow could
-                // only consume a position and discard it.
+                // Without a step there is nothing for the delivery to be handed to, so the workflow could only consume
+                // a position and discard it.
                 if (workflow.Steps.Count == 0)
                     return new RequestConstraintValidationResult.Invalid(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox but has no steps to receive into."

@@ -116,17 +116,11 @@ internal sealed class WorkflowStateSigner
     }
 
     /// <summary>
-    /// Base64(HMACSHA256(key = <see cref="DeriveKey"/>(code, domain), data = UTF8(payload))).
+    /// Base64(HMACSHA256(key = <see cref="DeriveKey"/>(code, domain), data = UTF8(payload))). Domain separation
+    /// lives entirely in the <em>key</em> rather than in the signed data: prefixing a tag onto the data leaves a
+    /// collision to argue away — an untagged payload equal to <c>tag + separator + P</c> signs identically to the
+    /// tagged <c>P</c>. Deriving the key removes the premise instead of documenting it.
     /// </summary>
-    /// <remarks>
-    /// Domain separation lives entirely in the <em>key</em> (see <see cref="DeriveKey"/>) rather than
-    /// in the signed data. Prefixing a tag onto the data would have worked too, but it leaves a
-    /// collision to argue away: an untagged payload that happens to equal <c>tag + separator +
-    /// P</c> signs identically to the tagged <c>P</c>. That is unreachable today only because a
-    /// callback state blob always serializes starting with <c>{</c> — a property of an entirely
-    /// different code path, and exactly the kind of coupling that breaks quietly later. Deriving the
-    /// key removes the premise instead of documenting it.
-    /// </remarks>
     private static string ComputeSignature(string secret, SigningDomain domain, string payload)
     {
         byte[] key = DeriveKey(secret, domain);
@@ -135,15 +129,11 @@ internal sealed class WorkflowStateSigner
     }
 
     /// <summary>
-    /// The per-domain signing key: <c>HMACSHA256(key = UTF8(code), data = UTF8(tag))</c>, so each
-    /// domain signs under a key nothing else can reach without the app-code.
+    /// The per-domain signing key: <c>HMACSHA256(key = UTF8(code), data = UTF8(tag))</c>, so each domain signs under
+    /// a key nothing else can reach without the app-code. A domain with no tag
+    /// (<see cref="SigningPurpose.CallbackState"/>) uses the app-code directly — the original computation, kept
+    /// byte for byte so every state blob signed by an earlier version still verifies.
     /// </summary>
-    /// <remarks>
-    /// A domain with no tag (<see cref="SigningPurpose.CallbackState"/>) uses the app-code directly —
-    /// that is the original computation, kept byte for byte so every state blob signed by an earlier
-    /// version still verifies, and the reason the state path's known-answer vectors assert the raw-key
-    /// result.
-    /// </remarks>
     private static byte[] DeriveKey(string secret, SigningDomain domain)
     {
         byte[] key = Encoding.UTF8.GetBytes(secret);

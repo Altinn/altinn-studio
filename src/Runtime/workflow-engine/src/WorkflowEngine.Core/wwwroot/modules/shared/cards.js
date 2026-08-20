@@ -267,8 +267,8 @@ const sideChainBadgeHTML = (wf) =>
 const FLASH_MS = 1600;
 
 /**
- * Scroll to and flash the first visible element matching a selector. Shared by everything that
- * points at a workflow from somewhere else on the page — relation chips, mailbox position chips.
+ * Scroll to and flash the first visible element matching a selector. Shared by relation chips and mailbox
+ * position chips.
  * @param {string} selector
  * @returns {boolean} true when something was revealed
  */

@@ -46,15 +46,13 @@ public class PersistentItemStatusMapTests
     [Fact]
     public void Fetchable_IsASubsetOfIncomplete_AndExcludesTheStatusesNoWorkerClaims()
     {
-        // What this can honestly check: the set's relationship to the others. It cannot check the set
-        // against FetchAndLockWorkflows, because the gate's SQL spells its three statuses out itself and
-        // reads nothing — its list is an unpinned restatement kept in step by review. The partial index
-        // that backs the gate does read this set (via FetchableSqlList, pinned above), so the drift that
-        // is caught is index-versus-set, not gate-versus-set.
+        // What this can honestly check is the set's relationship to the others. It cannot check it against
+        // FetchAndLockWorkflows, whose SQL spells its three statuses out itself — the drift that is caught is
+        // index-versus-set, not gate-versus-set.
         Assert.All(PersistentItemStatusMap.Fetchable, s => Assert.Contains(s, PersistentItemStatusMap.Incomplete));
 
-        // Processing is already claimed; Held has not started and is released only by the event it waits
-        // on. Both are unsettled, so only this set separates them from what a worker may pick up.
+        // Processing is already claimed; Held has not started and is released only by the event it waits on. Both
+        // are unsettled, so only this set separates them from what a worker may pick up.
         Assert.DoesNotContain(PersistentItemStatus.Processing, PersistentItemStatusMap.Fetchable);
         Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Fetchable);
     }
@@ -62,11 +60,9 @@ public class PersistentItemStatusMapTests
     [Fact]
     public void Held_IsUnsettledButNeverFetchable()
     {
-        // Both halves are the status's meaning. Unfetchable is what makes "born parked" true — no worker
-        // may ever claim a receiver whose delivery has not been decided. Unsettled is what makes the
-        // dependency gate hold dependents back with no gate changes, and what keeps retention from
-        // purging a receiver that is still waiting. Landing it in Finished would settle a workflow that
-        // has not run a single step.
+        // Both halves are the status's meaning. Unfetchable is what makes "born parked" true; unsettled is what
+        // makes the dependency gate hold dependents back with no gate changes, and what keeps retention from
+        // purging a receiver that is still waiting.
         Assert.DoesNotContain(PersistentItemStatus.Held, PersistentItemStatusMap.Fetchable);
 
         Assert.Contains(PersistentItemStatus.Held, PersistentItemStatusMap.Incomplete);

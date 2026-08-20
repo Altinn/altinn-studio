@@ -26,14 +26,11 @@ using Xunit.Abstractions;
 namespace Altinn.App.Api.Tests.Controllers;
 
 /// <summary>
-/// The relay from the callback controller's end: it runs where the controller runs it, on the paths
-/// the controller runs it on, and with the state the controller had just published.
+/// The relay from the callback controller's end: it runs where the controller runs it, on the paths the
+/// controller runs it on, and with the state the controller had just published. The unit tests around
+/// <see cref="MailboxRelay"/> prove what the saga does; this proves the controller actually asks for it, after
+/// the save on a success and before the response on a permanent failure.
 /// </summary>
-/// <remarks>
-/// The unit tests around <see cref="MailboxRelay"/> prove what the saga does; this proves the
-/// controller actually asks for it, after the save on a success and before the response on a
-/// permanent failure — the two placements the ordering and the successor's state both depend on.
-/// </remarks>
 public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "tdd";
@@ -74,9 +71,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     }
 
     /// <summary>
-    /// The engine as the relay sees it. Standalone rather than a decorator: the only calls this
-    /// callback path makes are the two the saga makes, and every other member is a loud
-    /// "the callback did something it should not have".
+    /// The engine as the relay sees it. Standalone rather than a decorator: the only calls this callback path makes
+    /// are the two the saga makes, and every other member is a loud "the callback did something it should not".
     /// </summary>
     private sealed class RecordingClient(CallRecorder recorder) : IWorkflowEngineClient
     {
@@ -174,9 +170,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
                 services.AddSingleton<IWorkflowEngineClient>(new RecordingClient(recorder));
 
-                // The after-workflow's transition needs a real BPMN move this test app does not have
-                // for a service task, so the process engine is a recorder: what matters here is that
-                // the controller asks for it, after the close and with the state it just published.
+                // The after-workflow's transition needs a real BPMN move this test app does not have for a
+                // service task, so the process engine is a recorder: what matters is that the controller asks
+                // for it, after the close and with the state it just published.
                 var processEngine = new Mock<IProcessEngine>();
                 processEngine
                     .Setup(x =>
@@ -263,8 +259,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
     /// <summary>
     /// A delivered message, sealed with the host's own callback code exactly as
-    /// <see cref="IServiceTaskReplyForwarder"/> seals one. An unsealed payload never reaches the handler,
-    /// so a relay test that hand-wrote one would only be testing the refusal.
+    /// <see cref="IServiceTaskReplyForwarder"/> seals one. An unsealed payload never reaches the handler, so a
+    /// relay test that hand-wrote one would only be testing the refusal.
     /// </summary>
     private AppCallbackMailbox Delivered()
     {
@@ -295,27 +291,25 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public void TheForwarder_ResolvesFromTheRealContainer()
     {
-        // The step's one public entry point, taken the way an app takes it. Every other test in this
-        // stack constructs ServiceTaskReplyForwarder directly, so nothing would notice if its
-        // registration were missing or if one of its dependencies were unreachable from a scope — and
-        // one of them, AppIdentifier, is registered in an entirely different file from the rest. That is
-        // the "green tests, broken product" shape: the failure would first appear in a real app, at the
-        // moment a message arrived.
+        // The step's one public entry point, taken the way an app takes it. Every other test in this stack
+        // constructs ServiceTaskReplyForwarder directly, so nothing would notice if its registration were
+        // missing or one of its dependencies were unreachable from a scope — and one of them, AppIdentifier,
+        // is registered in an entirely different file.
         using IServiceScope scope = Services.CreateScope();
 
         var forwarder = scope.ServiceProvider.GetService<IServiceTaskReplyForwarder>();
 
         Assert.IsType<ServiceTaskReplyForwarder>(forwarder);
-        // Transient, because the xmldoc tells a singleton subscriber to take one per received message
-        // rather than hold one: a captured instance pins its HttpClient for the process's whole life.
+        // Transient, because the xmldoc tells a singleton subscriber to take one per received message rather than
+        // hold one: a captured instance pins its HttpClient for the process's whole life.
         Assert.NotSame(forwarder, scope.ServiceProvider.GetRequiredService<IServiceTaskReplyForwarder>());
     }
 
     [Fact]
     public async Task Conclusion_ClosesTheMailboxBeforeTheAfterWorkflow_ThroughTheRealCallback()
     {
-        // Saga invariant 1 end to end: the controller runs the relay after saving and re-capturing,
-        // and the relay closes before it starts anything. Both keys derive from this step.
+        // Saga invariant 1 end to end: the controller runs the relay after saving and re-capturing, and the relay
+        // closes before it starts anything. Both keys derive from this step.
         CallbackOutcome outcome = await RunReceiveCallback(_ => ServiceTaskResult.Success(), Delivered());
 
         Assert.Equal(HttpStatusCode.OK, outcome.Status);
@@ -330,10 +324,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public async Task Conclusion_StartsTheAfterWorkflowOnTheBlobItJustPublished()
     {
-        // The reason the relay runs in the controller and not in the command: the workflow the
-        // conclusion starts must begin on the state the conclusion published, not on the state it
-        // received. And the published blob must no longer name the finished exchange's mailbox — the
-        // next transition may open one of its own, and the carry refuses a second.
+        // The reason the relay runs in the controller and not in the command: the workflow the conclusion starts
+        // must begin on the state the conclusion published. And the published blob must no longer name the
+        // finished exchange's mailbox — the next transition may open one of its own.
         CallbackOutcome outcome = await RunReceiveCallback(_ => ServiceTaskResult.Success(), Delivered());
 
         Assert.NotNull(outcome.Returned);
@@ -350,8 +343,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public async Task AwaitNextReply_EnqueuesTheSuccessorAndKeepsTheMailboxOpenAndCarried()
     {
-        // The relay hop: one enqueue, keyed on this step, nothing closed — and the blob the successor
-        // starts on still names the mailbox, because the exchange is not over.
+        // The relay hop: one enqueue, keyed on this step, nothing closed — and the blob the successor starts on
+        // still names the mailbox, because the exchange is not over.
         CallbackOutcome outcome = await RunReceiveCallback(_ => ServiceTaskResult.AwaitNextReply(), Delivered());
 
         Assert.Equal(HttpStatusCode.OK, outcome.Status);
@@ -367,10 +360,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public async Task PermanentFailure_ClosesTheMailboxAndStillFailsTheCallback()
     {
-        // A conclusion that gives up still ends the exchange: the mailbox must stop accepting
-        // messages even though nothing downstream starts and nothing is saved. Run before the
-        // response, so a retried step repeats it rather than leaving an abandoned exchange open
-        // until its deadline.
+        // A conclusion that gives up still ends the exchange: the mailbox must stop accepting messages even though
+        // nothing downstream starts. Run before the response, so a retried step repeats it.
         CallbackOutcome outcome = await RunReceiveCallback(
             _ => ServiceTaskResult.FailedPermanent("the archive never confirmed before the deadline"),
             Closed()
@@ -384,9 +375,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public async Task AwaitNextReply_OnAClosedMailbox_IsRejectedAndTouchesNothing()
     {
-        // The contract violation the engine leaves to the app-lib, through the real callback: 422,
-        // and the saga does not start — no receiver at a position that could never be filled, and no
-        // close on the handler's behalf.
+        // The contract violation the engine leaves to the app-lib, through the real callback: 422, and the saga
+        // does not start — no receiver at a position that could never be filled, and no close.
         CallbackOutcome outcome = await RunReceiveCallback(_ => ServiceTaskResult.AwaitNextReply(), Closed());
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, outcome.Status);
@@ -408,10 +398,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public void TheRelayResolvesFromTheRealContainer()
     {
-        // The relay sits between the callback controller and the process engine — a graph a future
-        // edit could make circular. Every test above substitutes the process engine, so this is what
-        // proves the registration the app actually ships with can be built: rooted in a real app, and
-        // with nothing overridden.
+        // The relay sits between the callback controller and the process engine — a graph a future edit could make
+        // circular. Every test above substitutes the process engine, so this is what proves the registration
+        // the app actually ships with can be built.
         using HttpClient client = GetRootedClient(Org, App);
         Assert.NotNull(client);
 

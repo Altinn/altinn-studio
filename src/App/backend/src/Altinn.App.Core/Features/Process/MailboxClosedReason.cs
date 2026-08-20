@@ -2,16 +2,10 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// Why the mailbox a service task opened stopped accepting messages, read from
-/// <see cref="ServiceTaskContext.ReplyClosedReason"/> on the execution that must conclude the
-/// exchange.
+/// <see cref="ServiceTaskContext.ReplyClosedReason"/> on the execution that must conclude the exchange. It
+/// changes only how a conclusion is <em>worded</em>: both reasons demand the same response, and asking for
+/// another message is a contract violation either way.
 /// </summary>
-/// <remarks>
-/// It changes only how a conclusion is <em>worded</em> — "the archive never confirmed before the
-/// deadline" reads differently from "the exchange was closed". Both demand the same response:
-/// conclude, with <see cref="ServiceTaskResult.Success"/> or
-/// <see cref="ServiceTaskResult.FailedPermanent"/>. Asking for another message is a contract
-/// violation either way, because no further message can ever arrive.
-/// </remarks>
 public enum MailboxClosedReason
 {
     /// <summary>

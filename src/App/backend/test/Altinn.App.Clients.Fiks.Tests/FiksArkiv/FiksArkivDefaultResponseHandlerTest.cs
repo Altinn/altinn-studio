@@ -74,10 +74,9 @@ public class FiksArkivDefaultResponseHandlerTest
     [Fact]
     public async Task TheBuiltInHandler_NeverTouchesTheInstanceOrTheProcess()
     {
-        // The task applies successHandling/errorHandling itself now, as the verdict of the transition
-        // the message belongs to. A handler that also moved the process would advance it twice, so the
-        // strict client mock is the guard: any call from here — ProcessMoveNext, MarkInstanceComplete,
-        // a data write — fails this test rather than shipping a double advance.
+        // The task applies successHandling/errorHandling itself now, as the verdict of the transition the message
+        // belongs to. The strict client mock is the guard: any call from here fails this test rather than shipping
+        // a double advance.
         var instance = InstanceFactory();
         var instanceClientMock = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         await using var fixture = TestFixture.Create(services =>
@@ -103,9 +102,8 @@ public class FiksArkivDefaultResponseHandlerTest
     [Fact]
     public async Task TheBuiltInHandler_ReadsAReplayedMessageWithoutTouchingTheConnection()
     {
-        // The handler runs on the reply handler's execution, where the message is replayed and the Fiks
-        // IO connection is gone. Everything the built-in handler reads has to come from the replayed
-        // values — a member that needed the connection would throw here.
+        // The handler runs on the reply handler's execution, where the message is replayed and the Fiks IO
+        // connection is gone — so a member that needed the connection would throw here.
         var instance = InstanceFactory();
         Guid messageId = Guid.Parse("6a6d1f1e-9f0f-4d2d-9a6a-2b4ea1ff1b6f");
         FiksIOReceivedMessage replayed = FiksIOReceivedMessage.Replay(
@@ -130,10 +128,8 @@ public class FiksArkivDefaultResponseHandlerTest
     [Fact]
     public async Task AReceivedMessage_SaysWhetherItIsLiveOrReplayed()
     {
-        // The two shapes of the same public type differ in what they can do, so a handler that runs in
-        // both places — or wants to respond to the archive — must be able to ask rather than provoke the
-        // exception. Pinned in both directions: the live message can respond, the replayed one says so
-        // before it throws.
+        // The two shapes of the same public type differ in what they can do, so a handler that runs in both places
+        // must be able to ask rather than provoke the exception. Pinned in both directions.
         FiksIOReceivedMessage live = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
         FiksIOReceivedMessage replayed = FiksIOReceivedMessage.Replay(
             new FiksIOReplayedMessage

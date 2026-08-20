@@ -3,49 +3,37 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// One message delivered into the mailbox a service task opened with
 /// <see cref="ServiceTaskPipeline.WithReplyFrom"/>, handed to the pipeline's conclusion as
-/// <see cref="ServiceTaskContext.Reply"/>. Exactly one message per execution — each is its own
-/// durable, retryable unit of work with its own <see cref="ServiceTaskContext.StepId"/>.
+/// <see cref="ServiceTaskContext.Reply"/>. Exactly one message per execution — each is its own durable,
+/// retryable unit of work with its own <see cref="ServiceTaskContext.StepId"/>.
 /// </summary>
 /// <remarks>
-/// <para>
-/// <strong>The payload originated outside the platform and is untrusted input</strong>: validate and
-/// deserialize it defensively. A message that cannot be understood is an ordinary
-/// <see cref="ServiceTaskResult.FailedPermanent"/> — which concludes the exchange as failed, in the
-/// task's own words.
-/// </para>
-/// <para>
-/// Messages arrive one at a time, in the order the mailbox accepted them, each starting from the
-/// state its predecessor published. A handler asks for the next one with
-/// <see cref="ServiceTaskResult.AwaitNextReply"/>; until it does, no later message is delivered.
-/// Delivery is at-least-once, so key durable writes and outbound calls on
-/// <see cref="IdempotencyKey"/> or on <see cref="ServiceTaskContext.StepId"/>.
-/// </para>
+/// The payload originated outside the platform and is untrusted input: validate and deserialize it
+/// defensively. A message that cannot be understood is an ordinary
+/// <see cref="ServiceTaskResult.FailedPermanent"/>, which concludes the exchange as failed in the task's own
+/// words. Messages arrive one at a time, in the order the mailbox accepted them, each starting from the state
+/// its predecessor published; a handler asks for the next with
+/// <see cref="ServiceTaskResult.AwaitNextReply"/>. Delivery is at-least-once, so key durable writes and
+/// outbound calls on <see cref="IdempotencyKey"/> or on <see cref="ServiceTaskContext.StepId"/>.
 /// </remarks>
 public sealed record ServiceTaskReply
 {
     /// <summary>
-    /// The message body, exactly as it was delivered. Opaque to the platform and
-    /// <strong>untrusted</strong>.
+    /// The message body, exactly as it was delivered. Opaque to the platform and <strong>untrusted</strong>.
     /// </summary>
     /// <remarks>
-    /// Guaranteed to be byte-for-byte what <see cref="IServiceTaskReplyForwarder.ForwardReply"/>
-    /// forwarded into this mailbox, for this task, under this <see cref="IdempotencyKey"/>: the body
-    /// travels in a tamper-evident envelope, and one that does not open fails the step rather than
-    /// reaching this property. That says nothing about whether the content is <em>true</em> — it came
-    /// from outside the platform and stays untrusted input for the handler that reads it.
+    /// Guaranteed to be byte-for-byte what <see cref="IServiceTaskReplyForwarder.ForwardReply"/> forwarded into
+    /// this mailbox, for this task, under this <see cref="IdempotencyKey"/>: the body travels in a tamper-evident
+    /// envelope, and one that does not open fails the step rather than reaching this property. That says nothing
+    /// about whether the content is <em>true</em>.
     /// </remarks>
     public required string Payload { get; init; }
 
     /// <summary>
-    /// The key the message was accepted under — the forwarding source's own message id (e.g. a Fiks
-    /// IO message id). Stable across every attempt of this execution, and unique within the mailbox,
-    /// so it is the natural key for a side effect this handler must not repeat.
+    /// The key the message was accepted under — the forwarding source's own message id. Stable across every attempt
+    /// of this execution and unique within the mailbox, so it is the natural key for a side effect this handler
+    /// must not repeat. Covered by the message's integrity envelope alongside <see cref="Payload"/>, so keying
+    /// durable work on it keys on a value the platform authenticated.
     /// </summary>
-    /// <remarks>
-    /// Covered by the message's integrity envelope alongside <see cref="Payload"/>, so a handler that
-    /// keys durable work on it is keying on a value the platform authenticated rather than on
-    /// unverified transport metadata.
-    /// </remarks>
     public required string IdempotencyKey { get; init; }
 
     /// <summary>

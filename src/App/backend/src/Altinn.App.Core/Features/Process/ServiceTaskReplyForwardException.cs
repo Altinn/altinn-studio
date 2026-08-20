@@ -2,9 +2,7 @@ using Altinn.App.Core.Exceptions;
 
 namespace Altinn.App.Core.Features.Process;
 
-/// <summary>
-/// Thrown by <see cref="IServiceTaskReplyForwarder.ForwardReply"/> when a message was not accepted.
-/// </summary>
+/// <summary>Thrown by <see cref="IServiceTaskReplyForwarder.ForwardReply"/> when a message was not accepted.</summary>
 /// <remarks>
 /// The forwarder deliberately does not decide what an undeliverable message means for the receiving
 /// channel — only the feature that received the message knows whether to dead-letter it, alert on it,
@@ -39,16 +37,10 @@ public sealed class ServiceTaskReplyForwardException : AltinnException
     public string? IdempotencyKey { get; }
 
     /// <summary>
-    /// Creates a forwarding failure.
+    /// Creates a forwarding failure. Public deliberately: this API asks the receiving channel to branch on
+    /// <see cref="Outcome"/>, so it must be possible to unit-test that branch by making a stubbed
+    /// <see cref="IServiceTaskReplyForwarder"/> throw the outcome under test.
     /// </summary>
-    /// <remarks>
-    /// Public deliberately, for the same reason <see cref="ServiceTaskReply"/> is constructible: this
-    /// API asks the receiving channel to branch on <see cref="Outcome"/>, so it must be possible to
-    /// unit-test that branch by making a stubbed <see cref="IServiceTaskReplyForwarder"/> throw the
-    /// outcome under test. Nothing is guarded by keeping it internal — the exception is inert data,
-    /// and what actually decides a message's fate is the workflow engine's answer, which nothing
-    /// app-side can invent.
-    /// </remarks>
     /// <param name="outcome">Why the message was not accepted.</param>
     /// <param name="mailboxId">The reply address the message was forwarded to.</param>
     /// <param name="idempotencyKey">The idempotency key supplied for the message, if any.</param>

@@ -31,7 +31,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_FreshKey_Returns201WithTheMintedMailbox()
     {
-        // Act
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest
             {
@@ -41,7 +40,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
             }
         );
 
-        // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var mailbox = await response.Content.ReadFromJsonAsync<MailboxResponse>(TestContext.Current.CancellationToken);
@@ -53,8 +51,8 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         Assert.Equal(MailboxStatus.Open, mailbox.Status);
         Assert.Equal(mailbox.CreatedAt + mailbox.Timeout, mailbox.Deadline, TimeSpan.FromMilliseconds(1));
 
-        // The Location header points at the mailbox's own address, which is also the reply address the
-        // caller embeds in its outbound message.
+        // The Location header points at the mailbox's own address, which is also the reply address the caller
+        // embeds in its outbound message.
         Assert.Equal(
             $"/api/v1/{EngineApiClient.DefaultNamespace}/mailboxes/{mailbox.Id}",
             response.Headers.Location?.ToString()
@@ -64,15 +62,13 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_ReplayedKey_Returns200WithTheSameMailbox()
     {
-        // Arrange
         var first = await _client.MintMailbox("step-1", TimeSpan.FromDays(2));
 
-        // Act — a retried step replays the same key, and may well ask for a different timeout.
+        // A retried step replays the same key, and may well ask for a different timeout.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest { IdempotencyKey = "step-1", Timeout = TimeSpan.FromDays(5) }
         );
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var replay = await response.Content.ReadFromJsonAsync<MailboxResponse>(TestContext.Current.CancellationToken);
@@ -96,9 +92,8 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_TimeoutAboveTheCap_Returns400()
     {
-        // The cap exists because the mailbox's deadline bounds how long a receive workflow may park on a
-        // callback token that never refreshes; a mint asking past it is refused rather than clamped, so
-        // the caller learns its exchange cannot last as long as it wanted.
+        // The cap exists because the deadline bounds how long a receive workflow may park on a callback token
+        // that never refreshes; a mint asking past it is refused rather than clamped.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest { IdempotencyKey = "step-1", Timeout = TimeSpan.FromDays(9999) }
         );
@@ -117,10 +112,9 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_OverLongIdempotencyKey_Returns400()
     {
-        // Both keys are varchar(200). Length has to be caught before the mint reaches the database,
-        // because Postgres answers an over-long value with SQLSTATE 22001, which the repository's retry
-        // classifier reads as transient — so a caller's typo would otherwise be retried until the
-        // database command timeout and then logged as a suspected outage.
+        // Both keys are varchar(200). Length has to be caught before the mint reaches the database, because
+        // Postgres answers an over-long value with SQLSTATE 22001, which the retry classifier reads as
+        // transient — so a caller's typo would be retried until the command timeout.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest { IdempotencyKey = new string('k', 201), Timeout = TimeSpan.FromHours(1) }
         );
@@ -146,8 +140,8 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_EmptyCollectionKey_Returns400()
     {
-        // An empty collection key is rejected rather than accepted as its own cap bucket — matching how
-        // the enqueue endpoint treats a whitespace collection key.
+        // An empty collection key is rejected rather than accepted as its own cap bucket, matching how the
+        // enqueue endpoint treats a whitespace collection key.
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest
             {
@@ -163,14 +157,12 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_CollectionAtItsCap_Returns429()
     {
-        // Arrange — fill one collection to the configured cap. The bound is aggregate: it is what stops a
-        // single instance's exchanges from consuming the engine without limit, which no per-exchange cap
-        // can do.
+        // Fill one collection to the configured cap. The bound is aggregate: it is what stops a single instance's
+        // exchanges from consuming the engine without limit, which no per-exchange cap can do.
         var cap = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value.MaxOpenMailboxesPerCollection;
         for (int i = 0; i < cap; i++)
             await _client.MintMailbox($"step-{i}", TimeSpan.FromHours(1), collectionKey: "full-instance");
 
-        // Act
         using var response = await _client.MintMailboxRaw(
             new MailboxCreateRequest
             {
@@ -180,7 +172,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
             }
         );
 
-        // Assert
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
 
         // A different collection is unaffected — the budget is per collection, not per namespace.
@@ -190,13 +181,10 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintMailbox_SameKeyInAnotherNamespace_MintsItsOwnMailbox()
     {
-        // Arrange
         var mine = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
-        // Act
         var theirs = await _client.MintMailbox("step-1", TimeSpan.FromHours(1), ns: "other-org-other-app");
 
-        // Assert
         Assert.NotEqual(mine.Id, theirs.Id);
     }
 
@@ -207,21 +195,17 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task GetMailbox_ReportsStatusDeadlineCountersAndUnconsumedCount()
     {
-        // Arrange
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(6), collectionKey: "instance-1");
 
-        // Act
         var read = await _client.GetMailbox(minted.Id);
 
-        // Assert
         Assert.NotNull(read);
         Assert.Equal(MailboxStatus.Open, read.Status);
         Assert.Equal(minted.Deadline, read.Deadline);
         Assert.Equal(0L, read.NextIdx);
         Assert.Equal(0L, read.NextSeq);
 
-        // Zero because both logs are empty, not because the field is stubbed: it is the count of
-        // positions that have a delivery and no receiver, and neither log has a position yet.
+        // Zero because both logs are empty, not because the field is stubbed.
         Assert.Equal(0L, read.UnconsumedDeliveries);
     }
 
@@ -271,8 +255,8 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         // Act
         using var response = await _client.CloseMailboxRaw(minted.Id);
 
-        // Assert — 202 is the engine's marker for "this call effected the state change", the same
-        // distinction the mint draws between 201 and 200.
+        // 202 is the engine's marker for "this call effected the state change", the same distinction the mint
+        // draws between 201 and 200.
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         var closed = await response.Content.ReadFromJsonAsync<MailboxResponse>(TestContext.Current.CancellationToken);
@@ -285,15 +269,12 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task CloseMailbox_Repeat_Returns200WithTheOriginalDisposedAt()
     {
-        // Arrange
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
         var first = await _client.CloseMailbox(minted.Id);
 
-        // Act
         using var response = await _client.CloseMailboxRaw(minted.Id);
 
-        // Assert — the repeat changed nothing, so it answers 200 rather than 202, and reports the
-        // original disposal rather than its own.
+        // The repeat changed nothing, so it answers 200 rather than 202, and reports the original disposal.
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var repeat = await response.Content.ReadFromJsonAsync<MailboxResponse>(TestContext.Current.CancellationToken);
@@ -305,14 +286,13 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task CloseMailbox_ThenRead_ShowsTheMailboxAsDisposed()
     {
-        // Arrange
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
         await _client.CloseMailbox(minted.Id);
 
         // Act
         var read = await _client.GetMailbox(minted.Id);
 
-        // Assert — closure is terminal and the row stays readable; nothing purges it here.
+        // Closure is terminal and the row stays readable; nothing purges it here.
         Assert.NotNull(read);
         Assert.Equal(MailboxStatus.Disposed, read.Status);
     }
@@ -320,7 +300,6 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task CloseMailbox_UnknownIdOrForeignNamespace_Returns404()
     {
-        // Arrange
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
 
         // Act + Assert
@@ -342,17 +321,15 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
     [Fact]
     public async Task MintAndClose_EmitTheirCounters_AndReplaysDoNot()
     {
-        // Arrange
         using var collector = new TelemetryCollector();
 
-        // Act
         var minted = await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
         await _client.MintMailbox("step-1", TimeSpan.FromHours(1));
         await _client.CloseMailbox(minted.Id);
         await _client.CloseMailbox(minted.Id);
 
-        // Assert — one mailbox came into existence and one closed, whatever the number of calls. Counting
-        // replays would make the two counters describe request volume instead of exchange lifecycle.
+        // One mailbox came into existence and one closed, whatever the number of calls. Counting replays would
+        // make the two counters describe request volume instead of exchange lifecycle.
         Assert.Equal(1, collector.GetCounterTotal("engine.mailboxes.created"));
 
         var closures = collector.GetMeasurements("engine.mailboxes.closed");

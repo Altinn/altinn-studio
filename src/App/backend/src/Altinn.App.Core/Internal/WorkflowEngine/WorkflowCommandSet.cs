@@ -36,15 +36,11 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
-    /// For a service task that opens a mailbox: the one step its receive workflows run — the pipeline's
-    /// conclusion, which is the reply handler. Null for every other event, including a service task that
-    /// concludes as an ordinary Main step.
+    /// For a service task that opens a mailbox: the one step its receive workflows run — the pipeline's conclusion,
+    /// which is the reply handler. Null for every other event. It is a step of a workflow the Main workflow
+    /// enqueues, never of Main itself, and it carries no step options yet: the caller resolves those exactly as it
+    /// does for the workflow's own steps.
     /// </summary>
-    /// <remarks>
-    /// It is a step of a workflow the Main workflow enqueues, never of Main itself. It carries no step
-    /// options yet — the caller resolves those exactly as it does for the workflow's own steps, so the
-    /// handler is configured by the pipeline's <c>Finally</c> options either way.
-    /// </remarks>
     public StepRequest? MailboxReceiveStep { get; private set; }
 
     /// <summary>
@@ -84,18 +80,15 @@ internal sealed class WorkflowCommandSet
 
             if (context.ServiceTaskMailbox is not null)
             {
-                // A task that opens a mailbox expands to no concluding Main step at all: its conclusion
-                // is the reply handler, and a reply handler runs on the receive workflow that carries
-                // the reply, once per message. Emitting it here as well would conclude the task a
-                // second time, on nothing. What Main gains instead is the step that enqueues the first
-                // receiver — appended by the factory after every critical post-commit step, so it is
-                // the last thing Main does and the relay exists before Main settles.
+                // A task that opens a mailbox expands to no concluding Main step at all: its conclusion is the reply
+                // handler, which runs on the receive workflow that carries the reply, once per message. What Main gains
+                // instead is the step that enqueues the first receiver.
                 group.MailboxReceiveStep = CreateReceiveHandlerStep(context.ServiceTaskType);
             }
             else
             {
-                // The concluding engine step — the pipeline's Finally (a simple task's Execute),
-                // identified by a null stage name. For most tasks it is the whole pipeline.
+                // The concluding engine step — the pipeline's Finally (a simple task's Execute), identified by a null
+                // stage name.
                 group.AddCriticalPostCommitCommand(
                     ExecuteServiceTask.Key,
                     new ExecuteServiceTaskPayload(context.ServiceTaskType)
@@ -213,9 +206,9 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// The one engine step a receive workflow runs: the <c>ExecuteServiceTask</c> step that dispatches
-    /// to the pipeline's conclusion — the same step a non-mailbox task concludes with, which is the
-    /// point. A null stage name is what identifies the conclusion, here as everywhere else.
+    /// The one engine step a receive workflow runs: the <c>ExecuteServiceTask</c> step that dispatches to the
+    /// pipeline's conclusion — the same step a non-mailbox task concludes with. A null stage name is what identifies
+    /// the conclusion.
     /// </summary>
     internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType) =>
         CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType));

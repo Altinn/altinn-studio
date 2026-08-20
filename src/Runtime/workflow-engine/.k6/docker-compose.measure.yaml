@@ -1,22 +1,16 @@
 # Points the engine container at a measurement database of its own, without touching the developer's
 # main one.
 #
-# Why this exists: the hot-path claim these scripts measure is "the enqueue COPY grows by one nullable
-# column". That is a claim about the shape of `engine.workflows` — and EF applies only the migrations a
-# database is missing, so a database that once ran a different design still carries that design's
-# columns, indexes and history rows. Migrating this tree on top of such a database leaves a table that
-# is wider than this tree defines, in every arm equally, which is precisely the quantity under test.
-# `mailbox-storm-compare.sh` fails its schema check rather than measuring it.
-#
-# `make reset` (dropping the volume) is the other way to get a clean database, and the better one when
-# nothing else on the machine depends on it. This file is for when something does.
+# The hot-path claim these scripts measure is a claim about the shape of `engine.workflows`, and EF
+# applies only the migrations a database is missing — so a database that once ran a different design
+# still carries that design's columns. `mailbox-storm-compare.sh` fails its schema check rather than
+# measuring that. `make reset` is the other way to get a clean database, and the better one when
+# nothing else on the machine depends on it.
 #
 #   psql -c 'CREATE DATABASE workflow_engine_mailbox'      # once, in the postgres container
 #   docker compose -f docker-compose.yaml -f .k6/docker-compose.measure.yaml \
 #       --profile core up -d --force-recreate workflow-engine-testapp
 #   POSTGRES_DB=workflow_engine_mailbox ./.k6/mailbox-storm-compare.sh
-#
-# The engine migrates at startup, so the new database is built from this tree's migrations alone.
 services:
   workflow-engine-testapp:
     environment:

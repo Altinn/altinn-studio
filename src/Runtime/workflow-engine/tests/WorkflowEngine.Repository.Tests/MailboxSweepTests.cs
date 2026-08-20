@@ -14,28 +14,20 @@ using WorkflowEngine.Repository.Tests.Fixtures;
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
-/// Covers the two sweeps a mailbox's lifetime needs: the closure sweep that makes the deadline a promise
-/// rather than a column, and the retention purge that eventually takes a closed mailbox away with its
-/// deliveries and receiver registrations.
+/// Covers the two sweeps a mailbox's lifetime needs: the closure sweep that makes the deadline a promise rather
+/// than a column, and the retention purge that takes a closed mailbox away with its deliveries and receiver
+/// registrations. Both are claim-and-act loops over rows other transactions may be holding, so each property
+/// here is established by making the thing go wrong on purpose.
 /// </summary>
-/// <remarks>
-/// Both are claim-and-act loops over rows other transactions are free to be holding, so the properties
-/// worth testing are the ones a happy-path run cannot show: that one mailbox failing does not take the
-/// batch with it, that a mailbox somebody else holds is skipped rather than waited on, and that the purge
-/// order is enforced by the schema rather than by the order this code happens to be written in. Each of
-/// those is established by making the thing go wrong on purpose, because a test that only watches a
-/// working sweep stays green against a broken one.
-/// </remarks>
 [Collection(PostgresCollection.Name)]
 public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
 {
     private const string Ns = "sweep-ns";
 
     /// <summary>
-    /// Retention settings for the purge below. Built here rather than taken from the fixture because the
-    /// fixture leaves <see cref="RetentionSettings"/> at its zero-valued default, and a zero
-    /// <c>BatchSize</c> makes <see cref="DbMaintenanceService.PurgeExpiredWorkflows"/>'s
-    /// <c>while (deleted &gt;= batchSize)</c> condition never terminate.
+    /// Retention settings for the purge below. Built here because the fixture leaves
+    /// <see cref="RetentionSettings"/> at its zero-valued default, and a zero <c>BatchSize</c> makes
+    /// <see cref="DbMaintenanceService.PurgeExpiredWorkflows"/>'s loop condition never terminate.
     /// </summary>
     private static readonly RetentionSettings _retention = new()
     {
@@ -53,9 +45,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Sweep_ClosesAnOverdueMailbox_RecordingTheDeadlineAsTheReason()
     {
-        // The deadline stops being a stamped column and becomes the promise the whole design leans on:
-        // nothing closed this mailbox, its deadline passed, and the sweep ran exactly the routine DELETE
-        // runs — including the reason, which is the one thing a caller-driven close could not have written.
+        // The sweep runs exactly the routine DELETE runs, including the reason — the one thing a caller-driven
+        // close could not have written.
         var repository = fixture.CreateRepository();
         var mailbox = await MintOverdue(repository, "overdue");
 
@@ -86,9 +77,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Sweep_ReleasesEveryParkedReceiver_TheSameWayDeleteDoes()
     {
-        // The sweep has no second half. It enqueues nothing, because the workflows that will conclude the
-        // exchange already exist and carry the app's own steps — closing releases them. Both of them, not
-        // the next one: a closed mailbox freezes every parked receiver's truth at the same instant.
+        // The sweep has no second half: the workflows that conclude the exchange already exist, and closing
+        // releases them — all of them, since a closed mailbox freezes every parked receiver's truth at once.
         var repository = fixture.CreateRepository();
         var mailbox = await MintOverdue(repository, "with-receivers");
         var first = await EnqueueReceiver(repository, mailbox.Id, "receiver-1");
@@ -113,9 +103,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Sweep_CountsTheDeliveriesNoReceiverWasEverEnqueuedFor()
     {
-        // The leftover class the design refuses to assume away. A DELETE reports this number to a caller
-        // who is in a position to act on it; a mailbox that aged out has no such caller, so the sweep is
-        // the only place it is ever seen. Three arrived, one receiver was enqueued: two were never read.
+        // A DELETE reports this number to a caller who can act on it; a mailbox that aged out has no such caller,
+        // so the sweep is the only place it is ever seen. Three arrived, one receiver: two were never read.
         var repository = fixture.CreateRepository();
         var mailbox = await MintOverdue(repository, "unread");
         await EnqueueReceiver(repository, mailbox.Id, "receiver-1");
@@ -135,9 +124,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Sweep_LosesToADeleteThatClosedFirst_AndReportsNothing()
     {
-        // A DELETE racing the sweep is first-writer-wins, and the loser never reaches the routine at all:
-        // the claim's own status predicate is re-evaluated against the locked row, so an already-closed
-        // mailbox is not claimed and its reason and instant are left exactly as the winner wrote them.
+        // First-writer-wins, and the loser never reaches the routine: the claim's status predicate is
+        // re-evaluated against the locked row, so an already-closed mailbox is not claimed.
         var repository = fixture.CreateRepository();
         var mailbox = await MintOverdue(repository, "closed-by-request");
         var closedAt = Now.AddMinutes(-5);
@@ -158,13 +146,9 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Sweep_SkipsAMailboxWhoseRowIsHeldElsewhere_WithoutWaitingForIt()
     {
-        // SKIP LOCKED is what makes the claim a claim rather than a queue. A mailbox another pod's sweep,
-        // a delivery, a close or an enqueue is holding is left for the next tick — and, crucially, the
-        // rest of the batch is closed *now* rather than behind it.
-        //
-        // Discriminating in both directions: drop SKIP LOCKED and this blocks until the holder commits,
-        // failing the elapsed-time assertion; drop FOR UPDATE altogether and the close's own UPDATE blocks
-        // on the same row instead, failing it identically.
+        // SKIP LOCKED is what makes the claim a claim rather than a queue, and the rest of the batch is closed
+        // now rather than behind it. Discriminating in both directions: drop SKIP LOCKED and this blocks until
+        // the holder commits; drop FOR UPDATE and the close's own UPDATE blocks on the same row instead.
         var repository = fixture.CreateRepository();
         var held = await MintOverdue(repository, "held-elsewhere");
         var free = await MintOverdue(repository, "free");
@@ -184,9 +168,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
             await lockCmd.ExecuteNonQueryAsync(Ct);
         }
 
-        // Raced against a timer rather than measured after the fact, because the failure this guards
-        // against is a block that never returns: measuring elapsed time after the await would turn a
-        // regression into a hung test run instead of a red one.
+        // Raced against a timer rather than measured after the fact: the failure guarded against is a block that
+        // never returns, which would hang the test run instead of failing it.
         var sweep = repository.SweepOverdueMailboxes(Now, batchSize: 100, Ct);
         var finishedFirst = await Task.WhenAny(sweep, Task.Delay(TimeSpan.FromSeconds(5), Ct));
         Assert.True(
@@ -210,16 +193,9 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Sweep_WhenOneMailboxThrows_ClosesTheRestAndLeavesThatOneClaimable()
     {
-        // The one lesson carried over from the exchange sweep this replaces, and the reason it is
-        // load-bearing rather than defensive: the candidates are ordered by deadline, so a mailbox whose
-        // close throws would lead every subsequent batch too. Without per-mailbox isolation that is not a
-        // delayed close but a permanent wedge, taking the deadline guarantee down with every exchange
-        // queued behind it.
-        //
-        // The failure is manufactured rather than waited for: a trigger that raises on an UPDATE of one
-        // specific mailbox row makes exactly that mailbox's close throw, inside its own transaction, on a
-        // real database. Removing the per-mailbox catch in EngineRepository.SweepOverdueMailboxes turns
-        // this test red on its own — verified by doing it.
+        // Candidates are ordered by deadline, so without per-mailbox isolation a mailbox whose close throws would
+        // lead every subsequent batch too — a permanent wedge rather than a delayed close. The failure is
+        // manufactured with a trigger that raises on an UPDATE of one specific mailbox row.
         var repository = fixture.CreateRepository();
         var poisoned = await MintOverdue(repository, "poisoned", deadlineAge: TimeSpan.FromDays(30));
         var behindIt = await MintOverdue(repository, "behind-it", deadlineAge: TimeSpan.FromDays(1));
@@ -254,10 +230,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SweepPass_TakesAtMostItsBatchSize_WhichBoundsTheStatementAndNotTheTick()
     {
-        // The batch size bounds how much work one claim-and-close pass holds open. It is not a bound on
-        // how fast a backlog drains — the service loops passes until nothing is left, which is the half
-        // pinned by the test below — and reading it as one is what would quietly make the deadline
-        // guarantee `ceil(overdue / batchSize)` cadences instead of one.
+        // The batch size bounds how much work one pass holds open, not how fast a backlog drains — the service
+        // loops passes until nothing is left, which the test below pins.
         var repository = fixture.CreateRepository();
         for (var i = 0; i < 5; i++)
             await MintOverdue(repository, $"overdue-{i}");
@@ -274,15 +248,9 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SweepTick_DrainsEveryOverdueMailbox_HoweverManyBatchesThatTakes()
     {
-        // The bound the whole step exists to move: a receiver parks until its mailbox actually closes,
-        // which MaxMailboxTimeout's derivation charges at deadline plus **one** MailboxSweepInterval. That
-        // is only true if a tick drains. One batch per tick would make the real gap
-        // `ceil(overdue / SweepBatchSize)` intervals — at a hundred per five minutes, a mass-timeout event
-        // of five thousand mailboxes would take four hours rather than five minutes, and every assertion
-        // on the derivation would stay green throughout.
-        //
-        // More overdue mailboxes than one pass can take, so a single-batch tick fails here and nowhere
-        // else.
+        // MaxMailboxTimeout's derivation charges deadline plus one MailboxSweepInterval, which is only true if a
+        // tick drains: one batch per tick would make the real gap ceil(overdue / SweepBatchSize) intervals.
+        // More overdue mailboxes than one pass can take, so a single-batch tick fails here and nowhere else.
         var repository = fixture.CreateRepository();
         var overdue = MailboxDeadlineService.SweepBatchSize + 7;
         for (var i = 0; i < overdue; i++)
@@ -305,15 +273,9 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SweepTick_EndsWhenAPassClosesNothing_RatherThanSpinningOnFailures()
     {
-        // The `Closed > 0` guard, and why the drain cannot become a spin. A pass that comes back full is
-        // the drain's signal that more work is waiting — but a batch that is full of *failures* is not more
-        // work, it is the same work again: every one of those mailboxes is still open, still overdue, and
-        // still leads the candidate scan. Without the guard the loop would re-claim exactly the same
-        // hundred forever inside a single tick.
-        //
-        // It has to be a *full batch* of failures to discriminate, which is why this seeds SweepBatchSize
-        // of them and poisons every mailbox rather than one. A single poisoned mailbox leaves the pass
-        // short, so the loop would exit on the length condition alone and the guard would go untested.
+        // The `Closed > 0` guard: a batch full of *failures* is not more work, it is the same work again, and
+        // without the guard the loop would re-claim the same hundred forever inside one tick. It has to be a
+        // full batch to discriminate — one poisoned mailbox would leave the pass short and exit on length.
         var repository = fixture.CreateRepository();
         for (var i = 0; i < MailboxDeadlineService.SweepBatchSize; i++)
             await MintOverdue(repository, $"poisoned-{i}");
@@ -358,14 +320,9 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SweepService_RunsOnTheMailboxSweepInterval_NotTheMaintenanceInterval()
     {
-        // The drift guard the settings' derivation needs. MaxMailboxTimeout charges one
-        // MailboxSweepInterval for the gap between a deadline and the close that honors it, and
-        // CallbackTokenLifetimeInvariantTests pins that arithmetic — but the arithmetic is only about
-        // reality if the service actually runs on that setting. Wire it to MaintenanceInterval instead and
-        // every assertion there stays green while a receiver parks past its token's validity.
-        //
-        // Advancing to the maintenance interval and finding the mailbox still open is what makes this
-        // discriminating; a test that only advanced past both would pass either way.
+        // The drift guard the settings' derivation needs: wire the service to MaintenanceInterval instead and
+        // CallbackTokenLifetimeInvariantTests stays green while a receiver parks past its token's validity.
+        // Advancing to the maintenance interval and finding the mailbox still open is what discriminates.
         var repository = fixture.CreateRepository();
         var mailbox = await MintOverdue(repository, "swept-by-the-service");
 
@@ -382,8 +339,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         await service.StartAsync(Ct);
         try
         {
-            // The loop has to reach its delay before the clock is moved: a fake timer created after the
-            // advance would simply be due a full interval later, and the test would hang rather than fail.
+            // The loop has to reach its delay before the clock is moved: a fake timer created after the advance
+            // would be due a full interval later, and the test would hang rather than fail.
             await Task.Delay(TimeSpan.FromMilliseconds(250), Ct);
 
             timeProvider.Advance(settings.Value.MaintenanceInterval);
@@ -425,9 +382,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_LeavesAnOpenMailbox_HoweverOldAndHoweverOverdue()
     {
-        // Age is not the test — closure is. An open mailbox is an exchange in progress whatever its
-        // timestamps say, and if it is past its deadline the closure sweep is what owes it an answer;
-        // purging it here would delete an exchange out from under receivers still parked on it.
+        // Age is not the test — closure is. An open mailbox is an exchange in progress whatever its timestamps
+        // say, and purging it would delete an exchange out from under receivers still parked on it.
         var repository = fixture.CreateRepository();
         var longAgo = Now - _retention.RetentionPeriod - TimeSpan.FromDays(1);
         var mailbox = await Mint(repository, "still-open", TimeSpan.FromHours(1), longAgo);
@@ -452,17 +408,10 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_PurgingTheMailboxBeforeItsChildren_IsRefusedBySqlstate23001()
     {
-        // The purge order is not a convention this code keeps — it is a rule the schema enforces. Both
-        // child tables reference engine.mailboxes with ON DELETE RESTRICT, the only non-cascade foreign
-        // keys in the schema, chosen so that getting the order wrong raises 23001 restrict_violation
-        // rather than silently taking rows with it. The wrong order is attempted here so that the
-        // protection is demonstrated rather than described.
-        //
-        // 23001 rather than 23503 is PostgreSQL 18+ behavior, and that makes this assertion stronger than
-        // a foreign-key check: on PG 17 and earlier both RESTRICT and NO ACTION raise 23503, so only on
-        // the pinned postgres:18 does this distinguish RESTRICT from a NO ACTION regression. It is
-        // therefore coupled to that pin — a server downgrade turns it red, and a bump should re-confirm
-        // the code before relaxing it.
+        // The purge order is a rule the schema enforces: both child tables reference engine.mailboxes with
+        // ON DELETE RESTRICT, so the wrong order raises 23001 restrict_violation. 23001 rather than 23503 is
+        // PostgreSQL 18+ behavior, which is what distinguishes RESTRICT from a NO ACTION regression — so this
+        // is coupled to the postgres:18 pin.
         var repository = fixture.CreateRepository();
         var longAgo = Now - _retention.RetentionPeriod - TimeSpan.FromDays(1);
         var mailbox = await Mint(repository, "children-first", TimeSpan.FromHours(1), longAgo);
@@ -477,8 +426,7 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
         );
         Assert.Equal(PostgresErrorCodes.RestrictViolation, withDeliveries.SqlState);
 
-        // And again with only the registration left, so the second foreign key is shown to be RESTRICT too
-        // rather than inferred from the first one having fired.
+        // And again with only the registration left, so the second foreign key is shown to be RESTRICT too.
         await context.Database.ExecuteSqlAsync(
             $"DELETE FROM engine.mailbox_deliveries WHERE mailbox_id = {mailbox.Id}",
             Ct
@@ -496,11 +444,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task Retention_LeavesAPurgedReceiversRegistration_UntilItsMailboxGoes()
     {
-        // Receive workflows purge under the workflow sweep, independently and possibly first, so a
-        // registration
-        // can outlive the workflow it names. That dangles nothing — mailbox_receivers.workflow_id
-        // deliberately carries no foreign key, and the row is a record of a rendezvous that already
-        // happened — and the mailbox purge is what eventually takes it.
+        // Receive workflows purge under the workflow sweep, independently and possibly first, so a registration
+        // can outlive the workflow it names. mailbox_receivers.workflow_id deliberately carries no foreign key.
         var repository = fixture.CreateRepository();
         var longAgo = Now - _retention.RetentionPeriod - TimeSpan.FromDays(1);
         var mailbox = await Mint(repository, "purged-receiver", TimeSpan.FromHours(1), longAgo);
@@ -555,8 +500,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     #region Helpers
 
     /// <summary>
-    /// Settings for the sweep service under test, carrying the two intervals apart so a test can tell
-    /// which one the service actually read.
+    /// Settings for the sweep service under test, carrying the two intervals apart so a test can tell which one
+    /// the service actually read.
     /// </summary>
     private static EngineSettings SweepSettings() =>
         new()
@@ -603,9 +548,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
             .Mailbox;
 
     /// <summary>
-    /// Mints a mailbox whose deadline has already passed, by minting it in the past. The deadline is
-    /// derived from the mint instant, so this is the only honest way to produce one — nothing writes a
-    /// deadline directly.
+    /// Mints a mailbox whose deadline has already passed, by minting it in the past. The deadline is derived from
+    /// the mint instant, so this is the only honest way to produce one.
     /// </summary>
     private static Task<MailboxResponse> MintOverdue(
         EngineRepository repository,
@@ -659,8 +603,7 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// Gives a sweep that should not have run every chance to prove otherwise. This is the half of the
-    /// cadence test that discriminates, so the window is generous rather than tight.
+    /// Gives a sweep that should not have run every chance to prove otherwise, so the window is generous.
     /// </summary>
     private static async Task AssertMailboxStaysOpen(EngineRepository repository, Guid mailboxId)
     {
@@ -678,8 +621,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// Polls until the background sweep has closed the mailbox. Its loop runs on a timer, so the instant
-    /// it acts is not something the test can await directly.
+    /// Polls until the background sweep has closed the mailbox: its loop runs on a timer, so the instant it acts
+    /// is not something the test can await directly.
     /// </summary>
     private static async Task WaitUntilMailboxDisposed(EngineRepository repository, Guid mailboxId)
     {
@@ -697,8 +640,8 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// Makes any update of one specific mailbox row throw, so that exactly one mailbox's close fails
-    /// inside its own transaction on a real database.
+    /// Makes any update of one specific mailbox row throw, so exactly one mailbox's close fails inside its own
+    /// transaction on a real database.
     /// </summary>
     private async Task PoisonMailboxUpdates(Guid mailboxId)
     {
@@ -726,9 +669,7 @@ public sealed class MailboxSweepTests(PostgresFixture fixture) : IAsyncLifetime
 #pragma warning restore EF1002
     }
 
-    /// <summary>
-    /// Makes every mailbox update throw, so a whole batch of closes fails rather than one.
-    /// </summary>
+    /// <summary>Makes every mailbox update throw, so a whole batch of closes fails rather than one.</summary>
     private async Task PoisonEveryMailboxUpdate()
     {
         await using var context = fixture.CreateDbContext();

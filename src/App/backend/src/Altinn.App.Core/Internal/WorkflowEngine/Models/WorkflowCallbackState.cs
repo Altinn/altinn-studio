@@ -20,21 +20,15 @@ internal sealed record WorkflowCallbackState
     public required List<FormDataEntry> FormData { get; init; }
 
     /// <summary>
-    /// The mailbox a service task's declaring stage opened, once it has opened one — the app's own
-    /// bookkeeping riding the blob rather than anything the engine reads. <c>null</c> for every
-    /// workflow that has not opened a mailbox, which is nearly all of them.
+    /// The mailbox a service task's declaring stage opened, once it has opened one — the app's own bookkeeping
+    /// riding the blob rather than anything the engine reads. <c>null</c> for every workflow that has not opened a
+    /// mailbox.
     /// </summary>
     /// <remarks>
-    /// This exists because the mailbox is minted under the declaring stage's engine-assigned step id,
-    /// and no later step can re-derive that key. The blob is the only channel between steps of one
-    /// workflow (see the state-passthrough contract), so the id travels here: written when the stage
-    /// mints, carried unchanged by every step in between, and read by the step that enqueues the first
-    /// receive workflow. It then rides that receiver's own state, which is what lets the relay keep
-    /// addressing the same mailbox.
-    /// <para>
-    /// Absent from blobs written before mailboxes existed, which deserialize to <c>null</c> — correct
-    /// for them, since their workflows carry no step that reads it.
-    /// </para>
+    /// The mailbox is minted under the declaring stage's engine-assigned step id, and no later step can re-derive
+    /// that key. The blob is the only channel between steps of one workflow, so the id travels here: written when
+    /// the stage mints, carried unchanged by every step in between, and read by the step that enqueues the first
+    /// receive workflow. Absent from blobs written before mailboxes existed, which deserialize to <c>null</c>.
     /// </remarks>
     [JsonPropertyName("mailboxId")]
     public Guid? MailboxId { get; init; }

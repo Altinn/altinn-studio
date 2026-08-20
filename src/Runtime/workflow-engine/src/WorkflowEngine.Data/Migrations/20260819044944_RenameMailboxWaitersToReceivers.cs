@@ -4,26 +4,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WorkflowEngine.Data.Migrations
 {
-    /// <summary>
-    /// Renames <c>mailbox_waiters</c> to <c>mailbox_receivers</c> and gives it <c>held_at</c>.
-    /// </summary>
+    /// <summary>Renames <c>mailbox_waiters</c> to <c>mailbox_receivers</c> and gives it <c>held_at</c>.</summary>
     /// <remarks>
-    /// Written by hand as a rename. The scaffolder produced a drop-and-recreate, because it sees an
-    /// entity disappear and another appear rather than one being renamed — which would take every
-    /// in-flight rendezvous with it. Nothing is released, so the data loss would have been survivable,
-    /// but a migration that silently discards state is the wrong thing to have in the history whatever
-    /// the data is worth today.
-    /// <para>
-    /// The rename follows the table's meaning changing: it now holds a row for <em>every</em> receiver,
-    /// not only the ones that parked, because the position is what the executor reads its delivery by.
-    /// <c>held_at</c> is what separates the two — non-null for a receiver that parked, null for one born
-    /// runnable — and it is the guard that keeps the wake-to-claim histogram measuring a wake.
-    /// </para>
-    /// <para>
-    /// PostgreSQL keeps constraint and index names across <c>ALTER TABLE … RENAME TO</c>, so each is
-    /// renamed explicitly; leaving them would work but would put names EF does not expect in the
-    /// database, and the next scaffolded migration would try to fix that instead of doing its own job.
-    /// </para>
+    /// Written by hand as a rename: the scaffolder produced a drop-and-recreate, which would take every in-flight
+    /// rendezvous with it. The rename follows the table's meaning changing — it now holds a row for <em>every</em>
+    /// receiver, not only the ones that parked, and <c>held_at</c> is what separates the two. PostgreSQL keeps
+    /// constraint and index names across <c>ALTER TABLE … RENAME TO</c>, so each is renamed explicitly; otherwise
+    /// the next scaffolded migration would try to fix the names instead of doing its own job.
     /// </remarks>
     public partial class RenameMailboxWaitersToReceivers : Migration
     {
@@ -62,13 +49,9 @@ namespace WorkflowEngine.Data.Migrations
                 nullable: true
             );
 
-            // Every row that predates this migration describes a receiver that parked — that was the only
-            // kind the enqueue flush registered — so every one of them must end up with a stamp. The
-            // receiver's own workflow row carries the instant exactly: a receiver parks at birth, so its
-            // created_at is its held_at. The COALESCE only covers a registry row whose receiver has since
-            // been purged by the workflow retention sweep, which leaves the row deliberately orphaned;
-            // there the release instant is the closest thing recorded, and now() is the last resort. What
-            // must be true of every row is that the stamp is not null, and that holds either way.
+            // Every row that predates this migration describes a receiver that parked, so every one must end up with
+            // a stamp. A receiver parks at birth, so its workflow's created_at is its held_at. The COALESCE only
+            // covers a registry row whose receiver has since been purged, leaving it deliberately orphaned.
             migrationBuilder.Sql(
                 """
                 UPDATE engine.mailbox_receivers AS mr

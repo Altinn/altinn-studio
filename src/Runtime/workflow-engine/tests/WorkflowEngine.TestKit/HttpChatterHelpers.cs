@@ -46,9 +46,8 @@ public static class HttpChatterHelpers
     // localhost:{port} — dynamic port numbers from WireMock / test servers
     private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
-    // One entry of a scrubbed JSON map keyed by workflow id, e.g. `        "Guid_2": "Completed",`.
-    // The value pattern is deliberately narrow (a plain string, number, bool or null) so a key whose
-    // value spans lines cannot be mistaken for a single-line entry and reordered.
+    // One entry of a scrubbed JSON map keyed by workflow id, e.g. `        "Guid_2": "Completed",`. The value
+    // pattern is deliberately narrow so a key whose value spans lines cannot be reordered.
     private static readonly Regex ScrubbedGuidEntryPattern = new(
         @"^(?<indent>[ \t]*)""Guid_(?<n>\d+)"": (?<value>""[^""\\]*""|-?\d+(?:\.\d+)?|true|false|null)(?<comma>,?)(?<cr>\r?)$"
     );
@@ -274,19 +273,12 @@ public static class HttpChatterHelpers
     }
 
     /// <summary>
-    /// Orders the entries of every JSON object whose keys are all scrubbed GUID tokens.
-    /// <para>
-    /// The dependency graph's <c>dependencies</c>, <c>dependents</c> and <c>links</c> are maps keyed by
-    /// workflow id, and they arrive in whatever order the join produced — so the same exchange writes a
-    /// different file under a different query plan, and the snapshot dirties the working copy on runs
-    /// that changed nothing. Order is not part of what these objects mean, so the recorder fixes it.
-    /// </para>
-    /// <para>
-    /// It has to happen <em>after</em> scrubbing. Sorting the raw ids would be no more stable than the
-    /// join's own order: uuidv7 values minted inside one millisecond differ only in their random bits,
-    /// so their relative order is a coin toss per run. The scrubbed tokens are numbered by first
-    /// appearance in the document, which is the same on every run, so sorting by token number is.
-    /// </para>
+    /// Orders the entries of every JSON object whose keys are all scrubbed GUID tokens — the dependency graph's
+    /// <c>dependencies</c>, <c>dependents</c> and <c>links</c>, which arrive in whatever order the join produced.
+    /// Order is not part of what they mean, so the recorder fixes it rather than letting the snapshot dirty the
+    /// working copy on runs that changed nothing. It has to happen <em>after</em> scrubbing: uuidv7 values minted
+    /// inside one millisecond differ only in their random bits, while the scrubbed tokens are numbered by first
+    /// appearance.
     /// </summary>
     private static string SortScrubbedGuidMaps(string text)
     {
@@ -303,9 +295,8 @@ public static class HttpChatterHelpers
                 continue;
             }
 
-            // A run of consecutive sibling entries is one map. Sort the entries by token number but
-            // keep each slot's own punctuation — indentation, trailing comma, trailing CR — so an
-            // object that continues past the run stays syntactically intact.
+            // A run of consecutive sibling entries is one map. Sort the entries by token number but keep each
+            // slot's own punctuation, so an object that continues past the run stays syntactically intact.
             var slots = new List<Match>();
             while (i < lines.Length && ScrubbedGuidEntryPattern.Match(lines[i]) is { Success: true } match)
             {

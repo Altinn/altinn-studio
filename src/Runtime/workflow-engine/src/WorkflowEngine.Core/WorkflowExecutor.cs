@@ -179,28 +179,16 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     /// <summary>
-    /// Reads the mailbox rendezvous for a receive workflow's first step, or answers "nothing to read"
-    /// for every other step in the engine.
+    /// Reads the mailbox rendezvous for a receive workflow's first step, or answers "nothing to read" for every
+    /// other step in the engine.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// The gate is two field comparisons and no SQL: an ordinary workflow carries no
-    /// <see cref="Workflow.MailboxId"/>, and a receive workflow's later steps are ordinary steps — the
-    /// declaration puts the message in the first step's callback and nowhere else, which enqueue
-    /// validation enforces. So the whole feature costs the execution path a null check until an app
-    /// declares a mailbox.
-    /// </para>
-    /// <para>
-    /// The read happens per attempt rather than once per workflow, which is the point: it is the same
-    /// read every time, over rows that cannot change once the receiver is runnable, so a retry and a
-    /// resume reconstruct the callback the first attempt saw instead of inheriting a copy of it.
-    /// </para>
-    /// <para>
-    /// The two states the rendezvous cannot produce fail the step critically rather than degrading into
-    /// "no delivery". "No delivery" is not an absence of information — it is the statement that the
-    /// mailbox is closed and the exchange must be concluded — so answering it from a state the engine
-    /// does not understand would end exchanges on the strength of a bug.
-    /// </para>
+    /// The gate is two field comparisons and no SQL, so the whole feature costs the execution path a null check
+    /// until an app declares a mailbox. The read happens per attempt rather than once per workflow, which is the
+    /// point: it is the same read every time, over rows that cannot change once the receiver is runnable, so a
+    /// retry reconstructs the callback the first attempt saw instead of inheriting a copy. The two states the
+    /// rendezvous cannot produce fail the step critically rather than degrading into "no delivery", which is not
+    /// an absence of information but the statement that the exchange must be concluded.
     /// </remarks>
     private async Task<MailboxRendezvous> ResolveMailboxReceipt(
         Workflow workflow,
@@ -285,9 +273,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
 }
 
 /// <summary>
-/// The outcome of resolving a step's mailbox rendezvous: the receipt to hand the command, or the
-/// failure that stops the attempt before the command is called. <c>default</c> is "this step receives
-/// from no mailbox", which is every step but a receive workflow's first.
+/// The outcome of resolving a step's mailbox rendezvous: the receipt to hand the command, or the failure that
+/// stops the attempt before the command is called. <c>default</c> is "this step receives from no mailbox".
 /// </summary>
 internal readonly record struct MailboxRendezvous(MailboxReceipt? Receipt, ExecutionResult? Failure);
 
@@ -330,8 +317,8 @@ internal static partial class WorkflowExecutorLogs
         Guid mailboxId
     );
 
-    // An engine invariant violation, not a caller mistake: the rendezvous releases a receiver only once
-    // its message exists or its mailbox has closed, and a closed mailbox never reopens.
+    // An engine invariant violation, not a caller mistake: the rendezvous releases a receiver only once its
+    // message exists or its mailbox has closed, and a closed mailbox never reopens.
     [LoggerMessage(
         LogLevel.Error,
         "Step {Step} of receive workflow {Workflow} is running at position {Seq} of mailbox {MailboxId}, which is still open and holds no message there"

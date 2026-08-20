@@ -171,17 +171,10 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // The first act on mailbox state, and it is scoped to requests that are actually new. Every
-            // operation that assigns a position or changes what positions mean takes the mailbox's row
-            // lock before reading anything it decides on, so a receiver's whole verdict — its position,
-            // the delivery it may already have, and the mailbox's status — comes from one snapshot
-            // nobody can move underneath it.
-            //
-            // It runs after the idempotency insert rather than before because that insert is what tells
-            // a replay from a first arrival, and a replay consumes no position: locking for one would
-            // stall every unrelated caller batched into this flush behind a delivery or a close, for a
-            // request that is going to be answered from engine.idempotency_keys alone. A batch with no
-            // new receiver in it issues nothing at all.
+            // The first act on mailbox state, and scoped to requests that are actually new: a receiver's whole
+            // verdict — its position, any delivery already at it, and the mailbox's status — has to come from one
+            // snapshot nobody can move underneath it. After the idempotency insert, because a replay consumes no
+            // position and locking for one would stall the rest of the flush behind it.
             var mailboxes = await LockAndReadMailboxes(conn, requests, newRequestIndices, cancellationToken);
 
             var receiverPlan = PlanMailboxReceivers(
@@ -215,10 +208,9 @@ internal sealed partial class EngineRepository
 
             foreach (var (index, primaryIndex) in duplicates)
             {
-                // An intra-batch duplicate normally classifies against the stored idempotency key. A
-                // duplicate of a request the flush *refused* cannot: the flush released that key, so
-                // there is nothing to classify against and the honest answer is the primary's own
-                // verdict.
+                // An intra-batch duplicate normally classifies against the stored idempotency key. A duplicate of a
+                // request the flush *refused* cannot: the flush released that key, so the primary's own verdict is
+                // the only honest answer.
                 if (results[primaryIndex] is { } primary && IsMailboxRejection(primary.Status))
                     results[index] = primary;
                 else
@@ -372,9 +364,8 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
-        // The pairs repeat, and the repeat is ordinary rather than exotic: three requests sharing one
-        // (namespace, key) leave two intra-batch duplicates classifying against the same stored row.
-        // Distinct() keeps the unnest a set, so the join cannot hand back that row once per repeat.
+        // Three requests sharing one (namespace, key) leave two intra-batch duplicates classifying against the
+        // same stored row. Distinct() keeps the unnest a set, so the join cannot return that row per repeat.
         var (keys, namespaces) = existingRequestIndices
             .Select(i =>
                 (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
@@ -395,10 +386,8 @@ internal sealed partial class EngineRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        // Indexer rather than ToDictionary, and not only as a belt to Distinct's braces: a duplicate
-        // key here throws ArgumentException from inside the flush, which fails every unrelated caller
-        // the write buffer batched into the same transaction. A repeated row carries the same stored
-        // values by construction, so keeping the last one is not a choice between answers.
+        // Indexer rather than ToDictionary: a duplicate key here throws from inside the flush and fails every
+        // unrelated caller batched into the same transaction. A repeated row carries the same stored values.
         var existingLookup = new Dictionary<(string Key, string Namespace), (byte[] Hash, Guid[] WorkflowIds)>();
         foreach (var entity in existingEntities)
             existingLookup[(entity.IdempotencyKey, entity.Namespace)] = (entity.RequestBodyHash, entity.WorkflowIds);
@@ -490,17 +479,11 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Removes requests that share a (namespace, idempotency key) with an earlier request in the same
-    /// batch from <paramref name="indicesToCheck"/>, and returns each one paired with the index of the
-    /// request it duplicates.
+    /// Removes requests that share a (namespace, idempotency key) with an earlier request in the same batch from
+    /// <paramref name="indicesToCheck"/>, and returns each one paired with the index of the request it duplicates.
+    /// The pairing matters because a request the flush refuses over its mailbox releases its key, so its
+    /// intra-batch duplicates have to inherit its verdict rather than read a key that no longer exists.
     /// </summary>
-    /// <remarks>
-    /// The pairing matters because a duplicate is normally resolved after the transaction by reading the
-    /// stored idempotency key — which only works while that key exists. A request the flush refuses over
-    /// its mailbox releases its key, so its intra-batch duplicates have to inherit its verdict instead.
-    /// The primary is the last <em>kept</em> request of the key group, so a run of three duplicates all
-    /// point at the one request that was actually processed.
-    /// </remarks>
     private static List<(int Index, int PrimaryIndex)> RemoveDuplicates(
         IReadOnlyList<BufferedEnqueueRequest> requests,
         List<int> indicesToCheck
@@ -673,28 +656,16 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// One mailbox's state, read under its row lock: everything a receiver's birth depends on and
-    /// nothing else.
+    /// One mailbox's state, read under its row lock: everything a receiver's birth depends on and nothing else.
+    /// Deliveries are gapless, so <c>seq &lt; NextIdx</c> is exactly "a delivery already sits at this receiver's
+    /// position".
     /// </summary>
-    /// <param name="Namespace">
-    /// Re-checked against the enqueuing request, so the flush stands on its own rather than trusting a
-    /// caller to name a mailbox it can reach.
-    /// </param>
-    /// <param name="IsDisposed">Whether the mailbox is closed to further deliveries.</param>
-    /// <param name="NextIdx">
-    /// The deliveries log's next position. Deliveries are gapless, so <c>seq &lt; NextIdx</c> is exactly
-    /// "a delivery already sits at this receiver's position" — one comparison, no lookup.
-    /// </param>
-    /// <param name="NextSeq">The receivers log's next position, and the one this flush hands out from.</param>
     private sealed record MailboxReceiverRow(string Namespace, bool IsDisposed, long NextIdx, long NextSeq);
 
     /// <summary>
-    /// How many receivers a flush created in each of the three birth states, and how to publish that.
+    /// How many receivers a flush created in each of the three birth states, and how to publish that — after the
+    /// commit, because a birth that rolled back is not a birth.
     /// </summary>
-    /// <remarks>
-    /// Published after the commit, deliberately: a birth that rolled back is not a birth, and this is
-    /// the one metric an operator uses to tell "the relay is running" from "the relay is parked".
-    /// </remarks>
     private readonly record struct MailboxBirthCounts(long Delivered, long Closed, long Held)
     {
         public void Record()
@@ -711,20 +682,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// One receiver's registration at the position the flush handed it.
+    /// One receiver's registration at the position the flush handed it. Exactly one of <c>HeldAt</c> and
+    /// <c>ReleasedAt</c> is set: the receiver parked, or it was born runnable.
     /// </summary>
-    /// <param name="MailboxId">The mailbox the receiver reads from.</param>
-    /// <param name="Seq">The position the flush handed it.</param>
-    /// <param name="WorkflowId">The receive workflow standing at that position.</param>
-    /// <param name="HeldAt">
-    /// The birth instant when the receiver parked, <c>null</c> when it was born runnable — the registry's
-    /// one structural distinction, and what keeps the wake-to-claim histogram measuring a wake.
-    /// </param>
-    /// <param name="ReleasedAt">
-    /// The birth instant when the receiver was born runnable, <c>null</c> when it parked and is waiting
-    /// for a release to stamp it. Exactly one of the two is set; a row with both null would be a receiver
-    /// that neither waited nor became runnable.
-    /// </param>
     private readonly record struct MailboxReceiverRegistration(
         Guid MailboxId,
         long Seq,
@@ -733,19 +693,12 @@ internal sealed partial class EngineRepository
         DateTimeOffset? ReleasedAt
     );
 
-    /// <summary>What one flush decided about the mailbox receivers it was handed.</summary>
-    /// <param name="RejectedRequestIndices">
-    /// Request indices whose receiver could not be born. Already removed from the batch's new-request set
-    /// and already given a result; their idempotency keys must be released before the transaction commits.
-    /// </param>
-    /// <param name="Registrations">
-    /// One row per receiver the flush created, whatever state it was born in. Not only the parked ones:
-    /// the position is what the executor reads its delivery by, so a receiver born runnable needs it
-    /// recorded just as much — and recording only the parked ones would leave a running receiver's
-    /// position nowhere in the database.
-    /// </param>
-    /// <param name="SeqAdvances">Per mailbox, how many positions this flush consumed.</param>
-    /// <param name="Births">What to count once the transaction commits.</param>
+    /// <summary>
+    /// What one flush decided about the mailbox receivers it was handed. <c>RejectedRequestIndices</c> are already
+    /// out of the new-request set and already answered, but their idempotency keys must be released before commit.
+    /// <c>Registrations</c> covers every receiver the flush created, not only the parked ones: the position is what
+    /// the executor reads its delivery by.
+    /// </summary>
     private sealed record MailboxReceiverPlan(
         List<int> RejectedRequestIndices,
         List<MailboxReceiverRegistration> Registrations,
@@ -760,28 +713,13 @@ internal sealed partial class EngineRepository
         status is BatchEnqueueResultStatus.MailboxNotFound or BatchEnqueueResultStatus.MailboxLogFull;
 
     /// <summary>
-    /// Locks the row of every mailbox this batch declares a receiver for and reads the state their birth
-    /// is decided from. The transaction's first act on mailbox state, so a receiver's position, the
-    /// delivery it may already have, and the mailbox's status all come from one snapshot nobody else can
-    /// move underneath it.
+    /// Locks the row of every mailbox this batch declares a receiver for and reads the state their birth is decided
+    /// from. The lock is what leaves only two interleavings between a delivery and its receiver's enqueue:
+    /// delivery first, and this read sees a <c>next_idx</c> past the receiver's position, so it is born runnable;
+    /// enqueue first, and its held registry row exists before the delivery can take the lock, so the wake finds it.
+    /// Returns <c>null</c> when the batch declares no mailbox at all, which is what keeps the ordinary enqueue path
+    /// free of mailbox statements — an empty dictionary means the named mailboxes do not exist and must be refused.
     /// </summary>
-    /// <remarks>
-    /// There are exactly two orders in which a delivery and its receiver's enqueue can interleave, and
-    /// the lock decides between them rather than leaving a third: whichever transaction takes the row
-    /// lock first commits first. Delivery first, and this read sees a <c>next_idx</c> already past the
-    /// receiver's position, so the receiver is born runnable with that delivery and registers already
-    /// released. Enqueue first, and its registry row exists — held, unreleased — before the delivery's
-    /// transaction can take the lock, so the wake finds it. A receiver cannot be born parked
-    /// <em>after</em> a delivery for its position was
-    /// accepted, because being born requires this lock, which the delivering transaction holds until it
-    /// commits.
-    /// </remarks>
-    /// <returns>
-    /// <c>null</c> when the batch declares no mailbox at all — the signal that keeps the ordinary enqueue
-    /// path free of mailbox work, and the reason a batch of plain workflows issues no extra statement. An
-    /// empty dictionary is a different thing entirely: receivers were enqueued for mailboxes that do not
-    /// exist, and must be refused rather than created as ordinary workflows.
-    /// </returns>
     private static async Task<Dictionary<Guid, MailboxReceiverRow>?> LockAndReadMailboxes(
         NpgsqlConnection conn,
         IReadOnlyList<BufferedEnqueueRequest> requests,
@@ -804,9 +742,8 @@ internal sealed partial class EngineRepository
 
         var ids = mailboxIds.ToArray();
 
-        // ORDER BY is what makes concurrent flushes take these rows in the same order and therefore
-        // unable to deadlock each other; the SortedSet above only dedupes the ids and hands them over
-        // already sorted.
+        // ORDER BY is what makes concurrent flushes take these rows in the same order and therefore unable to
+        // deadlock each other.
         const string sql = """
             SELECT m.id, m.namespace, m.status, m.next_idx, m.next_seq
             FROM engine.mailboxes m
@@ -837,31 +774,13 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Decides, for every mailbox receiver this flush is about to insert, the position it consumes and
-    /// the state it is born in — the three cases the design turns on. Pure bookkeeping over the locked
-    /// snapshot; the writes it implies are folded into the bulk-insert data the caller is about to COPY
-    /// and into the plan the caller writes afterwards.
+    /// Decides, for every mailbox receiver this flush is about to insert, the position it consumes and the state it
+    /// is born in. A receiver is born <see cref="PersistentItemStatus.Enqueued"/> with its delivery when one
+    /// already sits at its position; born <see cref="PersistentItemStatus.Enqueued"/> with the closing signal when
+    /// the mailbox is closed; and born <see cref="PersistentItemStatus.Held"/> otherwise. The first case outranks
+    /// the second, so a saga replaying after the deadline still drains the backlog it was promised. Positions fold
+    /// sequentially in request order, and a request is refused whole or not at all.
     /// </summary>
-    /// <remarks>
-    /// The birth state is the whole point, so it is worth stating plainly. A receiver is born
-    /// <see cref="PersistentItemStatus.Enqueued"/> with its delivery when one already sits at its
-    /// position; born <see cref="PersistentItemStatus.Enqueued"/> with the closing signal when the
-    /// mailbox is closed and no delivery can arrive; and born <see cref="PersistentItemStatus.Held"/>
-    /// otherwise. All three register their position; only the third registers as held, and only a held
-    /// registration is ever released. The first case takes precedence over the second, which is the one
-    /// that looks wrong and is not: <strong>an accepted delivery outranks closure</strong>, so a saga
-    /// replaying after the deadline drains the backlog it was promised instead of dropping it.
-    /// <para>
-    /// Positions fold sequentially in request order within the flush, the same rule collection heads
-    /// follow, so two receivers for one mailbox in one batch take consecutive positions rather than both
-    /// taking the one the batch started at. Across flushes the mailbox row lock does the same job.
-    /// </para>
-    /// <para>
-    /// A request is refused whole or not at all — it carries one idempotency key, so half of it cannot be
-    /// kept — which is why the positions a request would consume are held aside until every receiver in
-    /// it is known to be born.
-    /// </para>
-    /// </remarks>
     private MailboxReceiverPlan PlanMailboxReceivers(
         IReadOnlyList<BufferedEnqueueRequest> requests,
         List<int> newRequestIndices,
@@ -876,9 +795,8 @@ internal sealed partial class EngineRepository
 
         var cap = settings.Value.MaxMailboxLogLength;
 
-        // One clock read for the whole flush, from the engine's own time provider rather than the
-        // callers' metadata: these stamps are compared against release and claim instants the engine
-        // writes, so they have to come from the same clock those do.
+        // One clock read for the whole flush, from the engine's own time provider: these stamps are compared
+        // against release and claim instants the engine writes.
         var now = timeProvider.GetUtcNow();
         var rejected = new List<int>();
         var registrations = new List<MailboxReceiverRegistration>();
@@ -947,13 +865,9 @@ internal sealed partial class EngineRepository
 
                 if (hasDelivery || mailbox.IsDisposed)
                 {
-                    // Runnable at birth: its truth is already frozen, so there is nothing to wait for.
-                    // It still registers — the position is what the executor reads its delivery by, and
-                    // leaving it unrecorded is what would make the executor answer "no delivery" for a
-                    // message sitting at that very position. Born released, never held, so no release
-                    // statement will ever match the row. Which of the two births it was, the executor
-                    // re-derives from the deliveries table at every attempt rather than from anything
-                    // written here.
+                    // Runnable at birth: its truth is already frozen. It still registers, because the position
+                    // is what the executor reads its delivery by. Born released, never held, so no release
+                    // statement can match it.
                     entity.Status = PersistentItemStatus.Enqueued;
                     registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, null, now));
 
@@ -987,9 +901,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Deletes the idempotency keys this transaction inserted for requests it then refused, so a refusal
-    /// leaves no trace: the same request may be made again once the reason for the refusal is gone,
-    /// rather than deduplicating onto workflows that were never created.
+    /// Deletes the idempotency keys this transaction inserted for requests it then refused, so the same request may
+    /// be made again once the reason for the refusal is gone.
     /// </summary>
     private static async Task ReleaseIdempotencyKeys(
         NpgsqlConnection conn,
@@ -1018,15 +931,11 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Writes the rendezvous half of the flush: a registry row for every receiver the flush created, and
-    /// the advance of each mailbox's receivers counter by the number of positions the flush consumed.
+    /// Writes the rendezvous half of the flush: a registry row for every receiver the flush created, and the
+    /// advance of each mailbox's receivers counter by the number of positions the flush consumed. The transaction
+    /// is what makes the log gapless — every position handed out is written with the counter that consumed it, or
+    /// not at all.
     /// </summary>
-    /// <remarks>
-    /// The counter is advanced relative to its own current value rather than set to the value the plan
-    /// read, which under the mailbox row lock amounts to the same thing and would still be gapless if the
-    /// lock were ever lost. What actually makes the log gapless is the transaction: every position this
-    /// flush handed out is either written with the counter that consumed it, or written not at all.
-    /// </remarks>
     private static async Task WriteMailboxReceivers(
         NpgsqlConnection conn,
         MailboxReceiverPlan plan,
@@ -1497,45 +1406,13 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Records how long each just-claimed mailbox receiver waited between its release and this claim, and
-    /// stamps the registry so no later claim of the same receiver is timed again.
+    /// Records how long each just-claimed mailbox receiver waited between its release and this claim, and stamps
+    /// the registry so no later claim of the same receiver is timed again. A batch of ordinary workflows returns
+    /// before issuing any SQL. <c>claimed_at IS NULL</c> keeps the measurement once per release rather than once
+    /// per retry attempt, and <c>held_at IS NOT NULL</c> keeps it about the wake: a receiver born runnable never
+    /// waited, so its gap is an ordinary fetch cycle. The duration is clamped at zero because its two ends are
+    /// read from two pods' clocks.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// The claim query above is untouched — this runs after it, on the ids it already returned, and only
-    /// when the batch actually contains a receiver. A batch of ordinary workflows returns here before
-    /// issuing any SQL at all, which is the same discipline the enqueue flush follows: the mailbox
-    /// feature costs the hot path a null check and nothing else until an app declares a mailbox.
-    /// </para>
-    /// <para>
-    /// <c>claimed_at IS NULL</c> is what makes the measurement once-per-release rather than
-    /// once-per-attempt. Without it a receiver that fails and works its way up the retry ladder would
-    /// report the whole ladder as wake latency on every claim, and the upper percentiles of a metric
-    /// whose entire job is to show a sub-second gap would be measuring something else.
-    /// </para>
-    /// <para>
-    /// <c>held_at IS NOT NULL</c> is what keeps the histogram about the <em>wake</em>. Every receiver
-    /// registers its position, including one born runnable — which was released at birth and never
-    /// waited for anything, so the gap between its release and its claim is an ordinary fetch cycle, not
-    /// a wake. Timing those would swamp a metric built to show a sub-second gap with the poll interval,
-    /// and in the common early-delivery case they would be most of the samples. The claim is still
-    /// stamped for them, because <c>claimed_at</c> means what it says; only the measurement is skipped,
-    /// which is why the filtering happens in the projection rather than in the <c>WHERE</c>.
-    /// </para>
-    /// <para>
-    /// It shares the failure class of the entity load beside it: both are post-claim statements on the
-    /// same connection, and a failure in either loses the batch to the stale-workflow sweep rather than
-    /// corrupting anything. That is why it is written plainly instead of being wrapped in a swallow —
-    /// the fetch already tolerates exactly this.
-    /// </para>
-    /// <para>
-    /// The duration is clamped at zero, for the same reason <c>WorkflowHandler.AttemptAnchor</c> clamps:
-    /// the two ends of it are read from two clocks. <c>released_at</c> was stamped by whichever pod took
-    /// the delivery or ran the close, and <c>now</c> is this pod's, so ordinary NTP skew can put the
-    /// release marginally in this pod's future. A negative sample is not a signal about the wake, and a
-    /// histogram is the wrong place to discover clock drift.
-    /// </para>
-    /// </remarks>
     private static async Task RecordWakeToClaimLatency(
         EngineDbContext context,
         List<WorkflowEntity> claimed,

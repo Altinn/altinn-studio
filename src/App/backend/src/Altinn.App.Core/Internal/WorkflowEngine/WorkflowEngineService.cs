@@ -534,14 +534,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     && stopwatch.ElapsedMilliseconds >= WorkflowParkedReleaseGraceMs
                 )
                 {
-                    // The chain is parked — on a deferring service task, or on a mailbox receive
-                    // workflow waiting for its message — and may stay so for its whole budget; holding
-                    // the request would misreport a designed wait as a timeout. Both are post-commit by
-                    // construction (only ExecuteServiceTask defers, and only a step after
-                    // SaveProcessStateToStorage enqueues a receiver), so the instance already carries
-                    // the committed target task and the ordinary success shape applies — the read-path
-                    // workflow annotation renders the waiting UI from here. The grace window lets quick
-                    // polls complete synchronously.
+                    // The chain is parked — on a deferring service task, or on a mailbox receive workflow
+                    // waiting for its message — and may stay so for its whole budget; holding the request
+                    // would misreport a designed wait as a timeout. Both are post-commit by construction, so
+                    // the instance already carries the committed target task and the ordinary success shape
+                    // applies. The grace window lets quick polls complete synchronously.
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
                         await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
                         sinceWorkflowId
@@ -689,11 +686,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     // Waiting counts as active: a step that deferred while awaiting an external outcome is still
     // mid-transition, holding no lease but owning the process. Reading it as settled would let the
     // wait return success on an uncommitted transition and let the next action start on top of it.
-    // Held counts for the same reason and is the stronger case: a mailbox receive workflow born parked
-    // is the whole of what remains of its transition, so reading it as settled is precisely the
-    // silent early-execution of downstream work the mailbox design's frontier convention exists to
-    // prevent. Neither status appears on a workflow this app-lib enqueues except a receiver, so this
-    // is dead weight for every other transition.
+    // Held counts for the same reason and is the stronger case: a mailbox receive workflow born parked is the
+    // whole of what remains of its transition, so reading it as settled is the silent early execution of
+    // downstream work the frontier convention exists to prevent.
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
@@ -710,10 +705,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.Waiting
                 or PersistentItemStatus.Held;
 
-    // Parked: active, but with nothing running and nothing scheduled to run — the transition is waiting
-    // on the outside world and may do so for its whole budget. A deferred step polls for its outcome;
-    // a Held receiver waits to be woken by a message or by its mailbox closing. Holding the HTTP
-    // request for either would misreport a designed wait as a timeout.
+    // Parked: active, but with nothing running and nothing scheduled to run. A deferred step polls for its
+    // outcome; a Held receiver waits to be woken. Holding the HTTP request for either would misreport a
+    // designed wait as a timeout.
     private static bool IsParkedCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status is PersistentItemStatus.Waiting or PersistentItemStatus.Held;
 

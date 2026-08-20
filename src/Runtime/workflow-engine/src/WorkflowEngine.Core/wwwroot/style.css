@@ -2783,9 +2783,8 @@ pre.diff-remove {
     color: var(--text-dim);
     white-space: nowrap;
 }
-/* A message standing unconsumed wants attention; one a receiver took is done. Parked borrows the
- * Held pill's dashed cyan, and released-by-closure the gray of the terminal statuses — the same
- * vocabulary the workflow rows above use, so the two sides of the rendezvous read as one. */
+/* Parked borrows the Held pill's dashed cyan and released-by-closure the gray of the terminal
+ * statuses, so the two sides of the rendezvous read as one vocabulary with the workflow rows. */
 .mbx-pos.delivered {
     color: var(--amber);
     border-color: var(--amber);

@@ -63,15 +63,11 @@ public enum PersistentItemStatus
     Waiting = 8,
 
     /// <summary>
-    /// Workflow-only. Born parked: the workflow exists, is durable and visible, and has not started —
-    /// it is held until an external event releases it. Today the only such event is a mailbox
-    /// rendezvous: a workflow that declared <see cref="WorkflowRequest.Mailbox"/> and found neither its
-    /// delivery nor a closed mailbox at its position waits here until the delivery arrives or the
-    /// mailbox closes. Deliberately <em>absent</em> from the fetch gate's status list
-    /// (<c>PersistentItemStatusMap.Fetchable</c> in the data layer), so no worker ever picks it
-    /// up: it holds no lease, no heartbeat and no backoff, and it has no timer of its own — the release
-    /// is transactional with its cause, and the mailbox's deadline is what bounds the wait. Non-terminal,
-    /// so dependents stay blocked and it counts as active. Never observed on a <see cref="Step"/>.
+    /// Workflow-only. Born parked: the workflow exists, is durable and visible, and has not started — it is held
+    /// until an external event releases it. Today the only such event is a mailbox rendezvous. Deliberately absent
+    /// from the fetch gate's status list, so no worker ever picks it up: it holds no lease, no heartbeat and no
+    /// backoff, and it has no timer of its own. Non-terminal, so dependents stay blocked and it counts as active.
+    /// Never observed on a <see cref="Step"/>.
     /// </summary>
     Held = 9,
 }

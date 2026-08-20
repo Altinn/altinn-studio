@@ -6,19 +6,11 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
 /// <summary>
-/// The built-in <see cref="IFiksArkivResponseHandler"/>: it records what the archive said and leaves
-/// every decision to <see cref="FiksArkivServiceTask"/>.
+/// The built-in <see cref="IFiksArkivResponseHandler"/>: it records what the archive said and leaves every
+/// decision to <see cref="FiksArkivServiceTask"/>. It used to move the process and mark the instance complete
+/// from <c>successHandling</c>/<c>errorHandling</c>, because it ran in the Fiks IO subscriber and nothing else
+/// could; the task now applies those settings itself. They mean exactly what they meant before.
 /// </summary>
-/// <remarks>
-/// It used to move the process and mark the instance complete from <c>successHandling</c>/
-/// <c>errorHandling</c>, because it ran in the Fiks IO subscriber and nothing else could. The task now
-/// applies those settings itself, as the verdict of the transition the message belongs to, and doing it
-/// here as well could not advance the process a second time anyway: this runs inside that transition,
-/// so <c>process/next</c> answers <c>409 Conflict</c> and the only thing achieved is a stalled shipment.
-/// The settings mean exactly what they meant before —
-/// see <see cref="Models.FiksArkivSuccessHandlingSettings"/> and
-/// <see cref="Models.FiksArkivErrorHandlingSettings"/> — they are simply applied in one place now.
-/// </remarks>
 internal sealed class FiksArkivDefaultResponseHandler : IFiksArkivResponseHandler
 {
     private readonly ILogger<FiksArkivDefaultResponseHandler> _logger;

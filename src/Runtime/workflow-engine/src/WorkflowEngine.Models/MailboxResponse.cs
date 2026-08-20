@@ -15,21 +15,15 @@ public sealed record MailboxResponse
     [JsonPropertyName("id")]
     public required Guid Id { get; init; }
 
-    /// <summary>
-    /// Gets the namespace that owns the mailbox.
-    /// </summary>
+    /// <summary>Gets the namespace that owns the mailbox.</summary>
     [JsonPropertyName("namespace")]
     public required string Namespace { get; init; }
 
-    /// <summary>
-    /// Gets the caller's key for the mint that created this mailbox, unique within the namespace.
-    /// </summary>
+    /// <summary>Gets the caller's key for the mint that created this mailbox, unique within the namespace.</summary>
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
 
-    /// <summary>
-    /// Gets the workflow-collection key the mailbox is grouped under, when one was supplied.
-    /// </summary>
+    /// <summary>Gets the workflow-collection key the mailbox is grouped under, when one was supplied.</summary>
     [JsonPropertyName("collectionKey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? CollectionKey { get; init; }
@@ -49,9 +43,7 @@ public sealed record MailboxResponse
     [JsonPropertyName("deadline")]
     public required DateTimeOffset Deadline { get; init; }
 
-    /// <summary>
-    /// Gets the current lifecycle status.
-    /// </summary>
+    /// <summary>Gets the current lifecycle status.</summary>
     [JsonPropertyName("status")]
     public required MailboxStatus Status { get; init; }
 
@@ -78,21 +70,14 @@ public sealed record MailboxResponse
     public required long NextSeq { get; init; }
 
     /// <summary>
-    /// Gets the number of accepted deliveries no receiver was ever enqueued for.
+    /// Gets the number of accepted deliveries no receiver was ever enqueued for. Derived from the two counters
+    /// rather than counted, which is exact because both logs are gapless: a delivery at position <c>i</c> is
+    /// consumed exactly when a receiver was enqueued at <c>seq = i</c>.
     /// </summary>
-    /// <remarks>
-    /// Derived from the two counters rather than counted from rows, which is exact because both logs are
-    /// gapless and neither is ever partially pruned: a delivery at position <c>i</c> is consumed exactly
-    /// when a receiver was enqueued at <c>seq = i</c>, so every position from <see cref="NextSeq"/> up to
-    /// <see cref="NextIdx"/> is a message that arrived with nobody to read it. It therefore reads zero
-    /// while no deliveries exist, by arithmetic rather than by a placeholder.
-    /// </remarks>
     [JsonPropertyName("unconsumedDeliveries")]
     public long UnconsumedDeliveries => Math.Max(0, NextIdx - NextSeq);
 
-    /// <summary>
-    /// Gets when the mailbox was minted.
-    /// </summary>
+    /// <summary>Gets when the mailbox was minted.</summary>
     [JsonPropertyName("createdAt")]
     public required DateTimeOffset CreatedAt { get; init; }
 

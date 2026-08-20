@@ -39,22 +39,12 @@ internal static class EngineRepositoryQueryExtensions
         /// cancellation bypass.
         /// </summary>
         /// <remarks>
-        /// Deliberately close to the fetch gate's own conditions, because the predicate's whole value is
-        /// being exact about what a worker can claim:
-        /// <list type="bullet">
-        ///   <item>the gate's <em>status list</em> (<see cref="PersistentItemStatusMap.Fetchable"/>), not
-        ///         the wider <see cref="PersistentItemStatusMap.Incomplete"/> — a workflow in
-        ///         <see cref="PersistentItemStatus.Held"/> is unsettled but categorically unfetchable;</item>
-        ///   <item>the <em>timer</em> gate, with the same cancellation bypass. Wider than the gate's by one
-        ///         term: the gate reads only <c>backoff_until</c>, which an enqueue copies
-        ///         <c>StartAt</c> into, while this also reads <c>StartAt</c> itself — harmless, because a
-        ///         row whose start time has not arrived has the same value in both columns;</item>
-        ///   <item>the <em>dependency</em> gate — an unsettled dependency keeps a row out of the fetch, and
-        ///         a dependency can now stay unsettled indefinitely (a held mailbox receiver), so leaving
-        ///         this out would count a permanently blocked dependent as runnable.</item>
-        /// </list>
-        /// Getting any of them wrong turns "wait until nothing can start" — which the test harness relies
-        /// on before truncating — into a wait that never ends.
+        /// Deliberately close to the fetch gate's own conditions, because the predicate's whole value is being exact
+        /// about what a worker can claim: the gate's status list (<see cref="PersistentItemStatusMap.Fetchable"/>)
+        /// rather than the wider <see cref="PersistentItemStatusMap.Incomplete"/>; the timer gate, with the same
+        /// cancellation bypass; and the dependency gate, which matters now that a dependency can stay unsettled
+        /// indefinitely (a held mailbox receiver). Getting any of them wrong turns "wait until nothing can start" —
+        /// which the test harness relies on before truncating — into a wait that never ends.
         /// </remarks>
         public IQueryable<WorkflowEntity> GetRunnableWorkflows() =>
             dbContext.Workflows.Where(wf =>

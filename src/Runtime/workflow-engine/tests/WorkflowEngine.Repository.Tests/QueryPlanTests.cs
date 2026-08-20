@@ -215,11 +215,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SelectOverdueMailboxCandidates_UsesIndexScans()
     {
-        // The scan the deadline sweep runs on every cadence whether or not anything is overdue, so what it
-        // costs when nothing is is the cost that matters. ix_mailboxes_deadline_open is partial on 'open'
-        // and ordered by deadline — the sweep's own predicate and ordering — so a quiet tick reads the
-        // leading entry, finds a deadline in the future and stops. Without it this degrades to a full scan
-        // of every mailbox the engine has ever held open, plus a sort to honor the ORDER BY.
+        // The scan the deadline sweep runs on every cadence whether or not anything is overdue, so what it costs
+        // when nothing is is the cost that matters. ix_mailboxes_deadline_open is partial on 'open' and ordered
+        // by deadline, so a quiet tick reads the leading entry and stops.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -239,9 +237,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task SelectExpiredMailboxCandidates_UsesIndexScans()
     {
         // The retention purge's mirror image, and the more expensive one to get wrong: closed mailboxes
-        // accumulate for a whole retention period, so this is the scan that grows without bound. The
-        // ORDER BY is what makes the index worth having twice over — without ix_mailboxes_disposed_at the
-        // planner both scans every row and sorts the survivors externally.
+        // accumulate for a whole retention period. The ORDER BY is what makes the index worth having twice
+        // over — without ix_mailboxes_disposed_at the planner scans every row and sorts the survivors.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -263,15 +260,11 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SelectMailboxesForCollections_UsesIndexScans()
     {
-        // The dashboard re-issues this read while it is open, so what matters is that no part of it scales
-        // with the number of mailboxes the engine retains. ix_mailboxes_namespace_collection_key is why the
-        // candidate set does not: without the collection key indexed the same filter is a sequential scan of
-        // every retained mailbox — 834 buffers against 40,000 rows at the design's own per-collection
-        // density, versus 3 through the index — and a partial index on 'open' could not serve it at all,
-        // since the read is deliberately status-agnostic. The trailing status column is ignorable here and
-        // load-bearing for the mint, which is the point of the shared index (see the mint's plan test below).
-        // The two child tables are reached by primary key, one correlated scan of each per mailbox, which is
-        // what keeps the positions bounded by one mailbox's log rather than by the whole delivery log.
+        // The dashboard re-issues this read while it is open, so no part of it may scale with the number of
+        // mailboxes retained. ix_mailboxes_namespace_collection_key is why the candidate set does not — 3
+        // buffers against 834 for a sequential scan at the design's per-collection density — and a partial
+        // index on 'open' could not serve it, since the read is deliberately status-agnostic. The two child
+        // tables are reached by primary key, one correlated scan of each per mailbox.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -295,16 +288,11 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_CountsACollectionsOpenMailboxesThroughTheSharedIndex()
     {
-        // The other half of ix_mailboxes_namespace_collection_key's job, and the path that actually runs on
-        // every mint rather than only while a dashboard is open. The cap's `open_count` CTE is three equality
-        // predicates over (namespace, collection_key, status) — exactly the index's key, in order — so it is
-        // answered index-only without touching the heap. This is what makes one shared index better than the
-        // partial index it replaced plus a full one beside it: the count went from 4 buffers to 2, and a mint
-        // now maintains one index entry instead of two.
-        //
-        // Worth pinning here specifically because the widening was done for the dashboard's benefit. Nothing
-        // else asserts anything about the plan of the mint, so a future narrowing back to two columns would
-        // cost the cap its index-only count with no test to say so.
+        // The other half of ix_mailboxes_namespace_collection_key's job, and the path that runs on every mint.
+        // The cap's `open_count` CTE is three equality predicates over exactly the index's key, in order, so
+        // it is answered index-only. Pinned here because the widening was done for the dashboard's benefit:
+        // nothing else asserts anything about the mint's plan, so a narrowing back to two columns would cost
+        // the cap its index-only count with no test to say so.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -332,10 +320,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CountOverdueOpenMailboxes_UsesIndexScans()
     {
-        // The gauge's read, and the one that runs most often of the three that scan this table — the metrics
-        // cadence rather than the sweep's. It has no LIMIT, so it visits every row that qualifies; being
-        // zero on a healthy engine is what makes that free, and ix_mailboxes_deadline_open is what makes it
-        // free rather than a full scan that happens to count nothing.
+        // The gauge's read, which runs most often of the three that scan this table. It has no LIMIT, so it
+        // visits every row that qualifies; being zero on a healthy engine is what makes that free.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -491,13 +477,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
-        // Mailboxes, shaped for the two sweeps that scan this table. Both queries are ORDER BY ... LIMIT,
-        // so what decides the plan is whether the ordered index can stop early — which it only can when
-        // many more rows qualify than the LIMIT takes. That is deliberately the shape seeded here: ~5,000
-        // overdue against a batch of 100, and ~20,000 past the retention cutoff against a batch of 1,000.
-        // It is also the regime that matters, since a backlog bigger than one batch is exactly when a scan
-        // and sort over every qualifying row is the thing worth not doing. At a few thousand rows the whole
-        // table fits in too few pages for the planner to care either way, so the seed is sized past that.
+        // Mailboxes, shaped for the two sweeps that scan this table. Both queries are ORDER BY ... LIMIT, so the
+        // plan turns on whether the ordered index can stop early — which it only can when many more rows
+        // qualify than the LIMIT takes, which is the regime seeded here and the one that matters.
         //   g % 4 == 0 → open     (of those, g % 8 == 0 → deadline already passed)
         //   g odd      → disposed, disposed_at well past the retention cutoff
         //   g % 4 == 2 → disposed, disposed_at recent
@@ -538,13 +520,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         }
 
         // Two deliveries and two receiver registrations per mailbox, so the dashboard read's child joins are
-        // planned against populated tables in the proportion the design produces (a log of a few positions
-        // per mailbox, many mailboxes). Both matter. An empty child table is planned as a sequential scan of
-        // nothing, which would let a join that really did scan the whole delivery log pass unnoticed; and
-        // populating only a slice of the mailboxes makes the child tables small relative to the picked set,
-        // which tips the planner into hashing them whole — a plan that is cheap at this size and is not the
-        // one production runs. Nothing else in this file reads either table, so the rows perturb no other
-        // plan.
+        // planned against populated tables in the proportion the design produces. An empty child table is
+        // planned as a sequential scan of nothing, and populating only a slice tips the planner into hashing
+        // them whole — neither is the plan production runs.
         await using (
             var cmd = dataSource.CreateCommand(
                 """

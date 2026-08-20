@@ -344,10 +344,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// Mints a mailbox, idempotent on <c>(namespace, idempotencyKey)</c> exactly as the engine is —
-    /// the property a retried stage depends on, so the fake would be lying if it minted twice.
-    /// Nothing here delivers into the mailbox or closes it; the fake models the address, not the
-    /// rendezvous.
+    /// Mints a mailbox, idempotent on <c>(namespace, idempotencyKey)</c> exactly as the engine is — the property a
+    /// retried stage depends on. Nothing here delivers into the mailbox or closes it; the fake models the address,
+    /// not the rendezvous.
     /// </summary>
     public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
     {
@@ -376,9 +375,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// Closes a mailbox, terminal and idempotent as the engine is: a repeat close reports the
-    /// original closure rather than overwriting it. Returns <c>null</c> for an id this fake never
-    /// minted, which is the engine's <c>404</c>.
+    /// Closes a mailbox, terminal and idempotent as the engine is: a repeat close reports the original closure.
+    /// Returns <c>null</c> for an id this fake never minted, which is the engine's <c>404</c>.
     /// </summary>
     public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
     {
@@ -408,16 +406,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// Delivers a message into a mailbox, modelling the engine's response matrix: <c>404</c> for an id
-    /// this fake never minted, <c>409</c> once the mailbox is closed, <c>200</c> for a key it already
-    /// holds — including after closure, since the engine kept it — and <c>202</c> otherwise, at the
-    /// next gapless position.
+    /// Delivers a message into a mailbox, modelling the engine's response matrix: <c>404</c> for an id this fake
+    /// never minted, <c>409</c> once the mailbox is closed, <c>200</c> for a key it already holds — including after
+    /// closure, since the engine kept it — and <c>202</c> otherwise, at the next gapless position. It stores the
+    /// delivery and moves <c>nextIdx</c>, but wakes nobody: this fake models the mailbox as an address and a log.
     /// </summary>
-    /// <remarks>
-    /// It stores the delivery and moves <c>nextIdx</c>, but wakes nobody: this fake models the mailbox
-    /// as an address and a log, not the rendezvous. A test that needs a receiver to read a message
-    /// hands the message to the callback directly.
-    /// </remarks>
     public Task<MailboxDeliveryResult> DeliverToMailbox(
         string ns,
         Guid mailboxId,
@@ -427,9 +420,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     {
         string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);
 
-        // The idempotency lookup runs before the closed check, exactly as the engine's does: that
-        // ordering is the accepted-versus-kept rule, and reversing it would have a forwarder
-        // dead-letter a message the engine is still holding.
+        // The idempotency lookup runs before the closed check, exactly as the engine's does: that ordering is the
+        // accepted-versus-kept rule.
         if (_deliveriesByKey.TryGetValue(deliveryKey, out MailboxDeliveryResponse? existing))
         {
             return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null));

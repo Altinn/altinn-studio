@@ -2,9 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
-/// <summary>
-/// Lifecycle status of a mailbox.
-/// </summary>
+/// <summary>Lifecycle status of a mailbox.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<MailboxStatus>))]
 internal enum MailboxStatus
 {

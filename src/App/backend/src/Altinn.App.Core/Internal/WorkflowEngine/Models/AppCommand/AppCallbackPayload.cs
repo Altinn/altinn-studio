@@ -39,18 +39,12 @@ public sealed record AppCallbackPayload
     public required Guid WorkflowId { get; init; }
 
     /// <summary>
-    /// On a mailbox receive workflow's first step: the rendezvous this step was created to consume —
-    /// the message standing at the step's position, or the fact that none can ever stand there.
-    /// <c>null</c> on every ordinary callback, which is every step of an ordinary workflow and every
-    /// step after the first of a receive workflow.
+    /// On a mailbox receive workflow's first step: the rendezvous this step was created to consume — the message
+    /// standing at the step's position, or the fact that none can ever stand there. <c>null</c> on every ordinary
+    /// callback. The engine reads it from its deliveries log at the start of each attempt, and whether a message
+    /// stands at the position is settled before the step can first run — which is what lets a handler treat an
+    /// absent <see cref="AppCallbackMailbox.Delivery"/> as an instruction rather than as a gap.
     /// </summary>
-    /// <remarks>
-    /// The engine reads it from its deliveries log at the start of each attempt rather than baking it
-    /// into the step, because the message may not have existed when the step was created. Whether a
-    /// message stands at the position is settled before the step can first run, so a retry and a
-    /// resume see the block this attempt sees — which is what lets a handler treat an absent
-    /// <see cref="AppCallbackMailbox.Delivery"/> as an instruction rather than as a gap.
-    /// </remarks>
     [JsonPropertyName("mailbox")]
     public AppCallbackMailbox? Mailbox { get; init; }
 
@@ -112,15 +106,10 @@ public sealed record AppCallbackPayload
 }
 
 /// <summary>
-/// The mailbox rendezvous, as a receive workflow's first step is told about it.
+/// The mailbox rendezvous, as a receive workflow's first step is told about it. Exactly one of
+/// <see cref="Delivery"/> and <see cref="DisposedReason"/> is present, so an absent delivery is a statement
+/// rather than a gap: the exchange is over and this handler must conclude it.
 /// </summary>
-/// <remarks>
-/// <strong>Exactly one of <see cref="Delivery"/> and <see cref="DisposedReason"/> is present.</strong>
-/// A receiver is made runnable only by a message arriving at its position, by being created when one
-/// is already there, or by the mailbox closing — and a closed mailbox refuses further messages, so
-/// there is no third answer and no state in between. An absent delivery is therefore a statement, not
-/// a gap: the exchange is over and this handler must conclude it.
-/// </remarks>
 public sealed record AppCallbackMailbox
 {
     /// <summary>
@@ -154,9 +143,7 @@ public sealed record AppCallbackMailbox
     public MailboxDisposedReason? DisposedReason { get; init; }
 }
 
-/// <summary>
-/// One message delivered into a mailbox, as its receiver is handed it.
-/// </summary>
+/// <summary>One message delivered into a mailbox, as its receiver is handed it.</summary>
 public sealed record AppCallbackMailboxDelivery
 {
     /// <summary>
@@ -166,9 +153,7 @@ public sealed record AppCallbackMailboxDelivery
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
 
-    /// <summary>
-    /// The message body, verbatim. The engine stores it and never parses it.
-    /// </summary>
+    /// <summary>The message body, verbatim. The engine stores it and never parses it.</summary>
     [JsonPropertyName("payload")]
     public required string Payload { get; init; }
 

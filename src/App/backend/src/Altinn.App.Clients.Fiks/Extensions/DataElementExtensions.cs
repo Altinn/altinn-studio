@@ -7,15 +7,11 @@ namespace Altinn.App.Clients.Fiks.Extensions;
 internal static class DataElementExtensions
 {
     /// <summary>
-    /// Removes from the unit of work every data element the given settings would write, so the caller
-    /// can stage a single replacement. Returns what was removed, for the caller to log.
+    /// Removes from the unit of work every data element the given settings would write, so the caller can stage a
+    /// single replacement. Returns what was removed, for the caller to log. What identifies "the element these
+    /// settings own" is the pair (data type, resolved filename), not the element id — the archive record and the
+    /// confirmation record are allowed to share a data type.
     /// </summary>
-    /// <remarks>
-    /// What identifies "the element these settings own" is the pair (data type, resolved filename), not
-    /// the element id — the archive record and the confirmation record are allowed to share a data type,
-    /// and each is written once per pass through the task. Shared by both Fiks Arkiv writers so they
-    /// cannot drift apart on what counts as an existing element.
-    /// </remarks>
     public static IReadOnlyList<DataElement> RemoveDataElementsFor(
         this IInstanceDataMutator dataMutator,
         FiksArkivDataTypeSettings settings

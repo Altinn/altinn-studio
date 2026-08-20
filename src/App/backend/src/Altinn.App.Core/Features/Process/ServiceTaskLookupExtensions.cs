@@ -48,8 +48,7 @@ internal static class ServiceTaskLookupExtensions
     /// </summary>
     public static ServiceTaskPipeline ResolvePipeline(this IPipelineServiceTask task)
     {
-        // Fresh per call, so anything it records is scoped to this one Define invocation and cannot
-        // leak to another task or persist across calls.
+        // Fresh per call, so anything it records is scoped to this one Define invocation.
         var builder = new ServiceTaskPipelineBuilder();
 
         ServiceTaskPipeline pipeline =
@@ -59,15 +58,11 @@ internal static class ServiceTaskLookupExtensions
                     + "return the pipeline composed from the supplied builder."
             );
 
-        // WithReplyFrom returns the declared pipeline rather than mutating the one it was called on,
-        // so a Define that ignores its return value composes a mailbox and then hands back the
-        // pipeline from before it. That declaration marks the builder it came from — the one handed
-        // in here — so if this builder saw a declaration but the returned pipeline carries none, the
-        // author called WithReplyFrom and discarded its result, and the mailbox would never open.
-        // (A Define that instead returns a pipeline built from some other builder — a cached one, say
-        // — is judged only by whether that returned pipeline carries the declaration, which is
-        // correct: this builder never saw the call.) It is caught here rather than left for a reply
-        // nobody can send to fail to arrive.
+        // WithReplyFrom returns the declared pipeline rather than mutating the one it was called on, so a Define
+        // that ignores its return value composes a mailbox and then hands back the pipeline from before it. The
+        // declaration marks the builder it came from — the one handed in here — so a builder that saw a
+        // declaration while the returned pipeline carries none means the result was discarded and the mailbox
+        // would never open.
         if (builder.MailboxDeclared && pipeline.Mailbox is null)
         {
             throw new InvalidOperationException(

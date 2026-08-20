@@ -61,12 +61,9 @@
  */
 
 /**
- * One position of a mailbox's log, from both sides at once: the message standing there and the
- * receive workflow holding it. `state` names the position in one word — `delivered` (a message
- * nobody was enqueued for), `consumed` (receiver and message met), `waiting` (a receiver is parked
- * and its message has not come), `closed` (a receiver was released by the mailbox closing, and no
- * message ever will come). `parkedForSeconds` is absent while a receiver is still parked — count up
- * from `heldAt` instead — and absent for one that never parked at all.
+ * One position of a mailbox's log, from both sides at once: the message standing there and the receive
+ * workflow holding it. `parkedForSeconds` is absent while a receiver is still parked — count up from
+ * `heldAt` instead — and absent for one that never parked at all.
  * @typedef {{
  *   position:           number,
  *   state:              'delivered' | 'consumed' | 'waiting' | 'closed',
@@ -81,8 +78,8 @@
  */
 
 /**
- * A mailbox as `/dashboard/mailboxes` reports it. `positions` is empty for a mailbox minted but not
- * yet delivered into or received from, which is a real and often long-lived state.
+ * A mailbox as `/dashboard/mailboxes` reports it. `positions` is empty for a mailbox minted but not yet
+ * delivered into or received from.
  * @typedef {{
  *   id:                   string,
  *   namespace:            string,

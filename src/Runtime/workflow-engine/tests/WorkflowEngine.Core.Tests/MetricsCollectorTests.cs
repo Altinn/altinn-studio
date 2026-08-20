@@ -46,9 +46,8 @@ public class MetricsCollectorTests
         };
 
     /// <summary>
-    /// Runs the collector until it has asked for the overdue count once, and returns the cutoff it asked
-    /// with. The collector's loop parks on a <see cref="FakeTimeProvider"/> delay after its first pass, so
-    /// one pass is all it performs.
+    /// Runs the collector until it has asked for the overdue count once, and returns the cutoff it asked with. The
+    /// collector's loop parks on a <see cref="FakeTimeProvider"/> delay after its first pass.
     /// </summary>
     private static async Task<(DateTimeOffset Cutoff, int Limit)> RunOnePass(TimeSpan sweepInterval, long overdue)
     {
@@ -86,11 +85,9 @@ public class MetricsCollectorTests
     [Fact]
     public async Task TheOverdueCutoff_IsNowLessOneSweepCadence()
     {
-        // The arithmetic is the whole design of the gauge. Without the grace it would count every mailbox for
-        // the interval between its deadline and the tick that closes it, so a healthy engine would read
-        // non-zero and nobody could alert on it; with a grace pinned to the sweep's own cadence, anything it
-        // counts is a mailbox the sweep should already have closed. Two cadences are exercised so a
-        // hard-coded constant cannot pass.
+        // Without the grace the gauge would count every mailbox for the interval between its deadline and the tick
+        // that closes it, so a healthy engine would read non-zero and nobody could alert on it. Two cadences are
+        // exercised so a hard-coded constant cannot pass.
         Assert.Equal(_now - TimeSpan.FromMinutes(5), (await RunOnePass(TimeSpan.FromMinutes(5), overdue: 0)).Cutoff);
         Assert.Equal(_now - TimeSpan.FromMinutes(17), (await RunOnePass(TimeSpan.FromMinutes(17), overdue: 0)).Cutoff);
     }
@@ -98,21 +95,18 @@ public class MetricsCollectorTests
     [Fact]
     public async Task TheOverdueCountIsAsked_ForABoundedNumberOfRows()
     {
-        // The read runs on the metrics cadence and the incident it reports is a mass timeout, so an exact
-        // count would be at its most expensive exactly when the gauge matters — and this pass shares one
-        // try/catch with the engine's health gauge. Asking for a bounded count is what keeps a backlog from
-        // turning a monitoring read into a database timeout.
+        // The read runs on the metrics cadence and the incident it reports is a mass timeout, so an exact count
+        // would be at its most expensive exactly when the gauge matters — and this pass shares one try/catch
+        // with the engine's health gauge.
         Assert.Equal(10_000, (await RunOnePass(TimeSpan.FromMinutes(5), overdue: 0)).Limit);
     }
 
     [Fact]
     public async Task AFailingOverdueRead_DoesNotSuppressTheEnginesHealthGauge()
     {
-        // The reason the mailbox read is the pass's *last* statement. One try/catch covers the whole pass, so
-        // a read that throws anywhere in it abandons every gauge written after it — and the mailbox read is
-        // both the newest and the least important thing here, while engine health is the most. Ordered last,
-        // a mailbox read that fails costs its own gauge and nothing else. Ordered where it first landed, this
-        // test fails: health is never written.
+        // The reason the mailbox read is the pass's *last* statement: one try/catch covers the whole pass, so a
+        // read that throws abandons every gauge written after it. Ordered where it first landed, this test
+        // fails — health is never written.
         var settings = Settings(TimeSpan.FromMinutes(5));
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         repository
@@ -165,8 +159,7 @@ public class MetricsCollectorTests
     [Fact]
     public async Task TheGaugeReportsWhatTheCountReturned()
     {
-        // The wiring from the read to the published gauge, read back the way a scraper reads it — an
-        // observable gauge publishes nothing until something asks it to observe.
+        // Read back the way a scraper reads it: an observable gauge publishes nothing until something observes.
         var observed = new List<long>();
         using var listener = new MeterListener
         {

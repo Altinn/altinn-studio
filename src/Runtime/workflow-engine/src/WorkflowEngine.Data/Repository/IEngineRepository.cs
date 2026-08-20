@@ -288,15 +288,12 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Mints a mailbox with the caller-generated <paramref name="mailboxId"/>, stamping its absolute
-    /// deadline as <paramref name="now"/> plus <paramref name="timeout"/>.
-    /// Idempotent on <c>(namespace, idempotencyKey)</c>: a key that already minted a mailbox returns
-    /// that mailbox unchanged, and does so even when the collection is at its cap — refusing a replay
-    /// would strand a caller that has already published the mailbox id.
-    /// A genuinely new mailbox in a named collection is refused with
-    /// <see cref="MailboxMintResult.AtCollectionCapacity"/> once the collection holds
-    /// <paramref name="maxOpenPerCollection"/> open mailboxes. A mailbox minted without a collection key
-    /// is not capped — there is no collection to count it against.
+    /// Mints a mailbox with the caller-generated <paramref name="mailboxId"/>, stamping its absolute deadline as
+    /// <paramref name="now"/> plus <paramref name="timeout"/>. Idempotent on <c>(namespace, idempotencyKey)</c>,
+    /// and a replay is answered even when the collection is at its cap. A genuinely new mailbox in a named
+    /// collection is refused with <see cref="MailboxMintResult.AtCollectionCapacity"/> once the collection holds
+    /// <paramref name="maxOpenPerCollection"/> open mailboxes; a mailbox minted without a collection key is not
+    /// capped.
     /// </summary>
     Task<MailboxMintResult> MintMailbox(
         Guid mailboxId,
@@ -309,25 +306,17 @@ internal interface IEngineRepository
         CancellationToken cancellationToken = default
     );
 
-    /// <summary>
-    /// Gets a mailbox by id within a namespace, or null when it does not exist there.
-    /// </summary>
+    /// <summary>Gets a mailbox by id within a namespace, or null when it does not exist there.</summary>
     Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads the mailboxes grouped under any of <paramref name="collectionKeys"/>, newest-minted first and
-    /// at most <paramref name="limitPerCollection"/> <em>per key</em>, each with its log laid out position
-    /// by position. A monitoring read: it takes no locks, writes nothing, and no engine decision consults
-    /// it.
+    /// Reads the mailboxes grouped under any of <paramref name="collectionKeys"/>, newest-minted first and at most
+    /// <paramref name="limitPerCollection"/> <em>per key</em>, each with its log laid out position by position. A
+    /// monitoring read: it takes no locks, writes nothing, and no engine decision consults it. Open and closed
+    /// mailboxes alike, since a concluded exchange is the ordinary case under a finished collection. The limit is
+    /// per collection rather than global so one busy collection cannot starve the rest, and the returned page names
+    /// the keys whose window was full. A null <paramref name="ns"/> reads every namespace.
     /// </summary>
-    /// <remarks>
-    /// Open and closed mailboxes alike — a concluded exchange is the ordinary case under a finished
-    /// collection. Bounded on every axis before the query runs, and the mailbox bound is deliberately
-    /// per-collection rather than global: a global limit ordered newest-first drops its casualties at the
-    /// older end across all keys at once, so one busy collection starves the rest and whole collections come
-    /// back empty. The returned page names the keys whose window was full. A null <paramref name="ns"/>
-    /// reads every namespace.
-    /// </remarks>
     Task<MailboxCollectionPage> GetMailboxesForCollections(
         string? ns,
         IReadOnlyList<string> collectionKeys,
@@ -337,17 +326,11 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Counts the mailboxes still open with a deadline at or before <paramref name="cutoff"/>, stopping at
-    /// <paramref name="limit"/> — the input to the gauge that alerts on the deadline sweep not doing its
-    /// job.
+    /// <paramref name="limit"/> — the input to the gauge that alerts on the deadline sweep not doing its job. The
+    /// caller sets the cutoff back by the grace the sweep's cadence entitles it to, so a healthy engine counts
+    /// zero. It saturates rather than counting exactly, because it runs on the metrics cadence and an unbounded
+    /// count would be at its most expensive during the mass timeout it exists to report.
     /// </summary>
-    /// <remarks>
-    /// The caller sets <paramref name="cutoff"/> back from now by the grace the sweep's cadence entitles
-    /// it to, so that a healthy engine counts zero rather than counting every mailbox for the seconds
-    /// between its deadline and the next tick. It saturates at <paramref name="limit"/> instead of counting
-    /// exactly, because it runs on the metrics cadence and the event it exists to report is a mass timeout:
-    /// the alert reads "greater than zero", and an unbounded count would be at its most expensive precisely
-    /// then.
-    /// </remarks>
     Task<long> CountOverdueOpenMailboxes(
         DateTimeOffset cutoff,
         int limit,
@@ -355,14 +338,11 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Reads what the rendezvous produced for a receive workflow: the position it holds, and the message
-    /// standing there or the closure that means none ever will.
+    /// Reads what the rendezvous produced for a receive workflow: the position it holds, and the message standing
+    /// there or the closure that means none ever will. Takes no lock and writes nothing — delivery existence at a
+    /// receiver's position is frozen before the receiver can first run, so every attempt re-derives the same
+    /// answer from the same rows.
     /// </summary>
-    /// <remarks>
-    /// Takes no lock and writes nothing. Delivery existence at a receiver's position is frozen before the
-    /// receiver can first run, so the answer is stable by construction and every attempt, retry and
-    /// resume re-derives the same one from the same rows.
-    /// </remarks>
     Task<MailboxReceiptResult> ReadMailboxReceipt(Guid workflowId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -379,22 +359,13 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Appends one message to a mailbox's deliveries log at the next gapless position, taking the
-    /// mailbox's row lock as the transaction's first act.
+    /// Appends one message to a mailbox's deliveries log at the next gapless position, taking the mailbox's row
+    /// lock as the transaction's first act. Idempotent on <c>(mailboxId, idempotencyKey)</c>, and the lookup runs
+    /// <em>before</em> the refusals: a message the mailbox already holds is reported as
+    /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox has closed or its log has filled,
+    /// because a caller must never be told to dead-letter a message that is waiting to be read. Refusals write
+    /// nothing, so they leave no key claimed and repeat identically. Payload size is checked before the database.
     /// </summary>
-    /// <remarks>
-    /// Idempotent on <c>(mailboxId, idempotencyKey)</c>, and the lookup runs <em>before</em> the refusals:
-    /// a message the mailbox already holds is reported as
-    /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox has closed or its log has
-    /// filled, because the engine kept it and a caller must never be told to dead-letter a message that
-    /// is sitting at a position waiting to be read. Refusals — closed mailbox, or a log already at
-    /// <paramref name="maxLogLength"/> — write nothing, so they leave no key claimed and repeat
-    /// identically.
-    /// <para>
-    /// Payload size is not checked here: it needs no row state, and refusing it before the database is
-    /// what keeps an oversized delivery from costing a connection and a transaction.
-    /// </para>
-    /// </remarks>
     Task<MailboxDeliveryResult> DeliverToMailbox(
         Guid mailboxId,
         string ns,
@@ -406,26 +377,14 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Closes every open mailbox whose deadline has passed, up to <paramref name="batchSize"/> of them,
-    /// running exactly the routine <see cref="CloseMailbox"/> runs with
-    /// <see cref="MailboxDisposedReason.Deadline"/>.
+    /// Closes every open mailbox whose deadline has passed, up to <paramref name="batchSize"/> of them, running
+    /// exactly the routine <see cref="CloseMailbox"/> runs with <see cref="MailboxDisposedReason.Deadline"/>.
+    /// One transaction per mailbox, each opened by a <c>FOR UPDATE SKIP LOCKED</c> claim that <em>is</em> the row
+    /// lock the routine requires, so a mailbox somebody else is working on is left for the next pass. A close that
+    /// throws is contained to its own mailbox, which stays overdue and is claimed again — never allowed to abandon
+    /// the rest of a deadline-ordered batch. The sweep only ever closes; the receiver that concludes an exchange
+    /// already exists, and closing releases it.
     /// </summary>
-    /// <remarks>
-    /// One transaction per mailbox, each opened by a <c>FOR UPDATE SKIP LOCKED</c> claim that <em>is</em>
-    /// the mailbox row lock the routine requires — so a mailbox somebody else is already working on is
-    /// left for the next pass rather than waited on, and a mailbox a <c>DELETE</c> closed first is simply
-    /// not claimed.
-    /// <para>
-    /// A close that throws is contained to its own mailbox, which stays open and overdue and is claimed
-    /// again by the next pass. It is never allowed to abandon the rest of the batch: the candidates are
-    /// ordered by deadline, so one mailbox that always throws would otherwise lead every batch forever and
-    /// wedge the deadline guarantee for every exchange behind it.
-    /// </para>
-    /// <para>
-    /// The sweep only ever closes. Nothing is enqueued, because the receiver that concludes an exchange
-    /// already exists and carries the app's own steps — closing releases it rather than creating it.
-    /// </para>
-    /// </remarks>
     Task<MailboxSweepResult> SweepOverdueMailboxes(
         DateTimeOffset now,
         int batchSize,

@@ -63,16 +63,14 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_OpenMailbox_AppendsAtTheNextPositionAndAdvancesTheCounter()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var now = DateTimeOffset.UtcNow;
 
-        // Act
         var first = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", """{"a":1}""", now));
         var second = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-2", """{"a":2}""", now));
 
-        // Assert — positions start at zero and are handed out in arrival order.
+        // Positions start at zero and are handed out in arrival order.
         Assert.Equal(0L, first.Idx);
         Assert.Equal(1L, second.Idx);
         Assert.Equal(mailbox.Id, first.MailboxId);
@@ -89,8 +87,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_StoresThePayloadVerbatim()
     {
-        // The engine never parses a payload, so nothing it does to one is a transformation the sender
-        // and receiver did not agree on. Pinned with content that a well-meaning normalizer would touch.
+        // The engine never parses a payload, so nothing it does to one is a transformation the sender and receiver
+        // did not agree on. Pinned with content a well-meaning normalizer would touch.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         const string Payload = """  {"æøå": "  spaced  ", "n": 1.500}  """;
@@ -108,9 +106,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_EmptyPayload_IsAccepted()
     {
-        // A characterization test for a deliberate choice: the engine has no opinion about a payload's
-        // contents, and a message can carry its whole meaning in the fact that it arrived. Refusing an
-        // empty body would be the engine inventing a rule about a format it does not read.
+        // A characterization test for a deliberate choice: the engine has no opinion about a payload's contents,
+        // and refusing an empty body would be it inventing a rule about a format it does not read.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -122,14 +119,9 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_ConcurrentDeliveries_AssignEveryPositionExactlyOnce()
     {
-        // Gaplessness is the property the whole rendezvous is built on: a receiver enqueued at seq n
-        // reads position n, so a skipped or duplicated position would make a receiver read the wrong
-        // message or none at all. Proved by racing rather than asserted, because the only thing that
-        // makes it true is that the mailbox row lock serializes the counter's increment with the insert
-        // that consumes it.
-        //
-        // Sixteen concurrent calls through one repository: its data source hands each of them its own
-        // pooled connection, so these race on real connections without needing sixteen repositories.
+        // Gaplessness is the property the whole rendezvous is built on, and the only thing that makes it true is
+        // that the mailbox row lock serializes the counter's increment with the insert that consumes it — so it
+        // is proved by racing. One repository suffices: its data source hands each call its own connection.
         const int Count = 16;
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -153,18 +145,17 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_ReplayedKey_ReturnsTheOriginalDeliveryAndAppendsNothing()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var accepted = AssertAccepted(
             await Deliver(repository, mailbox.Id, "msg-1", """{"v":1}""", DateTimeOffset.UtcNow.AddMinutes(-5))
         );
 
-        // Act — the same key, now with a different payload and a later clock.
+        // The same key, now with a different payload and a later clock.
         var replay = await Deliver(repository, mailbox.Id, "msg-1", """{"v":2}""", DateTimeOffset.UtcNow);
 
-        // Assert — the position and the instant are the original's. A forwarder retrying a transport
-        // failure must not be able to move a message it already delivered.
+        // The position and the instant are the original's: a forwarder retrying a transport failure must not be
+        // able to move a message it already delivered.
         var duplicate = Assert.IsType<MailboxDeliveryResult.Duplicate>(replay).Delivery;
         Assert.Equal(accepted.Idx, duplicate.Idx);
         Assert.Equal(accepted.AcceptedAt, duplicate.AcceptedAt);
@@ -181,9 +172,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_ReplayedKeyAfterTheMailboxClosed_StillReplaysTheDelivery()
     {
-        // The "accepted versus kept" rule, and the reason the idempotency lookup runs before the closed
-        // check rather than after it. The message is sitting at position 0 waiting to be read; telling a
-        // retrying forwarder it was too late would have it dead-letter a message the engine holds.
+        // The "accepted versus kept" rule, and the reason the idempotency lookup runs before the closed check:
+        // telling a retrying forwarder it was too late would have it dead-letter a message the engine holds.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
@@ -204,8 +194,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_ReplayedKeyOnAFullLog_StillReplaysTheDelivery()
     {
-        // The same rule against the other refusal. A cap that is reached after a message was accepted
-        // says nothing about that message.
+        // The same rule against the other refusal: a cap reached after a message was accepted says nothing
+        // about that message.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1", logCap: 1));
@@ -219,17 +209,15 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_SameKeyConcurrently_AppendsExactlyOneDelivery()
     {
-        // Arrange — one repository, whose data source gives each concurrent call its own connection.
+        // One repository, whose data source gives each concurrent call its own connection.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
-        // Act
         var results = await Task.WhenAll(
             Enumerable.Range(0, 8).Select(_ => Deliver(repository, mailbox.Id, "contested"))
         );
 
-        // Assert — the mailbox lock serializes the read-then-append, so exactly one call finds no
-        // delivery to replay and the rest are handed the one it made.
+        // The mailbox lock serializes the read-then-append, so exactly one call finds no delivery to replay.
         Assert.Single(results.OfType<MailboxDeliveryResult.Accepted>());
 
         var positions = results
@@ -252,17 +240,16 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_KeysAreScopedToOneMailbox()
     {
-        // Arrange — two mailboxes, one forwarder key.
+        // Two mailboxes, one forwarder key.
         var repository = fixture.CreateRepository();
         var first = await MintMailbox(repository, "mailbox-a");
         var second = await MintMailbox(repository, "mailbox-b");
 
-        // Act
         var a = AssertAccepted(await Deliver(repository, first.Id, "msg-1"));
         var b = AssertAccepted(await Deliver(repository, second.Id, "msg-1"));
 
-        // Assert — a key deduplicates within its own mailbox, not across the namespace: two exchanges
-        // relayed from the same source must not shadow each other's messages.
+        // A key deduplicates within its own mailbox, not across the namespace: two exchanges relayed from the
+        // same source must not shadow each other's messages.
         Assert.Equal(0L, a.Idx);
         Assert.Equal(0L, b.Idx);
         Assert.NotEqual(a.MailboxId, b.MailboxId);
@@ -275,7 +262,6 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_ClosedMailbox_IsRefusedAndWritesNothing()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var closedAt = DateTimeOffset.UtcNow;
@@ -287,11 +273,10 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
             TestContext.Current.CancellationToken
         );
 
-        // Act
         var refused = await Deliver(repository, mailbox.Id, "msg-1");
 
-        // Assert — the refusal carries the mailbox as it stands, because "too late" is only actionable
-        // for a forwarder if it also says how the exchange ended.
+        // The refusal carries the mailbox as it stands, because "too late" is only actionable for a forwarder if
+        // it also says how the exchange ended.
         var closed = Assert.IsType<MailboxDeliveryResult.Closed>(refused).Mailbox;
         Assert.Equal(MailboxStatus.Disposed, closed.Status);
         Assert.Equal(MailboxDisposedReason.Deadline, closed.DisposedReason);
@@ -307,7 +292,6 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_LogAtItsCap_IsRefusedAndWritesNothing()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         for (int i = 0; i < 3; i++)
@@ -316,7 +300,6 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
         // Act
         var refused = await Deliver(repository, mailbox.Id, "msg-3", logCap: 3);
 
-        // Assert
         Assert.Equal(3L, Assert.IsType<MailboxDeliveryResult.LogFull>(refused).LogLength);
 
         await using var context = fixture.CreateDbContext();
@@ -326,11 +309,9 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_RefusedDelivery_LeavesItsIdempotencyKeyFree()
     {
-        // The structural simplification over an ingestion path that inserts first and refuses second:
-        // because a refusal writes nothing, there is no key to release afterwards, and the same key can
-        // be offered again the moment the reason for the refusal is gone. A design that claimed the key
-        // on the refused attempt would answer the retry below with a replay of a delivery that never
-        // happened.
+        // Because a refusal writes nothing, there is no key to release afterwards and the same key can be
+        // offered again once the reason for the refusal is gone. A design that claimed the key on the refused
+        // attempt would answer the retry below with a replay of a delivery that never happened.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         AssertAccepted(await Deliver(repository, mailbox.Id, "msg-0", logCap: 1));
@@ -345,8 +326,7 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_RefusalRepeats()
     {
-        // The other half of "accepted versus kept": what the engine refused, it keeps refusing. Nothing
-        // about the first refusal makes the second one an idempotent replay.
+        // The other half of "accepted versus kept": what the engine refused, it keeps refusing.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         await repository.CloseMailbox(
@@ -367,11 +347,10 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_UnknownIdOrForeignNamespace_ReturnsNotFound()
     {
-        // Arrange
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
-        // Act + Assert — the namespace is part of the address, not a filter applied afterwards.
+        // The namespace is part of the address, not a filter applied afterwards.
         Assert.IsType<MailboxDeliveryResult.NotFound>(await Deliver(repository, Guid.CreateVersion7(), "msg-1"));
         Assert.IsType<MailboxDeliveryResult.NotFound>(await Deliver(repository, mailbox.Id, "msg-1", ns: "other-ns"));
 
@@ -386,14 +365,9 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_CannotEvenReplayADeliveryWhileTheMailboxRowLockIsHeldElsewhere()
     {
-        // The structural half of the lock-first discipline, exercised through the one verdict that does
-        // not need the row: a replay is decided entirely from the deliveries table. A read-before-lock
-        // implementation would answer it from its own snapshot without ever blocking, so this test is
-        // red for that implementation and green for this one. (Racing an *append* instead would prove
-        // nothing — an append has to touch the locked row whatever the lookup order, so it blocks either
-        // way.)
-        //
-        // Hence the delivery below the lock is a replay of a message the mailbox already holds.
+        // The structural half of the lock-first discipline, exercised through the one verdict that does not need
+        // the row: a replay is decided entirely from the deliveries table, so a read-before-lock implementation
+        // would answer it from its own snapshot without ever blocking. Racing an append would prove nothing.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var accepted = AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
@@ -430,10 +404,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliverToMailbox_RacingAClose_IsSerializedByTheMailboxRowLock()
     {
-        // The delivery-versus-closure race, in the interleaving the lock makes decidable: the close holds
-        // the row lock, so the delivery cannot slip in beside it and be accepted into a mailbox that is
-        // closing. Whichever order the lock grants, the outcome is one of exactly two — accepted into an
-        // open mailbox, or refused as too late — never accepted and silently stranded.
+        // The delivery-versus-closure race: the close holds the row lock, so whichever order it grants the
+        // outcome is one of exactly two — accepted into an open mailbox, or refused as too late.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -478,11 +450,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliveryPositions_AreUniquePerMailbox()
     {
-        // Pins the primary key. Ingestion assigns positions under the mailbox row lock, so a collision is
-        // unreachable through the repository — which is exactly why the schema is worth an explicit test:
-        // the step that adds receiver enqueue writes to the same counters, and the position is the
-        // address a receiver reads its delivery by. Two rows at one position would make that read
-        // ambiguous.
+        // Pins the primary key. A collision is unreachable through the repository, which is why the schema is
+        // worth an explicit test: the position is the address a receiver reads its delivery by.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
@@ -504,9 +473,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task DeliveryKeys_AreUniquePerMailbox()
     {
-        // Pins the unique index behind the idempotency rule. Same reasoning: the repository holds the
-        // mailbox row lock across the lookup and the append, so this is the schema's guarantee against a
-        // future writer that appends without taking it.
+        // Pins the unique index behind the idempotency rule: the schema's guarantee against a future writer
+        // that appends without taking the mailbox row lock.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
@@ -532,10 +500,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task Deliveries_CannotOutliveOrPrecedeTheirMailbox()
     {
-        // Pins the foreign key in both directions. A delivery addressed to a mailbox that does not exist
-        // is refused, and a mailbox holding deliveries cannot be deleted out from under them — the
-        // retention sweep that eventually purges both has to delete children first, deliberately, rather
-        // than discover the order by accident.
+        // Pins the foreign key in both directions, so the retention sweep has to delete children first
+        // deliberately rather than discover the order by accident.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         AssertAccepted(await Deliver(repository, mailbox.Id, "msg-1"));
@@ -553,10 +519,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
         );
         Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, orphan.SqlState);
 
-        // RESTRICT rather than NO ACTION, so the refusal is immediate and reports its own SQLSTATE — the
-        // delete cannot be deferred to commit time and cannot be satisfied by deleting the children
-        // later in the same transaction. That is the stricter of the two on purpose: the purge should
-        // spell its order out rather than rely on constraint timing to rescue it.
+        // RESTRICT rather than NO ACTION, so the refusal is immediate and cannot be satisfied by deleting the
+        // children later in the same transaction: the purge should spell its order out.
         var orphaning = await Assert.ThrowsAsync<PostgresException>(async () =>
             await context.Database.ExecuteSqlAsync(
                 $"DELETE FROM engine.mailboxes WHERE id = {mailbox.Id}",
@@ -574,10 +538,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task UnconsumedDeliveries_MatchesTheDeliveriesNoReceiverCouldHaveRead()
     {
-        // The derived count validated against the rows it claims to describe. It is computed from the two
-        // counters rather than counted, which is exact only because both logs are gapless: with no
-        // receivers enqueued yet, every delivery that exists is one nobody read, so the derivation must
-        // equal the row count exactly.
+        // The derived count validated against the rows it describes. It is computed from the two counters rather
+        // than counted, which is exact only because both logs are gapless.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 
@@ -614,11 +576,8 @@ public sealed class MailboxDeliveryTests(PostgresFixture fixture) : IAsyncLifeti
     [Fact]
     public async Task AcceptedDelivery_SitsAtItsPositionAndWakesNobody()
     {
-        // Acceptance is not consumption, and it stays that way now the rendezvous exists: a message with
-        // nobody waiting at its position releases nothing, moves the receivers log not at all, and counts
-        // as unconsumed for as long as it waits. The wake did not change what acceptance does — it gave
-        // the message somebody to find, which is a different mailbox and a different test
-        // (MailboxRendezvousTests).
+        // Acceptance is not consumption, and it stays that way now the rendezvous exists: a message with nobody
+        // waiting at its position releases nothing and counts as unconsumed for as long as it waits.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
 

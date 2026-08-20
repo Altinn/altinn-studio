@@ -23,15 +23,11 @@ internal sealed record TaskStartContext
     public IReadOnlyList<string>? ServiceTaskStageNames { get; init; }
 
     /// <summary>
-    /// The mailbox the service task's pipeline declared with <c>WithReplyFrom</c>, read at enqueue time
-    /// alongside the stage names. Null for every other task — including a service task whose pipeline
-    /// concludes with an ordinary <c>Finally</c>.
+    /// The mailbox the service task's pipeline declared with <c>WithReplyFrom</c>, read at enqueue time alongside
+    /// the stage names. Null for every other task. Its presence changes the expansion: the conclusion stops being a
+    /// Main step (it runs on each receive workflow instead), and Main gains a final step that enqueues the first
+    /// receiver.
     /// </summary>
-    /// <remarks>
-    /// Its presence changes the expansion: the conclusion stops being a Main step (it is the receive
-    /// handler, and runs on each receive workflow instead), and Main gains a final step that enqueues
-    /// the first receiver.
-    /// </remarks>
     public ServiceTaskMailboxDeclaration? ServiceTaskMailbox { get; init; }
 
     /// <summary>

@@ -23,18 +23,16 @@ using Moq;
 namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 
 /// <summary>
-/// The reply address end to end: the value the send stage publishes on the outbound Fiks IO request,
-/// and the mailbox the answer that echoes it is delivered into.
+/// The reply address end to end: the value the send stage publishes on the outbound Fiks IO request, and the
+/// mailbox the answer that echoes it is delivered into.
 /// </summary>
 /// <remarks>
-/// Deliberately <strong>not</strong> built from a hand-written echo. The archive echoes exactly one
-/// field, <c>klientKorrelasjonsId</c>, and it echoes it as it was sent — so this test takes the wire
-/// value off the <em>real</em> outbound request the real host produced, hands that back as the received
-/// message's correlation id, and drives the real subscriber. Swapping the two identities on the send
-/// (<c>klientMeldingId</c> ↔ <c>klientKorrelasjonsId</c>) still sends successfully and still round-trips
-/// through a hand-built echo; here it makes the answer arrive at the wrong address. The received
-/// message's own <c>klientMeldingId</c> is set to a third, distinct value so a subscriber reading that
-/// field instead of the correlation id fails on the value rather than on a null.
+/// Deliberately not built from a hand-written echo. The archive echoes exactly one field,
+/// <c>klientKorrelasjonsId</c>, and it echoes it as it was sent — so this takes the wire value off the
+/// <em>real</em> outbound request and drives the real subscriber with it. Swapping the two identities on the send
+/// still round-trips through a hand-built echo; here it makes the answer arrive at the wrong address. The
+/// received message's own <c>klientMeldingId</c> is a third, distinct value so a subscriber reading that field
+/// instead fails on the value rather than on a null.
 /// </remarks>
 public class FiksArkivReplyAddressRoundTripTest
 {
@@ -130,9 +128,9 @@ public class FiksArkivReplyAddressRoundTripTest
         Assert.Equal(_mailboxId, delivery.MailboxId);
         Assert.NotEqual(_workflowStepId, delivery.MailboxId);
         Assert.NotEqual(_archivesOwnReference, delivery.MailboxId);
-        // Compared against the task's own Type rather than the constant the subscriber writes: the
-        // delivery's envelope binds this value, so a subscriber naming a different handler produces a
-        // message the waiting task refuses to open.
+        // Compared against the task's own Type rather than the constant the subscriber writes: the delivery's
+        // envelope binds this value, so a subscriber naming a different handler produces a message the waiting
+        // task refuses to open.
         Assert.Equal(fixture.FiksArkivServiceTask.Type, delivery.ServiceTaskType);
         Assert.Equal(_incomingMessageId.ToString(), delivery.IdempotencyKey);
 

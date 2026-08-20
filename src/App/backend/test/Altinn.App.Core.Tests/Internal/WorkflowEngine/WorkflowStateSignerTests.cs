@@ -27,23 +27,13 @@ public class WorkflowStateSignerTests
         };
 
     /// <summary>
-    /// Known-answer vectors for the callback state blob's signature: secret, payload, and the Base64
-    /// HMAC-SHA256 an independent implementation produces for the pair.
+    /// Known-answer vectors for the callback state blob's signature: secret, payload, and the Base64 HMAC-SHA256 an
+    /// independent implementation produces for the pair. They pin the state domain as <em>underived</em> — computed
+    /// under the app-code directly — so the domain separation introduced for forwarded messages must leave
+    /// <see cref="SigningPurpose.CallbackState"/> tagless, which is what lets state blobs signed by an earlier build
+    /// still verify. A sign-then-verify round-trip would agree with itself after any such change. The long-secret
+    /// vector additionally pins behaviour past HMAC-SHA256's 64-byte block, where the key is hashed before use.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// They pin the state domain as <em>underived</em>: these signatures are computed under the app-code
-    /// directly (<c>HMAC(code, payload)</c>), so the domain separation introduced for forwarded messages
-    /// must leave <see cref="SigningPurpose.CallbackState"/> tagless — which is exactly what lets state
-    /// blobs signed by an earlier build still verify. Deriving a key for it would fail every vector here
-    /// at once, which is the point: a sign-then-verify round-trip would agree with itself after any such
-    /// change, and every in-flight transition would break at its next callback.
-    /// </para>
-    /// <para>
-    /// The long-secret vector additionally pins behaviour past HMAC-SHA256's 64-byte block, where the
-    /// key is hashed before use.
-    /// </para>
-    /// </remarks>
     public static TheoryData<string, string, string> GoldenVectors =>
         new()
         {
@@ -82,8 +72,8 @@ public class WorkflowStateSignerTests
     [MemberData(nameof(GoldenVectors))]
     public void Verify_AcceptsAnEnvelopeCarryingTheKnownSignature(string code, string payload, string expected)
     {
-        // The other half of the compatibility claim: a blob an earlier build produced — here hand-built
-        // from the vector rather than signed by this one — must still open, mid-transition.
+        // The other half of the compatibility claim: a blob an earlier build produced — here hand-built from the
+        // vector rather than signed by this one — must still open, mid-transition.
         _secretProviderMock.Setup(x => x.GetValidationSecrets()).Returns([Code("id-1", code)]);
         var sut = CreateSut();
 
@@ -102,9 +92,8 @@ public class WorkflowStateSignerTests
     [Fact]
     public void Sign_WithADefaultDomain_Throws()
     {
-        // SigningDomain is a struct, so `default` is reachable — an uninitialized field, an unassigned
-        // element. It must lead nowhere rather than into the state-blob domain, which is the whole
-        // reason SigningPurpose.Unspecified occupies the enum's default slot.
+        // SigningDomain is a struct, so `default` is reachable. It must lead nowhere rather than into the
+        // state-blob domain, which is why SigningPurpose.Unspecified occupies the enum's default slot.
         _secretProviderMock
             .Setup(x => x.GetSigningSecret())
             .Returns(Code("id-1", "secret-code-long-enough-for-hmac"));
