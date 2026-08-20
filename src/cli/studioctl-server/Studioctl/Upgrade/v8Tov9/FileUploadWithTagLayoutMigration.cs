@@ -27,6 +27,7 @@ internal static class FileUploadWithTagLayoutMigration
         }
 
         var changedFiles = new List<string>();
+        var sourceLineEndings = new Dictionary<string, string>();
         var changedComponents = 0;
         foreach (var layoutFile in FindLayoutFiles(uiDirectory))
         {
@@ -45,10 +46,11 @@ internal static class FileUploadWithTagLayoutMigration
 
             var updated = root.ToJsonString(_jsonOptions);
             if (decoded.Text.EndsWith('\n'))
-                updated += Environment.NewLine;
+                updated += DetectLineEnding(decoded.Text);
 
             await Utf8TextFile.Write(layoutFile, updated, decoded.HadBom);
             changedFiles.Add(layoutFile);
+            sourceLineEndings[layoutFile] = DetectLineEnding(decoded.Text);
             changedComponents += occurrences;
             UpgradeConsole.Ok($"Migrated {occurrences} FileUploadWithTag component type(s) in {layoutFile}");
         }
@@ -62,6 +64,13 @@ internal static class FileUploadWithTagLayoutMigration
             catch
             {
                 // Formatting restoration is best-effort when upgrading outside a Git repository.
+            }
+
+            foreach (var layoutFile in changedFiles)
+            {
+                var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(layoutFile));
+                var normalized = NormalizeLineEndings(decoded.Text, sourceLineEndings[layoutFile]);
+                await Utf8TextFile.Write(layoutFile, normalized, decoded.HadBom);
             }
         }
 
@@ -120,4 +129,14 @@ internal static class FileUploadWithTagLayoutMigration
 
         return count;
     }
+
+    private static string DetectLineEnding(string content) =>
+        content.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+
+    private static string NormalizeLineEndings(string content, string lineEnding) =>
+        lineEnding == "\n"
+            ? content.Replace("\r\n", "\n", StringComparison.Ordinal)
+            : content
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
+                .Replace("\n", lineEnding, StringComparison.Ordinal);
 }

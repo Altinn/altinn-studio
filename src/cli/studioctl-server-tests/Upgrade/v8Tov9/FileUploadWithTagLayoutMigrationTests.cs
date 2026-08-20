@@ -50,4 +50,20 @@ public sealed class FileUploadWithTagLayoutMigrationTests : IDisposable
         Assert.Contains("FileUpload\"", Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
         Assert.Contains("FileUploadWithTag", _app.Read("ui/Task_1/Settings.json"), StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task PreservesCrLfLineEndingsAndTrailingNewline()
+    {
+        _app.Write(
+            "ui/Task_1/layouts/form.json",
+            "{\r\n  \"data\": { \"layout\": [{ \"type\": \"FileUploadWithTag\" }] }\r\n}\r\n"
+        );
+
+        using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
+        await FileUploadWithTagLayoutMigration.Migrate(_app.Root);
+
+        var after = _app.Read("ui/Task_1/layouts/form.json");
+        Assert.DoesNotContain("\n", after.Replace("\r\n", string.Empty, StringComparison.Ordinal));
+        Assert.EndsWith("\r\n", after, StringComparison.Ordinal);
+    }
 }
