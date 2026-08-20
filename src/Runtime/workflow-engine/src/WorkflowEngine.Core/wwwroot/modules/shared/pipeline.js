@@ -95,7 +95,10 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const isBackedOff = step.status === 'Requeued' || step.status === 'Waiting';
     const backoff = step.backoffUntil || (isBackedOff ? wf.backoffUntil : null);
     if (isBackedOff && backoff) {
-        const action = step.status === 'Waiting' ? 'check now (skip wait timer)' : 'Retry now (skip backoff timer)';
+        const action =
+            step.status === 'Waiting'
+                ? 'check now (skip wait timer)'
+                : 'Retry now (skip backoff timer)';
         const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
         html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="${action}">${label}</button>`;

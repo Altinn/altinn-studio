@@ -482,7 +482,6 @@
   "branching.uncommitted_changes_dialog.confirm_discard": "Du sletter nå alle endringene dine på denne grenen. Du kan ikke gjenopprette dem.",
   "branching.uncommitted_changes_dialog.discard_and_switch": "Ja, slett endringene",
   "branching.uncommitted_changes_dialog.heading": "Du har endringer som ikke er lagret",
-  "branching.uncommitted_changes_dialog.uncommitted_files": "Filer med endringer ({{count}})",
   "code_list_editor.add_button_disabled": "Du kan ikke ha flere enn to alternativer i en boolsk kodeliste",
   "code_list_editor.add_option": "Legg til alternativ",
   "code_list_editor.column_title_delete": "Slett",

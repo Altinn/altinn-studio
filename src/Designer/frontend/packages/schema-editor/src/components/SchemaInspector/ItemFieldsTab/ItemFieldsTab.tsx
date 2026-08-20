@@ -7,7 +7,7 @@ import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { AddPropertiesMenu } from '../../AddPropertiesMenu';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import type { UiSchemaNode } from '@altinn/schema-model/types';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +23,7 @@ export function ItemFieldsTab({ selectedItem }: ItemFieldsTabProps): React.React
   return shouldDisplayFieldsTabContent ? (
     <ItemFieldsTabContent selectedItem={selectedItem} />
   ) : (
-    <Alert size='small'>{t('schema_editor.fields_not_available_on_type')}</Alert>
+    <StudioAlert data-size='sm'>{t('schema_editor.fields_not_available_on_type')}</StudioAlert>
   );
 }
 

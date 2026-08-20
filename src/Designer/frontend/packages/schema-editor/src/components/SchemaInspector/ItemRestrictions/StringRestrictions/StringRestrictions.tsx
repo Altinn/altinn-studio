@@ -3,13 +3,13 @@ import { useCallback, useState, useMemo } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import {
   StudioDecimalInput,
+  StudioFieldset,
   StudioSelect,
   StudioSwitch,
   StudioTextfield,
@@ -145,7 +145,7 @@ export function StringRestrictions({
           />
         </div>
       </div>
-      <Fieldset legend={t('regex')}>
+      <StudioFieldset legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKey.pattern}
           label={t(StrRestrictionKey.pattern)}
@@ -187,7 +187,7 @@ export function StringRestrictions({
             </div>
           </div>
         </div>
-      </Fieldset>
+      </StudioFieldset>
     </ItemWrapper>
   );
 }

@@ -55,6 +55,9 @@ const (
 	// EnvInternalDevMode enables local internal dev image mode.
 	EnvInternalDevMode = "STUDIOCTL_INTERNAL_DEV"
 
+	// EnvPrebuiltDevImages uses locally available dev images without rebuilding them.
+	EnvPrebuiltDevImages = "STUDIOCTL_PREBUILT_DEV_IMAGES"
+
 	// EnvRegistryCacheWrite enables pushing BuildKit registry cache entries.
 	EnvRegistryCacheWrite = "STUDIOCTL_REGISTRY_CACHE_WRITE"
 
