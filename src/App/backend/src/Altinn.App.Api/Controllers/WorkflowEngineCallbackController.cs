@@ -280,6 +280,11 @@ public class WorkflowEngineCallbackController : ControllerBase
                 // values are caller-supplied.
                 if (failed.ServiceOwnerAuthorizationDenied)
                 {
+                    // Tagged as well as logged: the engine's failed-workflow metrics cannot tell a
+                    // policy gap from a transient platform failure, and the two want different
+                    // responses - a policy change for every instance of the app, versus a redrive.
+                    activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
+
                     ApplicationMetadata appMetadata = await _serviceProvider
                         .GetRequiredService<IAppMetadata>()
                         .GetApplicationMetadata();
