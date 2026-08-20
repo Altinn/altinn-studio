@@ -1,5 +1,8 @@
 ## Local testing of apps
 
+> [!WARNING]
+> This repository will soon be archived. For the recommended local development workflow, see [Getting started with local development using `studioctl`](https://docs.altinn.studio/en/altinn-studio/v8/guides/development/local-dev/).
+
 These are some of the required steps, tips, and tricks when it comes to running an app on a local machine. The primary goal is to be able to iterate over changes and verifying them without needing to deploy the app to the test environment.
 
 - [Prerequisites](#prerequisites)
