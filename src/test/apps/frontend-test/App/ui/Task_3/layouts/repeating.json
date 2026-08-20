@@ -10,7 +10,7 @@
         "id": "showGroupToContinue",
         "type": "Checkboxes",
         "textResourceBindings": {
-          "title": "\u00C5pne repterenede grupper"
+          "title": "Åpne repterenede grupper"
         },
         "dataModelBindings": {
           "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonEPost-datadef-27688.value"
@@ -31,30 +31,17 @@
           "title": "Obs: Noen rader er skjult",
           "body": [
             "concat",
-            "Oida, noen av radene har forsvunnet! De ble skjult fordi de har en fra-verdi som er h\u00F8yere enn ",
-            [
-              "component",
-              "hideRepeatingGroupRow"
-            ],
+            "Oida, noen av radene har forsvunnet! De ble skjult fordi de har en fra-verdi som er høyere enn ",
+            ["component", "hideRepeatingGroupRow"],
             " NOK. ",
-            "Ta en titt p\u00E5 neste side, s\u00E5 finner du dem igjen der. For \u00E5 f\u00E5 dem tilbake hit, senk fra-verdien til ",
+            "Ta en titt på neste side, så finner du dem igjen der. For å få dem tilbake hit, senk fra-verdien til ",
             "noe lavere enn ",
-            [
-              "component",
-              "hideRepeatingGroupRow"
-            ],
+            ["component", "hideRepeatingGroupRow"],
             " NOK"
           ]
         },
         "variant": "warning",
-        "hidden": [
-          "equals",
-          [
-            "dataModel",
-            "numAboveLimit"
-          ],
-          0
-        ]
+        "hidden": ["equals", ["dataModel", "numAboveLimit"], 0]
       },
       {
         "id": "mainGroup",
@@ -73,15 +60,15 @@
         "textResourceBindings": {
           "title": "Group title",
           "summaryTitle": "Group summary title",
-          "saveButton": [
+          "editButtonOpen": [
             "if",
             [
               "dataModel",
               "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
             ],
-            "Lukk",
+            "Se innhold",
             "else",
-            "Lagre og lukk"
+            "Rediger"
           ],
           "editButtonClose": [
             "if",
@@ -93,15 +80,15 @@
             "else",
             "Lagre og lukk"
           ],
-          "editButtonOpen": [
+          "saveButton": [
             "if",
             [
               "dataModel",
               "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
             ],
-            "Se innhold",
+            "Lukk",
             "else",
-            "Rediger"
+            "Lagre og lukk"
           ]
         },
         "tableHeaders": [
@@ -120,29 +107,17 @@
             "showInExpandedEdit": true
           }
         },
-        "validateOnSaveRow": [
-          "All"
-        ],
+        "validateOnSaveRow": ["All"],
         "hiddenRow": [
           "and",
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "useBothRepGroups"
-            ],
-            true
-          ],
+          ["notEquals", ["dataModel", "useBothRepGroups"], true],
           [
             "greaterThanEq",
             [
               "dataModel",
               "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
             ],
-            [
-              "dataModel",
-              "hideRowValue"
-            ]
+            ["dataModel", "hideRowValue"]
           ]
         ],
         "edit": {
@@ -157,14 +132,7 @@
                 "dataModel",
                 "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
               ],
-              [
-                "equals",
-                [
-                  "component",
-                  "currentValue"
-                ],
-                1
-              ]
+              ["equals", ["component", "currentValue"], 1]
             ]
           ],
           "deleteButton": [
@@ -204,9 +172,7 @@
           "dataModel",
           "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
         ],
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -258,40 +224,20 @@
           },
           "align": "right"
         },
-        "showValidations": [
-          "AllExceptRequired"
-        ]
+        "showValidations": ["AllExceptRequired"]
       },
       {
         "id": "mainUploaderSingle",
         "type": "FileUpload",
         "textResourceBindings": {
-          "title": [
-            "stringReplace",
-            [
-              "text",
-              "fileupload-doctype"
-            ],
+          "title": ["stringReplace",
+            ["text", "fileupload-doctype"],
             "{0}",
-            [
-              "optionLabel",
-              "list",
-              [
-                "dataModel",
-                "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
-              ]
-            ]
+            ["optionLabel", "list", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]]
           ],
           "tableTitle": [
             "if",
-            [
-              "equals",
-              [
-                "component",
-                "sendersName"
-              ],
-              "otherTitlesInTable"
-            ],
+            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
             "Uploader (single)",
             "else",
             "Uploader (one)"
@@ -316,14 +262,7 @@
           "title": "Multi uploader in repeating group",
           "tableTitle": [
             "if",
-            [
-              "equals",
-              [
-                "component",
-                "sendersName"
-              ],
-              "otherTitlesInTable"
-            ],
+            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
             "Uploader (multi)",
             "else",
             "Uploader (many)"
@@ -353,9 +292,7 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -374,9 +311,7 @@
         "required": false,
         "readOnly": false,
         "secure": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -402,17 +337,12 @@
           {
             "title": "Kilde",
             "description": "Vi trodde dette bare var noe interne greier vi brukte til testing. Hvem tipset deg om dette skjemaet?",
-            "children": [
-              "source"
-            ]
+            "children": ["source"]
           },
           {
             "title": "Referanse",
-            "description": "Vi er nysgjerrige p\u00E5 hvem du snakket med f\u00F8r du bestemte deg for \u00E5 fylle ut dette skjemaet.",
-            "children": [
-              "reference",
-              "main-comments"
-            ]
+            "description": "Vi er nysgjerrige på hvem du snakket med før du bestemte deg for å fylle ut dette skjemaet.",
+            "children": ["reference", "main-comments"]
           }
         ]
       },
@@ -440,9 +370,7 @@
           "nestedDynamics",
           "nestedOptions"
         ],
-        "validateOnSaveRow": [
-          "All"
-        ],
+        "validateOnSaveRow": ["All"],
         "edit": {
           "openByDefault": true
         },
@@ -452,36 +380,15 @@
             "dataModel",
             "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
           ],
-          [
-            "greaterThan",
-            [
-              "component",
-              "currentValue"
-            ],
-            100
-          ]
+          ["greaterThan", ["component", "currentValue"], 100]
         ],
         "rowsAfter": [
           {
             "header": true,
-            "cells": [
-              {
-                "text": "Annen informasjon"
-              },
-              {},
-              {},
-              {}
-            ]
+            "cells": [{ "text": "Annen informasjon" }, {}, {}, {}]
           },
           {
-            "cells": [
-              {
-                "text": "nested.isParentPrefill"
-              },
-              {},
-              {},
-              {}
-            ]
+            "cells": [{ "text": "nested.isParentPrefill" }, {}, {}, {}]
           }
         ]
       },
@@ -492,14 +399,7 @@
           "title": [
             "concat",
             "Hvor fikk du vite om skjemaet? Over her valgte du ",
-            [
-              "optionLabel",
-              "list2",
-              [
-                "dataModel",
-                "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
-              ]
-            ]
+            ["optionLabel", "list2", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]]
           ]
         },
         "dataModelBindings": {
@@ -508,9 +408,7 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -529,9 +427,7 @@
         "required": false,
         "readOnly": false,
         "secure": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -661,17 +557,11 @@
         },
         "textResourceBindings": {
           "summaryTitle": "Gruppe2",
-          "title": "Referansegruppe",
-          "addButton": "referanse"
+          "addButton": "referanse",
+          "title": "Referansegruppe"
         },
-        "tableHeaders": [
-          "group2-teller",
-          "group2-input"
-        ],
-        "children": [
-          "group2-teller",
-          "group2-input"
-        ]
+        "tableHeaders": ["group2-teller", "group2-input"],
+        "children": ["group2-teller", "group2-input"]
       },
       {
         "id": "group2-teller",
@@ -735,18 +625,8 @@
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
           "label": [
             "concat",
-            [
-              "text",
-              "optionsFromRepeatingGroup"
-            ],
-            [
-              "concat",
-              " ",
-              [
-                "text",
-                "question-1"
-              ]
-            ]
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-1"]]
           ],
           "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         }
@@ -765,48 +645,18 @@
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
           "label": [
             "concat",
-            [
-              "text",
-              "optionsFromRepeatingGroup"
-            ],
-            [
-              "concat",
-              " ",
-              [
-                "text",
-                "question-2"
-              ]
-            ]
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
           ],
           "description": [
             "concat",
-            [
-              "text",
-              "optionsFromRepeatingGroup"
-            ],
-            [
-              "concat",
-              " ",
-              [
-                "text",
-                "question-2"
-              ]
-            ]
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
           ],
           "helpText": [
             "concat",
-            [
-              "text",
-              "optionsFromRepeatingGroup"
-            ],
-            [
-              "concat",
-              " ",
-              [
-                "text",
-                "question-2"
-              ]
-            ]
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
           ],
           "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         }
@@ -822,14 +672,8 @@
         },
         "required": false,
         "options": [
-          {
-            "label": "Ja",
-            "value": true
-          },
-          {
-            "label": "Nei",
-            "value": false
-          }
+          { "label": "Ja", "value": true },
+          { "label": "Nei", "value": false }
         ]
       },
       {
@@ -850,14 +694,7 @@
           "align": "right"
         },
         "readOnly": false,
-        "hidden": [
-          "equals",
-          [
-            "dataModel",
-            "useBothRepGroups"
-          ],
-          true
-        ]
+        "hidden": ["equals", ["dataModel", "useBothRepGroups"], true]
       },
       {
         "id": "nav-page-repeating",
@@ -868,9 +705,7 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": [
-            "All"
-          ]
+          "show": ["All"]
         }
       }
     ]

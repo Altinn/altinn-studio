@@ -1,13 +1,15 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
 /// Migrates layout-property contracts that changed from snake_case to camelCase in frontend v9.
-/// Only properties on their owning components are renamed. JSON is serialized after mutation and
-/// whitespace-only changes are restored afterwards, matching the other layout migrators.
+/// Only properties on their owning components are renamed. The parsed structure identifies the exact
+/// property paths, while a token-aware rewrite changes only those property-name bytes. This preserves
+/// all original whitespace, line endings and formatting.
 /// </summary>
 internal static class CamelCaseLayoutPropertyMigration
 {
@@ -46,8 +48,6 @@ internal static class CamelCaseLayoutPropertyMigration
         ["multipage_next_button"] = "multipageNextButton",
     };
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
-
     public static async Task<int> Migrate(string projectFolder)
     {
         var uiDirectory = ResolveUiDirectory(projectFolder);
@@ -57,7 +57,7 @@ internal static class CamelCaseLayoutPropertyMigration
             return 0;
         }
 
-        var changedFiles = new List<string>();
+        var changedFiles = 0;
         var propertiesRenamed = 0;
         foreach (var layoutFile in FindLayoutFiles(uiDirectory))
         {
@@ -70,35 +70,23 @@ internal static class CamelCaseLayoutPropertyMigration
             if (root is null)
                 throw new JsonException($"Layout file does not contain JSON: {layoutFile}");
 
-            var renamedInFile = RenameLegacyProperties(root);
-            if (renamedInFile == 0)
+            var renames = FindLegacyProperties(root);
+            if (renames.Count == 0)
                 continue;
 
-            var updated = root.ToJsonString(_jsonOptions);
-            if (decoded.Text.EndsWith('\n'))
-                updated += Environment.NewLine;
+            var updated = ApplyRenames(decoded.Text, renames);
             await Utf8TextFile.Write(layoutFile, updated, decoded.HadBom);
-            changedFiles.Add(layoutFile);
-            propertiesRenamed += renamedInFile;
-            UpgradeConsole.Ok($"Migrated {renamedInFile} camelCase layout property name(s) in {layoutFile}");
+            changedFiles++;
+            propertiesRenamed += renames.Count;
+            UpgradeConsole.Ok($"Migrated {renames.Count} camelCase layout property name(s) in {layoutFile}");
         }
 
-        if (changedFiles.Count == 0)
+        if (changedFiles == 0)
             UpgradeConsole.Skip("No snake_case layout property contracts found");
         else
-        {
-            try
-            {
-                new WhitespaceRestorationProcessor(uiDirectory).RestoreWhitespaceOnlyChanges(changedFiles);
-            }
-            catch
-            {
-                // Formatting restoration is best-effort when upgrading outside a Git repository.
-            }
             UpgradeConsole.Ok(
-                $"Migrated {propertiesRenamed} camelCase layout property name(s) across {changedFiles.Count} layout file(s)"
+                $"Migrated {propertiesRenamed} camelCase layout property name(s) across {changedFiles} layout file(s)"
             );
-        }
         return 0;
     }
 
@@ -118,9 +106,15 @@ internal static class CamelCaseLayoutPropertyMigration
                 string.Equals(Path.GetFileName(Path.GetDirectoryName(path)), "layouts", StringComparison.Ordinal)
             );
 
-    private static int RenameLegacyProperties(JsonNode node)
+    private static Dictionary<string, string> FindLegacyProperties(JsonNode node)
     {
-        var renamed = 0;
+        var renames = new Dictionary<string, string>(StringComparer.Ordinal);
+        FindLegacyProperties(node, [], renames);
+        return renames;
+    }
+
+    private static void FindLegacyProperties(JsonNode node, List<string> path, IDictionary<string, string> renames)
+    {
         if (node is JsonObject obj)
         {
             if (obj["type"]?.GetValue<string>() is { } type)
@@ -134,24 +128,105 @@ internal static class CamelCaseLayoutPropertyMigration
                 };
                 if (container is JsonObject propertyObject && properties is not null)
                 {
-                    var entries = propertyObject.ToList();
-                    var renamedEntries = entries.Count(entry => properties.ContainsKey(entry.Key));
-                    if (renamedEntries > 0)
+                    var containerName = type == "RepeatingGroup" ? "textResourceBindings" : "dataModelBindings";
+                    foreach (var (oldName, newName) in properties)
                     {
-                        propertyObject.Clear();
-                        foreach (var (name, value) in entries)
-                            propertyObject[properties.GetValueOrDefault(name, name)] = value;
-                        renamed += renamedEntries;
+                        if (!propertyObject.ContainsKey(oldName))
+                            continue;
+                        if (propertyObject.ContainsKey(newName))
+                            throw new InvalidOperationException(
+                                $"Cannot rename {oldName} to {newName}: both properties exist on {type}"
+                            );
+                        renames.Add(ToJsonPointer([.. path, containerName, oldName]), newName);
                     }
                 }
             }
 
-            foreach (var child in obj.Select(property => property.Value).OfType<JsonNode>())
-                renamed += RenameLegacyProperties(child);
+            foreach (var (name, child) in obj)
+                if (child is not null)
+                    FindLegacyProperties(child, [.. path, name], renames);
         }
         else if (node is JsonArray array)
-            foreach (var child in array.OfType<JsonNode>())
-                renamed += RenameLegacyProperties(child);
-        return renamed;
+            for (var index = 0; index < array.Count; index++)
+                if (array[index] is { } child)
+                    FindLegacyProperties(child, [.. path, index.ToString(CultureInfo.InvariantCulture)], renames);
     }
+
+    private static string ApplyRenames(string content, IReadOnlyDictionary<string, string> renames)
+    {
+        var utf8 = Encoding.UTF8.GetBytes(content);
+        var reader = new Utf8JsonReader(
+            utf8,
+            new JsonReaderOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+        );
+        if (!reader.Read())
+            throw new JsonException("Layout file does not contain JSON");
+
+        var replacements = new List<PropertyReplacement>();
+        FindPropertyTokens(ref reader, [], renames, replacements);
+        if (replacements.Count != renames.Count)
+            throw new InvalidOperationException(
+                $"Could not locate all parsed layout properties in the source JSON ({replacements.Count} of {renames.Count})"
+            );
+
+        using var output = new MemoryStream(utf8.Length);
+        var sourceOffset = 0;
+        foreach (var replacement in replacements.OrderBy(item => item.Offset))
+        {
+            output.Write(utf8, sourceOffset, replacement.Offset - sourceOffset);
+            output.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(replacement.NewName)));
+            sourceOffset = replacement.Offset + replacement.Length;
+        }
+        output.Write(utf8, sourceOffset, utf8.Length - sourceOffset);
+        return Encoding.UTF8.GetString(output.ToArray());
+    }
+
+    private static void FindPropertyTokens(
+        ref Utf8JsonReader reader,
+        List<string> path,
+        IReadOnlyDictionary<string, string> renames,
+        ICollection<PropertyReplacement> replacements
+    )
+    {
+        if (reader.TokenType == JsonTokenType.StartObject)
+        {
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                    throw new JsonException("Expected a property name");
+                var propertyName = reader.GetString() ?? throw new JsonException("Property name is null");
+                var propertyPath = new List<string>(path) { propertyName };
+                if (renames.TryGetValue(ToJsonPointer(propertyPath), out var newName))
+                    replacements.Add(
+                        new PropertyReplacement(
+                            checked((int)reader.TokenStartIndex),
+                            Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(propertyName)),
+                            newName
+                        )
+                    );
+                if (!reader.Read())
+                    throw new JsonException("Expected a property value");
+                FindPropertyTokens(ref reader, propertyPath, renames, replacements);
+            }
+        }
+        else if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            var index = 0;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                FindPropertyTokens(
+                    ref reader,
+                    [.. path, index.ToString(CultureInfo.InvariantCulture)],
+                    renames,
+                    replacements
+                );
+                index++;
+            }
+        }
+    }
+
+    private static string ToJsonPointer(IEnumerable<string> path) =>
+        "/" + string.Join("/", path.Select(segment => segment.Replace("~", "~0").Replace("/", "~1")));
+
+    private sealed record PropertyReplacement(int Offset, int Length, string NewName);
 }

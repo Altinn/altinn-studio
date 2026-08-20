@@ -54,18 +54,20 @@ public sealed class CamelCaseLayoutPropertyMigrationTests : IDisposable
             }
         )
             Assert.Contains($"\"{property}\"", layout, StringComparison.Ordinal);
+        using var _ = System.Text.Json.JsonDocument.Parse(layout);
     }
 
     [Fact]
     public async Task LeavesMatchingPropertyNamesOutsideTheirOwningComponentUntouched()
     {
-        _app.Write(
+        var before = (
             "ui/Task_1/layouts/Page1.json",
             """{ "data": { "layout": [{ "id": "text", "type": "Text", "add_button": "must-not-change" }] } }"""
         );
+        _app.Write(before.Item1, before.Item2);
 
         using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
         Assert.Equal(0, await CamelCaseLayoutPropertyMigration.Migrate(_app.Root));
-        Assert.Contains("\"add_button\": \"must-not-change\"", _app.Read("ui/Task_1/layouts/Page1.json"));
+        Assert.Equal(before.Item2, _app.Read(before.Item1));
     }
 }

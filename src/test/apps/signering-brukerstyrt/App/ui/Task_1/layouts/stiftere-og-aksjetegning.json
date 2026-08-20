@@ -28,6 +28,7 @@
           "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
           "addButtonFull": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
         },
+
         "children": [
           "personLookup",
           "Address-ORk7vt",
@@ -80,7 +81,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
           "description": "Her legger du inn organisasjonsnummer",
-          "help": "Du kan finne organisasjonsnummeret ved \u00E5 s\u00F8ke i Br\u00F8nn\u00F8ysundregistrene"
+          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
         },
         "required": true
       },
@@ -100,9 +101,7 @@
         },
         "grid": {
           "lg": 12,
-          "innerGrid": {
-            "lg": 6
-          }
+          "innerGrid": { "lg": 6 }
         }
       },
       {
@@ -116,9 +115,7 @@
           "summaryTitle": "Mobiltelefon",
           "tableTitle": "Mobiltelefon"
         },
-        "grid": {
-          "lg": 6
-        }
+        "grid": { "lg": 6 }
       },
       {
         "id": "personLookup",
@@ -129,8 +126,8 @@
         },
         "textResourceBindings": {
           "title": "Stifter",
-          "description": "Her legger du inn etternavn og f\u00F8dselsnummer",
-          "help": "For \u00E5 kunne s\u00F8ke i registeret m\u00E5 du ha f\u00F8dselsnummeret til personen"
+          "description": "Her legger du inn etternavn og fødselsnummer",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
         "required": true
       },
@@ -173,24 +170,18 @@
       {
         "id": "Input-person-sms",
         "type": "Input",
-        "dataModelBindings": {
-          "simpleBinding": "StifterPerson.Mobiltelefon"
-        },
+        "dataModelBindings": { "simpleBinding": "StifterPerson.Mobiltelefon" },
         "textResourceBindings": {
           "title": "Mobiltelefon (for varsel om signering)",
           "summaryTitle": "Mobiltelefon",
           "tableTitle": "Mobiltelefon"
         },
-        "grid": {
-          "lg": 6
-        }
+        "grid": { "lg": 6 }
       },
       {
         "id": "Aksjetegning-heading",
         "type": "Heading",
-        "textResourceBindings": {
-          "title": "Aksjetegning"
-        },
+        "textResourceBindings": { "title": "Aksjetegning" },
         "size": "S"
       },
       {
@@ -247,14 +238,7 @@
       },
       {
         "id": "StifterPerson-Fullmektig",
-        "hidden": [
-          "notEquals",
-          [
-            "component",
-            "fullmektig-checkbox"
-          ],
-          "Ja"
-        ],
+        "hidden": ["notEquals", ["component", "fullmektig-checkbox"], "Ja"],
         "type": "PersonLookup",
         "dataModelBindings": {
           "ssn": "StifterPerson.Fullmektig.Foedselsnummer",

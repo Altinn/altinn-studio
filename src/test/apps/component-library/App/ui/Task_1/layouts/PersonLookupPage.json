@@ -16,8 +16,8 @@
         },
         "textResourceBindings": {
           "title": "Legg til person",
-          "description": "Her legger du inn etternavn og f\u00F8dselsnummer",
-          "help": "For \u00E5 kunne s\u00F8ke i registeret m\u00E5 du ha f\u00F8dselsnummeret til personen"
+          "description": "Her legger du inn etternavn og fødselsnummer",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
         "required": true
       },

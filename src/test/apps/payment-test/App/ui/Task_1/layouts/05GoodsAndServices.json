@@ -210,22 +210,18 @@
         },
         "hidden": [
           "or",
+          ["equals",
           [
-            "equals",
-            [
-              "dataModel",
-              "HF_HaveReadAndUnderstood"
-            ],
-            null
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
           ],
+          null],
+          ["equals",
           [
-            "equals",
-            [
-              "dataModel",
-              "HideFirstPaymentDetails"
-            ],
-            true
-          ]
+            "dataModel",
+            "HideFirstPaymentDetails"
+          ],
+          true]
         ]
       },
       {
