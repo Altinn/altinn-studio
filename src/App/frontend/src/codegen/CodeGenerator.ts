@@ -189,6 +189,7 @@ export abstract class MaybeSymbolizedCodeGenerator<T> extends CodeGenerator<T> {
       ...(this.internal.optional && this.internal.optional.default !== undefined
         ? { default: this.internal.optional.default }
         : {}),
+      ...(metadata.examples.length ? { examples: metadata.examples } : {}),
       ...(metadata.deprecated ? { deprecated: true } : {}),
     };
   }

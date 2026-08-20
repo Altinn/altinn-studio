@@ -1,7 +1,7 @@
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigStringProperties, type ConfigStringPropertiesProps } from './ConfigStringProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
+import type { PropertyDefinition } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import {
   cancelConfigAndVerify,
@@ -12,6 +12,10 @@ import {
 import userEvent from '@testing-library/user-event';
 
 const defaultProperty = 'someStringProperty';
+const properties: Record<string, PropertyDefinition> = {
+  [defaultProperty]: { type: 'string', required: false },
+  displayMode: { type: 'string', required: false },
+};
 
 describe('ConfigStringProperties', () => {
   it(`should render property text for the ${defaultProperty} property`, async () => {
@@ -60,7 +64,7 @@ describe('ConfigStringProperties', () => {
 
 const renderConfigStringProperties = (props: Partial<ConfigStringPropertiesProps> = {}) => {
   const defaultProps: ConfigStringPropertiesProps = {
-    schema: InputSchema,
+    properties,
     component: {
       ...componentMocks.Input,
       someStringProperty: '',

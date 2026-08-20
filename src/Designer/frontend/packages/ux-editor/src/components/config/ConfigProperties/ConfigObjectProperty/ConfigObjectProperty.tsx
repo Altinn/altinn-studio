@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useComponentPropertyLabel } from '../../../../hooks';
 import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
-import type { SchemaConfigProps } from '../types';
+import type { CatalogConfigProps } from '../types';
 import { ConfigObjectPropertyCard } from './ConfigObjectPropertyCard';
 import { useTranslateKeyValue } from '../useTranslateKeyValue';
 
-export interface ConfigObjectPropertyProps extends SchemaConfigProps {
+export interface ConfigObjectPropertyProps extends CatalogConfigProps {
   objectPropertyKey: string;
   editFormId: string;
   className?: string;
@@ -14,7 +14,7 @@ export interface ConfigObjectPropertyProps extends SchemaConfigProps {
 
 export const ConfigObjectProperty = ({
   objectPropertyKey,
-  schema,
+  properties,
   component,
   editFormId,
   handleComponentUpdate,
@@ -39,7 +39,7 @@ export const ConfigObjectProperty = ({
   return (
     <ConfigObjectPropertyCard
       component={component}
-      schema={schema}
+      properties={properties}
       objectPropertyKey={objectPropertyKey}
       handleComponentUpdate={handleComponentUpdate}
       setOpenObjectCard={setOpenObjectCard}

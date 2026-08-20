@@ -64,6 +64,7 @@ const IPageBreak = {
       description:
         "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
       default: 'auto',
+      examples: ['auto', 'always', 'avoid'],
       required: false,
     },
     breakAfter: {
@@ -73,6 +74,7 @@ const IPageBreak = {
       description:
         "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
       default: 'auto',
+      examples: ['auto', 'always', 'avoid'],
       required: false,
     },
   },
@@ -360,6 +362,13 @@ const AudioSrc = {
     en: { type: 'string', title: 'Audio source (when using english language)', required: false },
   },
   additionalProperties: { type: 'string', title: 'Audio source (when using other languages)' },
+  examples: [
+    {
+      nb: 'https://example.com/audio.mp3',
+      nn: 'https://example.com/audio.mp3',
+      en: 'https://example.com/audio.mp3',
+    },
+  ],
 } as const;
 
 const IAudio = {
@@ -369,6 +378,7 @@ const IAudio = {
       type: 'object',
       properties: AudioSrc['properties'],
       additionalProperties: AudioSrc['additionalProperties'],
+      examples: AudioSrc['examples'],
       required: true,
     },
   },
@@ -555,6 +565,7 @@ const IRawOption = {
     helpText: { type: 'string', required: false },
   },
   additionalProperties: false,
+  examples: [{ label: '', value: '' }],
 } as const;
 
 const IOptionSource = {
@@ -571,6 +582,7 @@ const IOptionSource = {
       type: 'string',
       title: 'Group',
       description: 'The repeating group to base options on.',
+      examples: ['model.some.group'],
       required: true,
     },
     label: {
@@ -579,12 +591,14 @@ const IOptionSource = {
       title: 'Label',
       description:
         'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+      examples: ['some.text.key'],
       required: true,
     },
     value: {
       type: 'string',
       title: 'Value',
       description: 'Field in the group that should be used as value',
+      examples: ['model.some.group[{0}].someField'],
       required: true,
     },
     description: {
@@ -593,6 +607,7 @@ const IOptionSource = {
       title: 'Description',
       description:
         'A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+      examples: ['some.text.key', 'My Description'],
       required: false,
     },
     helpText: {
@@ -601,6 +616,7 @@ const IOptionSource = {
       title: 'Help Text',
       description:
         'A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+      examples: ['some.text.key', 'My Help Text'],
       required: false,
     },
   },
@@ -986,6 +1002,7 @@ const ITableColumnProperties = {
   additionalProperties: false,
   title: 'Column options',
   description: 'Options for the row/column',
+  examples: [{ width: 'auto', alignText: 'left', textOverflow: { lineWrap: true, maxHeight: 2 } }],
 } as const;
 
 const IGridColumnProperties = {
@@ -1023,6 +1040,7 @@ const GridComponentRef = {
       additionalProperties: false,
       title: 'Column options',
       description: 'Options for the row/column',
+      examples: ITableColumnProperties['examples'],
       required: false,
     },
     cellStyle: {
@@ -1057,6 +1075,7 @@ const GridCellText = {
       additionalProperties: false,
       title: 'Column options',
       description: 'Options for the row/column',
+      examples: ITableColumnProperties['examples'],
       required: false,
     },
     cellStyle: {
@@ -1090,6 +1109,7 @@ const GridCellLabelFrom = {
       additionalProperties: false,
       title: 'Column options',
       description: 'Options for the row/column',
+      examples: ITableColumnProperties['examples'],
       required: false,
     },
     cellStyle: {
@@ -1125,6 +1145,7 @@ const GridRow = {
       additionalProperties: false,
       title: 'Column options',
       description: 'Options for the row/column',
+      examples: ITableColumnProperties['examples'],
       required: false,
     },
     cells: {
@@ -1136,6 +1157,22 @@ const GridRow = {
     },
   },
   additionalProperties: false,
+} as const;
+
+const GridRows = {
+  type: 'array',
+  items: GridRow,
+  title: 'Rows in Grid or Grid-like component',
+  description: 'The list of rows in this grid',
+  examples: [
+    [
+      {
+        header: false,
+        readOnly: false,
+        cells: [{ text: 'hello.world' }, { component: 'myOtherComponent' }],
+      },
+    ],
+  ],
 } as const;
 
 const ISandboxProperties = {
@@ -1177,6 +1214,13 @@ const IImageSrc = {
     en: { type: 'string', title: 'Image source (when using english language)', required: false },
   },
   additionalProperties: { type: 'string', title: 'Image source (when using other languages)' },
+  examples: [
+    {
+      nb: 'https://example.com/bilde.png',
+      nn: 'https://example.com/bilete.png',
+      en: 'https://example.com/image.png',
+    },
+  ],
 } as const;
 
 const GridJustification = {
@@ -1200,9 +1244,10 @@ const IImage = {
       type: 'object',
       properties: IImageSrc['properties'],
       additionalProperties: IImageSrc['additionalProperties'],
+      examples: IImageSrc['examples'],
       required: true,
     },
-    width: { type: 'string', title: 'Image width', required: true },
+    width: { type: 'string', title: 'Image width', examples: ['100%'], required: true },
     align: {
       type: 'string',
       allowedValues: GridJustification['allowedValues'],
@@ -1545,6 +1590,17 @@ const IFormatting = {
     },
   },
   additionalProperties: false,
+  examples: [
+    { currency: 'NOK' },
+    {
+      number: {
+        thousandSeparator: ' ',
+        decimalSeparator: ',',
+        allowNegative: false,
+        suffix: ' kr',
+      },
+    },
+  ],
 } as const;
 
 const ILikertColumnProperties = {
@@ -2141,6 +2197,7 @@ const Columns = {
               type: 'string',
               title: 'Date format',
               description: 'Date format used when displaying the date to the user',
+              examples: ['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'],
               required: false,
             },
           },
@@ -3250,7 +3307,7 @@ const TabConfig = {
   properties: {
     id: { type: 'string', required: true },
     title: { type: 'string', title: 'Title', description: 'Title of the tab', required: true },
-    icon: { type: 'string', required: false },
+    icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
     children: {
       type: 'array',
       items: { type: 'string' },
@@ -3341,6 +3398,13 @@ const VideoSrc = {
     en: { type: 'string', title: 'Video source (when using english language)', required: false },
   },
   additionalProperties: { type: 'string', title: 'Video source (when using other languages)' },
+  examples: [
+    {
+      nb: 'https://example.com/video.mp4',
+      nn: 'https://example.com/video.mp4',
+      en: 'https://example.com/video.mp4',
+    },
+  ],
 } as const;
 
 const IVideo = {
@@ -3350,6 +3414,7 @@ const IVideo = {
       type: 'object',
       properties: VideoSrc['properties'],
       additionalProperties: VideoSrc['additionalProperties'],
+      examples: VideoSrc['examples'],
       required: true,
     },
   },
@@ -3871,6 +3936,7 @@ export const componentCatalog = {
         title: 'minMediaHeight',
         description: 'Fixed minimum height of media (if media is present)',
         default: '150px',
+        examples: ['100px', '100%', '100rem'],
         required: false,
       },
       minWidth: {
@@ -3878,6 +3944,7 @@ export const componentCatalog = {
         title: 'minWidth',
         description: 'Fixed minimum width of the card',
         default: '250px',
+        examples: ['100', '100px', '100%', '100rem'],
         required: false,
       },
       color: {
@@ -4105,7 +4172,7 @@ export const componentCatalog = {
         additionalProperties: false,
         required: false,
       },
-      format: { type: 'string', required: false },
+      format: { type: 'string', examples: ['dd.MM.yyyy'], required: false },
       value: { type: 'string', expression: true, required: true },
       direction: {
         type: 'string',
@@ -4113,7 +4180,7 @@ export const componentCatalog = {
         default: 'horizontal',
         required: false,
       },
-      icon: { type: 'string', required: false },
+      icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
     },
   },
   Datepicker: {
@@ -4207,6 +4274,7 @@ export const componentCatalog = {
         description:
           "Date format used when filling out and displaying the date to the user. If not set the format will be based on the user's selected language.",
         default: 'dd.MM.yyyy',
+        examples: ['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'],
         required: false,
       },
     },
@@ -4373,6 +4441,7 @@ export const componentCatalog = {
         title: 'Valid file endings',
         description:
           'A separated string of valid file endings to upload. If not set all endings are accepted.',
+        examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
         required: false,
       },
       alertOnDelete: {
@@ -4481,6 +4550,7 @@ export const componentCatalog = {
         title: 'Valid file endings',
         description:
           'A separated string of valid file endings to upload. If not set all endings are accepted.',
+        examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
         required: false,
       },
       alertOnDelete: {
@@ -4523,6 +4593,7 @@ export const componentCatalog = {
         items: GridRow,
         title: 'Rows in Grid or Grid-like component',
         description: 'The list of rows in this grid',
+        examples: GridRows['examples'],
         required: true,
       },
     },
@@ -4823,6 +4894,7 @@ export const componentCatalog = {
         type: 'object',
         properties: IFormatting['properties'],
         additionalProperties: false,
+        examples: IFormatting['examples'],
         required: false,
       },
       variant: {
@@ -5187,6 +5259,7 @@ export const componentCatalog = {
         title: 'Table Headers',
         description:
           'An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages.',
+        examples: [{ productId: 'product.id', description: 'Beskrivelse av produkt' }],
         required: true,
       },
       sortableColumns: {
@@ -5521,6 +5594,7 @@ export const componentCatalog = {
         type: 'object',
         properties: IFormatting['properties'],
         additionalProperties: false,
+        examples: IFormatting['examples'],
         required: false,
       },
       value: { type: 'number', expression: true, required: true },
@@ -5530,7 +5604,7 @@ export const componentCatalog = {
         default: 'horizontal',
         required: false,
       },
-      icon: { type: 'string', required: false },
+      icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
     },
   },
   Option: {
@@ -5571,7 +5645,7 @@ export const componentCatalog = {
         default: 'horizontal',
         required: false,
       },
-      icon: { type: 'string', required: false },
+      icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
     },
   },
   OrganizationLookup: {
@@ -6144,6 +6218,7 @@ export const componentCatalog = {
         items: GridRow,
         title: 'Rows in Grid or Grid-like component',
         description: 'The list of rows in this grid',
+        examples: GridRows['examples'],
         required: false,
       },
       rowsAfter: {
@@ -6151,6 +6226,7 @@ export const componentCatalog = {
         items: GridRow,
         title: 'Rows in Grid or Grid-like component',
         description: 'The list of rows in this grid',
+        examples: GridRows['examples'],
         required: false,
       },
       removeWhenHidden: {
@@ -6221,6 +6297,7 @@ export const componentCatalog = {
         type: 'object',
         properties: {},
         additionalProperties: IGroupColumnFormatting,
+        examples: [{ childComponent1: { width: 'auto' } }],
         required: false,
       },
       hiddenRow: {
@@ -6873,7 +6950,7 @@ export const componentCatalog = {
         default: 'horizontal',
         required: false,
       },
-      icon: { type: 'string', required: false },
+      icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
     },
   },
   TextArea: {
@@ -7002,6 +7079,7 @@ export const componentCatalog = {
         description:
           'Time format used for displaying and input. HH:mm for 24-hour format, hh:mm a for 12-hour format with AM/PM.',
         default: 'HH:mm',
+        examples: ['HH:mm', 'hh:mm a', 'HH:mm:ss'],
         required: false,
       },
       minTime: {
@@ -7009,6 +7087,7 @@ export const componentCatalog = {
         variants: [{ type: 'string', expression: true }, { type: 'string' }],
         title: 'Earliest time',
         description: 'Sets the earliest allowed time in HH:mm format.',
+        examples: ['08:00', '09:30'],
         required: false,
       },
       maxTime: {
@@ -7016,6 +7095,7 @@ export const componentCatalog = {
         variants: [{ type: 'string', expression: true }, { type: 'string' }],
         title: 'Latest time',
         description: 'Sets the latest allowed time in HH:mm format.',
+        examples: ['17:00', '23:30'],
         required: false,
       },
     },

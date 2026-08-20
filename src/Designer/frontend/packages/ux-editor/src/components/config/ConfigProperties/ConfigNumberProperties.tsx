@@ -1,18 +1,19 @@
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
 import { EditNumberValue } from '../editModal/EditNumberValue';
-import type { SchemaConfigProps } from './types';
+import type { CatalogConfigProps } from './types';
 import { componentComparison } from './ConfigPropertiesUtils';
 import { useConfigProperty } from './useConfigProperty';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
+import { getNumberChoices } from '../../../data/componentCatalog';
 
-export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
+export interface ConfigNumberPropertiesProps extends CatalogConfigProps {
   numberPropertyKeys: string[];
   className?: string;
   keepEditOpen?: boolean;
 }
 
 export const ConfigNumberProperties = ({
-  schema,
+  properties,
   component: initialComponent,
   numberPropertyKeys,
   handleComponentUpdate,
@@ -26,7 +27,7 @@ export const ConfigNumberProperties = ({
         handleComponentChange={handleComponentUpdate}
         propertyKey={propertyKey}
         key={propertyKey}
-        enumValues={schema.properties[propertyKey]?.enum}
+        enumValues={getNumberChoices(properties[propertyKey])}
       />
     ));
   }
@@ -37,18 +38,18 @@ export const ConfigNumberProperties = ({
         <ConfigNumberProperty
           key={propertyKey}
           propertyKey={propertyKey}
-          schema={schema}
+          properties={properties}
           component={initialComponent}
           handleComponentUpdate={handleComponentUpdate}
           className={className}
-          enumValues={schema.properties[propertyKey]?.enum}
+          enumValues={getNumberChoices(properties[propertyKey])}
         />
       ))}
     </>
   );
 };
 
-type ConfigNumberPropertyProps = Partial<SchemaConfigProps> & {
+type ConfigNumberPropertyProps = Partial<CatalogConfigProps> & {
   propertyKey: string;
   className?: string;
   enumValues?: number[];

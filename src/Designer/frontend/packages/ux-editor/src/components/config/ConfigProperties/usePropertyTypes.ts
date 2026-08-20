@@ -1,38 +1,29 @@
 import { useMemo } from 'react';
-import { PropertyTypes, getSupportedPropertyKeysForPropertyType } from '../../../utils/component';
+import type { PropertyDefinition } from '@app/layout-contract';
+import { getEditablePropertyType, type EditablePropertyType } from '../../../data/componentCatalog';
+import { propertyKeysToExcludeFromComponentConfig } from '../../../utils/component';
 
-export const usePropertyTypes = (schema, customProperties) => {
+type ComponentProperties = Readonly<Record<string, PropertyDefinition>>;
+
+const getKeys = (
+  properties: ComponentProperties,
+  types: EditablePropertyType[],
+  excludedProperties: string[],
+): string[] =>
+  Object.keys(properties).filter(
+    (key) =>
+      !excludedProperties.includes(key) &&
+      !propertyKeysToExcludeFromComponentConfig.includes(key) &&
+      types.includes(getEditablePropertyType(properties[key])),
+  );
+
+export const usePropertyTypes = (properties: ComponentProperties, customProperties: string[]) => {
   return useMemo(() => {
-    const properties = schema?.properties || {};
-    const booleanKeys = getSupportedPropertyKeysForPropertyType(
-      properties,
-      [PropertyTypes.boolean],
-      customProperties,
-    );
-
-    const stringKeys = getSupportedPropertyKeysForPropertyType(
-      properties,
-      [PropertyTypes.string],
-      customProperties,
-    );
-
-    const numberKeys = getSupportedPropertyKeysForPropertyType(
-      properties,
-      [PropertyTypes.number, PropertyTypes.integer],
-      customProperties,
-    );
-
-    const arrayKeys = getSupportedPropertyKeysForPropertyType(
-      properties,
-      [PropertyTypes.array],
-      customProperties,
-    );
-
-    const objectKeys = getSupportedPropertyKeysForPropertyType(
-      properties,
-      [PropertyTypes.object],
-      [...customProperties, 'source'],
-    );
+    const booleanKeys = getKeys(properties, ['boolean'], customProperties);
+    const stringKeys = getKeys(properties, ['string'], customProperties);
+    const numberKeys = getKeys(properties, ['number', 'integer'], customProperties);
+    const arrayKeys = getKeys(properties, ['array'], customProperties);
+    const objectKeys = getKeys(properties, ['object'], [...customProperties, 'source']);
     return {
       booleanKeys,
       stringKeys,
@@ -40,5 +31,5 @@ export const usePropertyTypes = (schema, customProperties) => {
       arrayKeys,
       objectKeys,
     };
-  }, [schema?.properties, customProperties]);
+  }, [properties, customProperties]);
 };

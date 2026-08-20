@@ -10,7 +10,7 @@ import {
 } from './ConfigProperties';
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
-import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { PropertyDefinition } from '@app/layout-contract';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConfigObjectProperty } from './ConfigProperties/ConfigObjectProperty/ConfigObjectProperty';
 
@@ -22,11 +22,11 @@ export interface IEditFormComponentProps {
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
-  schema: JsonSchema;
+  properties: Readonly<Record<string, PropertyDefinition>>;
 }
 
 export const FormComponentConfig = ({
-  schema,
+  properties,
   editFormId,
   component,
   handleComponentUpdate,
@@ -47,13 +47,10 @@ export const FormComponentConfig = ({
   ];
 
   const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys } = usePropertyTypes(
-    schema,
+    properties,
     customProperties,
   );
 
-  if (!schema?.properties) return null;
-
-  const { properties } = schema;
   const { layoutSet } = properties;
 
   return (
@@ -67,7 +64,7 @@ export const FormComponentConfig = ({
       {booleanKeys.length > 0 && (
         <ConfigBooleanProperties
           booleanPropertyKeys={booleanKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -87,7 +84,7 @@ export const FormComponentConfig = ({
       {stringKeys.length > 0 && (
         <ConfigStringProperties
           stringPropertyKeys={stringKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -99,7 +96,7 @@ export const FormComponentConfig = ({
       {numberKeys.length > 0 && (
         <ConfigNumberProperties
           numberPropertyKeys={numberKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -111,7 +108,7 @@ export const FormComponentConfig = ({
       {arrayKeys.length > 0 && (
         <ConfigArrayProperties
           arrayPropertyKeys={arrayKeys}
-          schema={schema}
+          properties={properties}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
@@ -127,7 +124,7 @@ export const FormComponentConfig = ({
               key={objectPropertyKey}
               editFormId={editFormId}
               objectPropertyKey={objectPropertyKey}
-              schema={schema}
+              properties={properties}
               component={component}
               handleComponentUpdate={handleComponentUpdate}
               className={classes.elementWrapper}

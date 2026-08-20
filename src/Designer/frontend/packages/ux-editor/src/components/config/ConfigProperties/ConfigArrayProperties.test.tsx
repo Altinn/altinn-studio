@@ -10,6 +10,7 @@ import {
   openConfigAndVerify,
   saveConfigChanges,
 } from './testConfigUtils';
+import type { PropertyDefinition } from '@app/layout-contract';
 
 describe('ConfigArrayProperties', () => {
   it('should call handleComponentUpdate when array property is updated', async () => {
@@ -86,15 +87,14 @@ describe('ConfigArrayProperties', () => {
 });
 
 const supportedKey = 'supportedArrayProperty';
-const defaultArraySchema = {
-  properties: {
-    [supportedKey]: {
-      type: 'array',
-      items: {
-        type: 'string',
-        enum: ['option1', 'option2'],
-      },
+const defaultArrayProperties: Record<string, PropertyDefinition> = {
+  [supportedKey]: {
+    type: 'array',
+    items: {
+      type: 'string',
+      allowedValues: ['option1', 'option2'],
     },
+    required: false,
   },
 };
 
@@ -117,7 +117,7 @@ const renderConfigArrayProperties = ({
   props?: Partial<ConfigArrayPropertiesProps>;
 }) => {
   const defaultProps: ConfigArrayPropertiesProps = {
-    schema: defaultArraySchema,
+    properties: defaultArrayProperties,
     component: componentMocks.Input,
     handleComponentUpdate: jest.fn(),
     arrayPropertyKeys: [supportedKey],

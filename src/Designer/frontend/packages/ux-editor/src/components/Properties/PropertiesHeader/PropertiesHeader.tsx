@@ -9,12 +9,12 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
-import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
 import { StudioAlert } from '@studio/components';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
+import { getComponentDefinition } from '../../../data/componentCatalog';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -26,8 +26,17 @@ export const PropertiesHeader = ({
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const { data: schema } = useComponentSchemaQuery(formItem.type);
-  const { dataModelBindings, textResourceBindings } = schema.properties;
+  const definition = getComponentDefinition(formItem.type);
+  const dataModelBindings = definition?.properties.dataModelBindings;
+  const textResourceBindings = definition?.properties.textResourceBindings;
+  const componentSchemaTextKeys =
+    textResourceBindings?.type === 'object' ? Object.keys(textResourceBindings.properties) : [];
+  const requiredDataModelBindings =
+    dataModelBindings?.type === 'object'
+      ? Object.entries(dataModelBindings.properties)
+          .filter(([, property]) => property.required)
+          .map(([key]) => key)
+      : [];
 
   const Icon = formItemConfigs[formItem.type]?.icon;
 
@@ -65,12 +74,12 @@ export const PropertiesHeader = ({
             <TextResourceMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
-              componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}
+              componentSchemaTextKeys={componentSchemaTextKeys}
             />
             <DataModelMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
-              requiredDataModelBindings={dataModelBindings?.required || []}
+              requiredDataModelBindings={requiredDataModelBindings}
             />
             <ComponentMainConfig
               key={formItem.id}

@@ -18,6 +18,7 @@ export type PropertyMetadata = Readonly<{
   title?: string;
   description?: string;
   default?: unknown;
+  examples?: readonly unknown[];
   deprecated?: boolean;
 }>;
 

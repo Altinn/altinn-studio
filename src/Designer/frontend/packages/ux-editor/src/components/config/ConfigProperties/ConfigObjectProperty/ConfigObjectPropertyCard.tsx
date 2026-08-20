@@ -7,10 +7,10 @@ import {
 } from '../../../../../src/hooks';
 import { FormComponentConfig } from '../../FormComponentConfig';
 import type { FormComponent } from '../../../../../src/types/FormComponent';
-import type { SchemaConfigProps } from '../types';
+import type { CatalogConfigProps } from '../types';
 import { propHasValues } from '../ConfigPropertiesUtils';
 
-export interface ConfigObjectPropertyCardProps extends SchemaConfigProps {
+export interface ConfigObjectPropertyCardProps extends CatalogConfigProps {
   objectPropertyKey: string;
   editFormId: string;
   setOpenObjectCard: (open: boolean) => void;
@@ -18,7 +18,7 @@ export interface ConfigObjectPropertyCardProps extends SchemaConfigProps {
 
 export const ConfigObjectPropertyCard = ({
   component,
-  schema,
+  properties,
   objectPropertyKey,
   handleComponentUpdate,
   setOpenObjectCard,
@@ -65,7 +65,11 @@ export const ConfigObjectPropertyCard = ({
           <StudioParagraph>{componentPropertyDescription(objectPropertyKey)}</StudioParagraph>
         )}
         <FormComponentConfig
-          schema={schema.properties[objectPropertyKey] || {}}
+          properties={
+            properties[objectPropertyKey]?.type === 'object'
+              ? properties[objectPropertyKey].properties
+              : {}
+          }
           component={component[objectPropertyKey] || {}}
           handleComponentUpdate={(updatedComponent: FormComponent) =>
             setCurrentValues({ ...currentValues, ...updatedComponent })
