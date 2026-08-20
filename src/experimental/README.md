@@ -25,6 +25,10 @@ Important considerations:
 - Agents should be able to use standard development tools, including Docker or Podman, `strace` and `perf` inside a
   Linux Sandbox
 
+## Development
+
+See the [`Makefile`](Makefile) for available development commands.
+
 ## High-level Architecture
 
 - Client-server-operator model
