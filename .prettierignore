@@ -7,5 +7,7 @@ yarn.lock
 *.code-workspace
 .eslintignore
 *.snap
+# Verify writes these; their shape is the tool's, not a formatting choice
+*.verified.json
 *.yaml
 eidlogger/
