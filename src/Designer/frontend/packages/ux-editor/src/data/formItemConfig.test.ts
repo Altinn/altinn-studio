@@ -19,6 +19,7 @@ describe('formItemConfig', () => {
     // OrganisationLookup and Header belong to pre-v9 ux-editor-v4.
     ComponentType.OrganisationLookup,
     ComponentType.Header,
+    ComponentType.FileUploadWithTag,
     ComponentType.Payment,
     ComponentType.Summary,
   ];

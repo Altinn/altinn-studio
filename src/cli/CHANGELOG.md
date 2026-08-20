@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl app upgrade v9` now replaces the retired `FileUploadWithTag` layout component with `FileUpload`, retaining its configured options so tagged attachments continue to work.
+
 ## [0.1.0-preview.22] - 2026-08-18
 
 ### Added

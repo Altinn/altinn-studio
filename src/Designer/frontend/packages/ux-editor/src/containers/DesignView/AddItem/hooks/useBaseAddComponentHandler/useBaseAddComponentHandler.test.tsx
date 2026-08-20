@@ -53,6 +53,19 @@ describe('useAddComponentHandler', () => {
     await waitFor(() => expect(doReloadPreviewMock).toHaveBeenCalled());
     expect(onDoneMock).toHaveBeenCalled();
   });
+
+  it('does not add a removed component type', () => {
+    const handleEditMock = mockFormItemContext();
+    const doReloadPreviewMock = mockPreviewContext();
+    const onDoneMock = jest.fn();
+
+    const { addItem } = renderUseAddComponentHandler(layoutMock);
+    addItem(ComponentType.FileUploadWithTag, BASE_CONTAINER_ID, 0, 'new-id', onDoneMock);
+
+    expect(handleEditMock).not.toHaveBeenCalled();
+    expect(doReloadPreviewMock).not.toHaveBeenCalled();
+    expect(onDoneMock).not.toHaveBeenCalled();
+  });
 });
 
 function renderUseAddComponentHandler(layout: IInternalLayout) {
