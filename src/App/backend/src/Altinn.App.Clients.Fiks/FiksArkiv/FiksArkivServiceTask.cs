@@ -96,8 +96,9 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// application's <c>WorkflowEngineCallback</c> app code: the workflow that receives the answer is
     /// signed by it, so a mailbox may not outlive it, and a transition opened while the current code
     /// has less than seven days left fails with <c>MailboxTimeoutOutlivesAppCode</c> — visible as a
-    /// failing transition for the user, and fixed by rolling a longer-lived code rather than by
-    /// anything in this file.
+    /// failing transition for the user, and fixed by putting a longer-lived code <strong>first</strong>
+    /// in <c>AppCodes:WorkflowEngineCallback</c> (the app signs with the first non-expired code in that
+    /// list, not the longest-lived one) rather than by anything in this file.
     /// </para>
     /// </remarks>
     internal static readonly TimeSpan ArchiveReplyTimeout = TimeSpan.FromDays(7);
