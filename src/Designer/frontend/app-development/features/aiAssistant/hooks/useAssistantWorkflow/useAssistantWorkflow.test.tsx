@@ -359,6 +359,83 @@ describe('useAssistantWorkflow', () => {
     expect(threads.createMessage).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps the workflow active when the cancel request fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatMessages: [
+        {
+          id: 'msg-1',
+          role: MessageAuthor.User,
+          content: 'Legg til et felt',
+          createdAt: '2026-01-01T00:00:00Z',
+          allowAppChanges: true,
+        },
+      ],
+      deleteMessage: jest.fn().mockResolvedValue(undefined),
+    });
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn().mockRejectedValue(new Error('Hub disconnected')),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    // The agent never got the cancel, so the run is still going.
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('dedupes a redelivered assistant_message that has an eventId but no traceId', async () => {
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAssistantWorkflow(threads);
+
+    // Langfuse off, so the answer carries no traceId — eventId still identifies it.
+    const duplicatedEvent: AssistantMessageEvent = {
+      type: 'assistant_message',
+      session_id: 'thread-a',
+      data: { content: 'Svar', eventId: 'event-1', mode: 'chat' },
+    };
+
+    await act(async () => {
+      capturedOnAgentMessage!(duplicatedEvent);
+      capturedOnAgentMessage!(duplicatedEvent);
+    });
+
+    expect(threads.createMessage).toHaveBeenCalledTimes(1);
+  });
+
   it('retries a redelivered assistant_message when the first persist failed', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({

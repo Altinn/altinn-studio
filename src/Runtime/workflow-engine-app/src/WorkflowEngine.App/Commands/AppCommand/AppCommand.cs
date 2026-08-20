@@ -186,12 +186,14 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (statusCode is >= 400 and < 500 and not 408 and not 418 and not 429)
         {
             return ExecutionResult.CriticalError(
-                $"AppCommand failed with client error {response.StatusCode}: {errorBody}"
+                $"AppCommand failed with client error {response.StatusCode}: {errorBody}",
+                httpStatusCode: statusCode
             );
         }
 
         return ExecutionResult.RetryableError(
-            $"AppCommand execution failed with status code {response.StatusCode}: {errorBody}"
+            $"AppCommand execution failed with status code {response.StatusCode}: {errorBody}",
+            httpStatusCode: statusCode
         );
     }
 

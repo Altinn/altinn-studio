@@ -27,6 +27,7 @@ RUN apt-get update \
       libasound2t64 \
       libatk-bridge2.0-0 \
       libatk1.0-0 \
+      libcap-ng-dev \
       libcairo2 \
       libcups2 \
       libdbus-1-3 \
