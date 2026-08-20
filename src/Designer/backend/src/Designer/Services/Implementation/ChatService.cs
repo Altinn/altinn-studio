@@ -134,6 +134,13 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
 
+    public Task<bool> SetFeedbackAsync(
+        string traceId,
+        bool? thumbsUp,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    ) => repository.SetFeedbackAsync(traceId, thumbsUp, context, cancellationToken);
+
     public async Task<bool> ThreadBelongsToDeveloperAsync(
         Guid threadId,
         AltinnRepoEditingContext context,

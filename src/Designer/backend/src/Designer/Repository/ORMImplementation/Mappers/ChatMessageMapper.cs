@@ -22,6 +22,7 @@ public static class ChatMessageMapper
             Sources = entity.Sources is null ? null : JsonSerializer.Serialize(entity.Sources),
             TraceId = entity.TraceId,
             EventId = entity.EventId,
+            FeedbackThumbsUp = entity.FeedbackThumbsUp,
         };
     }
 
@@ -42,6 +43,7 @@ public static class ChatMessageMapper
                 : JsonSerializer.Deserialize<List<ChatSourceEntity>>(dbModel.Sources),
             TraceId = dbModel.TraceId,
             EventId = dbModel.EventId,
+            FeedbackThumbsUp = dbModel.FeedbackThumbsUp,
         };
     }
 }

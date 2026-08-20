@@ -62,4 +62,9 @@ public class ChatMessageEntity
     /// Null when the client persisted the message.
     /// </summary>
     public string? EventId { get; set; }
+
+    /// <summary>
+    /// The user's thumbs up/down on this answer.
+    /// </summary>
+    public bool? FeedbackThumbsUp { get; set; }
 }

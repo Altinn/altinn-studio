@@ -18,6 +18,7 @@ export type AssistantMessageProps = {
   texts: AssistantTexts;
   assistantAvatarUrl?: string;
   onMessageFeedback?: (feedback: UserFeedback) => void;
+  onClearMessageFeedback?: (traceId: string) => void;
 };
 
 export function AssistantMessage({
@@ -25,6 +26,7 @@ export function AssistantMessage({
   texts,
   assistantAvatarUrl,
   onMessageFeedback,
+  onClearMessageFeedback,
 }: AssistantMessageProps): ReactElement {
   const { traceId } = message;
   const sources = message.sources ?? [];
@@ -48,7 +50,9 @@ export function AssistantMessage({
       {showFeedback && (
         <MessageFeedback
           texts={texts.feedback}
+          currentVote={message.feedbackThumbsUp}
           onSubmit={(payload) => onMessageFeedback({ traceId, payload })}
+          onClear={onClearMessageFeedback && ((): void => onClearMessageFeedback(traceId))}
         />
       )}
     </MessageRow>

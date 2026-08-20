@@ -38,6 +38,8 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.Property(e => e.EventId).HasColumnType("character varying").HasColumnName("event_id");
 
+        builder.Property(e => e.FeedbackThumbsUp).HasColumnType("boolean").HasColumnName("feedback_thumbs_up");
+
         builder
             .HasIndex(e => new { e.ThreadId, e.EventId }, "idx_chat_messages_thread_id_event_id")
             .IsUnique()
