@@ -67,6 +67,8 @@ export type FormItemConfigs = {
   [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
 }>;
 
+export type FormItemConfigEntry = FormItemConfigs[keyof FormItemConfigs];
+
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
     name: ComponentType.Alert,
@@ -532,7 +534,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
 };
 
-export const advancedItems: FormItemConfigs[ComponentType][] = [
+export const advancedItems: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
@@ -548,7 +550,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const schemaComponents: FormItemConfigs[ComponentType][] = [
+export const schemaComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Input],
   formItemConfigs[ComponentType.TextArea],
   formItemConfigs[ComponentType.Checkboxes],
@@ -575,7 +577,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const textComponents: FormItemConfigs[ComponentType][] = [
+export const textComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
@@ -583,14 +585,14 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Text],
 ];
 
-export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
+export const confOnScreenComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
 ];
 
-export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
+export const paymentLayoutComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Payment],
   ...confOnScreenComponents,
 ];
@@ -661,7 +663,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
   ],
   advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
 };
-export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
+export const subformLayoutComponents: FormItemConfigEntry[] = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,

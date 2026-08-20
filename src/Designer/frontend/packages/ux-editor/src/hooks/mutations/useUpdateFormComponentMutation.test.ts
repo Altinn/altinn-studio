@@ -14,7 +14,6 @@ import type {
   FormCheckboxesComponent,
   FormComponent,
   FormFileUploaderComponent,
-  FormFileUploaderWithTagComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
 import type { IDataModelBindingsKeyValue } from '../../types/global';
@@ -41,8 +40,8 @@ const updatedComponent: FormComponent = {
   dataModelBindings,
 };
 const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
-const fileUploadWithTagDataType = {
-  id: componentMocks[ComponentType.FileUploadWithTag].id,
+const fileUploadDataType = {
+  id: componentMocks[ComponentType.FileUpload].id,
   maxCount: 25,
   minCount: 1,
 };
@@ -52,7 +51,6 @@ jest.mock('bpmn-moddle', () =>
     fromXML: jest.fn().mockResolvedValue({
       rootElement: getDataTypesToSignMock([
         componentMocks[ComponentType.FileUpload].id,
-        componentMocks[ComponentType.FileUploadWithTag].id,
       ]),
     }),
     toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
@@ -174,8 +172,8 @@ describe('useUpdateFormComponentMutation', () => {
     }
   });
 
-  describe('Update FileUpload and FileUploadWithTag components', () => {
-    const componentTypes = [ComponentType.FileUpload, ComponentType.FileUploadWithTag];
+  describe('Update FileUpload components', () => {
+    const componentTypes = [ComponentType.FileUpload];
 
     it.each(componentTypes)(
       `Updates the layout and the bpmn file when updating the id of a %s component`,
@@ -233,15 +231,15 @@ describe('useUpdateFormComponentMutation', () => {
       const updateFormComponentResult = renderHookWithProviders(() =>
         useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
       ).result;
-      const newMaxCount = fileUploadWithTagDataType.maxCount - 1;
-      const newMinCount = fileUploadWithTagDataType.minCount + 1;
+      const newMaxCount = fileUploadDataType.maxCount - 1;
+      const newMinCount = fileUploadDataType.minCount + 1;
       const newComponent = createFileUploaderMutationPayload(
-        componentMocks[ComponentType.FileUploadWithTag].id,
+        componentMocks[ComponentType.FileUpload].id,
         newMaxCount,
         newMinCount,
       );
       await updateFormComponentResult.current.mutateAsync({
-        id: componentMocks[ComponentType.FileUploadWithTag].id,
+        id: componentMocks[ComponentType.FileUpload].id,
         updatedComponent: newComponent,
       });
       expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledTimes(1);
@@ -249,8 +247,8 @@ describe('useUpdateFormComponentMutation', () => {
         expect.anything(),
         expect.anything(),
         expect.objectContaining({
-          maxCount: fileUploadWithTagDataType.maxCount,
-          minCount: fileUploadWithTagDataType.minCount,
+          maxCount: fileUploadDataType.maxCount,
+          minCount: fileUploadDataType.minCount,
         }),
       );
     });
@@ -260,15 +258,15 @@ describe('useUpdateFormComponentMutation', () => {
       const updateFormComponentResult = renderHookWithProviders(() =>
         useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
       ).result;
-      const newMaxCount = fileUploadWithTagDataType.maxCount + 1;
-      const newMinCount = fileUploadWithTagDataType.minCount - 1;
+      const newMaxCount = fileUploadDataType.maxCount + 1;
+      const newMinCount = fileUploadDataType.minCount - 1;
       const newComponent = createFileUploaderMutationPayload(
-        componentMocks[ComponentType.FileUploadWithTag].id,
+        componentMocks[ComponentType.FileUpload].id,
         newMaxCount,
         newMinCount,
       );
       await updateFormComponentResult.current.mutateAsync({
-        id: componentMocks[ComponentType.FileUploadWithTag].id,
+        id: componentMocks[ComponentType.FileUpload].id,
         updatedComponent: newComponent,
       });
       expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledTimes(1);
@@ -277,7 +275,7 @@ describe('useUpdateFormComponentMutation', () => {
         expect.anything(),
         expect.objectContaining({
           maxCount: newMaxCount,
-          minCount: fileUploadWithTagDataType.minCount,
+          minCount: fileUploadDataType.minCount,
         }),
       );
     });
@@ -286,7 +284,7 @@ describe('useUpdateFormComponentMutation', () => {
 
 const renderAndWaitForData = () => {
   queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
-    dataTypes: [fileUploadWithTagDataType],
+    dataTypes: [fileUploadDataType],
   });
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, selectedLayoutSet],
@@ -299,7 +297,7 @@ function createFileUploaderMutationPayload(
   id: string,
   newMaxCount: number,
   newMinCount: number,
-): FormFileUploaderWithTagComponent {
+): FormFileUploaderComponent {
   return {
     ...updatedComponent,
     id,
@@ -310,7 +308,7 @@ function createFileUploaderMutationPayload(
     maxFileSizeInMB: 100,
     maxNumberOfAttachments: newMaxCount,
     minNumberOfAttachments: newMinCount,
-    type: ComponentType.FileUploadWithTag,
+    type: ComponentType.FileUpload,
     dataModelBindings: { list: { field: 'some-path', dataType: '' } },
   };
 }

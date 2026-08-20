@@ -12,12 +12,11 @@ import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
-import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
 
-export const mapComponentToToolbarElement = <T extends ComponentType | CustomComponentType>(
+export const mapComponentToToolbarElement = <T extends keyof FormItemConfigs>(
   c: FormItemConfigs[T],
 ): IToolbarElement => ({
   label: c.name,
@@ -313,7 +312,7 @@ export const addItemOfType = <T extends ComponentType | CustomComponentType>(
   parentId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
-  const newItem: FormItem<T> = generateFormItem<T>(componentType, id);
+  const newItem = generateFormItem(componentType as keyof FormItemConfigs, id);
   return newItem.itemType === 'CONTAINER'
     ? addContainer(layout, newItem, id, parentId, position)
     : addComponent(layout, newItem, parentId, position);

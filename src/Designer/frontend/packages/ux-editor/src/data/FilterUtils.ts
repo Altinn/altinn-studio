@@ -1,17 +1,17 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs, type FormItemConfigs } from './formItemConfig';
+import { formItemConfigs, type FormItemConfigEntry } from './formItemConfig';
 
 export class FilterUtils {
   public static filterOutDisabledFeatureItems(
-    item: FormItemConfigs[ComponentType] | boolean,
+    item: FormItemConfigEntry | boolean,
   ): boolean {
     return Boolean(item);
   }
 
   public static filterUnsupportedSubformComponents = (
-    component: FormItemConfigs[ComponentType],
+    component: FormItemConfigEntry,
   ): boolean => {
-    const unsupportedSubformComponents: Array<FormItemConfigs[ComponentType]> = [
+    const unsupportedSubformComponents: FormItemConfigEntry[] = [
       formItemConfigs[ComponentType.Button],
       formItemConfigs[ComponentType.FileUpload],
       formItemConfigs[ComponentType.InstantiationButton],
