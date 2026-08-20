@@ -698,8 +698,9 @@ changes behavior until the app declares a mailbox.
 
 #### Step 1 — Engine: the mailbox — schema, mint, read, close — `done`
 
-Landed as jj change `vrymvwoqpmrn` — 30 files, +2776/−6, all under `src/Runtime/workflow-engine`.
-Engine suite **705 → 709**; host 76 unchanged, and no wire-contract regeneration was needed (no
+Landed as jj change `vrymvwoqpmrn` — 30 files, +3010/−6 (`jj diff --stat`), all under
+`src/Runtime/workflow-engine`. Engine suite **656 → 709** (+53; the pre-stack base is 656 — an earlier
+record here said 705, corrected by step 12's audit); host 76 unchanged, and no wire-contract regeneration was needed (no
 `EngineContractTypes`-reachable type moved — verified, not assumed). Three review rounds; the
 migration is a single pair, regenerated in place rather than stacked, since nothing is released.
 
@@ -1216,8 +1217,8 @@ two critical states tagged apart from ordinary execution failures.
 
 #### Step 5b-ii — Engine: rendering the mailbox under its collection — `done`
 
-Landed as jj change `lpwlyzxx` (8 files, +576/−10, all under `wwwroot`), plus a second revision
-`qnlqnrpr` carrying a **security fix to pre-existing code** — see below. Engine suite 939 and host 81
+Landed as jj change `lpwlyzxx` (9 files, +732/−22, all under `wwwroot` — corrected by step 12's
+audit), plus a second revision `qnlqnrpr` (7 files, +62/−47) carrying a **security fix to pre-existing code** — see below. Engine suite 939 and host 81
 both unchanged: neither revision contains a line of C#. Two review rounds.
 
 **This step had no test infrastructure to lean on**, which is why 5b split. The standard was met by
@@ -1640,7 +1641,8 @@ rotation_. So **receiver 1's viability is bounded by `signingCode.ExpiresAt`**, 
 the current code would have stranded it — 401 storm, `Failed` workflow, `ResumeRequired` instance — days
 after the exchange opened, with nothing having warned at open.
 
-Now guarded at mint: `ExecuteServiceTask.ResolveMailbox` refuses `now + Timeout > GetSigningSecret().ExpiresAt`
+**Guarded at mint at the time, and the guard was later removed — see the follow-up below.**
+`ExecuteServiceTask.ResolveMailbox` refused `now + Timeout > GetSigningSecret().ExpiresAt`
 with a permanent **`MailboxTimeoutOutlivesAppCode`** naming the declared timeout, the code's expiry, the
 remaining life and both fixes — placed **before** the mint, so a refused declaration publishes no address
 and consumes no slot against the cap. It is pinned as a _bound_, not a ban: widening it by one
@@ -2071,7 +2073,80 @@ this design's shape: per-delivery and per-receiver database cost, the non-reply 
 per-cadence scan. Mine `mmppzrvl` for the comparator machinery and its recorded fixes; the v2 prices
 describe the v2 tree and are a comparator, not a baseline to reproduce.
 
-#### Step 12 — Stack hygiene: green revision by revision — `in progress`
+#### Step 12 — Stack hygiene: green revision by revision — `done`
+
+Landed as **six** revisions rather than one, because the list it inherited was not one kind of thing:
+`zpstsowoxvvp` (retention purge terminates at a zero batch size), `uqloytyptxvu` (a repeated
+idempotency key classified without throwing), `qpzumsnqswvt` (engine hygiene), `mopxywvspxvm` (app-lib
+hygiene), `vmxvsyuoporw` (the `MailboxTimeoutOutlivesAppCode` remedy), `stkltytzkpsm` (documentation).
+Two review rounds. Engine **941**, host 81, app suite **4221 passed / 0 failed** at the stack tip.
+
+**The audit's finding was that the stack's own base was red — and the base was the one thing nobody had
+checked.** Two `SourceGenerator` tests failed at `trtzopwn` and every revision inherited it. Bisected to
+a single line: `trtzopwn` ("set end_of_line to lf") flips `src/App/backend/.editorconfig` from `crlf` to
+`lf`, CSharpier rewrites sources to that setting at build time, and a raw string literal **carries its
+source file's line endings** — so the generator's literals became LF while its **39 hardcoded `\r\n`**
+sequences stayed CRLF, leaving mixed output that its own formatter no longer matches. Review confirmed
+it independently and made it worse three ways: a **second CI workflow** red (`Verify formatting`, 1,494
+of 1,505 files), a **third test** failing only on CI because `AutoVerify(includeBuildServer: false)`
+rewrites the snapshot and reports green locally, and 39 sites rather than 38.
+
+**Resolved by the repo owner (2026-08-20): the stack was rebased onto `wnoznnumrktl` and `trtzopwn` moved
+to the top.** The LF setting is needed locally — it stops every `.cs` file churning on build — so it now
+sits above the work instead of beneath it. 39 revisions rebased, zero conflicts. Verified from a faithful
+CRLF extraction at `stkltytz`: `csharpier check` **pre-build** 1505 checked / 0 errors, and
+`CI=true TF_BUILD=true dotnet test` **4221 passed / 0 failed** with `SourceGenerator.Tests` 48/48. At
+`trtzopwn` alone the 1,494 and 45/48 figures reproduce exactly. **A branch must therefore be pushed from
+`stkltytz`, not from the tip** — nothing in the tree enforces that, and no bookmark is set.
+
+**The two pre-existing engine defects each landed as their own revision, as this entry required**, and
+both are mutation-pinned: `PurgeExpiredWorkflows` now ends on an empty pass (its test **fails at exactly
+its 10-second budget** with the guard removed, rather than hanging, and the loop provably cannot spin on
+persistently-failing rows), and `ClassifyExistingIdempotencyKeys` gained `.Distinct()` plus an
+indexer-built lookup. The honest evidence for the second is that **neither half is individually
+load-bearing** — either alone passes, only the pair fails — which the first report claimed otherwise and
+review measured.
+
+**Two of this document's own records were wrong**, corrected above: step 1 is **656 → 709 (+53)**, not
+705 → 709, and its stat is +3010/−6; step 5b-ii is 9 files, +732/−22.
+
+Also fixed: the self-rewriting `DagRoundtrip…exchange.http` snapshot (GUID-keyed maps sorted **after**
+scrubbing, since scrubbed tokens are numbered by first appearance while raw uuidv7 ids are another coin
+toss — five runs byte-identical, and applying the sorter to all 64 committed snapshots would change
+none); `cards.js`'s last unescaped selector interpolation; **55 untracked `.k6/results` artifacts** that
+were sitting unignored in the working copy and were swept into a throwaway revision the moment the audit
+ran `jj new`; `required` on the two remaining context members; `Verify(publicApi + "\n")` in all three
+snapshot tests; dead telemetry; and the `MailboxTimeoutOutlivesAppCode` remedy, **still wrong in four
+places** — step 10 had corrected only its own CHANGELOG entry, leaving the exception message an app
+author actually reads, both xmldocs, and the entry that _introduces_ the refusal all still advising a
+fix that does nothing.
+
+**`typos` coverage was widened for a reason that turned out to be false, then made true.** Dropping the
+`**/.k6/**` exclude widened nothing — `typos` skips hidden directories _before_ any exclude is
+consulted, so `.k6` had never been scanned and the comment explaining the removal misinformed about why
+the coverage existed. `ignore-hidden = false` in both engine configs makes it real; the only new hit
+across either folder was one word.
+
+Deliberately left, each with a stated reason: `--idempotent` script generation (no consumer, and the fix
+is a design trade on a pre-existing online-index migration); the `IFiksArkivResponseHandler` analyzer
+diagnostic (needs a new attribute, rule id, release-notes entry and a policy call about a permanent
+informational diagnostic on correct code); clamping rather than refusing (approved-behavior change,
+needs a margin policy, rewrites a release note); the four dead `IFiksArkivInstanceClient` members (dead
+in production but carried by live tests — the stated rule is _delete when the deletion touches nothing
+else, leave when it would take tests with it_, and this is explicitly not a breakage argument, since the
+interface is internal); the k6 stale-image guard (only heuristic, and an unvalidatable guard in a
+measurement harness fails this stack's own standard); and the prettier sweeps — **13 of the 24 md/js/css
+files this stack touched are dirty at the tip, and all 13 are dirty at the pre-stack base too**. The
+stack introduced none and cleaned one.
+
+**A hazard the new arrangement creates, and the fourth appearance of this stack's recurring trap.** Every
+`src/App/backend` build now rewrites ~1,500 `.cs` files to CRLF in a jj working copy. A blanket
+`jj restore` over that glob took two intended edits with it; an exclusion list then left five kept files
+CRLF and inflated a revision's diff to +341/−297 while `jj status` looked clean. Anyone amending an
+app-backend revision after a build must restore the drift **and** re-read `jj diff --stat`. Recorded in
+`src/App/backend/AGENTS.md`, alongside the correction that a raw string literal carries its source
+file's endings — the documentation written to prevent the next `.editorconfig` flip had asserted the
+inverse, which would have taught a reader that the setting cannot affect the generator at all.
 
 **Two pre-existing engine defects were found during this stack and deliberately not fixed inside a
 feature revision** — each deserves its own small revision, landed here or earlier:
@@ -2116,12 +2191,6 @@ concurrently.
   The policy forbids touching the interface and `[Obsolete]` would assert a falsehood ("this is going
   away"), but this repo already ships app-facing analyzer rules (`ALTINNAPP0700`), so an informational
   diagnostic on any type implementing it is the one honest compile-time signal available.
-- **Clamp rather than refuse in `MailboxTimeoutOutlivesAppCode`** (step 7a's guard). As it stands, the
-  last stretch of every signing code's life is a **scheduled failure window** — with Fiks Arkiv's 7-day
-  default, every archiving transition fails permanently for seven days, which no app author did anything
-  to earn. `Timeout = min(declared, credentialsExpireAt − now − margin)` degrades a late-opened exchange
-  into closing early through the app's own conclusion path, which the design already handles, instead of
-  never opening at all.
 - **`PublicApiTests` newline churn.** `AutoVerify(includeBuildServer: false)` means a local run silently
   accepts a public-API change and reports green (CI still catches it, but the developer who made it gets
   no signal), and a rewrite drops the file's trailing newline so the next change churns one extra line.
@@ -2150,6 +2219,53 @@ Rebuild each revision the way CI does, confirm the suites, confirm `typos`, CSha
 confirm no generated-file CRLF drift rode along, and update the engine `AGENTS.md`, the app-lib
 `AGENTS.md`, and the CHANGELOG entries in the repo's user-facing language. Mine `soouolvy` for the
 checklist.
+
+### Follow-up after the stack: the timeout guard removed
+
+Decided by the repo owner (2026-08-20) after step 12, landed as jj change `xmuxxwyr` — 13 files,
++49/−169. **The `MailboxTimeoutOutlivesAppCode` guard is gone.**
+
+**Why.** The exposure it guarded is **not mailbox-specific**. Callback tokens are minted once per
+enqueue for _every_ workflow, `GenerateToken` sets `Expires = appCode.ExpiresAt` regardless of caller,
+and `WorkflowStateSigner` refuses a blob signed by an expired code — so an ordinary workflow parked on
+`MaxStepWaitBudget` (14d) past its code's expiry fails identically, and **nothing guards that path**.
+A guard on one path made the system _look_ handled while the same defect broke every other long-parked
+workflow silently. It was also stricter than the risk: it refused **predictively** on a declared
+duration, failing exchanges that would have completed in minutes, where an ordinary workflow fails only
+if it _actually_ waits too long. Fixing the general problem is out of scope; the intent is that a
+mailbox exchange now fails the way everything else does.
+
+**What actually happens now, traced rather than assumed — and it is worse than the guard's own comment
+claimed.** The forwarder **succeeds** (202): the mailbox is open, so the answer is accepted, the
+receiver released, and **the external system is told the answer landed**. The callback then **401s** —
+authentication runs before the controller, so the state blob's signature is never even reached (a 401,
+not the 422 a bad blob would give). It is **terminal on the first attempt, with no retry ladder at
+all**: `AppCommand` classifies every 4xx except 408/418/429 as `CriticalError`, so the step fails with
+`WasRetryable: false` and no backoff. The guard's comment had said "a receiver that 401s days later",
+implying a storm; there is exactly one 401. The **message is silently consumed** — both counters
+advanced, `unconsumedDeliveries` reads 0, nothing re-delivers. The instance is stuck but visible
+(`ResumeRequired`), and **resume does not help**: the engine replays the stored context and presents
+the same expired token, and rotating a fresh code protects the next exchange without rescuing this one.
+
+**Two removals the identifier grep missed.** Two in-tree comments asserted the guard in _prose_ without
+naming it — one in `EnqueueReceiveWorkflow`, the single place a reader goes to understand receiver-1
+lifetime. Grepping for `MailboxTimeoutOutlivesAppCode` was the wrong instrument for a claim written in
+English; sweeping for the **claim** (`outliv|outlast`, `401|storm|at open`) found them, and confirmed
+that every _other_ surviving "outlive" statement is about a different subject and still true.
+
+**A corroboration that did not survive checking**, recorded so nobody re-derives it: the app-lib's
+`RetryStrategy.DefaultNonRetryableHttpStatusCodes` includes 401, which looks like a second independent
+guarantee of terminal-on-401. It is not — the only reader repo-wide is `WebhookCommand`, the engine's
+critical-error branch returns before the retry strategy is consulted, and the app-lib never sets the
+field. **Terminal-on-401 rests solely on `AppCommand`'s hard-coded rule**, one enforcement point in one
+repo, covered by the host's `Execute_NonRetryable4xx_ReturnsCriticalError`.
+
+The general constraint is now documented where it belongs — a Key Design Constraints entry in the
+app-lib's `Internal/WorkflowEngine/AGENTS.md` stating that a workflow cannot outlive the app code that
+signed it and **nothing checks that it will not**, applying to `MaxStepWaitBudget` waits and mailbox
+receivers alike — rather than as a mailbox rule. The system-wide bound remains operational, not coded:
+the engine's `MaxMailboxTimeout` derivation totals 110d5m against a ≥114d floor of remaining validity
+at enqueue under the operator's rotation policy.
 
 ## Open questions
 
