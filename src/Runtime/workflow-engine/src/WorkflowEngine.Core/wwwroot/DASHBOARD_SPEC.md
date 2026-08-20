@@ -225,7 +225,7 @@ them, and a three-table read on a two-second loop would charge every engine for 
 do not use.
 
 Open and closed mailboxes alike — under a finished collection a concluded exchange is the ordinary
-case. The read is bounded on every axis before it runs: at most 100 collection keys are honoured per
+case. The read is bounded on every axis before it runs: at most 100 collection keys are honored per
 call, at most **10 mailboxes per collection** (most recently minted first), and each mailbox's log is
 capped by the engine's `MaxMailboxLogLength`. Naming no collections returns an empty array without
 querying.

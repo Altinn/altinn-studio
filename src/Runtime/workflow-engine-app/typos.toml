@@ -1,7 +1,8 @@
 [files]
+# Hidden directories are scanned; see the note in the engine's typos.toml. Without this, .k6 here was
+# skipped before its exclude was ever consulted, so neither was doing anything.
+ignore-hidden = false
 extend-exclude = [
-    "**/wwwroot/**",
-    "**/.k6/**",
     "**/bin/**",
     "**/obj/**",
     "*.svg",
