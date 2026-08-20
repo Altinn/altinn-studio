@@ -12,8 +12,8 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260819031640_AddMailboxSweepIndexes")]
-    partial class AddMailboxSweepIndexes
+    [Migration("20260820195459_AddMailbox")]
+    partial class AddMailbox
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -168,13 +168,12 @@ namespace WorkflowEngine.Data.Migrations
                         .HasDatabaseName("ix_mailboxes_disposed_at")
                         .HasFilter("status = 'disposed'");
 
-                    b.HasIndex("Namespace", "CollectionKey")
-                        .HasDatabaseName("ix_mailboxes_namespace_collection_key_open")
-                        .HasFilter("status = 'open'");
-
                     b.HasIndex("Namespace", "IdempotencyKey")
                         .IsUnique()
                         .HasDatabaseName("ix_mailboxes_namespace_idempotency_key");
+
+                    b.HasIndex("Namespace", "CollectionKey", "Status")
+                        .HasDatabaseName("ix_mailboxes_namespace_collection_key");
 
                     b.ToTable("mailboxes", "engine", t =>
                         {
@@ -186,7 +185,7 @@ namespace WorkflowEngine.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxWaiterEntity", b =>
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxReceiverEntity", b =>
                 {
                     b.Property<Guid>("MailboxId")
                         .HasColumnType("uuid")
@@ -200,6 +199,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("claimed_at");
 
+                    b.Property<DateTimeOffset?>("HeldAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("held_at");
+
                     b.Property<DateTimeOffset?>("ReleasedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("released_at");
@@ -209,13 +212,16 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnName("workflow_id");
 
                     b.HasKey("MailboxId", "Seq")
-                        .HasName("pk_mailbox_waiters");
+                        .HasName("pk_mailbox_receivers");
 
                     b.HasIndex("WorkflowId")
                         .IsUnique()
-                        .HasDatabaseName("ix_mailbox_waiters_workflow_id");
+                        .HasDatabaseName("ix_mailbox_receivers_workflow_id");
 
-                    b.ToTable("mailbox_waiters", "engine");
+                    b.ToTable("mailbox_receivers", "engine", t =>
+                        {
+                            t.HasCheckConstraint("ck_mailbox_receivers_birth_is_recorded", "held_at IS NOT NULL OR released_at IS NOT NULL");
+                        });
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
@@ -524,14 +530,14 @@ namespace WorkflowEngine.Data.Migrations
                         .HasConstraintName("fk_mailbox_deliveries_mailboxes_mailbox_id");
                 });
 
-            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxWaiterEntity", b =>
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.MailboxReceiverEntity", b =>
                 {
                     b.HasOne("WorkflowEngine.Data.Entities.MailboxEntity", null)
                         .WithMany()
                         .HasForeignKey("MailboxId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_mailbox_waiters_mailboxes_mailbox_id");
+                        .HasConstraintName("fk_mailbox_receivers_mailboxes_mailbox_id");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
