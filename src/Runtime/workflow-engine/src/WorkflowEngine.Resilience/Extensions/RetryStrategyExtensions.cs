@@ -8,6 +8,10 @@ using WorkflowEngine.Resilience.Models;
 #pragma warning disable S3928
 #pragma warning disable CA2208
 
+// CA5394: Random is an insecure random number generator — the jitter here spreads retry
+// scheduling, it is not security-sensitive.
+#pragma warning disable CA5394
+
 namespace WorkflowEngine.Resilience.Extensions;
 
 /// <summary>
