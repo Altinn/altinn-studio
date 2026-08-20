@@ -5,6 +5,7 @@ contract: fail-open on classifier errors, write-mode rejection via
 GoalRejected, and the read-only decline delivered as a normal chat turn.
 """
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -206,14 +207,26 @@ class TestGateGoal:
     async def test_cancelling_during_the_scope_check_stops_the_turn(self):
         state = _state(allow_app_changes=False)
         event_sink = _sink()
-        event_sink.is_cancelled.side_effect = [False, True]
-        with patch(
-            "agents.graph.runner.check_scope_async",
-            new=AsyncMock(return_value=self._out_of_scope()),
-        ):
-            with pytest.raises(WorkflowCancelled):
-                await _gate_goal(state, event_sink=event_sink)
+        started = asyncio.Event()
+        release = asyncio.Event()
 
+        async def slow_scope_check(_goal):
+            started.set()
+            await release.wait()
+            return self._out_of_scope()
+
+        async def cancel_once_started():
+            await started.wait()
+            event_sink.is_cancelled.return_value = True
+            release.set()
+
+        with patch("agents.graph.runner.check_scope_async", new=slow_scope_check):
+            with pytest.raises(WorkflowCancelled):
+                await asyncio.gather(
+                    _gate_goal(state, event_sink=event_sink), cancel_once_started()
+                )
+
+        assert started.is_set()
         event_sink.send.assert_not_called()
         event_sink.add_to_conversation_history.assert_not_called()
 

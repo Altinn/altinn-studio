@@ -1437,6 +1437,77 @@ describe('useAssistantWorkflow', () => {
     expect(threads.refreshMessages).not.toHaveBeenCalled();
   });
 
+  it('ignores an error event for a run belonging to another app', async () => {
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'error',
+        session_id: 'thread-from-other-app',
+        data: { message: 'Noe gikk galt' },
+      });
+    });
+
+    expect(threads.createMessage).not.toHaveBeenCalled();
+    expect(threads.refreshMessages).not.toHaveBeenCalled();
+    expect(result.current.workflowStatusByThread['thread-from-other-app']).toBeUndefined();
+  });
+
+  it('ignores a status event for a run belonging to another app', async () => {
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-from-other-app',
+        data: { message: 'Skanner repo' },
+      });
+    });
+
+    expect(result.current.workflowStatusByThread['thread-from-other-app']).toBeUndefined();
+    expect(threads.refreshMessages).not.toHaveBeenCalled();
+  });
+
   it('restores the trail when the cancel request fails mid-run', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({ selectedThreadId: 'thread-a' });

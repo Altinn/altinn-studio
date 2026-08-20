@@ -263,7 +263,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const handleAssistantMessage = useCallback(
     async (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const threadId = event.session_id;
-      if (!threadId || !ownsThread(threadId)) return;
+      if (!threadId) return;
 
       const assistantMessage = event.data;
       // eventId is stamped on every answer; traceId only exists when Langfuse is on.
@@ -321,18 +321,18 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         resetRepoForSession(threadId);
       }
     },
-    [resetRepoForSession, ownsThread, markWorkflowCompleted, createMessage, refreshMessages],
+    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
+      const threadId = event.session_id;
+      if (!threadId || !ownsThread(threadId)) return;
+
       if (event.type === 'assistant_message') {
         handleAssistantMessage(event);
         return;
       }
-
-      const threadId = event.session_id;
-      if (!threadId) return;
 
       if (event.type === 'status') {
         const isTerminal =
@@ -395,6 +395,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       applyPermissionRequest,
       clearPermissionRequest,
       handleAssistantMessage,
+      ownsThread,
       createMessage,
       setWorkflowStatus,
       markThreadTerminated,
