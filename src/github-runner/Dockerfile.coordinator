@@ -5,15 +5,16 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /source
-COPY experimental experimental
-COPY github-runner/coordinator github-runner/coordinator
+COPY Cargo.toml Cargo.lock ./
+COPY src/experimental src/experimental
+COPY src/github-runner/coordinator src/github-runner/coordinator
 RUN cargo build \
     --locked \
     --release \
-    --manifest-path github-runner/coordinator/Cargo.toml \
+    --manifest-path src/github-runner/coordinator/Cargo.toml \
     && strip --strip-unneeded \
-      /source/github-runner/coordinator/target/release/coordinator \
-      /source/github-runner/coordinator/target/release/sandbox-image
+      /source/target/release/coordinator \
+      /source/target/release/sandbox-image
 
 FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea AS runtime-bundle
 
@@ -41,10 +42,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build \
-  /source/github-runner/coordinator/target/release/coordinator \
+  /source/target/release/coordinator \
   /usr/local/bin/coordinator
 COPY --from=build \
-  /source/github-runner/coordinator/target/release/sandbox-image \
+  /source/target/release/sandbox-image \
   /usr/local/bin/sandbox-image
 COPY --from=runtime-bundle \
   /runtime/microsandbox-linux-x86_64.tar.gz \
