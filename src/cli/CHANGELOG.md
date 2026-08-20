@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
+
 ## [0.1.0-preview.22] - 2026-08-18
 
 ### Added

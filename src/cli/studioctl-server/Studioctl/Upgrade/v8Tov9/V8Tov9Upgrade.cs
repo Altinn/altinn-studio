@@ -140,6 +140,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCamelCaseLayoutProperties(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -536,6 +539,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating OrganisationLookup components", ex);
+        }
+    }
+
+    static async Task<int> MigrateCamelCaseLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("CamelCase layout properties");
+        try
+        {
+            return await CamelCaseLayoutPropertyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating camelCase layout properties", ex);
         }
     }
 
