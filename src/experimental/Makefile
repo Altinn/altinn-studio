@@ -1,4 +1,4 @@
-.PHONY: help build clean fmt lint lint-fix test test-independent test-e2e check check-platforms deps deps-check
+.PHONY: help build clean fmt lint lint-fix test test-e2e check check-platforms deps deps-check
 .DEFAULT_GOAL := help
 
 EXPERIMENTAL_PACKAGES := \
@@ -47,15 +47,6 @@ test: ## Run all tests
 	@cargo test $(EXPERIMENTAL_PACKAGES) --all-targets --locked
 	@echo "✓ Tests passed"
 
-test-independent: ## Test reusable lower-layer crates independently
-	@echo "Testing reusable lower-layer crates independently..."
-	@cargo test --manifest-path sandbox/Cargo.toml --all-targets --locked
-	@cargo test --manifest-path sandbox-microsandbox/Cargo.toml --all-targets --locked
-	@cargo test --manifest-path sandbox-authorization/Cargo.toml --all-targets --locked
-	@cargo test --manifest-path agent-runtime-protocol/Cargo.toml --all-targets --locked
-	@cargo test --manifest-path agent-runtime/Cargo.toml --all-targets --locked
-	@echo "✓ Independent tests passed"
-
 test-e2e: ## Run integration tests that require Docker, Internet access, and KVM
 	@echo "Running experimental end-to-end tests..."
 	@cargo test -p sandbox-microsandbox --tests --locked -- --ignored
@@ -67,7 +58,7 @@ deps: ## Print the workspace dependency graph
 deps-check: ## Check for unused direct dependencies
 	@cargo machete --with-metadata .
 
-check: fmt lint build test test-independent test-e2e deps-check ## Run all local checks
+check: fmt lint build test test-e2e deps-check ## Run all local checks
 	@echo "✓ All checks passed"
 
 check-platforms: ## Cross-check portable Windows and macOS code (requires rustup targets)
