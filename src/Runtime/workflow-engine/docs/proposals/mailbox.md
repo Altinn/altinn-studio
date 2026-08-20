@@ -1909,7 +1909,84 @@ late, `413`/`429` dead-letter). Mine `vonkpkpu` including its known-answer vecto
 them for the new binding rather than copying the old ones. The awaiting-task-type derivation round
 trip is not needed here — do not port it.
 
-#### Step 10 — Fiks Arkiv re-plumb — `in progress`
+#### Step 10 — Fiks Arkiv re-plumb — `done`
+
+Landed as jj change `lrnsnkyp` — 21 files, +2657/−918, all under `src/App/backend`. **Fiks 183 → 219**;
+Core 3305, `--filter ~WorkflowEngine` 439, Api 506, engine 939, host 81 all unmoved. Two review rounds.
+**The implementation is complete: a real integration runs on the mailbox relay.**
+
+`FiksArkivServiceTask` is now an `IPipelineServiceTask` —
+`Stage("SendToArchive").Finally(HandleArchiveReply).WithReplyFrom("SendToArchive", Timeout = 7d)` — and
+the subscriber forwards instead of handling. **`IFiksArkivResponseHandler` was re-plumbed, not retired**,
+its signature byte-identical (confirmed against the public-API snapshot), per orchestrator decision 7.
+
+**The break that was real, and the mechanism that was not.** The built-in handler no longer moves the
+process — the task applies `successHandling`/`errorHandling` itself — so the worker flagged that a custom
+handler which also advances "would advance twice". Review traced it and **that failure cannot occur**:
+app code cannot reach the process engine (`IProcessEngine` is `internal`, the public `IProcessClient` is
+read-only), so the only route is `PUT /instances/{id}/process/next`, and that route is refused while the
+reply handler runs — the receive workflow is an active collection head (found by the
+`processNextTargetId` step 8 added), so `ProcessNext` answers **409 Conflict**. What actually happens is
+the move is refused, the handler throws if it propagates, the message retries against the same frozen
+delivery, the ladder exhausts, and the receive workflow lands `Failed` — visible on the dashboard and to
+the user. Loud, immediate, per-instance, no deadlock and no corruption. The release note now says that
+instead of the wrong symptom, because the note is the only thing telling an upgrading app owner what to
+look for.
+
+**A second release-note error, catchable only by reading the implementation.** The remedy for
+`MailboxTimeoutOutlivesAppCode` said "roll a longer-lived code" — but `GetSigningSecret()` returns the
+first non-expired code **in configuration order**, not the longest-lived, so appending one changes
+nothing and every Fiks Arkiv transition keeps failing for the short code's last seven days. It now says:
+put the longer-lived code **first**, or remove the expiring one.
+
+**A silent config asymmetry, now stated.** An **omitted** `errorHandling` block fails the task
+permanently, while a **present** block with defaults advances down the reject path — where in v8 an
+omitted block meant "error handling disabled, skip further processing". Deliberate (an app that never
+configured error handling should not have its process moved on its behalf) and pinned, but
+`MoveToNextTask`'s own remark still read "Defaults to `true`", inviting exactly the wrong inference.
+
+**The replayed message.** `IFiksArkivResponseHandler`'s one incompatible argument wrapped a live Fiks IO
+connection, so rather than fake the third-party interfaces the worker added a **replayed** form inside
+the app's own types: ids, type, headers and decrypted payloads answer from stored values while
+`Responder` and the stream members throw a named exception. Review judged the trade right but the object
+undiscoverable — an app author's only defense was `try/catch`, learned in production days later inside a
+retry ladder. Now `IsReplayed` answers the question, and its shape is better than what was asked for:
+`_replayed is not null` **is the discriminator itself**, so the flag cannot disagree with behavior by
+construction rather than by test.
+
+**The reply-address round trip — the property this step most needed to be unable to ship wrong.** v2
+established that the archive echoes back `klientKorrelasjonsId`, not `klientMeldingId`, and that swapping
+them still _sends_ successfully while silently making every answer unroutable.
+`FiksArkivReplyAddressRoundTripTest` does not build its own echo: it runs the real send stage through the
+real host, reads the wire value off the **real** `FiksIOMessageRequest`, feeds exactly that back, and
+drives the real listener, with the incoming `klientMeldingId` a third distinct Guid so a wrong-field read
+fails on a value rather than a null.
+
+Reconciling three rounds of measurement produced the sharpest result: the identities can be swapped at
+**three sites with three blast radii** — the task's variable binding reddens 5 (it re-binds what the
+empty-guards check, so two guard tests stop failing), the task's call site reddens 3, and the **host's
+field assignment — the deepest and most faithful form of the v2 defect — reddens exactly one test out of
+219: the round-trip test itself.** In all three, every subscriber test stays green, because a hand-built
+echo passes whichever field you wrote it to. That single-test result is stronger evidence for the test's
+existence than any of the numbers first reported.
+
+**Machinery deleted because the design made it unnecessary:** the subscriber's race-condition deferral
+(`CurrentTaskIsFiksArkiv` plus a one-second nack-requeue loop) is gone. Early delivery is first-class end
+to end — the mailbox is minted before the declaring stage's work, a delivery with no receiver is stored
+as a row, and step 9 verified `409` is produced solely by closure — so there is no "too early" refusal
+anywhere on the path.
+
+What steps 11–12 inherit: two telemetry spans have disappeared (the per-message handler span and the
+`process/next` span the built-in handler raised), recorded in the CHANGELOG since telemetry changes are
+breaking and no Fiks telemetry snapshot exists to catch it; `Telemetry.StartFiksMessageHandlerActivity`
+and four `IFiksArkivInstanceClient` members (`GetInstance`, `ProcessMoveNext`, `InsertBinaryData`,
+`DeleteBinaryData`) are now dead but deliberately not deleted inside a feature revision.
+
+Residuals: no test drives a **sealed** delivery through the envelope unwrap into `HandleArchiveReply`
+(low risk — step 9 covers the unwrap generically and the one Fiks-specific bound value is pinned against
+the task's own `Type`); `MarkInstanceComplete` remains a direct Storage call outside the unit of work,
+executed before `SaveChanges` (pre-existing shape); and `IsReplayed` is a question, not a guard — an app
+author who never asks still meets the exception, which is what the recorded analyzer follow-up is for.
 
 Paths: `src/App/backend/src/Altinn.App.Clients.Fiks` and its tests.
 
@@ -1918,7 +1995,7 @@ logic. Note decision 7 above: `IFiksArkivResponseHandler` is **live v8 GA API at
 default is to re-plumb it; retiring public API is an orchestrator decision, reached by ending the
 run `BLOCKED` with the argument, never taken inside the step.
 
-#### Step 11 — k6: mailbox-storm measurement — `todo`
+#### Step 11 — k6: mailbox-storm measurement — `in progress`
 
 Paths: `src/Runtime/workflow-engine/.k6`.
 
@@ -1966,6 +2043,29 @@ A third trap, seen in step 8's review: **`jj` cannot snapshot the working copy w
 creating and deleting instance-data fixtures underneath it**, so `jj diff`/`jj st` answer from a stale
 snapshot and appear to show drift that is not there. Do not run app suites and jj integrity checks
 concurrently.
+
+**Follow-ups recorded during steps 7–10, none of which belonged in a feature revision:**
+
+- **An analyzer diagnostic for `IFiksArkivResponseHandler`.** Step 10 changed the contract of a live v8
+  GA `[ImplementableByApps]` interface without changing its signature, so nothing warns at compile time.
+  The policy forbids touching the interface and `[Obsolete]` would assert a falsehood ("this is going
+  away"), but this repo already ships app-facing analyzer rules (`ALTINNAPP0700`), so an informational
+  diagnostic on any type implementing it is the one honest compile-time signal available.
+- **Clamp rather than refuse in `MailboxTimeoutOutlivesAppCode`** (step 7a's guard). As it stands, the
+  last stretch of every signing code's life is a **scheduled failure window** — with Fiks Arkiv's 7-day
+  default, every archiving transition fails permanently for seven days, which no app author did anything
+  to earn. `Timeout = min(declared, credentialsExpireAt − now − margin)` degrades a late-opened exchange
+  into closing early through the app's own conclusion path, which the design already handles, instead of
+  never opening at all.
+- **`PublicApiTests` newline churn.** `AutoVerify(includeBuildServer: false)` means a local run silently
+  accepts a public-API change and reports green (CI still catches it, but the developer who made it gets
+  no signal), and a rewrite drops the file's trailing newline so the next change churns one extra line.
+  Durable fix: `Verify(publicApi + Environment.NewLine)`.
+- **`Telemetry.StartFiksMessageHandlerActivity` and four dead `IFiksArkivInstanceClient` members**
+  (`GetInstance`, `ProcessMoveNext`, `InsertBinaryData`, `DeleteBinaryData`) — dead since step 10, left in
+  place because deleting telemetry is breaking and a removal is its own decision.
+- **`ProcessEngineCommandContext.Payload` and `InstanceDataMutator`** share the unenforced-non-nullable
+  weakness step 7b fixed for `StateCarry`.
 
 Two traps worth carrying into any step that runs the suite: `jj restore` with a repo-root-relative path
 run from a subdirectory resolves nothing and **fails silently** (the working directory persists between
