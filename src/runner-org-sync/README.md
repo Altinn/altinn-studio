@@ -69,7 +69,7 @@ rather than CronJob exit codes.
                              │                  │                ▼
                              │                  ▼          ┌──────────────────┐
                              │           ┌──────────────┐  │ TriggerAuth      │
-                             │           │  ScaledJob   │◄─┤ keda-gitea-auth  │
+                             │           │  ScaledJob   │◄─┤ *-auth-bearer    │
                              │           │  (per org)   │  └──────────────────┘
                              │           └──────┬───────┘
                              │ secretKeyRef     │ KEDA creates Jobs on demand
@@ -95,21 +95,23 @@ Three distinct credentials, three storage strategies:
 
 ### KEDA wiring
 
-The `TriggerAuthentication/keda-gitea-auth` lives in
-`infra/kustomize/base/triggerauthentication.yaml` — ships with this service so
-the Secret writer and the auth ref are deployed atomically. Three names
-must agree across this folder and the workload chart:
+The Metrics API scaler uses `TriggerAuthentication/keda-gitea-auth-bearer` from
+`infra/kustomize/base/triggerauthentication-bearer.yaml`. The previous
+`keda-gitea-auth` remains alongside it during the POC so Flux can reconcile the
+authentication and ScaledJob releases in either order, and so reverting the
+chart safely restores the previous scaler. Both references use the PAT Secret
+written by this service. These names must agree across this folder and the
+workload chart:
 
 | Where                                 | Field                                                  | Value                      |
 | ------------------------------------- | ------------------------------------------------------ | -------------------------- |
 | `cronjob.yaml` (env)                  | `RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME` / `_SECRET_KEY` | `keda-gitea-pat` / `token` |
-| `triggerauthentication.yaml`          | `secretTargetRef.name` / `.key`                        | `keda-gitea-pat` / `token` |
-| `charts/gitea-org-runner/values.yaml` | `keda.authenticationRef.name`                          | `keda-gitea-auth`          |
+| `triggerauthentication-bearer.yaml`   | `secretTargetRef.name` / `.key`                        | `keda-gitea-pat` / `token` |
+| `charts/gitea-org-runner/values.yaml` | `keda.authenticationRef.name`                          | `keda-gitea-auth-bearer`   |
 
-The chart only consumes the TriggerAuth name as a reference; it does not
-define the Secret or the TriggerAuth itself. Renaming any of the above
-requires updating all four entries together — otherwise KEDA scalers
-fail with `auth ref not found`.
+The chart only consumes the TriggerAuth name as a reference; it does not define
+the Secret or TriggerAuth itself. Renaming any of the above requires updating
+the references together, or KEDA scalers fail with `auth ref not found`.
 
 ## Configuration
 
