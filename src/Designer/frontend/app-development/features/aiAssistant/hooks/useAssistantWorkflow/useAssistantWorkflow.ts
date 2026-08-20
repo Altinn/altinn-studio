@@ -34,7 +34,7 @@ const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
 // Status events this soon after a terminal event are stragglers from the finished run.
 const ADOPTION_GRACE_AFTER_TERMINAL_MS = 10_000;
-const MAX_HANDLED_TRACE_IDS = 200;
+const MAX_HANDLED_ASSISTANT_EVENTS = 200;
 
 export interface UseAssistantWorkflowResult {
   connectionStatus: ConnectionStatus;
@@ -68,8 +68,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const currentBranch = currentBranchInfo?.branchName;
   // Trail-clock anchor per thread; each step records its offset from this.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
-  // Dedupes redelivered assistant_message events by traceId.
-  const handledAssistantTraceIdsRef = useRef<Set<string>>(new Set());
+  const handledAssistantEventsRef = useRef<Set<string>>(new Set());
   // When each thread's run last ended.
   const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
   // Threads whose messages are already fetched for the current run.
@@ -95,6 +94,14 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     // The next run must anchor its own trail clock.
     delete workflowStartedAtMsByThreadRef.current[threadId];
   }, []);
+
+  const markThreadStillRunning = useCallback(
+    (threadId: string) => {
+      delete terminatedAtMsByThreadRef.current[threadId];
+      setWorkflowStatus(threadId, { isActive: true, sessionId: threadId });
+    },
+    [setWorkflowStatus],
+  );
 
   const isRecentlyTerminated = useCallback((threadId: string): boolean => {
     const terminatedAtMs = terminatedAtMsByThreadRef.current[threadId];
@@ -255,13 +262,15 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (!threadId) return;
 
       const assistantMessage = event.data;
-      const traceKey = assistantMessage.traceId ? `${threadId}:${assistantMessage.traceId}` : null;
-      if (traceKey) {
-        const handledTraceIds = handledAssistantTraceIdsRef.current;
-        if (handledTraceIds.has(traceKey)) return;
-        handledTraceIds.add(traceKey);
-        if (handledTraceIds.size > MAX_HANDLED_TRACE_IDS) {
-          handledTraceIds.delete(handledTraceIds.values().next().value);
+      // eventId is stamped on every answer; traceId only exists when Langfuse is on.
+      const dedupeId = assistantMessage.eventId ?? assistantMessage.traceId;
+      const dedupeKey = dedupeId ? `${threadId}:${dedupeId}` : null;
+      if (dedupeKey) {
+        const handledEvents = handledAssistantEventsRef.current;
+        if (handledEvents.has(dedupeKey)) return;
+        handledEvents.add(dedupeKey);
+        if (handledEvents.size > MAX_HANDLED_ASSISTANT_EVENTS) {
+          handledEvents.delete(handledEvents.values().next().value);
         }
       }
 
@@ -299,7 +308,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
           }
         } catch (error) {
           // Release the dedupe key, or a redelivery of this answer is dropped for good.
-          if (traceKey) handledAssistantTraceIdsRef.current.delete(traceKey);
+          if (dedupeKey) handledAssistantEventsRef.current.delete(dedupeKey);
           console.error('Failed to persist assistant message:', error);
         }
       }
@@ -534,6 +543,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       await registerSession(org, app, threadId);
       await cancelWorkflow(threadId);
     } catch (error) {
+      // The run is still going, so stop showing it as stopped.
+      markThreadStillRunning(threadId);
       console.error('Cancel workflow request failed:', error);
     }
   }, [
@@ -545,6 +556,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     deleteMessage,
     chatMessages,
     setWorkflowStatus,
+    markThreadStillRunning,
     markThreadTerminated,
   ]);
 

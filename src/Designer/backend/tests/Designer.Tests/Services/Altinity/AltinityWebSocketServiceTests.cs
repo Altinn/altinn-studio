@@ -62,6 +62,7 @@ public class AltinityWebSocketServiceTests
                         && r.Sources!.Count == 1
                         && r.Sources[0].Title == "Dynamiske uttrykk"
                         && r.TraceId == "abc123"
+                        && r.EventId == "event-123"
                     ),
                     s_editingContext,
                     It.IsAny<CancellationToken>()
@@ -281,7 +282,8 @@ public class AltinityWebSocketServiceTests
                 "content": "Ferdig! Endringene er committet.",
                 "filesChanged": ["App/ui/form/layouts/Side1.json"],
                 "sources": [{"title": "Dynamiske uttrykk", "url": "https://docs.altinn.studio/x", "kind": "skill"}],
-                "traceId": "abc123"
+                "traceId": "abc123",
+                "eventId": "event-123"
               }
             }
             """
