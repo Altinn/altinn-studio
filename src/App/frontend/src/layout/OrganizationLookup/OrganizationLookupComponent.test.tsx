@@ -23,6 +23,14 @@ const validOrgNr = '043871668';
 const orgName = 'Skog og Fjell Consulting';
 const orgLookupId = 'org-lookup';
 const textSiblingId = 'text-sibling';
+const statusRegionTestId = 'organisation-lookup-status';
+
+/**
+ * Every message is rendered twice: as a visible validation message, and again in the visually hidden
+ * live region, which the component repopulates on a timer. Text queries that do not exclude the live
+ * region race that timer and fail with "Found multiple elements" whenever it wins.
+ */
+const outsideLiveRegion = { ignore: `script, style, [data-testid="${statusRegionTestId}"]` };
 
 const defaultBindings = {
   organization_lookup_orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
@@ -112,10 +120,10 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), '123456789');
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    expect(screen.getByText(/Organisasjonsnummeret er ugyldig/i)).toBeInTheDocument();
+    expect(screen.getByText(/Organisasjonsnummeret er ugyldig/i, outsideLiveRegion)).toBeInTheDocument();
     expect(mockedHttpGet).not.toHaveBeenCalled();
 
-    const statusRegion = screen.getByTestId('organisation-lookup-status');
+    const statusRegion = screen.getByTestId(statusRegionTestId);
     await waitFor(() => {
       expect(statusRegion).toHaveTextContent(/Organisasjonsnummeret er ugyldig/i);
     });
@@ -169,7 +177,7 @@ describe('OrganizationLookupComponent', () => {
 
     expect(screen.getByLabelText('Organisasjonsnavn')).toHaveTextContent(orgName);
 
-    const statusRegion = screen.getByTestId('organisation-lookup-status');
+    const statusRegion = screen.getByTestId(statusRegionTestId);
     await waitFor(() => {
       expect(statusRegion).toHaveTextContent(`Organisasjonsnummer ${validOrgNr}`);
       expect(statusRegion).toHaveTextContent('Sibling Name');
@@ -208,7 +216,9 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), validOrgNr);
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    expect(await screen.findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i, outsideLiveRegion),
+    ).toBeInTheDocument();
   });
 
   it('shows invalid response error when lookup response is invalid', async () => {
@@ -219,7 +229,7 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), validOrgNr);
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    expect(await screen.findByText(/Ugyldig respons fra server/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Ugyldig respons fra server/i, outsideLiveRegion)).toBeInTheDocument();
   });
 
   it('shows unknown error when lookup request fails', async () => {
@@ -230,7 +240,7 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), validOrgNr);
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    expect(await screen.findByText(/Ukjent feil. Vennligst prøv igjen senere/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Ukjent feil. Vennligst prøv igjen senere/i, outsideLiveRegion)).toBeInTheDocument();
   });
 
   it('does not render action buttons when read only', async () => {
