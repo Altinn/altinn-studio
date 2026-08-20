@@ -46,8 +46,7 @@ public class MetricsCollectorTests
         };
 
     /// <summary>
-    /// Runs the collector until it has asked for the overdue count once, and returns the cutoff it asked with. The
-    /// collector's loop parks on a <see cref="FakeTimeProvider"/> delay after its first pass.
+    /// Runs the collector through one pass: its loop parks on a <see cref="FakeTimeProvider"/> delay after it.
     /// </summary>
     private static async Task<(DateTimeOffset Cutoff, int Limit)> RunOnePass(TimeSpan sweepInterval, long overdue)
     {
@@ -85,9 +84,6 @@ public class MetricsCollectorTests
     [Fact]
     public async Task TheOverdueCutoff_IsNowLessOneSweepCadence()
     {
-        // Without the grace the gauge would count every mailbox for the interval between its deadline and the tick
-        // that closes it, so a healthy engine would read non-zero and nobody could alert on it. Two cadences are
-        // exercised so a hard-coded constant cannot pass.
         Assert.Equal(_now - TimeSpan.FromMinutes(5), (await RunOnePass(TimeSpan.FromMinutes(5), overdue: 0)).Cutoff);
         Assert.Equal(_now - TimeSpan.FromMinutes(17), (await RunOnePass(TimeSpan.FromMinutes(17), overdue: 0)).Cutoff);
     }
@@ -95,18 +91,14 @@ public class MetricsCollectorTests
     [Fact]
     public async Task TheOverdueCountIsAsked_ForABoundedNumberOfRows()
     {
-        // The read runs on the metrics cadence and the incident it reports is a mass timeout, so an exact count
-        // would be at its most expensive exactly when the gauge matters — and this pass shares one try/catch
-        // with the engine's health gauge.
         Assert.Equal(10_000, (await RunOnePass(TimeSpan.FromMinutes(5), overdue: 0)).Limit);
     }
 
     [Fact]
     public async Task AFailingOverdueRead_DoesNotSuppressTheEnginesHealthGauge()
     {
-        // The reason the mailbox read is the pass's *last* statement: one try/catch covers the whole pass, so a
-        // read that throws abandons every gauge written after it. Ordered where it first landed, this test
-        // fails — health is never written.
+        // One try/catch covers the whole pass, so a read that throws abandons every gauge written after it.
+        // Ordered where the mailbox read first landed, this test fails — health is never written.
         var settings = Settings(TimeSpan.FromMinutes(5));
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         repository
@@ -159,7 +151,6 @@ public class MetricsCollectorTests
     [Fact]
     public async Task TheGaugeReportsWhatTheCountReturned()
     {
-        // Read back the way a scraper reads it: an observable gauge publishes nothing until something observes.
         var observed = new List<long>();
         using var listener = new MeterListener
         {

@@ -23,14 +23,9 @@ internal enum BatchEnqueueResultStatus
     InvalidReference,
 
     /// <summary>
-    /// A workflow declared a mailbox that does not exist in the request's namespace, so there is nothing
-    /// to receive from and nothing that could ever release the receiver.
+    /// The declared mailbox does not exist in the namespace — nothing could ever release the receiver.
     /// </summary>
     MailboxNotFound,
 
-    /// <summary>
-    /// A mailbox's receivers log already holds <c>EngineSettings.MaxMailboxLogLength</c> positions, so
-    /// no further receiver can be enqueued against it.
-    /// </summary>
     MailboxLogFull,
 }

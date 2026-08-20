@@ -12,9 +12,8 @@ using WorkflowEngine.Telemetry;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Tests for what the executor does with a receive workflow: which steps it reads the rendezvous for, what it
-/// hands the command, and what it refuses to hand it. The read is per attempt and not per workflow, so these
-/// tests execute the same step more than once on purpose.
+/// What the executor does with a receive workflow: which steps it reads the rendezvous for, and what it
+/// hands or refuses to hand the command.
 /// </summary>
 public class WorkflowExecutorMailboxTests
 {
@@ -76,8 +75,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_OfAnOrdinaryWorkflow_NeverAsksTheRendezvous()
     {
-        // The hot path's price: a null check and no database call at all. Asserted over the repository rather than
-        // the outcome, because a call whose answer is discarded has the same outcome and a very different cost.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -114,8 +111,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_OfAReceiveWorkflowsLaterSteps_HandsThemNothing()
     {
-        // The declaration puts the message in the first step's callback and nowhere else. A later step must not be
-        // able to re-read — or re-consume — a message that belongs to the step before it.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -135,8 +130,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_ReReadsTheRendezvous_OnEveryAttemptOfTheStep()
     {
-        // A retry and a resume both arrive here as another execution of the same step, so the callback is rebuilt
-        // from the log rather than inherited.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -161,9 +154,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_WhenTheReceiverHoldsNoPosition_FailsCriticallyInsteadOfReportingNoMessage()
     {
-        // Degrading this into "no message" would tell the handler its exchange had ended on the strength of a
-        // purged mailbox. The step fails visibly instead, and non-retryably, because no retry brings the log
-        // back.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -182,9 +172,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_WhenTheMailboxIsStillOpenAtTheReceiversPosition_FailsCriticallyInsteadOfReportingNoMessage()
     {
-        // The same refusal for the other unreachable state, and for a sharper reason: here a message may still
-        // arrive at the position, so reporting "no message" would be the one thing the frozen-meaning rule
-        // forbids outright.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -203,8 +190,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_WhenTheRendezvousReadThrows_IsRetryableRatherThanCritical()
     {
-        // A database that is down is not a statement about the exchange: it must climb the retry ladder like any
-        // other transient failure.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -224,9 +209,6 @@ public class WorkflowExecutorMailboxTests
     [Fact]
     public async Task Execute_CountsTheTwoCriticalStatesUnderTheirOwnMetric_AndCountsNothingForALegitimateAnswer()
     {
-        // Both states already log at Error and raise the ordinary execution-failed counter, which is the problem:
-        // an app's step failing and the engine being unable to say what a step was handed want different people
-        // woken up.
         var command = new ReceiptCapturingCommand();
         using var fixture = WorkflowEngineTestFixture.Create(services => services.AddSingleton<ICommand>(command));
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
@@ -259,10 +241,7 @@ public class WorkflowExecutorMailboxTests
             .RepositoryMock.Setup(r => r.ReadMailboxReceipt(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
 
-    /// <summary>
-    /// Collects tagged counter measurements from the engine meter. Local rather than the TestKit's collector, which
-    /// this project does not reference.
-    /// </summary>
+    /// <summary>Local rather than the TestKit's collector, which this project does not reference.</summary>
     private sealed class MeterCollector : IDisposable
     {
         private readonly MeterListener _listener;

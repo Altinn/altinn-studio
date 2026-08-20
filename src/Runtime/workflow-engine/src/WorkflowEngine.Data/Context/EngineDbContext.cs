@@ -45,8 +45,7 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.CollectionKey);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
-            // Backs the fetch gate. Using the same constant keeps it aligned with the status set every other reader
-            // consults.
+            // Backs the fetch gate; the shared constant keeps it aligned with every other reader.
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
                 .HasFilter($"status IN ({PersistentItemStatusMap.FetchableSqlList})")
@@ -137,16 +136,12 @@ internal sealed class EngineDbContext : DbContext
             // The mint's serialization point: two concurrent mints of the same key contend on this index.
             entity.HasIndex(e => new { e.Namespace, e.IdempotencyKey }).IsUnique();
 
-            // Serves both questions asked about a collection's mailboxes, which is why it is one index and not two.
-            // The mint counts the collection's *open* mailboxes; the dashboard reads both statuses. `status` as the
-            // trailing key is what lets one index do both — a perfect prefix match for the cap's three-column
-            // equality (index-only, 2 buffers) and an ignorable trailing column for the dashboard's range.
-            //
+            // One index for both questions: the mint's count of *open* mailboxes (a whole-key equality,
+            // index-only) and the dashboard's status-agnostic read (which ignores the trailing `status`).
 
-            // Note that EF Core's lambda `HasIndex` keys the model's index by its property set, so two lambda calls
-            // over the same properties reconfigure one index rather than making two — and scaffold as a RenameIndex
-            // that keeps the filter. Widening to three columns makes the property set distinct.
-            // Pinned by MailboxDashboardTests.TheCollectionKeyIndex_CoversBothTheMintsCountAndTheDashboardsRead.
+            // EF's lambda `HasIndex` keys the model's index by property set — a second call over the same
+            // properties reconfigures the first, scaffolding as a RenameIndex that keeps the filter. Pinned by
+            // MailboxDashboardTests.TheCollectionKeyIndex_CoversBothTheMintsCountAndTheDashboardsRead.
             entity
                 .HasIndex(e => new
                 {
@@ -156,16 +151,13 @@ internal sealed class EngineDbContext : DbContext
                 })
                 .HasDatabaseName("ix_mailboxes_namespace_collection_key");
 
-            // The deadline sweep's candidate scan, which runs on every cadence whether or not anything is overdue.
-            // Partial on 'open' and ordered by deadline, the sweep's own predicate and ordering, so a quiet tick
-            // reads the leading index entry and stops.
+            // The deadline sweep's scan: partial on 'open', ordered by deadline, so a quiet tick reads one entry.
             entity
                 .HasIndex(e => e.Deadline)
                 .HasDatabaseName("ix_mailboxes_deadline_open")
                 .HasFilter($"status = '{MailboxStatusMap.Open}'");
 
-            // The retention purge's candidate scan, the mirror image: partial on 'disposed' because a mailbox is only
-            // purgeable once closed, and keyed by the instant it closed.
+            // The retention purge's scan: partial on 'disposed', keyed by the instant it closed.
             entity
                 .HasIndex(e => e.DisposedAt)
                 .HasDatabaseName("ix_mailboxes_disposed_at")
@@ -199,8 +191,8 @@ internal sealed class EngineDbContext : DbContext
                     $"disposed_reason IN ('{MailboxStatusMap.ReasonRequest}', '{MailboxStatusMap.ReasonDeadline}')"
                 );
 
-                // The disposal fields are set together with the status or not at all, which is what makes
-                // "disposedReason is null exactly while the mailbox is open" a property of the schema.
+                // Disposal fields are set with the status or not at all, making "disposedReason is null exactly
+                // while open" a schema property.
                 table.HasCheckConstraint(
                     "ck_mailboxes_disposal_is_complete",
                     $"(status = '{MailboxStatusMap.Open}' AND disposed_reason IS NULL AND disposed_at IS NULL) "
@@ -212,17 +204,14 @@ internal sealed class EngineDbContext : DbContext
         // Configure MailboxDelivery entity
         modelBuilder.Entity<MailboxDeliveryEntity>(entity =>
         {
-            // The position is the address the receiving workflow reads its delivery by, so it is the primary key
-            // rather than a surrogate id with an index beside it.
+            // The position is the address the receiver reads its delivery by, so it is the primary key.
             entity.HasKey(e => new { e.MailboxId, e.Idx });
 
-            // What makes an at-least-once forwarder's resend idempotent. Ingestion holds the mailbox row lock across
-            // the lookup and the append, so this index is the schema's guarantee against a future writer that
-            // appends without taking it.
+            // What makes a forwarder's resend idempotent — the schema's guarantee against a future writer that
+            // appends without the mailbox row lock.
             entity.HasIndex(e => new { e.MailboxId, e.IdempotencyKey }).IsUnique();
 
-            // No cascade: retention purges children first, deliberately, so an accidental delete of a mailbox fails
-            // loudly instead of silently taking the exchange's messages with it.
+            // No cascade: retention purges children first, so an accidental mailbox delete fails loudly.
             entity
                 .HasOne<MailboxEntity>()
                 .WithMany()
@@ -236,13 +225,10 @@ internal sealed class EngineDbContext : DbContext
             // The wake's key: a delivery landing at a position asks who, if anyone, is waiting there.
             entity.HasKey(e => new { e.MailboxId, e.Seq });
 
-            // The executor's key, and the schema's statement that one receive workflow consumes exactly one position.
-            // Total rather than partial now that every receiver registers, so a second registration for the same
-            // workflow fails loudly instead of silently double-consuming the log.
+            // The executor's key: one receive workflow consumes exactly one position, enforced by the schema.
             entity.HasIndex(e => e.WorkflowId).IsUnique();
 
-            // No cascade, matching mailbox_deliveries: an accidental delete of a mailbox fails loudly (SQLSTATE
-            // 23001) instead of silently taking the rendezvous with it.
+            // No cascade, matching mailbox_deliveries.
             entity
                 .HasOne<MailboxEntity>()
                 .WithMany()
@@ -250,9 +236,7 @@ internal sealed class EngineDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.ToTable(table =>
-                // Every receiver is born having done exactly one of two things, so one of the two stamps is
-                // always set at insert. A row with neither describes a receiver in no state at all: both filter on
-                // `released_at IS NULL` and would treat it as parked forever.
+                // One of the two stamps is always set at insert: a row with neither would read as parked forever.
                 table.HasCheckConstraint(
                     "ck_mailbox_receivers_birth_is_recorded",
                     "held_at IS NOT NULL OR released_at IS NOT NULL"

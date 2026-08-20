@@ -436,12 +436,9 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
-        // The mailboxes of the collections a chains surface is currently showing. A fetch rather than a field on
-        // the live stream: mailboxes are not workflows, and putting a three-table read on a two-second loop for
-        // every open dashboard would charge every engine for a feature most do not use. Two caps, and the total
-        // cost is their product; the per-collection one is what keeps a busy collection's history from crowding
-        // another collection's mailbox off the payload entirely. The keys whose window was full come back
-        // named, as /dashboard/graph does with `truncated`.
+        // A fetch rather than a field on the live stream: a three-table read on a two-second loop would charge
+        // every engine for a feature most do not use. Two caps, the per-collection one so a busy collection
+        // cannot crowd another's mailbox off the payload; full windows come back named.
         const int mailboxCollectionCap = 100;
         const int mailboxesPerCollectionCap = 10;
         app.MapGet(
@@ -450,8 +447,7 @@ internal static class DashboardEndpoints
                 {
                     string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
-                    // Extra keys are dropped rather than reported: a surface showing more than a hundred collections at
-                    // once is showing a window, and which hundred is its own choice.
+                    // Extra keys are dropped: a surface showing over a hundred collections is showing a window.
                     string[] keys =
                     [
                         .. (collectionKeys ?? string.Empty)

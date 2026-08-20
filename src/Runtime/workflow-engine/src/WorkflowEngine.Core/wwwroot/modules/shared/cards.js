@@ -263,12 +263,10 @@ const sideChainBadgeHTML = (wf) =>
         ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
         : '';
 
-/** How long `.rel-flash` runs; kept next to the only code that adds and removes it. */
 const FLASH_MS = 1600;
 
 /**
- * Scroll to and flash the first visible element matching a selector. Shared by relation chips and mailbox
- * position chips.
+ * Scroll to and flash the first visible match — relation chips and mailbox position chips share it.
  * @param {string} selector
  * @returns {boolean} true when something was revealed
  */

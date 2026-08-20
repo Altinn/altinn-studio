@@ -215,9 +215,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SelectOverdueMailboxCandidates_UsesIndexScans()
     {
-        // The scan the deadline sweep runs on every cadence whether or not anything is overdue, so what it costs
-        // when nothing is is the cost that matters. ix_mailboxes_deadline_open is partial on 'open' and ordered
-        // by deadline, so a quiet tick reads the leading entry and stops.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -236,9 +233,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SelectExpiredMailboxCandidates_UsesIndexScans()
     {
-        // The retention purge's mirror image, and the more expensive one to get wrong: closed mailboxes
-        // accumulate for a whole retention period. The ORDER BY is what makes the index worth having twice
-        // over — without ix_mailboxes_disposed_at the planner scans every row and sorts the survivors.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -260,11 +254,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task SelectMailboxesForCollections_UsesIndexScans()
     {
-        // The dashboard re-issues this read while it is open, so no part of it may scale with the number of
-        // mailboxes retained. ix_mailboxes_namespace_collection_key is why the candidate set does not — 3
-        // buffers against 834 for a sequential scan at the design's per-collection density — and a partial
-        // index on 'open' could not serve it, since the read is deliberately status-agnostic. The two child
-        // tables are reached by primary key, one correlated scan of each per mailbox.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -288,11 +277,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task MintMailbox_CountsACollectionsOpenMailboxesThroughTheSharedIndex()
     {
-        // The other half of ix_mailboxes_namespace_collection_key's job, and the path that runs on every mint.
-        // The cap's `open_count` CTE is three equality predicates over exactly the index's key, in order, so
-        // it is answered index-only. Pinned here because the widening was done for the dashboard's benefit:
-        // nothing else asserts anything about the mint's plan, so a narrowing back to two columns would cost
-        // the cap its index-only count with no test to say so.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -320,8 +304,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task CountOverdueOpenMailboxes_UsesIndexScans()
     {
-        // The gauge's read, which runs most often of the three that scan this table. It has no LIMIT, so it
-        // visits every row that qualifies; being zero on a healthy engine is what makes that free.
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
@@ -477,9 +459,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
-        // Mailboxes, shaped for the two sweeps that scan this table. Both queries are ORDER BY ... LIMIT, so the
-        // plan turns on whether the ordered index can stop early — which it only can when many more rows
-        // qualify than the LIMIT takes, which is the regime seeded here and the one that matters.
+        // Seeded past the size where the planner stops caring, in the sweep's own regime (far more qualifying
+        // rows than one LIMIT takes):
         //   g % 4 == 0 → open     (of those, g % 8 == 0 → deadline already passed)
         //   g odd      → disposed, disposed_at well past the retention cutoff
         //   g % 4 == 2 → disposed, disposed_at recent
@@ -519,10 +500,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
-        // Two deliveries and two receiver registrations per mailbox, so the dashboard read's child joins are
-        // planned against populated tables in the proportion the design produces. An empty child table is
-        // planned as a sequential scan of nothing, and populating only a slice tips the planner into hashing
-        // them whole — neither is the plan production runs.
+        // Child tables populated in the design's own proportion: empty or tiny tables tip the planner into
+        // plans production never runs.
         await using (
             var cmd = dataSource.CreateCommand(
                 """

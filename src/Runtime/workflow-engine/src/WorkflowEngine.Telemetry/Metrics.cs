@@ -291,8 +291,8 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of mailboxes minted. Counts creations only: an idempotent replay returns a mailbox that
-    /// already exists and creates nothing, so counting it would overstate how many exchanges are open.
+    /// Counter of mailboxes minted. Creations only: an idempotent replay creates nothing, and counting it
+    /// would overstate how many exchanges are open.
     /// </summary>
     public static readonly Counter<long> MailboxesCreated = Meter.CreateCounter<long>(
         "engine.mailboxes.created",
@@ -300,10 +300,8 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of mailboxes closed for deliveries, tagged <c>reason</c> (<c>request</c> when a caller
-    /// closed it, <c>deadline</c> when the engine did). Counts the close that actually happened, so an
-    /// idempotent repeat does not count twice; the two tag values together with
-    /// <see cref="MailboxesCreated"/> are what show whether exchanges conclude on their own or age out.
+    /// Counter of mailboxes closed, tagged <c>reason</c> (<c>request</c> or <c>deadline</c>). Counts the close
+    /// that actually happened, so an idempotent repeat does not count twice.
     /// </summary>
     public static readonly Counter<long> MailboxesClosed = Meter.CreateCounter<long>(
         "engine.mailboxes.closed",
@@ -311,11 +309,9 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of messages offered to the delivery endpoint, tagged with <c>outcome</c>: <c>accepted</c>,
-    /// <c>duplicate</c>, <c>not_found</c>, <c>closed</c> (too late), <c>log_full</c>, <c>too_large</c>,
-    /// <c>invalid</c>. Counted for every outcome, including the ones refused before the mailbox row is locked, so
-    /// a storm of oversized or malformed forwards is visible here and not only in HTTP metrics. <c>closed</c> is
-    /// the one to watch: a counterparty answered after the exchange had given up on it.
+    /// Counter of messages offered to the delivery endpoint, tagged with <c>outcome</c> — every outcome,
+    /// pre-lock refusals included. <c>closed</c> is the one to watch: a counterparty answered after the
+    /// exchange gave up on it.
     /// </summary>
     public static readonly Counter<long> MailboxDeliveriesReceived = Meter.CreateCounter<long>(
         "engine.mailboxes.deliveries.received",
@@ -323,9 +319,8 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of accepted deliveries that no receiver was ever enqueued for, counted when the mailbox closes at
-    /// its deadline. Counted by the deadline sweep rather than by every closure, because a <c>DELETE</c> reports
-    /// the same number to a caller who can act on it while a mailbox that aged out has none.
+    /// Counter of accepted deliveries no receiver was ever enqueued for, counted when the mailbox closes at
+    /// its deadline — the one closure with no caller to report the number to.
     /// </summary>
     public static readonly Counter<long> MailboxDeliveriesUnconsumed = Meter.CreateCounter<long>(
         "engine.mailboxes.deliveries.unconsumed",
@@ -333,10 +328,9 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of receive workflows created, tagged with the state they were born in: <c>delivered</c> (a message
-    /// already sat at their position), <c>closed</c> (the mailbox was already closed), or <c>held</c> (parked).
-    /// The split is the one number that separates "the relay is running" from "the relay is parked". Counted
-    /// after the enqueue transaction commits, so a birth that rolled back is not counted.
+    /// Counter of receive workflows created, tagged with birth state (<c>delivered</c>, <c>closed</c>,
+    /// <c>held</c>) — the split that separates "the relay is running" from "the relay is parked". Counted
+    /// after commit, so a rolled-back birth is not counted.
     /// </summary>
     public static readonly Counter<long> MailboxReceiversCreated = Meter.CreateCounter<long>(
         "engine.mailboxes.receivers.created",
@@ -344,10 +338,8 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of parked receivers released to run, tagged with <c>cause</c>: <c>delivered</c> when a delivery
-    /// landed at the receiver's position, <c>closed</c> when the mailbox closed. Those are the only two things
-    /// that release a receiver, so the tag values partition the counter exactly. Counted once per receiver — both
-    /// release paths skip a registry row that already carries a release stamp.
+    /// Counter of parked receivers released, tagged with <c>cause</c> (<c>delivered</c> or <c>closed</c> — the
+    /// only two, so the tags partition it). Counted once per receiver: both release paths skip stamped rows.
     /// </summary>
     public static readonly Counter<long> MailboxReceiversReleased = Meter.CreateCounter<long>(
         "engine.mailboxes.receivers.released",
@@ -355,15 +347,10 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Histogram of wake-to-claim latency: from the instant a receiver was released to the instant a worker first
-    /// claimed it — the part <c>NOTIFY</c> accelerates and the fetch cycle bounds.
+    /// Histogram of wake-to-claim latency — the part <c>NOTIFY</c> accelerates and the fetch cycle bounds.
+    /// Recorded once per release, by the first claim; a receiver born runnable is excluded via <c>held_at</c>.
+    /// Clamped at zero: the two ends come from two pods' clocks.
     /// </summary>
-    /// <remarks>
-    /// Recorded once per release, by the first claim, so a receiver that fails and retries reports its wake
-    /// latency once rather than its whole retry ladder. A receiver born runnable was never woken and is excluded
-    /// explicitly, by the registry's <c>held_at</c>. Clamped at zero: the release and the claim are timed on two
-    /// pods' clocks.
-    /// </remarks>
     public static readonly Histogram<double> MailboxReceiverWakeLatency = Meter.CreateHistogram<double>(
         "engine.mailboxes.receivers.wake_latency",
         "s",
@@ -371,16 +358,10 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of receive workflows the rendezvous could not answer for, tagged with <c>state</c>:
-    /// <c>unregistered</c> (the receiver holds no position in its mailbox) or <c>undecided</c> (it became runnable
-    /// at a position of an <em>open</em> mailbox with no message standing there).
+    /// Counter of receive workflows the rendezvous could not answer for (<c>unregistered</c> or
+    /// <c>undecided</c>). Alert on any value above zero: both states mean the engine is violating its own
+    /// rendezvous invariant, which the ordinary execution-failed counter would not distinguish.
     /// </summary>
-    /// <remarks>
-    /// Alert on any value above zero: neither state is a caller's or a counterparty's mistake, so both mean the
-    /// engine is violating an invariant of its own rendezvous. Kept apart from the ordinary execution-failed
-    /// counter because the two need different people woken up. The affected step fails critically, so the receive
-    /// workflow is also visible as <c>Failed</c> on the dashboard.
-    /// </remarks>
     public static readonly Counter<long> MailboxRendezvousViolations = Meter.CreateCounter<long>(
         "engine.mailboxes.rendezvous.violations",
         description: "Number of receive workflows the rendezvous could not answer for, tagged by the state that could not be answered"
@@ -514,14 +495,9 @@ public static class Metrics
     private static long _overdueOpenMailboxesCount;
 
     /// <summary>
-    /// Gauge of mailboxes still open past the point the deadline sweep should have closed them — <c>deadline</c>
-    /// plus one <c>MailboxSweepInterval</c>, the grace the sweep's own cadence entitles it to.
+    /// Gauge of mailboxes still open past deadline plus one <c>MailboxSweepInterval</c> — the grace the
+    /// sweep's cadence entitles it to. Zero is the only healthy value; alert on it staying above zero.
     /// </summary>
-    /// <remarks>
-    /// Zero is the only healthy value, and any other is an invariant violation rather than a backlog: behind it
-    /// are receivers parked on exchanges nobody will ever conclude. A mass timeout can make it briefly non-zero
-    /// while one tick drains, so alert on it staying above zero rather than on it touching it.
-    /// </remarks>
     public static readonly ObservableGauge<long> OverdueOpenMailboxes = Meter.CreateObservableGauge(
         "engine.mailboxes.open.overdue",
         static () => _overdueOpenMailboxesCount,

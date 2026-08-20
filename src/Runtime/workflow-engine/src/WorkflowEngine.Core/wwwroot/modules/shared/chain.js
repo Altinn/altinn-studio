@@ -101,8 +101,7 @@ const nodeHTML = (wf, isSide, isRoot) => {
 };
 
 /**
- * Scroll to and flash a workflow's collapsed chain row. Falls back to `revealCard`, which covers the
- * row already expanded to its full card and the same workflow rendered in another section.
+ * Scroll to and flash a workflow's collapsed chain row, falling back to `revealCard`.
  * @param {string} wfId
  * @returns {boolean} true when something was revealed
  */

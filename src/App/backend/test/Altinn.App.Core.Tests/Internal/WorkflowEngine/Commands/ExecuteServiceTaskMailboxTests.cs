@@ -14,18 +14,14 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The mailbox half of <see cref="ExecuteServiceTask"/>: which execution mints the mailbox, what it
-/// keys the mint on, and what every other execution sees when it reaches for
-/// <see cref="ServiceTaskContext.Mailbox"/>.
+/// The mailbox half of <see cref="ExecuteServiceTask"/>: which execution mints, what keys the mint, and
+/// what everything else sees.
 /// </summary>
 public class ExecuteServiceTaskMailboxTests
 {
     private static readonly Guid InstanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
 
-    /// <summary>
-    /// Records every mint it is asked for and answers idempotently on the key, the way the engine does — so a test
-    /// can distinguish "minted twice" from "replayed onto the same mailbox".
-    /// </summary>
+    /// <summary>Answers mints idempotently on the key, so a test can tell "minted twice" from "replayed".</summary>
     private sealed class RecordingMailboxMinter : IWorkflowEngineClient
     {
         private readonly Dictionary<string, MailboxResponse> _byKey = new(StringComparer.Ordinal);
@@ -125,10 +121,6 @@ public class ExecuteServiceTaskMailboxTests
         ) => throw new NotSupportedException();
     }
 
-    /// <summary>
-    /// A two-stage archiving task that opens its mailbox in the first stage. Every step records the
-    /// context it was handed, so a test can ask what each of them could see.
-    /// </summary>
     private sealed class ArchivingTask : IPipelineServiceTask
     {
         public string Type => "archiving";
@@ -233,8 +225,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The rendezvous a receive workflow's step is handed: a message standing at its position, sealed the way the
-    /// forwarder seals one, because an unsealed payload never reaches a handler at all.
+    /// A rendezvous sealed the way the forwarder seals one — an unsealed payload never reaches a handler.
     /// </summary>
     private static AppCallbackMailbox Delivered(Guid mailboxId, long seq = 0, string payload = "<receipt/>")
     {
@@ -280,8 +271,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task RetryOfTheDeclaringStage_ReplaysOntoTheSameMailbox()
     {
-        // The property the whole address depends on: the step id keys the mint, so an attempt that published the
-        // address and then crashed is handed that same address on the retry.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
         Guid stepId = Guid.NewGuid();
@@ -305,8 +294,6 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
 
-        // The conclusion of a declaring pipeline runs only on a receive workflow, so it is handed a rendezvous; a
-        // stage never is.
         await CreateCommand(task, minter)
             .Execute(CreateContext(mailbox: stageName is null ? Delivered(Guid.NewGuid()) : null), Payload(stageName));
 
@@ -348,8 +335,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task MissingStepId_FailsPermanentlyRatherThanMintingASharedMailbox()
     {
-        // An empty step id is a constant, so keying the mint on it would collapse every mailbox in the namespace
-        // onto one inbox — every instance reading every other instance's messages.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
 
@@ -366,8 +351,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task RejectedMint_FailsPermanentlyWithTheEngineDetailAndNeverRunsTheStage()
     {
-        // A declaration the engine can never accept — a timeout past its maximum, most often. App startup cannot
-        // catch it because the maximum is the engine's, so the transition must fail once with the reason.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter
         {
@@ -390,8 +373,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task AtCapacityMint_FailsRetryablyWithTheEngineDetailAndNeverRunsTheStage()
     {
-        // The collection is at its open-mailbox cap. Retryable, but the failure names the at-cap collection on the
-        // first attempt rather than repeating a bare 429 up the ladder.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter
         {
@@ -414,8 +395,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task UnreachableEngine_FailsRetryablyAndNeverRunsTheStage()
     {
-        // The stage must not send without an address: a failed mint stops the step before the work, so the retry
-        // sends once, with the address the retry's mint returns.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter { Throws = new HttpRequestException("engine unreachable") };
 
@@ -430,8 +409,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task DeclaringStage_RecordsTheMailboxOnTheStateCarry()
     {
-        // The mint's key is this stage's step id, which no later step can re-derive — so the address has to leave
-        // this callback in the state blob, and the carry is what puts it there.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
         var carry = new WorkflowCallbackStateCarry();
@@ -446,7 +423,6 @@ public class ExecuteServiceTaskMailboxTests
     [InlineData(null)]
     public async Task StepThatIsNotTheDeclaringStage_RecordsNothingOnTheCarry(string? stageName)
     {
-        // A step that mints nothing must leave the carry exactly as it found it.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
         var carry = new WorkflowCallbackStateCarry();
@@ -459,9 +435,6 @@ public class ExecuteServiceTaskMailboxTests
     [Fact]
     public async Task ConclusionOfADeclaringPipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
     {
-        // A declaring pipeline emits its conclusion on receive workflows only, so it can only ever run with the
-        // engine's rendezvous block. Without one it would settle the task without ever reading the answer it
-        // opened the exchange for, so it fails permanently and the handler is never called at all.
         var task = new ArchivingTask();
         var minter = new RecordingMailboxMinter();
 

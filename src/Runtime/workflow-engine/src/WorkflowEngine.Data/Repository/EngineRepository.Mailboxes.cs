@@ -18,10 +18,8 @@ internal sealed partial class EngineRepository
     private const string MailboxDeliveryColumns = "d.mailbox_id, d.idx, d.idempotency_key, d.accepted_at";
 
     /// <summary>
-    /// The only statement that ever releases a parked receiver, used by both releases the design has: the wake,
-    /// which passes the position a delivery landed at, and the closure release, which passes <c>null</c> and takes
-    /// every receiver still parked. One statement so the status transition and the <c>released_at</c> stamp cannot
-    /// diverge.
+    /// The one statement that releases parked receivers: the wake passes a position, the closure release passes
+    /// <c>null</c>. One statement so the status transition and the <c>released_at</c> stamp cannot diverge.
     /// </summary>
     private const string ReleaseMailboxReceiversSql = """
         WITH released AS (
@@ -63,7 +61,6 @@ internal sealed partial class EngineRepository
         return await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    /// <summary>The wake: releases the receiver standing at <paramref name="seq"/>, if one is.</summary>
     private static async Task<bool> ReleaseReceiverAt(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
@@ -73,7 +70,6 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     ) => await ReleaseMailboxReceivers(conn, tx, mailboxId, seq, now, cancellationToken) > 0;
 
-    /// <summary>The closure release: releases every receiver still parked on the mailbox.</summary>
     private static Task<int> ReleaseAllParkedReceivers(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
@@ -83,9 +79,8 @@ internal sealed partial class EngineRepository
     ) => ReleaseMailboxReceivers(conn, tx, mailboxId, seq: null, now, cancellationToken);
 
     /// <summary>
-    /// Signals the processor that a release made work runnable. Issued inside the releasing transaction: PostgreSQL
-    /// queues the <c>NOTIFY</c> until commit, so a statement that could fail on an already-committed transaction —
-    /// and make <see cref="ExecuteWithRetry"/> re-run the whole delegate — is avoided.
+    /// Issued inside the releasing transaction: PostgreSQL queues the <c>NOTIFY</c> until commit, and a separate
+    /// post-commit statement could fail and make <see cref="ExecuteWithRetry"/> re-run the whole delegate.
     /// </summary>
     private static async Task NotifyStatusChanged(
         NpgsqlConnection conn,
@@ -98,10 +93,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The mint, as one statement whose CTE order is its semantics. Hoisted so <c>QueryPlanTests</c> can
-    /// <c>EXPLAIN</c> the statement the mint actually issues. <c>existing</c> is consulted first and
-    /// unconditionally, so a replay is answered even when the collection is at its cap, and the <c>INSERT</c> uses
-    /// <c>ON CONFLICT DO UPDATE</c> so a mint that loses the race returns the winner's row instead of nothing.
+    /// The mint. <c>existing</c> is consulted first so a replay is answered even at the collection cap, and
+    /// <c>ON CONFLICT DO UPDATE</c> hands a losing racer the winner's row instead of nothing. Hoisted so
+    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> the statement the mint actually issues.
     /// </summary>
     internal const string MintMailboxSql = $"""
         WITH existing AS (
@@ -151,7 +145,6 @@ internal sealed partial class EngineRepository
 
         try
         {
-            // Normalized on entry, as every other namespaced repository operation does.
             ns = WorkflowNamespace.Normalize(ns);
 
             MailboxMintResult result = new MailboxMintResult.AtCollectionCapacity();
@@ -256,10 +249,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The dashboard's read: the mailboxes of the named collections, each with its log laid out position by
-    /// position. Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> it. The limit is per collection — one
-    /// <c>LATERAL</c> per key, so one busy collection cannot starve the rest — and each key is asked for one extra
-    /// row so a truncated window is distinguishable from a full one.
+    /// The dashboard's read. The limit is per collection — one <c>LATERAL</c> per key, so one busy collection
+    /// cannot starve the rest — with one extra row per key so a truncated window is distinguishable from a full
+    /// one. Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> it.
     /// </summary>
     internal const string SelectMailboxesForCollectionsSql = $"""
         WITH picked AS (
@@ -331,7 +323,7 @@ internal sealed partial class EngineRepository
                         }
                     );
 
-                    // One more than the caller's limit, so a key with more history than fits is distinguishable.
+                    // One more than the caller's limit, so truncation is detectable.
                     cmd.Parameters.Add(new NpgsqlParameter<int>("per_collection", limitPerCollection + 1));
 
                     await using var reader = await cmd.ExecuteReaderAsync(ct);
@@ -354,7 +346,6 @@ internal sealed partial class EngineRepository
         }
     }
 
-    /// <summary>Drops each collection's overflow row and names the collections that had one.</summary>
     private static MailboxCollectionPage TrimToPerCollectionLimit(
         List<MailboxSnapshot> snapshots,
         IReadOnlyList<string> collectionKeys,
@@ -388,10 +379,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The gauge's read: how many mailboxes are still open past <c>@cutoff</c>, saturating at <c>@limit</c>.
-    /// Deliberately the sweep's own predicate with a different instant, so the two cannot drift apart on what
-    /// "overdue" means. Saturating because it runs on the metrics cadence and the alert only reads "greater than
-    /// zero".
+    /// The gauge's read: open mailboxes past <c>@cutoff</c>, saturating at <c>@limit</c>. Deliberately the
+    /// sweep's own predicate, so the two cannot drift apart on what "overdue" means.
     /// </summary>
     internal const string CountOverdueOpenMailboxesSql = $"""
         SELECT count(*)
@@ -450,10 +439,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The executor's read of the rendezvous — the receiver's position and the message standing at it, in one
-    /// statement. It takes no lock and writes nothing: by the time a receiver can be fetched, whether a delivery
-    /// exists at its position is already frozen. One statement rather than several so a concurrent close cannot
-    /// launder a genuine <see cref="MailboxReceiptResult.Undecided"/> into an ordinary closing signal.
+    /// The executor's read of the rendezvous. No lock and no write: delivery existence at the position is frozen
+    /// before the receiver can run. One statement so a concurrent close cannot launder a genuine
+    /// <see cref="MailboxReceiptResult.Undecided"/> into an ordinary closing signal.
     /// </summary>
     public async Task<MailboxReceiptResult> ReadMailboxReceipt(
         Guid workflowId,
@@ -529,7 +517,7 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // The mailbox row lock is this transaction's first act, so the state read below can be decided on.
+                    // The mailbox row lock is this transaction's first act.
                     const string lockSql = $"""
                         SELECT {MailboxColumns}
                         FROM engine.mailboxes m
@@ -578,10 +566,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Closes a mailbox whose row the caller has already locked and read: mark it disposed, and release every
-    /// receiver parked on it. Split from <see cref="CloseMailbox"/> so the deadline sweep can run the identical
-    /// routine from under its own claim. Releasing under the same lock is what keeps a concurrent enqueue from
-    /// parking a receiver on a closed mailbox.
+    /// Closes a mailbox whose row the caller already locked and read. Split from <see cref="CloseMailbox"/> so
+    /// the deadline sweep can run the identical routine under its own claim; releasing under the same lock keeps
+    /// a concurrent enqueue from parking a receiver on a closed mailbox.
     /// </summary>
     private static async Task<MailboxCloseResult> CloseLockedMailbox(
         NpgsqlConnection conn,
@@ -592,8 +579,7 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
-        // Whoever closed it first wins, including the deadline sweep: the replay reports the original reason and
-        // instant, and releases nothing — the first close released every parked receiver that existed.
+        // First close wins: the replay reports the original disposal and releases nothing.
         if (locked.Status == MailboxStatus.Disposed)
             return new MailboxCloseResult.AlreadyClosed(locked);
 
@@ -631,9 +617,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The overdue claim. <c>FOR UPDATE</c> makes it the mailbox row lock <see cref="CloseLockedMailbox"/>
-    /// requires, and <c>SKIP LOCKED</c> makes it a claim: a mailbox someone else is holding is left for the next
-    /// tick. The predicates are re-evaluated against the locked row, so a mailbox closed in between is not swept.
+    /// <c>FOR UPDATE</c> is the row lock <see cref="CloseLockedMailbox"/> requires; <c>SKIP LOCKED</c> leaves a
+    /// held mailbox for the next tick. The predicates are re-evaluated against the locked row.
     /// </summary>
     private const string ClaimOverdueMailboxSql = $"""
         SELECT {MailboxColumns}
@@ -676,16 +661,14 @@ internal sealed partial class EngineRepository
             }
             catch (Exception ex)
             {
-                // Per-mailbox isolation: a throw here rolled that mailbox's close back and left it open, overdue, and
-                // claimable next tick. Letting it escape would abandon the rest of the batch, and the deadline-ordered
-                // scan would put the same mailbox at the head of the next one.
+                // Per-mailbox isolation: the failed close rolled back and is claimable next tick. Escaping would
+                // abandon the batch — and the deadline-ordered scan would put the same mailbox first again.
                 result = result with
                 {
                     Failed = result.Failed + 1,
                 };
 
-                // Tagged apart from the sweep pass's own failures: this one is self-healing, while a failed pass means
-                // the deadline guarantee is off for everything — and the two want opposite responses.
+                // Tagged apart from the sweep pass's own failures: the two want opposite operator responses.
                 Metrics.Errors.Add(1, ("operation", "mailboxDeadlineClose"));
                 logger.FailedMailboxOperation("close at its deadline", mailboxId, ex.Message, ex);
             }
@@ -694,10 +677,7 @@ internal sealed partial class EngineRepository
         return result;
     }
 
-    /// <summary>
-    /// The deadline sweep's candidate scan, hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> the statement the
-    /// sweep actually issues. The predicate and ordering are what <c>ix_mailboxes_deadline_open</c> is keyed on.
-    /// </summary>
+    /// <summary>Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> the statement the sweep issues.</summary>
     internal const string SelectOverdueMailboxCandidatesSql = $"""
         SELECT m.id
         FROM engine.mailboxes m
@@ -707,10 +687,7 @@ internal sealed partial class EngineRepository
         LIMIT @batch_size
         """;
 
-    /// <summary>
-    /// Reads the ids of mailboxes whose deadline has passed while they are still open, oldest first. Takes no
-    /// locks: each candidate is claimed under its own transaction below.
-    /// </summary>
+    /// <summary>Takes no locks: each candidate is claimed under its own transaction below.</summary>
     private async Task<List<Guid>> SelectOverdueMailboxCandidates(
         DateTimeOffset now,
         int batchSize,
@@ -746,9 +723,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Closes one overdue mailbox in its own transaction, running exactly the routine <c>DELETE</c> runs. No
-    /// <see cref="ExecuteWithRetry"/>: the sweep's cadence is its retry, and a re-run after a lost commit
-    /// acknowledgement would report a close it had performed as a no-op.
+    /// One overdue close, in its own transaction, running exactly the routine <c>DELETE</c> runs. No
+    /// <see cref="ExecuteWithRetry"/>: the sweep's cadence is its retry.
     /// </summary>
     private async Task<MailboxSweepResult> CloseOverdueMailbox(
         Guid mailboxId,
@@ -834,8 +810,8 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // The mailbox row lock is this transaction's first act. Everything below decides on state that row
-                    // carries, which another delivery, enqueue, or close is otherwise free to invalidate.
+                    // The mailbox row lock is this transaction's first act; everything below decides on
+                    // that row's state.
                     const string lockSql = $"""
                         SELECT {MailboxColumns}
                         FROM engine.mailboxes m
@@ -860,9 +836,8 @@ internal sealed partial class EngineRepository
                         return;
                     }
 
-                    // Looked up before the refusals below — the "accepted versus kept" rule in code: a resend
-                    // of a message accepted while the mailbox was open is a replay even now that it is closed or
-                    // full. It is also what makes ExecuteWithRetry safe to re-run this delegate over.
+                    // Looked up before the refusals — the "accepted versus kept" rule: a kept message replays
+                    // even once the mailbox is closed or full. Also what makes ExecuteWithRetry safe here.
                     const string existingSql = $"""
                         SELECT {MailboxDeliveryColumns}
                         FROM engine.mailbox_deliveries d
@@ -886,8 +861,7 @@ internal sealed partial class EngineRepository
                         return;
                     }
 
-                    // Every path from here that is not an append rolls back, so a refusal inserts nothing and claims no
-                    // idempotency key.
+                    // Every non-append path rolls back, so a refusal inserts nothing and claims no key.
                     if (locked.Status == MailboxStatus.Disposed)
                     {
                         await tx.RollbackAsync(ct);
@@ -902,8 +876,7 @@ internal sealed partial class EngineRepository
                         return;
                     }
 
-                    // The position comes from the row's own counter, so the log is gapless: increment and
-                    // insert are one statement, serialized by the mailbox lock.
+                    // The increment and the insert that consumes it are one statement, so the log is gapless.
                     const string appendSql = $"""
                         WITH bumped AS (
                             UPDATE engine.mailboxes
@@ -937,10 +910,8 @@ internal sealed partial class EngineRepository
                         appended = ReadMailboxDelivery(reader);
                     }
 
-                    // The wake, inside the delivery's own transaction: a held receiver has no timer of its
-                    // own, so a lost wake would park it until the mailbox's deadline. The mailbox row lock leaves
-                    // exactly two interleavings — a receiver is registered here and released, or the enqueue's
-                    // own `seq < next_idx` comparison finds the message waiting.
+                    // The wake, inside the delivery's own transaction: a held receiver has no timer, so a lost wake
+                    // would park it until the deadline.
                     var released = await ReleaseReceiverAt(conn, tx, mailboxId, appended.Idx, now, ct);
 
                     if (released)
@@ -953,7 +924,7 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // After the commit, because a release that rolled back is not a release.
+            // After the commit: a release that rolled back is not a release.
             if (result is MailboxDeliveryResult.Accepted { ReleasedReceiver: true })
                 new MailboxReleaseCounts(Delivered: 1, Closed: 0).Record();
 
@@ -971,7 +942,6 @@ internal sealed partial class EngineRepository
         }
     }
 
-    /// <summary>Projects one row of <see cref="MailboxColumns"/> into its response shape.</summary>
     private static MailboxResponse ReadMailbox(NpgsqlDataReader reader)
     {
 #pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is already buffered
@@ -993,7 +963,6 @@ internal sealed partial class EngineRepository
 #pragma warning restore CA1849, S6966
     }
 
-    /// <summary>Projects the receipt read's one row into the answer the executor acts on.</summary>
     private static MailboxReceiptResult ReadMailboxReceipt(NpgsqlDataReader reader)
     {
 #pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is already buffered
@@ -1017,22 +986,18 @@ internal sealed partial class EngineRepository
             );
         }
 
-        // No delivery and the mailbox still open: the rendezvous makes this unreachable. Reported rather than
-        // smoothed over into the closing signal, which would conclude an exchange that is still live.
+        // Unreachable through the rendezvous; reported rather than smoothed into the closing signal.
         if (status != MailboxStatus.Disposed)
             return new MailboxReceiptResult.Undecided(mailboxId, seq);
 
-        // `ck_mailboxes_disposal_is_complete` is biconditional, so a disposed mailbox always carries its reason.
+        // `ck_mailboxes_disposal_is_complete` is biconditional, so a disposed mailbox always has a reason.
         return new MailboxReceiptResult.Resolved(
             MailboxReceipt.Closed(mailboxId, seq, MailboxStatusMap.ReasonFromDbValue(reader.GetString(3)))
         );
 #pragma warning restore CA1849, S6966
     }
 
-    /// <summary>
-    /// Folds the dashboard read's rows into one snapshot per mailbox. Grouped by adjacency, which the query's
-    /// <c>ORDER BY</c> is what makes safe.
-    /// </summary>
+    /// <summary>Groups rows by adjacency, which the query's <c>ORDER BY</c> makes safe.</summary>
     private static async Task ReadMailboxSnapshots(
         NpgsqlDataReader reader,
         List<MailboxSnapshot> snapshots,
@@ -1071,7 +1036,6 @@ internal sealed partial class EngineRepository
         }
     }
 
-    /// <summary>Projects one row of <see cref="MailboxDeliveryColumns"/> into its response shape.</summary>
     private static MailboxDeliveryResponse ReadMailboxDelivery(NpgsqlDataReader reader)
     {
 #pragma warning disable CA1849, S6966 // Synchronous accessors are intentional - the row is already buffered
@@ -1087,8 +1051,7 @@ internal sealed partial class EngineRepository
 }
 
 /// <summary>
-/// What one per-collection mailbox read returned: the mailboxes, newest-minted first, and the collection keys
-/// whose window was full. Reported per collection because the limit is per collection.
+/// One per-collection read's result: the mailboxes, newest first, and the keys whose window was full.
 /// </summary>
 internal sealed record MailboxCollectionPage(
     IReadOnlyList<MailboxSnapshot> Mailboxes,
@@ -1099,17 +1062,14 @@ internal sealed record MailboxCollectionPage(
 }
 
 /// <summary>
-/// One mailbox as a monitoring surface reads it: the mailbox row, and its log laid out position by position.
-/// <see cref="Positions"/> is empty for a mailbox minted but not yet delivered into or received from, which is
-/// a real and often long-lived state.
+/// A mailbox with its log laid out by position. <see cref="Positions"/> is empty for a mailbox minted but
+/// not yet delivered into or received from — a real and often long-lived state.
 /// </summary>
 internal sealed record MailboxSnapshot(MailboxResponse Mailbox, IReadOnlyList<MailboxPosition> Positions);
 
 /// <summary>
-/// One position of a mailbox's log, from both sides: the message standing there, if one is, and the receiver
-/// holding it, if one does. The two logs share one position space, so a position carries a delivery, a
-/// receiver, or both. <see cref="HeldAt"/> is what separates a receiver that parked from one that ran straight
-/// away.
+/// One position of the log, from both sides: the two logs share one position space, so a position carries a
+/// delivery, a receiver, or both.
 /// </summary>
 internal sealed record MailboxPosition(
     long Position,
@@ -1121,56 +1081,46 @@ internal sealed record MailboxPosition(
     DateTimeOffset? ClaimedAt
 );
 
-/// <summary>What the executor's read of the rendezvous found for one receive workflow.</summary>
 internal abstract record MailboxReceiptResult
 {
     private MailboxReceiptResult() { }
 
-    /// <summary>The rendezvous answered: the message at the receiver's position, or the closure.</summary>
     internal sealed record Resolved(MailboxReceipt Receipt) : MailboxReceiptResult;
 
     /// <summary>
-    /// The workflow holds no position in any mailbox's receivers log. Every receiver registers at enqueue, so the
-    /// reachable cause is retention purging the mailbox under a receive workflow that outlived it.
+    /// No position in any receivers log. Every receiver registers at enqueue, so the reachable cause is
+    /// retention purging the mailbox under a receiver that outlived it.
     /// </summary>
     internal sealed record Unregistered : MailboxReceiptResult;
 
     /// <summary>
-    /// The receiver holds a position, no delivery stands at it, and the mailbox is still open — so the receiver is
-    /// running before its truth was frozen. Unreachable through the rendezvous. The executor fails the step
-    /// critically rather than retryably, so an invariant violation cannot heal itself unnoticed once the deadline
-    /// sweep closes the mailbox.
+    /// A position with no delivery on a still-open mailbox — unreachable through the rendezvous. The executor
+    /// fails the step critically, so the invariant violation cannot heal itself unnoticed.
     /// </summary>
     internal sealed record Undecided(Guid MailboxId, long Seq) : MailboxReceiptResult;
 }
 
-/// <summary>Outcome of a mailbox mint.</summary>
 internal abstract record MailboxMintResult
 {
     private MailboxMintResult() { }
 
-    /// <summary>This call created the mailbox.</summary>
     internal sealed record Minted(MailboxResponse Mailbox) : MailboxMintResult;
 
-    /// <summary>The key had already minted a mailbox, which is returned unchanged even at the cap.</summary>
+    /// <summary>A replay, answered even at the collection cap.</summary>
     internal sealed record Existing(MailboxResponse Mailbox) : MailboxMintResult;
 
     /// <summary>
-    /// The request could not be minted from. Refused before the database, so an over-long key is answered rather
-    /// than surfacing as a transient-looking database error and being retried to the command timeout.
+    /// Refused before the database: an over-long key would otherwise read as a transient database error and be
+    /// retried to the command timeout.
     /// </summary>
     internal sealed record Invalid(string Message) : MailboxMintResult;
 
-    /// <summary>
-    /// The collection already holds <see cref="EngineSettings.MaxOpenMailboxesPerCollection"/> open mailboxes.
-    /// </summary>
     internal sealed record AtCollectionCapacity : MailboxMintResult;
 }
 
 /// <summary>
-/// How many receivers a release made runnable, split by the only two causes there are, and how to publish
-/// that. Published after the commit — a release that rolled back released nobody — and carried on the result
-/// so a caller releasing inside its own transaction publishes the same telemetry without re-deriving it.
+/// Release counts by cause, published after the commit — a release that rolled back released nobody — and
+/// carried on the result so callers with their own transactions publish the same telemetry.
 /// </summary>
 internal readonly record struct MailboxReleaseCounts(int Delivered, int Closed)
 {
@@ -1184,11 +1134,7 @@ internal readonly record struct MailboxReleaseCounts(int Delivered, int Closed)
     }
 }
 
-/// <summary>
-/// What one pass of the deadline sweep did, summed over the mailboxes it claimed. A nonzero <c>Failed</c> is a
-/// delayed close rather than a lost one, but one that stays nonzero across passes is a mailbox that never
-/// drains.
-/// </summary>
+/// <summary>One deadline-sweep pass. A nonzero <c>Failed</c> is a delayed close, not a lost one.</summary>
 internal readonly record struct MailboxSweepResult(
     int Closed = 0,
     int ReceiversReleased = 0,
@@ -1204,7 +1150,6 @@ internal readonly record struct MailboxSweepResult(
             left.Failed + right.Failed
         );
 
-    /// <summary>Whether this pass has anything worth reporting.</summary>
     public bool IsEmpty => Closed == 0 && Failed == 0;
 }
 
@@ -1213,18 +1158,12 @@ internal abstract record MailboxCloseResult
 {
     private MailboxCloseResult() { }
 
-    /// <summary>
-    /// Publishes whatever telemetry this outcome owes. Call it once, after the producing transaction committed.
-    /// </summary>
+    /// <summary>Publishes the telemetry this outcome owes; call once, after the commit.</summary>
     public virtual void Record() { }
 
-    /// <summary>This call closed the mailbox, releasing every receiver parked on it in the same transaction.</summary>
     internal sealed record Closed(MailboxResponse Mailbox, MailboxReleaseCounts Released) : MailboxCloseResult
     {
-        /// <summary>
-        /// Counts the closure and the receivers it released together, because they are one event. The reason is read
-        /// from the row that was actually written rather than from the parameter that asked for it.
-        /// </summary>
+        /// <summary>The reason is read from the row that was written, not from the parameter that asked.</summary>
         public override void Record()
         {
             if (Mailbox.DisposedReason is { } reason)
@@ -1239,58 +1178,41 @@ internal abstract record MailboxCloseResult
         }
     }
 
-    /// <summary>
-    /// The mailbox was already closed. Carries the mailbox as it stands, so the caller reports the original
-    /// reason and instant.
-    /// </summary>
+    /// <summary>Already closed; carries the mailbox so the caller reports the original disposal.</summary>
     internal sealed record AlreadyClosed(MailboxResponse Mailbox) : MailboxCloseResult;
 
-    /// <summary>No mailbox with that id exists in the namespace.</summary>
     internal sealed record NotFound : MailboxCloseResult;
 }
 
 /// <summary>
-/// Outcome of delivering a message into a mailbox. The line between success and refusal is the design's
-/// <em>accepted versus kept</em> rule: what the engine kept it keeps answering <see cref="Duplicate"/> for,
-/// and what it refused it keeps refusing, having written nothing.
+/// Outcome of a delivery. The line between success and refusal is the <em>accepted versus kept</em> rule:
+/// what the engine kept it keeps answering <see cref="Duplicate"/> for; what it refused it keeps refusing.
 /// </summary>
 internal abstract record MailboxDeliveryResult
 {
     private MailboxDeliveryResult() { }
 
     /// <summary>
-    /// This call appended the delivery, which now holds the position it reports.
-    /// <paramref name="ReleasedReceiver"/> is bookkeeping for the release metric, not a difference the caller
-    /// answers differently: acceptance is not consumption.
+    /// Appended. <paramref name="ReleasedReceiver"/> is bookkeeping for the release metric, not a difference
+    /// the caller answers differently.
     /// </summary>
     internal sealed record Accepted(MailboxDeliveryResponse Delivery, bool ReleasedReceiver) : MailboxDeliveryResult;
 
-    /// <summary>
-    /// The key had already delivered a message into this mailbox, returned at the position it has held since.
-    /// Answered even on a closed or full mailbox.
-    /// </summary>
+    /// <summary>A replay, answered at its original position even on a closed or full mailbox.</summary>
     internal sealed record Duplicate(MailboxDeliveryResponse Delivery) : MailboxDeliveryResult;
 
-    /// <summary>No mailbox with that id exists in the namespace.</summary>
     internal sealed record NotFound : MailboxDeliveryResult;
 
-    /// <summary>
-    /// The mailbox is closed, so the message is too late. Carries the mailbox so the caller can report how it
-    /// closed, which is what makes a dead-letter record worth reading.
-    /// </summary>
+    /// <summary>Too late; carries the mailbox so the caller can report how the exchange ended.</summary>
     internal sealed record Closed(MailboxResponse Mailbox) : MailboxDeliveryResult;
 
-    /// <summary>The deliveries log already holds <see cref="EngineSettings.MaxMailboxLogLength"/> positions.</summary>
     internal sealed record LogFull(long LogLength) : MailboxDeliveryResult;
 
-    /// <summary>
-    /// The payload exceeds <see cref="EngineSettings.MaxMailboxPayloadSize"/>. Refused before the database.
-    /// </summary>
     internal sealed record PayloadTooLarge(string Message) : MailboxDeliveryResult;
 
     /// <summary>
-    /// The request could not be delivered from. Refused before the database, so an over-long idempotency key is
-    /// answered rather than retried to the command timeout as a transient-looking database error.
+    /// Refused before the database: an over-long key would otherwise read as a transient database error and be
+    /// retried to the command timeout.
     /// </summary>
     internal sealed record Invalid(string Message) : MailboxDeliveryResult;
 }

@@ -5,76 +5,56 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 import { BASE_URL, HEALTH_URL, buildRequestParams, buildPayload } from './lib/helpers.js';
 
-// Mailbox load scenario. The question is narrow: does mailbox traffic cost the engine's ordinary
-// enqueue/processing path anything, and what does one message cost? The measured enqueue workload is identical
-// in every mode and only what runs beside it changes, making the runs an A/B:
+// Mailbox load scenario: does mailbox traffic cost the ordinary enqueue/processing path anything, and what
+// does one message cost? The measured enqueue workload is identical in every mode; only what runs beside it
+// changes:
 //
 //   MODE=baseline  measured enqueue workload alone                     → the reference
 //   MODE=storm     the same, plus mailbox traffic                      → the comparison
 //   MODE=control   the same, plus ORDINARY workflows at CONTROL_RATE   → what equivalent work costs
 //   MODE=low       one exchange at a time, no other load               → per-hop latency at idle
 //
-// The storm arm is gated against the control, not the baseline: a storm run does strictly more engine work
-// than a baseline run. The control's shape matches the storm's exactly — a receive workflow is an ordinary
-// single-step webhook workflow plus a `mailbox` block, and the control's extras are the same thing without it.
-//
-// The three storm arms are `relay_exchanges` (receiver first, so it parks and the delivery wakes it — the Fiks
-// Arkiv profile), `buffered_deliveries` (no receiver at all, into one mailbox until MaxMailboxLogLength
-// refuses) and `early_deliveries` (message first, so the receiver is born runnable).
-//
-// `mailbox-storm-compare.sh` runs the modes repeatedly and interleaved and applies the gates. One run of this
-// script by hand is one arm of a comparison, not a result.
+// The storm arm is gated against the control (same extra work, minus the `mailbox` block), not the baseline.
+// `mailbox-storm-compare.sh` runs the modes repeatedly and interleaved; one run by hand is not a result.
 
 const MODE = __ENV.MODE || 'storm';
 const DURATION = __ENV.DURATION || '3m';
 const RESULTS_DIR = __ENV.RESULTS_DIR || '.k6/results';
 
-// Suffix for this run's summary file, so repeated runs of one arm do not overwrite each other:
-// `-e RUN_TAG=-2` writes `storm-2.json`.
+// Summary-file suffix, so repeated runs of one arm do not overwrite each other.
 const RUN_TAG = __ENV.RUN_TAG || '';
 
-// The non-mailbox hot path under test: single-step webhook workflows.
 const BASELINE_RATE = parseInt(__ENV.BASELINE_RATE || '100', 10);
 
-// Relay exchanges per second, each carrying MESSAGES_PER_EXCHANGE messages. Two is the profile the first real
-// consumer (Fiks Arkiv) produces: an acknowledgement that keeps the exchange open, then a concluding receipt.
+// Two messages per exchange is the Fiks Arkiv profile: an acknowledgement, then a concluding receipt.
 const EXCHANGE_RATE = parseInt(__ENV.EXCHANGE_RATE || '25', 10);
 const MESSAGES_PER_EXCHANGE = parseInt(__ENV.MESSAGES_PER_EXCHANGE || '2', 10);
 
-// Buffered deliveries per second, aimed at *one* mailbox with no receiver, so the log grows until
-// MaxMailboxLogLength (100) refuses with 429 and the VU mints a replacement. Both halves are the point: the
-// accepted rows, and the refusals, which still take the mailbox row lock. Rate-limited rather than unthrottled
-// so it cannot swamp the other arms — the control arm can only stand in for workflows.
+// Deliveries into *one* receiverless mailbox until MaxMailboxLogLength refuses with 429, then a replacement
+// mailbox. Rate-limited so it cannot swamp the other arms.
 const BUFFER_RATE = parseInt(__ENV.BUFFER_RATE || '25', 10);
 
-// Early-message arm: exchanges per second whose message is delivered *before* its receiver exists, so the
-// receiver is born runnable. Deterministic by construction rather than a race won by luck.
+// Message delivered before its receiver exists, so the receiver is born runnable — deterministic, not a race.
 const EARLY_RATE = parseInt(__ENV.EARLY_RATE || '5', 10);
 
-// Control mode: ordinary workflows per second standing in for the receive workflows the storm creates. Every
-// storm summary reports the right value for its configuration as `config.impliedControlRate`.
+// Ordinary workflows standing in for the storm's receivers; storm summaries report the right value as
+// `config.impliedControlRate`.
 const CONTROL_RATE = parseInt(__ENV.CONTROL_RATE || '80', 10);
 
-// What the control arm's extra workflows look like: `webhook` (the default and the one the gate uses,
-// byte-identical to a receive workflow minus its `mailbox` block) or `inproc`. See `controlPayload`.
+// `webhook` (the gate's shape: a receive workflow minus its `mailbox` block) or `inproc`. See `controlPayload`.
 const CONTROL_SHAPE = __ENV.CONTROL_SHAPE === 'inproc' ? 'inproc' : 'webhook';
 
-// Low-load mode: seconds of idle between measured requests. At this spacing every enqueue batch holds a single
-// item, so each hop's own cost is visible instead of amortized, and the spacing is the same for every hop.
+// Idle between measured requests, so every enqueue batch holds a single item and hops are comparable.
 const LOW_GAP = parseFloat(__ENV.LOW_GAP || '0.2');
 
-// The mailbox's declared timeout. Left above any sane run length: below it, mailboxes close mid-run and the
-// deadline sweep's releases join the load — interesting, but not what the gates are set from.
+// Kept above any sane run length: below it the deadline sweep's releases join the load.
 const MAILBOX_TIMEOUT = __ENV.MAILBOX_TIMEOUT || '01:00:00';
 
-// Replay: every Nth relay exchange re-posts its first message's idempotency key, which is the at-least-once
-// forwarding a production sender guarantees. The replay still takes the mailbox row lock and must answer 200
-// with the original idx without appending a row. Set to 0 to disable.
+// Every Nth relay exchange re-posts its first message's key — at-least-once forwarding. Expected: 200 with
+// the original idx, no new row. 0 disables.
 const REPLAY_EVERY = parseInt(__ENV.REPLAY_EVERY || '10', 10);
 
-// How often an arm reads back the birth state of the receiver it just enqueued. The enqueue response carries
-// no status, so this is the only way to see it; sampled because a GET per receiver would be a third of the
-// arm's request volume.
+// Birth-state read-back sampling; a GET per receiver would be a third of the arm's request volume.
 const BIRTH_SAMPLE_EVERY = parseInt(__ENV.BIRTH_SAMPLE_EVERY || '10', 10);
 
 const DELIVERY_PAYLOAD_BYTES = parseInt(__ENV.DELIVERY_PAYLOAD_BYTES || '2048', 10);
@@ -84,8 +64,8 @@ const NAMESPACE = __ENV.NAMESPACE || 'default';
 const MAILBOX_URL = __ENV.MAILBOX_URL || `http://localhost:9090/api/v1/${NAMESPACE}/mailboxes`;
 
 /**
- * '90s' / '2m' / '1h30m' → seconds. Throughput is reported per scenario second, not per run second: k6's own
- * per-metric rate divides by the whole run, teardown drain included.
+ * '90s' / '2m' / '1h30m' → seconds. Throughput is reported per scenario second: k6's own rate divides by
+ * the whole run, teardown drain included.
  */
 function durationSeconds(text) {
     let total = 0;
@@ -101,14 +81,13 @@ const DURATION_SECONDS = durationSeconds(DURATION);
 const webhookTemplate = JSON.parse(open('./payloads/webhook.json'));
 const receiverTemplate = JSON.parse(open('./payloads/mailbox-receiver.json'));
 
-// Label values, so each workload can be counted separately on the list endpoint (`?label=k6:value`).
+// Labels let each workload be counted separately on the list endpoint (`?label=k6:value`).
 const BASELINE_LABEL = 'mailbox-storm-baseline';
 const RELAY_LABEL = 'mailbox-storm-relay';
 const EARLY_LABEL = 'mailbox-storm-early';
 const CONTROL_LABEL = 'mailbox-storm-control';
 
-// Per-hop latency. The design admits one extra app→engine call — the receiver enqueue — so keeping the hops
-// apart is what turns "a message costs X" into an accounting rather than a single number.
+// Per-hop latency, kept apart so "a message costs X" is an accounting rather than a single number.
 const mintLatency = new Trend('mailbox_mint', true);
 const closeLatency = new Trend('mailbox_close', true);
 const receiverParkLatency = new Trend('receiver_enqueue_park', true);
@@ -119,8 +98,7 @@ const deliveryCappedLatency = new Trend('delivery_capped', true);
 const deliveryReplayLatency = new Trend('delivery_replay', true);
 const lowEnqueue = new Trend('enqueue_single_low', true);
 
-// Outcomes, split where an outcome means different things in different arms: a 429 is the log cap working as
-// designed in the buffered arm and a broken scenario anywhere else.
+// Outcomes, split per arm: a 429 is the log cap working in the buffered arm and a broken scenario elsewhere.
 const mailboxesMinted = new Counter('mailboxes_minted');
 const mailboxesClosed = new Counter('mailboxes_closed');
 const mailboxesAtCapacity = new Counter('mailboxes_at_capacity_429');
@@ -142,19 +120,17 @@ const bufferedMailboxesSeeded = new Counter('buffered_mailboxes_seeded');
 const relayExchangesStarted = new Counter('relay_exchanges_started');
 const earlyExchangesStarted = new Counter('early_exchanges_started');
 
-// Engine-side observation, sampled identically in every mode so the monitor is not an asymmetry between arms.
+// Engine-side observation, sampled identically in every mode so the monitor is not an asymmetry.
 const baselineBacklog = new Trend('engine_backlog_baseline');
 const engineWorkers = new Trend('engine_workers_active');
 const engineActive = new Trend('engine_active_workflows');
 const engineHeld = new Trend('engine_held_receivers');
 
-// A baseline enqueue refused at capacity. Delivery ingestion skips the backpressure check an ordinary enqueue
-// must pass, while a Held receiver counts in the same admission budget while unfetchable — so a storm can in
-// principle raise the number of refused ordinary enqueues, and this counter is what would catch it.
+// Would catch a storm crowding ordinary enqueues out of the admission budget: Held receivers count toward
+// it, while delivery ingestion is exempt.
 const baselineAtCapacity = new Counter('baseline_enqueue_at_capacity_429');
 
-// The processing half of "throughput and latency unchanged". Emitted as metrics because a value *returned*
-// from teardown is discarded by k6 and never reaches the summary.
+// Metrics because a value *returned* from teardown is discarded by k6.
 const drainSeconds = new Trend('baseline_drain_seconds');
 const completedBaseline = new Counter('workflows_completed_baseline');
 const failedBaseline = new Counter('workflows_failed_baseline');
@@ -169,8 +145,7 @@ const stormOnly = MODE === 'storm';
 const measuresEnqueue = MODE !== 'low';
 
 /**
- * Scenario set. The measured enqueue workload and the monitor are identical in every mode that has them —
- * only what runs beside them changes.
+ * The measured enqueue workload and the monitor are identical in every mode that has them.
  */
 const scenarios = {
     monitor: {
@@ -201,8 +176,6 @@ if (stormOnly && EXCHANGE_RATE > 0) {
         rate: EXCHANGE_RATE,
         timeUnit: '1s',
         duration: DURATION,
-        // Each iteration issues 2 + 2×MESSAGES_PER_EXCHANGE requests back to back with no sleep, so the pool only
-        // has to cover the round trips.
         preAllocatedVUs: Math.max(20, EXCHANGE_RATE),
         maxVUs: Math.max(200, EXCHANGE_RATE * 10),
         exec: 'relayExchange',
@@ -216,9 +189,8 @@ if (stormOnly && BUFFER_RATE > 0) {
         rate: BUFFER_RATE,
         timeUnit: '1s',
         duration: DURATION,
-        // A pool rather than one VU, so several deliveries to the same mailbox are in flight at once — that
-        // concurrency on one mailbox row is half of what the arm is for. Headroom because the iteration that runs
-        // into the cap does two requests instead of one.
+        // A pool, so several deliveries to one mailbox are in flight at once — contention on the mailbox row is
+        // half of what this arm is for.
         preAllocatedVUs: Math.max(10, Math.ceil(BUFFER_RATE / 2)),
         maxVUs: Math.max(40, BUFFER_RATE * 2),
         exec: 'bufferedDelivery',
@@ -254,10 +226,8 @@ if (MODE === 'control') {
 
 if (MODE === 'low') {
     scenarios.low_load_exchange = {
-        // One VU, one measured request per iteration, a fixed gap between them. Not an arrival-rate executor: the
-        // phases have to run in order, and every hop must be measured in the same position relative to the idle
-        // gap. Measuring a whole exchange inside one iteration produced a 5 ms spread between two calls that do
-        // almost the same work, purely from where in the flush cycle each landed.
+        // One VU, fixed gap, phases in order: every hop must sit in the same position relative to the idle gap.
+        // Measuring a whole exchange per iteration once produced a 5 ms spread purely from flush-cycle position.
         executor: 'constant-vus',
         vus: 1,
         duration: DURATION,
@@ -269,11 +239,11 @@ if (MODE === 'low') {
 export const options = {
     setupTimeout: '1m',
     teardownTimeout: '10m',
-    // p99 is not in k6's default trend stats, and it is half the point of the comparison.
+    // p99 is not in k6's default trend stats.
     summaryTrendStats: ['count', 'min', 'avg', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
     scenarios,
-    // The comparison that matters is cross-run (see mailbox-storm-compare.sh); these only catch a run broken on
-    // its own terms. Declaring the sub-metrics is also what makes k6 compute them for the summary.
+    // The real comparison is cross-run; these only catch a run broken on its own terms. Declaring sub-metrics
+    // is also what makes k6 compute them for the summary.
     thresholds: measuresEnqueue
         ? {
               'http_req_failed{scenario:enqueue_baseline}': ['rate<0.01'],
@@ -287,7 +257,6 @@ export const options = {
           },
 };
 
-/** A message body of the configured size. */
 function messagePayload(sequence) {
     const head = `{"melding":"arkivkvittering","sequence":${sequence},"filler":"`;
     const tail = '"}';
@@ -299,15 +268,14 @@ function jsonParams(name, expected) {
     return {
         headers: { 'Content-Type': 'application/json' },
         tags: { name },
-        // 429 (the log cap) and 409 (too late) are outcomes the storm is designed to provoke, not transport
-        // failures, so counting them as http_req_failed would make the error rate meaningless.
+        // 429 and 409 are outcomes the storm is designed to provoke, not transport failures.
         responseCallback: http.expectedStatuses(...expected),
     };
 }
 
 /**
- * Mints one mailbox. `collectionKey` groups it the way the app groups an instance's workflows, and it is what
- * the open-mailboxes cap is scoped to — a fresh key per exchange keeps that cap far away, as in production.
+ * Mints one mailbox. A fresh collectionKey per exchange keeps the open-mailboxes cap far away, as in
+ * production.
  */
 function mintMailbox(collectionKey, name) {
     const res = http.post(
@@ -338,7 +306,6 @@ function mintMailbox(collectionKey, name) {
     }
 }
 
-/** Closes one mailbox — the app's own conclusion, and the only thing that ends an exchange early. */
 function closeMailbox(mailboxId) {
     const res = http.del(
         `${MAILBOX_URL}/${mailboxId}`,
@@ -351,9 +318,9 @@ function closeMailbox(mailboxId) {
 }
 
 /**
- * Enqueues one receive workflow against a mailbox: an ordinary single-step webhook workflow plus the `mailbox`
- * block. `isHead` with `dependsOnHeads: false` is what the app-lib's relay does, and it also keeps the
- * measurement honest — a dependency edge is exactly what the design claims not to create.
+ * Enqueues one receive workflow: an ordinary single-step webhook workflow plus the `mailbox` block.
+ * `isHead` + `dependsOnHeads: false` is what the app-lib's relay does — and no dependency edge is exactly
+ * what the design claims.
  */
 function enqueueReceiver(mailboxId, collectionKey, label, name, latency) {
     const template = JSON.parse(JSON.stringify(receiverTemplate));
@@ -364,8 +331,7 @@ function enqueueReceiver(mailboxId, collectionKey, label, name, latency) {
         tags: { name },
     });
 
-    // The request's own timing, not a Date.now() delta: Date.now() quantizes to 1 ms, which is 25% of the
-    // quantity being measured here.
+    // The request's own timing: Date.now() quantizes to 1 ms, 25% of the quantity measured here.
     latency.add(res.timings.duration);
 
     if (res.status !== 201 && res.status !== 200) return null;
@@ -377,7 +343,6 @@ function enqueueReceiver(mailboxId, collectionKey, label, name, latency) {
     }
 }
 
-/** Posts one message into a mailbox. */
 function deliver(mailboxId, idempotencyKey, sequence, name) {
     return http.post(
         `${MAILBOX_URL}/${mailboxId}/deliveries`,
@@ -386,7 +351,6 @@ function deliver(mailboxId, idempotencyKey, sequence, name) {
     );
 }
 
-/** Records one delivery outcome, and returns the parsed body of an accepted one. */
 function trackDelivery(res) {
     if (res.status === 202) {
         deliveriesAccepted.add(1);
@@ -409,8 +373,7 @@ function trackDelivery(res) {
 }
 
 /**
- * Reads back the birth state of a receiver, sampled rather than universal. The enqueue response carries no
- * status, so without this the two interleavings would be asserted rather than observed.
+ * Reads back a receiver's birth state (the enqueue response carries no status), sampled.
  */
 function sampleBirth(workflowId, expectHeld) {
     const res = http.get(`${BASE_URL}/${workflowId}`, { tags: { name: 'sample_birth' } });
@@ -427,20 +390,14 @@ function sampleBirth(workflowId, expectHeld) {
     if (expectHeld) {
         bornHeld.add(status === 'Held');
     } else {
-        // A receiver born runnable may already have run by the time this reads it, so the assertion is that it
-        // never parked.
+        // It may already have run by the time this reads it, so the assertion is that it never parked.
         bornRunnable.add(status !== 'Held');
     }
 }
 
 /**
- * The control arm's extra ordinary workflow, in the shape `CONTROL_SHAPE` asks for.
- *
- * `webhook` is a receive workflow with its `mailbox` block removed and nothing else changed, so the difference
- * between the two arms is the mailbox's own bookkeeping. The gate uses it.
- *
- * `inproc` swaps the webhook step for an in-process command and exists only to measure how much the shape of
- * the extra work can move the enqueue path's latency at all.
+ * The control arm's extra workflow. `webhook` is a receive workflow minus its `mailbox` block — the gate's
+ * shape. `inproc` exists only to bound how much the work's shape alone can move the number.
  */
 function controlPayload() {
     const template = JSON.parse(JSON.stringify(receiverTemplate));
@@ -457,7 +414,6 @@ function controlPayload() {
     return buildPayload(template, { k6: CONTROL_LABEL });
 }
 
-/** The non-mailbox workload: one single-step webhook workflow per iteration. */
 export function enqueueBaseline() {
     const body = buildPayload(webhookTemplate, { k6: BASELINE_LABEL });
     const res = http.post(BASE_URL, body, {
@@ -470,8 +426,7 @@ export function enqueueBaseline() {
 }
 
 /**
- * The control workload: ordinary workflows at the rate the storm's receivers arrive. Labeled apart so it is
- * not counted as backlog for the measured workload.
+ * The control workload, labeled apart so it is not counted as the measured workload's backlog.
  */
 export function enqueueExtraOrdinary() {
     const res = http.post(BASE_URL, controlPayload(), {
@@ -483,8 +438,8 @@ export function enqueueExtraOrdinary() {
 }
 
 /**
- * The relay: mint, then for each message enqueue the receiver (which parks) and deliver the message (which
- * wakes it), then close — every engine call the design adds, in the order it mandates.
+ * The relay: mint, then per message enqueue the receiver and deliver, then close — every engine call the
+ * design adds, in the order it mandates.
  */
 export function relayExchange() {
     const collectionKey = uuidv4();
@@ -504,7 +459,7 @@ export function relayExchange() {
         );
         if (!receiverId) return;
 
-        // Read the birth state before the delivery can change it: nothing else can wake this receiver.
+        // Read before the delivery can change it: nothing else can wake this receiver.
         if (sampling && sequence === 0) sampleBirth(receiverId, true);
 
         const res = deliver(mailboxId, `${mailboxId}-${sequence}`, sequence, 'deliver_wake');
@@ -513,9 +468,8 @@ export function relayExchange() {
         check(res, { 'relay message accepted': (r) => r.status === 202 });
     }
 
-    // The replay, on every REPLAY_EVERYth exchange: message 0's key again, posted after the exchange has run its
-    // course. It is the case the accepted-versus-kept rule exists for — the engine kept this message, so a replay
-    // answers 200 even once the mailbox is closed, which is why it is posted last.
+    // The replay, posted after the exchange has run its course: the engine kept this message, so it answers
+    // 200 even once the mailbox is closed.
     const replaying = REPLAY_EVERY > 0 && __ITER % REPLAY_EVERY === 0;
 
     closeMailbox(mailboxId);
@@ -529,14 +483,12 @@ export function relayExchange() {
     }
 }
 
-// Per-VU buffered target. Module state is per-VU in k6, which is the mechanism here: a full log can never
-// accept another message, so a VU that runs into the cap mints a mailbox of its own and keeps storming. That
-// is the finding rather than a workaround — a sustained delivery storm cannot be absorbed by one mailbox.
+// Per-VU (module state is per-VU in k6): a full log never accepts another message, so a VU that hits the
+// cap mints its own replacement and keeps storming.
 let ownMailbox = null;
 
 /**
- * Buffered messages: no receiver is ever enqueued, so every accepted delivery sits at its position and wakes
- * nobody. Both the accepted rows (`buffered_log_depth`) and the refusals (`delivery_capped`) are measured.
+ * Buffered messages: no receiver is ever enqueued. Accepted rows and refusals are both measured.
  */
 export function bufferedDelivery() {
     if (ownMailbox === null) {
@@ -557,7 +509,7 @@ export function bufferedDelivery() {
         bufferedLogDepth.add(body.idx + 1);
     } else if (res.status === 429) {
         deliveryCappedLatency.add(res.timings.duration);
-        // The log is full for good; take a fresh mailbox and keep going. The arrival rate is the throttle.
+        // Full for good; take a fresh mailbox. The arrival rate is the throttle.
         ownMailbox = null;
     } else if (res.status === 404 || res.status === 409) {
         ownMailbox = null;
@@ -566,8 +518,7 @@ export function bufferedDelivery() {
 }
 
 /**
- * The other interleaving: the message is delivered before its receiver exists, so the enqueue flush finds
- * `seq < next_idx` under the mailbox row lock and the receiver is born runnable. No wake is involved at all.
+ * The other interleaving: delivered before the receiver exists, so it is born runnable — no wake at all.
  */
 export function earlyDelivery() {
     const collectionKey = uuidv4();
@@ -596,12 +547,9 @@ export function earlyDelivery() {
 }
 
 /**
- * Per-hop latency at idle: one measured request per iteration, walking the protocol one phase at a time on a
- * single VU with a fixed gap between phases.
- *
- * The structure is the measurement. Every hop is issued as the first request after the same idle gap, so the
- * write buffer is in the same state for all of them and the numbers can be compared with each other. The
- * phases walk every state the rendezvous can be in — park, wake, buffer, born-runnable, close.
+ * Per-hop latency at idle, one phase per iteration on one VU. Every hop is issued as the first request
+ * after the same idle gap, so the numbers are comparable; the phases walk every state the rendezvous can
+ * be in.
  */
 let lowMailbox = null;
 let lowCollection = null;
@@ -611,7 +559,7 @@ export function lowLoadExchange() {
 
     switch (phase) {
         case 0: {
-            // The yardstick: one ordinary single-step enqueue, in the same position as every hop below.
+            // The yardstick: one ordinary enqueue, in the same position as every hop below.
             const res = http.post(BASE_URL, buildPayload(webhookTemplate, { k6: BASELINE_LABEL }), {
                 ...buildRequestParams(),
                 tags: { name: 'enqueue_low' },
@@ -625,7 +573,7 @@ export function lowLoadExchange() {
             break;
         }
         case 2: {
-            // seq 0, with nothing at that position yet: the receiver parks.
+            // seq 0, nothing at that position yet: the receiver parks.
             if (lowMailbox) {
                 enqueueReceiver(
                     lowMailbox,
@@ -638,7 +586,7 @@ export function lowLoadExchange() {
             break;
         }
         case 3: {
-            // idx 0 lands on the parked receiver: the wake, inside the delivery's own transaction.
+            // idx 0 lands on the parked receiver: the wake.
             if (lowMailbox) {
                 const res = deliver(lowMailbox, `${lowMailbox}-0`, 0, 'deliver_wake_low');
                 deliveryWakeLatency.add(res.timings.duration);
@@ -647,7 +595,7 @@ export function lowLoadExchange() {
             break;
         }
         case 4: {
-            // idx 1 has no receiver: the message buffers at its position and wakes nobody.
+            // idx 1 has no receiver: the message buffers.
             if (lowMailbox) {
                 const res = deliver(lowMailbox, `${lowMailbox}-1`, 1, 'deliver_buffer_low');
                 deliveryBufferLatency.add(res.timings.duration);
@@ -656,7 +604,7 @@ export function lowLoadExchange() {
             break;
         }
         case 5: {
-            // seq 1 finds the buffered message already there: born runnable, no wake involved.
+            // seq 1 finds the buffered message: born runnable, no wake.
             if (lowMailbox) {
                 enqueueReceiver(
                     lowMailbox,
@@ -697,16 +645,14 @@ function countByStatus(statuses) {
 }
 
 /**
- * Samples engine-side backlog for the baseline workload plus the mailbox's footprint. Every sample is taken in
- * every mode, including the ones that read zero outside a storm: the monitor must not be an asymmetry.
+ * Samples engine-side backlog and the mailbox's footprint, identically in every mode.
  */
 export function monitor() {
     baselineBacklog.add(
         Math.max(0, countWorkflows(BASELINE_LABEL, ['Enqueued', 'Processing', 'Requeued'])),
     );
 
-    // Unsettled rows a parked receiver holds. Ordinary enqueues are refused at Concurrency.BackpressureThreshold
-    // on exactly this number, and delivery ingestion is exempt from that check.
+    // Unsettled rows a parked receiver holds against the admission budget deliveries are exempt from.
     engineHeld.add(Math.max(0, countByStatus(['Held'])));
 
     const health = http.get(HEALTH_URL, { tags: { name: 'monitor_health' } });
@@ -722,8 +668,8 @@ export function monitor() {
 }
 
 /**
- * Drains the baseline workload and reports what each workload actually did. A run whose deliveries all 404'd
- * would otherwise produce a flattering latency table.
+ * Drains the baseline workload and reports what each workload actually did — a run whose deliveries all
+ * 404'd would otherwise produce a flattering latency table.
  */
 export function teardown() {
     const active = ['Enqueued', 'Processing', 'Requeued'];
@@ -738,8 +684,8 @@ export function teardown() {
     const elapsed = (Date.now() - start) / 1000;
     drainSeconds.add(elapsed);
 
-    // Only after the gate's drain measurement, wait for the relay's own workflows: the last exchanges are still
-    // mid-protocol when the scenario stops, so otherwise the fidelity counts report them as never woken.
+    // Only after the drain measurement: the last exchanges are still mid-protocol when the scenario stops,
+    // and would otherwise be reported as never woken.
     const settleStart = Date.now();
     while (Date.now() - settleStart < 60000) {
         const open =
@@ -810,8 +756,6 @@ export function handleSummary(data) {
             p95: metric('engine_backlog_baseline')['p(95)'],
             max: metric('engine_backlog_baseline').max,
         },
-        // The processing half of the requirement: how much work was left when the load stopped, how long it took to
-        // clear, and whether it all completed.
         processing: {
             drainSeconds: metric('baseline_drain_seconds').med,
             baselineCompleted: metric('workflows_completed_baseline').count ?? 0,
@@ -826,7 +770,6 @@ export function handleSummary(data) {
         engine: {
             workersMed: metric('engine_workers_active').med,
             workersMax: metric('engine_workers_active').max,
-            // Rows a parked receiver holds against the admission budget ordinary enqueues respect.
             activeMed: metric('engine_active_workflows').med,
             activeMax: metric('engine_active_workflows').max,
             heldMed: metric('engine_held_receivers').med,
@@ -843,8 +786,7 @@ export function handleSummary(data) {
         },
         receivers: {
             enqueued: metric('receivers_enqueued').count ?? 0,
-            // Per scenario second, not per run second: k6's own Counter rate divides by the whole run including the
-            // teardown drain, which understates throughput worst at the loaded operating points this measures.
+            // Per scenario second: k6's own Counter rate divides by the whole run including the teardown drain.
             enqueuedRate: (metric('receivers_enqueued').count ?? 0) / DURATION_SECONDS,
             parkMed: metric('receiver_enqueue_park').med,
             parkP95: metric('receiver_enqueue_park')['p(95)'],
@@ -882,8 +824,7 @@ export function handleSummary(data) {
             relayStarted: metric('relay_exchanges_started').count ?? 0,
             earlyStarted: metric('early_exchanges_started').count ?? 0,
         },
-        // MODE=low only, and every field is measured in the same position relative to the idle gap. Counts are
-        // carried beside the medians because a hop measured on 20 samples and one measured on 120 differ.
+        // MODE=low only. Counts ride beside the medians: 20 samples and 120 are different claims.
         lowLoad: {
             enqueueSamples: metric('enqueue_single_low').count ?? 0,
             enqueueMed: metric('enqueue_single_low').med,
@@ -910,10 +851,8 @@ export function handleSummary(data) {
         },
     };
 
-    // What CONTROL_RATE should be for this configuration: the storm's extra workflows are exactly its receive
-    // workflows. The buffered arm contributes nothing, which is the design claim rather than an omission — a
-    // message nobody receives creates no workflow — so the gate's Δ is "mailbox bookkeeping including buffered
-    // rows" rather than a per-receiver cost. MODE=low's per-hop accounting is what separates them.
+    // The storm's extra workflows are exactly its receive workflows; the buffered arm contributes none by
+    // design (a message nobody receives creates no workflow).
     if (MODE === 'storm') {
         const workflows = summary.receivers.enqueued;
         summary.config.impliedControlRate = Math.round((workflows / DURATION_SECONDS) * 10) / 10;

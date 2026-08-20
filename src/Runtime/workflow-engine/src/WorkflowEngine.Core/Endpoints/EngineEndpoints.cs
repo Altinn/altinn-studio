@@ -825,8 +825,7 @@ internal static class EngineRequestHandlers
             MailboxDeliveryResult.Duplicate duplicate => TypedResults.Ok(duplicate.Delivery),
             MailboxDeliveryResult.NotFound => TypedResults.NotFound(),
 
-            // The reason and instant are in the detail rather than left to be inferred: a dead-letter record that
-            // says "closed at its deadline" is actionable, one that says "409" is not.
+            // The reason and instant ride the detail: "closed at its deadline" is actionable, "409" is not.
             MailboxDeliveryResult.Closed closed => TypedResults.Problem(
                 detail: $"Mailbox {mailboxId} was closed {DescribeDisposal(closed.Mailbox.DisposedReason)} "
                     + $"at {closed.Mailbox.DisposedAt:O} and no longer accepts deliveries.",
@@ -849,18 +848,14 @@ internal static class EngineRequestHandlers
         };
     }
 
-    /// <summary>
-    /// Renders a mailbox's disposal reason for a caller's error detail. Exhaustive on purpose: a reason added later
-    /// must fail loudly here rather than silently read as one of the existing two.
-    /// </summary>
+    /// <summary>Exhaustive on purpose: a new reason must fail loudly here.</summary>
     private static string DescribeDisposal(MailboxDisposedReason? reason) =>
         reason switch
         {
             MailboxDisposedReason.Request => "by request",
             MailboxDisposedReason.Deadline => "at its deadline",
 
-            // ck_mailboxes_disposal_is_complete makes a disposed mailbox without a reason unrepresentable, so null
-            // here means the row was read as open and reported as closed.
+            // The check constraint makes a disposed mailbox without a reason unrepresentable.
             null => throw new UnreachableException("A closed mailbox always carries its disposal reason."),
             _ => throw new UnreachableException($"Unknown mailbox disposal reason {reason}."),
         };

@@ -59,9 +59,8 @@ internal sealed class WorkflowEntity
     public bool? IsHead { get; set; }
 
     /// <summary>
-    /// The mailbox this workflow receives from, or null on every ordinary workflow. Deliberately a plain uuid
-    /// column with no foreign key: a foreign key here would make a mailbox's retention purge depend on its
-    /// receivers', which are two lifetimes the design keeps apart.
+    /// The mailbox this workflow receives from, or null. No foreign key: a mailbox's retention purge must not
+    /// depend on its receivers'.
     /// </summary>
     public Guid? MailboxId { get; set; }
 

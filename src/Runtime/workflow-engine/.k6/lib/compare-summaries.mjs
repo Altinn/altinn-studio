@@ -3,35 +3,25 @@
 //
 // Usage: node compare-summaries.mjs [--ungate-latency] <reference.json[,…]> <candidate.json[,…]>
 //
-// Each argument is a comma-separated list of run summaries for one arm, in run order. The reported Δ is a
-// difference of arm means; `mailbox-storm-compare.sh` interleaves and rotates the arms to control session drift.
-//
-// Verdicts are three-valued: `pass`, `FAIL`, and `inconclusive` (the measurement cannot resolve the question).
-// `inconclusive` is exit-neutral and can never read `pass`, so "I could not measure this" is neither reported
-// as a regression nor laundered into one. Gates are two-sided: the arms are built to give the engine the same
-// work, so a candidate that comes out materially faster fails too — usually an under-provisioned control arm.
-//
-// The tolerance is TOLERANCE_K standard errors of the *reference* arm's mean, never the candidate's, so an
+// Verdicts are three-valued: `pass`, `FAIL`, and exit-neutral `inconclusive`, which can never read `pass`.
+// Gates are two-sided (the arms are built to do the same work, so materially faster fails too), and the
+// tolerance is TOLERANCE_K standard errors of the *reference* arm's mean — never the candidate's, so an
 // unstable candidate cannot widen its own gate.
 
 import { readFileSync } from 'node:fs';
 
-// Two runs per arm is the minimum that measures anything. Under the standard-error tolerance n=2 is a looser
-// gate than n=3 (2.12σ against 1.73σ), which is correct: two runs teach you little about an arm's variation.
+// The minimum that measures anything; n=2 is a looser gate than n=3 under the standard-error tolerance.
 const MIN_REPEATS_TO_GATE = 2;
 const MAX_ERROR_RATE = 0.01;
 
-// How much wider the candidate arm's spread may be than the reference arm's before the comparison is
-// inconclusive rather than passed. 2× tolerates ordinary variation and still catches an order-of-magnitude
-// blow-up from a single misbehaving run.
+// Candidate spread beyond this multiple of the reference's reads inconclusive rather than passed.
 const MAX_SPREAD_RATIO = Number(process.env.MAX_SPREAD_RATIO ?? 2);
 
-// The spread test respects the instrument as well as the ratio: backlog p95 is effectively integer-valued, so
-// a reference arm landing on 3.0 three times has spread 0 and the ratio ceiling would collapse to zero.
+// Floor for the spread test: backlog p95 is effectively integer-valued, so a reference landing on 3.0
+// three times has spread 0 and the ratio ceiling would collapse.
 const SPREAD_RESOLUTION_FLOOR = 2;
 
-// Range → σ: E[range] = d₂(n)·σ (Shewhart). The table stops at n=10, where the range estimator loses
-// efficiency; larger arms reuse d₂(10), which errs toward a looser gate.
+// Range → σ: E[range] = d₂(n)·σ (Shewhart). Larger arms reuse d₂(10), erring toward a looser gate.
 const D2 = {
     2: 1.128,
     3: 1.693,
@@ -44,8 +34,7 @@ const D2 = {
     10: 3.078,
 };
 
-// SD of the sample range in units of σ (Shewhart d₃). Only used to report how uncertain the tolerance itself
-// is: SD(range)/E(range) = d₃/d₂, 52% at n=3.
+// SD of the range in units of σ (d₃); only reports how uncertain the tolerance itself is.
 const D3 = {
     2: 0.853,
     3: 0.888,
@@ -58,30 +47,21 @@ const D3 = {
     10: 0.797,
 };
 
-// Tolerance in standard errors of the reference arm's mean. k=3 is zero-regret at n=3 (1.023·range) while
-// making the gate tighten as √n from there.
+// k=3 is zero-regret at n=3 (1.023·range) and tightens as √n from there.
 const TOLERANCE_K = Number(process.env.TOLERANCE_K ?? 3);
 
-// The sensitivity this comparison must deliver, as a fraction of the reference mean. A gate coarser than this
-// is not evidence of anything, whatever verdict the arithmetic produces.
+// A gate coarser than this fraction of the reference mean is not evidence of anything.
 const TARGET_SENSITIVITY = Number(process.env.TARGET_SENSITIVITY ?? 0.1);
 
 // --- The recorded price ------------------------------------------------------------------------
 //
-// Where a cost has been measured and written down, the gate measures departures from it in either direction
-// rather than from zero. The tolerance itself never moves. A price is recorded as a fraction of the reference
-// arm's own mean, so it travels across hardware, and only applies at the configuration it was measured at.
-//
-// `fractions` is empty for both control shapes by decision, not omission: the step-11 sessions agreed on the
-// sign of the control-vs-storm difference but put p95 at +10.7% and +5.0%, a factor of two apart. This suite
-// therefore reports FAIL on `enqueue.med` and `enqueue.p95`; record a price only once a second independent
-// session reproduces one, here and in the README together.
-//
+// Where a cost is measured and written down, the gate measures departures from it rather than from zero.
+// `fractions` is empty by decision: the step-11 sessions agreed on sign but put p95 at +10.7% vs +5.0%, so
+// this suite reports FAIL on `enqueue.med`/`enqueue.p95` until a second session reproduces a size.
 // `EXPECTATIONS=off` gates every metric against zero, which is how a future price is re-derived.
 const EXPECTATIONS_ON = (process.env.EXPECTATIONS ?? 'on') !== 'off';
 
 const RECORDED_PRICE = {
-    // Provenance, so whoever hits a failure can judge the number instead of trusting it.
     measuredOn: '2026-08-20',
     revision: 'commit "workflow-engine: mailbox step 11 — mailbox-storm measurement"',
     machine:
@@ -91,7 +71,6 @@ const RECORDED_PRICE = {
     confirmedBy:
         'a second session (3 × 3m, same machine) measured the p95 cost at +5.0% against the first ' +
         "session's +10.7% — the sign reproduced, the size did not, which is why nothing is recorded",
-    // What a price would be a price *of*: this configuration, and the receiver rate it achieved.
     config: {
         baselineRate: 200,
         exchangeRate: 25,
@@ -102,30 +81,23 @@ const RECORDED_PRICE = {
     },
     receiverRate: 55.0,
     receiverRateTolerance: 0.1,
-    // The machine guard: at fixed offered load a faster machine sits at lower utilization and a queuing cost
-    // shrinks, so the reference arm's own p95 mean is recorded as the operating point a price belongs to.
+    // The machine guard: a faster machine shrinks queuing costs, so the operating point rides along.
     referenceP95Ms: 2.64,
     referenceP95Tolerance: 0.25,
-    // Δ as a fraction of the control arm's own mean, per control shape. Empty by measurement — see above.
+    // Empty by measurement — see above.
     fractions: {
         webhook: {},
         inproc: {},
     },
-    // Metrics deliberately left unpriced, with the reason printed on every gating run.
     unpriced: {},
 
-    // --- The ceiling: a cost established in sign, unresolved in size -----------------------------
-    //
-    // With no price recordable and every metric gated against zero, the verdict flipped by session rather than by
-    // engine change. So instead of a price, a ceiling: the largest cost the recorded sessions measured, as a
-    // fraction of the reference mean. Inside it a metric reads `inconclusive` — never `pass` — and outside it the
-    // metric FAILs, which is what keeps the gate falsifiable. Replace it with a `fractions` entry the moment a
-    // third session pins a size.
+    // The ceiling: a cost established in sign, unresolved in size. Inside it a metric reads `inconclusive`
+    // — never `pass` — and outside it FAILs, which keeps the gate falsifiable. Replace with a `fractions`
+    // entry the moment a third session pins a size.
     costEstablishedUnresolved: {
         webhook: { 'enqueue.med': 0.028, 'enqueue.p95': 0.107 },
         inproc: {},
     },
-    // What the ceiling was measured from, printed with it so nobody has to open this file.
     costSessions: 'session A +2.8% med / +10.7% p95, session B +1.2% med / +5.0% p95',
 };
 
@@ -153,20 +125,16 @@ const candidateMode = candidate[0].summary.mode ?? 'candidate';
 const rows = [];
 let failures = 0;
 let inconclusive = 0;
-// Counted so a session where no *difference* was actually gated cannot print `pass`: at REPEATS=1 every
-// difference metric reads `ungated` while the per-run fidelity assertions still pass. The two are counted
-// apart because they answer different questions.
+// Counted apart so a REPEATS=1 session — where every difference metric reads `ungated` while the per-run
+// assertions still pass — cannot print `pass`.
 let comparisonPasses = 0;
 let assertionPasses = 0;
-// Which route produced each inconclusive verdict, because the remedies differ: more repeats shrink the
-// arm-to-arm spread the first route trips on, but sensitivity is DURATION's job.
+// Inconclusive routes are counted separately because the remedies differ (REPEATS vs DURATION).
 let inconclusiveSpread = 0;
 let inconclusiveSensitivity = 0;
-// A third route: the price does not cover this operating point. Running at the recorded configuration, or
-// recording a price for this one, is the remedy.
+// Third route: the price does not cover this operating point.
 let inconclusivePrice = 0;
-// A fourth route: the difference is inside the ceiling of a cost established in sign but not in size. Only a
-// third session that agrees on a size closes it.
+// Fourth route: inside the ceiling of a cost established in sign but not size.
 let inconclusiveCeiling = 0;
 
 const mean = (values) => values.reduce((sum, v) => sum + v, 0) / values.length;
@@ -256,9 +224,8 @@ function record(name, left, right, limit, verdict, note, kind = 'comparison') {
 const priceReason = priceInapplicableReason();
 
 /**
- * The difference this metric is expected to show, in the metric's own units: the recorded price scaled onto
- * this session's reference mean, or zero when no price applies. `fallback` is set when a price exists for the
- * metric but this run does not qualify for it, which the verdict note has to say.
+ * The expected difference in the metric's own units — the recorded price scaled onto this reference mean,
+ * or zero. `fallback` marks a price this run does not qualify for, which the verdict note must say.
  */
 function expectationFor(path, referenceMean) {
     const recorded = RECORDED_PRICE.fractions[referenceControlShape ?? '']?.[path];
@@ -274,7 +241,7 @@ function expectationFor(path, referenceMean) {
     }
 
     if (recorded === undefined) {
-        // No price by design, not by omission: these are the metrics measured at zero.
+        // No price by design: these are the metrics measured at zero.
         return { value: 0, fraction: null, fallback: null };
     }
 
@@ -282,12 +249,8 @@ function expectationFor(path, referenceMean) {
 }
 
 /**
- * The ceiling for a metric, in the metric's own units, or null when none applies.
- *
- * One-sided: it covers only the dearer direction. A candidate arm coming out materially cheaper is not this
- * cost, it is the two arms failing to be comparable, and that has to keep reading `FAIL — storm is BETTER`.
- *
- * A metric with a recorded price does not get a ceiling: the price supersedes it.
+ * The ceiling for a metric, or null. One-sided — a materially cheaper candidate is not this cost but the
+ * arms failing to be comparable, and must keep reading `FAIL — storm is BETTER`. A price supersedes it.
  */
 function ceilingFor(path, referenceMean) {
     if (priceReason !== null) return null;
@@ -299,12 +262,9 @@ function ceilingFor(path, referenceMean) {
 }
 
 /**
- * Compares one metric between the arms and assigns a three-valued verdict.
- *
- * The tolerance is `TOLERANCE_K` standard errors of the *reference* arm's mean, floored at the metric's
- * measurement resolution — a property of the instrument, not a regression budget, present so that two runs
- * which agree exactly cannot produce a gate no measurement could satisfy. The candidate arm's own spread never
- * widens its gate; when it is far larger than the reference's, that is reported as `inconclusive`.
+ * Compares one metric and assigns a three-valued verdict. The tolerance is TOLERANCE_K standard errors of
+ * the reference mean, floored at the metric's measurement resolution; the candidate's spread never widens
+ * its own gate.
  */
 function compareArms(
     name,
@@ -330,10 +290,8 @@ function compareArms(
     const expectation = expectationFor(path, mean(left));
     const deviation = meanDifference - expectation.value;
     const tolerance = Math.max(TOLERANCE_K * standardError(left), resolution);
-    // The escalation threshold, and the reason an unstable arm is not unfalsifiable: without it a regression that
-    // added tail variance could defeat its own gate by tripping the spread check. An unresolved comparison has a
-    // floor it cannot hide under — TOLERANCE_K standard errors of the difference itself — which can only ever turn
-    // a non-failure into a failure.
+    // The escalation floor keeps an unstable arm falsifiable: a regression that added tail variance cannot
+    // hide behind the spread check when the difference exceeds both arms' combined uncertainty.
     const escalationTolerance = Math.max(
         TOLERANCE_K * Math.hypot(standardError(left), standardError(right)),
         resolution,
@@ -355,8 +313,7 @@ function compareArms(
         verdict = 'ungated';
         why = ' (informational for this comparison)';
     } else if (candidateSpread > spreadCeiling && Math.abs(deviation) <= escalationTolerance) {
-        // The arm under test did not reproduce, AND the difference is small enough that both arms' noise could
-        // account for it. Only then is "cannot resolve" the honest answer.
+        // Did not reproduce AND the difference is small enough that noise could account for it.
         verdict = 'inconclusive';
         inconclusiveSpread++;
         why =
@@ -438,8 +395,7 @@ function compareArms(
         why = ` — gate resolves only ${fmt(sensitivity * 100, 1)}% of ${referenceMode}, target ${fmt(sensitivityTarget * 100, 0)}%`;
     } else {
         verdict = 'pass';
-        // Metrics on a coarse instrument pass honestly but weakly, and saying so is the difference between "no
-        // regression" and "none this could have seen".
+        // A coarse instrument passes honestly but weakly, and the note says so.
         if (sensitivityTarget === null && tolerance <= resolution) {
             why = ` — resolution-limited: only a shift over ${fmt(resolution, digits)} is visible`;
         }
@@ -486,24 +442,20 @@ function assertEveryRun(name, predicate, describe, note) {
     );
 }
 
-// Measurement resolutions, not budgets: k6's own timing jitter on a localhost request, one whole workflow on
-// a counted list, and the teardown's 1 Hz drain poll.
+// Measurement resolutions, not budgets.
 const LATENCY_RESOLUTION_MS = 0.05;
 const BACKLOG_RESOLUTION_WORKFLOWS = 1;
 const DRAIN_RESOLUTION_SECONDS = 1;
 
 // --- Latency: the enqueue path, which mailbox traffic must not touch ---------------------------
-// `--ungate-latency` is for comparisons where a latency difference is expected and says nothing about the
-// feature: a storm arm against a plain baseline is doing strictly more work.
+// `--ungate-latency` is for comparisons where a latency difference is expected (storm vs plain baseline).
 const latencyOptions = { resolution: LATENCY_RESOLUTION_MS, gated: !ungateLatency };
 compareArms('enqueue med (ms)', 'enqueue.med', latencyOptions);
 compareArms('enqueue p95 (ms)', 'enqueue.p95', latencyOptions);
 compareArms('enqueue p99 (ms)', 'enqueue.p99', latencyOptions);
 
-// --- Processing: the other half of the requirement -------------------------------------------
-// Backlog is what a throughput regression looks like from outside. Both stay gated even when latency does not.
-// No sensitivity target: their instruments are coarse by nature, so the note says how weak they are rather
-// than letting a pass imply more than it can.
+// --- Processing: backlog is what a throughput regression looks like from outside ---------------
+// Gated even when latency is not; no sensitivity target, because the instruments are coarse by nature.
 compareArms('engine backlog p95 (workflows)', 'backlog.p95', {
     digits: 1,
     resolution: BACKLOG_RESOLUTION_WORKFLOWS,
@@ -537,9 +489,8 @@ assertEveryRun(
     `< ${MAX_ERROR_RATE}`,
 );
 
-// Delivery ingestion skips the backpressure check ordinary enqueues must pass, while a Held receiver counts in
-// the same Incomplete-derived admission budget while unfetchable. This is the refusal that would prove the
-// interaction has teeth.
+// The refusal that would prove the admission-budget interaction has teeth: Held receivers count toward
+// the budget deliveries are exempt from.
 assertEveryRun(
     'no ordinary enqueue refused at capacity',
     (s) => (s.enqueue.atCapacity ?? 0) === 0,
@@ -555,9 +506,7 @@ compareArms('engine active workflows (max)', 'engine.activeMax', {
     sensitivityTarget: null,
 });
 
-// --- The gate's own premise -------------------------------------------------------------------
-// control-vs-storm only isolates the mechanism if both arms gave the engine the same amount of extra work, so
-// the premise is checked rather than assumed.
+// --- The gate's premise: both arms gave the engine the same extra work — checked, not assumed ---
 {
     const stormArm = [reference, candidate].flat().filter((r) => r.summary.mode === 'storm');
     const controlArm = [reference, candidate].flat().filter((r) => r.summary.mode === 'control');
@@ -575,16 +524,13 @@ compareArms('engine active workflows (max)', 'engine.activeMax', {
             drift <= 0.05 ? 'pass' : 'FAIL',
             `${fmt(drift * 100, 1)}% off — the control arm must match the receive workflows the storm generates` +
                 (drift > 0.05 ? `; set CONTROL_RATE=${Math.round(implied)}` : ''),
-            // A premise check, not a difference comparison: it holds at any repeat count, so it must not be what
-            // makes a REPEATS=1 session read `pass`.
+            // A premise check that holds at any repeat count, so it must not make a REPEATS=1 session read `pass`.
             'assertion',
         );
     }
 }
 
-// --- Fidelity: did the candidate arm do what it claims? ---------------------------------------
-// Every gate above is satisfiable by a run whose deliveries went nowhere, especially the parts that fail
-// silently.
+// --- Fidelity: every gate above is satisfiable by a run whose deliveries went nowhere -----------
 if (candidateMode === 'storm') {
     const config = candidate[0].summary.config;
 
@@ -604,8 +550,7 @@ if (candidateMode === 'storm') {
             `≥ 90% of ${config.exchangeRate}/s × duration = ${Math.round(expected)}`,
         );
 
-        // A receiver that never woke would satisfy every ingestion count above. A receive workflow only reaches
-        // Completed once the executor resolved its rendezvous, so this is the end-to-end wake assertion.
+        // Completed requires a resolved rendezvous, so this is the end-to-end wake assertion.
         assertEveryRun(
             'parked receivers woken and completed',
             (s) =>
@@ -616,8 +561,7 @@ if (candidateMode === 'storm') {
             '≥ 90% of the receivers enqueued reached Completed — the delivery woke them and their step ran',
         );
 
-        // The park is the property the rendezvous exists to provide, and it is sampled rather than universal (the
-        // enqueue response carries no status).
+        // Sampled rather than universal: the enqueue response carries no status.
         assertEveryRun(
             'receivers born Held',
             (s) => s.mode !== 'storm' || (s.receivers.bornHeldRate ?? 0) >= 0.95,
@@ -652,8 +596,7 @@ if (candidateMode === 'storm') {
     }
 
     if (config.bufferRate > 0) {
-        // Reaching the cap is the arm working, not failing: MaxMailboxLogLength bounds next_idx for good. Never
-        // filling one at all would be the failure.
+        // Reaching the cap is the arm working; never filling one would be the failure.
         assertEveryRun(
             'a mailbox log reached the cap',
             (s) => s.mode !== 'storm' || (s.deliveries.logDepthMax ?? 0) >= 50,
@@ -676,9 +619,8 @@ if (candidateMode === 'storm') {
     }
 
     if (config.replayEvery > 0 && config.exchangeRate > 0) {
-        // At-least-once forwarding guarantees replays in production. Both halves are asserted — that replays
-        // happened, and that each was deduplicated — and they are posted after the close, so they also exercise the
-        // rule that an idempotency hit outranks lateness.
+        // Replays are asserted to happen and to be deduplicated — posted after the close, so they also exercise
+        // the rule that an idempotency hit outranks lateness.
         assertEveryRun(
             'replays deduplicated',
             (s) => s.mode !== 'storm' || (s.deliveries.replayed > 0 && s.deliveries.duplicate > 0),
@@ -786,9 +728,7 @@ for (const row of rows) {
     );
 }
 
-// --- The recorded price, in full, whenever this comparison used one -----------------------------
-// Self-documenting on purpose: the number, where it came from, and this session's own fractions ready to
-// paste, so nobody has to open this file to judge or refresh it.
+// --- The recorded price, printed in full with this session's own fractions ready to paste --------
 {
     const shapePrices = RECORDED_PRICE.fractions[referenceControlShape ?? ''];
     const priced = shapePrices && Object.keys(shapePrices).length > 0;
@@ -878,8 +818,7 @@ for (const row of rows) {
     }
 }
 
-// What this comparison could have caught. Not advisory: a sensitivity worse than the target is itself an
-// inconclusive verdict above.
+// Sensitivity worse than the target is itself an inconclusive verdict above, not advice.
 const p95Reference = reference.map((r) => r.summary.enqueue.p95);
 const p95Tolerance = Math.max(TOLERANCE_K * standardError(p95Reference), LATENCY_RESOLUTION_MS);
 const p95Sensitivity = p95Tolerance / mean(p95Reference);
@@ -929,21 +868,16 @@ if (stormRuns.length > 0) {
     );
 }
 
-// Exit codes: 1 for a measured difference, 0 for everything else, including `inconclusive`.
-//
-// Exiting non-zero on `inconclusive` would report absence of measurement as presence of regression, and a
-// suite that goes red when it cannot tell gets disabled — taking the metrics that CAN tell with it. Nothing is
-// given up: an unstable arm can never read `pass`, so the verdict word carries the distinction.
-//
-// `STRICT_INCONCLUSIVE=1` restores blocking behavior for anyone who wants it.
+// Exit codes: 1 for a measured difference, 0 otherwise — `inconclusive` included, because a suite that
+// goes red when it cannot tell gets disabled. An unstable arm still can never read `pass`.
+// `STRICT_INCONCLUSIVE=1` restores blocking behavior.
 const strictInconclusive = process.env.STRICT_INCONCLUSIVE === '1';
 
 if (failures > 0) {
     console.log(`\nRESULT: FAIL (${failures})\n`);
     process.exit(1);
 } else if (inconclusive > 0) {
-    // Two routes, two remedies, and only one of them is REPEATS. An arm that did not reproduce is a variance
-    // problem; a gate coarser than the target is a resolution problem, which DURATION buys.
+    // Two remedies: repeats shrink spread; duration buys resolution.
     const remedies = [];
     if (inconclusiveSpread > 0) {
         remedies.push(

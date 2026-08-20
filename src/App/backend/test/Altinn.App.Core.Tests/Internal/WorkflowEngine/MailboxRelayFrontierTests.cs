@@ -24,13 +24,10 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 /// <summary>The frontier-never-empty invariant, walked across a multi-hop relay.</summary>
 /// <remarks>
-/// The design gives up v2's structural gate and replaces it with a convention: every workflow the exchange
-/// needs is enqueued from inside a step of a workflow that is still unsettled, and lands as a collection head.
-/// The failure mode of getting it wrong is silent early execution of downstream work, which is why the walk
-/// asserts at every boundary rather than at the end. The reader is the app-lib's own —
-/// <see cref="WorkflowEngineService.GetCurrentTaskWorkflowState"/>, whose <c>Unblocked</c> answer <em>is</em>
-/// "the collection reads all-settled, go ahead" — and the walk asserts both that the answer is not
-/// <c>Unblocked</c> and <em>which</em> workflow is holding it open.
+/// Every workflow the exchange needs is enqueued from inside a still-unsettled workflow's step, as a head —
+/// getting it wrong is silent early execution of downstream work, so the walk asserts at every boundary.
+/// The reader is the app-lib's own <see cref="WorkflowEngineService.GetCurrentTaskWorkflowState"/>, and the
+/// walk asserts both that the answer is not <c>Unblocked</c> and <em>which</em> workflow holds it open.
 /// </remarks>
 public class MailboxRelayFrontierTests
 {
@@ -44,8 +41,7 @@ public class MailboxRelayFrontierTests
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
 
     /// <summary>
-    /// The engine, reduced to the two things the frontier depends on: which workflows are heads of the instance's
-    /// collection, and what status each of them is in.
+    /// The engine, reduced to what the frontier depends on: which workflows are heads, and their statuses.
     /// </summary>
     private sealed class CollectionModel : IWorkflowEngineClient
     {
@@ -61,10 +57,6 @@ public class MailboxRelayFrontierTests
 
         public string CollectionKey { get; } = _instanceGuid.ToString();
 
-        /// <summary>
-        /// The labels the factory puts on every workflow of this transition — what Main and the first
-        /// receiver carry.
-        /// </summary>
         private static Dictionary<string, string> TransitionLabels =>
             new(StringComparer.Ordinal)
             {
@@ -74,7 +66,6 @@ public class MailboxRelayFrontierTests
                 [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = TaskId,
             };
 
-        /// <summary>Adds a workflow the way an enqueue outside this relay would have.</summary>
         public Guid Seed(string name, PersistentItemStatus status, bool isHead = true)
         {
             var id = Guid.NewGuid();
@@ -82,13 +73,9 @@ public class MailboxRelayFrontierTests
             return id;
         }
 
-        /// <summary>
-        /// Retention purging the transition's earlier workflows. The instance's collection outlives them, so whatever
-        /// is still open must be findable on its own.
-        /// </summary>
+        /// <summary>Retention purging the transition's earlier workflows.</summary>
         public void Purge(params Guid[] ids) => _workflows.RemoveAll(w => Array.IndexOf(ids, w.Id) >= 0);
 
-        /// <summary>The engine settling a workflow whose last step has answered.</summary>
         public void Settle(Guid id)
         {
             int index = _workflows.FindIndex(w => w.Id == id);
@@ -112,14 +99,12 @@ public class MailboxRelayFrontierTests
             {
                 var id = Guid.NewGuid();
 
-                // The engine's own rule, modeled exactly: false is never a head, true always, and null falls back to
-                // natural leaf detection.
+                // The engine's own rule: false never a head, true always, null falls back to leaf detection.
                 bool isHead = workflow.IsHead ?? true;
 
-                // A workflow only joins this instance's collection if it was enqueued into it.
                 bool joinsTheCollection = string.Equals(collectionKey, CollectionKey, StringComparison.Ordinal);
 
-                // A receive workflow with no message waiting is born Held; anything else is runnable.
+                // A receive workflow with no message waiting is born Held.
                 PersistentItemStatus status = workflow.Mailbox is null
                     ? PersistentItemStatus.Enqueued
                     : PersistentItemStatus.Held;
@@ -164,9 +149,8 @@ public class MailboxRelayFrontierTests
                 }
             );
 
-        // The engine's label filter, modeled rather than stubbed, because this is the hop that finds the
-        // instance's collection *at all*: GetCurrentTaskWorkflowState answers Unblocked when it finds no
-        // workflow carrying the current task's process-next id, however alive that workflow is.
+        // Modeled rather than stubbed, because this hop finds the collection *at all*: with no workflow
+        // carrying the process-next label, the answer is Unblocked however alive the workflow is.
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
             string? collectionKey = null,
@@ -255,9 +239,8 @@ public class MailboxRelayFrontierTests
         };
 
     /// <summary>
-    /// The relay, wired to the collection model. The after-workflow goes through the same
-    /// <see cref="IProcessEngine"/> entry point production uses; here it is intercepted and enqueued into the model
-    /// with the shape that entry point gives it.
+    /// The relay, wired to the model; the after-workflow is intercepted at the same <see cref="IProcessEngine"/>
+    /// entry point production uses and enqueued with the shape it gives it.
     /// </summary>
     private static MailboxRelay CreateRelay(CollectionModel collection)
     {
@@ -333,15 +316,14 @@ public class MailboxRelayFrontierTests
     [Fact]
     public async Task MultiHopRelay_NeverLetsTheCollectionReadAllSettled()
     {
-        // Three messages, then a conclusion that advances the process. The assertion runs at every step boundary —
-        // the only instant at which the frontier can go empty — and names the workflow holding it open.
+        // Asserting at every step boundary — the only instant the frontier can go empty — and naming the
+        // workflow holding it open.
         var collection = new CollectionModel();
         MailboxRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
         Instance instance = CreateInstance();
 
-        // Where 7b leaves off: Main has run its last step, which enqueued receiver 1 as a head, and is about to
-        // settle. The exchange is open.
+        // Where 7b leaves off: Main enqueued receiver 1 as a head and is about to settle.
         Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Held);
         collection.Settle(main);
@@ -349,8 +331,7 @@ public class MailboxRelayFrontierTests
 
         for (long hop = 0; hop < 3; hop++)
         {
-            // The message arrives, the receiver runs, and its handler asks for another. The relay's enqueue happens
-            // inside that callback — the receiver is still unsettled.
+            // The relay's enqueue happens inside the callback — the receiver is still unsettled.
             int headsBefore = collection.EnqueuedByTheRelay.Count;
             await relay.Continue(
                 new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, hop),
@@ -367,8 +348,8 @@ public class MailboxRelayFrontierTests
             receiver = successor;
         }
 
-        // The last message concludes the exchange: the mailbox closes and the after-workflow takes over the
-        // frontier before the concluding receiver settles.
+        // The conclusion: the mailbox closes and the after-workflow takes over the frontier before the
+        // concluding receiver settles.
         int beforeConclusion = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
             new MailboxContinuation.Conclude(_mailboxId),
@@ -385,11 +366,9 @@ public class MailboxRelayFrontierTests
     [Fact]
     public async Task ASuccessorReceiver_HoldsTheFrontierAloneOnceTheEarlierWorkflowsArePurged()
     {
-        // The frontier's other half, and the one a head-only assertion cannot see: GetCurrentTaskWorkflowState has
-        // to *find* the instance's collection before it can read any heads, and it finds it by listing workflows
-        // labeled with the current task's process-next id. For as long as Main or receiver 1 survives the answer
-        // is right for an unrelated reason, so they are purged as retention eventually does. Shipped defaults
-        // keep this out of reach, which is why it is pinned rather than left to two settings agreeing.
+        // The half a head-only assertion cannot see: the collection is *found* by the process-next label, and
+        // while Main or receiver 1 survives the answer is right for an unrelated reason — so they are purged,
+        // as retention eventually does. Pinned rather than left to two settings agreeing.
         var collection = new CollectionModel();
         MailboxRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
@@ -413,8 +392,7 @@ public class MailboxRelayFrontierTests
     [Fact]
     public async Task AConcludedExchangeThatAdvancesNothing_LetsTheFrontierEmpty()
     {
-        // The other side of the invariant, so the walk above cannot be read as "the frontier is never empty,
-        // ever": once the task has concluded and asked for nothing downstream, all-settled is correct.
+        // The bound: once the task concluded and asked for nothing downstream, all-settled is correct.
         var collection = new CollectionModel();
         MailboxRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);

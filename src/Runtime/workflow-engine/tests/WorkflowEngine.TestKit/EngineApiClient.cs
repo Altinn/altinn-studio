@@ -352,21 +352,16 @@ public sealed class EngineApiClient : IDisposable
         return await AssertSuccessAndDeserialize<WorkflowCollectionDetailResponse>(response);
     }
 
-    /// <summary>Mints a mailbox and returns the raw <see cref="HttpResponseMessage"/>.</summary>
     public Task<HttpResponseMessage> MintMailboxRaw(MailboxCreateRequest request, string? ns = null) =>
         _client.PostAsJsonAsync(GetMailboxesBasePath(ns), request);
 
-    /// <summary>
-    /// Mints a mailbox from raw JSON and returns the raw <see cref="HttpResponseMessage"/>.
-    /// Used to exercise binding and validation directly.
-    /// </summary>
+    /// <summary>Mints from raw JSON, to exercise binding and validation directly.</summary>
     public async Task<HttpResponseMessage> MintMailboxRaw(string jsonRequest, string? ns = null)
     {
         using var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
         return await _client.PostAsync(GetMailboxesBasePath(ns), content);
     }
 
-    /// <summary>Mints a mailbox and asserts a 2xx response. Throws on failure.</summary>
     public async Task<MailboxResponse> MintMailbox(
         string idempotencyKey,
         TimeSpan timeout,
@@ -386,11 +381,9 @@ public sealed class EngineApiClient : IDisposable
         return await AssertSuccessAndDeserialize<MailboxResponse>(response);
     }
 
-    /// <summary>Gets a mailbox and returns the raw <see cref="HttpResponseMessage"/>.</summary>
     public Task<HttpResponseMessage> GetMailboxRaw(Guid mailboxId, string? ns = null) =>
         _client.GetAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}", CancellationToken.None);
 
-    /// <summary>Gets a mailbox. Returns <see langword="null"/> on 404.</summary>
     public async Task<MailboxResponse?> GetMailbox(Guid mailboxId, string? ns = null)
     {
         using var response = await GetMailboxRaw(mailboxId, ns);
@@ -401,13 +394,12 @@ public sealed class EngineApiClient : IDisposable
         return await AssertSuccessAndDeserialize<MailboxResponse>(response);
     }
 
-    /// <summary>Closes a mailbox and returns the raw <see cref="HttpResponseMessage"/>.</summary>
     public Task<HttpResponseMessage> CloseMailboxRaw(Guid mailboxId, string? ns = null) =>
         _client.DeleteAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}", CancellationToken.None);
 
     /// <summary>
-    /// Closes a mailbox and asserts a 2xx response — 202 when this call closed it, 200 on an idempotent repeat.
-    /// Use <see cref="CloseMailboxRaw"/> when the distinction is what the test is about.
+    /// Asserts 2xx — 202 when this call closed it, 200 on an idempotent repeat. Use
+    /// <see cref="CloseMailboxRaw"/> when the distinction is what the test is about.
     /// </summary>
     public async Task<MailboxResponse> CloseMailbox(Guid mailboxId, string? ns = null)
     {
@@ -415,17 +407,13 @@ public sealed class EngineApiClient : IDisposable
         return await AssertSuccessAndDeserialize<MailboxResponse>(response);
     }
 
-    /// <summary>Delivers a message into a mailbox and returns the raw <see cref="HttpResponseMessage"/>.</summary>
     public Task<HttpResponseMessage> DeliverToMailboxRaw(
         Guid mailboxId,
         MailboxDeliveryRequest request,
         string? ns = null
     ) => _client.PostAsJsonAsync($"{GetMailboxesBasePath(ns)}/{mailboxId}/deliveries", request);
 
-    /// <summary>
-    /// Delivers a message into a mailbox from raw JSON and returns the raw
-    /// <see cref="HttpResponseMessage"/>. Used to exercise binding and validation directly.
-    /// </summary>
+    /// <summary>Delivers from raw JSON, to exercise binding and validation directly.</summary>
     public async Task<HttpResponseMessage> DeliverToMailboxRaw(Guid mailboxId, string jsonRequest, string? ns = null)
     {
         using var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
@@ -433,8 +421,8 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Delivers a message into a mailbox and asserts a 2xx response — 202 when this call appended it, 200 on an
-    /// idempotent replay. Use the raw overload when the distinction is what the test is about.
+    /// Asserts 2xx — 202 when this call appended it, 200 on an idempotent replay. Use the raw overload when
+    /// the distinction is what the test is about.
     /// </summary>
     public async Task<MailboxDeliveryResponse> DeliverToMailbox(
         Guid mailboxId,

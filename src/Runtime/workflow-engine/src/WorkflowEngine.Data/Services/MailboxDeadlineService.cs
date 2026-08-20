@@ -11,19 +11,11 @@ using WorkflowEngine.Telemetry.Extensions;
 namespace WorkflowEngine.Data.Services;
 
 /// <summary>
-/// The mailbox deadline's enforcement: a coarse periodic sweep that closes every open mailbox whose deadline
-/// has passed, running exactly the routine <c>DELETE</c> runs.
+/// The deadline's enforcement: a coarse periodic sweep closing every open mailbox past its deadline,
+/// running exactly the routine <c>DELETE</c> runs. Signals accelerate, timers guarantee — a held receiver
+/// has no timer of its own, so this sweep is the only thing between it and waiting forever. It has no
+/// second half: closing releases the receiver that already exists.
 /// </summary>
-/// <remarks>
-/// Signals accelerate, timers guarantee. A delivery releases its receiver inside the delivery's own
-/// transaction and needs no sweep; the deadline is the only thing standing between a parked receiver and
-/// waiting forever, because a <c>Held</c> receiver has no timer of its own. Hence a cadence of its own
-/// (<see cref="EngineSettings.MailboxSweepInterval"/>), deliberately coarser than the maintenance interval.
-/// It has no second half: the workflow that concludes the exchange already exists — it is the app's own
-/// receiver — so closing releases it rather than creating anything, which is also what makes a <c>DELETE</c>
-/// racing this sweep a first-writer-wins no-op. Per-mailbox isolation lives one layer down, in
-/// <see cref="IEngineRepository.SweepOverdueMailboxes"/>.
-/// </remarks>
 internal sealed class MailboxDeadlineService(
     ILogger<MailboxDeadlineService> logger,
     TimeProvider timeProvider,
@@ -32,8 +24,7 @@ internal sealed class MailboxDeadlineService(
 ) : BackgroundService
 {
     /// <summary>
-    /// Backoff when the sweep itself fails, matching <see cref="DbMaintenanceService"/>. Reached only when the
-    /// candidate scan fails — a single mailbox's close is contained and counted rather than thrown.
+    /// Backoff for a failed candidate scan; a single mailbox's close is contained and counted instead.
     /// </summary>
     private static readonly RetryStrategy _databaseBackoff = RetryStrategy.Exponential(
         baseInterval: TimeSpan.FromSeconds(1),
@@ -41,19 +32,15 @@ internal sealed class MailboxDeadlineService(
     );
 
     /// <summary>
-    /// The period used when the setting carries none. Not a floor, and not a second place the default lives: the
-    /// default is <c>Defaults.EngineSettings.MailboxSweepInterval</c>. This only stops a hand-built
-    /// <see cref="EngineSettings"/> that never passed through the normalizer from turning
-    /// <c>Task.Delay(TimeSpan.Zero)</c> into a hot loop against the database.
+    /// Not a default (that is <c>Defaults.EngineSettings.MailboxSweepInterval</c>): only keeps a hand-built,
+    /// unnormalized <see cref="EngineSettings"/> from turning <c>Task.Delay(0)</c> into a hot loop.
     /// </summary>
     private static readonly TimeSpan _intervalWhenUnset = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// How many overdue mailboxes one claim-and-close pass takes. A bound on the <em>statement</em>, not on the
-    /// tick: the tick repeats a full pass until nothing is left. The distinction is load-bearing —
-    /// <see cref="EngineSettings.MaxMailboxTimeout"/>'s derivation charges exactly one
-    /// <see cref="EngineSettings.MailboxSweepInterval"/> for the gap between a deadline and the close that honors
-    /// it, and one batch per tick would make the real gap <c>ceil(overdue / SweepBatchSize)</c> intervals.
+    /// Bounds the <em>statement</em>, not the tick — the tick drains. One batch per tick would stretch the
+    /// deadline-to-close gap to <c>ceil(overdue / SweepBatchSize)</c> sweep intervals, breaking
+    /// <see cref="EngineSettings.MaxMailboxTimeout"/>'s derivation, which charges exactly one.
     /// </summary>
     internal const int SweepBatchSize = 100;
 
@@ -70,8 +57,8 @@ internal sealed class MailboxDeadlineService(
         {
             try
             {
-                // Delayed before the first pass rather than after it: startup has enough to do, and a deadline that
-                // passed while the pod was down is no more urgent one cadence later.
+                // Delayed before the first pass: a deadline that passed while the pod was down is no more urgent
+                // one cadence later.
                 await Task.Delay(interval, timeProvider, stoppingToken);
 
                 await SweepOverdueMailboxes(timeProvider.GetUtcNow(), stoppingToken);
@@ -105,10 +92,8 @@ internal sealed class MailboxDeadlineService(
     }
 
     /// <summary>
-    /// One tick: close every mailbox past its deadline, and report what that did. Drained within the tick rather
-    /// than one batch per tick, which is what makes "at most one cadence" true of the close rather than of the
-    /// first hundred closes. The <c>Closed &gt; 0</c> guard is what stops a full batch of persistently failing
-    /// mailboxes spinning here forever; they wait for the next cadence instead.
+    /// One tick: drain every overdue mailbox, not one batch. The <c>Closed &gt; 0</c> guard stops a full batch
+    /// of persistently failing closes from spinning here forever.
     /// </summary>
     internal async Task<MailboxSweepResult> SweepOverdueMailboxes(DateTimeOffset now, CancellationToken ct)
     {

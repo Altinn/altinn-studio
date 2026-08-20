@@ -263,8 +263,6 @@ public class WorkflowEngineClientTests
     [InlineData(HttpStatusCode.OK)]
     public async Task MintMailbox_PostsToMailboxEndpointAndReadsTheMailbox(HttpStatusCode statusCode)
     {
-        // 201 is a fresh mint and 200 an idempotent replay. The client deliberately does not tell them apart: a
-        // caller that branched on it would be branching on whether it had crashed before.
         HttpRequestMessage? capturedRequest = null;
         string? capturedBody = null;
         Guid mailboxId = Guid.NewGuid();
@@ -338,8 +336,6 @@ public class WorkflowEngineClientTests
     [Fact]
     public async Task MintMailbox_BadRequest_ReturnsRejectedCarryingTheEngineDetail()
     {
-        // The one unsuccessful status that is a value rather than an exception: the engine read the request and
-        // found it impossible, so retrying only reproduces the same answer.
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
             .Protected()
@@ -383,8 +379,6 @@ public class WorkflowEngineClientTests
     [Fact]
     public async Task MintMailbox_TooManyRequests_ReturnsAtCapacityCarryingTheEngineDetail()
     {
-        // The open-mailbox cap. Still retryable, but a value rather than an exception so the first failure carries
-        // the engine's detail instead of a bare 429 repeated up the ladder.
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
             .Protected()
@@ -430,8 +424,8 @@ public class WorkflowEngineClientTests
     [InlineData(HttpStatusCode.ServiceUnavailable)]
     public async Task MintMailbox_OtherFailures_Throw(HttpStatusCode statusCode)
     {
-        // A 400 (invalid) and a 429 (at cap) are the only statuses modeled as values; every other unsuccessful
-        // status is an ordinary transient that throws to put the step back on its ladder.
+        // 400 and 429 are the only statuses modeled as values; every other unsuccessful status throws to put
+        // the step back on its ladder.
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
             .Protected()
@@ -472,8 +466,6 @@ public class WorkflowEngineClientTests
     [InlineData(HttpStatusCode.OK)]
     public async Task DeliverToMailbox_PostsToTheDeliveriesEndpointAndReadsThePosition(HttpStatusCode statusCode)
     {
-        // 202 appended it and 200 replayed one the mailbox already held. The client keeps both status and body,
-        // because only the forwarder decides what each status means to the app.
         HttpRequestMessage? capturedRequest = null;
         string? capturedBody = null;
         Guid mailboxId = Guid.NewGuid();
@@ -546,8 +538,7 @@ public class WorkflowEngineClientTests
         HttpStatusCode statusCode
     )
     {
-        // None of these throws. Every one is a decision the receiving channel has to make about its own message,
-        // so they must reach the forwarder as data rather than as an exception it would have to re-classify.
+        // None of these throws: each is a decision the receiving channel makes about its own message.
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
             .Protected()
@@ -590,8 +581,6 @@ public class WorkflowEngineClientTests
     [Fact]
     public async Task DeliverToMailbox_AcceptedWithAnUnreadableBody_StillReportsAcceptance()
     {
-        // The status is the outcome. Letting a malformed body turn an accepted message into a reported failure
-        // would have the caller forward again for work the engine has already taken.
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
             .Protected()
@@ -630,8 +619,6 @@ public class WorkflowEngineClientTests
     [Fact]
     public async Task DeliverToMailbox_OverlongErrorBody_IsTruncated()
     {
-        // A proxy's HTML error page must not be copied wholesale into an exception message the receiving channel
-        // logs per dead-lettered message.
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
             .Protected()

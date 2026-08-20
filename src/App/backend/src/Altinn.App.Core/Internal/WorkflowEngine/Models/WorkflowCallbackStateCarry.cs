@@ -1,21 +1,14 @@
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models;
 
 /// <summary>
-/// The non-data half of <see cref="WorkflowCallbackState"/>, live for one callback: what the app is carrying
-/// from step to step that is not instance data and cannot be re-derived from it.
+/// The non-data half of <see cref="WorkflowCallbackState"/>, live for one callback: what travels step to
+/// step that is not instance data and cannot be re-derived from it.
 /// </summary>
 /// <remarks>
-/// The instance and its form data survive a callback because they are restored into an
-/// <c>InstanceDataUnitOfWork</c> and re-captured from it; everything else in the blob has no such home. The
-/// callback controller builds this from the incoming blob, hands it to the command, and writes it back when it
-/// captures the outgoing blob — so a command that never touches it forwards it unchanged, which is what the
-/// steps between a mailbox's declaring stage and the step that enqueues its first receiver must do.
-/// <para>
-/// Deliberately mutable, because a value that has to be threaded through every result type is one some step
-/// will forget to thread; and deliberately narrow, because the only way to change it is a method named for the
-/// one thing it records. It is per-callback, not per-workflow: a deferral echoes the incoming blob unchanged,
-/// so anything recorded during an attempt that defers is discarded with the attempt.
-/// </para>
+/// Restored from the incoming blob, handed to the command, written back into the outgoing blob — so a
+/// command that never touches it forwards it unchanged. Deliberately mutable (a value threaded through
+/// every result type is one some step forgets to thread) and narrow (changed only by methods named for the
+/// one thing they record). Per-callback: a deferral echoes the incoming blob, discarding anything recorded.
 /// </remarks>
 internal sealed class WorkflowCallbackStateCarry
 {
@@ -32,10 +25,9 @@ internal sealed class WorkflowCallbackStateCarry
     public Guid? MailboxId { get; private set; }
 
     /// <summary>
-    /// Records the mailbox the declaring stage just minted, so the step that enqueues the first receive workflow
-    /// can address it. A pipeline declares at most one mailbox and each callback runs one command, so recording a
-    /// <em>different</em> mailbox over one already carried is unreachable by construction; it throws rather than
-    /// picking a winner, because either answer would leave a published address with no receiver.
+    /// Records the minted mailbox so the step that enqueues the first receiver can address it. Recording a
+    /// different mailbox over one already carried is unreachable by construction; it throws rather than picking
+    /// a winner.
     /// </summary>
     public void RecordMailbox(Guid mailboxId)
     {
@@ -53,18 +45,15 @@ internal sealed class WorkflowCallbackStateCarry
     }
 
     /// <summary>
-    /// Whether the exchange this callback's workflow was receiving on has been concluded by the handler that just
-    /// ran. The blob captured from a concluded carry <strong>drops</strong> <see cref="MailboxId"/>, so nothing
-    /// downstream believes it still holds an open mailbox.
+    /// Whether the handler concluded the exchange. A concluded carry's blob <strong>drops</strong>
+    /// <see cref="MailboxId"/>.
     /// </summary>
     public bool MailboxConcluded { get; private set; }
 
     /// <summary>
-    /// Records that the handler concluded the exchange, so the state blob this callback publishes stops carrying
-    /// the mailbox it was answering on. This is the one thing the mailbox id must <em>not</em> outlive: the
-    /// process-next workflow the conclusion starts inherits this callback's captured blob and may open a mailbox of
-    /// its own, and a blob still naming the finished exchange's mailbox would make <see cref="RecordMailbox"/>
-    /// refuse the new one and fail that transition permanently.
+    /// Records the conclusion, so the published blob stops naming the mailbox. The one thing the id must not
+    /// outlive: the next transition inherits this blob and may open a mailbox of its own, which
+    /// <see cref="RecordMailbox"/> would refuse over a stale one.
     /// </summary>
     public void RecordMailboxConcluded() => MailboxConcluded = true;
 }

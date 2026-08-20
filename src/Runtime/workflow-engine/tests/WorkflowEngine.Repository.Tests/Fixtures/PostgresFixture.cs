@@ -50,12 +50,9 @@ public sealed class PostgresFixture : IAsyncLifetime
     internal EngineSettings Settings => _settings.Value;
 
     /// <summary>
-    /// The one connection pool everything this fixture builds shares. An <see cref="NpgsqlDataSource"/> owns a
-    /// private pool that lives until it is disposed, so building one per <c>CreateRepository</c> call would retain
-    /// an identical pool per call site — over a hundred of them against a container that allows a hundred
-    /// connections, and whichever class runs when the limit is reached is not the class that broke it. Nothing the
-    /// factory methods vary needs a data source of its own, and a shared pool still hands each concurrent caller
-    /// its own connection.
+    /// The one connection pool everything this fixture builds shares: an <see cref="NpgsqlDataSource"/> owns
+    /// a private pool that lives until disposed, and one per <c>CreateRepository</c> call exhausts the
+    /// container's 100-connection limit — failing whichever test class happens to run last.
     /// </summary>
     private NpgsqlDataSource DataSource =>
         _dataSource ?? throw new InvalidOperationException("The fixture has not been initialized yet.");

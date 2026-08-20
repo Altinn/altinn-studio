@@ -3,9 +3,8 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// A delivery as the engine reports it — the same shape whether the call appended it or replayed one the
-/// mailbox already held. The payload is deliberately not echoed back: the caller just sent it, and the only
-/// thing it could not have known is the position the engine assigned.
+/// A delivery as the engine reports it — the same shape for an append and a replay. The payload is not
+/// echoed back: the only thing the caller could not know is the position.
 /// </summary>
 public sealed record MailboxDeliveryResponse
 {
@@ -13,10 +12,7 @@ public sealed record MailboxDeliveryResponse
     [JsonPropertyName("mailboxId")]
     public required Guid MailboxId { get; init; }
 
-    /// <summary>
-    /// Gets the position the delivery holds in the mailbox's log — gapless, assigned in arrival order, and the
-    /// address the receiver enqueued at the matching position reads it by.
-    /// </summary>
+    /// <summary>The gapless position the delivery holds — the address its receiver reads it by.</summary>
     [JsonPropertyName("idx")]
     public required long Idx { get; init; }
 
@@ -24,10 +20,7 @@ public sealed record MailboxDeliveryResponse
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
 
-    /// <summary>
-    /// Gets when the mailbox accepted the delivery. Reported from the row, so a replay reports the original
-    /// instant rather than the replay's.
-    /// </summary>
+    /// <summary>When the mailbox accepted the delivery; a replay reports the original instant.</summary>
     [JsonPropertyName("acceptedAt")]
     public required DateTimeOffset AcceptedAt { get; init; }
 }

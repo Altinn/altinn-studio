@@ -78,8 +78,8 @@ internal sealed class ProcessNextRequestFactory
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 
     /// <summary>
-    /// OperationId prefix for a mailbox receive workflow. A naming convention for ops queries, the dashboard and
-    /// logs only; nothing identifies a receiver by this string.
+    /// OperationId prefix for a receive workflow — a naming convention for ops and logs; nothing identifies a
+    /// receiver by it.
     /// </summary>
     internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
@@ -204,27 +204,21 @@ internal sealed class ProcessNextRequestFactory
         }
         mainSteps.AddRange(commands.CriticalPostCommit);
 
-        // A service task answered by a message concludes on its receive workflows, so Main ends by enqueueing the
-        // first receiver. Appended after every critical post-commit step so it is genuinely Main's last: the
-        // receiver joins the collection's heads while Main is still unsettled, which keeps the frontier
-        // non-empty for everything that gates on it.
+        // A message-answered task concludes on its receive workflows, so Main ends by enqueueing the first
+        // receiver — appended after every critical post-commit step so the receiver joins the frontier while
+        // Main is still unsettled.
         if (commands.MailboxReceive is { } receiveStep)
         {
             var receiveEnqueueRequest = new WorkflowEnqueueRequest
             {
                 Labels = labels,
-                // The command injects Context (a callback token minted at its execution, not here — the
-                // receiver may not be called back for days), State (the blob carrying the mailbox id), and
-                // the mailbox declaration.
                 Workflows =
                 [
                     new WorkflowRequest
                     {
                         OperationId = $"{MailboxReceiveOperationIdPrefix} {fromTaskId} -> {toTaskId}",
                         Steps = [receiveStep],
-                        // A head, so the exchange is visible to readers of the collection's frontier;
-                        // depending on no head, so nothing gates a workflow whose only release is the
-                        // rendezvous.
+                        // A head that depends on no head: visible to the frontier, gated by nothing but the rendezvous.
                         IsHead = true,
                         DependsOnHeads = false,
                     },
@@ -370,9 +364,8 @@ internal sealed class ProcessNextRequestFactory
 
                 if (workflowCommands.MailboxReceiveStep is { } receiveStep)
                 {
-                    // The receive workflow's step is the pipeline's conclusion, so it resolves its options exactly as a
-                    // concluding Main step would. Only a task start into a mailbox-opening service task produces one,
-                    // and a transition has at most one task start.
+                    // The receive step is the pipeline's conclusion and resolves its options as a concluding Main step
+                    // would.
                     mailboxReceiveStep = receiveStep.ApplyStepOptions(
                         _stepOptionsResolver,
                         eventTaskId,

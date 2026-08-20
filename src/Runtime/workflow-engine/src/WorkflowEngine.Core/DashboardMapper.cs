@@ -30,8 +30,7 @@ internal sealed record DashboardWorkflowDto(
     string Status,
     string? TraceId,
     string? CollectionKey,
-    // Null on every ordinary workflow: the receive workflow's marker, and what matches a card to the
-    // mailbox block it reads from without a second lookup.
+    // The receive workflow's marker; null on every ordinary workflow.
     Guid? MailboxId,
     string Namespace,
     Dictionary<string, string>? Labels,
@@ -51,9 +50,8 @@ internal sealed record DashboardWorkflowDto(
 );
 
 /// <summary>
-/// One position of a mailbox's log as a dashboard card shows it. <c>ParkedForSeconds</c> is null for a receiver
-/// that never parked, which is what makes the number readable: zero would claim it waited and was released
-/// instantly.
+/// One position as a card shows it. <c>ParkedForSeconds</c> is null for a receiver that never parked: zero
+/// would claim it waited and was released instantly.
 /// </summary>
 internal sealed record DashboardMailboxPositionDto(
     long Position,
@@ -68,33 +66,22 @@ internal sealed record DashboardMailboxPositionDto(
 );
 
 /// <summary>
-/// The four states one position of a mailbox's log can be in, as the dashboard names them.
-/// <see cref="Closed"/> is neither of the two it could have been folded into: a receiver released by the
-/// mailbox closing is not <see cref="Waiting"/>, because its wait is over, and not <see cref="Consumed"/>,
-/// because it was handed the closing signal rather than a message.
+/// The four states of a position. <see cref="Closed"/> is deliberately not folded into
+/// <see cref="Waiting"/> (the wait is over) or <see cref="Consumed"/> (there was no message).
 /// </summary>
 internal static class DashboardMailboxPositionState
 {
-    /// <summary>A message stands here and no receiver has been enqueued for it — an unconsumed delivery.</summary>
+    /// <summary>A message nobody has been enqueued for — an unconsumed delivery.</summary>
     internal const string Delivered = "delivered";
 
-    /// <summary>A receiver holds this position and its message is standing at it.</summary>
     internal const string Consumed = "consumed";
 
-    /// <summary>A receiver is parked here and its message has not arrived.</summary>
     internal const string Waiting = "waiting";
 
-    /// <summary>
-    /// A receiver holds this position, no message ever arrived, and it is no longer waiting: the mailbox
-    /// closed and released it with the closing signal.
-    /// </summary>
+    /// <summary>Released by the mailbox closing: no message ever arrived and none can.</summary>
     internal const string Closed = "closed";
 }
 
-/// <summary>
-/// A mailbox as a dashboard card shows it: the mailbox row's own facts, plus its log position by
-/// position with each receiver named so the card can link to it.
-/// </summary>
 internal sealed record DashboardMailboxDto(
     Guid Id,
     string Namespace,
@@ -167,7 +154,6 @@ internal static class DashboardMapper
         );
     }
 
-    /// <summary>Projects one mailbox snapshot into its card shape.</summary>
     internal static DashboardMailboxDto MapMailbox(MailboxSnapshot snapshot)
     {
         MailboxResponse mailbox = snapshot.Mailbox;
@@ -188,7 +174,6 @@ internal static class DashboardMapper
         );
     }
 
-    /// <summary>Projects one position into its card shape, naming the state it is in.</summary>
     internal static DashboardMailboxPositionDto MapMailboxPosition(MailboxPosition position) =>
         new(
             position.Position,
@@ -205,11 +190,9 @@ internal static class DashboardMapper
         );
 
     /// <summary>
-    /// Names one position's state, deciding from the receiver side first because that is the side that
-    /// distinguishes the three states a receiver can be in. A position with no receiver is a message nobody has
-    /// been enqueued for, and no other reason for such a position to exist: the read builds its positions from the
-    /// rows of the two logs. The last branch is where <c>held_at</c> earns its keep — a receiver still parked and
-    /// one the closing mailbox released look identical in the workflow's status once it has settled.
+    /// Names a position's state, deciding from the receiver side first. The last branch is where <c>held_at</c>
+    /// earns its keep: a receiver still parked and one the closing mailbox released look identical in the
+    /// workflow's status once settled.
     /// </summary>
     private static string MapMailboxPositionState(MailboxPosition position)
     {

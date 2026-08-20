@@ -46,8 +46,8 @@ public static class HttpChatterHelpers
     // localhost:{port} — dynamic port numbers from WireMock / test servers
     private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
-    // One entry of a scrubbed JSON map keyed by workflow id, e.g. `        "Guid_2": "Completed",`. The value
-    // pattern is deliberately narrow so a key whose value spans lines cannot be reordered.
+    // One entry of a scrubbed JSON map keyed by workflow id; the value pattern is deliberately narrow so a
+    // key whose value spans lines cannot be reordered.
     private static readonly Regex ScrubbedGuidEntryPattern = new(
         @"^(?<indent>[ \t]*)""Guid_(?<n>\d+)"": (?<value>""[^""\\]*""|-?\d+(?:\.\d+)?|true|false|null)(?<comma>,?)(?<cr>\r?)$"
     );
@@ -273,12 +273,9 @@ public static class HttpChatterHelpers
     }
 
     /// <summary>
-    /// Orders the entries of every JSON object whose keys are all scrubbed GUID tokens — the dependency graph's
-    /// <c>dependencies</c>, <c>dependents</c> and <c>links</c>, which arrive in whatever order the join produced.
-    /// Order is not part of what they mean, so the recorder fixes it rather than letting the snapshot dirty the
-    /// working copy on runs that changed nothing. It has to happen <em>after</em> scrubbing: uuidv7 values minted
-    /// inside one millisecond differ only in their random bits, while the scrubbed tokens are numbered by first
-    /// appearance.
+    /// Orders the entries of every JSON object whose keys are all scrubbed GUID tokens: the graph's maps
+    /// arrive in join order, which would dirty the snapshot on runs that changed nothing. It must run after
+    /// scrubbing — raw uuidv7 values minted in one millisecond sort by their random bits.
     /// </summary>
     private static string SortScrubbedGuidMaps(string text)
     {
@@ -295,8 +292,8 @@ public static class HttpChatterHelpers
                 continue;
             }
 
-            // A run of consecutive sibling entries is one map. Sort the entries by token number but keep each
-            // slot's own punctuation, so an object that continues past the run stays syntactically intact.
+            // Sort the entries by token number but keep each slot's own punctuation, so an object that continues
+            // past the run stays intact.
             var slots = new List<Match>();
             while (i < lines.Length && ScrubbedGuidEntryPattern.Match(lines[i]) is { Success: true } match)
             {

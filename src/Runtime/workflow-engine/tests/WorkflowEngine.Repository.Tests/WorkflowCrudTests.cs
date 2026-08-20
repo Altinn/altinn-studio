@@ -188,15 +188,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task EnqueueBatch_WithThreeRequestsSharingOneIdempotencyKey_AnswersEachOfThem()
     {
-        // Three same-key requests in one flush leave two intra-batch duplicates classifying against one stored
-        // key, so the (key, namespace) pairs the classification query unnests repeat and the join returns that
-        // row once per repeat. Building the lookup without allowing for it throws from inside the flush, which
-        // fails every unrelated caller the write buffer batched in.
+        // Three same-key requests leave two intra-batch duplicates classifying against one stored row, which
+        // the classification join then returns once per repeat.
         var repo = fixture.CreateRepository();
         var (request, metadata, ns, _) = WorkflowTestHelper.CreateRequest();
         var shared = metadata with { Namespace = ns, IdempotencyKey = "one-key-three-requests" };
 
-        // One hash for all three, so the two repeats are duplicates rather than conflicts.
+        // One hash for all three, so the repeats are duplicates rather than conflicts.
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(shared.IdempotencyKey));
         BufferedEnqueueRequest Buffered() =>
             new(

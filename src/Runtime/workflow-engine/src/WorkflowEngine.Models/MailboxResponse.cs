@@ -8,10 +8,7 @@ namespace WorkflowEngine.Models;
 /// </summary>
 public sealed record MailboxResponse
 {
-    /// <summary>
-    /// Gets the engine-generated mailbox id (uuidv7). This is the reply address an app embeds in its
-    /// outbound message: unguessable, but not a secret.
-    /// </summary>
+    /// <summary>The engine-generated id (uuidv7) — the reply address: unguessable, but not a secret.</summary>
     [JsonPropertyName("id")]
     public required Guid Id { get; init; }
 
@@ -28,17 +25,13 @@ public sealed record MailboxResponse
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? CollectionKey { get; init; }
 
-    /// <summary>
-    /// Gets the timeout the mailbox was minted with, kept as the record of what was asked for.
-    /// <see cref="Deadline"/> is the value that binds.
-    /// </summary>
+    /// <summary>The record of what was asked for; <see cref="Deadline"/> is what binds.</summary>
     [JsonPropertyName("timeout")]
     public required TimeSpan Timeout { get; init; }
 
     /// <summary>
-    /// Gets the absolute instant the mailbox stops accepting deliveries, stamped at mint as
-    /// <c>createdAt + timeout</c>. Absolute and exchange-level: it never moves, and it bounds every
-    /// wait against this mailbox.
+    /// The absolute instant the mailbox stops accepting deliveries, stamped at mint as
+    /// <c>createdAt + timeout</c>. It never moves.
     /// </summary>
     [JsonPropertyName("deadline")]
     public required DateTimeOffset Deadline { get; init; }
@@ -47,32 +40,22 @@ public sealed record MailboxResponse
     [JsonPropertyName("status")]
     public required MailboxStatus Status { get; init; }
 
-    /// <summary>
-    /// Gets why the mailbox was closed, when it has been. Null exactly while
-    /// <see cref="Status"/> is <see cref="MailboxStatus.Open"/>.
-    /// </summary>
+    /// <summary>Why the mailbox was closed. Null exactly while open.</summary>
     [JsonPropertyName("disposedReason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MailboxDisposedReason? DisposedReason { get; init; }
 
-    /// <summary>
-    /// Gets the next position the deliveries log will assign — equivalently, the number of deliveries
-    /// the mailbox has accepted.
-    /// </summary>
+    /// <summary>The deliveries log's next position — the number of deliveries accepted.</summary>
     [JsonPropertyName("nextIdx")]
     public required long NextIdx { get; init; }
 
-    /// <summary>
-    /// Gets the next position the receivers log will assign — equivalently, the number of receive
-    /// workflows enqueued against the mailbox.
-    /// </summary>
+    /// <summary>The receivers log's next position — the number of receivers enqueued.</summary>
     [JsonPropertyName("nextSeq")]
     public required long NextSeq { get; init; }
 
     /// <summary>
-    /// Gets the number of accepted deliveries no receiver was ever enqueued for. Derived from the two counters
-    /// rather than counted, which is exact because both logs are gapless: a delivery at position <c>i</c> is
-    /// consumed exactly when a receiver was enqueued at <c>seq = i</c>.
+    /// Accepted deliveries no receiver was enqueued for. Derived from the two counters, exact because both
+    /// logs are gapless.
     /// </summary>
     [JsonPropertyName("unconsumedDeliveries")]
     public long UnconsumedDeliveries => Math.Max(0, NextIdx - NextSeq);
@@ -81,10 +64,7 @@ public sealed record MailboxResponse
     [JsonPropertyName("createdAt")]
     public required DateTimeOffset CreatedAt { get; init; }
 
-    /// <summary>
-    /// Gets when the mailbox was closed, when it has been. Reported from the row, so an idempotent
-    /// repeat close reports the original instant rather than the replay's.
-    /// </summary>
+    /// <summary>When the mailbox was closed. From the row, so a repeat close reports the original instant.</summary>
     [JsonPropertyName("disposedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? DisposedAt { get; init; }

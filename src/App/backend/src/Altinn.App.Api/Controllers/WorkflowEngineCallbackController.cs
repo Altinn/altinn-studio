@@ -102,8 +102,8 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // The blob restores into two halves: the instance data the command acts on, and the non-data bookkeeping
-        // it was carrying. The carry is threaded into the command and back out into the captured state below.
+        // The blob restores into two halves: instance data, and the non-data carry threaded through the command
+        // and back out below.
         InstanceDataUnitOfWork instanceDataUnitOfWork;
         WorkflowCallbackStateCarry stateCarry;
         try
@@ -177,19 +177,14 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
-                // Capture updated state (includes Storage-assigned IDs for newly created data elements), carrying
-                // forward the bookkeeping this callback restored plus anything the command recorded into it.
                 string updatedState = await _workflowCallbackStateService.CaptureState(
                     instanceDataUnitOfWork,
                     stateCarry
                 );
 
-                // A mailbox reply handler's verdict runs here rather than inside the command for one
-                // reason: whatever it starts must begin on the state this handler *published* — saved,
-                // re-captured and re-signed above — not on the state the handler received. If the relay
-                // throws, the callback returns 500 and the engine retries the whole step; the relay's own
-                // calls are keyed off this step and deduplicate, but the save does not, which is the
-                // ordinary at-least-once contract every callback already has.
+                // The relay runs here, not in the command: whatever it starts must begin on the state the handler
+                // *published* — saved, re-captured, re-signed above. On a relay throw the engine retries the whole
+                // step; the relay's keyed calls deduplicate, the save does not (the ordinary at-least-once contract).
                 if (success.MailboxContinuation is { } continuation)
                 {
                     await RunMailboxRelay(
@@ -295,9 +290,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedProcessEngineCommandResult failed:
-                // A permanent failure from a mailbox reply handler still concludes the exchange: the app
-                // has given up on it, so the mailbox must stop accepting messages. Run before responding,
-                // so a retry of this step repeats it rather than leaving the exchange open to its deadline.
+                // A permanent failure still concludes the exchange — the mailbox must stop accepting messages. Before
+                // the response, so a retried step repeats it.
                 if (failed.MailboxContinuation is { } failedContinuation)
                 {
                     await RunMailboxRelay(
@@ -381,10 +375,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Hands one reply handler's verdict to the mailbox relay. The controller decides <em>when</em> the relay runs —
-    /// after the save on a success, before the response on a permanent failure — and nothing else.
-    /// </summary>
+    /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
     private Task RunMailboxRelay(
         MailboxContinuation continuation,
         AppIdentifier appId,

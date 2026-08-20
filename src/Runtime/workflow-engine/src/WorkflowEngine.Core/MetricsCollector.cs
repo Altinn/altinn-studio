@@ -20,8 +20,8 @@ internal sealed class MetricsCollector(
 ) : BackgroundService
 {
     /// <summary>
-    /// Where the overdue-mailbox count stops counting. High enough that no healthy or merely busy engine reaches
-    /// it, low enough that the statement stays bounded during the mass timeout the gauge exists to report.
+    /// High enough that no healthy engine reaches it, low enough that the statement stays bounded during the
+    /// mass timeout the gauge exists to report.
     /// </summary>
     private const int _overdueMailboxCountCap = 10_000;
 
@@ -68,15 +68,11 @@ internal sealed class MetricsCollector(
                 Metrics.SetAvailableWorkerSlots(workerSlotStatus.Available);
                 Metrics.SetUsedWorkerSlots(workerSlotStatus.Used);
 
-                // Deliberately the last thing the pass does: one try/catch covers the whole pass, so a read that threw
-                // here would suppress every gauge written after it — including engine health. Ordered last, a failing
-                // mailbox read costs this gauge alone.
-                //
+                // Deliberately last: one try/catch covers the whole pass, so a throw here costs this gauge alone
+                // rather than suppressing engine health below it.
 
-                // The grace is the sweep's own cadence: a mailbox whose deadline has just passed is one the sweep has
-                // not had a tick to reach, and counting it would leave the gauge permanently non-zero on a healthy
-                // engine. The count saturates because the alert reads "greater than zero" and this runs far more often
-                // than the sweep.
+                // The grace is the sweep's own cadence — counting a mailbox the sweep has not had a tick to reach
+                // would leave the gauge permanently non-zero on a healthy engine.
                 var overdueCutoff = timeProvider.GetUtcNow() - engineSettings.Value.MailboxSweepInterval;
                 Metrics.SetOverdueOpenMailboxesCount(
                     await engineRepository.CountOverdueOpenMailboxes(

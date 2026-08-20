@@ -344,9 +344,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// Mints a mailbox, idempotent on <c>(namespace, idempotencyKey)</c> exactly as the engine is — the property a
-    /// retried stage depends on. Nothing here delivers into the mailbox or closes it; the fake models the address,
-    /// not the rendezvous.
+    /// Mints idempotently on <c>(namespace, idempotencyKey)</c>, as the engine does. The fake models the
+    /// address, not the rendezvous.
     /// </summary>
     public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
     {
@@ -375,8 +374,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// Closes a mailbox, terminal and idempotent as the engine is: a repeat close reports the original closure.
-    /// Returns <c>null</c> for an id this fake never minted, which is the engine's <c>404</c>.
+    /// Terminal and idempotent as the engine is; <c>null</c> for an unknown id (the engine's <c>404</c>).
     /// </summary>
     public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
     {
@@ -406,10 +404,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// Delivers a message into a mailbox, modelling the engine's response matrix: <c>404</c> for an id this fake
-    /// never minted, <c>409</c> once the mailbox is closed, <c>200</c> for a key it already holds — including after
-    /// closure, since the engine kept it — and <c>202</c> otherwise, at the next gapless position. It stores the
-    /// delivery and moves <c>nextIdx</c>, but wakes nobody: this fake models the mailbox as an address and a log.
+    /// Models the engine's response matrix: <c>404</c> unknown, <c>409</c> closed, <c>200</c> replay (even
+    /// after closure), <c>202</c> appended. Stores the delivery but wakes nobody.
     /// </summary>
     public Task<MailboxDeliveryResult> DeliverToMailbox(
         string ns,
@@ -420,8 +416,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     {
         string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);
 
-        // The idempotency lookup runs before the closed check, exactly as the engine's does: that ordering is the
-        // accepted-versus-kept rule.
+        // The idempotency lookup runs before the closed check, exactly as the engine's does.
         if (_deliveriesByKey.TryGetValue(deliveryKey, out MailboxDeliveryResponse? existing))
         {
             return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null));

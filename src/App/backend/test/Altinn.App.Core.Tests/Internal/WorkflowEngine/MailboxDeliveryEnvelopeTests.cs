@@ -41,8 +41,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void WrapThenUnwrap_EmptyBody_RoundTripsAsAnEmptyBody()
     {
-        // An empty message body is legitimate and must survive the envelope as an empty string rather than
-        // becoming null: a null reply means "the mailbox closed, conclude".
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         string wrapped = envelope.Wrap(string.Empty, _mailbox, TaskType, Key);
@@ -54,7 +52,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_RawPayloadThatWasNeverWrapped_Throws()
     {
-        // POSTing to the engine's delivery endpoint without going through the forwarder produces this.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         Assert.Throws<MailboxDeliveryEnvelopeException>(() => envelope.Unwrap(Body, _mailbox, TaskType, Key));
@@ -63,8 +60,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_EmptyPayload_Throws()
     {
-        // An empty *outer* payload is not an envelope at all, and an empty inner body is legitimate, so the two
-        // cases must stay separable.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         Assert.Throws<MailboxDeliveryEnvelopeException>(() => envelope.Unwrap(string.Empty, _mailbox, TaskType, Key));
@@ -88,7 +83,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_SignedByAnotherAppsCode_Throws()
     {
-        // Same secret id, different secret: only the app holding the code can mint envelopes it accepts.
         string wrapped = TestMailboxDeliveryEnvelope
             .Create(code: "a-completely-different-callback-code")
             .Wrap(Body, _mailbox, TaskType, Key);
@@ -101,8 +95,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_EnvelopeDeliveredIntoADifferentMailbox_Throws()
     {
-        // Binding 1. Without it, anyone holding engine API credentials could take one validly forwarded message
-        // and deliver it into a *different* mailbox of the same app.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         string wrapped = envelope.Wrap(Body, _mailbox, TaskType, Key);
@@ -113,9 +105,8 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_EnvelopeReadByAnotherHandler_Throws()
     {
-        // Binding 2, and the one the mailbox binding alone misses — the address is unchanged, so Unwrap would
-        // otherwise succeed. A receiver enqueued against *this* mailbox naming another mailbox-declaring task
-        // would read this message and conclude this exchange on its own terms.
+        // The case the mailbox binding alone misses: the address is unchanged, so Unwrap would otherwise
+        // succeed for a receiver naming another task's handler.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         string wrapped = envelope.Wrap(Body, _mailbox, TaskType, Key);
@@ -126,9 +117,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_EnvelopeRelabelledWithAnotherIdempotencyKey_Throws()
     {
-        // Binding 3, which does two jobs: it makes the idempotency key the handler reads an authenticated value
-        // rather than unverified transport metadata, and it stops one captured envelope from being
-        // re-delivered into the same mailbox under a fresh key.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         string wrapped = envelope.Wrap(Body, _mailbox, TaskType, Key);
@@ -141,8 +129,7 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Wrap_EachBoundValue_MovesTheSignatureOnItsOwn()
     {
-        // The bindings live in the derived key, not in the signed data, so the payload is byte-identical across
-        // all four and only the signature moves.
+        // The bindings live in the derived key, so the payload is byte-identical and only the signature moves.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         var baseline = Signed(envelope.Wrap(Body, _mailbox, TaskType, Key));
@@ -168,9 +155,6 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Wrap_BindingsAreDelimiterInjectionProof()
     {
-        // The reason the tag length-prefixes its two free-form fields: concatenating them raw would make
-        // `type "a" + key "b:c"` and `type "a:b" + key "c"` derive the same key, so a party who could choose a
-        // message id could have the app sign under another handler's key.
         var envelope = TestMailboxDeliveryEnvelope.Create();
 
         string first = Signed(envelope.Wrap(Body, _mailbox, "a", "b:c")).Signature;
@@ -182,10 +166,8 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Wrap_LengthPrefixesCountTheUnitTheValueIsWrittenIn()
     {
-        // A length-prefixed encoding is uniquely decodable only if the prefix counts in the same unit the value
-        // is *written* in. The tag is built as a string, so the unit is String.Length — UTF-16 code units —
-        // and counting UTF-8 bytes or code points would misalign every non-BMP field. This pins the choice
-        // with a key whose three counts all differ.
+        // Uniquely decodable only if the prefix counts the unit the value is *written* in — String.Length,
+        // UTF-16 code units. Pinned with a key whose code-unit, code-point and byte counts all differ.
         var envelope = TestMailboxDeliveryEnvelope.Create(code: "workflow-callback-code-0123456789");
         const string keyWithAstralChars = "melding-æøå-42-🇳🇴";
 
@@ -201,9 +183,8 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Wrap_DoesNotSignUnderTheWorkflowIdAddressDomainsTag()
     {
-        // The vectors below are re-derived for the mailbox address rather than carried over from the workflow-id
-        // address an earlier design signed: with the same bound values and body, the earlier tag string
-        // produces a different signature, so re-pointing the purpose at that address fails every vector.
+        // Re-derived for the mailbox address, not carried over: the earlier design's tag string produces a
+        // different signature for the same inputs, so re-pointing the purpose at it fails every vector.
         var envelope = TestMailboxDeliveryEnvelope.Create(code: GoldenCode);
 
         string actual = Signed(envelope.Wrap(Body, GoldenMailbox, TaskType, Key)).Signature;
@@ -215,8 +196,7 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Unwrap_CallbackStateBlobPresentedAsADelivery_Throws()
     {
-        // Domain separation, direction 1. Without the purpose-derived key this would verify: it is the same
-        // envelope shape signed with the same code, and the state blob is a string like any other.
+        // Without the purpose-derived key this would verify: same envelope shape, same code.
         string stateBlob = TestMailboxDeliveryEnvelope.CreateSigner().Sign(Body, SigningDomain.CallbackState);
 
         Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
@@ -227,8 +207,7 @@ public class MailboxDeliveryEnvelopeTests
     [Fact]
     public void Verify_DeliveryEnvelopePresentedAsACallbackStateBlob_Throws()
     {
-        // Domain separation, direction 2 — the one that matters most. A message body is content an outside party
-        // chose, and the forwarder signs it: without the derived key, anyone able to have a message forwarded
+        // The direction that matters most: without the derived key, anyone able to have a message forwarded
         // could obtain a valid app signature over bytes of their choosing and present it as a state blob.
         var signer = TestMailboxDeliveryEnvelope.CreateSigner();
         string deliveryEnvelope = new MailboxDeliveryEnvelope(signer).Wrap(
@@ -360,8 +339,7 @@ public class MailboxDeliveryEnvelopeTests
         string expected
     )
     {
-        // The other half of the compatibility claim: an envelope some other build produced — here hand-built from
-        // the vector rather than signed by this one — must still open.
+        // An envelope another build produced — hand-built from the vector, not signed by this one.
         var envelope = TestMailboxDeliveryEnvelope.Create(code: code);
 
         string wrapped = JsonSerializer.Serialize(
@@ -380,11 +358,9 @@ public class MailboxDeliveryEnvelopeTests
         JsonSerializer.Deserialize<SignedWorkflowState>(envelopeJson)!;
 
     /// <summary>
-    /// The code-rotation window, which the delivery path shares structurally with the state blob. An exchange can
-    /// outlive a rotation by design, so a message routinely arrives carrying a code that is no longer the signing
-    /// code. The fixtures are the golden vector's first row, hand-built into an envelope rather than signed in-test,
-    /// and the secret provider is a strict mock with no <c>GetSigningSecret</c> setup — so nothing here could have
-    /// been signed in-test even by accident.
+    /// The code-rotation window. The fixtures are the golden vector's first row, hand-built rather than signed
+    /// in-test — the secret provider is a strict mock with no <c>GetSigningSecret</c> setup, so nothing here
+    /// could have been signed in-test even by accident.
     /// </summary>
     public sealed class RotationWindow
     {
@@ -433,8 +409,7 @@ public class MailboxDeliveryEnvelopeTests
         [Fact]
         public void OldButStillMountedCode_Opens()
         {
-            // The overlap that makes rotation safe: a new code is the signing code, the old one is still mounted
-            // and unexpired, and a message signed before the rotation still opens.
+            // The overlap that makes rotation safe: the old code is still mounted and unexpired.
             var envelope = EnvelopeWith(
                 Code("id-new", NewCode, _now.AddDays(186)),
                 Code(OldSecretId, OldCode, _now.AddDays(30))
@@ -446,8 +421,7 @@ public class MailboxDeliveryEnvelopeTests
         [Fact]
         public void ExpiredCodeBeyondClockSkew_Throws()
         {
-            // Past the overlap: the code that signed the message is still mounted but has expired, so it has
-            // stopped being a usable signing boundary — the same rule the callback token validator applies.
+            // Past the overlap: mounted but expired — the same rule the callback token validator applies.
             var envelope = EnvelopeWith(Code(OldSecretId, OldCode, _now.AddMinutes(-6)));
 
             Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
@@ -467,8 +441,7 @@ public class MailboxDeliveryEnvelopeTests
         [Fact]
         public void CodeRotatedOutEntirely_Throws()
         {
-            // The other end of rotation: the signing code the message carries is no longer mounted at all.
-            // Indistinguishable, deliberately, from a forged secret id.
+            // No longer mounted at all; indistinguishable, deliberately, from a forged secret id.
             var envelope = EnvelopeWith(Code("id-new", NewCode, _now.AddDays(186)));
 
             Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
@@ -479,8 +452,7 @@ public class MailboxDeliveryEnvelopeTests
         [Fact]
         public void DifferentSecretUnderTheSameId_Throws()
         {
-            // The delivery-path sibling of the state path's DifferentSecretSameId case: the id still resolves, but
-            // the secret behind it has been rotated in place.
+            // The id still resolves, but the secret behind it was rotated in place.
             var envelope = EnvelopeWith(Code(OldSecretId, NewCode, _now.AddDays(186)));
 
             Assert.Throws<MailboxDeliveryEnvelopeException>(() =>

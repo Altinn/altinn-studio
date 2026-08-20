@@ -9,11 +9,9 @@ namespace Altinn.App.Clients.Fiks.FiksIO.Models;
 /// Represents a received Fiks IO message (inbound).
 /// </summary>
 /// <remarks>
-/// A message is normally <em>live</em>: it arrived on the Fiks IO connection this process holds, so its
-/// streams can be read and its <see cref="Responder"/> can answer the sender. A message handed to code
-/// that runs after the fact — a service task's reply handler, which may run on another pod days later —
-/// is <em>replayed</em> instead: every value the message carried is still there, but nothing that needs
-/// the connection works. See <see cref="Replay"/>.
+/// A message is <em>live</em> (arrived on this process's Fiks IO connection) or <em>replayed</em> (read
+/// later, elsewhere): a replayed one carries every value but nothing that needs the connection works. See
+/// <see cref="Replay"/>.
 /// </remarks>
 public sealed record FiksIOReceivedMessage
 {
@@ -26,20 +24,15 @@ public sealed record FiksIOReceivedMessage
     /// A responder instance that can be used to respond to the message.
     /// </summary>
     /// <remarks>
-    /// Usable only while the message is live. On a replayed message every member throws
-    /// <see cref="InvalidOperationException"/>: the Fiks IO channel settled this message when it was
-    /// received, and the connection it would answer on belongs to that moment. <see cref="IsReplayed"/>
-    /// answers that question without provoking the exception.
+    /// Live only: on a replayed message every member throws. Ask <see cref="IsReplayed"/> instead of
+    /// provoking the exception.
     /// </remarks>
     public FiksIOMessageResponder Responder { get; init; }
 
-    /// <summary>Indicates whether this message is being read away from the Fiks IO connection it arrived on.</summary>
-    /// <remarks>
-    /// <see langword="false"/> for a message handed to a Fiks IO subscriber as it arrives — everything works,
-    /// including <see cref="Responder"/> and the stream members. <see langword="true"/> for one replayed later,
-    /// where every value the message carried is still there but the members that need the connection throw
-    /// <see cref="InvalidOperationException"/>. Ask this rather than catching that.
-    /// </remarks>
+    /// <summary>
+    /// Whether this message is read away from the connection it arrived on: values still work, connection-bound
+    /// members throw. Ask this rather than catching that.
+    /// </summary>
     public bool IsReplayed => Message.IsReplayed;
 
     /// <summary>
@@ -52,9 +45,7 @@ public sealed record FiksIOReceivedMessage
     /// Indicates whether this message is a receipt response or not.
     /// </summary>
     /// <remarks>
-    /// Offered for app code that consumes Fiks IO messages itself. The runtime does not use it: the Fiks
-    /// IO subscriber delivers every message into the waiting mailbox without classifying it, and the Fiks
-    /// Arkiv service task classifies the delivered message rather than this wrapper.
+    /// For app code consuming Fiks IO itself; the runtime forwards every message unclassified.
     /// </remarks>
     public bool IsReceiptResponse =>
         string.IsNullOrWhiteSpace(Message.MessageType) || FiksIOConstants.IsReceiptType(Message.MessageType);
@@ -72,9 +63,8 @@ public sealed record FiksIOReceivedMessage
     }
 
     /// <summary>
-    /// Rebuilds a message that was received earlier, for code that reads it away from the Fiks IO connection it
-    /// arrived on. Everything the message carried is answered from the replayed values; the members that would need
-    /// the live connection throw <see cref="InvalidOperationException"/> rather than inventing an answer.
+    /// Rebuilds an earlier-received message. Values are answered from the replay; connection-bound members
+    /// throw rather than inventing an answer.
     /// </summary>
     internal static FiksIOReceivedMessage Replay(FiksIOReplayedMessage replayed) => new(replayed);
 }
@@ -194,10 +184,7 @@ public sealed record FiksIOReceivedMessageContent
     private IMottattMelding? _mottattMelding { get; }
     private FiksIOReplayedMessage? _replayed { get; }
 
-    /// <summary>
-    /// The live Fiks IO message this content wraps. Exactly one of the two constructors runs, so this is non-null
-    /// wherever <see cref="_replayed"/> is null and the throw is unreachable.
-    /// </summary>
+    /// <summary>Exactly one constructor runs, so this is non-null wherever <see cref="_replayed"/> is null.</summary>
     private IMottattMelding _live =>
         _mottattMelding
         ?? throw new InvalidOperationException(

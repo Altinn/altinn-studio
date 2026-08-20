@@ -230,8 +230,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                         item.Completion.TrySetException(new InvalidWorkflowReferenceException(result.ErrorMessage));
                         break;
 
-                    // Mailbox refusals travel as an outcome rather than an exception: they are ordinary answers about a
-                    // mailbox's state, they carry no workflow ids, and the caller turns each into its own HTTP status.
+                    // Outcomes rather than exceptions: ordinary answers, no workflow ids, each its own HTTP status.
                     case BatchEnqueueResultStatus.MailboxNotFound:
                     case BatchEnqueueResultStatus.MailboxLogFull:
                         Assert.That(result.ErrorMessage is not null);

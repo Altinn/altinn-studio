@@ -206,9 +206,8 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
 
-        // A 400 is the engine reading the request and finding it invalid. Retrying cannot change that answer, so it
-        // comes back as a value the caller can fail permanently on rather than as an exception the step's retry
-        // ladder would chew on for a day.
+        // A 400 cannot change on retry, so it is a value the caller fails permanently on rather than an
+        // exception the retry ladder chews on.
         if (response.StatusCode == HttpStatusCode.BadRequest)
         {
             string detail = await ReadProblemDetail(response, ct);
@@ -220,8 +219,8 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             return new MailboxMintResult.Rejected(detail);
         }
 
-        // A 429 is the collection at its open-mailbox cap. The caller still retries, but this carries the engine's
-        // detail so the first failure says "this instance holds the maximum" rather than a bare status.
+        // A 429 (collection cap) stays retryable, but carries the engine's detail so the first failure names
+        // the runaway.
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
         {
             string detail = await ReadProblemDetail(response, ct);
@@ -260,8 +259,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
 
-        // A 404 is the mailbox not being there at all. Modeled rather than thrown because the caller's only
-        // sensible answer is "nothing left to close, carry on".
+        // A 404 is modeled: the caller's only sensible answer is "nothing left to close".
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             _logger.LogWarning(
@@ -289,8 +287,8 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>
-    /// How much of a refused delivery's response body travels back for diagnostics. The engine answers with
-    /// ProblemDetails, so the useful part is at the front.
+    /// How much of a refused delivery's body travels back for diagnostics; the useful part of ProblemDetails
+    /// is at the front.
     /// </summary>
     private const int MaxErrorDetailLength = 512;
 
@@ -310,8 +308,8 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         if (response.StatusCode is HttpStatusCode.Accepted or HttpStatusCode.OK)
         {
-            // The status is the outcome; the body only names the position, for diagnostics. An unreadable body must
-            // not turn an accepted message into a reported failure — the caller would forward again.
+            // The status is the outcome; an unreadable body must not turn an accepted message into a reported
+            // failure the caller would forward again.
             MailboxDeliveryResponse? body = null;
             try
             {
@@ -339,10 +337,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         );
     }
 
-    /// <summary>
-    /// The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one — the actionable sentence the
-    /// engine puts there, which is the only part worth forwarding into a failure message.
-    /// </summary>
+    /// <summary>The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one.</summary>
     private static async Task<string> ReadProblemDetail(HttpResponseMessage response, CancellationToken ct)
     {
         string body = await response.Content.ReadAsStringAsync(ct);

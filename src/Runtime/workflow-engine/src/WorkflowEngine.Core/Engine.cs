@@ -63,9 +63,8 @@ internal interface IEngine
     Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Mints a mailbox, generating its id and stamping its absolute deadline from the requested timeout.
-    /// Idempotent on the caller's key within the namespace. Validates the request itself and answers
-    /// <see cref="MailboxMintResult.Invalid"/> when it is inadmissible, so a caller need not pre-validate.
+    /// Mints a mailbox, idempotent on the caller's key within the namespace. Validates the request itself and
+    /// answers <see cref="MailboxMintResult.Invalid"/> when it is inadmissible.
     /// </summary>
     Task<MailboxMintResult> MintMailbox(
         string ns,
@@ -74,16 +73,14 @@ internal interface IEngine
     );
 
     /// <summary>
-    /// Closes a mailbox for deliveries at a caller's request. Idempotent: an already-closed mailbox is
-    /// reported as it stands, carrying the reason and instant of the close that actually happened.
+    /// Closes a mailbox for deliveries. Idempotent: an already-closed mailbox is reported as it stands.
     /// </summary>
     Task<MailboxCloseResult> CloseMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Delivers one message into a mailbox, appending it to the deliveries log at the next gapless position.
-    /// Idempotent on the caller's key within the mailbox. Validates the request itself and answers
-    /// <see cref="MailboxDeliveryResult.Invalid"/> or <see cref="MailboxDeliveryResult.PayloadTooLarge"/> before
-    /// the database, so a caller need not pre-validate.
+    /// Delivers one message, idempotent on the caller's key within the mailbox. Validates the request itself
+    /// and answers <see cref="MailboxDeliveryResult.Invalid"/> or
+    /// <see cref="MailboxDeliveryResult.PayloadTooLarge"/> before the database.
     /// </summary>
     Task<MailboxDeliveryResult> DeliverToMailbox(
         Guid mailboxId,
@@ -300,9 +297,8 @@ internal sealed class Engine(
             var hash = request.ComputeHash();
             var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
 
-            // Decided inside the flush, under the mailbox's row lock, so they arrive as outcomes rather than as
-            // pre-flight validation errors — and they carry no workflow ids, which is why they answer before the
-            // zip below.
+            // Decided inside the flush under the mailbox row lock, and carrying no workflow ids — which is why
+            // they answer before the zip below.
             if (outcome.Status is BatchEnqueueResultStatus.MailboxNotFound)
             {
                 activity?.Errored(errorMessage: outcome.Message);
@@ -475,10 +471,9 @@ internal sealed class Engine(
     private const int MaxMailboxKeyLength = 200;
 
     /// <summary>
-    /// Validates a mint request before it can reach the database. Length in particular has to be caught here: both
-    /// keys are <c>varchar(200)</c>, and Postgres answers an over-long value with SQLSTATE 22001, which the
-    /// repository's retry classifier reads as transient — so a caller's typo would be retried until the command
-    /// timeout and logged as a suspected database outage.
+    /// Validates a mint request before the database. Length must be caught here: Postgres answers an over-long
+    /// <c>varchar(200)</c> with SQLSTATE 22001, which the retry classifier reads as transient — a typo retried
+    /// to the command timeout and logged as a suspected outage.
     /// </summary>
     private MailboxMintResult.Invalid? ValidateMailboxRequest(MailboxCreateRequest request)
     {
@@ -551,9 +546,8 @@ internal sealed class Engine(
         CancellationToken cancellationToken = default
     )
     {
-        // The closure metrics are published by the repository, after the transaction that performed them commits:
-        // they belong to the routine rather than this entry point, since the deadline sweep runs the same
-        // routine without passing through here.
+        // The closure metrics are the routine's, published by the repository after commit — the deadline sweep
+        // runs the same routine without passing through here.
         return await repository.CloseMailbox(
             mailboxId,
             ns,
@@ -564,10 +558,9 @@ internal sealed class Engine(
     }
 
     /// <summary>
-    /// Validates a delivery request before it can reach the database. The key's length has to be caught here for
-    /// the reason <see cref="ValidateMailboxRequest"/> documents. The payload cap is checked here for a different
-    /// reason: it needs no row state, so refusing early keeps an oversized delivery from spending a connection and
-    /// a transaction on an answer that was knowable from the request alone.
+    /// Validates a delivery request before the database. Key length for the reason
+    /// <see cref="ValidateMailboxRequest"/> gives; the payload cap because it needs no row state, so refusing
+    /// early spends no connection on an answer knowable from the request.
     /// </summary>
     private MailboxDeliveryResult? ValidateMailboxDeliveryRequest(MailboxDeliveryRequest request)
     {
@@ -614,18 +607,16 @@ internal sealed class Engine(
                 cancellationToken
             );
 
-        // Counted for every outcome, the pre-lock refusals included, so a storm of oversized or misaddressed
-        // forwards is visible in the mailbox metrics and not only in HTTP status codes. The wake the delivery
-        // may have performed is counted by the repository, beside the release itself.
+        // Counted for every outcome, pre-lock refusals included, so a storm of bad forwards is visible in the
+        // mailbox metrics and not only in HTTP status codes.
         Metrics.MailboxDeliveriesReceived.Add(1, ("outcome", MailboxDeliveryOutcomeTag(result)));
 
         return result;
     }
 
     /// <summary>
-    /// The <c>outcome</c> tag value for one delivery result. Internal rather than private so
-    /// <c>MailboxDeliveryOutcomeTagTests</c> can cover every case directly — reaching the rarer ones through the
-    /// endpoint costs a filled log or a malformed request each.
+    /// Internal so <c>MailboxDeliveryOutcomeTagTests</c> covers every case — the rarer ones cost a filled log
+    /// or a malformed request to reach through the endpoint.
     /// </summary>
     internal static string MailboxDeliveryOutcomeTag(MailboxDeliveryResult result) =>
         result switch
@@ -771,9 +762,8 @@ internal sealed class Engine(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
 
-            // A receive workflow's declaration. "At most one mailbox block per workflow" needs no check — it is the
-            // shape of WorkflowRequest.Mailbox — and neither does "the delivery lands in the first step", which is
-            // where the executor reads it. What is checkable is the rest.
+            // "At most one mailbox block" and "the delivery lands in the first step" need no check — both are
+            // the shape of the type. The rest is checkable.
             if (workflow.Mailbox is { } mailbox)
             {
                 if (mailbox.Id == Guid.Empty)
@@ -788,8 +778,7 @@ internal sealed class Engine(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares both a mailbox and a startAt ({startAt:O}); a mailbox receiver has no schedule."
                     );
 
-                // Without a step there is nothing for the delivery to be handed to, so the workflow could only consume
-                // a position and discard it.
+                // Without a step there is nothing to hand the delivery to.
                 if (workflow.Steps.Count == 0)
                     return new RequestConstraintValidationResult.Invalid(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox but has no steps to receive into."

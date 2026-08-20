@@ -51,69 +51,61 @@ export const onChainGroupsChanged = (fn) => {
 /* ── Mailboxes ───────────────────────────────────────────── */
 
 /**
- * Mailboxes per rendered collection, from `/dashboard/mailboxes`. Fetched rather than streamed, since the
- * live stream carries no mailboxes. Trimmed back to what is on screen once it grows past a bound.
+ * Per-collection mailboxes from `/dashboard/mailboxes` — fetched, since the live stream carries none.
  * @type {Map<string, { mailboxes: Mailbox[], truncated: boolean }>}
  */
 const mailboxCache = new Map();
 
-/** When each collection's mailboxes were last read, so a render pass can skip the fresh ones. */
 const mailboxFetchedAt = new Map();
 
 /** Collections with a read in flight — the `historyRefreshing` pattern: never two at once. */
 const mailboxInFlight = new Set();
 
 /**
- * Collections a render pass wants, per namespace. Collected and flushed together because the endpoint takes
- * its keys in a batch and applies its bound per key, which one request per group would defeat.
+ * Wants per namespace, flushed as one batch: the endpoint applies its bound per key, which one request
+ * per group would defeat.
  * @type {Map<string, Set<string>>}
  */
 const mailboxWanted = new Map();
 
 /**
- * The collections the last completed render pass drew, and whether any member is a receive workflow.
- * Deliberately not the DOM's mailbox blocks: a collection whose blocks are missing is exactly the one that
- * has to be asked again. Rebuilt wholesale every pass.
+ * What the last completed pass drew — deliberately not the DOM's blocks: a collection whose blocks are
+ * missing is exactly the one to ask again.
  * @type {Map<string, { ns: string, key: string, hinted: boolean }>}
  */
 let mailboxOnScreen = new Map();
 
-/** The pass being built right now; swapped into `mailboxOnScreen` when the pass ends. */
 let mailboxThisPass = new Map();
 
-/** True once this dashboard has any evidence of mailboxes at all — see `startMailboxPoll`. */
 let mailboxSeen = false;
 
 /**
- * Keys per request, bounded by encoded length rather than count: the endpoint honors 100 keys, but 100 long
- * ones overrun Kestrel's 8 KB request line and come back `414`.
+ * Bounded by encoded length, not count: 100 long keys overrun Kestrel's 8 KB request line (`414`).
  */
 const MAILBOX_KEYS_BYTES_MAX = 4096;
 
-/** The endpoint honors 100 keys per call and drops the rest silently. */
+/**
+ * The endpoint honors 100 keys and drops the rest silently.
+ */
 const MAILBOX_KEY_CAP = 100;
 
-/** A cached read this old is re-read on the next render pass or poll tick that wants it. */
 const MAILBOX_TTL_MS = 3000;
 
 /**
- * The TTL for a collection that has answered "no mailboxes" and shows no receive workflow. Nearly every
- * collection answers that forever, and re-asking every few seconds would put the three-table read on a loop.
+ * TTL for a collection that answered "no mailboxes" and shows no receiver — nearly every collection,
+ * forever, so re-asking every few seconds would put the three-table read on a loop.
  */
 const MAILBOX_IDLE_TTL_MS = 60000;
 
-/** Collections kept in the cache before it is trimmed back to what is on screen. */
 const MAILBOX_CACHE_MAX = 200;
 
-/** Cadence for re-reading the collections currently on screen. */
 const MAILBOX_POLL_MS = 5000;
 
 let _mailboxPassTimer = 0;
 let _mailboxPoll = 0;
 
 /**
- * Cache identity, namespaced because a collection key is only unique within its namespace.
- * @param {string} ns @param {string} key
+ * Namespaced: a collection key is only unique within its namespace.
  */
 const mailboxCacheKey = (ns, key) => `${ns}\u0000${key}`;
 
@@ -121,10 +113,8 @@ const mailboxCacheKey = (ns, key) => `${ns}\u0000${key}`;
 const NO_MAILBOXES = { mailboxes: [], truncated: false };
 
 /**
- * How stale a collection's read may be before it is worth making again. An empty, unhinted collection is
- * asked rarely; everything else promptly — including one never read successfully, because a failed request
- * must never be remembered as an empty answer.
- * @param {string} id @param {boolean} hinted - a member of this group carries a mailboxId
+ * Staleness budget. An empty, unhinted collection is asked rarely; everything else promptly — including
+ * one never read successfully, because a failed request must never be remembered as an empty answer.
  */
 const mailboxTtl = (id, hinted) => {
     if (hinted) return MAILBOX_TTL_MS;
@@ -134,9 +124,8 @@ const mailboxTtl = (id, hinted) => {
 };
 
 /**
- * Split a namespace's keys into requests that fit in the request line. A single over-long key still goes out
- * alone: a `414` for it is the server's answer to give.
- * @param {string[]} keys @returns {string[][]}
+ * Split keys into requests that fit the request line. An over-long key goes out alone: its `414` is the
+ * server's answer to give.
  */
 const mailboxKeyChunks = (keys) => {
     /** @type {string[][]} */
@@ -160,14 +149,13 @@ const mailboxKeyChunks = (keys) => {
 };
 
 /**
- * Read one namespace's slice of a pass and merge it into the cache. A chunk that fails leaves its
- * collections uncached rather than cached empty — only "there are no mailboxes here" may hide a block.
- * @param {string} ns @param {string[]} keys
- * @returns {Promise<boolean>} whether any of these collections' mailboxes actually changed
+ * Read one namespace's slice and merge it into the cache. A failed chunk leaves its collections uncached
+ * rather than cached empty — only "there are no mailboxes here" may hide a block.
+ * @returns {Promise<boolean>} whether anything actually changed
  */
 const fetchMailboxes = async (ns, keys) => {
-    // Stamped before the request and left stamped when it fails: an endpoint that is down must cost one
-    // request per TTL rather than one per render pass.
+    // Stamped before the request and left stamped on failure: a down endpoint costs one request per TTL,
+    // not one per render pass.
     const stamp = Date.now();
     for (const key of keys) {
         const id = mailboxCacheKey(ns, key);
@@ -196,7 +184,6 @@ const fetchMailboxes = async (ns, keys) => {
             for (const mbx of data.mailboxes ?? []) {
                 if (mbx.collectionKey) byKey.get(mbx.collectionKey)?.push(mbx);
             }
-            // truncatedCollections names the keys whose per-collection window was full.
             const truncated = new Set(data.truncatedCollections ?? []);
 
             for (const [key, mailboxes] of byKey) {
@@ -225,9 +212,8 @@ const flushMailboxWants = async () => {
 };
 
 /**
- * Queue a collection's mailboxes for reading. Skipping fresh and in-flight collections is what stops the
- * re-render this can trigger from feeding itself.
- * @param {string} ns @param {string} key @param {boolean} hinted
+ * Queue a collection for reading. Skipping fresh and in-flight collections is what stops the re-render
+ * this can trigger from feeding itself.
  */
 const wantMailboxes = (ns, key, hinted) => {
     const id = mailboxCacheKey(ns, key);
@@ -238,7 +224,6 @@ const wantMailboxes = (ns, key, hinted) => {
     keys.add(key);
 };
 
-/** Drop cached collections no longer on screen, once the cache has grown past its bound. */
 const trimMailboxCache = () => {
     if (mailboxCache.size <= MAILBOX_CACHE_MAX) return;
     for (const id of [...mailboxCache.keys()]) {
@@ -249,8 +234,8 @@ const trimMailboxCache = () => {
 };
 
 /**
- * Close a render pass: the groups it drew become the ones on screen, and their wants go out as one batch.
- * Scheduled from `buildGroupEl`, so the timer firing is exactly "the pass is over".
+ * Close a render pass: its groups become the on-screen set and their wants go out as one batch.
+ * Scheduled from `buildGroupEl`, so the timer firing means "the pass is over".
  */
 const endMailboxPass = () => {
     mailboxOnScreen = mailboxThisPass;
@@ -261,11 +246,6 @@ const endMailboxPass = () => {
     void flushMailboxWants();
 };
 
-/**
- * Record that this pass drew a collection under a namespace, and whether any of its members is a
- * receive workflow.
- * @param {string} ns @param {string} key @param {boolean} hinted
- */
 const noteMailboxGroup = (ns, key, hinted) => {
     if (hinted) mailboxSeen = true;
     const id = mailboxCacheKey(ns, key);
@@ -276,10 +256,9 @@ const noteMailboxGroup = (ns, key, hinted) => {
 };
 
 /**
- * Start re-reading the collections on screen, once this dashboard has any evidence of mailboxes at all. An
- * exchange in progress changes without any workflow changing, so none of the render passes the rest of this
- * view is driven by would ever come. The per-collection TTL keeps it cheap, and a deployment that has never
- * minted a mailbox never starts the timer.
+ * Start polling once the dashboard has any evidence of mailboxes: an exchange can progress without any
+ * workflow changing, so no ordinary render pass would come. A deployment that never minted a mailbox
+ * never starts the timer.
  */
 const startMailboxPoll = () => {
     if (_mailboxPoll) return;
@@ -298,10 +277,8 @@ const POSITION_MEANING = {
 };
 
 /**
- * One position of the log as a chip: its number, its state in the chip's color, and everything else in the
- * tooltip. A chip whose receiver is rendered in this group's spine reveals it on click.
- * @param {MailboxPosition} pos @param {Set<string>} spineIds - receivers rendered in this spine
- * @returns {string}
+ * One position as a chip; a chip whose receiver is rendered in this spine reveals it on click.
+ * @param {MailboxPosition} pos @param {Set<string>} spineIds
  */
 const mailboxPositionHTML = (pos, spineIds) => {
     const receiver = pos.receiverWorkflowId;
@@ -324,8 +301,7 @@ const mailboxPositionHTML = (pos, spineIds) => {
               : 'no receiver has been enqueued for this position',
     );
 
-    // Parked is the one state with no duration to state — the server sends none while the wait is still
-    // running — so the chip counts up from the stamp instead.
+    // Parked has no server-sent duration while the wait runs, so the chip counts up from the stamp.
     const elapsed =
         pos.state === 'waiting' && pos.heldAt
             ? ` <span class="mbx-parked" data-parked-since="${escAttr(pos.heldAt)}"></span>`
@@ -337,11 +313,6 @@ const mailboxPositionHTML = (pos, spineIds) => {
     return `<span class="${cls}"${click} title="${escAttr(facts.join(' · '))}">${pos.position}${elapsed}</span>`;
 };
 
-/**
- * One mailbox: the exchange's own facts, then its log position by position.
- * @param {string} ns @param {string} key @param {Mailbox} mbx @param {Set<string>} spineIds
- * @returns {string}
- */
 const mailboxBlockHTML = (ns, key, mbx, spineIds) => {
     const open = mbx.status === 'Open';
     const cls = `mbx-block${open ? ' mbx-open' : ''}`;
@@ -358,13 +329,12 @@ const mailboxBlockHTML = (ns, key, mbx, spineIds) => {
           : 'Closed on request by the app concluding the exchange';
     html += `<span class="mbx-status ${open ? 'open' : 'disposed'}" title="${escAttr(stateTitle)}">${esc(state)}</span>`;
     html += '<span class="header-spacer"></span>';
-    // idx and seq are the words the API, the schema and the callback all use, so they are not prettified.
+    // idx and seq are the API's and the schema's own words; not prettified.
     html += `<span class="mbx-counts" title="Deliveries log: ${mbx.nextIdx} position(s) taken. Receivers log: ${mbx.nextSeq} position(s) assigned.">idx ${mbx.nextIdx} · seq ${mbx.nextSeq}</span>`;
     if (mbx.unconsumedDeliveries > 0) {
         html += `<span class="mbx-unconsumed" title="Accepted messages no receiver was ever enqueued for. They stay readable until retention purges the mailbox.">${mbx.unconsumedDeliveries} unconsumed</span>`;
     }
-    // The deadline shows on a closed mailbox too: closed at the deadline or long before it is the difference
-    // between an exchange that timed out and one that concluded.
+    // The deadline shows on a closed mailbox too: timed out and concluded read differently.
     html += open
         ? `<span class="mbx-deadline" data-deadline="${escAttr(mbx.deadline)}" title="The one bound on this exchange: the sweep closes the mailbox within one cadence of its deadline."></span>`
         : `<span class="mbx-deadline">closed ${esc(fmtAgo(mbx.disposedAt))}</span>`;
@@ -381,10 +351,8 @@ const mailboxBlockHTML = (ns, key, mbx, spineIds) => {
 };
 
 /**
- * Every mailbox of one collection, oldest-minted first so the exchanges read in the same direction as the
- * spine above them. Renders nothing for a collection with no mailbox, which is nearly every collection.
- * @param {string} ns @param {string} key @param {Set<string>} spineIds
- * @returns {string}
+ * A collection's mailboxes, oldest-minted first to read in the spine's direction; nothing at all for a
+ * collection with no mailbox.
  */
 const mailboxBlocksHTML = (ns, key, spineIds) => {
     const entry = mailboxCache.get(mailboxCacheKey(ns, key));
@@ -399,10 +367,6 @@ const mailboxBlocksHTML = (ns, key, spineIds) => {
     return `${html}</div>`;
 };
 
-/**
- * Reveal the receive workflow a position's chip points at.
- * @param {Event} e @param {string} wfId
- */
 window.mailboxRevealReceiver = (e, wfId) => {
     e.stopPropagation();
     revealChainRow(wfId);
@@ -489,9 +453,8 @@ const groupHeaderHTML = (key, members, opts) => {
 export const buildGroupEl = (key, members, opts) => {
     const countNoun = opts?.countNoun ?? 'workflows';
     members.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-    // Both chains surfaces group by collection key alone, so one group can hold two namespaces' workflows.
-    // Every namespace present is asked for its own mailboxes: picking one member's would draw one tenant's
-    // exchanges under another's rows and drop the rest.
+    // Chains surfaces group by collection key alone, so one group can hold two namespaces' workflows —
+    // each is asked for its own mailboxes.
     const namespaces = [...new Set(members.map((m) => m.namespace))];
     const hinted = members.some((m) => m.mailboxId);
     for (const ns of namespaces) noteMailboxGroup(ns, key, hinted);
@@ -535,8 +498,7 @@ export const buildGroupEl = (key, members, opts) => {
         for (const [k, v] of Object.entries(m.labels ?? {})) labels.add(`${k}:${v}`.toLowerCase());
     }
     if (labels.size) el.dataset.labels = [...labels].join(',');
-    // The mailbox blocks close the group and link into it, so the rows this spine actually rendered are what
-    // decide which chips are links.
+    // The rows this spine actually rendered decide which chips are links.
     const spineIds = new Set(items.map((i) => i.wf.databaseId));
     el.innerHTML =
         groupHeaderHTML(key, members, { total, hasHistory: !!hist, countNoun }) +
