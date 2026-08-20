@@ -84,7 +84,7 @@ jobs:
       - name: Resolve Go version
         id: go-version
         run: |
-          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../tools/releaser/go.mod)"
+          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../../tools/releaser/go.mod)"
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 

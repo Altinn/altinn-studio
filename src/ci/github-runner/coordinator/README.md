@@ -15,7 +15,7 @@ docker build \
   .
 ```
 
-Build the runner image from this directory:
+Build the runner image from the repository root:
 
 ```sh
 docker build \
