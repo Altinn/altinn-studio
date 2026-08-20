@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Time.Testing;
 using WorkflowEngine.Resilience.Constants;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
@@ -187,6 +188,20 @@ public class RetryStrategyExtensionsTests
     }
 
     [Fact]
+    public void CanRetry_WithDuration_JudgesTheNominalDelay_NotAJitteredRoll()
+    {
+        // Arrange — the nominal delay (10s) fits the 11s budget, but a high jitter roll (up to
+        // 12s) would not. Admissibility is judged on the nominal schedule, so the verdict must
+        // be deterministically true; under a jittered gate it flips on roughly a quarter of rolls.
+        var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(10), maxDuration: TimeSpan.FromSeconds(11));
+        var startTime = DateTimeOffset.UtcNow;
+
+        // Act & Assert
+        for (int i = 0; i < 100; i++)
+            Assert.True(strategy.CanRetry(1, startTime));
+    }
+
+    [Fact]
     public void GetDeadline_WithMaxDuration_AddsToStartTime()
     {
         // Arrange
@@ -360,6 +375,50 @@ public class RetryStrategyExtensionsTests
 
         // Should fail after first attempt because next retry delay (1h) exceeds deadline
         Assert.Equal(1, callCount);
+    }
+
+    [Fact]
+    public async Task Execute_ClampsTheFinalDelayToTheDeadline_InsteadOfRejectingIt()
+    {
+        // Arrange — the nominal delay (100ms) fits the 110ms budget, but a high jitter roll (up
+        // to 120ms) would overshoot it. The roll must be clamped to the deadline, never used to
+        // reject an attempt the nominal schedule admitted. Repeated on a fake clock so a
+        // regression to roll-based rejection (which trips on ~a quarter of rolls) cannot hide.
+        var strategy = RetryStrategy.Constant(
+            TimeSpan.FromMilliseconds(100),
+            maxRetries: 5,
+            maxDuration: TimeSpan.FromMilliseconds(110)
+        );
+
+        for (int round = 0; round < 20; round++)
+        {
+            var timeProvider = new FakeTimeProvider();
+            var callCount = 0;
+
+            var execution = strategy.Execute(
+                _ =>
+                {
+                    callCount++;
+                    throw new InvalidOperationException("always fails");
+                },
+                errorHandler: _ => RetryDecision.Retry,
+                timeProvider: timeProvider,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+            // Drive the fake clock until the execution settles (bounded so a hang fails fast).
+            for (int i = 0; i < 1000 && !execution.IsCompleted; i++)
+            {
+                timeProvider.Advance(TimeSpan.FromMilliseconds(10));
+                await Task.Yield();
+            }
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => execution);
+
+            // Attempt 1 at T0, attempt 2 within the (possibly clamped) delay, then CanRetry
+            // gives up — the second attempt must never be lost to an unlucky roll.
+            Assert.Equal(2, callCount);
+        }
     }
 
     [Fact]

@@ -47,7 +47,10 @@ public static class RetryStrategyExtensions
             if (now >= deadline)
                 return false;
 
-            TimeSpan delay = strategy.CalculateDelay(iteration);
+            // The admissibility gate judges the nominal schedule: jitter spreads the actual
+            // waits but must never change whether a retry is allowed — a jittered roll here
+            // would make the verdict near the deadline a coin toss.
+            TimeSpan delay = TimeSpan.FromSeconds(NominalDelaySeconds(strategy, iteration));
             DateTimeOffset nextRun = now.Add(delay);
 
             if (nextRun >= deadline)
@@ -77,17 +80,7 @@ public static class RetryStrategyExtensions
         public TimeSpan CalculateDelay(int iteration, Random? random = null)
         {
             var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
-
-            var delaySeconds = strategy.BackoffType switch
-            {
-                BackoffType.Constant => strategy.BaseInterval.TotalSeconds,
-                BackoffType.Linear => strategy.BaseInterval.TotalSeconds * iteration,
-                BackoffType.Exponential => strategy.BaseInterval.TotalSeconds
-                    * Math.Pow(2, Math.Min(iteration - 1, 62)),
-                _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
-            };
-
-            delaySeconds = Math.Min(delaySeconds, maxDelaySeconds);
+            var delaySeconds = NominalDelaySeconds(strategy, iteration);
 
             var jitterFactor =
                 1 + (Defaults.RetryDelayJitterFraction * ((2 * (random ?? Random.Shared).NextDouble()) - 1));
@@ -171,15 +164,15 @@ public static class RetryStrategyExtensions
                         throw;
                     }
 
+                    // One jittered roll, clamped rather than re-checked: CanRetry already
+                    // admitted this attempt on the nominal schedule, so a high roll must not
+                    // reject it (or start it past the deadline) — the final attempt within the
+                    // budget runs at the deadline instead of being lost to jitter.
                     TimeSpan delay = strategy.CalculateDelay(attempt);
                     DateTimeOffset deadline = strategy.GetDeadline(startTime);
                     DateTimeOffset now = timeProvider.GetUtcNow();
-                    if (now.Add(delay) >= deadline)
-                    {
-                        logger?.ExecutionFailed(operationName, attempt, ex.Message, ex);
-                        logger?.NextRetryUnreachable(ex);
-                        throw;
-                    }
+                    if (deadline != DateTimeOffset.MaxValue && now.Add(delay) > deadline)
+                        delay = deadline > now ? deadline - now : TimeSpan.Zero;
 
                     logger?.RetryDelay(
                         operationName,
@@ -194,6 +187,26 @@ public static class RetryStrategyExtensions
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// The nominal (jitter-free) delay in seconds for the given iteration, clamped to
+    /// <see cref="RetryStrategy.MaxDelay"/>. This is the schedule that admissibility is judged
+    /// on; <see cref="CalculateDelay"/> applies the jitter on top of it.
+    /// </summary>
+    private static double NominalDelaySeconds(RetryStrategy strategy, int iteration)
+    {
+        var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
+
+        var delaySeconds = strategy.BackoffType switch
+        {
+            BackoffType.Constant => strategy.BaseInterval.TotalSeconds,
+            BackoffType.Linear => strategy.BaseInterval.TotalSeconds * iteration,
+            BackoffType.Exponential => strategy.BaseInterval.TotalSeconds * Math.Pow(2, Math.Min(iteration - 1, 62)),
+            _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
+        };
+
+        return Math.Min(delaySeconds, maxDelaySeconds);
     }
 }
 
@@ -225,12 +238,6 @@ internal static partial class RetryStrategyExtensionsLogs
         "All available retries are exhausted or the deadline for this operation has been exceeded, giving up"
     )]
     internal static partial void MaxRetriesReached(this ILogger logger, Exception ex);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "The next retry attempt is unreachable because it will exceed the deadline for this operation, giving up"
-    )]
-    internal static partial void NextRetryUnreachable(this ILogger logger, Exception ex);
 
     [LoggerMessage(
         LogLevel.Warning,
