@@ -24,7 +24,7 @@ const componentData: FormImageComponent = {
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current.layoutSchemaQuery.isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>> = {}) => {

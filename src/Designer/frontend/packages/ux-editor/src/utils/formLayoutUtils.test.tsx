@@ -391,7 +391,7 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+    // The shared enum includes legacy names (OrganisationLookup, Header) used by ux-editor-v4.
     it.each(
       Object.values(ComponentType).filter(
         (v) =>

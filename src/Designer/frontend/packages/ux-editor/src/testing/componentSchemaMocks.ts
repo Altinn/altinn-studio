@@ -47,7 +47,7 @@ import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
-// ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+// ComponentType also contains legacy names (OrganisationLookup, Header) used by ux-editor-v4.
 export const componentSchemaMocks: Record<
   Exclude<ComponentType, ComponentType.OrganisationLookup | ComponentType.Header>,
   JsonSchema
@@ -84,7 +84,7 @@ export const componentSchemaMocks: Record<
   [ComponentType.MultipleSelect]: MultipleSelectSchema,
   [ComponentType.NavigationBar]: NavigationBarSchema,
   [ComponentType.NavigationButtons]: NavigationButtonsSchema,
-  // OrganizationLookup is the v9 schema name; the v4 editor keeps its legacy schema separately.
+  // OrganizationLookup is the current schema name; the legacy editor keeps its schema separately.
   [ComponentType.OrganizationLookup]: OrganizationLookupSchema,
   [ComponentType.Panel]: PanelSchema,
   [ComponentType.Paragraph]: ParagraphSchema,

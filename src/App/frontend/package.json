@@ -7,6 +7,7 @@
   "exports": "./src/index.tsx",
   "scripts": {
     "gen": "tsx src/codegen/run.ts",
+    "gen:check": "yarn gen && git diff --exit-code -- ../../common/ts/layout-contract",
     "copy-schemas": "tsx scripts/copy-schemas.ts",
     "start": "vite",
     "build": "yarn gen && vite build && yarn copy-schemas",

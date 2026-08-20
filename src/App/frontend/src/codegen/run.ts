@@ -20,6 +20,8 @@ const COMPONENT_CATALOG_OUTPUT = path.join(
   REPOSITORY_ROOT,
   'src/common/ts/layout-contract/src/component-catalog.generated.ts',
 );
+const CONTRACT_SCHEMA_ROOT = path.join(REPOSITORY_ROOT, 'src/common/ts/layout-contract/schemas/json');
+const STATIC_CONTRACT_SCHEMAS = ['layout/expression.schema.v1.json', 'component/number-format.schema.v1.json'] as const;
 
 function toPosixPath(p: string): string {
   return p.split(path.sep).join('/');
@@ -149,10 +151,18 @@ async function getComponentList(): Promise<[ComponentList, string[]]> {
   const schemas = [new LayoutSchemaV1(schemaProps), new LayoutSettingsSchemaV1(schemaProps)];
 
   const schemaPathBase = 'schemas/json/';
+  await fs.mkdir(CONTRACT_SCHEMA_ROOT, { recursive: true });
   for (const file of schemas) {
-    const schemaPath = schemaPathBase + file.getFileName();
     const schema = await CodeGeneratorContext.generateJsonSchema(schemaPathBase, file);
-    promises.push(saveFile(schemaPath, JSON.stringify(schema.result, null, 2)));
+    promises.push(
+      saveFile(path.join(CONTRACT_SCHEMA_ROOT, file.getFileName()), JSON.stringify(schema.result, null, 2)),
+    );
+  }
+  for (const schemaPath of STATIC_CONTRACT_SCHEMAS) {
+    const sourcePath = path.join('schemas/json', schemaPath);
+    const targetPath = path.join(CONTRACT_SCHEMA_ROOT, schemaPath);
+    await fs.mkdir(path.dirname(targetPath), { recursive: true });
+    promises.push(saveFile(targetPath, await fs.readFile(sourcePath, 'utf-8')));
   }
 
   const commonTsPath = 'src/layout/common.generated.ts';

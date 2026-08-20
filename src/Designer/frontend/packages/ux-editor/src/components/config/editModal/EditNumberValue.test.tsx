@@ -10,7 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+  await waitFor(() => expect(layoutSchemaResult.current.layoutSchemaQuery.isSuccess).toBe(true));
 };
 
 const renderEditNumberValue = async ({

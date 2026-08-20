@@ -8,21 +8,21 @@ const TITLE_TEXT_RESOURCE_KEY = 'title';
 
 type TextResourceMainConfigProps = {
   component: FormItem;
-  componentSchemaTextKeys: string[];
+  textResourceBindingKeys: string[];
   handleComponentChange: (component: FormItem) => void;
 };
 
 export const TextResourceMainConfig = ({
   component,
-  componentSchemaTextKeys,
+  textResourceBindingKeys,
   handleComponentChange,
 }: TextResourceMainConfigProps): React.JSX.Element => {
   const { t } = useTranslation();
   const { selectedFormLayoutName } = useAppContext();
 
   if (
-    componentSchemaTextKeys.length === 0 ||
-    !componentSchemaTextKeys.includes(TITLE_TEXT_RESOURCE_KEY)
+    textResourceBindingKeys.length === 0 ||
+    !textResourceBindingKeys.includes(TITLE_TEXT_RESOURCE_KEY)
   ) {
     return null;
   }

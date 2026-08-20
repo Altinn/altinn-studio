@@ -29,7 +29,7 @@ export const PropertiesHeader = ({
   const definition = getComponentDefinition(formItem.type);
   const dataModelBindings = definition?.properties.dataModelBindings;
   const textResourceBindings = definition?.properties.textResourceBindings;
-  const componentSchemaTextKeys =
+  const textResourceBindingKeys =
     textResourceBindings?.type === 'object' ? Object.keys(textResourceBindings.properties) : [];
   const requiredDataModelBindings =
     dataModelBindings?.type === 'object'
@@ -74,7 +74,7 @@ export const PropertiesHeader = ({
             <TextResourceMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
-              componentSchemaTextKeys={componentSchemaTextKeys}
+              textResourceBindingKeys={textResourceBindingKeys}
             />
             <DataModelMainConfig
               component={formItem}

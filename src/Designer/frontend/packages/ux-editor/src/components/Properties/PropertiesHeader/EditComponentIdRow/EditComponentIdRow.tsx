@@ -27,8 +27,11 @@ export const EditComponentIdRow = ({
 }: EditComponentIdRowProps) => {
   const formLayouts = useFormLayouts();
   const { t } = useTranslation();
-  const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
+  const { layoutSchemaQuery, expressionSchemaQuery, numberFormatSchemaQuery } =
     useLayoutSchemaQuery();
+  const { data: layoutSchema } = layoutSchemaQuery;
+  const { data: expressionSchema } = expressionSchemaQuery;
+  const { data: numberFormatSchema } = numberFormatSchemaQuery;
 
   const { org, app } = useStudioEnvironmentParams();
   const { data: appMetadata } = useAppMetadataQuery(org, app);
@@ -97,7 +100,7 @@ export const EditComponentIdRow = ({
         onBlur={(event) => saveComponentUpdate(event.target.value)}
         onError={handleValidationError}
         onIsViewMode={setIsViewMode}
-        propertyPath='definitions/component/properties/id'
+        propertyPath='definitions/ComponentBase/properties/id'
         relatedSchemas={[expressionSchema, numberFormatSchema]}
         title={component.id}
         value={component.id}

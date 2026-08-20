@@ -54,7 +54,7 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+// ComponentType also contains legacy names (OrganisationLookup, Header) used by ux-editor-v4.
 export type FormItemConfigs = {
   [
     T in Exclude<
@@ -273,7 +273,7 @@ export const formItemConfigs: FormItemConfigs = {
     icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
-  // The v9 editor uses the renamed contract; ux-editor-v4 retains Header.
+  // The current editor uses the renamed contract; ux-editor-v4 retains Header.
   [ComponentType.Heading]: {
     name: ComponentType.Heading,
     itemType: LayoutItemType.Component,
@@ -413,7 +413,7 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/navigationButtonsComponent',
     icon: FingerButtonIcon,
   },
-  // The v9 editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
+  // The current editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
   [ComponentType.OrganizationLookup]: {
     name: ComponentType.OrganizationLookup,
     itemType: LayoutItemType.Component,
