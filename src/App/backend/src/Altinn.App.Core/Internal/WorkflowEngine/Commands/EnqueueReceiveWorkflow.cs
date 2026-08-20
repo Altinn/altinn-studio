@@ -105,11 +105,15 @@ internal sealed class EnqueueReceiveWorkflow(
             // expires. Token and blob die together, by design.
             //
             // Receiver 1's viability is therefore bounded by the signing code's ExpiresAt, not by the
-            // mailbox's deadline; ExecuteServiceTask refuses a MailboxOptions.Timeout that would outlive
-            // it, so the bound is enforced when the exchange opens rather than discovered as a 401 days
-            // later. What minting per enqueue is genuinely for is the relay: each hop's receiver is
-            // enqueued from inside the previous hop's callback, whenever that happens to run, and draws
-            // from whatever code is current then.
+            // mailbox's deadline — and nothing checks that bound, here or at the mint. It is the general
+            // property of any parked workflow, set out under Key Design Constraints in
+            // Internal/WorkflowEngine/AGENTS.md: a callback arriving after the code expires 401s and
+            // fails its workflow terminally on the first attempt, a mailbox receiver and a step
+            // deferring past its own code's expiry alike.
+            //
+            // What minting per enqueue is genuinely for is the relay: each hop's receiver is enqueued
+            // from inside the previous hop's callback, whenever that happens to run, and draws from
+            // whatever code is current then.
             var receiveContext = new AppWorkflowContext
             {
                 Actor = context.Payload.Actor,

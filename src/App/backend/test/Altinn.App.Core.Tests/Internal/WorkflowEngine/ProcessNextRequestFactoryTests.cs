@@ -3,7 +3,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -72,11 +71,10 @@ public class ProcessNextRequestFactoryTests
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
         var stepOptionsResolver = new ProcessStepOptionsResolver(
             [
+                // Only its DefaultStepOptions are read here; nothing executes.
                 new ExecuteServiceTask(
                     appImplFactory,
                     Mock.Of<IWorkflowEngineClient>(),
-                    // Only its DefaultStepOptions are read here; nothing executes.
-                    Mock.Of<IWorkflowCallbackSecretProvider>(),
                     TestMailboxDeliveryEnvelope.Create()
                 ),
             ],

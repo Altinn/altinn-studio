@@ -174,8 +174,8 @@ public class EnqueueReceiveWorkflowTests
         // enqueued from inside the previous hop's callback and draws from whatever app code is current
         // then. It does *not* extend receiver 1's life: GenerateToken sets Expires to the signing
         // code's own expiry, so a mint seconds after the transition's enqueue picks the same code, and
-        // the state blob the receiver starts on is signed by that code too. Both die together, which is
-        // why ExecuteServiceTask refuses a mailbox timeout that would outlive them.
+        // the state blob the receiver starts on is signed by that code too. Both die together, which
+        // bounds receiver 1 at the signing code's expiry rather than at the mailbox's deadline.
         (Mock<IWorkflowEngineClient> client, Captured captured) = CreateClient();
         var tokens = new CountingTokenGenerator();
         var command = new EnqueueReceiveWorkflow(client.Object, tokens);

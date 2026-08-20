@@ -91,14 +91,10 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// message itself carries. Waiting costs nothing while nothing arrives — no polling, no timer, no
     /// execution — so the budget is bounded by how long the answer is still worth having, not by cost.
     /// <para>
-    /// Two ceilings sit above it, neither checkable when the app starts. The workflow engine's
-    /// <c>MaxMailboxTimeout</c> (21 days by default) is the looser one. The tighter one is this
-    /// application's <c>WorkflowEngineCallback</c> app code: the workflow that receives the answer is
-    /// signed by it, so a mailbox may not outlive it, and a transition opened while the current code
-    /// has less than seven days left fails with <c>MailboxTimeoutOutlivesAppCode</c> — visible as a
-    /// failing transition for the user, and fixed by putting a longer-lived code <strong>first</strong>
-    /// in <c>AppCodes:WorkflowEngineCallback</c> (the app signs with the first non-expired code in that
-    /// list, not the longest-lived one) rather than by anything in this file.
+    /// One ceiling sits above it, and it is not checkable when the app starts: the workflow engine's
+    /// <c>MaxMailboxTimeout</c>, 21 days by default, which seven days is comfortably inside. See
+    /// <see cref="MailboxOptions.Timeout"/> for the separate and general constraint that a workflow's
+    /// callback credentials expire with the app code that issued them.
     /// </para>
     /// </remarks>
     internal static readonly TimeSpan ArchiveReplyTimeout = TimeSpan.FromDays(7);

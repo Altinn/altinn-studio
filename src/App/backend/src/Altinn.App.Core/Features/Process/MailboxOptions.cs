@@ -25,27 +25,27 @@ public sealed record MailboxOptions
     /// is knowledge only the task has. Days are ordinary here — an archive receipt, a counterparty's
     /// answer.
     /// <para>
-    /// <strong>Two ceilings apply, and neither can be checked at app startup</strong> — both are
-    /// enforced when the declaring stage opens the mailbox, so an over-long timeout surfaces as a
-    /// failed transition for a user rather than as a failure to start.
+    /// <strong>One ceiling applies, and it cannot be checked at app startup</strong>: the workflow
+    /// engine's <c>MaxMailboxTimeout</c>, <strong>21 days by default</strong>. It lives in the
+    /// engine's configuration rather than in the app, so the engine rejects the mint and the
+    /// declaring transition fails with <c>MailboxRejected</c> — a failed transition for a user
+    /// rather than a failure to start. Check that setting before declaring more than three weeks.
     /// </para>
     /// <para>
-    /// The first is the <strong>workflow engine's, 21 days by default</strong>: it lives in the
-    /// engine's configuration rather than in the app, and the engine rejects the mint. Check its
-    /// <c>MaxMailboxTimeout</c> before declaring more than three weeks.
-    /// </para>
-    /// <para>
-    /// The second is usually the tighter one, and the likelier to bite: <strong>the mailbox cannot
-    /// outlive this application's <c>WorkflowEngineCallback</c> app code</strong>. The workflow that
-    /// receives the answer carries a callback token signed by that code, and a state blob signed by
-    /// it too, so both stop being accepted the moment it expires — and app codes rotate, which means
-    /// the remaining life is routinely well under three weeks even where the engine would allow it.
-    /// A timeout running past that expiry fails the transition with
-    /// <c>MailboxTimeoutOutlivesAppCode</c>, naming the code's expiry and its remaining life, rather
-    /// than letting the exchange open and stall days later once the answer can no longer be
-    /// delivered. Shorten the timeout, or put a longer-lived code <strong>first</strong> in
-    /// <c>AppCodes:WorkflowEngineCallback</c> — the app signs with the first non-expired code in that
-    /// list, not the longest-lived one, so appending one changes nothing.
+    /// Nothing else refuses a long timeout up front. What a long exchange inherits instead is a
+    /// constraint belonging to long-running work in general rather than to mailboxes: <strong>a
+    /// workflow's callback token and its state blob are both signed with the
+    /// <c>WorkflowEngineCallback</c> app code that was current when that workflow was enqueued, and
+    /// neither is ever refreshed while it waits</strong>. A workflow still waiting when the code
+    /// expires fails on the callback that arrives afterwards — a mailbox handed a reply, and equally
+    /// an ordinary step deferring against its wait budget. For a mailbox that failure is invisible to
+    /// the sender: the engine accepts the delivery, so
+    /// <see cref="IServiceTaskReplyForwarder.ForwardReply"/> succeeds and the message is consumed and
+    /// never handed over again — the outside world is told the answer landed while the exchange it
+    /// should have concluded fails, and neither a resume nor a freshly rotated code recovers it.
+    /// Nothing measures a declaration against the code's remaining life; the exposure is bounded by
+    /// rotation instead, codes being replaced far enough ahead of this cap and of the engine's wait
+    /// budget that a correctly operated application never reaches it.
     /// </para>
     /// </remarks>
     public required TimeSpan Timeout { get; init; }

@@ -1,7 +1,5 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Infrastructure.Clients.Secrets;
-using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -10,7 +8,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -136,8 +133,6 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public TimeSpan Timeout { get; init; } = TimeSpan.FromDays(3);
-
         public Dictionary<string, ServiceTaskContext> Seen { get; } = new(StringComparer.Ordinal);
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
@@ -151,7 +146,7 @@ public class ExecuteServiceTaskMailboxTests
                     Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed())
                 )
                 .Finally(Record<ServiceTaskResult>("Finally", ServiceTaskResult.Success()))
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = Timeout });
+                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
 
         private Func<ServiceTaskContext, Task<T>> Record<T>(string step, T result) =>
             context =>
@@ -185,32 +180,7 @@ public class ExecuteServiceTaskMailboxTests
                 });
     }
 
-    /// <summary>
-    /// A frozen clock, so the app-code guard's arithmetic is exact rather than nearly exact.
-    /// </summary>
-    private static readonly FakeTimeProvider _clock = new(new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero));
-
-    /// <summary>
-    /// The callback app code this application signs with, expiring <paramref name="remainingLife"/> from
-    /// now. It bounds a mailbox: the receive workflow's token and its state blob are both signed with it.
-    /// </summary>
-    private static IWorkflowCallbackSecretProvider CreateSecretProvider(TimeSpan remainingLife) =>
-        Mock.Of<IWorkflowCallbackSecretProvider>(p =>
-            p.GetSigningSecret()
-            == new AppCode
-            {
-                Id = "code-1",
-                Code = "secret-code-long-enough-for-hmac",
-                IssuedAt = _clock.GetUtcNow().AddDays(-1),
-                ExpiresAt = _clock.GetUtcNow() + remainingLife,
-            }
-        );
-
-    private static ExecuteServiceTask CreateCommand(
-        IPipelineServiceTask serviceTask,
-        IWorkflowEngineClient client,
-        TimeSpan? appCodeLife = null
-    )
+    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -220,9 +190,7 @@ public class ExecuteServiceTaskMailboxTests
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
             client,
-            CreateSecretProvider(appCodeLife ?? TimeSpan.FromDays(180)),
-            TestMailboxDeliveryEnvelope.Create(),
-            _clock
+            TestMailboxDeliveryEnvelope.Create()
         );
     }
 
@@ -511,44 +479,5 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
         Assert.Empty(minter.Mints);
         Assert.Empty(task.Seen);
-    }
-
-    [Fact]
-    public async Task TimeoutOutlivingTheCallbackAppCode_FailsPermanentlyAndOpensNothing()
-    {
-        // The app-lib's real bound on an exchange, and it is not the engine's MaxMailboxTimeout: the
-        // receive workflow's callback token *and* the state blob it starts on are both signed with the
-        // current WorkflowEngineCallback app code, and WorkflowStateSigner rejects the blob the moment
-        // that code expires. A mailbox outliving it would publish an answer-by date the app cannot
-        // honor and surface as a 401 storm days later. Refused at open, permanently — a retry replays
-        // the same arithmetic — and before the mint, so no address is published and nothing counts
-        // against the namespace's open-mailbox cap.
-        var task = new ArchivingTask { Timeout = TimeSpan.FromDays(10) };
-        var minter = new RecordingMailboxMinter();
-
-        ProcessEngineCommandResult result = await CreateCommand(task, minter, appCodeLife: TimeSpan.FromDays(3))
-            .Execute(CreateContext(), Payload("SendToArchive"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxTimeoutOutlivesAppCode", failed.ExceptionType);
-        Assert.Contains("SendToArchive", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Empty(minter.Mints);
-        Assert.Empty(task.Seen);
-    }
-
-    [Fact]
-    public async Task TimeoutInsideTheCallbackAppCodesLife_OpensNormally()
-    {
-        // The boundary from the other side: a mailbox that closes before the signing code does is fine,
-        // which is what keeps the guard from being a blanket ban on long exchanges.
-        var task = new ArchivingTask { Timeout = TimeSpan.FromDays(10) };
-        var minter = new RecordingMailboxMinter();
-
-        ProcessEngineCommandResult result = await CreateCommand(task, minter, appCodeLife: TimeSpan.FromDays(11))
-            .Execute(CreateContext(), Payload("SendToArchive"));
-
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Single(minter.Mints);
     }
 }

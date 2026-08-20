@@ -5,9 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine;
-using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -155,16 +153,6 @@ public class ExecuteServiceTaskReplyTests
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
             new UnusedEngineClient(),
-            Mock.Of<IWorkflowCallbackSecretProvider>(p =>
-                p.GetSigningSecret()
-                == new AppCode
-                {
-                    Id = "code-1",
-                    Code = "secret-code-long-enough-for-hmac",
-                    IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
-                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(180),
-                }
-            ),
             _envelope
         );
     }
