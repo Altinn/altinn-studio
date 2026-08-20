@@ -210,6 +210,33 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
+    public void A_Case_Mismatched_Grant_Under_String_Equal_Does_Not_Satisfy()
+    {
+        // XACML's string-equal is case-sensitive, so Storage would reject this grant. Reading it
+        // leniently would pass the build and leave the app to 403 at runtime - the very outcome this
+        // rule exists to prevent.
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["READ", "WRITE"], matchId: PolicyFixtures.StringEqual)),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data"))
+        );
+
+        Assert.Equal(["read", "write"], Actions(diagnostics, MissingGrant));
+    }
+
+    [Fact]
+    public void A_Case_Mismatched_Grant_Under_String_Equal_Ignore_Case_Does_Satisfy()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.OrgRule(["READ", "WRITE"], matchId: PolicyFixtures.StringEqualIgnoreCase)
+            ),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data"))
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public void An_Unmodelled_Match_Function_Is_Inconclusive_Not_Missing()
     {
         var diagnostics = Collect(

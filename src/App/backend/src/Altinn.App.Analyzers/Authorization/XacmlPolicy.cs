@@ -318,11 +318,7 @@ internal sealed class XacmlPolicy
             return MatchOutcome.Unknown;
         }
 
-        // Both functions are compared case-insensitively on purpose: the org and app values are
-        // case-insensitive in practice, and the policy templates mix '[ORG]' with '[org]'. Being
-        // lenient here can only ever find a grant that a case-sensitive reading would miss, which is
-        // the direction that does not fail a build wrongly.
-        return string.Equals(MatchValue(match), expected, StringComparison.OrdinalIgnoreCase)
+        return string.Equals(MatchValue(match), expected, ComparisonFor(match))
             ? MatchOutcome.Satisfied
             : MatchOutcome.Unsatisfied;
     }
@@ -339,10 +335,22 @@ internal sealed class XacmlPolicy
             return MatchOutcome.Unknown;
         }
 
-        return MatchValue(match) is { } value && allowedIds.Contains(value)
+        var comparison = ComparisonFor(match);
+        return MatchValue(match) is { } value && allowedIds.Any(id => string.Equals(id, value, comparison))
             ? MatchOutcome.Satisfied
             : MatchOutcome.Unsatisfied;
     }
+
+    /// <summary>
+    /// How to compare a Match's literal, per the function it declares. XACML's <c>string-equal</c> is
+    /// case-sensitive and only <c>string-equal-ignore-case</c> folds case. Reading both leniently
+    /// would let a policy granting <c>READ</c> satisfy a check for <c>read</c> while Storage's own
+    /// evaluation rejects it - silently missing exactly the defect this analysis exists to catch.
+    /// </summary>
+    private static StringComparison ComparisonFor(XElement match) =>
+        match.Attribute("MatchId")?.Value == StringEqualIgnoreCase
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
 
     /// <summary>
     /// Whether the Match declares one of the two string-equality functions this analysis understands.
