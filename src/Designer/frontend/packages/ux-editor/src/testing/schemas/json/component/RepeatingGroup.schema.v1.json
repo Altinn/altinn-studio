@@ -121,6 +121,16 @@
           "title": "Back button in pagination",
           "description": "The text for the \"Back\" button in pagination",
           "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "multipageBackButton": {
+          "title": "Back button in multipage navigation",
+          "description": "The text for the \"Back\" button in multipage navigation",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "multipageNextButton": {
+          "title": "Next button in multipage navigation",
+          "description": "The text for the \"Next\" button in multipage navigation",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },
