@@ -227,8 +227,9 @@ yq -e '
   (.spec.values.agentSchedule.template.agent.config.plugins[2].config.repos[0] | has("upstream") | not) and
   .spec.values.agentSchedule.template.agent.config.plugins[3].name == "work-control" and
   .spec.values.agentSchedule.template.agent.config.plugins[4].name == "github-watcher" and
-  (.spec.values.agentSchedule.template.agent.config.plugins[4].config."ignored-comment-prefixes" | length) == 1 and
+  (.spec.values.agentSchedule.template.agent.config.plugins[4].config."ignored-comment-prefixes" | length) == 2 and
   .spec.values.agentSchedule.template.agent.config.plugins[4].config."ignored-comment-prefixes"[0] == "/nvtagent" and
+  .spec.values.agentSchedule.template.agent.config.plugins[4].config."ignored-comment-prefixes"[1] == "/nvtlocal" and
   .spec.values.agentSchedule.template.agent.config.plugins[4].egress.provider == "github-main" and
   .spec.values.broker.envSecretName == "nvt-broker-env" and
   .spec.values.broker.dynamicAccountAssertionRotationEpoch == "2026-08-12-1" and

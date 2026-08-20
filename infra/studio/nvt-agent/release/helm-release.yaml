@@ -328,6 +328,7 @@ spec:
               - config:
                   ignored-comment-prefixes:
                     - /nvtagent
+                    - /nvtlocal
                   poll-seconds: 60
                 egress:
                   provider: github-main

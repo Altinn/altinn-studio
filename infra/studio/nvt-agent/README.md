@@ -27,8 +27,8 @@ workflow profiles. Review and generic work terminate only after the agent has
 delivered its result and emitted `plugin.work.completed`; PR workflows remain
 active until the pull request is merged or closed. Scheduling outcomes are
 acknowledged with best-effort `+1` or `-1` reactions.
-The PR watcher ignores `/nvtagent` control comments so command dispatch and
-ongoing PR maintenance do not process the same instruction twice.
+The PR watcher ignores `/nvtagent` and `/nvtlocal` control comments so command
+dispatch and ongoing PR maintenance do not process the same instruction twice.
 All workflows permit task-required tool installation and direct GitHub work
 through the single `github-main` broker provider for `Altinn/altinn-studio`.
 Codex and Claude profiles configure their native continuation commands, so a
