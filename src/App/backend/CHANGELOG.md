@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- When Altinn Authorization denies the app while it is acting as the service owner, the app now logs what that means instead of only the bare `403`: which app owner was denied, that the rights belong to the org rather than the end user, that `config/authorization/policy.xml` is where to fix it, and which action the current task needs. The process-callback span also carries the attribute `authorization.service_owner.denied` in that case, so this failure can be separated from a transient platform failure in monitoring — it needs a policy change for every instance of the app, not a redrive. Nothing else about the failure changes — it is retried and reported exactly as before.
 - Breaking: `IDataClient.GetBinaryData` now throws `PlatformHttpException` when the data element does not exist, instead of returning `null` from a method whose signature says it never does. Its sibling `GetBinaryDataStream` already behaved this way. If your app relied on the `null` to detect a missing data element, catch `PlatformHttpException` and check for `HttpStatusCode.NotFound` instead. Code that did not check for `null` — the common case — now gets a clear error naming the failed request rather than a `NullReferenceException` further along.
 
 ### Fixed
