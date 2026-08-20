@@ -76,8 +76,7 @@ type DataModelBindingsPersonLookupV4 = {
 };
 
 type DataModelBindingsPersonLookupForEditor =
-  | DataModelBindingsPersonLookup
-  | DataModelBindingsPersonLookupV4;
+  DataModelBindingsPersonLookup | DataModelBindingsPersonLookupV4;
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
