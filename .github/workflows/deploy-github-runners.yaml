@@ -3,8 +3,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/experimental/Cargo.lock'
-      - 'src/experimental/Cargo.toml'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
       - 'src/experimental/sandbox/**'
       - 'src/experimental/sandbox-authorization/**'
       - 'src/experimental/sandbox-microsandbox/**'
@@ -115,14 +115,14 @@ jobs:
 
       - name: Build and publish coordinator image
         id: coordinator-image
-        working-directory: ${{ github.workspace }}/src
+        working-directory: ${{ github.workspace }}
         env:
           IMAGE: ${{ steps.vars.outputs.coordinator-image }}
           LATEST: ${{ steps.vars.outputs.coordinator-latest }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
           docker buildx build \
-            --file github-runner/Dockerfile.coordinator \
+            --file src/github-runner/Dockerfile.coordinator \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
             --push \

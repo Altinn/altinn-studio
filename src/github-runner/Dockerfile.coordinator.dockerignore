@@ -1,7 +1,10 @@
 **
-!experimental/
-!experimental/**
-!github-runner/
-!github-runner/coordinator/
-!github-runner/coordinator/**
+!Cargo.lock
+!Cargo.toml
+!src/
+!src/experimental/
+!src/experimental/**
+!src/github-runner/
+!src/github-runner/coordinator/
+!src/github-runner/coordinator/**
 **/target/
