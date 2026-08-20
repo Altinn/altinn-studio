@@ -30,7 +30,7 @@ export default function TextEditor() {
   const { data: textResources, isPending: isInitialLoadingLang } = useTextResourcesQuery(org, app);
 
   const setSearchQuery = (search: string) => {
-    setSearchParams(search.length > 0 ? { search } : {}, { replace: true });
+    setSearchParams(search.length > 0 ? { search } : '', { replace: true });
   };
 
   const { mutate: addLanguageMutation } = useAddLanguageMutation(org, app);

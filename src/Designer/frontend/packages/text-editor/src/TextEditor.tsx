@@ -43,7 +43,9 @@ export const TextEditor = ({
   const { t } = useTranslation();
   const [sortTextsAlphabetically, setSortTextsAlphabetically] = useState<boolean>(false);
   const [searchInputValue, setSearchInputValue] = useState<string>(searchQuery ?? '');
-  const { debounce } = useDebounce({ debounceTimeInMs: searchDebounceTimeInMs });
+  const { debounce, cancelDebounce } = useDebounce({
+    debounceTimeInMs: searchDebounceTimeInMs,
+  });
   const resourceRows = useMemo(
     () => mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically),
     [textResourceFiles, sortTextsAlphabetically],
@@ -54,6 +56,10 @@ export const TextEditor = ({
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages],
   );
+
+  useEffect(() => {
+    setSearchInputValue(searchQuery ?? '');
+  }, [searchQuery]);
 
   useEffect(() => {
     const addedLanguage = selectedLangCodes.find(
@@ -78,6 +84,7 @@ export const TextEditor = ({
   };
 
   const clearSearch = (): void => {
+    cancelDebounce();
     setSearchInputValue('');
     setSearchQuery('');
   };
