@@ -4,8 +4,8 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_root"
 
-chart_version=0.8.71
-chart_digest=sha256:4792e55ed408a967f41bf7bc9414eacc6073f19cb5fdd4248303cdb9d47b942a
+chart_version=0.8.72
+chart_digest=sha256:c8bd54c80f99694072a449581c95f16dc3ed5f2214100987c779433d81c44735
 chart=oci://ghcr.io/mirkosekulic/helm/nvt
 helm_release=infra/studio/nvt-agent/release/helm-release.yaml
 temp_dir=$(mktemp -d)
