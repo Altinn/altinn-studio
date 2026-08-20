@@ -45,14 +45,8 @@ export class OrganizationLookup extends OrganizationLookupDef {
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
     return (
-      validateDataModelBindingsAny(
-        baseComponentId,
-        bindings,
-        lookupBinding,
-        layoutLookups,
-        'orgnr',
-        ['string'],
-      )[0] ?? []
+      validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'orgnr', ['string'])[0] ??
+      []
     );
   }
 }

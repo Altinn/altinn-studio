@@ -80,9 +80,7 @@ export class PersonLookup extends PersonLookupDef {
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
     return (
-      validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'ssn', [
-        'string',
-      ])[0] ?? []
+      validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'ssn', ['string'])[0] ?? []
     );
   }
 }
