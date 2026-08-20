@@ -8,7 +8,7 @@ import type { QueryStatus } from '@tanstack/react-query';
 
 export interface FilePathProps {
   filePath: string;
-  diff: string;
+  diff?: string;
   repoDiffStatus: QueryStatus;
 }
 

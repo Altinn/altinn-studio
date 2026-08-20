@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UncommittedChangesDialogProps } from './UncommittedChangesDialog';
 import { UncommittedChangesDialog } from './UncommittedChangesDialog';
 import type { UncommittedChangesError, UncommittedFile } from 'app-shared/types/api/BranchTypes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 
 const onClose = jest.fn();
 const onDiscardAndSwitch = jest.fn();
@@ -45,13 +46,11 @@ describe('UncommittedChangesDialog', () => {
 
     const dialogHeading = getDialogHeading();
     const alert = screen.getByText(textMock('branching.uncommitted_changes_dialog.alert'));
-    const filesHeading = getFilesHeading();
     const discardChangesButton = getDiscardChangesButton();
     const cancelButton = getCancelButton();
 
     expect(dialogHeading).toBeInTheDocument();
     expect(alert).toBeInTheDocument();
-    expect(filesHeading).toBeInTheDocument();
     expect(discardChangesButton).toBeInTheDocument();
     expect(cancelButton).toBeInTheDocument();
   });
@@ -59,10 +58,10 @@ describe('UncommittedChangesDialog', () => {
   it('should render file paths and statuses', () => {
     renderUncommittedChangesDialog();
 
-    const path1 = screen.getByText(filePath1);
-    const path2 = screen.getByText(filePath2);
-    const status1 = screen.getByText(fileStatus1);
-    const status2 = screen.getByText(fileStatus2);
+    const path1 = screen.getByTitle(filePath1);
+    const path2 = screen.getByTitle(filePath2);
+    const status1 = screen.getByText(fileStatusText(fileStatus1));
+    const status2 = screen.getByText(fileStatusText(fileStatus2));
 
     expect(path1).toBeInTheDocument();
     expect(path2).toBeInTheDocument();
@@ -137,7 +136,7 @@ const defaultProps: UncommittedChangesDialogProps = {
 };
 
 const renderUncommittedChangesDialog = (props?: Partial<UncommittedChangesDialogProps>) => {
-  return render(<UncommittedChangesDialog {...defaultProps} {...props} />);
+  return renderWithProviders()(<UncommittedChangesDialog {...defaultProps} {...props} />);
 };
 
 const getDialog = () => screen.getByRole('dialog');
@@ -145,11 +144,6 @@ const getDialog = () => screen.getByRole('dialog');
 const getDialogHeading = () =>
   screen.getByRole('heading', {
     name: textMock('branching.uncommitted_changes_dialog.heading'),
-  });
-
-const getFilesHeading = () =>
-  screen.getByRole('heading', {
-    name: textMock('branching.uncommitted_changes_dialog.uncommitted_files', { count: 2 }),
   });
 
 const getDiscardChangesButton = () =>
@@ -171,3 +165,6 @@ const getLoadingButton = () =>
   screen.getByRole('button', {
     name: textMock('general.loading'),
   });
+
+const fileStatusText = (status: string) =>
+  textMock(`sync_header.show_changes_modal.file_status_${status}`);
