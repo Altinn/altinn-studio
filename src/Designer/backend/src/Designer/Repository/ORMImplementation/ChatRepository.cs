@@ -165,6 +165,29 @@ public class ChatRepository : IChatRepository
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<bool> SetFeedbackAsync(
+        string traceId,
+        bool? thumbsUp,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
+        int rowsAffected = await _dbContext
+            .ChatMessages.Where(m =>
+                m.TraceId == traceId
+                && _dbContext.ChatThreads.Any(t =>
+                    t.Id == m.ThreadId
+                    && t.Org == context.Org
+                    && t.App == context.Repo
+                    && t.CreatedBy == context.Developer
+                )
+            )
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.FeedbackThumbsUp, thumbsUp), cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
     private async Task<ChatMessageEntity?> FindByEventIdAsync(
         Guid threadId,
         string eventId,

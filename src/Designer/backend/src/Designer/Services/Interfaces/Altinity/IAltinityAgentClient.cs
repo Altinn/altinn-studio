@@ -22,5 +22,7 @@ public interface IAltinityAgentClient
     /// <summary>
     /// Triggers deletion of Langfuse traces older than the agents service's retention window.
     /// </summary>
+    Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken);
+
     Task TriggerTraceCleanupAsync(CancellationToken cancellationToken);
 }

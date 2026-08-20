@@ -109,12 +109,18 @@ describe('mapChatMessageToFrontend', () => {
       expect(result).toMatchObject({ traceId: 'trace-1' });
     });
 
-    it('leaves filesChanged, sources and traceId undefined when absent', () => {
+    it('maps feedbackThumbsUp', () => {
+      const result = mapChatMessageToFrontend({ ...assistantBase, feedbackThumbsUp: false });
+      expect(result).toMatchObject({ feedbackThumbsUp: false });
+    });
+
+    it('leaves filesChanged, sources, traceId and feedbackThumbsUp undefined when absent', () => {
       const result = mapChatMessageToFrontend(assistantBase);
       expect(result).toMatchObject({
         filesChanged: undefined,
         sources: undefined,
         traceId: undefined,
+        feedbackThumbsUp: undefined,
       });
     });
   });
