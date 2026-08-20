@@ -104,6 +104,8 @@ ownership model inside a Sandbox.
   versioned control-protocol endpoints
 - SDKs to manage sandboxes and agents
 - OCI images built from user-supplied Dockerfiles or resolved from registry references
+- Provider-neutral prepared-image operations for transporting pristine, pre-materialized derivatives of OCI
+  images; formats remain opaque, Provider-owned and usable only with compatible Sandbox Providers
 
 #### Initial deliverable
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import classes from './PreviewLimitationsInfo.module.css';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { RemindChoiceDialog } from '../RemindChoiceDialog/RemindChoiceDialog';
 
@@ -25,9 +25,9 @@ export const PreviewLimitationsInfo = () => {
   if (!showPreviewLimitationsInfo) return null;
 
   return (
-    <Alert severity='info' className={classes.alert}>
+    <StudioAlert data-color='info' className={classes.alert}>
       {t('preview.limitations_info')}
       <RemindChoiceDialog closeDialog={handleHidePreviewLimitations} />
-    </Alert>
+    </StudioAlert>
   );
 };

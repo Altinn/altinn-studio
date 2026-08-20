@@ -22,6 +22,9 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.at24.altinn.cloud/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.at24.altinn.cloud/correspondence/api/v1/
         GeneralSettings__HostName: at24.altinn.cloud
+        PlatformFrontendSettings__LogoutUrl: https://platform.at24.altinn.cloud/authentication/api/v1/logout
+        PlatformFrontendSettings__LoginUrl: https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goto={goTo}
+        PlatformFrontendSettings__UpgradeAuthenticationLevelUrl: https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high
         AppSettings__OpenIdWellKnownEndpoint: https://platform.at24.altinn.cloud/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Staging
   - target:
@@ -45,6 +48,11 @@ patches:
             },
             "GeneralSettings": {
               "HostName": "at24.altinn.cloud"
+            },
+            "PlatformFrontendSettings": {
+              "LogoutUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/logout",
+              "LoginUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goto={goTo}",
+              "UpgradeAuthenticationLevelUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.at24.altinn.cloud/authentication/api/v1/openid/"
