@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button, Pagination } from '@app/form-component';
+import { Button, Pagination, useIsMobileOrTablet } from '@app/form-component';
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
@@ -16,7 +16,6 @@ import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
