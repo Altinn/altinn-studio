@@ -428,7 +428,8 @@ export function nb() {
     'validation_errors.formatMaximum': 'Største gyldig verdi er {0}',
     'map_component.selectedLocation': 'Valgt lokasjon: {0}° nord, {1}° øst',
     'map_component.noSelectedLocation': 'Ingen lokasjon valgt',
-    'map_component.ariaLabel': 'Interaktivt kart. Bruk piltaster for å panorere, pluss og minus for å zoome.',
+    'map_component.ariaLabel':
+      'Interaktivt kart. Bruk piltaster for å panorere, pluss og minus for å zoome.',
     'map_component.zoomIn': 'Zoom inn',
     'map_component.zoomOut': 'Zoom ut',
     'multiple_select_component.no_options': 'Ingen valg tilgjengelig',
@@ -492,7 +493,8 @@ export function nb() {
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake på et senere tidspunkt. Allerede påbegynte skjema kan åpnes fra innboksen eller utkast-mappen.',
-    'process_workflow.connection_trouble': 'Vi får ikke kontakt med tjenesten akkurat nå. Prøver igjen …',
+    'process_workflow.connection_trouble':
+      'Vi får ikke kontakt med tjenesten akkurat nå. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
     'taskTypes.data': 'Utfylling',
