@@ -22,6 +22,12 @@ pub enum RootFilesystemMode {
 pub struct RootFilesystemModeSet(BTreeSet<RootFilesystemMode>);
 
 impl RootFilesystemModeSet {
+    /// Reports whether no root filesystem mode is supported.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     /// Reports whether a root filesystem mode is supported.
     #[must_use]
     pub fn contains(&self, mode: RootFilesystemMode) -> bool {
@@ -31,6 +37,12 @@ impl RootFilesystemModeSet {
     /// Iterates over supported modes in stable order.
     pub fn iter(&self) -> impl Iterator<Item = RootFilesystemMode> + '_ {
         self.0.iter().copied()
+    }
+
+    /// Returns the modes present in both sets.
+    #[must_use]
+    pub fn intersection(&self, other: &Self) -> Self {
+        Self(self.0.intersection(&other.0).copied().collect())
     }
 }
 
