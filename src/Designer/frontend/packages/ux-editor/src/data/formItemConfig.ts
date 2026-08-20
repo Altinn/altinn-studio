@@ -54,20 +54,20 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+// ComponentType also contains pre-v9 names used by the legacy ux editors.
+export type SupportedComponentType = Exclude<
+  ComponentType | CustomComponentType,
+  ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
+>;
+
 export type FormItemConfigs = {
-  [
-    T in Exclude<
-      ComponentType | CustomComponentType,
-      ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
-    >
-  ]: FormItemConfig<T>;
+  [T in SupportedComponentType]: FormItemConfig<T>;
 } & Partial<{
   [ComponentType.OrganisationLookup]: FormItemConfig<ComponentType.OrganisationLookup>;
   [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
 }>;
 
-export type FormItemConfigEntry = FormItemConfigs[keyof FormItemConfigs];
+export type FormItemConfigEntry = NonNullable<FormItemConfigs[keyof FormItemConfigs]>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -533,6 +533,10 @@ export const formItemConfigs: FormItemConfigs = {
     icon: MinusIcon,
   },
 };
+
+export const isSupportedComponentType = (
+  componentType: ComponentType | CustomComponentType,
+): componentType is SupportedComponentType => componentType in formItemConfigs;
 
 export const advancedItems: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Address],
