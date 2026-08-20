@@ -52,20 +52,4 @@ Use Tokio's `LocalRuntime` for asynchronous work. Keep control-plane state singl
 
 ## Development
 
-The seven Rust crates in this directory are members of the repository-level Cargo workspace. The shared
-`Cargo.toml`, `Cargo.lock` and `rustfmt.toml` are at the repository root; the Makefile targets below remain scoped to
-the experimental crates.
-
-```sh
-make build
-make fmt
-make lint
-make test
-make check
-make check-platforms
-```
-
-`make check` runs formatting checks, strict Clippy analysis, builds, tests and the ignored KVM integration tests for
-the experimental crates. `make check-ci` runs the same checks without the KVM integration tests.
-`make check-platforms` runs Clippy over the portable crates' Windows and macOS code after their Rust
-standard-library targets are installed. Concrete Backends still require the documented native test matrix.
+Run `make help` in this directory to list the available development targets.

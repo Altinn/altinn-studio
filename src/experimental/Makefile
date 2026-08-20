@@ -1,4 +1,4 @@
-.PHONY: help build fmt fmt-check lint lint-fix test test-independent test-microsandbox check check-ci check-platforms deps deps-check
+.PHONY: help build clean fmt lint lint-fix test test-independent test-e2e check check-platforms deps deps-check
 .DEFAULT_GOAL := help
 
 EXPERIMENTAL_PACKAGES := \
@@ -15,47 +15,62 @@ help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Available targets:'
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
 
 build: ## Build all experimental Rust crates
-	cargo build $(EXPERIMENTAL_PACKAGES) --all-targets
+	@echo "Building experimental Rust crates..."
+	@cargo build $(EXPERIMENTAL_PACKAGES) --all-targets --locked
+	@echo "✓ Build successful"
+
+clean: ## Clean experimental build artifacts
+	@echo "Cleaning experimental build artifacts..."
+	@cargo clean $(EXPERIMENTAL_PACKAGES)
+	@echo "✓ Cleaned"
 
 fmt: ## Format Rust code
-	cargo fmt $(EXPERIMENTAL_PACKAGES)
-
-fmt-check: ## Verify Rust formatting
-	cargo fmt $(EXPERIMENTAL_PACKAGES) --check
+	@echo "Formatting experimental Rust code..."
+	@cargo fmt $(EXPERIMENTAL_PACKAGES)
+	@echo "✓ Code formatted"
 
 lint: ## Run strict Clippy analysis
-	cargo clippy $(EXPERIMENTAL_PACKAGES) --all-targets --all-features
+	@echo "Linting experimental Rust crates..."
+	@cargo clippy $(EXPERIMENTAL_PACKAGES) --all-targets --all-features --locked
+	@echo "✓ Lint passed"
 
 lint-fix: ## Apply safe Clippy fixes
-	cargo clippy $(EXPERIMENTAL_PACKAGES) --all-targets --all-features --fix --allow-dirty
+	@echo "Applying Clippy fixes to experimental Rust crates..."
+	@cargo clippy $(EXPERIMENTAL_PACKAGES) --all-targets --all-features --fix --allow-dirty --locked
+	@echo "✓ Lint fixes applied"
 
 test: ## Run all tests
-	cargo test $(EXPERIMENTAL_PACKAGES) --all-targets
+	@echo "Testing experimental Rust crates..."
+	@cargo test $(EXPERIMENTAL_PACKAGES) --all-targets --locked
+	@echo "✓ Tests passed"
 
 test-independent: ## Test reusable lower-layer crates independently
-	cargo test --manifest-path sandbox/Cargo.toml --all-targets
-	cargo test --manifest-path sandbox-microsandbox/Cargo.toml --all-targets
-	cargo test --manifest-path sandbox-authorization/Cargo.toml --all-targets
-	cargo test --manifest-path agent-runtime-protocol/Cargo.toml --all-targets
-	cargo test --manifest-path agent-runtime/Cargo.toml --all-targets
+	@echo "Testing reusable lower-layer crates independently..."
+	@cargo test --manifest-path sandbox/Cargo.toml --all-targets --locked
+	@cargo test --manifest-path sandbox-microsandbox/Cargo.toml --all-targets --locked
+	@cargo test --manifest-path sandbox-authorization/Cargo.toml --all-targets --locked
+	@cargo test --manifest-path agent-runtime-protocol/Cargo.toml --all-targets --locked
+	@cargo test --manifest-path agent-runtime/Cargo.toml --all-targets --locked
+	@echo "✓ Independent tests passed"
 
-test-microsandbox: ## Run the real Docker/Microsandbox integration tests
-	cargo test -p sandbox-microsandbox --tests -- --ignored
+test-e2e: ## Run integration tests that require Docker, Internet access, and KVM
+	@echo "Running experimental end-to-end tests..."
+	@cargo test -p sandbox-microsandbox --tests --locked -- --ignored
+	@echo "✓ End-to-end tests passed"
 
 deps: ## Print the workspace dependency graph
-	cargo tree $(EXPERIMENTAL_PACKAGES)
+	@cargo tree $(EXPERIMENTAL_PACKAGES) --locked
 
 deps-check: ## Check for unused direct dependencies
-	cargo machete --with-metadata .
+	@cargo machete --with-metadata .
 
-check: fmt-check lint build test test-independent test-microsandbox deps-check ## Run the complete local verification sequence
-
-check-ci: fmt-check lint build test test-independent deps-check ## Run checks that do not require KVM
+check: fmt lint build test test-independent test-e2e deps-check ## Run all local checks
+	@echo "✓ All checks passed"
 
 check-platforms: ## Cross-check portable Windows and macOS code (requires rustup targets)
-	cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --target x86_64-pc-windows-gnu
-	cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --target aarch64-apple-darwin
-	cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --target x86_64-apple-darwin
+	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked --target x86_64-pc-windows-gnu
+	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked --target aarch64-apple-darwin
+	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked --target x86_64-apple-darwin

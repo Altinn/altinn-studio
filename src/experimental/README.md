@@ -27,16 +27,7 @@ Important considerations:
 
 ## Development
 
-The seven Rust crates under this directory are part of the repository-level Cargo workspace. Shared Cargo metadata,
-the lockfile and rustfmt configuration live at the repository root. Run the experimental checks from the repository
-root with:
-
-```sh
-make -C src/experimental check
-```
-
-The full check includes ignored KVM integration tests. Environments without KVM, including pull-request runners,
-should use `make -C src/experimental check-ci`.
+See the [`Makefile`](Makefile) for available development commands.
 
 ## High-level Architecture
 
