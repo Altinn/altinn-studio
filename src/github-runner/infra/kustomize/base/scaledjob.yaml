@@ -138,12 +138,13 @@ spec:
                     key: appPrivateKey
             resources:
               requests:
-                cpu: "4"
+                # Limit each D32 node to four runners to protect shared OS-disk bandwidth.
+                cpu: "7"
                 memory: 14Gi
                 ephemeral-storage: 120Gi
                 devices.altinn.studio/kvm: "1"
               limits:
-                cpu: "4"
+                cpu: "7"
                 memory: 14Gi
                 ephemeral-storage: 120Gi
                 devices.altinn.studio/kvm: "1"
