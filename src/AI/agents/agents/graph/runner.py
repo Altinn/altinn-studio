@@ -22,6 +22,11 @@ def _check_cancelled(state: AgentState):
         raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
 
 
+def _raise_if_cancelled(state: AgentState, event_sink: EventSink) -> None:
+    if event_sink.is_cancelled(state.session_id):
+        raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
+
+
 def _with_cancellation(fn):
     """Wrap an async node handler to check for cancellation before execution."""
     async def wrapper(state: AgentState) -> AgentState:
@@ -133,7 +138,10 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
       chat question gets a polite decline delivered as a normal reply.
     - Intent validation (write runs only): see _validate_intent.
     """
+    _raise_if_cancelled(state, event_sink)
     scope_result = await check_scope_async(state.user_goal)
+    # The scope check is an LLM call, so a cancel can land while it runs.
+    _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:
         decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
         _log.info(

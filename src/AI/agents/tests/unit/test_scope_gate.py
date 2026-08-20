@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agents.graph.runner import GoalRejected, _gate_goal
+from agents.graph.runner import GoalRejected, WorkflowCancelled, _gate_goal
 from agents.graph.state import AgentState
 from agents.services.llm.scope_checker import ScopeCheckResult, check_scope_async
 
@@ -106,6 +106,12 @@ class TestCheckScopeAsync:
         assert result.in_scope is True
 
 
+def _sink(cancelled: bool = False) -> MagicMock:
+    sink = MagicMock()
+    sink.is_cancelled.return_value = cancelled
+    return sink
+
+
 class TestGateGoal:
     def _out_of_scope(self):
         return ScopeCheckResult(
@@ -121,7 +127,7 @@ class TestGateGoal:
             new=AsyncMock(return_value=self._out_of_scope()),
         ):
             with pytest.raises(GoalRejected, match="Altinn-apputvikling"):
-                await _gate_goal(state, event_sink=MagicMock())
+                await _gate_goal(state, event_sink=_sink())
 
     async def test_write_mode_strips_pipes_from_the_decline_text(self):
         state = _state(allow_app_changes=True)
@@ -135,7 +141,7 @@ class TestGateGoal:
             new=AsyncMock(return_value=piped),
         ):
             with pytest.raises(GoalRejected) as excinfo:
-                await _gate_goal(state, event_sink=MagicMock())
+                await _gate_goal(state, event_sink=_sink())
 
         # The "reason|suggestions" protocol splits on "|" — the decline text
         # must not contain one, or it spills into fake suggestion chips.
@@ -143,7 +149,7 @@ class TestGateGoal:
 
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)
-        event_sink = MagicMock()
+        event_sink = _sink()
         with patch(
             "agents.graph.runner.check_scope_async",
             new=AsyncMock(return_value=self._out_of_scope()),
@@ -175,7 +181,7 @@ class TestGateGoal:
                 "agents.graph.runner._validate_intent", new=AsyncMock()
             ) as validate_intent,
         ):
-            decline = await _gate_goal(state, event_sink=MagicMock())
+            decline = await _gate_goal(state, event_sink=_sink())
 
         assert decline is None
         validate_intent.assert_awaited_once_with(state)
@@ -192,7 +198,31 @@ class TestGateGoal:
                 "agents.graph.runner._validate_intent", new=AsyncMock()
             ) as validate_intent,
         ):
-            decline = await _gate_goal(state, event_sink=MagicMock())
+            decline = await _gate_goal(state, event_sink=_sink())
 
         assert decline is None
         validate_intent.assert_not_awaited()
+
+    async def test_cancelling_during_the_scope_check_stops_the_turn(self):
+        state = _state(allow_app_changes=False)
+        event_sink = _sink()
+        event_sink.is_cancelled.side_effect = [False, True]
+        with patch(
+            "agents.graph.runner.check_scope_async",
+            new=AsyncMock(return_value=self._out_of_scope()),
+        ):
+            with pytest.raises(WorkflowCancelled):
+                await _gate_goal(state, event_sink=event_sink)
+
+        event_sink.send.assert_not_called()
+        event_sink.add_to_conversation_history.assert_not_called()
+
+    async def test_a_cancelled_session_never_calls_the_scope_check(self):
+        state = _state(allow_app_changes=False)
+        with patch(
+            "agents.graph.runner.check_scope_async", new=AsyncMock()
+        ) as check_scope:
+            with pytest.raises(WorkflowCancelled):
+                await _gate_goal(state, event_sink=_sink(cancelled=True))
+
+        check_scope.assert_not_awaited()

@@ -96,9 +96,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   }, []);
 
   const markThreadStillRunning = useCallback(
-    (threadId: string) => {
+    (threadId: string, previousStatus: WorkflowStatus | undefined) => {
       delete terminatedAtMsByThreadRef.current[threadId];
-      setWorkflowStatus(threadId, { isActive: true, sessionId: threadId });
+      setWorkflowStatus(threadId, {
+        ...previousStatus,
+        isActive: true,
+        sessionId: previousStatus?.sessionId ?? threadId,
+      });
     },
     [setWorkflowStatus],
   );
@@ -259,7 +263,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const handleAssistantMessage = useCallback(
     async (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const threadId = event.session_id;
-      if (!threadId) return;
+      if (!threadId || !ownsThread(threadId)) return;
 
       const assistantMessage = event.data;
       // eventId is stamped on every answer; traceId only exists when Langfuse is on.
@@ -313,7 +317,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      if (!shouldSkipBranchOps(assistantMessage) && ownsThread(threadId)) {
+      if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);
       }
     },
@@ -522,6 +526,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     const threadId = selectedThreadId;
     if (!selectedThreadId) return;
 
+    const statusBeforeCancel = workflowStatusByThread[threadId];
     markThreadTerminated(threadId);
     setWorkflowStatus(threadId, { isActive: false });
 
@@ -544,7 +549,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       await cancelWorkflow(threadId);
     } catch (error) {
       // The run is still going, so stop showing it as stopped.
-      markThreadStillRunning(threadId);
+      markThreadStillRunning(threadId, statusBeforeCancel);
       console.error('Cancel workflow request failed:', error);
     }
   }, [
@@ -557,6 +562,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     chatMessages,
     setWorkflowStatus,
     markThreadStillRunning,
+    workflowStatusByThread,
     markThreadTerminated,
   ]);
 

@@ -1433,23 +1433,71 @@ describe('useAssistantWorkflow', () => {
     });
 
     expect(resetRepoChanges).not.toHaveBeenCalled();
+    expect(threads.createMessage).not.toHaveBeenCalled();
+    expect(threads.refreshMessages).not.toHaveBeenCalled();
+  });
+
+  it('restores the trail when the cancel request fails mid-run', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn().mockRejectedValue(new Error('Hub disconnected')),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo', tool_use_id: 'tool-1' },
+      });
+    });
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    const status = result.current.workflowStatusByThread['thread-a'];
+    expect(status?.isActive).toBe(true);
+    expect(status?.steps).toHaveLength(1);
+    expect(status?.message).toBe('Skanner repo');
+    consoleErrorSpy.mockRestore();
   });
 });
 
-const createThreadState = (
-  overrides: Partial<AssistantThreadState> = {},
-): AssistantThreadState => ({
-  chatThreads: [],
-  selectedThreadId: null,
-  chatMessages: [],
-  selectThread: jest.fn(),
-  createThread: jest.fn().mockResolvedValue('new-thread-id'),
-  deleteThread: jest.fn(),
-  deleteMessage: jest.fn(),
-  createMessage: jest.fn(),
-  refreshMessages: jest.fn(),
-  ...overrides,
-});
+const createThreadState = (overrides: Partial<AssistantThreadState> = {}): AssistantThreadState => {
+  const base: AssistantThreadState = {
+    chatThreads: [],
+    selectedThreadId: null,
+    chatMessages: [],
+    selectThread: jest.fn(),
+    createThread: jest.fn().mockResolvedValue('new-thread-id'),
+    deleteThread: jest.fn(),
+    deleteMessage: jest.fn(),
+    createMessage: jest.fn(),
+    refreshMessages: jest.fn(),
+    ...overrides,
+  };
+  if (base.selectedThreadId && !overrides.chatThreads) {
+    base.chatThreads = [
+      { id: base.selectedThreadId, title: 'Tråd', createdAt: '2026-01-01T00:00:00Z' },
+    ];
+  }
+  return base;
+};
 
 const renderUseAssistantWorkflow = (
   threads: AssistantThreadState,
