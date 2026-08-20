@@ -41,6 +41,7 @@ public class RepositoryController : ControllerBase
     private readonly IRepository _repository;
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
     private readonly IBranchService _branchService;
+    private readonly IAppTemplateCatalog _appTemplateCatalog;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -53,12 +54,14 @@ public class RepositoryController : ControllerBase
     /// <param name="repository">the repository control</param>
     /// <param name="syncHub">websocket syncHub</param>
     /// <param name="branchService">the branch service</param>
+    /// <param name="appTemplateCatalog">the available app scaffolds</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
         IHubContext<SyncHub, ISyncClient> syncHub,
-        IBranchService branchService
+        IBranchService branchService,
+        IAppTemplateCatalog appTemplateCatalog
     )
     {
         _giteaClient = giteaClient;
@@ -66,6 +69,7 @@ public class RepositoryController : ControllerBase
         _repository = repository;
         _syncHub = syncHub;
         _branchService = branchService;
+        _appTemplateCatalog = appTemplateCatalog;
     }
 
     /// <summary>
@@ -233,6 +237,23 @@ public class RepositoryController : ControllerBase
             return BadRequest($"{request.Repository} is an invalid repository name.");
         }
 
+        AppTemplate appTemplate;
+        if (string.IsNullOrWhiteSpace(request.AppTemplate))
+        {
+            appTemplate = _appTemplateCatalog.GetDefaultAppTemplate();
+        }
+        else if (!_appTemplateCatalog.TryGetAppTemplate(request.AppTemplate, out AppTemplate? requestedAppTemplate))
+        {
+            return BadRequest(
+                $"'{request.AppTemplate}' is not a known app template. Available: "
+                    + $"{string.Join(", ", _appTemplateCatalog.GetAppTemplates().Select(template => template.Id))}."
+            );
+        }
+        else
+        {
+            appTemplate = requestedAppTemplate;
+        }
+
         try
         {
             var config = new ServiceConfiguration
@@ -244,7 +265,8 @@ public class RepositoryController : ControllerBase
             var repositoryResult = await _repository.CreateService(
                 request.Org,
                 config,
-                request.Template != null ? [request.Template] : []
+                request.Template != null ? [request.Template] : [],
+                appTemplate
             );
 
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)

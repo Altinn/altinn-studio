@@ -1,0 +1,9 @@
+# Keep the src/ build context limited to the Designer backend and its shared dependency.
+**
+!common/dotnet/Altinn.Studio.Common/**
+!Designer/backend/**
+**/bin
+**/obj
+**/tests
+**/docs
+**/.git

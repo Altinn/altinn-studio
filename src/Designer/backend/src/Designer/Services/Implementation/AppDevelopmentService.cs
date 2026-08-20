@@ -476,7 +476,8 @@ public class AppDevelopmentService : IAppDevelopmentService
         {
             // TODO: introduce better check to evaluate if app uses layout sets
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            return layoutSets.Sets.FirstOrDefault(layoutSet => layoutSet.Id == layoutSetId);
+            return layoutSets.Sets.FirstOrDefault(layoutSet => layoutSet.Id == layoutSetId)
+                ?? throw new NoLayoutSetsFileFoundException($"Layout set '{layoutSetId}' was not found.");
         }
 
         throw new NoLayoutSetsFileFoundException("No layout set found for this app.");

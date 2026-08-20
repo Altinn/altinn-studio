@@ -1,4 +1,4 @@
-import { Link } from '@digdir/designsystemet-react';
+import { StudioLink } from '@studio/components';
 import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';
@@ -17,7 +17,7 @@ export const FormDesignerNavigation = () => {
             <SettingsTabs />
           </div>
           <footer className={classes.footer}>
-            <Link href='/info/contact'>{t('general.contact')}</Link>
+            <StudioLink href='/info/contact'>{t('general.contact')}</StudioLink>
             <LayoutPageOverviewFeedback />
           </footer>
         </div>

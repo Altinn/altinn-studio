@@ -36,6 +36,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared hosting mechanics are compiled as source to avoid a runtime package dependency. -->
+    <Compile Include="../../../../common/dotnet/Altinn.Studio.Common/src/GracefulShutdown.cs" Link="Infrastructure/Lifetime/GracefulShutdown.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Internal analyzers are for analysis of _our_ code, so we reference this project as an analyzer (it's a build-time dep) -->
     <ProjectReference Include="../Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <!-- We reference the app analyzers to make sure it's built, but we don't really reference it. We just include it in packaging below -->

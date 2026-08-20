@@ -1,91 +1,32 @@
 import React from 'react';
 
-import { getLabelId, HelpText, LoadingEmpty } from '@app/form-component';
-import cn from 'classnames';
+import { Option } from '@app/form-component';
 
-import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Option/Option.module.css';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const OptionComponent = ({ baseComponentId }: PropsFromGenericComponent<'Option'>) => {
-  const item = useItemWhenType(baseComponentId, 'Option');
-
-  if (!item.textResourceBindings?.title) {
-    return (
-      <Text
-        baseComponentId={baseComponentId}
-        usingLabel={false}
-      />
-    );
-  }
+  const { textResourceBindings, icon, value, direction, grid } = useItemWhenType(baseComponentId, 'Option');
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
+  const { options, isFetching } = useGetOptions(baseComponentId, 'single');
+  const selectedOption = options.find((option) => option.value === value);
 
   return (
-    <ComponentStructureWrapper
-      baseComponentId={baseComponentId}
-      label={{
-        baseComponentId,
-        renderLabelAs: 'span',
-        className: cn(
-          classes.label,
-          classes.optionComponent,
-          item.direction === 'vertical' ? classes.vertical : classes.horizontal,
-        ),
-      }}
-    >
-      <Text
-        baseComponentId={baseComponentId}
-        usingLabel={true}
-      />
-    </ComponentStructureWrapper>
+    <Option
+      componentId={componentId}
+      title={textResourceBindings?.title}
+      description={textResourceBindings?.description}
+      help={textResourceBindings?.help}
+      icon={icon}
+      direction={direction ?? 'horizontal'}
+      labelGrid={grid?.labelGrid}
+      innerGrid={innerGrid}
+      isLoading={isFetching}
+      optionLabel={selectedOption?.label}
+      optionHelp={selectedOption?.helpText}
+      optionDescription={selectedOption?.description}
+    />
   );
 };
-
-interface TextProps {
-  baseComponentId: string;
-  usingLabel: boolean;
-}
-
-function Text({ baseComponentId, usingLabel }: TextProps) {
-  const { textResourceBindings, icon, value } = useItemWhenType(baseComponentId, 'Option');
-  const { options, isFetching } = useGetOptions(baseComponentId, 'single');
-  const { langAsString } = useLanguage();
-  const selectedOption = options.find((option) => option.value === value);
-  const indexedId = useIndexedId(baseComponentId);
-
-  if (isFetching) {
-    return <LoadingEmpty />;
-  }
-
-  return (
-    <>
-      {icon && textResourceBindings?.title && (
-        <img
-          src={icon}
-          className={classes.icon}
-          alt={langAsString(textResourceBindings.title)}
-        />
-      )}
-      <span
-        {...(usingLabel ? { 'aria-labelledby': getLabelId(indexedId) } : {})}
-        className={classes.optionLabelContainer}
-      >
-        <Lang id={selectedOption?.label} />
-        {selectedOption?.helpText && (
-          <HelpText title={langAsString(selectedOption.helpText)}>
-            <Lang id={selectedOption.helpText} />
-          </HelpText>
-        )}
-        {selectedOption?.description && (
-          <span className={classes.optionDescription}>
-            <Lang id={selectedOption?.description} />
-          </span>
-        )}
-      </span>
-    </>
-  );
-}

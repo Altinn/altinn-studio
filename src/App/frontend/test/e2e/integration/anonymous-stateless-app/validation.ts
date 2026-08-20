@@ -8,7 +8,7 @@ describe('Validation in anonymous stateless app', () => {
     cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null, tenorUser: null });
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
     cy.get(appFrontend.stateless.name).invoke('val').should('be.empty');
-    cy.get(appFrontend.navButtons).contains('button', 'next').click();
+    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
 
     const nameError = appFrontend.fieldValidation(appFrontend.stateless.name);
 
@@ -25,7 +25,7 @@ describe('Validation in anonymous stateless app', () => {
     cy.get(nameError).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.get(appFrontend.navButtons).contains('button', 'next').click();
+    cy.get(appFrontend.navButtons).contains('button', 'Neste').click();
     cy.get(appFrontend.navButtons).should('not.exist');
   });
 });

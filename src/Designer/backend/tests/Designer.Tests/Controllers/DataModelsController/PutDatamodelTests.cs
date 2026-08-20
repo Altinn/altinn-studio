@@ -18,6 +18,8 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
+using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
@@ -178,7 +180,7 @@ public class PutDatamodelTests
         {
             var pointerObject = JsonPointer.Parse(pointer);
             Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
-            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)]);
+            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToUriEncodedString()]);
         }
     }
 
@@ -250,7 +252,7 @@ public class PutDatamodelTests
             return sw.ToString();
         }
 
-        var jsonSchema = JsonSchema.FromText(MinimumValidJsonSchema);
+        var jsonSchema = JsonSchemaKeywords.FromText(MinimumValidJsonSchema);
         var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
         var xsd = converter.Convert(jsonSchema);
         var xsdContent = await SerializeXml(xsd);
@@ -260,7 +262,7 @@ public class PutDatamodelTests
     private static void VerifyMetadataContent(string path)
     {
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(
-            JsonSchema.FromText(MinimumValidJsonSchema)
+            JsonSchemaKeywords.FromText(MinimumValidJsonSchema)
         );
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(MinimumValidJsonSchema);

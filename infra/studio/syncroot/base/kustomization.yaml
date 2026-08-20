@@ -8,7 +8,6 @@ resources:
   - ssl-cert-external-secret.yaml
   - kubernetes-wrapper.yaml
   - gitea-runners.yaml
-  - altinn-mcp-server.yaml
   - altinn-altinity-agents.yaml
   - lhci.yaml
   - observability.yaml

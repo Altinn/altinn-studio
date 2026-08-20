@@ -165,7 +165,7 @@ public sealed class DataClient : IDataClient
         StreamContent streamContent = new(new MemoryAsStream(serializedBytes));
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             streamContent,
@@ -239,16 +239,16 @@ public sealed class DataClient : IDataClient
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadAsStreamAsync(cts.Token);
+            // Ownership of the response moves to the returned stream — a `using` here would dispose the
+            // content the caller is about to read.
+            return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        // Nothing takes the response over on the failure path, so this scope owns it.
+        using (response)
         {
-            // ! TODO: Remove null return in v9 and throw exception instead
-            return null!;
+            throw await PlatformHttpException.Create(response, cts.Token);
         }
-
-        throw await PlatformHttpException.Create(response, cts.Token);
     }
 
     /// <inheritdoc />
@@ -275,19 +275,16 @@ public sealed class DataClient : IDataClient
 
         if (response.IsSuccessStatusCode)
         {
-            try
-            {
-                Stream stream = await response.Content.ReadAsStreamAsync(cts.Token);
-                return new ResponseWrapperStream(response, stream);
-            }
-            catch (Exception)
-            {
-                response.Dispose();
-                throw;
-            }
+            // Ownership of the response moves to the returned stream — a `using` here would dispose the
+            // content the caller is about to read.
+            return await ResponseWrapperStream.Create(response, cts.Token);
         }
 
-        throw await PlatformHttpException.Create(response, cts.Token);
+        // Nothing takes the response over on the failure path, so this scope owns it.
+        using (response)
+        {
+            throw await PlatformHttpException.Create(response, cts.Token);
+        }
     }
 
     /// <inheritdoc />
@@ -322,7 +319,7 @@ public sealed class DataClient : IDataClient
             );
         }
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.IsSuccessStatusCode)
         {
             var bytes = await response.Content.ReadAsByteArrayAsync(cts.Token);
@@ -391,7 +388,7 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
@@ -422,7 +419,7 @@ public sealed class DataClient : IDataClient
         DataElementList dataList;
         List<AttachmentList> attachmentList = [];
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
+        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.StatusCode == HttpStatusCode.OK)
         {
             string instanceData = await response.Content.ReadAsStringAsync(cts.Token);
@@ -495,7 +492,7 @@ public sealed class DataClient : IDataClient
             cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.DeleteAsync(
+        using HttpResponseMessage response = await _client.DeleteAsync(
             token,
             apiUrl,
             lockToken: _instanceLocker.CurrentLockToken,
@@ -538,7 +535,7 @@ public sealed class DataClient : IDataClient
         );
 
         StreamContent content = request.CreateContentStream();
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             content,
@@ -597,7 +594,7 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PostAsync(
+        using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             content,
@@ -648,7 +645,7 @@ public sealed class DataClient : IDataClient
 
         StreamContent content = request.CreateContentStream();
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             content,
@@ -703,7 +700,7 @@ public sealed class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             content,
@@ -740,7 +737,7 @@ public sealed class DataClient : IDataClient
         );
 
         StringContent jsonString = new(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             jsonString,
@@ -784,7 +781,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.PutAsync(
+        using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             content: null,
@@ -832,7 +829,7 @@ public sealed class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.DeleteAsync(
+        using HttpResponseMessage response = await _client.DeleteAsync(
             token,
             apiUrl,
             lockToken: _instanceLocker.CurrentLockToken,

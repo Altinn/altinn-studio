@@ -9,6 +9,18 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: `IDataClient.GetBinaryData` now throws `PlatformHttpException` when the data element does not exist, instead of returning `null` from a method whose signature says it never does. Its sibling `GetBinaryDataStream` already behaved this way. If your app relied on the `null` to detect a missing data element, catch `PlatformHttpException` and check for `HttpStatusCode.NotFound` instead. Code that did not check for `null` — the common case — now gets a clear error naming the failed request rather than a `NullReferenceException` further along.
+
+### Fixed
+
+- Dispose the streams you get from `IDataClient.GetBinaryData`, `IDataClient.GetBinaryDataStream` and `IPdfGeneratorClient.GeneratePdf` once you have finished reading them — each one holds an HTTP response open until it is disposed, and disposing the stream releases it. The interfaces now say so. Code that already disposed these streams is unaffected, and code that does not is no worse off than before. The app's other HTTP clients now release their responses promptly too, which needs nothing from you.
+
+### Removed
+
+- Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. Use `Altinn.App.Core.Internal.Data.IDataClient` instead.
+
 ## [9.0.0-preview.4] - 2026-08-11
 
 ### Added

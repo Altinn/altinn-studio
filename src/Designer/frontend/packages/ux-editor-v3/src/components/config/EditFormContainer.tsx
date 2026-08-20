@@ -5,7 +5,6 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
-import { Alert, Switch, Checkbox, Paragraph } from '@digdir/designsystemet-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
@@ -21,7 +20,16 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioProperty, StudioTextfield } from '@studio/components';
+import {
+  StudioCheckbox,
+  StudioCheckboxGroup,
+  StudioProperty,
+  StudioSwitch,
+  StudioTextfield,
+  StudioParagraph,
+  StudioAlert,
+  StudioValidationMessage,
+} from '@studio/components';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -166,14 +174,13 @@ export const EditFormContainer = ({
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
         renderField={({ fieldProps }) => (
-          <Switch
+          <StudioSwitch
+            data-size='sm'
             {...fieldProps}
             checked={fieldProps.value}
-            size='small'
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
-          >
-            {t('ux_editor.modal_properties_group_repeating')}
-          </Switch>
+            label={t('ux_editor.modal_properties_group_repeating')}
+          />
         )}
       />
       {container.maxCount > 1 && (
@@ -218,21 +225,34 @@ export const EditFormContainer = ({
                   checked:
                     container.tableHeaders === undefined || container.tableHeaders.includes(id),
                 }));
+                const checkedIds = checkboxes.filter(({ checked }) => checked).map(({ id }) => id);
                 return (
-                  <Checkbox.Group
-                    {...fieldProps}
-                    error={tableHeadersError}
-                    legend={t('ux_editor.modal_properties_group_table_headers')}
-                  >
+                  <StudioCheckboxGroup legend={t('ux_editor.modal_properties_group_table_headers')}>
                     {checkboxes.map(({ id, name, checked }) => (
-                      <Checkbox key={id} name={name} checked={checked} value={id}>
-                        {getTextResource(
-                          components[id]?.textResourceBindings?.title,
-                          textResources,
-                        ) || id}
-                      </Checkbox>
+                      <StudioCheckbox
+                        key={id}
+                        name={name}
+                        value={id}
+                        checked={checked}
+                        label={
+                          getTextResource(
+                            components[id]?.textResourceBindings?.title,
+                            textResources,
+                          ) || id
+                        }
+                        onChange={(event) =>
+                          fieldProps.onChange(
+                            event.target.checked
+                              ? [...checkedIds, id]
+                              : checkedIds.filter((checkedId) => checkedId !== id),
+                          )
+                        }
+                      />
                     ))}
-                  </Checkbox.Group>
+                    {tableHeadersError && (
+                      <StudioValidationMessage>{tableHeadersError}</StudioValidationMessage>
+                    )}
+                  </StudioCheckboxGroup>
                 );
               }}
             />
@@ -241,8 +261,8 @@ export const EditFormContainer = ({
       )}
     </StudioProperty.Group>
   ) : (
-    <Alert severity='info'>
-      <Paragraph size='small'>{t('ux_editor.container_not_editable_info')}</Paragraph>
-    </Alert>
+    <StudioAlert data-color='info'>
+      <StudioParagraph data-size='sm'>{t('ux_editor.container_not_editable_info')}</StudioParagraph>
+    </StudioAlert>
   );
 };
