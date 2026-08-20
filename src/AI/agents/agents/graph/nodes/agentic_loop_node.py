@@ -609,10 +609,10 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
     # Also store in conversation history so follow-up turns have context;
     # without it the chat assistant loses the thread between workflow runs.
     try:
+        # A fixed marker, never the notice itself: replaying attacker text as
+        # assistant history would reintroduce it undelimited on the next turn.
         history_text = (
-            f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_PREFIX}: {security_notice}]"
-            if security_notice
-            else summary
+            f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_MARKER}]" if security_notice else summary
         )
         sink.add_to_conversation_history(state.session_id, "assistant", history_text)
     except Exception:
@@ -638,7 +638,9 @@ _SECURITY_NOTICE_RE = re.compile(
 )
 
 MAX_SECURITY_NOTICE_LENGTH = 500
-SECURITY_NOTICE_HISTORY_PREFIX = "Sikkerhetsmerknad"
+SECURITY_NOTICE_HISTORY_MARKER = (
+    "Et vedlegg forsøkte å gi instruksjoner til assistenten. Instruksjonene ble ikke fulgt."
+)
 
 
 def _extract_security_notice(text: str) -> tuple[str, str | None]:

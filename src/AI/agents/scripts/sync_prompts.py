@@ -11,6 +11,8 @@ import difflib
 import sys
 from pathlib import Path
 
+import httpx
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from dotenv import load_dotenv
@@ -24,10 +26,14 @@ def _local_prompt_names() -> list[str]:
 
 
 def _remote(api: LangfuseApi, name: str) -> dict | None:
+    """None means Langfuse has no such prompt. Auth, server and transport
+    failures raise, so they are never mistaken for an absent prompt."""
     try:
         return api._get(f"/api/public/v2/prompts/{name}")
-    except Exception:
-        return None
+    except httpx.HTTPStatusError as error:
+        if error.response.status_code == 404:
+            return None
+        raise
 
 
 def _diff(api: LangfuseApi, name: str) -> bool:

@@ -6,6 +6,8 @@ prompt-only control disappears the moment someone edits it there.
 
 from __future__ import annotations
 
+import re
+
 ATTACHMENT_TAG = "attachment_content"
 FORM_SPEC_TAG = "form_spec"
 
@@ -32,8 +34,13 @@ def close_delimiter(tag: str) -> str:
 
 
 def defang_delimiter(content: str, tag: str) -> str:
-    """Stop a document from closing the block early and escaping it."""
-    return content.replace(f"</{tag}>", f"<\\/{tag}>")
+    """Stop a document from closing the block early and escaping it.
+
+    Matches the whitespace and case variants a model still reads as a closing
+    tag, not just the exact string.
+    """
+    pattern = re.compile(rf"<\s*/\s*{re.escape(tag)}\s*>", re.IGNORECASE)
+    return pattern.sub(rf"<\\/{tag}>", content)
 
 
 def wrap_untrusted(content: str, tag: str) -> str:

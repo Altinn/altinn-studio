@@ -39,7 +39,9 @@ class TestWrapUntrusted:
 
     def test_injected_text_stays_inside_the_block(self):
         wrapped = wrap_untrusted(_INJECTION, FORM_SPEC_TAG)
-        assert wrapped.index(_INJECTION) > wrapped.index(f"<{FORM_SPEC_TAG}>")
+        # The notice names the tag too, so anchor on the real opening line.
+        opened = wrapped.index(f"<{FORM_SPEC_TAG}>\n")
+        assert opened < wrapped.index(_INJECTION)
         assert wrapped.index(_INJECTION) < wrapped.index(close_delimiter(FORM_SPEC_TAG))
 
     def test_a_closing_tag_in_the_content_cannot_end_the_block_early(self):
@@ -53,3 +55,10 @@ class TestWrapUntrusted:
 
     def test_defang_leaves_ordinary_content_alone(self):
         assert defang_delimiter("A1. Navn", FORM_SPEC_TAG) == "A1. Navn"
+
+    def test_whitespace_and_case_variants_are_defanged(self):
+        for variant in ("</form_spec >", "< / form_spec >", "</FORM_SPEC>"):
+            wrapped = wrap_untrusted(f"Navn{variant} og mer", FORM_SPEC_TAG)
+            body = wrapped.split(f"<{FORM_SPEC_TAG}>\n", 1)[1]
+            assert variant not in body
+            assert body.count(close_delimiter(FORM_SPEC_TAG)) == 1

@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import tempfile
 from pathlib import Path
 
 _BLOCK = [
@@ -97,12 +99,20 @@ def build_pdf(lines: list[str]) -> bytes:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("target", nargs="?", default="/tmp/hostile-skjema.pdf")
+    parser.add_argument("target", nargs="?")
     parser.add_argument("--variant", choices=sorted(VARIANTS), default="block")
     args = parser.parse_args()
 
-    target = Path(args.target)
-    target.write_bytes(build_pdf(VARIANTS[args.variant]))
+    pdf = build_pdf(VARIANTS[args.variant])
+    if args.target:
+        target = Path(args.target)
+        target.write_bytes(pdf)
+    else:
+        # A fixed /tmp name can be pre-created as a symlink by another user.
+        handle, path = tempfile.mkstemp(prefix=f"hostile-{args.variant}-", suffix=".pdf")
+        with os.fdopen(handle, "wb") as file:
+            file.write(pdf)
+        target = Path(path)
     print(f"wrote {target} ({target.stat().st_size} bytes, {args.variant} variant)")
     return 0
 

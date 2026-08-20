@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from agents.core.loop import LoopResult, TerminationReason
 from agents.graph.nodes.agentic_loop_node import (
     MAX_SECURITY_NOTICE_LENGTH,
+    SECURITY_NOTICE_HISTORY_MARKER,
     _emit_workflow_completion,
     _extract_security_notice,
 )
@@ -112,15 +113,17 @@ class TestEmittedEvent:
 
         assert "hasSecurityNotice" not in message.data
 
-    def test_history_keeps_the_notice_for_follow_up_turns(self, monkeypatch):
+    def test_history_records_a_fixed_marker_not_the_notice(self, monkeypatch):
         history: list = []
         _completion_events(
             monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", history
         )
         stored = history[0][2]
 
-        assert _NOTICE in stored
+        assert SECURITY_NOTICE_HISTORY_MARKER in stored
         assert _SUMMARY in stored
+        # Replaying it would reintroduce attacker text undelimited next turn.
+        assert _NOTICE not in stored
 
     def test_history_is_unchanged_on_an_ordinary_run(self, monkeypatch):
         history: list = []

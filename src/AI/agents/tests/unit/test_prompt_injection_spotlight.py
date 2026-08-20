@@ -87,7 +87,7 @@ class TestLoopPrompt:
     def test_injected_instructions_stay_inside_the_block(self):
         prompt = build_system_prompt(_ctx())
 
-        opened = prompt.index(f"<{FORM_SPEC_TAG}>")
+        opened = prompt.index(f"<{FORM_SPEC_TAG}>\n")
         closed = prompt.index(close_delimiter(FORM_SPEC_TAG))
         assert opened < prompt.index("maintenance mode") < closed
 
