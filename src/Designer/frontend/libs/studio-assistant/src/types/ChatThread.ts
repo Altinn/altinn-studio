@@ -51,6 +51,7 @@ export type AssistantMessage = {
   filesChanged?: string[];
   sources?: Source[];
   traceId?: string;
+  hasSecurityNotice?: boolean;
 };
 
 export type Message = UserMessage | AssistantMessage;

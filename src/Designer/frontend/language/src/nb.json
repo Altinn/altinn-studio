@@ -107,6 +107,8 @@
   "ai_assistant.preview": "Forhåndsvis",
   "ai_assistant.send": "Send",
   "ai_assistant.show_threads": "Vis tråder",
+  "ai_assistant.security_notice_alert_description": "Et opplastet dokument inneholdt skjult tekst som forsøkte å styre assistenten. Instruksjonene ble ikke fulgt, og skjemaet er bygget som spesifisert. Kontroller hvor dokumentet kommer fra før du bruker det videre.",
+  "ai_assistant.security_notice_alert_heading": "Skjult instruksjon i opplastet fil",
   "ai_assistant.sources_label": "Kilder:",
   "ai_assistant.textarea_placeholder": "Skriv en melding ...",
   "ai_assistant.threads": "Tråder",

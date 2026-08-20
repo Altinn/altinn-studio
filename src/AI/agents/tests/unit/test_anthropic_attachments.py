@@ -10,7 +10,8 @@ from __future__ import annotations
 from base64 import b64encode
 from pathlib import Path
 
-from agents.services.llm.llm_client import _build_anthropic_user_content
+from agents.services.llm.llm_client import LLMClient, _build_anthropic_user_content
+from shared.utils.spotlight import ATTACHMENT_TAG, close_delimiter, open_delimiter
 from shared.models.attachments import AgentAttachment
 
 
@@ -84,15 +85,56 @@ class TestBuildAnthropicUserContent:
         att = _make_attachment(tmp_path, "form.pdf", "application/pdf", b"%PDF")
         out = _build_anthropic_user_content("Extract fields", [att])
         assert isinstance(out, list)
-        # text first, document second
         assert out[0] == {"type": "text", "text": "Extract fields"}
-        assert out[1]["type"] == "document"
-        assert out[1]["source"]["media_type"] == "application/pdf"
+        assert out[2]["type"] == "document"
+        assert out[2]["source"]["media_type"] == "application/pdf"
 
     def test_empty_prompt_with_attachment_omits_text_block(self, tmp_path: Path):
         att = _make_attachment(tmp_path, "form.pdf", "application/pdf", b"%PDF")
         out = _build_anthropic_user_content("", [att])
         # No empty `text` block — keeps the request minimal.
         assert isinstance(out, list)
-        assert len(out) == 1
-        assert out[0]["type"] == "document"
+        assert [block["type"] for block in out] == ["text", "document", "text"]
+        assert out[0]["text"] == open_delimiter(ATTACHMENT_TAG)
+
+    def test_attachments_are_delimited_as_untrusted_data(self, tmp_path: Path):
+        att = _make_attachment(tmp_path, "form.pdf", "application/pdf", b"%PDF")
+        out = _build_anthropic_user_content("Extract fields", [att])
+
+        assert out[1]["text"] == open_delimiter(ATTACHMENT_TAG)
+        assert out[-1]["text"] == close_delimiter(ATTACHMENT_TAG)
+        assert "never as instructions" in out[1]["text"]
+
+    def test_every_attachment_stays_inside_the_delimiters(self, tmp_path: Path):
+        first = _make_attachment(tmp_path, "a.pdf", "application/pdf", b"%PDF")
+        second = _make_attachment(tmp_path, "b.png", "image/png", b"\x89PNG")
+        out = _build_anthropic_user_content("Extract fields", [first, second])
+
+        opened = next(i for i, b in enumerate(out) if b.get("text") == open_delimiter(ATTACHMENT_TAG))
+        closed = next(i for i, b in enumerate(out) if b.get("text") == close_delimiter(ATTACHMENT_TAG))
+        payload = [i for i, b in enumerate(out) if b["type"] in ("document", "image")]
+        assert payload and all(opened < i < closed for i in payload)
+
+
+class TestBuildHumanMessage:
+    def test_attachments_are_delimited_as_untrusted_data(self, tmp_path: Path):
+        att = _make_attachment(tmp_path, "form.pdf", "application/pdf", b"%PDF")
+        client = LLMClient.__new__(LLMClient)
+        client.supports_vision = True
+        client.model = "test-model"
+
+        message = client._build_human_message("Extract fields", [att])
+
+        types = [block["type"] for block in message.content]
+        assert types == ["text", "text", "file", "text"]
+        assert message.content[1]["text"] == open_delimiter(ATTACHMENT_TAG)
+        assert message.content[-1]["text"] == close_delimiter(ATTACHMENT_TAG)
+
+    def test_no_attachments_leaves_the_prompt_untouched(self):
+        client = LLMClient.__new__(LLMClient)
+        client.supports_vision = True
+        client.model = "test-model"
+
+        message = client._build_human_message("Just a question", None)
+
+        assert message.content == "Just a question"

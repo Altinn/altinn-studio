@@ -6,6 +6,7 @@ import {
   messageFeedbackTexts,
   mockTexts,
   criticalFileAlertTexts,
+  securityNoticeAlertTexts,
 } from '../../../../mocks/mockTexts';
 
 const assistantMessageContent = 'Assistant response';
@@ -75,6 +76,23 @@ describe('AssistantMessage', () => {
     expect(
       screen.getByRole('button', { name: messageFeedbackTexts.thumbsDown }),
     ).toBeInTheDocument();
+  });
+
+  it('renders the security notice alert when the message is flagged', () => {
+    renderAssistantMessage({ message: createAssistantMessage({ hasSecurityNotice: true }) });
+
+    expect(
+      screen.getByRole('heading', { name: securityNoticeAlertTexts.heading }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(securityNoticeAlertTexts.description)).toBeInTheDocument();
+  });
+
+  it('does not render the security notice alert on an ordinary message', () => {
+    renderAssistantMessage();
+
+    expect(
+      screen.queryByRole('heading', { name: securityNoticeAlertTexts.heading }),
+    ).not.toBeInTheDocument();
   });
 
   it('does not render feedback buttons when traceId is missing', () => {
