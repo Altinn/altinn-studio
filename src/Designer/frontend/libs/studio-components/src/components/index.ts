@@ -72,6 +72,7 @@ export * from './StudioRecommendedNextAction';
 export * from './StudioSearch';
 export * from './StudioSectionHeader';
 export * from './StudioSelect';
+export * from './StudioSkeleton';
 export * from './StudioSpinner';
 export * from './StudioSuggestion';
 export * from './StudioSwitch';
