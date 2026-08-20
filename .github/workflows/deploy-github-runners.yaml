@@ -38,7 +38,6 @@ jobs:
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
-      base_image: ${{ steps.vars.outputs.base-image }}
       config_repo: ${{ steps.vars.outputs.config-repo }}
       coordinator_digest: ${{ steps.coordinator-image.outputs.digest }}
       coordinator_repository: ${{ steps.vars.outputs.coordinator-repository }}
@@ -46,7 +45,7 @@ jobs:
       prepared_image: ${{ steps.vars.outputs.prepared-image }}
       prepared_image_latest: ${{ steps.vars.outputs.prepared-image-latest }}
       prepared_image_repository: ${{ steps.vars.outputs.prepared-image-repository }}
-      runner_digest: ${{ steps.base-image.outputs.digest }}
+      runner_digest: ${{ steps.runner-image.outputs.digest }}
       runner_repository: ${{ steps.vars.outputs.runner-repository }}
     defaults:
       run:
@@ -61,8 +60,8 @@ jobs:
           {
             echo "short-sha=${SHA}"
             echo "runner-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner"
-            echo "base-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
-            echo "base-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest"
+            echo "runner-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
+            echo "runner-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest"
             echo "coordinator-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator"
             echo "coordinator-image=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:${SHA}"
             echo "coordinator-latest=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest"
@@ -90,13 +89,13 @@ jobs:
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build and publish runner image
-        id: base-image
+        id: runner-image
         env:
-          IMAGE: ${{ steps.vars.outputs.base-image }}
-          LATEST: ${{ steps.vars.outputs.base-latest }}
+          IMAGE: ${{ steps.vars.outputs.runner-image }}
+          LATEST: ${{ steps.vars.outputs.runner-latest }}
           GO_VERSION: ${{ steps.go-version.outputs.version }}
         run: |
-          METADATA_FILE="${RUNNER_TEMP}/github-runner-base-build.json"
+          METADATA_FILE="${RUNNER_TEMP}/github-runner-build.json"
           docker buildx build \
             --build-arg "GO_VERSION=${GO_VERSION}" \
             --file Dockerfile \
@@ -139,7 +138,7 @@ jobs:
           echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
   build-prepared-image:
-    name: Build prepared Sandbox image
+    name: Build prepared runner image
     needs: build-images
     runs-on: ubuntu-latest
     environment: dev
@@ -166,7 +165,7 @@ jobs:
       - name: az acr login
         run: az acr login --name "${REGISTRY_NAME}"
 
-      - name: Export prepared Sandbox image
+      - name: Export prepared runner image
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
           COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
@@ -195,7 +194,7 @@ jobs:
             "${COORDINATOR_IMAGE}" \
             export
 
-      - name: Build and publish prepared Sandbox image
+      - name: Build and publish prepared runner image
         id: prepared-image
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
@@ -249,17 +248,6 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
-      - name: patch base with image tag
-        working-directory: src/github-runner/infra/kustomize/base
-        env:
-          IMAGE: ${{ needs.build-images.outputs.base_image }}
-          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
-        run: |
-          for file in scaledjob.yaml scaledjob-single.yaml; do
-            yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
-            yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
-          done
-
       - name: Pin runner images by digest
         working-directory: src/github-runner/infra/kustomize/base
         env:
@@ -283,14 +271,14 @@ jobs:
             .metadata.annotations["altinn.studio/runner-image-tag"] = strenv(IMAGE_TAG) |
             .metadata.annotations["altinn.studio/prepared-image"] = strenv(PREPARED_IMAGE) |
             .metadata.annotations["altinn.studio/prepared-image-tag"] = strenv(IMAGE_TAG)
-          ' scaledjob-sandbox.yaml
+          ' scaledjob.yaml
 
-          test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob-sandbox.yaml)" = "${COORDINATOR_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image"]' scaledjob-sandbox.yaml)" = "${RUNNER_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image"]' scaledjob-sandbox.yaml)" = "${PREPARED_IMAGE}"
-          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image-tag"]' scaledjob-sandbox.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/image"]' scaledjob.yaml)" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image"]' scaledjob.yaml)" = "${RUNNER_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/runner-image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image"]' scaledjob.yaml)" = "${PREPARED_IMAGE}"
+          test "$(yq -er '.metadata.annotations["altinn.studio/prepared-image-tag"]' scaledjob.yaml)" = "${IMAGE_TAG}"
 
           RENDERED="$(kubectl kustomize .)"
           test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"

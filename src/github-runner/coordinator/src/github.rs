@@ -59,7 +59,7 @@ struct Runner {
 impl GithubClient {
     pub(crate) async fn authenticate(config: GithubConfig) -> Result<Self, AnyError> {
         let client = Client::builder()
-            .user_agent("altinn-studio-sandbox-runner")
+            .user_agent("altinn-studio-github-runner")
             .timeout(Duration::from_secs(30))
             .build()?;
         let jwt = app_jwt(config.app_id, &config.private_key)?;
