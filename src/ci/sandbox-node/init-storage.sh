@@ -96,7 +96,11 @@ assemble_or_create_array() {
   done
 
   mkdir -p "$(dirname "${ARRAY_DEVICE}")"
-  if ((members == ${#devices[@]})); then
+  if [[ -b "${ARRAY_DEVICE}" ]]; then
+    log "validating active array ${ARRAY_DEVICE}"
+    verify_array_members "${ARRAY_DEVICE}" "${devices[@]}"
+    return
+  elif ((members == ${#devices[@]})); then
     log "assembling ${ARRAY_DEVICE} from ${#devices[@]} local NVMe disks"
     mdadm --assemble "${ARRAY_DEVICE}" "${devices[@]}"
   elif ((raw == ${#devices[@]})); then
