@@ -242,6 +242,43 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Retention_WithAZeroBatchSize_EndsTheSweepInsteadOfSpinningForever()
+    {
+        // A zero batch selects nothing, so every pass comes back short and a loop bounded by "came
+        // back short" never ends. That is not hypothetical: EngineSettings.Retention defaults to a
+        // RetentionSettings whose BatchSize is zero, so any settings object built without a Retention
+        // block carries it — PostgresFixture builds exactly that, and it hung a test run for ten
+        // minutes. ValidateEngineSettings keeps production out of that state, which is a different
+        // guarantee from the loop terminating.
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        var ct = cts.Token;
+
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+
+        try
+        {
+            await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), batchSize: 0, ct: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Assert.Fail("PurgeExpiredWorkflows was still running ten seconds in at BatchSize == 0.");
+        }
+
+        // And it purged nothing, because a zero batch selects nothing — which is why the loop has to
+        // end on an empty pass rather than on a short one.
+        await using var ctx = fixture.CreateDbContext();
+        Assert.Equal(1, await ctx.Workflows.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task Retention_CascadeDeletesSteps()
     {
         var ct = TestContext.Current.CancellationToken;
