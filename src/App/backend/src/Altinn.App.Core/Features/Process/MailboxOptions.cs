@@ -43,8 +43,9 @@ public sealed record MailboxOptions
     /// A timeout running past that expiry fails the transition with
     /// <c>MailboxTimeoutOutlivesAppCode</c>, naming the code's expiry and its remaining life, rather
     /// than letting the exchange open and stall days later once the answer can no longer be
-    /// delivered. Shorten the timeout, or roll a longer-lived app code before opening exchanges
-    /// this long.
+    /// delivered. Shorten the timeout, or put a longer-lived code <strong>first</strong> in
+    /// <c>AppCodes:WorkflowEngineCallback</c> — the app signs with the first non-expired code in that
+    /// list, not the longest-lived one, so appending one changes nothing.
     /// </para>
     /// </remarks>
     public required TimeSpan Timeout { get; init; }

@@ -222,8 +222,10 @@ internal sealed class ExecuteServiceTask(
                     $"Stage '{declaration.StageName}' opens a mailbox with a timeout of "
                         + $"{declaration.Options.Timeout}, but this application's WorkflowEngineCallback app code "
                         + $"expires at {credentialsExpireAt:u} — in {credentialsExpireAt - now}. The reply workflow "
-                        + "is signed with that code and cannot outlive it. Shorten MailboxOptions.Timeout, or roll a "
-                        + "longer-lived app code before opening exchanges this long.",
+                        + "is signed with that code and cannot outlive it. Shorten MailboxOptions.Timeout, or put a "
+                        + "longer-lived code first in AppCodes:WorkflowEngineCallback — the app signs with the "
+                        + "first non-expired code in that list, not the longest-lived one, so appending one "
+                        + "changes nothing.",
                     "MailboxTimeoutOutlivesAppCode"
                 )
             );
