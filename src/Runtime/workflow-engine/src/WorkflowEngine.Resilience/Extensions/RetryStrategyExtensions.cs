@@ -5,11 +5,9 @@ using WorkflowEngine.Resilience.Models;
 
 // CA2208: Instantiate argument exceptions correctly
 // S3928: Parameter names used into ArgumentException constructors should match an existing one
+// CA5394: Random is an insecure random number generator — the jitter here spreads retry scheduling, it is not security-sensitive
 #pragma warning disable S3928
 #pragma warning disable CA2208
-
-// CA5394: Random is an insecure random number generator — the jitter here spreads retry
-// scheduling, it is not security-sensitive.
 #pragma warning disable CA5394
 
 namespace WorkflowEngine.Resilience.Extensions;
@@ -50,7 +48,7 @@ public static class RetryStrategyExtensions
             // The admissibility gate judges the nominal schedule: jitter spreads the actual
             // waits but must never change whether a retry is allowed — a jittered roll here
             // would make the verdict near the deadline a coin toss.
-            TimeSpan delay = TimeSpan.FromSeconds(NominalDelaySeconds(strategy, iteration));
+            TimeSpan delay = TimeSpan.FromSeconds(strategy.NominalDelaySeconds(iteration));
             DateTimeOffset nextRun = now.Add(delay);
 
             if (nextRun >= deadline)
@@ -80,12 +78,33 @@ public static class RetryStrategyExtensions
         public TimeSpan CalculateDelay(int iteration, Random? random = null)
         {
             var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
-            var delaySeconds = NominalDelaySeconds(strategy, iteration);
+            var delaySeconds = strategy.NominalDelaySeconds(iteration);
 
             var jitterFactor =
                 1 + (Defaults.RetryDelayJitterFraction * ((2 * (random ?? Random.Shared).NextDouble()) - 1));
 
             return TimeSpan.FromSeconds(Math.Clamp(delaySeconds * jitterFactor, 0, maxDelaySeconds));
+        }
+
+        /// <summary>
+        /// The nominal (jitter-free) delay in seconds for the given iteration, clamped to
+        /// <see cref="RetryStrategy.MaxDelay"/>. This is the schedule that admissibility is judged
+        /// on; <see cref="CalculateDelay"/> applies the jitter on top of it.
+        /// </summary>
+        private double NominalDelaySeconds(int iteration)
+        {
+            var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
+
+            var delaySeconds = strategy.BackoffType switch
+            {
+                BackoffType.Constant => strategy.BaseInterval.TotalSeconds,
+                BackoffType.Linear => strategy.BaseInterval.TotalSeconds * iteration,
+                BackoffType.Exponential => strategy.BaseInterval.TotalSeconds
+                    * Math.Pow(2, Math.Min(iteration - 1, 62)),
+                _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
+            };
+
+            return Math.Min(delaySeconds, maxDelaySeconds);
         }
 
         /// <summary>
@@ -187,26 +206,6 @@ public static class RetryStrategyExtensions
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// The nominal (jitter-free) delay in seconds for the given iteration, clamped to
-    /// <see cref="RetryStrategy.MaxDelay"/>. This is the schedule that admissibility is judged
-    /// on; <see cref="CalculateDelay"/> applies the jitter on top of it.
-    /// </summary>
-    private static double NominalDelaySeconds(RetryStrategy strategy, int iteration)
-    {
-        var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
-
-        var delaySeconds = strategy.BackoffType switch
-        {
-            BackoffType.Constant => strategy.BaseInterval.TotalSeconds,
-            BackoffType.Linear => strategy.BaseInterval.TotalSeconds * iteration,
-            BackoffType.Exponential => strategy.BaseInterval.TotalSeconds * Math.Pow(2, Math.Min(iteration - 1, 62)),
-            _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
-        };
-
-        return Math.Min(delaySeconds, maxDelaySeconds);
     }
 }
 
