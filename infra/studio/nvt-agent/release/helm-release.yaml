@@ -326,6 +326,8 @@ spec:
               - name: work-control
                 source: builtin
               - config:
+                  ignored-comment-prefixes:
+                    - /nvtagent
                   poll-seconds: 60
                 egress:
                   provider: github-main
