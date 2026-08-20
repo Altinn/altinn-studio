@@ -8,77 +8,46 @@ import { LabelComponent } from '@app/form-component/layout-components/common/Lab
 import { optionFilter } from '@app/form-component/layout-components/common/optionFilter';
 import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
 import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
-import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
-import cn from 'classnames';
 import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
-import classes from './DropdownLayout.module.css';
+import classes from './MultipleSelectLayout.module.css';
 
-export interface DropdownOption {
-  /** The value stored in the data model when this option is selected. */
+export interface MultipleSelectOption {
   value: string;
-  /** Text-resource key for the option's label. */
   label: string;
-  /** Text-resource key for an optional secondary description shown under the label. */
   description?: string;
 }
 
-export interface DropdownProps {
-  /** The configured component id (Studio "Komponent-ID"). Rendered as the input's `id` and the label's `htmlFor`. */
+export interface MultipleSelectProps {
   componentId: string;
-  /** The selectable options. Labels/descriptions are text-resource keys resolved by this component. */
-  options: DropdownOption[];
-  /** The currently selected value (the data-model value). Empty string means nothing is selected. */
-  value: string;
-  /** Called with the new value when the selection changes (after confirmation when `alertOnChange`). */
-  onChange?: (value: string) => void;
-  /** Called when the input loses focus (used by the wrapper to flush debounced form data). */
-  onBlur?: () => void;
+  options: MultipleSelectOption[];
+  values: string[];
+  onChange?: (values: string[]) => void;
   readOnly?: boolean;
   required?: boolean;
-  /** Whether the current value is valid. Drives `aria-invalid`. Defaults to `true`. */
   isValid?: boolean;
-  /** Show a confirmation popover before overwriting an existing selection. */
   alertOnChange?: boolean;
-  /** Text-resource key for the label text. */
   title?: string;
-  /** Text-resource key for the label help text. */
   help?: string;
-  /** Text-resource key for the label description. */
   description?: string;
-  /** Whether to show the optional marking on the label for non-required fields. */
   showOptionalMarking?: boolean;
-  /** Grid sizing for the label. */
   labelGrid?: IGridStyling;
-  /**
-   * Whether the component is rendered inside a table cell. When true the visible label is suppressed
-   * and a visually-hidden label + `aria-label` are rendered instead (DS Combobox does not honour
-   * `aria-label` on the input directly — see digdir/designsystemet#3893).
-   */
   renderedInTable?: boolean;
-  /** Whether to render the visible label at all. Defaults to `true`. */
   renderLabel?: boolean;
-  /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
-  /** Grid sizing for the validation messages. */
   validationGrid?: IGridStyling;
-  /**
-   * Rendered validation messages. The app owns validation, so it passes the already-rendered
-   * messages in rather than this library reaching into app-specific validation state.
-   */
   validationMessages?: ReactNode;
 }
 
 function noop() {}
 
-export function Dropdown({
+export function MultipleSelect({
   componentId,
   options,
-  value,
+  values,
   onChange = noop,
-  onBlur,
   readOnly,
   required,
   isValid = true,
@@ -93,35 +62,39 @@ export function Dropdown({
   innerGrid,
   validationGrid,
   validationMessages,
-}: DropdownProps) {
+}: MultipleSelectProps) {
   const { lang, langAsString } = useTranslation();
 
   const isPatchingFocus = useRef(false);
 
-  const selectedOption = options.find((option) => option.value === value);
-  const selectedLabels = value
-    ? [(selectedOption ? langAsString(selectedOption.label) : value).toLowerCase()]
-    : [];
+  const selectedLabels = values.map((value) => {
+    const option = options.find((o) => o.value === value);
+    return option ? langAsString(option.label).toLowerCase() : value;
+  });
 
-  const selectedItem: SuggestionItem | undefined =
-    value && selectedOption
-      ? { value: selectedOption.value, label: langAsString(selectedOption.label) }
-      : undefined;
+  // Map the selected values to value/label items without mutating the values array.
+  const selectedItems: SuggestionItem[] = values.map((value) => {
+    const option = options.find((o) => o.value === value);
+    return option
+      ? { value: option.value, label: langAsString(option.label) }
+      : { value, label: value };
+  });
 
-  const changeMessageGenerator = (newValue: string) => {
-    const label = options
-      .filter((option) => option.value === newValue)
+  const changeMessageGenerator = (newValues: string[]) => {
+    const labelsToRemove = options
+      .filter((option) => values.includes(option.value) && !newValues.includes(option.value))
       .map((option) => langAsString(option.label))
       .join(', ');
 
-    return lang('form_filler.dropdown_alert', [label]);
+    return lang('form_filler.multi_select_alert', [labelsToRemove]);
   };
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange, alertMessage } =
-    useAlertOnChange<(newValue: string) => void>(
+    useAlertOnChange<(newValues: string[]) => void>(
       Boolean(alertOnChange),
       onChange,
-      (newValue) => newValue !== value && !!value,
+      // Only alert when removing values
+      (newValues) => newValues.length < values.length,
       changeMessageGenerator,
     );
 
@@ -158,20 +131,22 @@ export function Dropdown({
           />
         )}
         <Suggestion
-          multiple={false}
+          data-testid='multiple-select-component'
+          multiple
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'
-          selected={selectedItem}
-          onSelectedChange={(option) => handleChange(option ? option.value : '')}
-          onBlur={() => onBlur?.()}
-          className={cn(comboboxClasses.container, classes.showCaretsWithoutClear, {
-            [classes.readOnly]: readOnly,
-          })}
+          selected={selectedItems}
+          onSelectedChange={(newOptions) => handleChange(newOptions.map((option) => option.value))}
           style={{ width: '100%' }}
         >
           <Suggestion.Input
             id={componentId}
             aria-invalid={!isValid}
+            aria-label={renderedInTable && title ? langAsString(title) : undefined}
+            aria-describedby={
+              !renderedInTable && title && description ? getDescriptionId(componentId) : undefined
+            }
+            readOnly={readOnly}
             onFocus={async (e) => {
               // Workaround for when programmatically focused by repeating group focus management
 
@@ -190,16 +165,16 @@ export function Dropdown({
                   return;
                 }
 
+                // Tell the next execution of onFocus to ignore the event we are about to fire
                 isPatchingFocus.current = true;
 
                 input.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
               }, 150);
             }}
-            aria-label={renderedInTable ? langAsString(title) : undefined}
-            aria-describedby={
-              !renderedInTable && title && description ? getDescriptionId(componentId) : undefined
-            }
-            readOnly={readOnly}
+          />
+          <Suggestion.Clear
+            aria-label={langAsString('form_filler.clear_selection')}
+            popoverTarget={`${componentId}-popover`}
           />
           <Suggestion.List>
             <Suggestion.Empty>{lang('form_filler.no_options_found')}</Suggestion.Empty>
@@ -208,16 +183,17 @@ export function Dropdown({
                 key={option.value}
                 value={option.value}
                 label={langAsString(option.label)}
-                onClick={() => handleChange(option.value)}
               >
-                <span className={classes.optionContent}>
+                <span>
+                  <wbr />
                   {lang(option.label)}
-                  {option.description && lang(option.description)}
+                  {option.description && (
+                    <span className={classes.optionDescription}>{lang(option.description)}</span>
+                  )}
                 </span>
               </Suggestion.Option>
             ))}
           </Suggestion.List>
-          <span popoverTarget={`${componentId}-popover`} />
         </Suggestion>
       </ComponentStructure>
     </LabelComponent>
