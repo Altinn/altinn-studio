@@ -154,9 +154,11 @@ export function stripNonProse(value) {
 /**
  * Signals that a text is Norwegian: a Nordic letter, or a function word that
  * does not occur in English prose. The list lives here rather than in the
- * engine config so it is unit-tested by the self-test, and every word must
- * earn its keep: the code check reports a signal word that never decides a
- * classification as stale.
+ * engine config so it is unit-tested by the self-test, and its work is
+ * visible: the code check counts how many of these words decide
+ * classifications on every run. The count is telemetry, not a gate — an
+ * unused signal word masks nothing, so pruning is a deliberate maintenance
+ * act, never something a stale finding forces onto an unrelated PR.
  *
  * A dictionary-based classifier (Ordbank forms minus the en_GB word list)
  * is deliberately NOT used: the two languages share too much orthography,

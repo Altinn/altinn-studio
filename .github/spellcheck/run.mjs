@@ -107,25 +107,18 @@ function checkCode({ fix, root }) {
   } = classifyFindings(runTypos([]), readLine);
   const { kept, suppressedCount, stale } = partitionFindings(unclassified, compiled, readLine);
 
-  // Config-health findings first: a stale signal word or suppression is an
-  // actionable defect that must not drown in the backlog.
-  const findings = [...NORWEGIAN_SIGNAL_WORDS]
-    .filter((w) => !usedSignals.has(w))
-    .sort()
-    .map((w) =>
-      finding(
-        '.github/spellcheck/lib.mjs',
-        undefined,
-        `signal word '${w}' decided no Norwegian-string classification — stale entry in NORWEGIAN_SIGNAL_WORDS, remove it`,
-      ),
-    );
-  findings.push(
-    ...stale.map((e) =>
-      finding(
-        '.github/spellcheck/suppressions.mjs',
-        undefined,
-        `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
-      ),
+  // Config-health findings first: a stale suppression is an actionable
+  // defect that must not drown in the backlog. Signal-word usage is counted
+  // (see the summary) but deliberately NOT gated: a word's "usage" depends
+  // on which typos findings happen to sit nearby, so gating it would block
+  // unrelated PRs over harness internals — and an unused signal word masks
+  // nothing, unlike a stale suppression or glossary entry. Pruning the list
+  // is a deliberate maintenance act guided by the count.
+  const findings = stale.map((e) =>
+    finding(
+      '.github/spellcheck/suppressions.mjs',
+      undefined,
+      `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
     ),
   );
   const applied = fix ? applyCodeFixes(root, kept) : 0;
