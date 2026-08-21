@@ -2,6 +2,7 @@
 import asyncio
 
 from langgraph.graph import StateGraph, END
+from opentelemetry import trace as otel_trace
 
 from .state import AgentState
 from .nodes.agentic_loop_node import handle as agentic_loop_node
@@ -234,6 +235,17 @@ async def _validate_intent(state: AgentState):
         state.session_id, parsed.action, parsed.component, parsed.confidence,
     )
 
+def _mark_as_experiment_item(state: AgentState, root_span) -> None:
+    """Declare this trace one item of a dataset run."""
+    if not state.experiment:
+        return
+    span = otel_trace.get_current_span()
+    if not span.is_recording():
+        return
+    for key, value in state.experiment.span_attributes(root_span.id).items():
+        span.set_attribute(key, value)
+
+
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
     if event_sink is None:
@@ -268,6 +280,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
             },
         ) as root_span:
             state.trace_id = get_current_trace_id()
+            _mark_as_experiment_item(state, root_span)
             with propagate_attributes(user_id=state.org):
                 try:
                     decline_text = await _gate_goal(state, event_sink)
