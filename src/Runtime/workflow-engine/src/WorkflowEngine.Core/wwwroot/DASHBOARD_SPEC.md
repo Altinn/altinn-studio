@@ -10,7 +10,9 @@ The dashboard has two tabs: **Live** and **Query**.
 
 ### Live Tab (default)
 
-Three collapsible sections, top to bottom:
+Three collapsible sections, top to bottom (plus a conditional **Throttled Namespaces** panel above them, see below):
+
+0. **Throttled Namespaces** — Failure-storm circuit breakers (see the failure-throttling ADR). Hidden entirely while no breaker state exists — the common case. Polls `GET /api/v1/throttles` every 10 s (no SSE stream; breakers change on sweep cadence). One row per namespace breaker: state pill (Open red / Recovering orange / Closed green — `HalfOpen` displays as "Recovering"), namespace, tripped-at (relative), current window, canary count, last observed requeued/active counts. Row actions call the manual override endpoints with a **two-click confirm** (first click arms the button as "Confirm?", reverting after 3 s): **Force open** (`POST /api/v1/{ns}/throttle/open`, shown unless already Open) and **Force close** (`POST /api/v1/{ns}/throttle/close`, shown unless already Closed). Overrides are one-shot: a force-close does not stop the next sweep from re-tripping, and a force-open does not stop canary-driven recovery. A 409 (throttling disabled) renders as the standard "Failed" button feedback.
 
 1. **Scheduled** — Workflows with a future `startAt`. Collapsed by default, fetched lazily on expand via `GET /dashboard/scheduled`. Badge in section header shows count from SSE. Cards are categorized by time-to-start: ≤10s, ≤1m, ≤5m, later.
 
@@ -234,9 +236,23 @@ Body: `{ "workflowId": "<guid>" }`
 
 Clear the pending backoff of a parked workflow (Requeued or Waiting), making it immediately eligible for
 processing. The dashboard face of `POST /api/v1/{namespace}/workflows/{id}/nudge` — same primitive, and
-the workflow is re-executed rather than skipped.
+the workflow is re-executed rather than skipped. A nudge also clears the workflow's `throttled_until`
+stamp: an operator's explicit poke wins over the namespace circuit breaker.
 
 Body: `{ "workflowId": "<guid>" }`
+
+### Throttle endpoints (shared with the public API)
+
+The Throttled Namespaces panel uses the engine's public throttle endpoints directly rather than
+dashboard-prefixed wrappers:
+
+| Endpoint                       | Method | Used for                                              |
+| ------------------------------ | ------ | ----------------------------------------------------- |
+| `/api/v1/throttles`            | GET    | Breaker list (200 array / 204 when none — panel hides) |
+| `/api/v1/{ns}/throttle/open`   | POST   | Force-open override (202; 409 when throttling disabled) |
+| `/api/v1/{ns}/throttle/close`  | POST   | Force-close override (202; 200 already closed; 404; 409 disabled) |
+
+Breaker shape: `{ namespace, state: "Open"|"HalfOpen"|"Closed", trippedAt, currentWindow, canaryCount, lastEvaluatedAt?, lastRequeuedCount, lastActiveCount, updatedAt? }`
 
 ---
 

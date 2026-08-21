@@ -50,6 +50,7 @@ public class EngineWireContractTests
             typeof(ResumeWorkflowResponse),
             typeof(AbandonWorkflowResponse),
             typeof(NudgeWorkflowResponse),
+            typeof(NamespaceThrottleResponse),
             // AppCommand callback contract (owned by the engine host)
             typeof(Actor),
             typeof(AppCommandData),

@@ -40,6 +40,10 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["NudgeWorkflow"] = "nudge",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
+        ["ListNamespaceThrottles"] = "list-namespace-throttles",
+        ["GetNamespaceThrottle"] = "get-namespace-throttle",
+        ["ForceOpenNamespaceThrottle"] = "force-open-throttle",
+        ["ForceCloseNamespaceThrottle"] = "force-close-throttle",
     };
 
     private static readonly Dictionary<string, string> _listWorkflowParamDescriptions = new()
