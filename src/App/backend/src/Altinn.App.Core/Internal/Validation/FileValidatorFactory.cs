@@ -21,7 +21,7 @@ public class FileValidatorFactory : IFileValidatorFactory
     }
 
     /// <summary>
-    /// Finds the specified file analyser implementations based on the specified analyser id's.
+    /// Finds the specified file analyzer implementations based on the specified analyzer id's.
     /// </summary>
     public IEnumerable<IFileValidator> GetFileValidators(IEnumerable<string> validatorIds)
     {

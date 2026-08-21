@@ -6,7 +6,7 @@ import { UrlConstants } from './urlConstants';
  * Returns the path to the dashboard based on the name of the organization
  * and the name of the repo.
  *
- * @param organisation the organisation name
+ * @param organization the organization name
  * @param repo the repo name
  *
  * @returns the path
@@ -20,7 +20,7 @@ export const getResourceDashboardURL = (organization: string, repo: string): str
  * This is done based on the name of the organization, the name of the repo,
  * and the resource Id
  *
- * @param organisation the organisation name
+ * @param organization the organization name
  * @param repo the repo name
  * @param resourceId the ID of the resource
  * @param resourcePage the type of page in the resource page to view
