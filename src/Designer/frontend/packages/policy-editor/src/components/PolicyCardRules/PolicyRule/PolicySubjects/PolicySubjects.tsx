@@ -13,7 +13,7 @@ import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages'
 import { hasSubject } from '@altinn/policy-editor/utils';
 import { PolicySubjectsPerson } from './PolicySubjectsPerson';
 import { PolicySubjectsOrg } from './PolicySubjectsOrg';
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { StudioValidationMessage } from '@studio/components';
 import { ChosenSubjects } from './ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import classes from './PolicySubjects.module.css';
@@ -245,7 +245,9 @@ export const PolicySubjects = () => {
         handleSubjectChange={handleChangeSubject}
       />
       {showAllErrors && policyError.subjectsError && (
-        <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
+        <StudioValidationMessage data-size='sm'>
+          {t('policy_editor.rule_card_subjects_error')}
+        </StudioValidationMessage>
       )}
     </div>
   );

@@ -17,12 +17,21 @@ const compat = new FlatCompat({
   resolvePluginsRelativeTo: __dirname,
 });
 
-const restrictedImports = (patterns) => [
+const designsystemetRestriction = {
+  group: ['@digdir/designsystemet-react', '@digdir/designsystemet-react/*'],
+  message:
+    'Do not import components directly from Designsystemet. Import them from @studio/components instead, and add a wrapper there if the component is missing.',
+};
+
+const restrictedImportsAllowingDesignsystemet = (patterns) => [
   'error',
   {
     patterns,
   },
 ];
+
+const restrictedImports = (patterns) =>
+  restrictedImportsAllowingDesignsystemet([...patterns, designsystemetRestriction]);
 
 const strictLibraryRules = {
   '@typescript-eslint/explicit-function-return-type': 'error',
@@ -215,7 +224,7 @@ export default [
     },
     rules: {
       ...strictLibraryRules,
-      'no-restricted-imports': restrictedImports([
+      'no-restricted-imports': restrictedImportsAllowingDesignsystemet([
         {
           group: ['@tanstack/react-query'],
           message:
@@ -252,7 +261,7 @@ export default [
       'testing-library/custom-renders': ['rowsToRender'],
     },
     rules: {
-      'no-restricted-imports': restrictedImports([
+      'no-restricted-imports': restrictedImportsAllowingDesignsystemet([
         {
           group: ['@tanstack/react-query'],
           message:

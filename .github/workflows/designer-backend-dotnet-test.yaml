@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
       - 'src/App/template/**'
@@ -23,7 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
-    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'self-hosted-single' || matrix.os }}
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'self-hosted-ubuntu' || matrix.os }}
     timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false

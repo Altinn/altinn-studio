@@ -4,7 +4,9 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/App/backend/**'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/**'
       - '.github/workflows/app-backend-tests.yml'
@@ -20,7 +22,7 @@ jobs:
   build-frontend:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     timeout-minutes: 10
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/app-build-frontend
@@ -31,7 +33,7 @@ jobs:
       matrix:
         os:
           - id: ubuntu-latest
-            runner: self-hosted-single
+            runner: self-hosted-ubuntu
             workingDir: src/App/backend/
           - id: macos-latest
             runner: macos-latest

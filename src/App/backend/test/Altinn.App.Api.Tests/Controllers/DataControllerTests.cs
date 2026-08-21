@@ -258,6 +258,67 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         );
     }
 
+    [Fact]
+    public async Task GetBinaryData_ReturnsNotFound_WhenTheDataElementIsMissingInStorage()
+    {
+        // IDataClient.GetBinaryData throws PlatformHttpException when the data element does not exist,
+        // and the controller maps that status through to the response.
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 500600; // user 1337 has roles for this party in the authorization test data
+        Guid instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
+        Guid dataGuid = new("cd9204e7-9b83-41b4-b2f2-9b196b4fafcc");
+
+        Instance instance = new()
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{org}/{app}",
+            Org = org,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = dataGuid.ToString(),
+                    DataType = "specificFileType",
+                    ContentType = "application/pdf",
+                    Filename = "test.pdf",
+                },
+            ],
+        };
+
+        Mock<IDataClient> dataClient = new();
+        dataClient
+            .Setup(d =>
+                d.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.NotFound, "data element not found"));
+
+        Mock<IInstanceClient> instanceClient = new();
+        instanceClient
+            .Setup(i =>
+                i.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient(_ => dataClient.Object);
+            services.AddTransient(_ => instanceClient.Object);
+        };
+
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using HttpResponseMessage response = await client.GetAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}"
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private static async Task<ByteArrayContent> CreateBinaryContent(
         string org,
         string app,

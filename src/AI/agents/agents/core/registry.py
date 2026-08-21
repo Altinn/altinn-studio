@@ -123,10 +123,9 @@ def _validate_tool(tool: Tool) -> None:
         raise ValueError(
             f"Tool {type(tool).__name__} is missing required attribute 'name'"
         )
-    # `description` is shown to the model.  Allow empty strings — MCP
-    # wrappers around third-party servers can legitimately ship an
-    # empty description — but the attribute itself must be a string so
-    # the JSON-schema emit doesn't break.
+    # `description` is shown to the model.  Allow empty strings — some
+    # tools can legitimately ship an empty description — but the attribute
+    # itself must be a string so the JSON-schema emit doesn't break.
     if not isinstance(getattr(tool, "description", None), str):
         raise ValueError(
             f"Tool {tool.name!r} is missing required attribute 'description'"

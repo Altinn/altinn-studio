@@ -1,4 +1,5 @@
 replicaCount: 1
+terminationGracePeriodSeconds: 30
 
 environment: dev
 
@@ -82,8 +83,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "false"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -180,8 +179,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "true"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName
@@ -276,8 +273,6 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
-    - name: FeatureManagement__GitOpsDeploy
-      value: "false"
     - name: RedisCacheSettings__UseRedisCache
       value: "true"
     - name: RedisCacheSettings__InstanceName

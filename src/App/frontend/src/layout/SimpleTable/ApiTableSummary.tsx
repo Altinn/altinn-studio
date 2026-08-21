@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AppTable } from '@app/form-component';
+import { AppTable, useIsMobile } from '@app/form-component';
 import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
 
@@ -8,7 +8,6 @@ import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/core/queries/externalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

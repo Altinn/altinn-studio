@@ -26,13 +26,13 @@ func registerCoreComponents(manifest *Manifest, opts *Options) {
 
 func localtestImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.BuiltImage{
+		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile:  filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/localtest/Dockerfile")),
 			Build:       buildCacheOptions(buildCacheRefLocaltest),
 			Tag:         devImageTagLocaltest,
-		}
+		})
 	}
 	return &resource.PulledImage{
 		Enabled:    nil,

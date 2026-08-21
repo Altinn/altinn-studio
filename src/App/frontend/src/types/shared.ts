@@ -366,6 +366,11 @@ export interface IPlatformFrontendSettings {
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;
+  logoutUrl?: string;
+  /** Takes a {goTo} placeholder. */
+  loginUrl?: string;
+  /** Takes a {goTo} placeholder. */
+  upgradeAuthenticationLevelUrl?: string;
   /** URL templates; undefined in environments where the arbeidsflate is not deployed. */
   arbeidsflateInboxUrl?: string;
   /** Supports the {dialogId} placeholder. */
