@@ -1,3 +1,5 @@
+@value mediaSmUp, mediaMdUp, mediaLgUp from './breakpoints.module.css';
+
 .container {
   width: 100%;
   display: flex;
@@ -86,6 +88,8 @@
 }
 
 .col-xs-auto {
+  flex-grow: 0;
+  max-width: none;
   flex-basis: auto;
 }
 .col-xs-1 {
@@ -150,7 +154,12 @@
 }
 
 /* Small (sm breakpoint) */
-@media (min-width: 600px) {
+@media mediaSmUp {
+  .col-sm-auto {
+    flex-grow: 0;
+    max-width: none;
+    flex-basis: auto;
+  }
   .col-sm-1 {
     flex-grow: 0;
     max-width: 8.33%;
@@ -214,7 +223,12 @@
 }
 
 /* Medium (md breakpoint) */
-@media (min-width: 1025px) {
+@media mediaMdUp {
+  .col-md-auto {
+    flex-grow: 0;
+    max-width: none;
+    flex-basis: auto;
+  }
   .col-md-1 {
     flex-grow: 0;
     max-width: 8.33%;
@@ -278,7 +292,12 @@
 }
 
 /* Large (lg breakpoint) */
-@media (min-width: 1440px) {
+@media mediaLgUp {
+  .col-lg-auto {
+    flex-grow: 0;
+    max-width: none;
+    flex-basis: auto;
+  }
   .col-lg-1 {
     flex-grow: 0;
     max-width: 8.33%;
