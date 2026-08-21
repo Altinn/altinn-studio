@@ -7,5 +7,5 @@
 }
 
 .duplicatedIdField {
-  background-color: var(--fds-semantic-surface-danger-subtle) !important;
+  background-color: var(--ds-color-danger-surface-tinted) !important;
 }

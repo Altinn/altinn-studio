@@ -14,7 +14,7 @@
 
 .divider {
   border-top: 1px solid;
-  border-color: var(--fds-semantic-border-divider-subtle);
+  border-color: var(--ds-color-neutral-border-subtle);
   width: 90%;
   margin-left: 0;
 }

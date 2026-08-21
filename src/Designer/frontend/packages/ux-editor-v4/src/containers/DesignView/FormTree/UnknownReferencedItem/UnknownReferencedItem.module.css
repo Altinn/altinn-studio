@@ -1,6 +1,6 @@
 ﻿.unknownReferencedItem {
-  background-color: var(--fds-semantic-surface-danger-subtle);
-  border-left: 2px solid var(--fds-semantic-surface-danger-active);
+  background-color: var(--ds-color-danger-surface-tinted);
+  border-left: 2px solid var(--ds-color-danger-base-active);
   display: flex;
   gap: 4px;
   justify-content: space-between;

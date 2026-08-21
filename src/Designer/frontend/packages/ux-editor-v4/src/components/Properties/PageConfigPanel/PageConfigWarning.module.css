@@ -7,15 +7,15 @@
 }
 
 .configWarningHeader {
-  background-color: var(--fds-semantic-surface-danger-subtle);
+  background-color: var(--ds-color-danger-surface-tinted);
 }
 
 .configWarningContent {
   margin: var(--ds-size-2) var(--ds-size-4);
   padding: var(--ds-size-6) var(--ds-size-4);
-  border: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
   border-radius: var(--ds-border-radius-lg);
-  background-color: var(--fds-semantic-surface-neutral-default);
+  background-color: var(--ds-color-neutral-surface-default);
 }
 
 .configWarningList {

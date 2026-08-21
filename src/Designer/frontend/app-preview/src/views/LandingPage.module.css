@@ -7,7 +7,7 @@
 .iframeContainer {
   display: flex;
   justify-content: center;
-  background-color: var(--fds-semantic-surface-neutral-dark);
+  background-color: var(--ds-color-neutral-border-default);
   flex: 1;
 }
 

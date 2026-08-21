@@ -11,7 +11,7 @@
 .giteaIcon {
   font-size: var(--ds-size-8);
   padding-top: var(--ds-size-1);
-  color: var(--fds-semantic-text-success-default);
+  color: var(--ds-color-success-text-default);
 }
 
 .editButton {
@@ -20,5 +20,5 @@
 
 .akselIcon {
   font-size: var(--ds-size-7);
-  color: var(--fds-semantic-text-action-default);
+  color: var(--ds-color-accent-base-default);
 }

@@ -47,7 +47,7 @@ a.link:focus,
 a.link:hover,
 a.link:active,
 a.link:visited {
-  color: var(--fds-semantic-text-action-on_action);
+  color: var(--ds-color-accent-base-contrast-default);
 }
 
 a.link span,

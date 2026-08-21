@@ -29,19 +29,19 @@
 }
 
 .canceled {
-  background-color: var(--fds-semantic-surface-warning-subtle);
+  background-color: var(--ds-color-warning-surface-tinted);
 }
 .failed {
-  background-color: var(--fds-semantic-surface-danger-subtle);
+  background-color: var(--ds-color-danger-surface-tinted);
 }
 .none {
-  background-color: var(--fds-semantic-surface-info-subtle);
+  background-color: var(--ds-color-info-surface-tinted);
 }
 .partiallySucceeded {
-  background-color: var(--fds-semantic-surface-warning-subtle);
+  background-color: var(--ds-color-warning-surface-tinted);
 }
 .succeeded {
-  background-color: var(--fds-semantic-surface-success-subtle);
+  background-color: var(--ds-color-success-surface-tinted);
 }
 
 .icon {
@@ -53,19 +53,19 @@
 }
 
 .canceledIcon {
-  color: var(--fds-semantic-border-warning-default);
+  color: var(--ds-color-warning-border-default);
 }
 .failedIcon {
-  color: var(--fds-semantic-border-danger-default);
+  color: var(--ds-color-danger-border-default);
 }
 .noneIcon {
-  color: var(--fds-semantic-border-info-default);
+  color: var(--ds-color-info-border-default);
 }
 .partiallySucceededIcon {
-  color: var(--fds-semantic-border-warning-default);
+  color: var(--ds-color-warning-border-default);
 }
 .succeededIcon {
-  color: var(--fds-semantic-border-success-default);
+  color: var(--ds-color-success-border-default);
 }
 
 .statusCell,

@@ -6,5 +6,5 @@
 }
 
 .duplicatedId {
-  color: var(--fds-semantic-text-danger-default);
+  color: var(--ds-color-danger-text-default);
 }

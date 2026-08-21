@@ -2,7 +2,7 @@
   color: var(--fds-colors-grey-700);
   font-size: var(--ds-size-3);
   padding-top: var(--ds-size-2);
-  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
 }
 
 .selectWrapper {

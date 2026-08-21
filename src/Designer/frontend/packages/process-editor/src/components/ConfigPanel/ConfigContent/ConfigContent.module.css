@@ -5,11 +5,11 @@
 }
 
 .recommendedActionBackdrop {
-  background-color: var(--fds-semantic-border-divider-default);
+  background-color: var(--ds-color-neutral-border-subtle);
 }
 
 .recommendedActionContentBackdrop {
-  background-color: var(--fds-semantic-border-divider-default);
+  background-color: var(--ds-color-neutral-border-subtle);
   height: 100%;
 }
 

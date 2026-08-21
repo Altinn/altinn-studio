@@ -1,5 +1,5 @@
 .top {
-  box-shadow: var(--fds-shadow-small);
+  box-shadow: var(--ds-shadow-sm);
   margin-bottom: var(--ds-size-1);
 }
 

@@ -13,7 +13,7 @@
 .edit {
   background-color: white;
   border-radius: 4px;
-  border: 1px solid var(--fds-semantic-border-divider-default);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
   flex-direction: column;
   gap: 1rem;
   padding: var(--ds-size-4);

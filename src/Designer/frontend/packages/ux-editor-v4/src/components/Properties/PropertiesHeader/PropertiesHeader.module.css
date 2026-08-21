@@ -1,7 +1,7 @@
 .mainContent {
   display: flex;
   flex-direction: column;
-  background-color: var(--fds-semantic-surface-neutral-default);
+  background-color: var(--ds-color-neutral-surface-default);
   gap: var(--ds-size-3);
   padding-bottom: var(--ds-size-3);
 }

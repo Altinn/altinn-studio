@@ -2,7 +2,7 @@
   --background-colour: var(--fds-brand-alt2-800);
   background-color: var(--background-colour);
   border-radius: var(--ds-border-radius-sm);
-  color: var(--fds-semantic-surface-on_inverted-default);
+  color: var(--ds-color-neutral-surface-default);
 }
 
 .icon.isArray {

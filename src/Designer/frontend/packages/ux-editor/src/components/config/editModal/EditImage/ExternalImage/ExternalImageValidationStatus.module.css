@@ -1,4 +1,4 @@
 .validationStatusContainer {
   margin: var(--ds-size-3);
-  color: var(--fds-semantic-text-danger-default);
+  color: var(--ds-color-danger-text-default);
 }

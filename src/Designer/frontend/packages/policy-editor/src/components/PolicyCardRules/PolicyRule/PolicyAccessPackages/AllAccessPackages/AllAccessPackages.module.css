@@ -1,6 +1,6 @@
 .accordionIcon {
   font-size: var(--ds-font-size-7);
-  color: var(--fds-semantic-text-neutral-default);
+  color: var(--ds-color-neutral-text-default);
   border-radius: var(--ds-border-radius-sm);
   padding: var(--ds-size-2);
 }

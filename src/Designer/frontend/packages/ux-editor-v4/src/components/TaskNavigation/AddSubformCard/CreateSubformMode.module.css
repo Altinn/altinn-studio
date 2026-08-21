@@ -1,8 +1,8 @@
 .subformCardEditMode {
   width: 300px;
   gap: var(--ds-size-3);
-  background-color: var(--fds-semantic-background-default);
-  border: var(--ds-border-width-focus) solid var(--fds-semantic-border-first-active);
+  background-color: var(--ds-color-neutral-background-default);
+  border: var(--ds-border-width-focus) solid var(--ds-color-brand1-base-active);
   border-radius: var(--ds-border-radius-lg);
 }
 

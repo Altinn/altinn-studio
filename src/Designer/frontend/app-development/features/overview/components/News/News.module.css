@@ -15,7 +15,7 @@
 }
 
 .newsContent {
-  background-color: var(--fds-semantic-surface-warning-subtle);
+  background-color: var(--ds-color-warning-surface-tinted);
 }
 
 .newsContent:not(:last-child) {

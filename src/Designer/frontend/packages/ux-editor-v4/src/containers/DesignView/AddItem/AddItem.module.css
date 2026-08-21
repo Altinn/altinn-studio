@@ -15,6 +15,6 @@
   flex-direction: row;
   justify-content: space-between;
   margin: 20px auto;
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--ds-color-neutral-surface-tinted);
   width: 100%;
 }

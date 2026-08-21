@@ -1,9 +1,9 @@
 .expressionContent {
   align-items: center;
-  background-color: var(--fds-semantic-surface-neutral-default);
+  background-color: var(--ds-color-neutral-surface-default);
   border-radius: var(--ds-border-radius-md);
   border: 0;
-  box-shadow: var(--fds-shadow-small);
+  box-shadow: var(--ds-shadow-sm);
   display: grid;
   gap: var(--studio-legacy-expression-spacing);
   grid-template-columns: [start] 1fr auto [end];

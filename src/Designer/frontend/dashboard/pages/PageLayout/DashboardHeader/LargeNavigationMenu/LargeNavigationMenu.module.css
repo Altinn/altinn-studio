@@ -7,5 +7,5 @@
 }
 
 .active {
-  border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
+  border-bottom: 2px solid var(--ds-color-neutral-surface-default);
 }

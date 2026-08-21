@@ -11,7 +11,7 @@
   font: var(--fds-typography-paragraph-short-medium);
   border: none;
   border-radius: 0;
-  color: var(--fds-semantic-text-neutral-default);
+  color: var(--ds-color-neutral-text-default);
 }
 
 .root.selected .headingButton {

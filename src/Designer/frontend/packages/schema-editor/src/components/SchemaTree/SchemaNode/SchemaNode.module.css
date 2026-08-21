@@ -6,11 +6,7 @@
 
 .schemaNodeLabel:hover,
 .schemaNodeLabel:focus-within {
-  background-color: color-mix(
-    in srgb,
-    var(--fds-semantic-surface-action-first-no_fill-hover),
-    transparent
-  );
+  background-color: color-mix(in srgb, var(--ds-color-accent-surface-hover), transparent);
 }
 
 .actionButtons {
@@ -27,7 +23,7 @@
   --background-colour: var(--fds-brand-alt1-800);
   background-color: var(--background-colour);
   border-radius: var(--ds-border-radius-sm);
-  color: var(--fds-semantic-surface-on_inverted-default);
+  color: var(--ds-color-neutral-surface-default);
 }
 
 .schemaNodeLabel.isParent.isArray .nodeName svg {

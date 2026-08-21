@@ -1,5 +1,5 @@
 .groupWrapper {
-  border-bottom: 0.5px solid var(--fds-semantic-border-neutral-subtle);
+  border-bottom: 0.5px solid var(--ds-color-neutral-border-subtle);
 }
 .groupHeaderWrapper {
   display: flex;
@@ -22,7 +22,7 @@
 }
 
 .container:hover {
-  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+  background-color: var(--ds-color-neutral-surface-hover);
 }
 
 .rightIconsContainer {

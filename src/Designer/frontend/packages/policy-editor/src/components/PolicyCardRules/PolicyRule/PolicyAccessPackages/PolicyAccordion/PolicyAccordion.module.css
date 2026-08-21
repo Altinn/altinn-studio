@@ -1,5 +1,5 @@
 .accordion {
-  box-shadow: var(--fds-shadow-small);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .accordionHeader {
@@ -17,7 +17,7 @@
 
 .accordionIcon {
   font-size: var(--ds-size-7);
-  color: var(--fds-semantic-text-neutral-default);
+  color: var(--ds-color-neutral-text-default);
 }
 
 .accordionContent {

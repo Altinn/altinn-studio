@@ -9,7 +9,7 @@
 }
 
 .hiddenTasksTable {
-  background-color: var(--fds-semantic-background-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .taskFooterContent {
