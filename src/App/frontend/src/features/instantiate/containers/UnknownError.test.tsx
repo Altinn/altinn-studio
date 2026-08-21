@@ -49,8 +49,8 @@ describe('Unknown error', () => {
 
     expect(console.error).not.toHaveBeenCalled();
 
-    const showDetailsButton = screen.getByRole('button', { name: 'Vis detaljer om feilen' });
-    await user.click(showDetailsButton);
+    const showDetailsSummary = screen.getByText('Vis detaljer om feilen').closest('summary')!;
+    await user.click(showDetailsSummary);
     expect(screen.getByText('Error test message')).toBeInTheDocument();
 
     const writeTextMock = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
@@ -68,7 +68,7 @@ describe('Unknown error', () => {
       renderer: () => <UnknownError error={makeInstantiationError()} />,
     });
 
-    await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
+    await user.click(screen.getByText('Vis detaljer om feilen').closest('summary')!);
 
     expect(screen.getByText('POST')).toBeInTheDocument();
     expect(screen.getByText('/instances?instanceOwnerPartyId=501337&language=nb')).toBeInTheDocument();

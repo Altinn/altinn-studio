@@ -391,7 +391,7 @@ describe('ProcessWrapper workflow state machine', () => {
     // support (the form/instance id and the workflow id). Raw error detail is never shipped by the
     // backend, so it cannot appear here - and step/task identities are deliberately omitted too
     // (internal ids; the target task's type label was just misleading).
-    await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
+    await user.click(screen.getByText('Vis detaljer om feilen').closest('summary')!);
     expect(screen.getByText('Et steg i behandlingen feilet')).toBeInTheDocument();
     expect(screen.getByText('Skjemareferanse')).toBeInTheDocument();
     expect(screen.getByText('0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1')).toBeInTheDocument();

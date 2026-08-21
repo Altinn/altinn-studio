@@ -39,6 +39,24 @@ const getInput = (container: HTMLElement) =>
 
 const getPopover = (container: HTMLElement) => container.querySelector('.ds-popover');
 
+const selectOption = (container: HTMLElement, value: string, label: string) => {
+  const item = document.createElement('data');
+  item.value = value;
+  item.textContent = label;
+  const suggestion = container.querySelector('ds-suggestion');
+  if (!suggestion) {
+    throw new Error('Suggestion was not rendered');
+  }
+  fireEvent(
+    suggestion,
+    new CustomEvent('comboboxbeforeselect', {
+      bubbles: true,
+      cancelable: true,
+      detail: item,
+    }),
+  );
+};
+
 describe('Dropdown', () => {
   it('renders the label and associates it with the input', () => {
     const { container } = render({ title: 'dropdown.title' });
@@ -90,11 +108,9 @@ describe('Dropdown', () => {
 
   it('gates the change behind a confirmation popover when alertOnChange overwrites an existing value', () => {
     const onChange = vi.fn();
-    // Clicking an option fires the option's onClick (React attaches it to the host element regardless
-    // of the web-component upgrade), which drives the real alert-on-change wiring in DropdownLayout.
     const { container } = render({ value: 'norge', alertOnChange: true, onChange });
 
-    fireEvent.click(screen.getByText('Sverige'));
+    selectOption(container, 'sverige', 'Sverige');
 
     // The change is suspended: the alert message is rendered and onChange has not fired yet.
     expect(getPopover(container)).toHaveTextContent('Are you sure you want to change to Sverige?');
@@ -109,7 +125,7 @@ describe('Dropdown', () => {
     const onChange = vi.fn();
     const { container } = render({ value: 'norge', alertOnChange: true, onChange });
 
-    fireEvent.click(screen.getByText('Sverige'));
+    selectOption(container, 'sverige', 'Sverige');
 
     // The cancel label resolves from the text resources ('general.cancel' → 'Cancel' in en).
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -125,7 +141,7 @@ describe('Dropdown', () => {
     const { container } = render({ title: 'dropdown.title', renderedInTable: true });
     // The title is exposed to assistive tech via the input's aria-label...
     expect(getInput(container)).toHaveAttribute('aria-label', 'Bostedsland');
-    expect(screen.getByRole('textbox', { name: 'Bostedsland' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Bostedsland' })).toBeInTheDocument();
   });
 
   it('does not set an aria-label on the input when not rendered in a table', () => {

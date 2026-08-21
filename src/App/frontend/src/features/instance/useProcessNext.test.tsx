@@ -92,7 +92,7 @@ describe('useProcessNext workflow error convergence', () => {
     // (with the safe details expander) — not an error toast echoing the backend's detail, and no
     // Retry affordance (the engine already exhausted its retry budget; recovery is ops-driven).
     expect(await screen.findByRole('heading', { name: /noe gikk galt/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Vis detaljer om feilen' })).toBeInTheDocument();
+    expect(screen.getByText('Vis detaljer om feilen').closest('summary')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
     expect(doProcessNext).toHaveBeenCalledTimes(1);
   });
