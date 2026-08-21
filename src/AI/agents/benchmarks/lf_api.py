@@ -9,9 +9,17 @@ from __future__ import annotations
 
 import os
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
+
+MAX_OBSERVATION_PAGES = 10
+OBSERVATION_PAGE_SIZE = 50
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 class LangfuseApi:
@@ -90,6 +98,18 @@ class LangfuseApi:
     def create_dataset_run_item(
         self, run_name: str, dataset_item_id: str, trace_id: str, run_description: str = ""
     ) -> dict:
+        """Link an existing agent trace into a dataset run.
+
+        NOT v4-ready. Langfuse keeps this endpoint as a compatibility path for
+        older SDKs and returns a stale object; it does not 404, so runs still
+        appear to succeed while the link is wrong. v4 expects an experiment to
+        create its own traces through the Experiment runner SDK or OTLP
+        experiment attributes, which is a different shape from this harness,
+        where the agent produces the trace and we attach it afterwards.
+
+        Reworking that is its own piece of work. Until then the benchmark and
+        red-team runners must not move to write mode `events_only`.
+        """
         return self._post(
             "/api/public/dataset-run-items",
             {
@@ -132,30 +152,36 @@ class LangfuseApi:
             body["configId"] = config_id
         self._post("/api/public/scores", body)
 
-    # -- traces -----------------------------------------------------------
+    # -- observations -------------------------------------------------------
 
     def find_trace_for_session(
         self, session_id: str, trace_name: str, from_timestamp: str
     ) -> str | None:
-        """Find the workflow trace whose metadata carries `session_id`.
+        """Find the workflow trace whose root span metadata carries `session_id`.
 
-        The workflow root span doesn't set a Langfuse session, so we page
-        recent traces by name and match on metadata client-side.
+        Uses the v2 observations API: `GET /api/public/traces` returns 404 once
+        Langfuse runs write mode `events_only`. v2 returns observation rows
+        rather than traces, so we read `traceId` off the matching root span.
+
+        `metadata` is not in the default field set, and the window is required.
         """
-        page = 1
-        while page <= 10:
-            data = self._get(
-                "/api/public/traces",
-                name=trace_name,
-                fromTimestamp=from_timestamp,
-                orderBy="timestamp.desc",
-                page=page,
-                limit=50,
-            )
-            for trace in data.get("data") or []:
-                if (trace.get("metadata") or {}).get("session_id") == session_id:
-                    return trace.get("id")
-            if page >= (data.get("meta") or {}).get("totalPages", 1):
+        cursor: str | None = None
+        for _ in range(MAX_OBSERVATION_PAGES):
+            params: dict[str, Any] = {
+                "name": trace_name,
+                "fields": "core,basic,metadata",
+                "fromStartTime": from_timestamp,
+                "toStartTime": _now_iso(),
+                "limit": OBSERVATION_PAGE_SIZE,
+            }
+            if cursor:
+                params["cursor"] = cursor
+            data = self._get("/api/public/v2/observations", **params)
+            rows = data.get("data") or []
+            for row in rows:
+                if (row.get("metadata") or {}).get("session_id") == session_id:
+                    return row.get("traceId")
+            cursor = (data.get("meta") or {}).get("cursor")
+            if not cursor or not rows:
                 break
-            page += 1
         return None

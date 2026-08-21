@@ -251,6 +251,9 @@ def delete_score(score_id: str) -> None:
     if not client or not score_id:
         return
     try:
+        # `legacy` names the v1 API version, not a retired endpoint: the SDK
+        # exposes no other score delete, and DELETE /api/public/scores/:id is
+        # absent from the v4 deprecation list (verified 202 on v4.4.0).
         client.api.legacy.score_v1.delete(score_id)
         log.debug("Langfuse score %s deleted", score_id)
     except Exception as e:
