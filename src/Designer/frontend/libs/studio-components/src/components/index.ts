@@ -19,6 +19,7 @@ export * from './StudioCenter';
 export * from './StudioCheckbox';
 export * from './StudioCheckboxGroup';
 export * from './StudioCheckboxTable';
+export * from './StudioChip';
 export * from './StudioCodeFragment';
 export * from './StudioCodeListEditor';
 export * from './StudioConfigCard';
