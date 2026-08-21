@@ -40,6 +40,63 @@ internal sealed partial class EngineRepository
     private static readonly Func<NpgsqlConnection, IEnumerable<(Guid, Guid)>, CancellationToken, Task> _insertLinks =
         SqlBulkInserter.CreateForJoinTable("workflow_link", "workflow_id", "linked_workflow_id", SchemaNames.Engine);
 
+    // The FetchAndLockWorkflows SQL, in two compile-time-constant variants ("disabled means
+    // inert"): with throttling disabled the query carries no trace of throttled_until, so the
+    // column costs nothing on the fetch path. The variant is selected once at construction —
+    // engine configuration is restart-only — and both are composed from the same head/tail
+    // constants so they cannot drift apart. Compile-time constancy is what CA2100 demands of
+    // raw command texts; runtime values arrive via the @now/@count parameters.
+    private const string FetchAndLockSqlHead = $"""
+        WITH ready AS (
+            SELECT w.id
+            FROM engine.workflows w
+            WHERE w.status IN ({PersistentItemStatusMap.FetchableSqlList})
+              AND (
+                w.backoff_until IS NULL
+                OR w.backoff_until <= @now
+                OR w.cancellation_requested_at IS NOT NULL
+              )
+        """;
+
+    private const string FetchAndLockSqlThrottleGate = """
+
+              AND (w.throttled_until IS NULL OR w.throttled_until <= @now)
+        """;
+
+    private const string FetchAndLockSqlTail = $"""
+
+              AND NOT EXISTS (
+                  SELECT 1 FROM engine.workflow_dependency wd
+                  JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
+                  WHERE wd.workflow_id = w.id
+                    AND dep.status NOT IN ({PersistentItemStatusMap.FinishedSqlList})
+              )
+            ORDER BY w.backoff_until NULLS FIRST, w.created_at
+            FOR UPDATE SKIP LOCKED
+            LIMIT @count
+        ),
+        updated AS (
+            UPDATE engine.workflows w
+            SET status       = {PersistentItemStatusMap.ProcessingSqlLiteral},
+                updated_at   = @now,
+                heartbeat_at = @now,
+                lease_token  = gen_random_uuid()
+            FROM ready r
+            WHERE w.id = r.id
+            RETURNING w.id
+        )
+        SELECT id AS "Value" FROM updated
+        """;
+
+    private const string FetchAndLockSqlWithThrottleGate =
+        FetchAndLockSqlHead + FetchAndLockSqlThrottleGate + FetchAndLockSqlTail;
+
+    private const string FetchAndLockSqlWithoutThrottleGate = FetchAndLockSqlHead + FetchAndLockSqlTail;
+
+    private readonly string _fetchAndLockSql = settings.Value.Throttling.Enabled
+        ? FetchAndLockSqlWithThrottleGate
+        : FetchAndLockSqlWithoutThrottleGate;
+
     /// <inheritdoc/>
     public async Task UpdateWorkflow(
         Workflow workflow,
@@ -67,6 +124,7 @@ internal sealed partial class EngineRepository
                                     .SetProperty(t => t.Status, workflow.Status)
                                     .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
                                     .SetProperty(t => t.BackoffUntil, workflow.BackoffUntil)
+                                    .SetProperty(t => t.ThrottledUntil, workflow.ThrottledUntil)
                                     .SetProperty(t => t.EngineTraceContext, workflow.EngineTraceContext),
                             ct
                         );
@@ -946,7 +1004,9 @@ internal sealed partial class EngineRepository
 
         // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poisoned finalization
         // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
-        // re-enter here as Enqueued.
+        // re-enter here as Enqueued. The SQL itself lives in the FetchAndLockSql* constants at the
+        // top of this file; which variant runs (with or without the throttled_until gate) was
+        // decided once at construction from EngineSettings.Throttling.Enabled.
         //
         // A pending cancellation bypasses the backoff gate: the handler cancels a flagged workflow
         // before executing anything. Without the bypass, a cancel accepted while the row still read
@@ -958,43 +1018,10 @@ internal sealed partial class EngineRepository
         // the planner's per-row anti-join into a hashed subplan over every dependency edge per fetch
         // cycle. A cancelled dependent therefore still waits for its dependency to settle.
         var ids = await context
-            .Database.SqlQuery<Guid>(
-                $"""
-                WITH ready AS (
-                    SELECT w.id
-                    FROM engine.workflows w
-                    WHERE w.status IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued}, {PersistentItemStatus.Waiting})
-                      AND (
-                        w.backoff_until IS NULL
-                        OR w.backoff_until <= {now}
-                        OR w.cancellation_requested_at IS NOT NULL
-                      )
-                      AND NOT EXISTS (
-                          SELECT 1 FROM engine.workflow_dependency wd
-                          JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
-                          WHERE wd.workflow_id = w.id
-                            AND dep.status <> {PersistentItemStatus.Completed}
-                            AND dep.status <> {PersistentItemStatus.Failed}
-                            AND dep.status <> {PersistentItemStatus.DependencyFailed}
-                            AND dep.status <> {PersistentItemStatus.Canceled}
-                            AND dep.status <> {PersistentItemStatus.Abandoned}
-                      )
-                    ORDER BY w.backoff_until NULLS FIRST, w.created_at
-                    FOR UPDATE SKIP LOCKED
-                    LIMIT {count}
-                ),
-                updated AS (
-                    UPDATE engine.workflows w
-                    SET status       = {PersistentItemStatus.Processing},
-                        updated_at   = {now},
-                        heartbeat_at = {now},
-                        lease_token  = gen_random_uuid()
-                    FROM ready r
-                    WHERE w.id = r.id
-                    RETURNING w.id
-                )
-                SELECT id AS "Value" FROM updated
-                """
+            .Database.SqlQueryRaw<Guid>(
+                _fetchAndLockSql,
+                new NpgsqlParameter<DateTimeOffset>("now", now),
+                new NpgsqlParameter<int>("count", count)
             )
             .ToListAsync(cancellationToken);
 
@@ -1183,6 +1210,7 @@ internal sealed partial class EngineRepository
                     var ids = new Guid[sorted.Count];
                     var statuses = new int[sorted.Count];
                     var backoffDeadlines = new object[sorted.Count];
+                    var throttleDeadlines = new object[sorted.Count];
                     var engineTraceContexts = new object[sorted.Count];
                     var leaseTokens = new Guid[sorted.Count];
 
@@ -1192,6 +1220,7 @@ internal sealed partial class EngineRepository
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
                         backoffDeadlines[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
+                        throttleDeadlines[i] = w.ThrottledUntil.HasValue ? w.ThrottledUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                         // FetchAndLockWorkflows always stamps a LeaseToken; the throw is an invariant check.
                         leaseTokens[i] =
@@ -1213,13 +1242,14 @@ internal sealed partial class EngineRepository
                         SET status               = v.status,
                             updated_at           = @now,
                             backoff_until        = v.backoff_until,
+                            throttled_until      = v.throttled_until,
                             heartbeat_at         = CASE WHEN v.status = @processing THEN @now ELSE NULL END,
                             lease_token          = CASE WHEN v.status = @processing THEN w.lease_token ELSE NULL END,
                             engine_trace_context = v.engine_trace_context
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @backoff_deadlines, @engine_trace_contexts, @lease_tokens)
-                                AS t(id, status, backoff_until, engine_trace_context, lease_token)
+                            FROM unnest(@ids, @statuses, @backoff_deadlines, @throttle_deadlines, @engine_trace_contexts, @lease_tokens)
+                                AS t(id, status, backoff_until, throttled_until, engine_trace_context, lease_token)
                             ORDER BY t.id
                         ) AS v
                         WHERE w.id = v.id
@@ -1235,6 +1265,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("backoff_deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
                             {
                                 Value = backoffDeadlines,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("throttle_deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = throttleDeadlines,
                             }
                         );
                         cmd.Parameters.Add(

@@ -9,6 +9,7 @@ public class PersistentItemStatusMapTests
     private static readonly IReadOnlyCollection<PersistentItemStatus>[] _allCollections =
     [
         PersistentItemStatusMap.Incomplete,
+        PersistentItemStatusMap.Fetchable,
         PersistentItemStatusMap.Successful,
         PersistentItemStatusMap.Failed,
         PersistentItemStatusMap.Finished,
@@ -36,6 +37,22 @@ public class PersistentItemStatusMapTests
             PersistentItemStatusMap.IncompleteSqlList,
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Incomplete)
         );
+        Assert.Equal(
+            PersistentItemStatusMap.FetchableSqlList,
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Fetchable)
+        );
+        Assert.Equal(
+            PersistentItemStatusMap.ProcessingSqlLiteral,
+            PersistentItemStatusMap.ToSqlList([PersistentItemStatus.Processing])
+        );
+    }
+
+    [Fact]
+    public void Fetchable_IsIncompleteMinusProcessing()
+    {
+        var expected = PersistentItemStatusMap.Incomplete.Where(s => s != PersistentItemStatus.Processing).Order();
+
+        Assert.Equal(expected, PersistentItemStatusMap.Fetchable.Order());
     }
 
     [Fact]

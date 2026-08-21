@@ -24,6 +24,11 @@ internal sealed class EngineDbContext : DbContext
     /// </summary>
     public DbSet<WorkflowCollectionEntity> WorkflowCollections { get; set; }
 
+    /// <summary>
+    /// Gets or sets the per-namespace circuit breaker state rows for failure-storm throttling.
+    /// </summary>
+    public DbSet<NamespaceThrottleEntity> NamespaceThrottles { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -39,12 +44,22 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.CollectionKey);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
+            // Backs the throttle sweep's per-namespace GROUP BY counts over incomplete
+            // workflows. status is a second key column so requeued-vs-active counts resolve
+            // from the index alone. Same constancy contract as the retention index below.
+            entity
+                .HasIndex(e => new { e.Namespace, e.Status }, "ix_workflows_namespace_status_incomplete")
+                .HasFilter($"status IN ({PersistentItemStatusMap.IncompleteSqlList})");
+
+            // The fetch-gate index. throttled_until rides along as an INCLUDE column (not a key):
+            // it is only ever a residual filter — never an ordering or range key — so keeping it
+            // out of the btree key preserves today's key shape and comparison costs while making
+            // the column available to index-only reads.
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
-                .HasFilter(
-                    $"status IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued}, {(int)PersistentItemStatus.Waiting})"
-                )
-                .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
+                .HasFilter($"status IN ({PersistentItemStatusMap.FetchableSqlList})")
+                .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast)
+                .IncludeProperties(e => e.ThrottledUntil);
 
             entity.HasIndex(e => e.HeartbeatAt).HasFilter($"status = {(int)PersistentItemStatus.Processing}");
 
@@ -121,6 +136,17 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.HasKey(e => new { e.Key, e.Namespace });
             entity.HasIndex(e => e.Namespace);
+        });
+
+        // Configure NamespaceThrottle entity
+        modelBuilder.Entity<NamespaceThrottleEntity>(entity =>
+        {
+            entity
+                .Property(e => e.Canaries)
+                .HasConversion(
+                    JsonbConverter<List<ThrottleCanary>>.Converter,
+                    JsonbConverter<List<ThrottleCanary>>.Comparer
+                );
         });
 
         SnakeCaseNamingConvention.Apply(modelBuilder);

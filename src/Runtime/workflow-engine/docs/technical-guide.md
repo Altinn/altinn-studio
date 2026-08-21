@@ -918,6 +918,28 @@ All via `EngineSettings` (bound from `appsettings.json`):
 | `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size        |
 | `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers  |
 
+### Throttling (namespace circuit breaker)
+
+Per-namespace failure-storm throttling (see the failure-throttling ADR). Ships dark: with
+`Enabled: false` (the default) the sweep does not run and the fetch query variant without the
+`throttled_until` predicate is selected at startup, so the schema is fully inert. What exists
+today is the schema, the configuration, and the fetch gate — an enabled repository already skips
+workflows parked behind a future `throttled_until`, but nothing writes that column yet. The sweep
+(the writer) and the handler cooperation land separately.
+
+| Setting                            | Default | Description                                             |
+| ---------------------------------- | ------- | ------------------------------------------------------- |
+| `Throttling.Enabled`               | false   | Master switch for the namespace circuit breaker         |
+| `Throttling.MinRequeuedWorkflows`  | 50      | Absolute floor of `Requeued` workflows before tripping  |
+| `Throttling.MinRequeuedRatio`      | 0.5     | Fraction of active workflows that must be `Requeued`    |
+| `Throttling.SweepInterval`         | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
+| `Throttling.CanaryCount`           | 3       | Canary workflows kept on the normal retry schedule      |
+| `Throttling.InitialWindow`         | 10m     | Throttle window at first trip                           |
+| `Throttling.MaxWindow`             | 1h      | Cap on the exponentially growing window                 |
+
+Window growth (×2), release cohort growth (×2), and jitter (±20%) are named constants on
+`ThrottlingSettings`, deliberately not configuration.
+
 ## Testing
 
 ### TestKit
