@@ -331,6 +331,51 @@ public class MailboxDeliveryBufferTests
         }
     }
 
+    /// <summary>
+    /// The one assertion the flush-counter pair exists for: over a batch that split, requests ÷ batches is the
+    /// mean batch size actually achieved, and reads as neither 1 nor <c>MaxBatchSize</c>.
+    /// </summary>
+    [Fact]
+    public async Task TheFlushCounters_OverASplitBatch_DivideIntoTheMeanBatchSize()
+    {
+        var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 2));
+
+        var batchSizes = new List<int>();
+        SetupMockAccepted(repo, batchSizes);
+
+        using var meters = new MeterCollector();
+        using var serviceCts = new CancellationTokenSource();
+        var tasks = Preload(buffer, 5, TestContext.Current.CancellationToken);
+
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            await Task.WhenAll(tasks);
+
+            // The preload fixed the split before the drain loop started, so the repository saw exactly three
+            // batches — 2, 2, 1 — which is what makes the exact counter totals below safe to assert.
+            Assert.Equal(3, batchSizes.Count);
+
+            // 5 ÷ 3 = 1.67, the mean batch size this arrangement achieved. A counter that moved by the batch's
+            // size, or once per request, would read 1.00 here and hide the split entirely — which is the reading
+            // an operator would take as "batching is not happening".
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 5 },
+                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
+                meters.ByTag("engine.mailbox_buffer.batches", "operation")
+            );
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
+
     [Fact]
     public async Task Enqueue_PayloadBudgetExceeded_SplitsIntoBatches()
     {
@@ -677,7 +722,7 @@ public class MailboxDeliveryBufferTests
     }
 
     [Fact]
-    public async Task TheFlushedCounter_CountsWhatABatchAnswered_AndNothingForAFaultedFlush()
+    public async Task TheFlushCounters_CountWhatABatchAnswered_AndNothingForAFaultedFlush()
     {
         var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10));
         SetupMockAccepted(repo);
@@ -697,8 +742,16 @@ public class MailboxDeliveryBufferTests
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
             );
 
-            // A batch nobody was answered from must leave the count where it was: the counter sits after the
-            // database work returns, so a flush that throws contributes nothing.
+            // Three requests, one flush: this counter is incremented by one per flush whatever its batch held,
+            // which is what lets the two divide into a mean batch size.
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 1 },
+                meters.ByTag("engine.mailbox_buffer.batches", "operation")
+            );
+
+            // A batch nobody was answered from must leave both counts where they were: they sit after the
+            // database work returns, so a flush that throws contributes to neither — a flush counted without
+            // its requests would deflate every mean batch size the pair reports.
             repo.Reset();
             repo.Setup(r =>
                     r.BatchDeliverToMailboxes(
@@ -716,6 +769,10 @@ public class MailboxDeliveryBufferTests
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 1 },
+                meters.ByTag("engine.mailbox_buffer.batches", "operation")
             );
         }
         finally

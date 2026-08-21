@@ -392,7 +392,7 @@ public class MailboxCloseBufferTests
     }
 
     [Fact]
-    public async Task TheFlushedCounter_CountsTheBatchUnderTheCloseTag()
+    public async Task TheFlushCounters_CountRequestsAndOneBatchUnderTheCloseTag()
     {
         var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10));
         SetupMockClosed(repo);
@@ -410,6 +410,13 @@ public class MailboxCloseBufferTests
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["close"] = 2 },
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+
+            // Two requests, one flush — and both measurements carry this path's tag, so a dashboard dividing
+            // them per operation gets the close buffer's own mean batch size.
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["close"] = 1 },
+                meters.ByTag("engine.mailbox_buffer.batches", "operation")
             );
         }
         finally

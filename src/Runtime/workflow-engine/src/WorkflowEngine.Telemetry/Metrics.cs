@@ -392,13 +392,37 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of mailbox requests answered by a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// Counter of mailbox <b>requests</b> answered by a batch flush, tagged with <c>operation</c> (<c>mint</c>,
     /// <c>close</c> or <c>delivery</c>). Counted where <see cref="UpdateBufferFlushedItems"/> is: requests rather
-    /// than flushes, once the batch's database work has returned without faulting.
+    /// than flushes, once the batch's database work has returned without faulting. Divide by
+    /// <see cref="MailboxBufferFlushedBatches"/> over the same window and tag for the mean batch size.
     /// </summary>
     public static readonly Counter<long> MailboxBufferFlushedItems = Meter.CreateCounter<long>(
         "engine.mailbox_buffer.flushed",
-        description: "Number of mailbox requests answered by a batch flush, tagged by operation (mint, close, delivery)"
+        description: "Number of mailbox requests answered by a batch flush — one per request, not per flush — tagged by operation (mint, close, delivery). Divide by engine.mailbox_buffer.batches for the mean batch size"
+    );
+
+    /// <summary>
+    /// Counter of mailbox <b>batch flushes</b>, one per flush whatever its size, tagged with <c>operation</c>
+    /// (<c>mint</c>, <c>close</c> or <c>delivery</c>). The denominator of
+    /// <see cref="MailboxBufferFlushedItems"/> ÷ this, which is the mean batch size — the only thing the engine
+    /// emits that says whether requests are actually being batched, and the reason this counter exists.
+    /// <para>
+    /// Recorded at exactly the same point as <see cref="MailboxBufferFlushedItems"/>, so the two are always
+    /// consistent: a flush that faulted answers nobody and counts in neither.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// Named <c>batches</c> rather than <c>flushes</c> on purpose. It counts what
+    /// <see cref="MailboxBufferFlushedItems"/> counts the contents of, and a name one letter from
+    /// <c>flushed</c> carrying different units is a ratio silently misread as 1.0 — the exact wrong answer this
+    /// pair exists to rule out. The workflow write and update buffers deliberately emit no equivalent: the
+    /// mailbox delivery path is the one with a measured statement-count crossover, so it is the one where batch
+    /// fill has to be watched rather than assumed.
+    /// </remarks>
+    public static readonly Counter<long> MailboxBufferFlushedBatches = Meter.CreateCounter<long>(
+        "engine.mailbox_buffer.batches",
+        description: "Number of mailbox batch flushes — one per flush whatever its size, not per request — tagged by operation (mint, close, delivery). The denominator of engine.mailbox_buffer.flushed for the mean batch size"
     );
 
     /// <summary>
@@ -525,7 +549,8 @@ public static class Metrics
     /// that requests are being turned away. And read only the sustained value: this is a coarse sample —
     /// written once per <c>MetricsCollectionInterval</c> and exported every 10 s, while a queue fills and drains
     /// between flushes — so a zero is not evidence that the queue never filled, and the gauge cannot show
-    /// whether requests are being batched at all.
+    /// whether requests are being batched at all. <see cref="MailboxBufferFlushedItems"/> ÷
+    /// <see cref="MailboxBufferFlushedBatches"/> is what shows that.
     /// </summary>
     public static readonly ObservableGauge<long> MailboxBufferDepth = Meter.CreateObservableGauge(
         "engine.mailbox_buffer.depth",

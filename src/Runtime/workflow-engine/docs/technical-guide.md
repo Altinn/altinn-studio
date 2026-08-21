@@ -896,7 +896,10 @@ nothing issues fewer: all duplicates is the lock and the lookup, all `404`s the 
 bespoke single-message path this replaced issued four, bumping the counter and inserting the row in
 one statement where the flush splits them. Below a mean batch of about 1.25 the batched path therefore issues **more** statements per
 delivery than that one did — one more at a batch of exactly 1 — and only above it does it issue fewer.
-That much is arithmetic on the statement counts, so it holds on any machine.
+That much is arithmetic on the statement counts, so it holds on any machine. Which side of it a
+running engine is on is readable without database access, from
+`engine.mailbox_buffer.flushed ÷ engine.mailbox_buffer.batches` (see
+[Mailbox metrics](#mailbox-metrics)).
 
 The batch itself is the arrival rate times the flush latency, which makes the regime a property of the
 load rather than of the build or its settings. Measured on one development machine, where two delivery
@@ -1018,7 +1021,8 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 | `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
 | `engine.mailboxes.rendezvous.violations`  | Counter   | `state` (`unregistered`/`undecided`)                                                     |
 | `engine.mailboxes.open.overdue`           | Gauge     | —                                                                                        |
-| `engine.mailbox_buffer.flushed`           | Counter   | `operation` (`mint`/`close`/`delivery`)                                                  |
+| `engine.mailbox_buffer.flushed`           | Counter   | `operation` (`mint`/`close`/`delivery`) — **one per request**                            |
+| `engine.mailbox_buffer.batches`           | Counter   | `operation` (`mint`/`close`/`delivery`) — **one per flush**, whatever its size           |
 | `engine.mailbox_buffer.depth`             | Gauge     | `operation` (`mint`/`close`/`delivery`)                                                  |
 
 Reading them:
@@ -1041,9 +1045,21 @@ Reading them:
   exists to report, and the alert reads "greater than zero", so stopping early costs nothing.
 - `mailbox_buffer.flushed` counts **requests, not flushes** — the requests a batch answered, counted
   once its database work has returned without faulting, so a batch a fault answered with exceptions
-  counts nothing. No mean batch size can be derived from it: the engine emits no flush count, and
-  `engine.db.operations.success` counts every engine database operation rather than only these flushes,
-  so it is not the denominator either.
+  counts nothing. `mailbox_buffer.batches` counts the flushes themselves, **one per flush whatever its
+  size**, recorded at the same point and under the same tag, so a faulted flush counts in neither and
+  the two are always consistent. **`flushed ÷ batches`, per `operation` and over one window, is the
+  mean batch size.** What is not the denominator is `engine.db.operations.success`: it counts every
+  engine database operation rather than only these flushes, and dividing by it reads far below the
+  truth — 0.12 against a true 1.00, in one measured run.
+- `mailbox_buffer.batches` exists to answer **"is batching actually happening?"**, which matters
+  because a delivery only gets cheaper above a mean batch of about 1.25 (see
+  [The saving arrives with the batches](#the-saving-arrives-with-the-batches)). A ratio at 1.0 means
+  every request flushed alone, so the change is costing a statement per delivery instead of saving one;
+  a ratio near `maxBatchSize` means the buffer is saturated and that setting is the next thing to tune.
+  Read it per `operation` — mint, close and delivery queue independently. The workflow write and update
+  buffers have **no** equivalent counter, which is deliberate rather than an oversight: the mailbox
+  delivery path is the one with a measured statement-count crossover, so it is the one where batch fill
+  has to be watched rather than assumed.
 - `mailbox_buffer.depth` is latency, not capacity: the queues wait rather than refuse when full, so a
   depth that stays high means callers waiting longer for a verdict, never requests turned away. It is
   **a coarse sample of a fast queue**, and only a sustained reading means anything. `MetricsCollector`
@@ -1051,16 +1067,16 @@ Reading them:
   wrote every 10 s, while a queue fills and drains between flushes. A storm at 3 000 deliveries/s that
   was plainly queueing — a mean of 3.86 messages accepted per flush can only come from requests that
   waited — held the gauge at **0** throughout. So a zero is not evidence that the queue never filled,
-  and the gauge cannot tell you whether batching is happening.
-- **Whether batching is happening is not answerable from the metrics the engine emits**, and matters
-  because a delivery only gets cheaper once batches form (see
-  [The saving arrives with the batches](#the-saving-arrives-with-the-batches)). Answering it takes
-  database access, from `pg_stat_statements`: `rows ÷ calls` of the `engine.mailbox_deliveries` insert
-  gives accepted rows per accepting flush, and `mailbox_buffer.flushed{operation="delivery"} ÷ calls`
-  of the existing-deliveries lookup gives requests per flush — that lookup runs once per flush that
-  named a mailbox the lock matched, so a flush of nothing but `404`s counts in the numerator and not
-  the denominator and inflates the ratio a little. Take both as deltas over one window;
-  `pg_stat_statements` counts from its last reset.
+  and the gauge cannot tell you whether batching is happening — `flushed ÷ batches` is what does.
+- **`pg_stat_statements` answers a finer question, and is worth keeping as the cross-check.** On the
+  `engine.mailbox_deliveries` insert, `rows ÷ calls` gives _accepted rows per accepting flush_ — not
+  the same quantity as `flushed ÷ batches`, which is _requests per flush_. The two diverge by exactly
+  the refusals a flush answered: in the measured storm by under 0.5 %, since `log_full` was 0.8 % of
+  requests, but a workload that refuses heavily would separate them. A third route, `flushed` over the
+  existing-deliveries lookup's `calls`, is requests per flush again and should agree with
+  `flushed ÷ batches` except for flushes of nothing but `404`s, which count in that numerator and not
+  in that denominator. Take all of them as deltas over one window; `pg_stat_statements` counts from its
+  last reset.
 - **The slot gauges do not see the buffered mailbox writes.** A
   [flush](#the-three-write-paths-are-batched) holds a connection without taking a slot from the
   `MaxDbOperations` pool, so `engine.slots.db.used` under-reports by up to the five flushes the three

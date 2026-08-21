@@ -53,10 +53,11 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
     private readonly string _flushActivityName;
 
     /// <remarks>
-    /// <paramref name="operation"/> is the <c>operation</c> tag this buffer's
-    /// <see cref="Metrics.MailboxBufferFlushedItems"/> measurements carry — the mailbox path it serves. A
-    /// constructor argument rather than something derived from <see cref="object.GetType"/>, so the tag values a
-    /// dashboard groups by are not a class rename away from changing.
+    /// <paramref name="operation"/> is the <c>operation</c> tag this buffer's flush measurements —
+    /// <see cref="Metrics.MailboxBufferFlushedItems"/> and <see cref="Metrics.MailboxBufferFlushedBatches"/> —
+    /// carry, the mailbox path it serves. A constructor argument rather than something derived from
+    /// <see cref="object.GetType"/>, so the tag values a dashboard groups by are not a class rename away from
+    /// changing.
     /// </remarks>
     protected BatchBuffer(
         IServiceScopeFactory scopeFactory,
@@ -298,8 +299,11 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
             await FlushCore(batch, repo, ct);
 
             // Here and nowhere else: the batch's database work has returned and its verdicts are out. Anything
-            // earlier would count requests that a fault is about to answer with an exception instead.
+            // earlier would count requests that a fault is about to answer with an exception instead. The two
+            // measurements are one pair — requests over batches is the mean batch size — so they are recorded
+            // together and a faulted flush counts in neither.
             Metrics.MailboxBufferFlushedItems.Add(batch.Count, ("operation", _operation));
+            Metrics.MailboxBufferFlushedBatches.Add(1, ("operation", _operation));
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
