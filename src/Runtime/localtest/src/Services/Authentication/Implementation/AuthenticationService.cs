@@ -31,7 +31,7 @@ public class AuthenticationService : IAuthentication
         IOptions<GeneralSettings> generalSettings,
         IOptions<CertificateSettings> certSettings,
         IClaims claimsService,
-        IOrganizations organisations
+        IOrganizations organizations
     )
     {
         _orgsClient = orgsClient;

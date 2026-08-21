@@ -237,10 +237,10 @@ public static class TelemetryActivityExtensions
     }
 
     /// <summary>
-    /// Sets the Organisation name as a tag/attribute on the activity/span
+    /// Sets the Organization name as a tag/attribute on the activity/span
     /// </summary>
     /// <param name="activity">Activity</param>
-    /// <param name="organisationName">Organisation name</param>
+    /// <param name="organisationName">Organization name</param>
     /// <returns>Activity</returns>
     public static Activity SetOrganisationName(this Activity activity, string? organisationName)
     {
@@ -253,10 +253,10 @@ public static class TelemetryActivityExtensions
     }
 
     /// <summary>
-    /// Sets the Organisation number as a tag/attribute on the activity/span
+    /// Sets the Organization number as a tag/attribute on the activity/span
     /// </summary>
     /// <param name="activity">Activity</param>
-    /// <param name="organisationNumber">Organisation number</param>
+    /// <param name="organisationNumber">Organization number</param>
     /// <returns>Activity</returns>
     public static Activity SetOrganisationNumber(this Activity activity, string? organisationNumber)
     {

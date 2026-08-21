@@ -76,7 +76,7 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
         if (unknownProperties.Count > 0)
         {
             _warnings.Add(
-                $"The eFormidling block contains unrecognized propert{(unknownProperties.Count == 1 ? "y" : "ies")} "
+                $"The eFormidling block contains unrecognized property{(unknownProperties.Count == 1 ? "y" : "ies")} "
                     + $"[{string.Join(", ", unknownProperties)}] that will not be migrated."
             );
         }

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.Studio.Designer.Models;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum AutoSaveBehaviourType
+public enum AutoSaveBehaviorType
 {
     [EnumMember(Value = "onChangeFormData")]
     OnChangeFormData = 0,

@@ -170,7 +170,7 @@ namespace Altinn.Platform.Authentication.Configuration
         public string OrganisationRepositoryLocation { get; set; }
 
         /// <summary>
-        /// Gets the url of the list of valid organisation entries (json)
+        /// Gets the url of the list of valid organization entries (json)
         /// </summary>
         public string GetOrganisationRepositoryLocation
         {

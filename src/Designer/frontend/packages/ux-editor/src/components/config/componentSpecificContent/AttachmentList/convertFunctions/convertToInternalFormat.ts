@@ -1,9 +1,9 @@
 import { extractCurrentAvailableAttachments, reservedDataTypes } from '../attachmentListUtils';
-import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
+import type { AvailableAttachmentLists, InternalDataTypesFormat } from '../types';
 import { ArrayUtils } from '@studio/pure-functions';
 
 export const convertExternalToInternalFormat = (
-  availableAttachments: AvailableAttachementLists,
+  availableAttachments: AvailableAttachmentLists,
   dataTypeIds: string[],
 ): InternalDataTypesFormat => ({
   includePdf: isPdfSelected(dataTypeIds),
@@ -20,7 +20,7 @@ const isCurrentTaskSelected = (dataTypeIds: string[]): boolean =>
 
 const getSelectedDataTypes = (
   dataTypeIds: string[],
-  availableAttachments: AvailableAttachementLists,
+  availableAttachments: AvailableAttachmentLists,
 ): string[] => {
   const availableDataTypes = extractCurrentAvailableAttachments(
     isCurrentTaskSelected(dataTypeIds),

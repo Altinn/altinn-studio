@@ -57,10 +57,10 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderContent WithRecipient(OrganisationNumber organisation)
+    public ICorrespondenceRequestBuilderContent WithRecipient(OrganisationNumber organization)
     {
-        BuilderUtils.NotNullOrEmpty(organisation, "Recipients cannot be empty");
-        return WithRecipients([OrganisationOrPersonIdentifier.Create(organisation)]);
+        BuilderUtils.NotNullOrEmpty(organization, "Recipients cannot be empty");
+        return WithRecipients([OrganisationOrPersonIdentifier.Create(organization)]);
     }
 
     /// <inheritdoc/>

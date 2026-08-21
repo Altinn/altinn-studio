@@ -40,7 +40,7 @@ public interface ICorrespondenceNotificationOverrideBuilder
     public ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber);
 
     /// <summary>
-    /// Sets the organisation or person identifier override for the recipient.
+    /// Sets the organization or person identifier override for the recipient.
     /// </summary>
     /// <param name="organisationOrPersonIdentifier">The organization or person identifier</param>
     public ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(

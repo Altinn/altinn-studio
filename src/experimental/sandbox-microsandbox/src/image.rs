@@ -605,7 +605,7 @@ async fn report_buildkit_status(
     let bollard::models::BuildInfoAux::BuildKit(status) = aux else {
         return Ok(());
     };
-    for vertex in status.vertexes {
+    for vertex in status.vertices {
         if !vertex.error.is_empty() {
             return Err(Error::Backend(vertex.error));
         }

@@ -1,18 +1,18 @@
 import { DataModelling } from '../DataModelling';
-import classes from './DataModellingContainer.module.css';
-import { dataModellingContainerId } from '@studio/testing/testids';
+import classes from './DataModelingContainer.module.css';
+import { dataModelingContainerId } from '@studio/testing/testids';
 
 // Todo: Is this component necessary?
-const DataModellingContainer = () => (
+const DataModelingContainer = () => (
   <div
     className={classes.root}
-    id={dataModellingContainerId}
-    data-testid={dataModellingContainerId}
+    id={dataModelingContainerId}
+    data-testid={dataModelingContainerId}
   >
-    <div className={classes.dataModellingWrapper}>
-      <DataModelling />
+    <div className={classes.dataModelingWrapper}>
+      <DataModeling />
     </div>
   </div>
 );
 
-export default DataModellingContainer;
+export default DataModelingContainer;

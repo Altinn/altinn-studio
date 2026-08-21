@@ -1,15 +1,15 @@
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Features.FileAnalyzis;
+namespace Altinn.App.Core.Features.FileAnalysis;
 
 /// <summary>
-/// Interface responsible for resolving the correct file analysers to run on against a <see cref="DataType"/>.
+/// Interface responsible for resolving the correct file analyzers to run on against a <see cref="DataType"/>.
 /// </summary>
-public interface IFileAnalyserFactory
+public interface IFileAnalyzerFactory
 {
     /// <summary>
-    /// Finds analyser implementations based on the specified id's provided.
+    /// Finds analyzer implementations based on the specified id's provided.
     /// </summary>
-    IEnumerable<IFileAnalyser> GetFileAnalysers(IEnumerable<string> analyserIds);
+    IEnumerable<IFileAnalyser> GetFileAnalyzers(IEnumerable<string> analyzerIds);
 }

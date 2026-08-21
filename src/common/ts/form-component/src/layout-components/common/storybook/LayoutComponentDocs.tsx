@@ -35,7 +35,7 @@ export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
       <Primary />
 
       <h2>Konfigurerbart i Studio</h2>
-      <p>Egenskaper som kan konfigureres i Altinn Studio.</p>
+      <p>Egenskaper some kan konfigureres i Altinn Studio.</p>
       {STUDIO_CATEGORIES.map(({ category, label }) =>
         groups[category].length > 0 ? (
           <section key={category}>

@@ -2,19 +2,19 @@ using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.App.Core.Features.FileAnalyzis;
+namespace Altinn.App.Core.Features.FileAnalysis;
 
 /// <summary>
-/// Factory class that resolves the correct file analysers to run on against a <see cref="DataType"/>.
+/// Factory class that resolves the correct file analyzers to run on against a <see cref="DataType"/>.
 /// </summary>
 public class FileAnalyserFactory : IFileAnalyserFactory
 {
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FileAnalyserFactory"/> class.
+    /// Initializes a new instance of the <see cref="FileAnalyzerFactory"/> class.
     /// </summary>
-    public FileAnalyserFactory(IServiceProvider serviceProvider)
+    public FileAnalyzerFactory(IServiceProvider serviceProvider)
     {
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
@@ -22,9 +22,9 @@ public class FileAnalyserFactory : IFileAnalyserFactory
     /// <summary>
     /// Finds the specified file analyser implementations based on the specified analyser id's.
     /// </summary>
-    public IEnumerable<IFileAnalyser> GetFileAnalysers(IEnumerable<string> analyserIds)
+    public IEnumerable<IFileAnalyser> GetFileAnalyzers(IEnumerable<string> analyzerIds)
     {
-        var analysers = _appImplementationFactory.GetAll<IFileAnalyser>();
-        return analysers.Where(x => analyserIds.Contains(x.Id)).ToArray();
+        var analyzers = _appImplementationFactory.GetAll<IFileAnalyzer>();
+        return analyzers.Where(x => analyzerIds.Contains(x.Id)).ToArray();
     }
 }

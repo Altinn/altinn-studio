@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Controllers;
 
 /// <summary>
-/// This controller class provides Enhetsregisteret (ER) organisation lookup functionality.
+/// This controller class provides Enhetsregisteret (ER) organization lookup functionality.
 /// </summary>
 [AutoValidateAntiforgeryTokenIfAuthCookie]
 [ApiController]
@@ -36,7 +36,7 @@ public class LookupOrganisationController : ControllerBase
     }
 
     /// <summary>
-    /// Allows an organisation lookup by orgNr in ER
+    /// Allows an organization lookup by orgNr in ER
     /// </summary>
     /// <param name="orgNr">Route param that contains the orgNr to look up in ER.</param>
     /// <returns>A <see cref="LookupOrganisationResponse"/> object.</returns>
@@ -65,11 +65,11 @@ public class LookupOrganisationController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error when calling the Organisation Register API.");
+            _logger.LogError(e, "Error when calling the Organization Register API.");
             return new ProblemDetails
             {
                 Title = "Error when calling register",
-                Detail = "Something went wrong when calling the Organisation Register API.",
+                Detail = "Something went wrong when calling the Organization Register API.",
                 Status = StatusCodes.Status500InternalServerError,
             };
         }

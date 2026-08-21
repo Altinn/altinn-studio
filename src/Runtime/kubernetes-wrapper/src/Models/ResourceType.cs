@@ -1,7 +1,7 @@
 namespace Altinn.Studio.KubernetesWrapper.Models;
 
 /// <summary>
-/// Enum class descibing deployed entity types
+/// Enum class describing deployed entity types
 /// </summary>
 public enum ResourceType
 {

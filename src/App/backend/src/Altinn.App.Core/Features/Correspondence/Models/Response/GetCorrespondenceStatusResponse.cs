@@ -21,7 +21,7 @@ public sealed record GetCorrespondenceStatusResponse
     public IEnumerable<CorrespondenceNotificationOrderResponse>? Notifications { get; init; }
 
     /// <summary>
-    /// The recipient of the correspondence. Either an organisation number or identity number.
+    /// The recipient of the correspondence. Either an organization number or identity number.
     /// </summary>
     [JsonPropertyName("recipient")]
     public required string Recipient { get; init; }
@@ -75,7 +75,7 @@ public sealed record GetCorrespondenceStatusResponse
     public required string ResourceId { get; init; }
 
     /// <summary>
-    /// The sending organisation of the correspondence.
+    /// The sending organization of the correspondence.
     /// </summary>
     [JsonPropertyName("sender")]
     [OrganisationNumberJsonConverter(OrganisationNumberFormat.International)]

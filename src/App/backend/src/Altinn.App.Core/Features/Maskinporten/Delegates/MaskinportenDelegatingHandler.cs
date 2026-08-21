@@ -21,8 +21,8 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
     /// <summary>
     /// Creates a new instance of <see cref="MaskinportenDelegatingHandler"/>.
     /// </summary>
-    /// <param name="authority">The token authority to authorise with</param>
-    /// <param name="request">The token request to authorise with</param>
+    /// <param name="authority">The token authority to authorize with</param>
+    /// <param name="request">The token request to authorize with</param>
     /// <param name="maskinportenClient">A <see cref="MaskinportenClient"/> instance</param>
     /// <param name="logger">Optional logger interface</param>
     public MaskinportenDelegatingHandler(

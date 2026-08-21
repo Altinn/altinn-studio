@@ -1,10 +1,10 @@
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Features.FileAnalyzis;
+namespace Altinn.App.Core.Features.FileAnalysis;
 
 /// <summary>
-/// Analyses a file using the registred analysers on the <see cref="DataType"/>
+/// Analyses a file using the registered analyzers on the <see cref="DataType"/>
 /// </summary>
 public class FileAnalysisService : IFileAnalysisService
 {
@@ -21,28 +21,28 @@ public class FileAnalysisService : IFileAnalysisService
     }
 
     /// <summary>
-    /// Runs the specified file analysers against the stream provided.
+    /// Runs the specified file analyzers against the stream provided.
     /// </summary>
-    public async Task<IEnumerable<FileAnalysisResult>> Analyse(
+    public async Task<IEnumerable<FileAnalysisResult>> Analyze(
         DataType dataType,
         Stream fileStream,
         string? filename = null
     )
     {
-        using var activity = _telemetry?.StartAnalyseActivity();
-        List<IFileAnalyser> fileAnalysers = _fileAnalyserFactory
+        using var activity = _telemetry?.StartAnalyzeActivity();
+        List<IFileAnalyser> fileAnalyzers = _fileAnalyserFactory
             .GetFileAnalysers(dataType.EnabledFileAnalysers)
             .ToList();
 
         List<FileAnalysisResult> fileAnalysisResults = new();
-        foreach (var analyser in fileAnalysers)
+        foreach (var analyzer in fileAnalyzers)
         {
             if (fileStream.CanSeek)
             {
                 fileStream.Position = fileStream.Seek(0, SeekOrigin.Begin);
             }
-            var result = await analyser.Analyse(fileStream, filename);
-            result.AnalyserId = analyser.Id;
+            var result = await analyzer.Analyze(fileStream, filename);
+            result.AnalyzerId = analyzer.Id;
             result.Filename = filename;
             fileAnalysisResults.Add(result);
         }

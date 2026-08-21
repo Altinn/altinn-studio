@@ -28,7 +28,7 @@ public sealed class EnrichedInstanceResponse
     public required string AppId { get; init; }
 
     /// <summary>
-    /// Application owner identifier, usually a abbreviation of organisation name. All in lower case.
+    /// Application owner identifier, usually a abbreviation of organization name. All in lower case.
     /// </summary>
     public required string Org { get; init; }
 

@@ -1,4 +1,4 @@
-using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.FileAnalysis;
 
 namespace Altinn.App.Core.Features.FileAnalysis;
 
@@ -10,18 +10,18 @@ public class FileAnalysisResult
     /// <summary>
     /// Initializes a new instance of the <see cref="FileAnalysisService"/> class.
     /// </summary>
-    public FileAnalysisResult(string analyserId)
+    public FileAnalysisResult(string analyzerId)
     {
-        AnalyserId = analyserId;
+        AnalyzerId = analyzerId;
     }
 
     /// <summary>
-    /// The id of the analyser generating the result.
+    /// The id of the analyzer generating the result.
     /// </summary>
-    public string AnalyserId { get; internal set; }
+    public string AnalyzerId { get; internal set; }
 
     /// <summary>
-    /// The name of the analysed file.
+    /// The name of the analyzed file.
     /// </summary>
     public string? Filename { get; set; }
 

@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 const Overview = lazy(() => import('app-development/features/overview/components/Overview'));
-const DataModellingContainer = lazy(
+const DataModelingContainer = lazy(
   () => import('app-development/features/dataModelling/containers/DataModellingContainer'),
 );
 const DeployPage = lazy(() => import('app-development/features/appPublish/pages/DeployPage'));
@@ -30,7 +30,7 @@ export const routerRoutes: RouterRoute[] = [
   },
   {
     path: RoutePaths.DataModel,
-    subapp: DataModellingContainer,
+    subapp: DataModelingContainer,
   },
   {
     path: RoutePaths.Deploy,

@@ -847,8 +847,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var serialiseOptions = new JsonSerializerOptions { WriteIndented = true };
-        string payloadString = JsonSerializer.Serialize(payload, serialiseOptions);
+        var serializeOptions = new JsonSerializerOptions { WriteIndented = true };
+        string payloadString = JsonSerializer.Serialize(payload, serializeOptions);
 
         string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
         await WriteTextByRelativePathAsync(optionsFilePath, payloadString, true, cancellationToken);

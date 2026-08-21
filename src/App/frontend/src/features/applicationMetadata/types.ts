@@ -46,7 +46,7 @@ export type IInstanceSelection = {
 
 export interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
-  organisation: boolean;
+  organization: boolean;
   person: boolean;
   subUnit: boolean;
 }

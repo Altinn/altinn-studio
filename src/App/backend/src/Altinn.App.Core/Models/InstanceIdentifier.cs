@@ -33,7 +33,7 @@ public class InstanceIdentifier
     /// <summary>
     /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class.
     /// </summary>
-    /// <param name="instance">Is the instance you want to get an idenifier from</param>
+    /// <param name="instance">Is the instance you want to get an identifier from</param>
     public InstanceIdentifier(Instance instance)
         : this(instance.Id) { }
 
@@ -146,7 +146,7 @@ public class InstanceIdentifier
         if (string.IsNullOrEmpty(instanceSubpath))
         {
             throw new ArgumentException(
-                $"Parameter with value {url} is not recognised as a valid instance url.",
+                $"Parameter with value {url} is not recognized as a valid instance url.",
                 nameof(url)
             );
         }

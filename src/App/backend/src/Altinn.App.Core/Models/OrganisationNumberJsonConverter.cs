@@ -13,7 +13,7 @@ internal class OrganisationNumberJsonConverterAttribute : JsonConverterAttribute
     private OrganisationNumberFormat _format { get; init; }
 
     /// <inheritdoc cref="OrganisationNumberJsonConverterAttribute"/>
-    /// <param name="format">The desired organisation number format to use for <b>serialization</b></param>
+    /// <param name="format">The desired organization number format to use for <b>serialization</b></param>
     public OrganisationNumberJsonConverterAttribute(OrganisationNumberFormat format)
     {
         _format = format;

@@ -47,9 +47,9 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance.
+        /// Authorize instances, and returns a list of MessageBoxInstances with information about read and write rights of each instance.
         /// </summary>
-        public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
+        public async Task<List<MessageBoxInstance>> AuthorizeMessageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
             if (instances.Count <= 0)
             {
@@ -301,7 +301,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Verifies that org string matches org in user claims.
         /// </summary>
-        /// <param name="org">Organisation to match in claims.</param>
+        /// <param name="org">Organization to match in claims.</param>
         /// <param name="user">Claim principal from http context.</param>
         /// <returns>true if the given ClaimsPrincipal contains the given org.</returns>
         public static bool VerifyOrgInClaimPrincipal(string org, ClaimsPrincipal user)
@@ -323,7 +323,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Verifies a scope claim based on claimsprincipal.
         /// </summary>
-        /// <param name="requiredScope">Requiered scope.</param>
+        /// <param name="requiredScope">Required scope.</param>
         /// <param name="user">Claim principal from http context.</param>
         /// <returns>true if the given ClaimsPrincipal or on of its identities have contains the given scope.</returns>
         public bool ContainsRequiredScope(List<string> requiredScope, ClaimsPrincipal user)

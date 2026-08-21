@@ -100,7 +100,7 @@ public static class InstantiationHelper
             partyTypesAllowed == null
             || (
                 !partyTypesAllowed.BankruptcyEstate
-                && !partyTypesAllowed.Organisation
+                && !partyTypesAllowed.Organization
                 && !partyTypesAllowed.Person
                 && !partyTypesAllowed.SubUnit
             )
@@ -131,9 +131,9 @@ public static class InstantiationHelper
                 }
 
                 break;
-            case PartyType.Organisation:
+            case PartyType.Organization:
 
-                if (isMainUnit && partyTypesAllowed.Organisation)
+                if (isMainUnit && partyTypesAllowed.Organization)
                 {
                     isAllowed = true;
                 }

@@ -1,8 +1,8 @@
-// Package cdn fetches and decodes the Altinn organisations document from
+// Package cdn fetches and decodes the Altinn organizations document from
 // https://altinncdn.no/orgs/altinn-orgs.json (or an equivalent test URL).
 //
 // The CDN document is a single JSON object whose top-level "orgs" key maps
-// short organisation codes (e.g. "ttd", "brg") to per-org metadata. Only
+// short organization codes (e.g. "ttd", "brg") to per-org metadata. Only
 // fields used downstream are decoded; the rest are silently ignored.
 package cdn
 

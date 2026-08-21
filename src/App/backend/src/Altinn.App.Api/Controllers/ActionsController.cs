@@ -55,8 +55,8 @@ public class ActionsController : ControllerBase
     /// <summary>
     /// Perform a task action on an instance
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="actionRequest">user action request</param>
@@ -270,7 +270,7 @@ public class ActionsController : ControllerBase
         );
 
         // For historical reasons the validation issues from actions controller is separated per data element
-        // The easiest way was to keep this behaviour to improve compatibility with older frontend versions
+        // The easiest way was to keep this behavior to improve compatibility with older frontend versions
         return PartitionValidationIssuesByDataElement(validationIssues);
     }
 

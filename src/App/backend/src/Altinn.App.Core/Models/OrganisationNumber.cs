@@ -3,24 +3,24 @@ using System.Globalization;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Represents the format of an organisation number.
+/// Represents the format of an organization number.
 /// </summary>
 public enum OrganisationNumberFormat
 {
     /// <summary>
-    /// Represents only the locally recognised organisation number, e.g. "991825827".
+    /// Represents only the locally recognized organization number, e.g. "991825827".
     /// </summary>
     Local,
 
     /// <summary>
-    /// Represents only the locally recognised organisation number, e.g. "0192:991825827".
+    /// Represents only the locally recognized organization number, e.g. "0192:991825827".
     /// </summary>
     International,
 }
 
 /// <summary>
-/// <p>Represents a Norwegian organisation number.</p>
-/// <p>Note: The validation in this type is hard coded to the Norwegian organisation number format.</p>
+/// <p>Represents a Norwegian organization number.</p>
+/// <p>Note: The validation in this type is hard coded to the Norwegian organization number format.</p>
 /// </summary>
 public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
 {
@@ -28,7 +28,7 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     private readonly string _international;
 
     /// <summary>
-    /// Gets the organisation number as a string in the specified format.
+    /// Gets the organization number as a string in the specified format.
     /// </summary>
     /// <param name="format">The format to get</param>
     /// <exception cref="ArgumentOutOfRangeException">Invalid format provided</exception>
@@ -47,19 +47,19 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     }
 
     /// <summary>
-    /// Parses an organisation number.
+    /// Parses an organization number.
     /// </summary>
     /// <param name="value">The value to parse</param>
-    /// <exception cref="FormatException">The organisation number is not valid</exception>
+    /// <exception cref="FormatException">The organization number is not valid</exception>
     public static OrganisationNumber Parse(string value)
     {
         return TryParse(value, out var organisationNumber)
             ? organisationNumber
-            : throw new FormatException($"Invalid organisation number format: {value}");
+            : throw new FormatException($"Invalid organization number format: {value}");
     }
 
     /// <summary>
-    /// Attempt to parse an organisation number.
+    /// Attempt to parse an organization number.
     /// </summary>
     /// <param name="value">The value to parse</param>
     /// <param name="organisationNumber">The resulting <see cref="OrganisationNumber"/> instance</param>
@@ -134,7 +134,7 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     public override int GetHashCode() => _local.GetHashCode();
 
     /// <summary>
-    /// Returns a string representation of the <see cref="OrganisationNumberFormat.Local"/> organisation number.
+    /// Returns a string representation of the <see cref="OrganisationNumberFormat.Local"/> organization number.
     /// </summary>
     public override string ToString() => _local;
 

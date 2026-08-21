@@ -134,7 +134,7 @@ class DevToolsErrorBoundary extends React.Component<PropsWithChildren, IErrorBou
     if (lastError) {
       return (
         <div className={classes.panelError}>
-          <h2>An uncaught error occured</h2>
+          <h2>An uncaught error occurred</h2>
           <p>Check the browser&apos;s console for details</p>
         </div>
       );

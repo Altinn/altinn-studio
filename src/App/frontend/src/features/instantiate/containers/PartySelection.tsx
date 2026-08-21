@@ -262,7 +262,7 @@ function templatePartyTypesString({
   /*
       This method we always return the strings in an order of:
       1. private person
-      2. organisation
+      2. organization
       3. sub unit
       4. bankruptcy state
     */
@@ -275,7 +275,7 @@ function templatePartyTypesString({
   if (allDisallowed || partyTypesAllowed?.person) {
     partyTypes.push(langAsString('party_selection.unit_type_private_person'));
   }
-  if (allDisallowed || partyTypesAllowed?.organisation) {
+  if (allDisallowed || partyTypesAllowed?.organization) {
     partyTypes.push(langAsString('party_selection.unit_type_company'));
   }
   if (allDisallowed || partyTypesAllowed?.subUnit) {

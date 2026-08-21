@@ -106,7 +106,7 @@ rather than after e.g. a service task. One workflow per effect means the effects
 independently of *each other*: a dead-lettered event registration cannot starve the notification
 behind it, each effect gets its own retry pacing and redrive, and a failed workflow is named for
 the one effect it carries. When there are no side-effect commands, a single workflow without the
-enqueue step is emitted — identical to the pre-split behaviour.
+enqueue step is emitted — identical to the pre-split behavior.
 
 **Ordering is not guaranteed between side effects at all** — neither across transitions nor between
 effects of the same transition (each rides its own workflow): a retrying `movedTo.Task_2`

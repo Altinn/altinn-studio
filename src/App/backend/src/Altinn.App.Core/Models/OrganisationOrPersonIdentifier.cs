@@ -6,7 +6,7 @@ using Altinn.Platform.Register.Models;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Represents either an organisation or a person.
+/// Represents either an organization or a person.
 /// </summary>
 [JsonConverter(typeof(OrganisationOrPersonIdentifierJsonConverter))]
 public abstract record OrganisationOrPersonIdentifier
@@ -20,7 +20,7 @@ public abstract record OrganisationOrPersonIdentifier
     public abstract string ToUrnFormattedString();
 
     /// <summary>
-    /// Represents an organisation.
+    /// Represents an organization.
     /// </summary>
     /// <param name="Value">The <see cref="OrganisationNumber"/></param>
     public sealed record Organisation(OrganisationNumber Value) : OrganisationOrPersonIdentifier
@@ -70,12 +70,12 @@ public abstract record OrganisationOrPersonIdentifier
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="Organisation"/>.
+    /// Creates a new instance of <see cref="Organization"/>.
     /// </summary>
-    /// <param name="value">The organisation number</param>
+    /// <param name="value">The organization number</param>
     public static Organisation Create(OrganisationNumber value)
     {
-        return new Organisation(value);
+        return new Organization(value);
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public abstract record OrganisationOrPersonIdentifier
         }
 
         throw new FormatException(
-            $"OrganisationOrPersonIdentifier value `{value}` is not a valid organisation number nor a national identity number"
+            $"OrganisationOrPersonIdentifier value `{value}` is not a valid organization number nor a national identity number"
         );
     }
 
@@ -140,7 +140,7 @@ public abstract record OrganisationOrPersonIdentifier
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is equal to an <see cref="OrganisationNumber"/>.
     /// </summary>
     public static bool operator ==(OrganisationNumber left, OrganisationOrPersonIdentifier right) =>
-        right is Organisation organisation && left == organisation.Value;
+        right is Organization organisation && left == organisation.Value;
 
     /// <summary>
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is not equal to an <see cref="OrganisationNumber"/>.
@@ -151,7 +151,7 @@ public abstract record OrganisationOrPersonIdentifier
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is equal to an <see cref="OrganisationNumber"/>.
     /// </summary>
     public static bool operator ==(OrganisationOrPersonIdentifier left, OrganisationNumber right) =>
-        left is Organisation organisation && right == organisation.Value;
+        left is Organization organisation && right == organisation.Value;
 
     /// <summary>
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is not equal to an <see cref="OrganisationNumber"/>.

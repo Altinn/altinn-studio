@@ -7,13 +7,13 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
 /**
  * Query to get the a single resource.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param id the id of the resource
  *
  * @returns UseQueryResult with an object of Resource
  */
-export const useSinlgeResourceQuery = (
+export const useSingleResourceQuery = (
   org: string,
   repo: string,
   id: string,

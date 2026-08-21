@@ -3,20 +3,20 @@ using Altinn.Platform.Register.Models;
 namespace Altinn.App.Api.Models;
 
 /// <summary>
-/// Contains the result of an organisation lookup.
+/// Contains the result of an organization lookup.
 /// </summary>
 public class LookupOrganisationResponse
 {
     /// <summary>
     /// Creates a new instance of <see cref="LookupOrganisationResponse"/> from a person and sets the <see cref="Success"/> and <see cref="PersonDetails"/> properties accordingly.
     /// </summary>
-    public static LookupOrganisationResponse CreateFromOrganisation(Organization? organisation)
+    public static LookupOrganisationResponse CreateFromOrganisation(Organization? organization)
     {
         return new LookupOrganisationResponse
         {
-            Success = organisation is not null,
-            OrganisationDetails = organisation is not null
-                ? OrganisationDetails.MapFromOrganisation(organisation)
+            Success = organization is not null,
+            OrganisationDetails = organization is not null
+                ? OrganisationDetails.MapFromOrganisation(organization)
                 : null,
         };
     }
@@ -33,12 +33,12 @@ public class LookupOrganisationResponse
 }
 
 /// <summary>
-/// Contains details about an organisation
+/// Contains details about an organization
 /// </summary>
 public class OrganisationDetails
 {
     /// <summary>
-    /// The organisation number
+    /// The organization number
     /// </summary>
     public required string OrgNr { get; init; }
 
@@ -50,7 +50,7 @@ public class OrganisationDetails
     /// <summary>
     /// Maps a person to person details
     /// </summary>
-    public static OrganisationDetails MapFromOrganisation(Organization organisation)
+    public static OrganisationDetails MapFromOrganisation(Organization organization)
     {
         return new OrganisationDetails { OrgNr = organisation.OrgNumber, Name = organisation.Name };
     }

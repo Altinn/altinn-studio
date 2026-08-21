@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.Payment.Models;
 public class PayerCompany
 {
     /// <summary>
-    /// The organisation number of the company.
+    /// The organization number of the company.
     /// </summary>
     public string? OrganisationNumber { get; set; }
 

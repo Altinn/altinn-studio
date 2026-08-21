@@ -20,7 +20,7 @@
 - [Altinn Studio CLI](https://docs.altinn.studio/en/altinn-studio/v8/reference/cli): Command-line utility fixing breaking changes upgrading Altinn Apps backend v7→v8, frontend v3→v4, plus installation instructions.
 - [Altinn Event Subject Authorization](https://docs.altinn.studio/en/events/explanation/subject_authorization): Explains subject selection, supported types, and Altinn authorization flow for publishing and consuming events.
 - [Altinn Studio System User API](https://docs.altinn.studio/en/api/authentication/systemuserapi): Describes endpoints for registering resources, vendor systems, handling system user requests and retrieval.
-- [Altinn Studio Core Concepts](https://docs.altinn.studio/en/altinn-studio/v8/concepts): Provides brief definitions and links for data modelling, payment, prefill, signing, and unpublishing.
+- [Altinn Studio Core Concepts](https://docs.altinn.studio/en/altinn-studio/v8/concepts): Provides brief definitions and links for data modeling, payment, prefill, signing, and unpublishing.
 - [Altinn System Vendor Integration](https://docs.altinn.studio/en/authorization/guides/system-vendor): Guides vendors integrating Altinn 3 authorization, covering consent workflows and system user setup.
 - [Altinn Studio API Overview](https://docs.altinn.studio/en/altinn-studio/v8/reference/api): Explains accessing generic and app-specific OpenAPI docs, authentication, consumption, exposure, instance APIs.
 - [Hugo for Altinn Docs](https://docs.altinn.studio/en/technology/tools/hugo): Details Hugo static-site setup powering Altinn documentation from Markdown and linked repositories.

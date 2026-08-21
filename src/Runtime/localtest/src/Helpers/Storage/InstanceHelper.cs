@@ -9,7 +9,7 @@ using Altinn.Platform.Storage.Models;
 namespace Altinn.Platform.Storage.Helpers
 {
     /// <summary>
-    /// A helper clas to process instance objects
+    /// A helper class to process instance objects
     /// </summary>
     public static class InstanceHelper
     {

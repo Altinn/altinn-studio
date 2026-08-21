@@ -19,7 +19,7 @@ public class UserActionContext
     /// <param name="actionMetadata"></param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="authentication">Information about the authenticated party</param>
-    /// <param name="onBehalfOf">The organisation number of the party the user is acting on behalf of</param>
+    /// <param name="onBehalfOf">The organization number of the party the user is acting on behalf of</param>
     /// <param name="cancellationToken">The cancellation token</param>
     public UserActionContext(
         IInstanceDataMutator dataMutator,
@@ -96,7 +96,7 @@ public class UserActionContext
         };
 
     /// <summary>
-    /// The organisation number of the party the user is acting on behalf of
+    /// The organization number of the party the user is acting on behalf of
     /// </summary>
     public string? OnBehalfOf { get; }
 

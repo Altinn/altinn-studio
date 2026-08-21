@@ -23,7 +23,7 @@ interface RepeatingGroupPaginationProps {
 }
 /**
  * Simple wrapper to prevent running any hooks unless pagination is actually going to be used
- * Specifically, usePagesWithErrors and useRowStructure would be doing unecessary work
+ * Specifically, usePagesWithErrors and useRowStructure would be doing unnecessary work
  */
 export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
   const { visibleRows } = useRepeatingGroupRowState();

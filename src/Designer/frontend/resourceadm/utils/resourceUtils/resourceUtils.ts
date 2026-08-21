@@ -364,13 +364,13 @@ export const validateResource = (
     }
 
     // validate consentMetadata values used in consentText
-    const unknowMetadataValues = getUnknownMetadataValues(
+    const unknownMetadataValues = getUnknownMetadataValues(
       resourceData.consentMetadata,
       resourceData.consentText,
     );
 
-    Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
-      if (unknowMetadataValues[language].length) {
+    Object.keys(unknownMetadataValues).forEach((language: ValidLanguage) => {
+      if (unknownMetadataValues[language].length) {
         errors.push({
           field: 'consentText',
           index: language,

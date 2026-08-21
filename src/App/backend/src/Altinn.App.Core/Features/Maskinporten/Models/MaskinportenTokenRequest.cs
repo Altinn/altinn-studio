@@ -60,7 +60,7 @@ public sealed record MaskinportenTokenRequest
     }
 
     /// <summary>
-    /// <p><c>consumer_org</c>: the organisation a supplier requests a token on behalf of.</p>
+    /// <p><c>consumer_org</c>: the organization a supplier requests a token on behalf of.</p>
     /// <p>Required when acting as a supplier for an external consumer that has delegated the scope via Altinn.
     /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_guide_apikonsument">the docs</a>.</p>
     /// </summary>
@@ -112,7 +112,7 @@ public sealed record MaskinportenTokenRequest
     }
 
     /// <summary>
-    /// <p><c>authorization_details</c>: requests a system user token on behalf of the given organisation
+    /// <p><c>authorization_details</c>: requests a system user token on behalf of the given organization
     /// (RFC 9396 rich authorization requests).</p>
     /// <p>System user grants still carry <see cref="Scopes"/>, and only one party can be queried per token.
     /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_func_systembruker">the docs</a>.</p>
@@ -120,7 +120,7 @@ public sealed record MaskinportenTokenRequest
     public MaskinportenSystemUser? SystemUser { get; init; }
 
     /// <summary>
-    /// The normalised, space-delimited scope string, as expected by Maskinporten.
+    /// The normalized, space-delimited scope string, as expected by Maskinporten.
     /// </summary>
     internal string FormattedScopes => _formattedScopes;
 
@@ -151,7 +151,7 @@ public sealed record MaskinportenTokenRequest
     }
 
     /// <remarks>
-    /// Declared explicitly because the synthesised record equality would compare <see cref="Scopes"/> by reference,
+    /// Declared explicitly because the synthesized record equality would compare <see cref="Scopes"/> by reference,
     /// making two otherwise identical requests unequal.
     /// </remarks>
     public bool Equals(MaskinportenTokenRequest? other) =>
@@ -175,7 +175,7 @@ public sealed partial record MaskinportenSystemUser
     private readonly string? _externalRef;
 
     /// <summary>
-    /// The organisation (customer) that owns the system user. Sent in ISO 6523 format, e.g. <c>0192:991825827</c>.
+    /// The organization (customer) that owns the system user. Sent in ISO 6523 format, e.g. <c>0192:991825827</c>.
     /// </summary>
     public required OrganisationNumber Organisation
     {
@@ -250,7 +250,7 @@ file static class OrganisationNumberGuard
     internal static OrganisationNumber Require(OrganisationNumber value, string paramName)
     {
         if (string.IsNullOrEmpty(value.Get(OrganisationNumberFormat.Local)))
-            throw new ArgumentException("A valid organisation number is required.", paramName);
+            throw new ArgumentException("A valid organization number is required.", paramName);
 
         return value;
     }

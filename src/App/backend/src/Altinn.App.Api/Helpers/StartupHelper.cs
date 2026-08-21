@@ -10,7 +10,7 @@ namespace Altinn.App.Api.Helpers;
 public static class StartupHelper
 {
     /// <summary>
-    /// Delegate for swagger funciton
+    /// Delegate for swagger function
     /// </summary>
     public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
 

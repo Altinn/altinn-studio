@@ -600,7 +600,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// credential for its lifetime, so the signature must not reach the logs.
     /// </summary>
     private static string Mask(string jwt) =>
-        JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparseable>";
+        JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparsable>";
 
     private TimeSpan GetTokenExpiryWithMargin(JwtToken token) =>
         token.ExpiresAt - _timeProvider.GetUtcNow() - TokenExpirationMargin;

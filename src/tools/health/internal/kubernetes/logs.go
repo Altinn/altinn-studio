@@ -398,10 +398,10 @@ func (r *reSequencer) resequence() {
 		return
 	}
 
-	treshold := time.Now().UTC().Add(-r.bufferDuration)
+	threshold := time.Now().UTC().Add(-r.bufferDuration)
 	i := r.availablePos
 	for ; i < r.writerPos; i++ {
-		if r.buffer[i].Timestamp.Before(treshold) {
+		if r.buffer[i].Timestamp.Before(threshold) {
 			continue
 		}
 		break

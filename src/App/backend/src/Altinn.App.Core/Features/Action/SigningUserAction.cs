@@ -225,7 +225,7 @@ internal class SigningUserAction : IUserAction
             return false;
         }
 
-        // Fetch authorized organisation signees for the extracted user ID
+        // Fetch authorized organization signees for the extracted user ID
         var authorizedOrganisations = await _signingService.GetAuthorizedOrganizationSignees(
             context.DataMutator,
             signatureConfiguration,

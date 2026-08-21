@@ -5,16 +5,16 @@ using MimeDetective;
 
 namespace Altinn.FileAnalyzers.MimeType;
 
-internal sealed class MimeTypeAnalyser(
+internal sealed class MimeTypeAnalyzer(
     IHttpContextAccessor _httpContextAccessor,
     IContentInspector _inspector
-) : IFileAnalyser
+) : IFileAnalyzer
 {
     /// <inheritDoc/>
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
     /// <inheritDoc/>
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         // Allow synchronous IO access for the usage of MimeDetective
         // which does not have async methods. This on a per request basis.

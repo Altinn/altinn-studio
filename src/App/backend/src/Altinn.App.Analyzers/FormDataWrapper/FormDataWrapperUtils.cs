@@ -254,7 +254,7 @@ public static class FormDataWrapperUtils
         }
 
         // Skip properties with [BindNever]
-        // TODO: Theese could be made "read-only", but skipping them for now as there has not been a use-case yet
+        // TODO: These could be made "read-only", but skipping them for now as there has not been a use-case yet
         if (SourceReaderUtils.HasBindNeverAttribute(property))
         {
             return true;

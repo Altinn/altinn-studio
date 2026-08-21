@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 public enum CorrespondenceAttachmentStatusResponse
 {
     /// <summary>
-    /// Attachment has been initialised.
+    /// Attachment has been initialized.
     /// </summary>
     Initialized,
 

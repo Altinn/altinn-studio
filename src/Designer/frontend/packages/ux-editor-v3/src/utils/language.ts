@@ -1,5 +1,5 @@
 import type { ITextResource } from 'app-shared/types/global';
-import { CollapsableMenus } from '../types/global';
+import { CollapsibleMenus } from '../types/global';
 import type i18next from 'i18next';
 import type { UseText } from '../hooks';
 import type { TranslationKey } from 'app-shared/types/language';
@@ -37,13 +37,13 @@ export function getComponentTitleByComponentType(
 
 export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof i18next.t): string {
   switch (menu) {
-    case CollapsableMenus.Components: {
+    case CollapsibleMenus.Components: {
       return t('ux_editor.collapsable_standard_components');
     }
-    case CollapsableMenus.Texts: {
-      return t('ux_editor.collapsable_text_components');
+    case CollapsibleMenus.Texts: {
+      return t('ux_editor.collapsible_text_components');
     }
-    case CollapsableMenus.AdvancedComponents: {
+    case CollapsibleMenus.AdvancedComponents: {
       return t('ux_editor.collapsable_text_advanced_components');
     }
     default: {

@@ -2,7 +2,7 @@ import type { AllowedPartyTypes, PartyTypesAllowed } from 'app-shared/types/Appl
 
 export const initialPartyTypes: PartyTypesAllowed = {
   bankruptcyEstate: false,
-  organisation: false,
+  organization: false,
   person: false,
   subUnit: false,
 };

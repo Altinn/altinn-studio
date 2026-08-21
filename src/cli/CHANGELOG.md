@@ -24,7 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` removes the unsupported `xl` component-grid setting from layout files.
 - End every `studioctl app upgrade` with the same closing advice, whichever migration you run. The v4 upgrade previously ended without any, and the v8 upgrade worded its own differently.
-- Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labelling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
+- Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labeling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
 - Rewrite legacy Datepicker `format` values (`DD.MM.YYYY`, `DD/MM/YYYY`, `YYYY-MM-DD`) to their supported equivalents (`dd.MM.yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`) in layout files when running `studioctl app upgrade v9`.
 - `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
 
@@ -60,7 +60,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Wait up to 30 seconds for an app to become reachable through Localtest when using `studioctl run`; use `--startup-timeout` to choose a different limit.
-- `studioctl app upgrade v9` is firmer about a feedback task behind an **eFormidling** service task: it now says the task must be removed, rather than that it may be redundant. The v9 eFormidling service task waits for the delivery confirmation itself, and the Altinn Events reminder that used to move the process past the feedback task is gone — so leaving it in place strands instances there indefinitely. A feedback task behind any other service task still reports as a judgement call.
+- `studioctl app upgrade v9` is firmer about a feedback task behind an **eFormidling** service task: it now says the task must be removed, rather than that it may be redundant. The v9 eFormidling service task waits for the delivery confirmation itself, and the Altinn Events reminder that used to move the process past the feedback task is gone — so leaving it in place strands instances there indefinitely. A feedback task behind any other service task still reports as a judgment call.
 
 ### Fixed
 
@@ -80,7 +80,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Update the workflow-engine image used by `studioctl env up` to a version with durable-yield support: service tasks can wait for external outcomes (for example a delivery confirmation) without occupying a worker or being treated as failures.
 - Refuse to start `studioctl app upgrade` when the git repository has local changes, so the upgrade lands as one clean reviewable changeset.
-- Rename `OrganisationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
+- Rename `OrganizationLookup` components and their data model bindings to `OrganizationLookup` when running `studioctl app upgrade v9`.
 - Stage every change from `studioctl app upgrade` in one `git add -A` pass once the upgrade is done. Previously, some migration steps staged their changes, while others did not.
 - Point `studioctl app upgrade v9` removed-API warnings at the offending call rather than the start of the enclosing expression.
 - Remove redundant `showBackButton: true` properties from `NavigationButtons` components during `studioctl app upgrade v9`, while preserving explicit `false` values.
