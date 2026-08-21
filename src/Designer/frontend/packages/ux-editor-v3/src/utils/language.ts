@@ -38,13 +38,13 @@ export function getComponentTitleByComponentType(
 export function getCollapsibleMenuTitleByType(menu: CollapsibleMenus, t: typeof i18next.t): string {
   switch (menu) {
     case CollapsibleMenus.Components: {
-      return t('ux_editor.collapsable_standard_components');
+      return t('ux_editor.collapsible_standard_components');
     }
     case CollapsibleMenus.Texts: {
       return t('ux_editor.collapsible_text_components');
     }
     case CollapsibleMenus.AdvancedComponents: {
-      return t('ux_editor.collapsable_text_advanced_components');
+      return t('ux_editor.collapsible_text_advanced_components');
     }
     default: {
       return '';

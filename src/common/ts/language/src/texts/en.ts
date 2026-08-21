@@ -33,8 +33,8 @@ export function en() {
     'date_picker.cancel_label': 'Cancel',
     'date_picker.clear_label': 'Clear',
     'date_picker.today_label': 'Today',
-    'date_picker.min_date_exeeded': 'Date should not be before minimal date',
-    'date_picker.max_date_exeeded': 'Date should not be after maximal date',
+    'date_picker.min_date_exceeded': 'Date should not be before minimal date',
+    'date_picker.max_date_exceeded': 'Date should not be after maximal date',
     'date_picker.aria_label_icon': 'Open date picker',
     'date_picker.aria_label_left_arrow': 'Last month.',
     'date_picker.aria_label_right_arrow': 'Next month.',
@@ -271,7 +271,7 @@ export function en() {
     'instantiate.authorization_error_rights':
       'It looks like you do not have permission to start this service for {0}',
     'instantiate.authorization_error_ask':
-      'If you are representing a person it is the one you are representing that can give you the required rights to start this service. If you are you representing an organization you have to ask for the required rights from persons with access delegation rights within your organization.',
+      'If you are representing a person, it is the one you are representing that can give you the required rights to start this service. If you are representing an organisation, you have to ask for the required rights from persons with access delegation rights within your organisation.',
     'instantiate.authorization_error_check_rights':
       '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
     'instantiate.authorization_error_info_rights':
