@@ -17,7 +17,6 @@ const IGridStyling = {
     sm: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
     md: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
     lg: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
-    xl: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
   },
   additionalProperties: false,
 } as const;
@@ -29,7 +28,6 @@ const IGrid = {
     sm: IGridStyling['properties']['sm'],
     md: IGridStyling['properties']['md'],
     lg: IGridStyling['properties']['lg'],
-    xl: IGridStyling['properties']['xl'],
     labelGrid: {
       type: 'object',
       properties: IGridStyling['properties'],
@@ -4480,7 +4478,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'Accordion (Trekkspilliste)', en: 'Accordion' },
+        name: { nb: 'Trekkspilliste', en: 'Accordion' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -4571,7 +4569,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'AccordionGroup (Nestet trekkspilliste)', en: 'AccordionGroup' },
+        name: { nb: 'Nestet trekkspilliste', en: 'AccordionGroup' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -4646,7 +4644,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'ActionButton (Handlingsknapp)', en: 'ActionButton' },
+        name: { nb: 'Handlingsknapp', en: 'ActionButton' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -4723,10 +4721,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: {
-        name: { nb: 'Address (Adresse)', en: 'Address' },
-        lifecycle: { status: 'stable' },
-      },
+      metadata: { name: { nb: 'Adresse', en: 'Address' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -4953,7 +4948,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Alert (Varsel)', en: 'Alert' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Varsel', en: 'Alert' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5023,7 +5018,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'AttachmentList (Liste over vedlegg)', en: 'AttachmentList' },
+        name: { nb: 'Liste over vedlegg', en: 'AttachmentList' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -5121,7 +5116,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Audio', en: 'Audio' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Lyd', en: 'Audio' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5185,7 +5180,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Button', en: 'Button' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Send inn', en: 'Button' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5260,7 +5255,10 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'ButtonGroup', en: 'ButtonGroup' }, lifecycle: { status: 'stable' } },
+      metadata: {
+        name: { nb: 'Knappegruppe', en: 'ButtonGroup' },
+        lifecycle: { status: 'stable' },
+      },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5418,7 +5416,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'Avkrysningsbokser', en: 'Checkboxes' },
+        name: { nb: 'Avmerkingsbokser', en: 'Checkboxes' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -5544,7 +5542,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Custom', en: 'Custom' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Egendefinert', en: 'Custom' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5643,7 +5641,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'CustomButton', en: 'CustomButton' },
+        name: { nb: 'Egendefinert knapp', en: 'CustomButton' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -5830,7 +5828,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Datepicker', en: 'Datepicker' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Dato', en: 'Datepicker' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -5974,7 +5972,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Skillelinje', en: 'Divider' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Delelinje', en: 'Divider' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6132,7 +6130,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: true,
       },
-      metadata: { name: { nb: 'FileUpload', en: 'FileUpload' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Vedlegg', en: 'FileUpload' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6296,7 +6294,7 @@ const generatedContract = {
         canHaveAttachments: true,
       },
       metadata: {
-        name: { nb: 'FileUploadWithTag', en: 'FileUploadWithTag' },
+        name: { nb: 'Vedlegg med merking', en: 'FileUploadWithTag' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -6479,7 +6477,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Grid', en: 'Grid' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Rutenett', en: 'Grid' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6543,7 +6541,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Group', en: 'Group' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Gruppe', en: 'Group' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6645,7 +6643,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Header', en: 'Header' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Tittel', en: 'Header' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6961,7 +6959,10 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Input', en: 'Input' }, lifecycle: { status: 'stable' } },
+      metadata: {
+        name: { nb: 'Lite tekstfelt', en: 'Short text' },
+        lifecycle: { status: 'stable' },
+      },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -7166,7 +7167,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'InstanceInformation', en: 'InstanceInformation' },
+        name: { nb: 'Informasjon om eksemplaret', en: 'InstanceInformation' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -7237,7 +7238,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'InstantiationButton', en: 'InstantiationButton' },
+        name: { nb: 'Start eksemplar', en: 'InstantiationButton' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -7305,7 +7306,7 @@ const generatedContract = {
         canHaveOptions: true,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Likert', en: 'Likert' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Likert-skala', en: 'Likert' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -7457,7 +7458,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Link', en: 'Link' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Lenke', en: 'Link' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -7546,7 +7547,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'List', en: 'List' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Liste', en: 'List' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -7728,7 +7729,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Map', en: 'Map' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Stedfeste i kart', en: 'Map' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -7836,7 +7837,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'MultipleSelect', en: 'MultipleSelect' },
+        name: { nb: 'Nedtrekksliste med flere valg', en: 'MultipleSelect' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -7943,7 +7944,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'NavigationBar', en: 'NavigationBar' },
+        name: { nb: 'Navigasjonsfelt', en: 'NavigationBar' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -8003,7 +8004,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'NavigationButtons', en: 'NavigationButtons' },
+        name: { nb: 'Navigasjonsknapper', en: 'NavigationButtons' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -8280,7 +8281,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'OrganisationLookup', en: 'OrganisationLookup' },
+        name: { nb: 'Finn virksomhet', en: 'OrganisationLookup' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -8420,7 +8421,10 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Panel', en: 'Panel' }, lifecycle: { status: 'stable' } },
+      metadata: {
+        name: { nb: 'Informativ melding', en: 'Panel' },
+        lifecycle: { status: 'stable' },
+      },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -8502,7 +8506,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Paragraph', en: 'Paragraph' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Avsnitt', en: 'Paragraph' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -8571,7 +8575,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Payment', en: 'Payment' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Betaling', en: 'Payment' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -8641,7 +8645,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'PaymentDetails', en: 'PaymentDetails' },
+        name: { nb: 'Betalingsdetaljer', en: 'PaymentDetails' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -8717,7 +8721,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'PDFPreviewButton', en: 'PDFPreviewButton' },
+        name: { nb: 'Forhåndsvis PDF', en: 'Preview PDF' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -8785,7 +8789,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'PersonLookup', en: 'PersonLookup' },
+        name: { nb: 'Finn person', en: 'PersonLookup' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -8894,7 +8898,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'PrintButton', en: 'PrintButton' },
+        name: { nb: 'Utskrift', en: 'PrintButton' },
         lifecycle: { status: 'deprecated', replacedBy: 'PDFPreviewButton' },
       },
       properties: {
@@ -8952,7 +8956,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'RadioButtons', en: 'RadioButtons' },
+        name: { nb: 'Radioknapper', en: 'RadioButtons' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -9090,7 +9094,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'RepeatingGroup', en: 'RepeatingGroup' },
+        name: { nb: 'Repeterende gruppe', en: 'RepeatingGroup' },
         lifecycle: { status: 'stable' },
       },
       properties: {
@@ -10028,7 +10032,10 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Subform', en: 'Subform' }, lifecycle: { status: 'stable' } },
+      metadata: {
+        name: { nb: 'Tabell for underskjema', en: 'Subform' },
+        lifecycle: { status: 'stable' },
+      },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -10176,7 +10183,7 @@ const generatedContract = {
         canHaveAttachments: false,
       },
       metadata: {
-        name: { nb: 'Summary', en: 'Summary' },
+        name: { nb: 'Oppsummering', en: 'Summary' },
         lifecycle: { status: 'deprecated', replacedBy: 'Summary2' },
       },
       properties: {
@@ -10276,7 +10283,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Summary2', en: 'Summary2' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Oppsummering', en: 'Summary2' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -10399,7 +10406,7 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'Text', en: 'Text' }, lifecycle: { status: 'stable' } },
+      metadata: { name: { nb: 'Tekst', en: 'Text' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -10462,7 +10469,10 @@ const generatedContract = {
         canHaveOptions: false,
         canHaveAttachments: false,
       },
-      metadata: { name: { nb: 'TextArea', en: 'TextArea' }, lifecycle: { status: 'stable' } },
+      metadata: {
+        name: { nb: 'Stort tekstfelt', en: 'Long text' },
+        lifecycle: { status: 'stable' },
+      },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],

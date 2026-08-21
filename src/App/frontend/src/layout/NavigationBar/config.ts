@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Action,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'NavigationBar', en: 'NavigationBar' },
+    name: { nb: 'Navigasjonsfelt', en: 'NavigationBar' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

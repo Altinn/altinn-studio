@@ -10,7 +10,7 @@ export const Config = asUploaderComponent(
     category: CompCategory.Form,
     availability: 'configurable',
     metadata: {
-      name: { nb: 'FileUpload', en: 'FileUpload' },
+      name: { nb: 'Vedlegg', en: 'FileUpload' },
       lifecycle: { status: 'stable' },
     },
     capabilities: {

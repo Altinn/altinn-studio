@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Audio', en: 'Audio' },
+    name: { nb: 'Lyd', en: 'Audio' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Alert (Varsel)', en: 'Alert' },
+    name: { nb: 'Varsel', en: 'Alert' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

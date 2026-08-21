@@ -43,7 +43,7 @@ describe('componentCatalog', () => {
 
   it('uses the component documentation titles', () => {
     expect(componentCatalog.Accordion.metadata.name).toEqual({
-      nb: 'Accordion (Trekkspilliste)',
+      nb: 'Trekkspilliste',
       en: 'Accordion',
     });
     expect(componentCatalog.ImageUpload.metadata.name).toEqual({
@@ -70,6 +70,18 @@ describe('componentCatalog', () => {
   });
 
   it('describes nested objects, arrays and expressions', () => {
+    expect(componentCatalog.Video.properties.video).toMatchObject({
+      type: 'object',
+      properties: {
+        src: {
+          type: 'object',
+          properties: {
+            nb: { type: 'string' },
+            en: { type: 'string' },
+          },
+        },
+      },
+    });
     expect(componentCatalog.SimpleTable.properties.columns).toMatchObject({
       type: 'array',
       items: {

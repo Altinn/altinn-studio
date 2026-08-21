@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'TextArea', en: 'TextArea' },
+    name: { nb: 'Stort tekstfelt', en: 'Long text' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

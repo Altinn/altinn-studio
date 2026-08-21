@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Summary2', en: 'Summary2' },
+    name: { nb: 'Oppsummering', en: 'Summary2' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

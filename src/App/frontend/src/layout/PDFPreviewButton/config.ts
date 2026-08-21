@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Action,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'PDFPreviewButton', en: 'PDFPreviewButton' },
+    name: { nb: 'Forhåndsvis PDF', en: 'Preview PDF' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

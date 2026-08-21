@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Map', en: 'Map' },
+    name: { nb: 'Stedfeste i kart', en: 'Map' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

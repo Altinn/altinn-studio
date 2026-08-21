@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Container,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Grid', en: 'Grid' },
+    name: { nb: 'Rutenett', en: 'Grid' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'OrganisationLookup', en: 'OrganisationLookup' },
+    name: { nb: 'Finn virksomhet', en: 'OrganisationLookup' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

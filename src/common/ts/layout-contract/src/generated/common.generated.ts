@@ -435,7 +435,6 @@ export interface IGridStyling {
   sm?: IGridSize;
   md?: IGridSize;
   lg?: IGridSize;
-  xl?: IGridSize;
 }
 
 export interface ILabelSettings {
@@ -642,4 +641,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 8ea9282e50e66f040febbb5a0017c2a4bb889ca3fd2aebfe22ebbb0ab6ef7ccd
+// Source hash: 6be5864bb564d56d4006194de4c6dbebb50529bad60c8ff293f714edaec7702a

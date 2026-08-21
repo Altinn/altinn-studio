@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Text', en: 'Text' },
+    name: { nb: 'Tekst', en: 'Text' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

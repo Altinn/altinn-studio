@@ -9012,7 +9012,6 @@
             "sm": true,
             "md": true,
             "lg": true,
-            "xl": true,
             "labelGrid": true,
             "innerGrid": true,
             "validationGrid": true
@@ -9075,10 +9074,6 @@
           "$ref": "#/definitions/IGridSize"
         },
         "lg": {
-          "default": "auto",
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
           "default": "auto",
           "$ref": "#/definitions/IGridSize"
         }

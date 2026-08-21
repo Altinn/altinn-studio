@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Datepicker', en: 'Datepicker' },
+    name: { nb: 'Dato', en: 'Datepicker' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

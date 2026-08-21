@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Action,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'CustomButton', en: 'CustomButton' },
+    name: { nb: 'Egendefinert knapp', en: 'CustomButton' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

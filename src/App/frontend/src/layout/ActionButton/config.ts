@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Action,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'ActionButton (Handlingsknapp)', en: 'ActionButton' },
+    name: { nb: 'Handlingsknapp', en: 'ActionButton' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

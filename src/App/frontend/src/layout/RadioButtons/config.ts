@@ -9,7 +9,7 @@ export const Config = asOptionsComponent(
     category: CompCategory.Form,
     availability: 'configurable',
     metadata: {
-      name: { nb: 'RadioButtons', en: 'RadioButtons' },
+      name: { nb: 'Radioknapper', en: 'RadioButtons' },
       lifecycle: { status: 'stable' },
     },
     capabilities: {

@@ -10,7 +10,7 @@ export const Config = asOptionsComponent(
       category: CompCategory.Form,
       availability: 'configurable',
       metadata: {
-        name: { nb: 'FileUploadWithTag', en: 'FileUploadWithTag' },
+        name: { nb: 'Vedlegg med merking', en: 'FileUploadWithTag' },
         lifecycle: { status: 'stable' },
       },
       capabilities: {

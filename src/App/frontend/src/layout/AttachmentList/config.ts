@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'AttachmentList (Liste over vedlegg)', en: 'AttachmentList' },
+    name: { nb: 'Liste over vedlegg', en: 'AttachmentList' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

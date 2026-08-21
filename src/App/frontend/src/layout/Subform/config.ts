@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Subform', en: 'Subform' },
+    name: { nb: 'Tabell for underskjema', en: 'Subform' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

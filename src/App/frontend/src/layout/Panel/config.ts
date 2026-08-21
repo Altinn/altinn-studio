@@ -10,7 +10,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Panel', en: 'Panel' },
+    name: { nb: 'Informativ melding', en: 'Panel' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

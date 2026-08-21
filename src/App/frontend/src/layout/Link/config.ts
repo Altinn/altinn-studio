@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Action,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Link', en: 'Link' },
+    name: { nb: 'Lenke', en: 'Link' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'List', en: 'List' },
+    name: { nb: 'Liste', en: 'List' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

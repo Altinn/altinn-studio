@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Container,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Accordion (Trekkspilliste)', en: 'Accordion' },
+    name: { nb: 'Trekkspilliste', en: 'Accordion' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

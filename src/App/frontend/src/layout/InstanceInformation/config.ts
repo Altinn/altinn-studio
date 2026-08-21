@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'InstanceInformation', en: 'InstanceInformation' },
+    name: { nb: 'Informasjon om eksemplaret', en: 'InstanceInformation' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

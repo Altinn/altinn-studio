@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Container,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'ButtonGroup', en: 'ButtonGroup' },
+    name: { nb: 'Knappegruppe', en: 'ButtonGroup' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

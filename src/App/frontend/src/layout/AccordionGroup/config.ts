@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Container,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'AccordionGroup (Nestet trekkspilliste)', en: 'AccordionGroup' },
+    name: { nb: 'Nestet trekkspilliste', en: 'AccordionGroup' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

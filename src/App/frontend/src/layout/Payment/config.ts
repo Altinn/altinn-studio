@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Payment', en: 'Payment' },
+    name: { nb: 'Betaling', en: 'Payment' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

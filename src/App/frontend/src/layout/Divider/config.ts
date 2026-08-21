@@ -6,7 +6,7 @@ export const Config = new CG.component({
   category: CompCategory.Presentation,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Skillelinje', en: 'Divider' },
+    name: { nb: 'Delelinje', en: 'Divider' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {

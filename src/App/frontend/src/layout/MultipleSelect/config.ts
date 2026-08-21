@@ -9,7 +9,7 @@ export const Config = asOptionsComponent(
     category: CompCategory.Form,
     availability: 'configurable',
     metadata: {
-      name: { nb: 'MultipleSelect', en: 'MultipleSelect' },
+      name: { nb: 'Nedtrekksliste med flere valg', en: 'MultipleSelect' },
       lifecycle: { status: 'stable' },
     },
     capabilities: {

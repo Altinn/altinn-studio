@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Container,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'RepeatingGroup', en: 'RepeatingGroup' },
+    name: { nb: 'Repeterende gruppe', en: 'RepeatingGroup' },
     lifecycle: { status: 'stable' },
   },
   directRendering: true,

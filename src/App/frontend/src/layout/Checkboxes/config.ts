@@ -9,7 +9,7 @@ export const Config = asOptionsComponent(
     category: CompCategory.Form,
     availability: 'configurable',
     metadata: {
-      name: { nb: 'Avkrysningsbokser', en: 'Checkboxes' },
+      name: { nb: 'Avmerkingsbokser', en: 'Checkboxes' },
       lifecycle: { status: 'stable' },
     },
     capabilities: {

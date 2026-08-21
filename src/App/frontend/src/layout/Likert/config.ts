@@ -8,7 +8,7 @@ export const Config = asOptionsComponent(
     category: CompCategory.Container,
     availability: 'configurable',
     metadata: {
-      name: { nb: 'Likert', en: 'Likert' },
+      name: { nb: 'Likert-skala', en: 'Likert' },
       lifecycle: { status: 'stable' },
     },
     directRendering: true,

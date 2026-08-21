@@ -7,7 +7,7 @@ export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',
   metadata: {
-    name: { nb: 'Input', en: 'Input' },
+    name: { nb: 'Lite tekstfelt', en: 'Short text' },
     lifecycle: { status: 'stable' },
   },
   capabilities: {
