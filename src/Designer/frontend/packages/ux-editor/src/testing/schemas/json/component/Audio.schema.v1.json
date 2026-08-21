@@ -20,7 +20,6 @@
         "sm": { "$ref": "#/definitions/IGridSize" },
         "md": { "$ref": "#/definitions/IGridSize" },
         "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
