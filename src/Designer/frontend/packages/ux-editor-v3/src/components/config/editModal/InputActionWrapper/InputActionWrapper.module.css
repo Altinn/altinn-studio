@@ -7,7 +7,7 @@
 .preview {
   align-items: center;
   justify-content: space-between;
-  min-height: var(--fds-sizing-10);
+  min-height: var(--ds-size-10);
 }
 
 .edit {
@@ -16,7 +16,7 @@
   border: 1px solid var(--fds-semantic-border-divider-default);
   flex-direction: column;
   gap: 1rem;
-  padding: var(--fds-spacing-4);
+  padding: var(--ds-size-4);
 }
 
 .buttonWrapper {

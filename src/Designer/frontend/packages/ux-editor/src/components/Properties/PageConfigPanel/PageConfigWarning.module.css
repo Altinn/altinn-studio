@@ -11,15 +11,15 @@
 }
 
 .configWarningContent {
-  margin: var(--fds-spacing-2) var(--fds-spacing-4);
-  padding: var(--fds-spacing-6) var(--fds-spacing-4);
+  margin: var(--ds-size-2) var(--ds-size-4);
+  padding: var(--ds-size-6) var(--ds-size-4);
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   border-radius: var(--fds-border_radius-large);
   background-color: var(--fds-semantic-surface-neutral-default);
 }
 
 .configWarningList {
-  margin-top: var(--fds-spacing-2);
+  margin-top: var(--ds-size-2);
 }
 
 .duplicatedId {

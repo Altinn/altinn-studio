@@ -1,5 +1,5 @@
 .heading {
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .tableWrapper {
@@ -10,13 +10,13 @@
 .table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: var(--fds-spacing-1);
+  border-spacing: var(--ds-size-1);
 }
 
 .tableHeaderCell,
 .tableCell {
   vertical-align: top;
-  padding: var(--fds-spacing-2);
+  padding: var(--ds-size-2);
 }
 
 .tableCell {

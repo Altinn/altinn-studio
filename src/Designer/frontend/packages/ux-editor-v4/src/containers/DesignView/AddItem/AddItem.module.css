@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  margin-left: var(--fds-spacing-3);
-  margin-right: var(--fds-spacing-3);
+  margin-left: var(--ds-size-3);
+  margin-right: var(--ds-size-3);
 }
 
 .root.center {

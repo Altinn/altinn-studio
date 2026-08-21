@@ -1,9 +1,9 @@
 .alertMessage {
-  margin: var(--fds-spacing-2);
+  margin: var(--ds-size-2);
 }
 
 .alertTitle {
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .taskNameCell,
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   height: 100%;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
 }
 .taskIcon {
   flex-shrink: 0;

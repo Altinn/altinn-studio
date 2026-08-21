@@ -3,7 +3,7 @@
 }
 
 .alert {
-  padding: var(--fds-spacing-5);
+  padding: var(--ds-size-5);
 }
 
 .duplicatedIdField {

@@ -41,5 +41,5 @@
 }
 
 .alert {
-  margin: var(--fds-spacing-4);
+  margin: var(--ds-size-4);
 }

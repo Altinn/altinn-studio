@@ -1,7 +1,7 @@
 .button {
   display: flex;
   justify-content: center;
-  padding-top: var(--fds-spacing-5);
+  padding-top: var(--ds-size-5);
   background-color: var(--fds-semantic-surface-neutral-subtle);
 }
 

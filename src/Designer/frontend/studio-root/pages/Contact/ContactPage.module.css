@@ -10,19 +10,19 @@
   flex-direction: column;
   font-family: var(--studio-font-family);
   position: relative;
-  margin: var(--fds-spacing-10) auto;
+  margin: var(--ds-size-10) auto;
   max-width: 1230px;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-6);
-  margin: var(--fds-spacing-12) var(--fds-spacing-8);
+  gap: var(--ds-size-6);
+  margin: var(--ds-size-12) var(--ds-size-8);
 }
 
 @media (min-width: 768px) {
   .content {
-    margin: var(--fds-spacing-18);
+    margin: var(--ds-size-18);
   }
 }

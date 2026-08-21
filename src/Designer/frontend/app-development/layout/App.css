@@ -28,7 +28,7 @@ a.fds-link--inverted {
 }
 
 button[class*='Button-module_small__'] svg {
-  --fdsc-icon-size: var(--fds-sizing-5);
+  --fdsc-icon-size: var(--ds-size-5);
 }
 
 ::-webkit-scrollbar {

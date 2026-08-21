@@ -15,11 +15,11 @@
 }
 
 .cardWrapper {
-  border-radius: var(--fds-sizing-3);
+  border-radius: var(--ds-size-3);
 }
 
 .elementWrapper {
-  border-radius: var(--fds-sizing-1);
+  border-radius: var(--ds-size-1);
   background-color: var(--fds-semantic-background-subtle);
 }
 
@@ -36,11 +36,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: var(--fds-spacing-4);
+  padding-right: var(--ds-size-4);
 }
 
 .topWrapperCard {
-  border-radius: var(--fds-sizing-3);
+  border-radius: var(--ds-size-3);
 }
 
 .topWrapperCardOpen {
@@ -49,7 +49,7 @@
 }
 
 .topWrapperElement {
-  border-radius: var(--fds-sizing-1);
+  border-radius: var(--ds-size-1);
 }
 
 .topWrapperElementOpen {
@@ -58,7 +58,7 @@
 }
 
 .topWrapperError {
-  border-radius: var(--fds-sizing-3);
+  border-radius: var(--ds-size-3);
   background-color: var(--fds-semantic-surface-danger-subtle);
 }
 
@@ -75,8 +75,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: var(--fds-spacing-5);
-  padding-right: var(--fds-spacing-1);
+  padding: var(--ds-size-5);
+  padding-right: var(--ds-size-1);
   margin: 0;
 }
 
@@ -88,9 +88,9 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-block: var(--fds-spacing-3);
-  padding-left: var(--fds-spacing-5);
-  padding-right: var(--fds-spacing-1);
+  padding-block: var(--ds-size-3);
+  padding-left: var(--ds-size-5);
+  padding-right: var(--ds-size-1);
   margin: 0;
 }
 
@@ -100,13 +100,13 @@
 }
 
 .cardBottomWrapper {
-  padding-inline: var(--fds-spacing-5);
-  padding-bottom: var(--fds-spacing-5);
+  padding-inline: var(--ds-size-5);
+  padding-bottom: var(--ds-size-5);
 }
 
 .elementBottomWrapper {
-  padding-inline: var(--fds-spacing-5);
-  padding-bottom: var(--fds-spacing-3);
+  padding-inline: var(--ds-size-5);
+  padding-bottom: var(--ds-size-3);
 }
 
 .headerWrapper {

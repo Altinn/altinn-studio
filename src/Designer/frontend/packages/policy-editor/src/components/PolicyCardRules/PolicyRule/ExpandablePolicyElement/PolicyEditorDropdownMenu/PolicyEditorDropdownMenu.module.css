@@ -3,7 +3,7 @@
 }
 
 .icon {
-  font-size: var(--fds-sizing-5);
+  font-size: var(--ds-size-5);
 }
 
 .deleteButton {

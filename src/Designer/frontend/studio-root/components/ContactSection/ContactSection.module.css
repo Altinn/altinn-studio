@@ -2,8 +2,8 @@
   background-color: var(--fds-colors-grey-100);
   border-radius: 4px;
   display: flex;
-  gap: var(--fds-spacing-6);
-  padding: var(--fds-spacing-8);
+  gap: var(--ds-size-6);
+  padding: var(--ds-size-8);
   max-width: 735px;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .icon {
-  font-size: var(--fds-sizing-7);
+  font-size: var(--ds-size-7);
 }
 
 .textContainer {
@@ -29,12 +29,12 @@
 
 @media (min-width: 768px) {
   .section {
-    padding: var(--fds-spacing-12);
+    padding: var(--ds-size-12);
   }
 }
 
 @media (min-width: 960px) {
   .section {
-    padding-right: var(--fds-spacing-22);
+    padding-right: var(--ds-size-22);
   }
 }
