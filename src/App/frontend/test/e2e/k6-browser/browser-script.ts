@@ -11,7 +11,7 @@ const SCREENSHOTS_DIR = 'k6-browser-screenshots';
 
 // Test data constants
 const TEST_DATA = {
-  USER: 'DDG Fitness AS (Organisation)',
+  USER: 'DDG Fitness AS (Organization)',
   AUTH_LEVEL: 'Nivå 2',
   APPLICATION: 'ttd/frontend-test',
   FRONTEND_VERSION: 'http://localhost:8080/',

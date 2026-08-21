@@ -92,9 +92,9 @@ describe('Signing', () => {
       cy.findByRole('button', { name: /til signering/i }).click();
 
       // Signing step
-      cy.findByRole('heading', { name: /personer som skal signere/i });
-      cy.findByText(/personer som skal signere beskrivelse/i);
-      cy.findByRole('table', { name: /personer som skal signere/i }).within(() => {
+      cy.findByRole('heading', { name: /personer some skal signere/i });
+      cy.findByText(/personer some skal signere beskrivelse/i);
+      cy.findByRole('table', { name: /personer some skal signere/i }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(
             `${Tenor.orgs.sivilisertAvansertIsbjoernSA.name} (venter på signering|varsling mislyktes)`,
@@ -115,7 +115,7 @@ describe('Signing', () => {
         });
       });
 
-      cy.findByRole('table', { name: /dokumenter som skal signeres/i }).within(() => {
+      cy.findByRole('table', { name: /dokumenter some skal signeres/i }).within(() => {
         cy.findByRole('row', { name: /stiftelse av aksjeselskap\s*\.pdf\s*Skjema/i });
       });
 
@@ -126,9 +126,9 @@ describe('Signing', () => {
       cy.findByRole('checkbox', { name: /jeg bekrefter at informasjonen og dokumentene er korrekte/i }).click();
       cy.findByRole('button', { name: 'Signer' }).click();
 
-      cy.findByRole('heading', { name: /personer som skal signere/i });
-      cy.findByText(/personer som skal signere beskrivelse/i);
-      cy.findByRole('table', { name: /personer som skal signere/i }).within(() => {
+      cy.findByRole('heading', { name: /personer some skal signere/i });
+      cy.findByText(/personer some skal signere beskrivelse/i);
+      cy.findByRole('table', { name: /personer some skal signere/i }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(
             `(${Tenor.users.humanAndrefiolin.name}|${reverseName(Tenor.users.humanAndrefiolin.name)})`,

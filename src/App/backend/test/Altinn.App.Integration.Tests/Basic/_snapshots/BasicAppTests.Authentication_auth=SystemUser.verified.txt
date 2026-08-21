@@ -11,7 +11,7 @@
   details: {
     party: {
       partyId: 500700,
-      partyTypeName: Organisation,
+      partyTypeName: Organization,
       partyUuid: Guid_2,
       ssn: ,
       orgNumber: 950474084,

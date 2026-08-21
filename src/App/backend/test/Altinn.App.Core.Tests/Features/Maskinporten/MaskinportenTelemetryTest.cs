@@ -13,7 +13,7 @@ public class MaskinportenTelemetryTest
         Resource = "https://api.example.com",
         SystemUser = new MaskinportenSystemUser
         {
-            Organisation = OrganisationNumber.Parse("311169963"),
+            Organization = OrganisationNumber.Parse("311169963"),
             ExternalRef = "systembruker-1",
         },
     };

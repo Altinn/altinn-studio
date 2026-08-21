@@ -64,7 +64,7 @@ public class AppMetadataTest
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organisation = true,
+                Organization = true,
                 Person = true,
                 SubUnit = true,
             },
@@ -115,7 +115,7 @@ public class AppMetadataTest
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organisation = true,
+                Organization = true,
                 Person = true,
                 SubUnit = true,
             },
@@ -172,7 +172,7 @@ public class AppMetadataTest
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organisation = true,
+                Organization = true,
                 Person = true,
                 SubUnit = true,
             },
@@ -233,7 +233,7 @@ public class AppMetadataTest
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organisation = true,
+                Organization = true,
                 Person = true,
                 SubUnit = true,
             },
@@ -296,7 +296,7 @@ public class AppMetadataTest
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organisation = true,
+                Organization = true,
                 Person = true,
                 SubUnit = true,
             },
@@ -357,7 +357,7 @@ public class AppMetadataTest
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organisation = true,
+                Organization = true,
                 Person = true,
                 SubUnit = true,
             },

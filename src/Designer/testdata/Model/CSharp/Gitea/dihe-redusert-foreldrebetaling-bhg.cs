@@ -221,10 +221,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("barn")]
     public List<Barn> barn { get; set; }
 
-    [XmlElement("girSamtykke", Order = 4)]
-    [JsonProperty("girSamtykke")]
-    [JsonPropertyName("girSamtykke")]
-    public string girSamtykke { get; set; }
+    [XmlElement("gitSamtykke", Order = 4)]
+    [JsonProperty("gitSamtykke")]
+    [JsonPropertyName("gitSamtykke")]
+    public string gitSamtykke { get; set; }
 
     [XmlElement("sokerSkattegrunnlag", Order = 5)]
     [JsonProperty("sokerSkattegrunnlag")]

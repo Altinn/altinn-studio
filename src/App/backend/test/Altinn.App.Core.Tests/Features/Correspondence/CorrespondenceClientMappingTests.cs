@@ -208,8 +208,8 @@ public class CorrespondenceClientMappingTests
             .Should()
             .Be(TestHelpers.GetOrganisationNumber(2).ToUrnFormattedString());
 
-        // The API deprecated both of these in favour of `customRecipients`, which we now emit directly.
-        // It honoured only the first entry of `customNotificationRecipients`, so nothing is lost.
+        // The API deprecated both of these in favor of `customRecipients`, which we now emit directly.
+        // It honored only the first entry of `customNotificationRecipients`, so nothing is lost.
         notification.TryGetProperty("customRecipient", out _).Should().BeFalse();
         notification.TryGetProperty("customNotificationRecipients", out _).Should().BeFalse();
 

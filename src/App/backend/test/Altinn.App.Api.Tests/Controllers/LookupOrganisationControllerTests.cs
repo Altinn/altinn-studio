@@ -46,7 +46,7 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
             OutputHelper.WriteLine("Path: " + message.RequestUri.PathAndQuery);
 
             sendAsyncCalled = true;
-            var organisation = new Organization
+            var organization = new Organization
             {
                 Name = orgName,
                 OrgNumber = orgNr,
@@ -65,7 +65,7 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
                 UnitType = "AS",
             };
 
-            string orgJson = JsonSerializer.Serialize(organisation, _jsonSerializerOptions);
+            string orgJson = JsonSerializer.Serialize(organization, _jsonSerializerOptions);
             var responseContent = new StringContent(orgJson);
 
             var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = responseContent };
@@ -153,7 +153,7 @@ public class LookupOrganisationControllerTests : ApiTestBase, IClassFixture<WebA
         personSearchResponse?.Title.Should().BeEquivalentTo("Error when calling register");
         personSearchResponse
             ?.Detail.Should()
-            .BeEquivalentTo("Something went wrong when calling the Organisation Register API.");
+            .BeEquivalentTo("Something went wrong when calling the Organization Register API.");
         personSearchResponse?.Status.Should().Be(StatusCodes.Status500InternalServerError);
     }
 

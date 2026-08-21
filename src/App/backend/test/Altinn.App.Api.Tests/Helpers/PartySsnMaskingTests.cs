@@ -64,7 +64,7 @@ public class PartySsnMaskingTests
     {
         var party = new Party
         {
-            PartyTypeName = PartyType.Organisation,
+            PartyTypeName = PartyType.Organization,
             Name = "Acme AS",
             OrgNumber = "987654321",
             SSN = null,

@@ -30,7 +30,7 @@ public class MaskinportenDelegatingHandlerTest
                     Resource = "https://api.example.com",
                     SystemUser = new MaskinportenSystemUser
                     {
-                        Organisation = OrganisationNumber.Parse("311169963"),
+                        Organization = OrganisationNumber.Parse("311169963"),
                         ExternalRef = "ref",
                     },
                 }
@@ -40,7 +40,7 @@ public class MaskinportenDelegatingHandlerTest
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["scope1", "scope2"],
-                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
+                    SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("311169963") },
                 }
             },
         };

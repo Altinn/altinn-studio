@@ -53,7 +53,7 @@ describe('SelectAllowedPartyTypes', () => {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: false,
-        organisation: false,
+        organization: false,
         subUnit: false,
         bankruptcyEstate: true,
       },
@@ -100,7 +100,7 @@ describe('SelectAllowedPartyTypes', () => {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: true,
-        organisation: true,
+        organization: true,
         subUnit: true,
         bankruptcyEstate: true,
       },
@@ -179,7 +179,7 @@ describe('SelectAllowedPartyTypes', () => {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: true,
-        organisation: true,
+        organization: true,
         subUnit: true,
         bankruptcyEstate: true,
       },

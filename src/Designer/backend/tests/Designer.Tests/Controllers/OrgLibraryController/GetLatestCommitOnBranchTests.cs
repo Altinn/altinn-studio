@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using Altinn.Studio.Designer.Services.Interfaces.Organization;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;

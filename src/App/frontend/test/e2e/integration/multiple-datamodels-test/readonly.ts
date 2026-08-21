@@ -125,7 +125,7 @@ describe('readonly data models', () => {
     cy.waitUntilSaved();
     cy.get('@saveFormData2.all').should('have.length', 1);
 
-    cy.findByRole('heading', { name: /Test av delt modell/ }).should('be.visible');
+    cy.findByRole('heading', { name: /Test av dealt modell/ }).should('be.visible');
 
     // Casing is important here. The Address component will normally try to look up the post code and overwrite
     // it with 'KARDEMOMME BY' here, but since the component is marked as readOnly that should not happen.

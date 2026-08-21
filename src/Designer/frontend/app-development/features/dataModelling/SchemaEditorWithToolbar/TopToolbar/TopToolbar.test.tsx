@@ -116,6 +116,6 @@ describe('TopToolbar', () => {
 
 function queryUploadXSDButton(): HTMLButtonElement | null {
   return screen.queryByRole('button', {
-    name: textMock('app_data_modelling.upload_xsd'),
+    name: textMock('app_data_modeling.upload_xsd'),
   });
 }

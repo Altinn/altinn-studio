@@ -120,7 +120,7 @@ public class MaskinportenTokenRequestTest
     {
         var systemUser = new MaskinportenSystemUser
         {
-            Organisation = OrganisationNumber.Parse("991825827"),
+            Organization = OrganisationNumber.Parse("991825827"),
             ExternalRef = input,
         };
 
@@ -135,7 +135,7 @@ public class MaskinportenTokenRequestTest
     {
         // Maskinporten answers MP_302 for these
         var act = () =>
-            new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827"), ExternalRef = input };
+            new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("991825827"), ExternalRef = input };
 
         var ex = Assert.Throws<ArgumentException>(act);
         Assert.Equal("ExternalRef", ex.ParamName);
@@ -147,7 +147,7 @@ public class MaskinportenTokenRequestTest
         var act = () =>
             new MaskinportenSystemUser
             {
-                Organisation = OrganisationNumber.Parse("991825827"),
+                Organization = OrganisationNumber.Parse("991825827"),
                 ExternalRef = new string('a', 256),
             };
 
@@ -186,10 +186,10 @@ public class MaskinportenTokenRequestTest
     [Fact]
     public void SystemUser_RejectsDefaultOrganisationNumber()
     {
-        var act = () => new MaskinportenSystemUser { Organisation = default };
+        var act = () => new MaskinportenSystemUser { Organization = default };
 
         var ex = Assert.Throws<ArgumentException>(act);
-        Assert.Equal("Organisation", ex.ParamName);
+        Assert.Equal("Organization", ex.ParamName);
     }
 
     [Theory]
@@ -200,7 +200,7 @@ public class MaskinportenTokenRequestTest
     {
         var systemUser = new MaskinportenSystemUser
         {
-            Organisation = OrganisationNumber.Parse("991825827"),
+            Organization = OrganisationNumber.Parse("991825827"),
             ExternalRef = input,
         };
 
@@ -210,7 +210,7 @@ public class MaskinportenTokenRequestTest
     [Fact]
     public void Equality_IsStructural()
     {
-        // Notably, the synthesised record equality would compare the scope collection by reference
+        // Notably, the synthesized record equality would compare the scope collection by reference
         var request1 = new MaskinportenTokenRequest
         {
             Scopes = ["a", "b"],
@@ -218,7 +218,7 @@ public class MaskinportenTokenRequestTest
             Resource = "https://api.example.com",
             SystemUser = new MaskinportenSystemUser
             {
-                Organisation = OrganisationNumber.Parse("311169963"),
+                Organization = OrganisationNumber.Parse("311169963"),
                 ExternalRef = "ref",
             },
         };

@@ -44,7 +44,7 @@ const setupAndVerifyDashboardPage = async (
   return dashboardPage;
 };
 
-test('It is possible to view apps, and add and remove from favourites', async ({
+test('It is possible to view apps, and add and remove from favorites', async ({
   page,
   testAppName,
 }) => {

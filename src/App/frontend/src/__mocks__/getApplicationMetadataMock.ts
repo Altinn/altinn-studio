@@ -75,7 +75,7 @@ export const getApplicationMetadataMock = (
     ],
     partyTypesAllowed: {
       bankruptcyEstate: false,
-      organisation: false,
+      organization: false,
       person: true,
       subUnit: true,
     },

@@ -117,7 +117,7 @@ public class AuthenticationTokenResolverTest
         // Arrange
         var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
         string requestedUrl = string.Empty;
-        // Scopes are normalised to a deterministic (ordinal) order before use
+        // Scopes are normalized to a deterministic (ordinal) order before use
         string expectedUrl =
             "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=991825827&authenticationLevel=3&scopes=a%20altinn%3Aserviceowner%20altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20b";
 
