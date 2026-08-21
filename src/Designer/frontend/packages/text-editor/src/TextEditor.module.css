@@ -21,7 +21,7 @@
 
 .textEditorTopRow {
   border-bottom: 1px solid #bcc7cc;
-  padding: var(--fds-spacing-6);
+  padding: var(--ds-size-6);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -31,7 +31,7 @@
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
   justify-content: flex-end;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .textEditorBody {
-  margin-left: var(--fds-spacing-6);
+  margin-left: var(--ds-size-6);
   overflow: auto;
 }
 
