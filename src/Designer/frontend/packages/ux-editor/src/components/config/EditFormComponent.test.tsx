@@ -2,7 +2,7 @@ import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
 
 // Test data:

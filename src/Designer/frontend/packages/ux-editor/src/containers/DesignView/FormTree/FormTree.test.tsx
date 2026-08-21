@@ -8,7 +8,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { FormItemContext } from '../../FormItemContext';
 import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';

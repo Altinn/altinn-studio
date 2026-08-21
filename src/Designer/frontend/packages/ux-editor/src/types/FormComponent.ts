@@ -1,7 +1,7 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResourceBindings, IOption, IDataModelBindingsKeyValueExplicit } from './global';
 import type { SimpleComponentType } from './SimpleComponentType';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { ComponentConfig } from './ComponentConfig';
 import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
 
 export type FormComponentBase<T extends ComponentType = ComponentType> = Pick<
@@ -16,7 +16,7 @@ export type FormComponentBase<T extends ComponentType = ComponentType> = Pick<
   dataModelBindings?: IDataModelBindingsKeyValueExplicit;
   textResourceBindings?: ITextResourceBindings;
   disabled?: boolean;
-  [id: string]: any;
+  customProperties?: Record<string, unknown>;
 };
 
 export type FormImageComponent = FormComponent<ComponentType.Image>;
@@ -31,7 +31,7 @@ export type FormAttachmentListComponent = FormComponent<ComponentType.Attachment
 
 export type FormComponent<T extends SimpleComponentType = SimpleComponentType> = {
   [componentType in ComponentType]: FormComponentBase<componentType> &
-    ComponentSpecificConfig<componentType>;
+    ComponentConfig<componentType>;
 }[T];
 
 export type SelectionComponentType =

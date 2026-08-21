@@ -1,6 +1,6 @@
 import type { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('generateComponentId', () => {
   const layouts: IFormLayouts = {

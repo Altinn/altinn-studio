@@ -1,7 +1,7 @@
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs } from '../data/formItemConfig';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
+import { getFormItemConfig } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
-import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
 import { getComponentDefinition } from '../data/componentCatalog';
 
 // Add any properties that are rendered elsewhere to this list so they are not duplicated in the generic view
@@ -20,11 +20,11 @@ export const propertyKeysToExcludeFromComponentConfig = [
  * @param id The id of the component to generate.
  * @returns A component of the given type.
  */
-export const generateFormItem = <T extends ComponentType | CustomComponentType>(
+export const generateFormItem = <T extends ComponentType | ComponentPreset>(
   type: T,
   id: string,
 ): FormItem<T> => {
-  const { defaultProperties, componentRef } = formItemConfigs[type];
+  const { defaultProperties, componentRef } = getFormItemConfig(type);
   const componentType = componentRef ? componentRef : type;
 
   return { ...defaultProperties, id, type: componentType } as FormItem<T>;
@@ -38,15 +38,11 @@ export const generateFormItem = <T extends ComponentType | CustomComponentType>(
  * @param value The value to set the property to.
  * @returns The component with updated property.
  */
-export const setComponentProperty = <
-  T extends ComponentType,
-  V,
-  K extends FilterKeysOfType<FormItem<T>, V>,
->(
-  component: FormItem<T>,
+export const setComponentProperty = <T extends FormItem, K extends keyof T>(
+  component: T,
   propertyKey: K,
-  value: V,
-): FormItem<T> => {
+  value: unknown,
+): T => {
   if (!component['required'] && value === undefined) {
     const updatedComponent = { ...component };
     delete updatedComponent[propertyKey];

@@ -41,7 +41,7 @@ describe('ConfigArrayProperties', () => {
     renderConfigArrayProperties({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.AttachmentList,
           [supportedKey]: enumValues,
         },
       },
@@ -86,7 +86,7 @@ describe('ConfigArrayProperties', () => {
   });
 });
 
-const supportedKey = 'supportedArrayProperty';
+const supportedKey = 'dataTypeIds';
 const defaultArrayProperties: Record<string, PropertyDefinition> = {
   [supportedKey]: {
     type: 'array',

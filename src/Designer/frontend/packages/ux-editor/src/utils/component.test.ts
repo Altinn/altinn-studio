@@ -1,6 +1,7 @@
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { containerComponentTypes, isContainerComponentType } from '../data/containerComponentTypes';
-import { formItemConfigs } from '../data/formItemConfig';
+import { componentPresetConfigs } from '../data/formItemConfig';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem, isComponentDeprecated, setComponentProperty } from './component';
@@ -8,10 +9,7 @@ import { generateFormItem, isComponentDeprecated, setComponentProperty } from '.
 describe('generateFormItem', () => {
   it.each(
     Object.values(ComponentType).filter(
-      (componentType) =>
-        componentType !== ComponentType.OrganisationLookup &&
-        componentType !== ComponentType.Header &&
-        !isContainerComponentType(componentType),
+      (componentType) => !isContainerComponentType(componentType),
     ),
   )('generates component %s with the given ID', (componentType) => {
     expect(generateFormItem(componentType, 'testId')).toEqual(
@@ -20,10 +18,10 @@ describe('generateFormItem', () => {
   });
 
   it('maps custom component types to their component reference', () => {
-    expect(formItemConfigs[CustomComponentType.CloseSubformButton].componentRef).toBe(
+    expect(componentPresetConfigs[ComponentPreset.CloseSubformButton].componentRef).toBe(
       ComponentType.CustomButton,
     );
-    expect(generateFormItem(CustomComponentType.CloseSubformButton, 'testId')).toEqual(
+    expect(generateFormItem(ComponentPreset.CloseSubformButton, 'testId')).toEqual(
       expect.objectContaining({
         id: 'testId',
         type: ComponentType.CustomButton,
@@ -49,14 +47,14 @@ describe('setComponentProperty', () => {
   };
 
   it('sets a property', () => {
-    expect(setComponentProperty(component, 'testProperty', 'testValue')).toEqual({
+    expect(setComponentProperty(component, 'maxLength', 10)).toEqual({
       ...component,
-      testProperty: 'testValue',
+      maxLength: 10,
     });
   });
 
   it('removes an optional property whose value becomes undefined', () => {
-    expect(setComponentProperty(component, 'testProperty', undefined)).toEqual(component);
+    expect(setComponentProperty(component, 'maxLength', undefined)).toEqual(component);
   });
 });
 

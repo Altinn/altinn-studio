@@ -34,6 +34,7 @@ export type ExportTextResourceValue = {
 };
 
 export type ExportOption = {
-  value: string;
+  value: IRawOption['value'];
   label: ExportTextResourceValue[];
 };
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';

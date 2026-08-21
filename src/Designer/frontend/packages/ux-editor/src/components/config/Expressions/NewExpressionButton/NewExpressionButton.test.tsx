@@ -3,7 +3,7 @@ import { NewExpressionButton } from './NewExpressionButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../containers/FormItemContext';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormItem } from '../../../../types/FormItem';

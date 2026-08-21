@@ -1,6 +1,7 @@
 import { getComponentSelection } from './AddItemUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import {
   allComponents,
   confOnScreenComponents,
@@ -53,6 +54,30 @@ describe('AddItemUtils', () => {
         expect(shouldShowAllComponentsButton).toBe(true);
       });
 
+      it('offers the newly generated component types except beta components', () => {
+        const { availableComponents } = getComponentSelection(layout, BASE_CONTAINER_ID);
+        const types = availableTypes(availableComponents);
+
+        expect(types).not.toContain(ComponentType.AddToList);
+        expect(types).not.toContain(ComponentType.SimpleTable);
+        expect(types).toEqual(
+          expect.arrayContaining([
+            ComponentType.Audio,
+            ComponentType.Cards,
+            ComponentType.Date,
+            ComponentType.Number,
+            ComponentType.Option,
+            ComponentType.PDFPreviewButton,
+            ComponentType.SigneeList,
+            ComponentType.SigningActions,
+            ComponentType.SigningDocumentList,
+            ComponentType.Tabs,
+            ComponentType.TimePicker,
+            ComponentType.Video,
+          ]),
+        );
+      });
+
       it('limits both lists to the container valid child types', () => {
         const { quickAddComponents, availableComponents } = getComponentSelection(
           layout,
@@ -95,9 +120,7 @@ describe('AddItemUtils', () => {
 
       it('includes allowed components outside the standard taxonomy in the available list', () => {
         const { availableComponents } = getComponentSelection(layout, BASE_CONTAINER_ID, 'subform');
-        expect(availableTypes(availableComponents)).toContain(
-          CustomComponentType.CloseSubformButton,
-        );
+        expect(availableTypes(availableComponents)).toContain(ComponentPreset.CloseSubformButton);
       });
     });
   });

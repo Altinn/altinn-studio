@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import classes from './EditColumnElement.module.css';
-import type { TableColumn } from '../../types/TableColumn';
+import { getTableColumnCellValue, type TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import {
   StudioSuggestion,
@@ -79,12 +79,13 @@ export const EditColumnElement = ({
 
   const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
   const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
-  const isSaveButtonDisabled = !tableColumn.headerContent || !tableColumn.cellContent?.query;
+  const cellValue = getTableColumnCellValue(tableColumn);
+  const isSaveButtonDisabled = !tableColumn.headerContent || !cellValue;
 
   const component = availableComponents.find((comp) => comp.id === selectedComponentId);
   const dataModelBindingKeys = Object.keys(component?.dataModelBindings ?? {});
   const hasMultipleDataModelBindings = dataModelBindingKeys.length > 1;
-  const isTableColumnDefined = tableColumn.headerContent || tableColumn.cellContent?.query;
+  const isTableColumnDefined = tableColumn.headerContent || cellValue;
 
   return (
     <StudioCard className={classes.wrapper}>

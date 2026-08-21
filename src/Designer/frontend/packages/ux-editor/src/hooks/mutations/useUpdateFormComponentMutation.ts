@@ -1,6 +1,6 @@
 import type { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
@@ -14,6 +14,7 @@ import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import { getFileUploadMetadataProperties } from '../../utils/fileUploadMetadata';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -145,11 +146,8 @@ const buildDataTypeForFileUpload = (
 ): ApplicationAttachmentMetadata => {
   const baseDataType: ApplicationAttachmentMetadata = {
     id: component.id,
-    fileType: component.validFileEndings,
     taskId,
-    maxSize: component.maxFileSizeInMB,
-    maxCount: component.maxNumberOfAttachments,
-    minCount: component.minNumberOfAttachments,
+    ...getFileUploadMetadataProperties(component),
   };
 
   const isInRepeatingGroup = isItemChildOfContainer(
@@ -165,9 +163,7 @@ const buildDataTypeForFileUpload = (
   return {
     ...baseDataType,
     maxCount:
-      component.maxNumberOfAttachments > oldDataType?.maxCount
-        ? component.maxNumberOfAttachments
-        : oldDataType?.maxCount,
+      baseDataType.maxCount > oldDataType?.maxCount ? baseDataType.maxCount : oldDataType?.maxCount,
     minCount: oldDataType?.minCount,
   };
 };

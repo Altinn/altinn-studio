@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import { EditNumberValue } from './EditNumberValue';
 import { renderHookWithProviders, renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../../testing/appContextMock';
 import { useMutation } from '@tanstack/react-query';

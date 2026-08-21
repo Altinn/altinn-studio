@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import {
   addExpressionToFormItem,
   expressionPropertiesOnFormItem,
@@ -180,7 +180,7 @@ describe('utils', () => {
   describe('getPropertyValue', () => {
     it('Returns the value of the given property on the given component', () => {
       const hidden: BooleanExpression = true;
-      const addButton: BooleanExpression = null;
+      const addButton: BooleanExpression = false;
       const editButton: BooleanExpression = [GeneralRelationOperator.Equals, 1, 1];
       const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',

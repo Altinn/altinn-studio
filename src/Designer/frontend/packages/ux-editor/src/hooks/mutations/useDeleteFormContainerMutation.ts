@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { ObjectUtils } from '@studio/pure-functions';
 import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 import { getAllDescendants, getAllFormItemIds } from '../../utils/formLayoutUtils';

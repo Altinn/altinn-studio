@@ -5,7 +5,7 @@ import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type { ManualOptionsDialogProps } from './';
 import { ManualOptionsDialog } from './';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResources, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import {

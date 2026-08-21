@@ -6,7 +6,7 @@ import {
   idExistsInLayout,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { generateComponentId } from './generateId';
 import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';

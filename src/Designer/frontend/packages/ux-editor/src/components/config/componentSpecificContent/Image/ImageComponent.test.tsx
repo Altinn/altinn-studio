@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormImageComponent } from '../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
@@ -16,6 +16,8 @@ const componentData: FormImageComponent = {
   type: ComponentType.Image,
   image: {
     src: {},
+    width: '100%',
+    align: 'center',
   },
   dataModelBindings: {},
 };

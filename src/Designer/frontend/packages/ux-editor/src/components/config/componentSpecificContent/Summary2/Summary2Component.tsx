@@ -1,8 +1,8 @@
 import type { IGenericEditComponent } from '../../componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { Summary2Override } from './Override/Summary2Override';
 import { Summary2Target } from './Summary2Target/Summary2Target';
-import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { Summary2TargetConfig } from '@altinn/ux-editor/types/Summary2Config';
 
 import type { JSX } from 'react';
 

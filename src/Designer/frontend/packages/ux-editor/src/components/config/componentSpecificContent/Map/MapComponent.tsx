@@ -11,7 +11,7 @@ import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from '@app/layout-contract/generated/components/Map/config.generated';
 import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import cn from 'classnames';
 
 type MapComponentProps = IGenericEditComponent<ComponentType.Map> & {

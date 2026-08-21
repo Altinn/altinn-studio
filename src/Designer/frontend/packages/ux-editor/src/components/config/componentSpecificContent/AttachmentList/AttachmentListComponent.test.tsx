@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormAttachmentListComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithProviders } from '../../../../testing/mocks';

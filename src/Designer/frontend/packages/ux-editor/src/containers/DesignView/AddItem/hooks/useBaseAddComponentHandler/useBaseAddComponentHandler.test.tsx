@@ -1,7 +1,7 @@
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { IInternalLayout } from '../../../../../types/global';
 import { layoutMock } from '../../../../../testing/layoutMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useBaseAddComponentHandler } from './useBaseAddComponentHandler';
 import { waitFor } from '@testing-library/react';

@@ -1,6 +1,6 @@
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { FormContainer } from '../types/FormContainer';
 
 const commonProps = <T extends ComponentType>(
@@ -54,7 +54,7 @@ const inputComponent: FormComponent<ComponentType.Input> = {
 };
 const headingComponent: FormComponent<ComponentType.Heading> = {
   ...commonProps(ComponentType.Heading),
-  size: 'medium',
+  size: 'M',
 };
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
   ...commonProps(ComponentType.Paragraph),
@@ -91,6 +91,7 @@ const textareaComponent: FormComponent<ComponentType.TextArea> = {
 };
 const subformComponent: FormComponent<ComponentType.Subform> = {
   ...commonProps(ComponentType.Subform),
+  layoutSet: '',
   tableColumns: [
     {
       headerContent: 'header content',
@@ -104,7 +105,6 @@ const subformComponent: FormComponent<ComponentType.Subform> = {
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
   dataModelBindings: undefined,
-  description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
   maxFileSizeInMB: 1,
@@ -114,7 +114,6 @@ const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
 const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
   ...commonProps(ComponentType.FileUploadWithTag),
   dataModelBindings: undefined,
-  description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
   maxFileSizeInMB: 1,
@@ -124,7 +123,6 @@ const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag>
 };
 const buttonComponent: FormComponent<ComponentType.Button> = {
   ...commonProps(ComponentType.Button),
-  onClickAction: jest.fn(),
 };
 const addressComponent: FormComponent<ComponentType.Address> = {
   ...commonProps(ComponentType.Address),
@@ -147,7 +145,7 @@ const thirdPartyComponent: FormComponent<ComponentType.Custom> = {
 };
 const panelComponent: FormComponent<ComponentType.Panel> = {
   ...commonProps(ComponentType.Panel),
-  variant: FormPanelVariant.Info,
+  variant: 'info',
   showIcon: true,
 };
 const mapComponent: FormComponent<ComponentType.Map> = {
@@ -213,7 +211,7 @@ export const componentMocks = {
   [ComponentType.Button]: buttonComponent,
   [ComponentType.Checkboxes]: checkboxesComponent,
   [ComponentType.CustomButton]: customButton,
-  [CustomComponentType.CloseSubformButton]: closeSubformButton,
+  [ComponentPreset.CloseSubformButton]: closeSubformButton,
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Divider]: dividerComponent,
   [ComponentType.Dropdown]: dropdownComponent,

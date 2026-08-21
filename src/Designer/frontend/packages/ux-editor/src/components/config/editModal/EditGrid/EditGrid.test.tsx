@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { EditGrid } from './EditGrid';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { component1Mock } from '../../../../testing/layoutMock';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
 
 const renderEditGrid = ({ grid = undefined, handleComponentChange = jest.fn() } = {}) => {

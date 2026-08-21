@@ -2,6 +2,7 @@ import { EditBooleanValue } from '../editModal/EditBooleanValue';
 import { EditStringValue } from '../editModal/EditStringValue';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { BaseConfigProps } from './types';
+import { ComponentType } from '../../../types/ComponentType';
 
 export interface ConfigCustomFileEndingProps extends BaseConfigProps {
   className?: string;
@@ -12,7 +13,18 @@ export const ConfigCustomFileEnding = ({
   handleComponentUpdate,
   className,
 }: ConfigCustomFileEndingProps) => {
-  const handleChange = (updatedComponent: FormComponent) => {
+  if (
+    component.type !== ComponentType.FileUpload &&
+    component.type !== ComponentType.FileUploadWithTag
+  ) {
+    return null;
+  }
+
+  type FileUploadComponent = FormComponent<
+    ComponentType.FileUpload | ComponentType.FileUploadWithTag
+  >;
+  const fileUploadComponent: FileUploadComponent = component;
+  const handleChange = (updatedComponent: FileUploadComponent) => {
     if (!updatedComponent.hasCustomFileEndings) {
       handleComponentUpdate({
         ...updatedComponent,
@@ -27,14 +39,14 @@ export const ConfigCustomFileEnding = ({
     <>
       <EditBooleanValue
         propertyKey='hasCustomFileEndings'
-        component={component}
+        component={fileUploadComponent}
         handleComponentChange={handleChange}
         defaultValue={true}
         className={className}
       />
-      {component['hasCustomFileEndings'] && (
+      {fileUploadComponent.hasCustomFileEndings && (
         <EditStringValue
-          component={component}
+          component={fileUploadComponent}
           handleComponentChange={handleComponentUpdate}
           propertyKey='validFileEndings'
           className={className}

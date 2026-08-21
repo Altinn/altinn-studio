@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormComponent } from '../../types/FormComponent';
 import { internalSimpleComponentToExternal } from './internalSimpleComponentToExternal';
 
@@ -13,7 +13,7 @@ describe('internalGroupComponentToExternal', () => {
       id,
       type,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      customProperty,
+      customProperties: { customProperty },
     };
     const result = internalSimpleComponentToExternal(internalSimpleComponent);
     expect(result).toEqual({

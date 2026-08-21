@@ -11,7 +11,7 @@ import {
 } from './testConfigUtils';
 import userEvent from '@testing-library/user-event';
 
-const defaultProperty = 'someStringProperty';
+const defaultProperty = 'variant';
 const properties: Record<string, PropertyDefinition> = {
   [defaultProperty]: { type: 'string', required: false },
   displayMode: { type: 'string', required: false },
@@ -44,12 +44,12 @@ describe('ConfigStringProperties', () => {
 
     const textBox = getPropertyByRole('textbox', defaultProperty);
     await user.clear(textBox);
-    await user.type(textBox, 'descending');
+    await user.type(textBox, 'search');
     await saveConfigChanges(user);
 
     expect(handleComponentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        someStringProperty: 'descending',
+        variant: 'search',
       }),
     );
   });
@@ -67,7 +67,7 @@ const renderConfigStringProperties = (props: Partial<ConfigStringPropertiesProps
     properties,
     component: {
       ...componentMocks.Input,
-      someStringProperty: '',
+      variant: 'text',
     },
     handleComponentUpdate: jest.fn(),
     stringPropertyKeys: [defaultProperty],

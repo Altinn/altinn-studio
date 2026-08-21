@@ -4,7 +4,7 @@ import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation
 import { component2IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';

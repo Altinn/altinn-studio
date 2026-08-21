@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { IGenericEditComponent } from '../../componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const handleComponentChangeMock = jest.fn();

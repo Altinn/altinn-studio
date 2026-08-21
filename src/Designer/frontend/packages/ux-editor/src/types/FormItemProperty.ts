@@ -1,4 +1,4 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from './FormItem';
 
 export type FormItemProperty<

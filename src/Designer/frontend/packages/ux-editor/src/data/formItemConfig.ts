@@ -1,7 +1,7 @@
 import type React from 'react';
 import { type RefAttributes, type SVGProps } from 'react';
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import {
   AccordionIcon,
   CalendarIcon,
@@ -36,37 +36,31 @@ import {
   WalletIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { ComponentConfig } from '../types/ComponentConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FilterUtils } from './FilterUtils';
 import type { SerializedComponentDefaults } from '../types/SerializedComponent';
 
-type ConfiguredComponentType<T extends ComponentType | CustomComponentType> =
-  T extends CustomComponentType ? ComponentType.CustomButton : T;
+type ConfiguredComponentType<T extends ComponentType | ComponentPreset> = T extends ComponentPreset
+  ? ComponentType.CustomButton
+  : T;
 
-export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
-  name: ComponentType | CustomComponentType;
-  getDisplayName?: (
-    formItem: ComponentSpecificConfig<ComponentType>,
-  ) => ComponentType | CustomComponentType;
+export type FormItemConfig<T extends ComponentType | ComponentPreset = ComponentType> = {
+  name: ComponentType | ComponentPreset;
+  getDisplayName?: (formItem: ComponentConfig<ComponentType>) => ComponentType | ComponentPreset;
   componentRef?: ComponentType;
   defaultProperties: SerializedComponentDefaults<ConfiguredComponentType<T>>;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains legacy names (OrganisationLookup, Header) used by ux-editor-v4.
 export type FormItemConfigs = {
-  [
-    T in Exclude<
-      ComponentType | CustomComponentType,
-      ComponentType.OrganisationLookup | ComponentType.Header
-    >
-  ]: FormItemConfig<T>;
-} & Partial<{
-  [ComponentType.OrganisationLookup]: FormItemConfig<ComponentType.OrganisationLookup>;
-  [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
-}>;
+  [T in ComponentType]: FormItemConfig<T>;
+};
+
+export type ComponentPresetConfigs = {
+  [T in ComponentPreset]: FormItemConfig<T>;
+};
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -152,16 +146,13 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.CustomButton,
     getDisplayName: ({
       actions,
-    }: ComponentSpecificConfig<ComponentType.CustomButton>):
-      ComponentType | CustomComponentType => {
+    }: ComponentConfig<ComponentType.CustomButton>): ComponentType | ComponentPreset => {
       const isCloseSubformAction =
         actions?.length === 1 &&
         actions[0]?.id === 'closeSubform' &&
         actions[0]?.type === 'ClientAction';
 
-      return isCloseSubformAction
-        ? CustomComponentType.CloseSubformButton
-        : ComponentType.CustomButton;
+      return isCloseSubformAction ? ComponentPreset.CloseSubformButton : ComponentType.CustomButton;
     },
     defaultProperties: {
       actions: [],
@@ -169,20 +160,6 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
-  [CustomComponentType.CloseSubformButton]: {
-    name: CustomComponentType.CloseSubformButton,
-    componentRef: ComponentType.CustomButton,
-    defaultProperties: {
-      actions: [
-        {
-          type: 'ClientAction',
-          id: 'closeSubform',
-        },
-      ],
-    },
-    icon: FingerButtonIcon,
-  },
-
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
     defaultProperties: {
@@ -369,7 +346,7 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
     defaultProperties: {
-      variant: FormPanelVariant.Info,
+      variant: 'info',
       showIcon: true,
     },
     icon: FileTextIcon,
@@ -462,12 +439,103 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: LongTextIcon,
   },
+  [ComponentType.AddToList]: {
+    name: ComponentType.AddToList,
+    defaultProperties: { title: '', dataModelBindings: { data: '' } },
+    icon: TasklistIcon,
+  },
+  [ComponentType.Audio]: {
+    name: ComponentType.Audio,
+    defaultProperties: {},
+    icon: PresentationIcon,
+  },
+  [ComponentType.Cards]: {
+    name: ComponentType.Cards,
+    defaultProperties: { color: 'neutral', cards: [] },
+    icon: PresentationIcon,
+  },
+  [ComponentType.Date]: {
+    name: ComponentType.Date,
+    defaultProperties: { value: '' },
+    icon: CalendarIcon,
+  },
+  [ComponentType.Number]: {
+    name: ComponentType.Number,
+    defaultProperties: { value: 0 },
+    icon: ShortTextIcon,
+  },
+  [ComponentType.Option]: {
+    name: ComponentType.Option,
+    defaultProperties: { value: '' },
+    icon: RadioButtonIcon,
+  },
+  [ComponentType.PDFPreviewButton]: {
+    name: ComponentType.PDFPreviewButton,
+    defaultProperties: { buttonStyle: 'secondary' },
+    icon: FileTextIcon,
+  },
+  [ComponentType.SigneeList]: {
+    name: ComponentType.SigneeList,
+    defaultProperties: {},
+    icon: TasklistIcon,
+  },
+  [ComponentType.SigningActions]: {
+    name: ComponentType.SigningActions,
+    defaultProperties: {},
+    icon: FingerButtonIcon,
+  },
+  [ComponentType.SigningDocumentList]: {
+    name: ComponentType.SigningDocumentList,
+    defaultProperties: {},
+    icon: FileTextIcon,
+  },
+  [ComponentType.SimpleTable]: {
+    name: ComponentType.SimpleTable,
+    defaultProperties: { title: '', columns: [] },
+    icon: TableIcon,
+  },
+  [ComponentType.Tabs]: {
+    name: ComponentType.Tabs,
+    defaultProperties: { tabs: [] },
+    icon: PresentationIcon,
+  },
+  [ComponentType.TimePicker]: {
+    name: ComponentType.TimePicker,
+    defaultProperties: { dataModelBindings: { simpleBinding: '' } },
+    icon: CalendarIcon,
+  },
+  [ComponentType.Video]: {
+    name: ComponentType.Video,
+    defaultProperties: {},
+    icon: PresentationIcon,
+  },
   [ComponentType.Divider]: {
     name: ComponentType.Divider,
     defaultProperties: {},
     icon: MinusIcon,
   },
 };
+
+export const componentPresetConfigs: ComponentPresetConfigs = {
+  [ComponentPreset.CloseSubformButton]: {
+    name: ComponentPreset.CloseSubformButton,
+    componentRef: ComponentType.CustomButton,
+    defaultProperties: {
+      actions: [{ type: 'ClientAction', id: 'closeSubform' }],
+    },
+    icon: FingerButtonIcon,
+  },
+};
+
+export function getFormItemConfig<T extends ComponentType | ComponentPreset>(
+  type: T,
+): FormItemConfig<T> {
+  return (
+    type in componentPresetConfigs
+      ? componentPresetConfigs[type as ComponentPreset]
+      : formItemConfigs[type as ComponentType]
+  ) as FormItemConfig<T>;
+}
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Address],
@@ -483,6 +551,10 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
   formItemConfigs[ComponentType.Subform],
+  formItemConfigs[ComponentType.Tabs],
+  formItemConfigs[ComponentType.SigneeList],
+  formItemConfigs[ComponentType.SigningActions],
+  formItemConfigs[ComponentType.SigningDocumentList],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -496,6 +568,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.PersonLookup],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
+  formItemConfigs[ComponentType.TimePicker],
   formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
@@ -503,6 +576,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.CustomButton],
   formItemConfigs[ComponentType.NavigationButtons],
   formItemConfigs[ComponentType.PrintButton],
+  formItemConfigs[ComponentType.PDFPreviewButton],
   formItemConfigs[ComponentType.InstantiationButton],
   formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
@@ -519,6 +593,12 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Panel],
   formItemConfigs[ComponentType.Alert],
   formItemConfigs[ComponentType.Text],
+  formItemConfigs[ComponentType.Date],
+  formItemConfigs[ComponentType.Number],
+  formItemConfigs[ComponentType.Option],
+  formItemConfigs[ComponentType.Audio],
+  formItemConfigs[ComponentType.Video],
+  formItemConfigs[ComponentType.Cards],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
@@ -550,6 +630,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Input,
     ComponentType.TextArea,
     ComponentType.Datepicker,
+    ComponentType.TimePicker,
     ComponentType.OrganizationLookup,
     ComponentType.PersonLookup,
   ],
@@ -560,6 +641,9 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Alert,
     ComponentType.Divider,
     ComponentType.Text,
+    ComponentType.Date,
+    ComponentType.Number,
+    ComponentType.Option,
   ],
   select: [
     ComponentType.Checkboxes,
@@ -574,12 +658,16 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Link,
     ComponentType.IFrame,
     ComponentType.Summary2,
+    ComponentType.Audio,
+    ComponentType.Video,
+    ComponentType.Cards,
   ],
   button: [
     ComponentType.Button,
     ComponentType.CustomButton,
     ComponentType.NavigationButtons,
     ComponentType.PrintButton,
+    ComponentType.PDFPreviewButton,
     ComponentType.InstantiationButton,
     ComponentType.ActionButton,
   ],
@@ -597,12 +685,23 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.ButtonGroup,
     ComponentType.List,
     ComponentType.RepeatingGroup,
+    ComponentType.Tabs,
   ],
-  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
+  advanced: [
+    ComponentType.Address,
+    ComponentType.Map,
+    ComponentType.Custom,
+    ComponentType.Subform,
+    ComponentType.SigneeList,
+    ComponentType.SigningActions,
+    ComponentType.SigningDocumentList,
+    ComponentType.AddToList,
+    ComponentType.SimpleTable,
+  ],
 };
 export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
-  formItemConfigs[CustomComponentType.CloseSubformButton],
+  componentPresetConfigs[ComponentPreset.CloseSubformButton],
 ].filter(FilterUtils.filterUnsupportedSubformComponents);

@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { SerializedSimpleComponent } from '../../types/SerializedComponent';
 import { externalSimpleComponentToInternal } from './externalSimpleComponentToInternal';
 
@@ -19,7 +19,7 @@ describe('externalSimpleComponentToInternal', () => {
     expect(result).toEqual({
       id,
       type,
-      customProperty,
+      customProperties: { customProperty },
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
@@ -33,7 +33,7 @@ describe('externalSimpleComponentToInternal', () => {
 
     const result = externalSimpleComponentToInternal(externalComponent);
     expect(result).toEqual({
-      customProperty: null,
+      customProperties: { customProperty: null },
       id: '2',
       type: 'UnknownComponent',
     });

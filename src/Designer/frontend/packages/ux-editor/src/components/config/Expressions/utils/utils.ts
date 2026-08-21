@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
 import type { BooleanExpression, Expression } from '@studio/components';
 import { ObjectUtils } from '@studio/pure-functions';

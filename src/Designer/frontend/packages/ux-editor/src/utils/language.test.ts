@@ -3,7 +3,7 @@ import {
   getTextResource,
   getTitleByComponentType,
 } from './language';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {

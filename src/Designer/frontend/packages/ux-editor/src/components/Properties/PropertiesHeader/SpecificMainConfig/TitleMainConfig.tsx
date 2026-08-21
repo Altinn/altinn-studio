@@ -1,5 +1,5 @@
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { getComponentDefinition } from '@altinn/ux-editor/data/componentCatalog';
 import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
 

@@ -1,9 +1,13 @@
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from 'app-shared/components/FormField';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { StudioFieldset, StudioSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import type {
+  GridJustification,
+  IImageSrc,
+} from '@app/layout-contract/generated/components/Image/serialized.generated';
 
 import type { JSX } from 'react';
 
@@ -35,14 +39,14 @@ export const ImageComponent = ({
   const selectedPlacement = alignOptions.filter((x) => x.value === component.image?.align);
   const nbSrc = component.image?.src?.nb;
 
-  const handlePlacementChange = (align: string) => {
+  const handlePlacementChange = (align: GridJustification) => {
     const updatedComponent = { ...component };
     updatedComponent.image.align = align;
 
     handleComponentChange(updatedComponent);
   };
 
-  const handleSourceChange = (src: any) => {
+  const handleSourceChange = (src: IImageSrc) => {
     const updatedComponent = { ...component };
     updatedComponent.image.src = src;
 
@@ -74,7 +78,7 @@ export const ImageComponent = ({
       <FormField
         id={component.id}
         label={t('ux_editor.modal_properties_image_placement_label')}
-        onChange={handlePlacementChange}
+        onChange={(value) => handlePlacementChange(value as GridJustification)}
         value={selectedPlacement?.[0]?.value}
         renderField={({ fieldProps }) => (
           <StudioSelect

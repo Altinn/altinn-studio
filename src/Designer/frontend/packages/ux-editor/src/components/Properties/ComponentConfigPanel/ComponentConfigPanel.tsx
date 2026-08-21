@@ -1,6 +1,6 @@
 import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { StudioDetails } from '@studio/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

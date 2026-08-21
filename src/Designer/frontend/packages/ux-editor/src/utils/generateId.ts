@@ -1,6 +1,6 @@
 import type { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { isContainerComponentType } from '../data/containerComponentTypes';
 
 type GenerateTextResourceIdProps = {

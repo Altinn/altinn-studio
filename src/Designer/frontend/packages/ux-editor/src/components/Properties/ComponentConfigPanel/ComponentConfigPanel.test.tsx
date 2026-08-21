@@ -6,7 +6,7 @@ import { formItemContextProviderMock } from '../../../testing/formItemContextMoc
 import { ComponentConfigPanel } from './ComponentConfigPanel';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import { componentMocks } from '../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import type { IFormLayouts } from '../../../types/global';
 import {

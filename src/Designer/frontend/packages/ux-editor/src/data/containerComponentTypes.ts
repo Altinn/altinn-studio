@@ -1,5 +1,5 @@
 import { componentCatalog } from '@app/layout-contract';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 
 const supportedComponentTypes = new Set<string>(Object.values(ComponentType));

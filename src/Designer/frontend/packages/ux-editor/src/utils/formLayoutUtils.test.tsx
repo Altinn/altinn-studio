@@ -25,7 +25,7 @@ import {
   getAllFormItemIds,
   getAllLayoutComponents,
 } from './formLayoutUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
@@ -67,7 +67,7 @@ const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
     title: 'ServiceName',
   },
   dataModelBindings: {},
-  customProperty,
+  customProperties: { customProperty },
 };
 const groupId = 'group-container';
 const groupContainer: FormContainer<ComponentType.Group> = {
@@ -134,7 +134,6 @@ describe('formLayoutUtils', () => {
       const navigationButtonsId = 'navigationButtons';
       const navigationButtonsComponent: FormComponent<ComponentType.NavigationButtons> = {
         id: navigationButtonsId,
-        onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
       };
@@ -335,7 +334,7 @@ describe('formLayoutUtils', () => {
       const id = 'navigationButtons';
       const layout = addNavigationButtons(mockInternal, id);
       const navButtonsComponent = layout.components[id];
-      const expectedProperties = ['id', 'onClickAction', 'textResourceBindings', 'type'];
+      const expectedProperties = ['id', 'textResourceBindings', 'type'];
 
       expect(Object.keys(navButtonsComponent)).toEqual(expectedProperties);
     });
@@ -373,19 +372,14 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    // The shared enum includes legacy names (OrganisationLookup, Header) used by ux-editor-v4.
-    it.each(
-      Object.values(ComponentType).filter(
-        (v) =>
-          v !== ComponentType.OrganisationLookup &&
-          v !== ComponentType.Header &&
-          !isContainerComponentType(v),
-      ),
-    )('Adds a new component to the layout when the given type is %s', (componentType) => {
-      const id = 'newItemId';
-      const layout = addItemOfType(mockInternal, componentType, id);
-      expect(layout.components[id].type).toEqual(componentType);
-    });
+    it.each(Object.values(ComponentType).filter((type) => !isContainerComponentType(type)))(
+      'Adds a new component to the layout when the given type is %s',
+      (componentType) => {
+        const id = 'newItemId';
+        const layout = addItemOfType(mockInternal, componentType, id);
+        expect(layout.components[id].type).toEqual(componentType);
+      },
+    );
 
     it.each(containerComponentTypes)(
       'Adds a new container to the layout when the given type is %s',

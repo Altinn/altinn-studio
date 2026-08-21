@@ -1,5 +1,5 @@
 import type { SerializedComponent, SerializedFormLayout } from '../types/SerializedComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';

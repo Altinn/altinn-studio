@@ -1,5 +1,5 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from '../types/FormComponent';
@@ -35,7 +35,6 @@ export const component2Mock: FormComponent<ComponentType.Paragraph> = {
 export const component3IdMock = componentMocks[ComponentType.FileUpload].id;
 export const component3Mock: FormComponent = {
   ...componentMocks[ComponentType.FileUpload],
-  description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
   maxFileSizeInMB: 1,
@@ -60,6 +59,8 @@ export const subformComponentMock: FormComponent = {
   id: 'SubformComponent',
   type: ComponentType.Subform,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
+  layoutSet: '',
+  tableColumns: [],
 };
 
 export const container1IdMock = 'Container-1';

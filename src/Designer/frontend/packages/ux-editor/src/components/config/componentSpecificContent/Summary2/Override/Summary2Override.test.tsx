@@ -20,8 +20,8 @@ import type {
   OverrideDisplay,
   OverrideDisplayType,
   Summary2TargetConfig,
-} from 'app-shared/types/ComponentSpecificConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+} from '@altinn/ux-editor/types/Summary2Config';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 const checkBoxId = componentWithOptionsMock.id;
 const multipleSelectId = componentWithMultipleSelectMock.id;

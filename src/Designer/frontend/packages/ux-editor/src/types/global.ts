@@ -1,4 +1,5 @@
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { ITextResource } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
@@ -7,14 +8,12 @@ import type { BooleanExpression } from '@studio/components';
 import type React from 'react';
 import type {
   IDataModelReference,
+  IRawOption,
   IRawDataModelBinding,
 } from '@app/layout-contract/generated/common.generated';
 import type { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface IOption {
-  label: string;
-  value?: any;
-}
+export type IOption = Omit<IRawOption, 'value'> & { value?: IRawOption['value'] };
 
 export type ITextResourceBindings = KeyValuePairs<ExprValToActualOrExpr<ExprVal.String>>;
 
@@ -62,7 +61,7 @@ export interface IWidgetTexts {
 export interface IToolbarElement {
   label: string;
   icon?: React.ComponentType;
-  type: ComponentType | CustomComponentType;
+  type: ComponentType | ComponentPreset;
 }
 
 export enum CollapsableMenus {

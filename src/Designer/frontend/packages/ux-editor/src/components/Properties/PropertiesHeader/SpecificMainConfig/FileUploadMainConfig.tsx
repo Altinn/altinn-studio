@@ -1,6 +1,6 @@
 import React from 'react';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
 import { getComponentDefinition } from '../../../../data/componentCatalog';
 import { ConfigNumberProperties } from '../../../config/ConfigProperties/ConfigNumberProperties';

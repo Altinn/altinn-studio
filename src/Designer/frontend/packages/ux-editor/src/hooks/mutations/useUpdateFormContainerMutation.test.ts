@@ -16,17 +16,15 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
-const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',
   type: ComponentType.Group,
-  maxCount,
 };
 const id = container1IdMock;
 const mutationArgs: UpdateFormContainerMutationArgs = { id, updatedContainer };
@@ -55,7 +53,6 @@ describe('useUpdateFormContainerMutation', () => {
               {
                 ...layout1Mock.data.layout[0],
                 id: updatedContainer.id,
-                maxCount,
               },
             ]),
           }),

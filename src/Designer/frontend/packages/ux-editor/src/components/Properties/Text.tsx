@@ -1,7 +1,7 @@
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import type { FormComponent } from '../../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useAppContext } from '../../hooks';
 import { EditSubformTableColumns } from './EditSubformTableColumns';
 import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';

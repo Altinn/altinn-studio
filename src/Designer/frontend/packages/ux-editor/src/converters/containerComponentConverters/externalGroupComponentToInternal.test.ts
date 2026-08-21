@@ -1,6 +1,6 @@
 import type { SerializedContainerComponent } from '../../types/SerializedComponent';
 import { externalContainerComponentToInternal } from './externalContainerComponentToInternal';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 // Test data:
 const id = '1';
@@ -19,7 +19,7 @@ describe('externalGroupComponentToInternal', () => {
     expect(result).toEqual({
       id,
       type: ComponentType.Group,
-      customProperty,
+      customProperties: { customProperty },
     });
   });
 });

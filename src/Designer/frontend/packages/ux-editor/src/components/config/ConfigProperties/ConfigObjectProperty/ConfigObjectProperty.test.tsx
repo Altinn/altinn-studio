@@ -6,11 +6,11 @@ import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
-const somePropertyName = 'somePropertyName';
+const somePropertyName = 'formatting';
 
 jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
   useComponentPropertyDescription: () => (propertyKey) =>
-    propertyKey === 'somePropertyName' ? 'Some description' : undefined,
+    propertyKey === somePropertyName ? 'Some description' : undefined,
 }));
 
 describe('ConfigObjectProperties', () => {
@@ -23,7 +23,7 @@ describe('ConfigObjectProperties', () => {
             type: 'object',
             properties: {},
             additionalProperties: false,
-            description: 'Some description',
+            description: { en: 'Some description', nb: 'En beskrivelse' },
             required: false,
           },
         },
@@ -88,7 +88,7 @@ describe('ConfigObjectProperties', () => {
         objectPropertyKey: somePropertyName,
         component: {
           ...componentMocks.Input,
-          [somePropertyName]: { testField: 'testValue' },
+          [somePropertyName]: { currency: 'NOK' },
         },
         handleComponentUpdate: handleComponentUpdateMock,
       },

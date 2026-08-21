@@ -11,7 +11,7 @@ import {
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
 import type { PropertyDefinition } from '@app/layout-contract';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigObjectProperty } from './ConfigProperties/ConfigObjectProperty/ConfigObjectProperty';
 
 export interface IEditFormComponentProps {

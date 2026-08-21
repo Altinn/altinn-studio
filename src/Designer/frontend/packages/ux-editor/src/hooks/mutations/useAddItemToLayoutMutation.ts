@@ -1,14 +1,16 @@
 import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import type { FormFileUploaderComponent } from '../../types/FormComponent';
 import { addItemOfType } from '../../utils/formLayoutUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
+import { getFileUploadMetadataProperties } from '../../utils/fileUploadMetadata';
 
 export interface AddFormItemMutationArgs {
-  componentType: ComponentType | CustomComponentType;
+  componentType: ComponentType | ComponentPreset;
   newId: string;
   parentId: string;
   index: number;
@@ -33,19 +35,10 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
         ) {
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
-          const {
-            maxNumberOfAttachments,
-            minNumberOfAttachments,
-            maxFileSizeInMB,
-            validFileEndings,
-          } = fileUploadComponent as FormFileUploaderComponent;
           appAttachmentMetadataMutation.mutate({
             id: newId,
             taskId: taskId,
-            maxCount: maxNumberOfAttachments,
-            minCount: minNumberOfAttachments,
-            fileType: validFileEndings,
-            maxSize: maxFileSizeInMB,
+            ...getFileUploadMetadataProperties(fileUploadComponent as FormFileUploaderComponent),
           });
         }
         if (componentType === ComponentType.ImageUpload) {

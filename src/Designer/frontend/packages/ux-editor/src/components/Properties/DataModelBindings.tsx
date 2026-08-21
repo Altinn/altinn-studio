@@ -4,7 +4,7 @@ import { StudioProperty, StudioSwitch, StudioAlert } from '@studio/components';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 import type { PropertyDefinition, PropertyValueDefinition } from '@app/layout-contract';

@@ -7,7 +7,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import { useFormLayouts } from '../../../../hooks';
 import { findLayoutsContainingDuplicateComponents } from '../../../../utils/formLayoutUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { getComponentDefinition, validateCatalogValue } from '../../../../data/componentCatalog';
 

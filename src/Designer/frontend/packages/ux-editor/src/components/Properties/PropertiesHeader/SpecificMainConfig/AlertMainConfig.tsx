@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { getComponentDefinition } from '../../../../data/componentCatalog';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
 import { EditTextResourceBindings } from '../../../config/editModal/EditTextResourceBindings/EditTextResourceBindings';

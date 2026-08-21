@@ -1,6 +1,6 @@
 import { ImageComponent } from './Image';
 import type { IGenericEditComponent } from '../componentConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { MapComponent } from './Map';
 import { AttachmentListComponent } from './AttachmentList';
 import { Summary2Component } from './Summary2';

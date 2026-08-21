@@ -4,7 +4,7 @@ import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../FormItemContext';

@@ -10,7 +10,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import type { FormComponent } from '../../../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 import { ObjectUtils } from '@studio/pure-functions';

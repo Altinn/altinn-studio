@@ -6,10 +6,11 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
-import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import type { FormItemConfigs } from '../data/formItemConfig';
+import type { FormItemConfig } from '../data/formItemConfig';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
@@ -17,8 +18,8 @@ import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
 
-export const mapComponentToToolbarElement = <T extends ComponentType | CustomComponentType>(
-  c: FormItemConfigs[T],
+export const mapComponentToToolbarElement = <T extends ComponentType | ComponentPreset>(
+  c: FormItemConfig<T>,
 ): IToolbarElement => ({
   label: c.name,
   icon: c.icon,
@@ -237,7 +238,6 @@ export const removeComponentsByType = (
 export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
   const navigationButtons: FormComponent = {
     id,
-    onClickAction: () => {},
     textResourceBindings: { next: undefined, back: undefined },
     type: ComponentType.NavigationButtons,
   };
@@ -313,7 +313,7 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends ComponentType | CustomComponentType>(
+export const addItemOfType = <T extends ComponentType | ComponentPreset>(
   layout: IInternalLayout,
   componentType: T,
   id: string,

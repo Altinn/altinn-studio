@@ -1,6 +1,6 @@
 import { ExportUtils } from './exportUtils';
 import type { IFormLayouts } from '../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResources } from 'app-shared/types/global';
 import type { ExportForm } from '../types/ExportForm';
 import type { FormComponent } from '../types/FormComponent';

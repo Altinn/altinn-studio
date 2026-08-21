@@ -1,4 +1,5 @@
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { useComponentTitle } from './useComponentTitle';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderHookWithProviders } from '../testing/mocks';
@@ -78,7 +79,7 @@ describe('useComponentTypeName', () => {
     };
 
     const expectedResult = textMock(
-      `ux_editor.component_title.${CustomComponentType.CloseSubformButton}`,
+      `ux_editor.component_title.${ComponentPreset.CloseSubformButton}`,
     );
     expect(result.current(componentWithCustomAction)).toBe(expectedResult);
   });

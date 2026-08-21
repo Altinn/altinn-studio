@@ -6,7 +6,7 @@ import { componentCatalog } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('FormComponentConfig', () => {
   it('should render nothing when there are no properties', () => {
@@ -81,6 +81,7 @@ describe('FormComponentConfig', () => {
       component: {
         id: 'subform-unit-test-id',
         layoutSet: 'subform-unit-test-layout-set',
+        tableColumns: [],
         type: ComponentType.Subform,
       },
       properties: {

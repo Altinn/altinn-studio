@@ -1,5 +1,5 @@
 import type { SerializedComponent as GeneratedSerializedComponent } from '@app/layout-contract/generated/serialized-components.generated';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ContainerComponentType } from './ContainerComponent';
 import type { SimpleComponentType } from './SimpleComponentType';
 import type {

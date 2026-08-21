@@ -1,6 +1,6 @@
 import { DefinedBinding, type DefinedBindingProps } from './DefinedBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
