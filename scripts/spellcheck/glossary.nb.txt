@@ -20,6 +20,34 @@
 # Domain compounds and derivations in UI text: standard Norwegian
 # compounding that the frozen dictionary lacks.
 administratorbrukernavn
+claimet
+oppryddingsregel
+oppryddingsregelen
+organisasjonsadministrasjon
+organisasjonsprosjekt
+påloggingsnavn
+påloggingsopplysninger
+påloggingstokenet
+reindekseringskøen
+reinitialiser
+resynkroniser
+sorteringsproblemene
+temaets
+tillatelseslisten
+tvangsslett
+ukategoriserte
+vedlikeholderen
+arbeidstidsdata
+brukersynkronisering
+forhåndsregistrerer
+headerne
+medlemsprofil
+nedtrekkslisten
+oppryddingsregler
+organisasjonsprofilen
+appversjon
+målgren
+renderingsregel
 administratorbrukernavnet
 administratorkontoer
 appbiblioteket
@@ -236,6 +264,9 @@ visningsverdi
 # A solid APIer/URLer is a writing error and must stay a finding.
 dashboardet
 monitorering
+repositoriene
+repositoriets
+requesten
 popups
 releasen
 repoet
@@ -248,6 +279,7 @@ webserveren
 # Halves of legitimately hyphenated compounds — the tokenizer splits
 # them at the hyphen, so the halves need their own entries.
 aktiverings             # aktiverings-e-post
+autoriserings           # Autoriserings-URL
 bekreftelses            # bekreftelses-e-post
 påloggings              # påloggings- og registreringssidene
 tofaktor                # tofaktor-autentisering
