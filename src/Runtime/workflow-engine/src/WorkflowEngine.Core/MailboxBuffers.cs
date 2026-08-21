@@ -9,6 +9,129 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Core;
 
 /// <summary>
+/// Batches mailbox mints, so a burst of exchanges opening at once costs one connection per flush instead of one
+/// per mailbox. Every verdict the repository can answer a mint with — minted, replayed, refused at the
+/// collection cap — is an ordinary result, so the fan-out has no failure cases of its own.
+/// </summary>
+internal sealed class MailboxMintBuffer : BatchBuffer<BufferedMailboxMintRequest, MailboxMintResult>
+{
+    private readonly int _maxOpenPerCollection;
+
+    public MailboxMintBuffer(
+        IServiceScopeFactory scopeFactory,
+        ILogger<MailboxMintBuffer> logger,
+        IOptions<EngineSettings> settings
+    )
+        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Mint)
+    {
+        _maxOpenPerCollection = settings.Value.MaxOpenMailboxesPerCollection;
+    }
+
+    /// <summary>
+    /// Submits one mailbox for batched minting, answered with the verdict
+    /// <see cref="IEngineRepository.MintMailbox"/> would have given it.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="mailboxId"/> is the candidate id the caller minted and <paramref name="now"/> its own
+    /// instant; both ride on the request rather than being taken at flush time, so the id a fresh mailbox gets
+    /// and the <c>createdAt</c> and deadline it is stamped with are the ones the call itself decided, however
+    /// long its request waited for a batch.
+    /// </remarks>
+    public Task<MailboxMintResult> Enqueue(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string? collectionKey,
+        TimeSpan timeout,
+        DateTimeOffset now,
+        CancellationToken ct
+    )
+    {
+        var item = new BufferedMailboxMintRequest(
+            mailboxId,
+            ns,
+            idempotencyKey,
+            collectionKey,
+            timeout,
+            now,
+            Activity.Current?.Id,
+            new TaskCompletionSource<MailboxMintResult>(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+
+        return EnqueueItem(item, ct);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task FlushCore(
+        IReadOnlyList<BufferedMailboxMintRequest> batch,
+        IEngineRepository repository,
+        CancellationToken ct
+    )
+    {
+        var results = await repository.BatchMintMailboxes(batch, _maxOpenPerCollection, ct);
+
+        CompleteInOrder(batch, results);
+    }
+}
+
+/// <summary>
+/// Batches mailbox closures into one transaction each, so a saga tearing down many exchanges at once costs one
+/// connection per flush instead of one per closure. Every verdict the repository can answer a close with —
+/// closed, already closed, unknown mailbox — is an ordinary result, so the fan-out has no failure cases of its
+/// own.
+/// </summary>
+internal sealed class MailboxCloseBuffer : BatchBuffer<BufferedMailboxCloseRequest, MailboxCloseResult>
+{
+    public MailboxCloseBuffer(
+        IServiceScopeFactory scopeFactory,
+        ILogger<MailboxCloseBuffer> logger,
+        IOptions<EngineSettings> settings
+    )
+        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Close) { }
+
+    /// <summary>
+    /// Submits one mailbox for batched closing, answered with the verdict
+    /// <see cref="IEngineRepository.CloseMailbox"/> would have given it.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="now"/> is the caller's, and rides on the request rather than being taken at flush time,
+    /// so the <c>disposedAt</c> a closure is stamped with — and replayed to every later close of the same
+    /// mailbox — is the instant its own call minted, however long it waited for a batch.
+    /// </remarks>
+    public Task<MailboxCloseResult> Enqueue(
+        Guid mailboxId,
+        string ns,
+        MailboxDisposedReason reason,
+        DateTimeOffset now,
+        CancellationToken ct
+    )
+    {
+        var item = new BufferedMailboxCloseRequest(
+            mailboxId,
+            ns,
+            reason,
+            now,
+            Activity.Current?.Id,
+            new TaskCompletionSource<MailboxCloseResult>(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+
+        return EnqueueItem(item, ct);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task FlushCore(
+        IReadOnlyList<BufferedMailboxCloseRequest> batch,
+        IEngineRepository repository,
+        CancellationToken ct
+    )
+    {
+        var results = await repository.BatchCloseMailboxes(batch, ct);
+
+        CompleteInOrder(batch, results);
+    }
+}
+
+/// <summary>
 /// Batches mailbox deliveries into one transaction each, so a storm of messages costs one connection per flush
 /// instead of one per message. Every verdict a delivery can be answered with — appended, replayed, refused — is
 /// an ordinary result, so the fan-out has no failure cases of its own.
