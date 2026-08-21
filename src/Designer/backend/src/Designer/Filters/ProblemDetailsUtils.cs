@@ -8,10 +8,20 @@ namespace Altinn.Studio.Designer.Filters;
 
 public static class ProblemDetailsUtils
 {
-    public static ProblemDetails GenerateProblemDetails(string customErrorCode, HttpStatusCode statusCode)
+    public static ProblemDetails GenerateProblemDetails(
+        string customErrorCode,
+        HttpStatusCode statusCode,
+        IReadOnlyDictionary<string, object> values = null
+    )
     {
         ProblemDetails details = new() { Status = (int)statusCode };
         details.Extensions.Add(ProblemDetailsExtensionsCodes.ErrorCode, customErrorCode);
+
+        if (values is not null)
+        {
+            details.Extensions.Add(ProblemDetailsExtensionsCodes.Values, values);
+        }
+
         return details;
     }
 
@@ -30,8 +40,9 @@ public static class ProblemDetailsUtils
 
         if (customErrorMessages is not null)
         {
-            details.Extensions.Add("customErrorMessages", customErrorMessages);
+            details.Extensions.Add(ProblemDetailsExtensionsCodes.CustomErrorMessages, customErrorMessages);
         }
+
         return details;
     }
 }
