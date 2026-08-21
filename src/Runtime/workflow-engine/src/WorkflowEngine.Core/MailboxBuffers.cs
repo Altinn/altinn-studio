@@ -22,7 +22,7 @@ internal sealed class MailboxMintBuffer : BatchBuffer<BufferedMailboxMintRequest
         ILogger<MailboxMintBuffer> logger,
         IOptions<EngineSettings> settings
     )
-        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Mint)
+        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Mint, "mint")
     {
         _maxOpenPerCollection = settings.Value.MaxOpenMailboxesPerCollection;
     }
@@ -36,6 +36,12 @@ internal sealed class MailboxMintBuffer : BatchBuffer<BufferedMailboxMintRequest
     /// instant; both ride on the request rather than being taken at flush time, so the id a fresh mailbox gets
     /// and the <c>createdAt</c> and deadline it is stamped with are the ones the call itself decided, however
     /// long its request waited for a batch.
+    /// <para>
+    /// A flush is one attempt for the whole batch and carries no retry of its own (see
+    /// <see cref="IEngineRepository.BatchMintMailboxes"/>), so a failure answers every caller in it with the
+    /// same exception. Convergence is the caller's replay: the same idempotency key is answered by whatever the
+    /// failed attempt left behind — minted or existing — and never mints a second mailbox.
+    /// </para>
     /// </remarks>
     public Task<MailboxMintResult> Enqueue(
         Guid mailboxId,
@@ -87,7 +93,7 @@ internal sealed class MailboxCloseBuffer : BatchBuffer<BufferedMailboxCloseReque
         ILogger<MailboxCloseBuffer> logger,
         IOptions<EngineSettings> settings
     )
-        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Close) { }
+        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Close, "close") { }
 
     /// <summary>
     /// Submits one mailbox for batched closing, answered with the verdict
@@ -97,6 +103,12 @@ internal sealed class MailboxCloseBuffer : BatchBuffer<BufferedMailboxCloseReque
     /// <paramref name="now"/> is the caller's, and rides on the request rather than being taken at flush time,
     /// so the <c>disposedAt</c> a closure is stamped with — and replayed to every later close of the same
     /// mailbox — is the instant its own call minted, however long it waited for a batch.
+    /// <para>
+    /// A flush is one attempt for the whole batch and carries no retry of its own (see
+    /// <see cref="IEngineRepository.BatchCloseMailboxes"/>), so a failure answers every caller in it with the
+    /// same exception. Convergence is the caller's replay: closing the same mailbox again either effects the
+    /// closure the failed attempt rolled back or reports the one it committed, so the disposal stays single.
+    /// </para>
     /// </remarks>
     public Task<MailboxCloseResult> Enqueue(
         Guid mailboxId,
@@ -159,7 +171,7 @@ internal sealed class MailboxDeliveryBuffer : BatchBuffer<BufferedMailboxDeliver
         ILogger<MailboxDeliveryBuffer> logger,
         IOptions<EngineSettings> settings
     )
-        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Delivery)
+        : base(scopeFactory, logger, settings.Value.MailboxBuffers.Delivery, "delivery")
     {
         _maxLogLength = settings.Value.MaxMailboxLogLength;
     }
@@ -172,6 +184,13 @@ internal sealed class MailboxDeliveryBuffer : BatchBuffer<BufferedMailboxDeliver
     /// <paramref name="now"/> is the caller's, and rides on the request rather than being taken at flush time,
     /// so the <c>acceptedAt</c> a message is answered with — and replayed on every later resend of its key — is
     /// the instant its own call minted, however long it waited for a batch.
+    /// <para>
+    /// A flush is one attempt for the whole batch and carries no retry of its own (see
+    /// <see cref="IEngineRepository.BatchDeliverToMailboxes"/>), so a failure answers every caller in it with
+    /// the same exception. Convergence is the caller's replay: the same key is appended if the failed attempt
+    /// rolled back and answered <see cref="MailboxDeliveryResult.Duplicate"/> if it committed, so no message is
+    /// stored twice.
+    /// </para>
     /// </remarks>
     public Task<MailboxDeliveryResult> Enqueue(
         Guid mailboxId,

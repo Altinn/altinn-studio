@@ -675,4 +675,53 @@ public class MailboxDeliveryBufferTests
             await buffer.StopAsync(stopCts.Token);
         }
     }
+
+    [Fact]
+    public async Task TheFlushedCounter_CountsWhatABatchAnswered_AndNothingForAFaultedFlush()
+    {
+        var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10));
+        SetupMockAccepted(repo);
+
+        using var meters = new MeterCollector();
+        using var serviceCts = new CancellationTokenSource();
+        var answered = Preload(buffer, 3, TestContext.Current.CancellationToken);
+
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            await Task.WhenAll(answered);
+
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
+                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+
+            // A batch nobody was answered from must leave the count where it was: the counter sits after the
+            // database work returns, so a flush that throws contributes nothing.
+            repo.Reset();
+            repo.Setup(r =>
+                    r.BatchDeliverToMailboxes(
+                        It.IsAny<IReadOnlyList<BufferedMailboxDeliveryRequest>>(),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ThrowsAsync(new InvalidOperationException("DB connection failed"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                Deliver(buffer, "faulted", TestContext.Current.CancellationToken)
+            );
+
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
+                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
 }

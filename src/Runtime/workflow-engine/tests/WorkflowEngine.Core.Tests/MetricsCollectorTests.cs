@@ -1,4 +1,5 @@
 using System.Diagnostics.Metrics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -13,9 +14,15 @@ using WorkflowEngine.Telemetry;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Tests for the one thing the metrics collector was given in this step: the count behind the gauge that
-/// alerts on a mailbox the deadline sweep never closed.
+/// Tests for what the metrics collector reads on the mailbox paths: the count behind the gauge that alerts on a
+/// mailbox the deadline sweep never closed, and the depths of the three mailbox buffers.
 /// </summary>
+/// <remarks>
+/// In the background-service collection with the buffer suites, so no test here observes the meter while one of
+/// them is recording into it. Without that, an assertion on <c>engine.mailbox_buffer.flushed</c> would see
+/// whatever the buffer suites flushed in parallel.
+/// </remarks>
+[Collection("BackgroundServiceTests")]
 public class MetricsCollectorTests
 {
     private static readonly DateTimeOffset _now = new(2026, 8, 19, 12, 0, 0, TimeSpan.Zero);
@@ -43,12 +50,48 @@ public class MetricsCollectorTests
                 MaxHttpCalls = 5,
                 BackpressureThreshold = 100,
             },
+            MailboxBuffers = new MailboxBufferSettings
+            {
+                Mint = BufferSettings(),
+                Close = BufferSettings(),
+                Delivery = BufferSettings(),
+            },
         };
+
+    private static BatchBufferSettings BufferSettings() =>
+        new()
+        {
+            MaxBatchSize = 10,
+            MaxQueueSize = 50,
+            FlushConcurrency = 1,
+        };
+
+    /// <summary>
+    /// The three buffers the collector reads its depth gauge from, built the way the host builds them but never
+    /// started — nothing drains their channels, so whatever is submitted to one stays queued for the whole pass.
+    /// </summary>
+    private static (MailboxMintBuffer Mint, MailboxCloseBuffer Close, MailboxDeliveryBuffer Delivery) CreateBuffers(
+        EngineSettings settings
+    )
+    {
+        var options = Options.Create(settings);
+        var scopeFactory = new Mock<IServiceScopeFactory>(MockBehavior.Strict).Object;
+
+        return (
+            new MailboxMintBuffer(scopeFactory, NullLogger<MailboxMintBuffer>.Instance, options),
+            new MailboxCloseBuffer(scopeFactory, NullLogger<MailboxCloseBuffer>.Instance, options),
+            new MailboxDeliveryBuffer(scopeFactory, NullLogger<MailboxDeliveryBuffer>.Instance, options)
+        );
+    }
 
     /// <summary>
     /// Runs the collector through one pass: its loop parks on a <see cref="FakeTimeProvider"/> delay after it.
     /// </summary>
-    private static async Task<(DateTimeOffset Cutoff, int Limit)> RunOnePass(TimeSpan sweepInterval, long overdue)
+    private static async Task<(DateTimeOffset Cutoff, int Limit)> RunOnePass(
+        TimeSpan sweepInterval,
+        long overdue,
+        Action<MailboxMintBuffer, MailboxCloseBuffer, MailboxDeliveryBuffer>? queue = null
+    )
     {
         var settings = Settings(sweepInterval);
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
@@ -65,6 +108,9 @@ public class MetricsCollectorTests
             .ReturnsAsync(overdue);
 
         var engineStatus = new Mock<IEngineStatus>();
+        var buffers = CreateBuffers(settings);
+        queue?.Invoke(buffers.Mint, buffers.Close, buffers.Delivery);
+
         using var limiter = new ConcurrencyLimiter(5, 5, 5);
         using var collector = new MetricsCollector(
             NullLogger<MetricsCollector>.Instance,
@@ -72,7 +118,10 @@ public class MetricsCollectorTests
             repository.Object,
             limiter,
             Options.Create(settings),
-            new FakeTimeProvider(_now)
+            new FakeTimeProvider(_now),
+            buffers.Mint,
+            buffers.Close,
+            buffers.Delivery
         );
 
         await collector.StartAsync(TestContext.Current.CancellationToken);
@@ -118,6 +167,8 @@ public class MetricsCollectorTests
 
         Metrics.SetHealthStatus(-1);
 
+        var buffers = CreateBuffers(settings);
+
         using var limiter = new ConcurrencyLimiter(5, 5, 5);
         using var collector = new MetricsCollector(
             NullLogger<MetricsCollector>.Instance,
@@ -125,7 +176,10 @@ public class MetricsCollectorTests
             repository.Object,
             limiter,
             Options.Create(settings),
-            new FakeTimeProvider(_now)
+            new FakeTimeProvider(_now),
+            buffers.Mint,
+            buffers.Close,
+            buffers.Delivery
         );
 
         await collector.StartAsync(TestContext.Current.CancellationToken);
@@ -167,5 +221,59 @@ public class MetricsCollectorTests
         listener.RecordObservableInstruments();
 
         Assert.Equal(7, Assert.Single(observed));
+    }
+
+    [Fact]
+    public async Task TheDepthGauge_ReportsEachMailboxBuffersQueue_UnderItsOwnOperationTag()
+    {
+        using var meters = new MeterCollector();
+
+        await RunOnePass(
+            TimeSpan.FromMinutes(5),
+            overdue: 0,
+            queue: (mint, close, delivery) =>
+            {
+                // Discarded: nothing drains these buffers, so no verdict is coming. Enqueue runs synchronously
+                // up to its wait on one, which is what leaves the request counted in the queue. No token
+                // either — nothing here abandons a request, and a canceled one would leave the queue again.
+                for (int i = 1; i <= 2; i++)
+                {
+                    _ = mint.Enqueue(
+                        Guid.NewGuid(),
+                        "test-ns",
+                        $"key-{i}",
+                        collectionKey: null,
+                        TimeSpan.FromHours(1),
+                        _now,
+                        CancellationToken.None
+                    );
+                }
+
+                _ = close.Enqueue(
+                    Guid.NewGuid(),
+                    "test-ns",
+                    MailboxDisposedReason.Request,
+                    _now,
+                    CancellationToken.None
+                );
+
+                for (int i = 1; i <= 3; i++)
+                {
+                    _ = delivery.Enqueue(Guid.NewGuid(), "test-ns", $"msg-{i}", "{}", _now, CancellationToken.None);
+                }
+            }
+        );
+
+        meters.RecordObservableInstruments();
+
+        Assert.Equal(
+            new Dictionary<string, long>(StringComparer.Ordinal)
+            {
+                ["mint"] = 2,
+                ["close"] = 1,
+                ["delivery"] = 3,
+            },
+            meters.ByTag("engine.mailbox_buffer.depth", "operation")
+        );
     }
 }

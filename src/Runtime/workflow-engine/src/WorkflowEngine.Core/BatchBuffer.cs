@@ -48,14 +48,27 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
     private readonly BatchBufferSettings _settings;
     private readonly Channel<TItem> _channel;
     private readonly string _name;
+    private readonly string _operation;
     private readonly string _enqueueActivityName;
     private readonly string _flushActivityName;
 
-    protected BatchBuffer(IServiceScopeFactory scopeFactory, ILogger logger, BatchBufferSettings settings)
+    /// <remarks>
+    /// <paramref name="operation"/> is the <c>operation</c> tag this buffer's
+    /// <see cref="Metrics.MailboxBufferFlushedItems"/> measurements carry — the mailbox path it serves. A
+    /// constructor argument rather than something derived from <see cref="object.GetType"/>, so the tag values a
+    /// dashboard groups by are not a class rename away from changing.
+    /// </remarks>
+    protected BatchBuffer(
+        IServiceScopeFactory scopeFactory,
+        ILogger logger,
+        BatchBufferSettings settings,
+        string operation
+    )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
         _settings = settings;
+        _operation = operation;
 
         // The concrete type's own name, so activities and logs cannot drift from the class they came from.
         _name = GetType().Name;
@@ -112,6 +125,12 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
     /// Submits <paramref name="item"/> for batched execution. The returned task completes when the batch
     /// containing it has been flushed, carrying the verdict at this request's position.
     /// </summary>
+    /// <remarks>
+    /// Cancelling <paramref name="ct"/> abandons the wait, not the work. A request whose token fires before its
+    /// batch reaches the database is dropped from that batch and writes nothing, but one canceled after the
+    /// flush has started may still commit — the caller is answered canceled either way. Replaying the same
+    /// idempotency key is how a caller finds out which of the two happened.
+    /// </remarks>
     protected async Task<TResult> EnqueueItem(TItem item, CancellationToken ct)
     {
         using var activity = Metrics.Source.StartActivity(_enqueueActivityName);
@@ -277,6 +296,10 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
             await FlushCore(batch, repo, ct);
+
+            // Here and nowhere else: the batch's database work has returned and its verdicts are out. Anything
+            // earlier would count requests that a fault is about to answer with an exception instead.
+            Metrics.MailboxBufferFlushedItems.Add(batch.Count, ("operation", _operation));
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

@@ -390,4 +390,32 @@ public class MailboxCloseBufferTests
             await buffer.StopAsync(stopCts.Token);
         }
     }
+
+    [Fact]
+    public async Task TheFlushedCounter_CountsTheBatchUnderTheCloseTag()
+    {
+        var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10));
+        SetupMockClosed(repo);
+
+        using var meters = new MeterCollector();
+        using var serviceCts = new CancellationTokenSource();
+        var tasks = Preload(buffer, NewIds(2), TestContext.Current.CancellationToken);
+
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            await Task.WhenAll(tasks);
+
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["close"] = 2 },
+                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
 }

@@ -392,6 +392,16 @@ public static class Metrics
     );
 
     /// <summary>
+    /// Counter of mailbox requests answered by a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// <c>close</c> or <c>delivery</c>). Counted where <see cref="UpdateBufferFlushedItems"/> is: requests rather
+    /// than flushes, once the batch's database work has returned without faulting.
+    /// </summary>
+    public static readonly Counter<long> MailboxBufferFlushedItems = Meter.CreateCounter<long>(
+        "engine.mailbox_buffer.flushed",
+        description: "Number of mailbox requests answered by a batch flush, tagged by operation (mint, close, delivery)"
+    );
+
+    /// <summary>
     /// Counter of database operations that succeeded.
     /// </summary>
     public static readonly Counter<long> DbOperationsSucceeded = Meter.CreateCounter<long>(
@@ -502,6 +512,28 @@ public static class Metrics
         "engine.mailboxes.open.overdue",
         static () => _overdueOpenMailboxesCount,
         description: "Number of mailboxes still open more than one sweep cadence past their deadline (0 = healthy)"
+    );
+
+    private static long _mailboxMintBufferDepth;
+    private static long _mailboxCloseBufferDepth;
+    private static long _mailboxDeliveryBufferDepth;
+
+    /// <summary>
+    /// Gauge of mailbox requests waiting for a batch flush, tagged with <c>operation</c> (<c>mint</c>,
+    /// <c>close</c> or <c>delivery</c>). Read it as latency rather than as capacity: the queues wait rather than
+    /// refuse when full, so a depth that stays high means callers are waiting longer for their verdict, never
+    /// that requests are being turned away.
+    /// </summary>
+    public static readonly ObservableGauge<long> MailboxBufferDepth = Meter.CreateObservableGauge(
+        "engine.mailbox_buffer.depth",
+        static () =>
+            new Measurement<long>[]
+            {
+                new(_mailboxMintBufferDepth, new KeyValuePair<string, object?>("operation", "mint")),
+                new(_mailboxCloseBufferDepth, new KeyValuePair<string, object?>("operation", "close")),
+                new(_mailboxDeliveryBufferDepth, new KeyValuePair<string, object?>("operation", "delivery")),
+            },
+        description: "Number of mailbox requests waiting for a batch flush, tagged by operation (mint, close, delivery)"
     );
 
     private static long _availableInboxSlotsCount;
@@ -626,6 +658,18 @@ public static class Metrics
 
     /// <summary>Sets the value reported by <see cref="OverdueOpenMailboxes"/>.</summary>
     public static void SetOverdueOpenMailboxesCount(long count) => _overdueOpenMailboxesCount = count;
+
+    /// <summary>
+    /// Sets the three values reported by <see cref="MailboxBufferDepth"/>, one per mailbox buffer. Written
+    /// together because they are one instrument's tagged series, and read from queues being written and drained
+    /// concurrently — so the three are a sample of the same tick, not a consistent snapshot.
+    /// </summary>
+    public static void SetMailboxBufferDepths(int mint, int close, int delivery)
+    {
+        _mailboxMintBufferDepth = mint;
+        _mailboxCloseBufferDepth = close;
+        _mailboxDeliveryBufferDepth = delivery;
+    }
 
     /// <summary>
     /// Sets the value reported by <see cref="AvailableInboxSlots"/>.

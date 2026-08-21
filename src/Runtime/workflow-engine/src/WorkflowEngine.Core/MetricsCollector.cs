@@ -16,7 +16,10 @@ internal sealed class MetricsCollector(
     IEngineRepository engineRepository,
     IConcurrencyLimiter concurrencyLimiter,
     IOptions<EngineSettings> engineSettings,
-    TimeProvider timeProvider
+    TimeProvider timeProvider,
+    MailboxMintBuffer mailboxMintBuffer,
+    MailboxCloseBuffer mailboxCloseBuffer,
+    MailboxDeliveryBuffer mailboxDeliveryBuffer
 ) : BackgroundService
 {
     /// <summary>
@@ -67,6 +70,12 @@ internal sealed class MetricsCollector(
                 Metrics.SetUsedHttpSlots(httpSlotStatus.Used);
                 Metrics.SetAvailableWorkerSlots(workerSlotStatus.Available);
                 Metrics.SetUsedWorkerSlots(workerSlotStatus.Used);
+
+                Metrics.SetMailboxBufferDepths(
+                    mailboxMintBuffer.QueueDepth,
+                    mailboxCloseBuffer.QueueDepth,
+                    mailboxDeliveryBuffer.QueueDepth
+                );
 
                 // Deliberately last: one try/catch covers the whole pass, so a throw here costs this gauge alone
                 // rather than suppressing engine health below it.

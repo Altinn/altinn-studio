@@ -70,10 +70,24 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IWorkflowUpdateBuffer>(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
 
+            services.AddSingleton<MailboxMintBuffer>();
+            services.AddHostedService(sp => sp.GetRequiredService<MailboxMintBuffer>());
+
+            services.AddSingleton<MailboxCloseBuffer>();
+            services.AddHostedService(sp => sp.GetRequiredService<MailboxCloseBuffer>());
+
+            services.AddSingleton<MailboxDeliveryBuffer>();
+            services.AddHostedService(sp => sp.GetRequiredService<MailboxDeliveryBuffer>());
+
             // HeartbeatService must be registered BEFORE the processor so it is stopped
             // AFTER it (hosted services are stopped in reverse registration order).
             // The heartbeat loop continues while the tracker is non-empty, which requires
             // the processor's workers to finish first.
+            // The buffers above are registered before all of these for the same rule read the other way: they
+            // are stopped after them, so the 30-second drain that answers their queued callers runs while the
+            // rest of the engine winds down, not before it. What the mailbox buffers have to outlive is request
+            // handling rather than the processor — they are fed from the HTTP path, through Engine's mailbox
+            // methods — which is why they belong up here beside the write buffer and not below.
             services.AddHostedService<HeartbeatService>();
             services.AddHostedService<CancellationWatcherService>();
             services.AddHostedService<WorkflowProcessor>();

@@ -151,6 +151,9 @@ internal interface IEngineStatus
 
 internal sealed class Engine(
     WorkflowWriteBuffer writeBuffer,
+    MailboxMintBuffer mintBuffer,
+    MailboxCloseBuffer closeBuffer,
+    MailboxDeliveryBuffer deliveryBuffer,
     ICommandRegistry registry,
     IConcurrencyLimiter limiter,
     IEngineRepository repository,
@@ -522,14 +525,13 @@ internal sealed class Engine(
         // Time-ordered so a mailbox id sorts by mint time, as every other engine-generated id does.
         var mailboxId = Guid.CreateVersion7(now);
 
-        var result = await repository.MintMailbox(
+        var result = await mintBuffer.Enqueue(
             mailboxId,
             ns,
             request.IdempotencyKey,
             request.CollectionKey,
             request.Timeout,
             now,
-            _settings.MaxOpenMailboxesPerCollection,
             cancellationToken
         );
 
@@ -548,7 +550,7 @@ internal sealed class Engine(
     {
         // The closure metrics are the routine's, published by the repository after commit — the deadline sweep
         // runs the same routine without passing through here.
-        return await repository.CloseMailbox(
+        return await closeBuffer.Enqueue(
             mailboxId,
             ns,
             MailboxDisposedReason.Request,
@@ -597,13 +599,12 @@ internal sealed class Engine(
     {
         var result =
             ValidateMailboxDeliveryRequest(request)
-            ?? await repository.DeliverToMailbox(
+            ?? await deliveryBuffer.Enqueue(
                 mailboxId,
                 ns,
                 request.IdempotencyKey,
                 request.Payload,
                 timeProvider.GetUtcNow(),
-                _settings.MaxMailboxLogLength,
                 cancellationToken
             );
 

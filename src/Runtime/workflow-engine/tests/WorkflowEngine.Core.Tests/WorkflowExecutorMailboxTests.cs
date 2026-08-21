@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using WorkflowEngine.Core.Tests.Fixtures;
@@ -7,7 +5,6 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Extensions;
-using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;
 
@@ -240,35 +237,4 @@ public class WorkflowExecutorMailboxTests
         fixture
             .RepositoryMock.Setup(r => r.ReadMailboxReceipt(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
-
-    /// <summary>Local rather than the TestKit's collector, which this project does not reference.</summary>
-    private sealed class MeterCollector : IDisposable
-    {
-        private readonly MeterListener _listener;
-        private readonly ConcurrentBag<(string Name, long Value, KeyValuePair<string, object?>[] Tags)> _taken = [];
-
-        public MeterCollector()
-        {
-            _listener = new MeterListener
-            {
-                InstrumentPublished = (instrument, listener) =>
-                {
-                    if (instrument.Meter.Name == Metrics.Meter.Name)
-                        listener.EnableMeasurementEvents(instrument);
-                },
-            };
-            _listener.SetMeasurementEventCallback<long>(
-                (instrument, measurement, tags, _) => _taken.Add((instrument.Name, measurement, tags.ToArray()))
-            );
-            _listener.Start();
-        }
-
-        public Dictionary<string, long> ByTag(string instrumentName, string tagKey) =>
-            _taken
-                .Where(m => m.Name == instrumentName)
-                .GroupBy(m => (string)m.Tags.Single(t => t.Key == tagKey).Value!)
-                .ToDictionary(g => g.Key, g => g.Sum(m => m.Value), StringComparer.Ordinal);
-
-        public void Dispose() => _listener.Dispose();
-    }
 }

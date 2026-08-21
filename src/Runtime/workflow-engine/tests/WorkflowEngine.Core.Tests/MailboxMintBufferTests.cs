@@ -304,4 +304,32 @@ public class MailboxMintBufferTests
             await buffer.StopAsync(stopCts.Token);
         }
     }
+
+    [Fact]
+    public async Task TheFlushedCounter_CountsTheBatchUnderTheMintTag()
+    {
+        var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10));
+        SetupMockMinted(repo);
+
+        using var meters = new MeterCollector();
+        using var serviceCts = new CancellationTokenSource();
+        var tasks = Preload(buffer, 2, TestContext.Current.CancellationToken);
+
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            await Task.WhenAll(tasks);
+
+            Assert.Equal(
+                new Dictionary<string, long>(StringComparer.Ordinal) { ["mint"] = 2 },
+                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+            );
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
 }
