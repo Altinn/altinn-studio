@@ -305,6 +305,35 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CloseMailboxes_ProbesThePrimaryKeyForEveryMailboxInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.CloseMailboxesSql,
+            [
+                new NpgsqlParameter<Guid[]>(
+                    "ids",
+                    [new Guid("0197a4f0-0000-7000-8000-000000000001"), new Guid("0197a4f0-0000-7000-8000-000000000002")]
+                ),
+                new NpgsqlParameter<string[]>("reasons", ["request", "deadline"]),
+                new NpgsqlParameter<DateTimeOffset[]>("nows", [_now, _now]),
+            ],
+            ct
+        );
+
+        // The batch arrays drive the close: one primary-key probe per mailbox named, never a scan of the table
+        // filtered by the array. Ids that fell out of the Index Cond would make a flush of a hundred closes
+        // read every mailbox in the namespace.
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "pk_mailboxes");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailboxes", "t.id");
+
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
     public async Task ReleaseMailboxReceivers_ProbesTheReceiverKeyForEveryPositionInTheBatch()
     {
         var ct = TestContext.Current.CancellationToken;

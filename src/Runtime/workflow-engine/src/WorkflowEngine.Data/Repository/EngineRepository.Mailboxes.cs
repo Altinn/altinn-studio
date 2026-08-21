@@ -106,28 +106,6 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Releases across the whole position range: a closure takes every parked receiver the mailbox has. The
-    /// lower bound is where the mailbox's counter starts; the upper is the largest position the column can
-    /// hold, there being no bound on how far a live mailbox's counter has run.
-    /// </summary>
-    private static async Task<int> ReleaseAllParkedReceivers(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        Guid mailboxId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken
-    )
-    {
-        var released = await ReleaseMailboxReceivers(
-            conn,
-            tx,
-            [(mailboxId, SeqLo: 0, SeqHi: long.MaxValue, now)],
-            cancellationToken
-        );
-        return released.Count;
-    }
-
-    /// <summary>
     /// Issued inside the releasing transaction: PostgreSQL queues the <c>NOTIFY</c> until commit, and a separate
     /// post-commit statement could fail and make <see cref="ExecuteWithRetry"/> re-run the whole delegate.
     /// </summary>
@@ -591,7 +569,7 @@ internal sealed partial class EngineRepository
                         return;
                     }
 
-                    result = await CloseLockedMailbox(conn, tx, locked, reason, now, ct);
+                    result = (await CloseLockedMailboxes(conn, tx, [(locked, reason, now)], ct))[0];
 
                     await tx.CommitAsync(ct);
                 },
@@ -615,58 +593,132 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Closes a mailbox whose row the caller already locked and read. Split from <see cref="CloseMailbox"/> so
-    /// the deadline sweep can run the identical routine under its own claim; releasing under the same lock keeps
-    /// a concurrent enqueue from parking a receiver on a closed mailbox.
+    /// Closes a whole set of mailboxes in one statement, each row taking its own reason and timestamp from the
+    /// array element naming it, so a batch's per-request <c>now</c> values stay distinct. Hoisted so
+    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> that the ids stay a primary-key probe.
     /// </summary>
-    private static async Task<MailboxCloseResult> CloseLockedMailbox(
+    internal const string CloseMailboxesSql = $"""
+        UPDATE engine.mailboxes AS m
+        SET status = '{MailboxStatusMap.Disposed}',
+            disposed_reason = t.reason,
+            disposed_at = t.now
+        FROM unnest(@ids, @reasons, @nows) AS t(id, reason, now)
+        WHERE m.id = t.id
+        RETURNING {MailboxColumns}
+        """;
+
+    /// <summary>
+    /// Closes mailboxes whose rows the caller already locked and read, and releases every receiver parked on
+    /// them — two statements however many mailboxes are closing. Split from <see cref="CloseMailbox"/> so the
+    /// deadline sweep can run the identical routine under its own claim; releasing under the same lock keeps a
+    /// concurrent enqueue from parking a receiver on a closed mailbox. Each element carries the reason and
+    /// timestamp to stamp on its locked mailbox, and is answered by the result at the same position.
+    /// Precondition: the ids staged for closing are distinct, because one <c>UPDATE</c> row per id is what the
+    /// results and the release counts are read back through. Callers fold their duplicates — deciding what the
+    /// second one is answered — before getting here, and a repeat is refused below rather than closed twice.
+    /// </summary>
+    private static async Task<MailboxCloseResult[]> CloseLockedMailboxes(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
-        MailboxResponse locked,
-        MailboxDisposedReason reason,
-        DateTimeOffset now,
+        (MailboxResponse Locked, MailboxDisposedReason Reason, DateTimeOffset Now)[] closures,
         CancellationToken cancellationToken
     )
     {
-        // First close wins: the replay reports the original disposal and releases nothing.
-        if (locked.Status == MailboxStatus.Disposed)
-            return new MailboxCloseResult.AlreadyClosed(locked);
+        var results = new MailboxCloseResult[closures.Length];
+        var staged = new List<int>(closures.Length);
+        var stagedIds = new HashSet<Guid>(closures.Length);
 
-        const string closeSql = $"""
-            UPDATE engine.mailboxes AS m
-            SET status = '{MailboxStatusMap.Disposed}',
-                disposed_reason = @reason,
-                disposed_at = @now
-            WHERE m.id = @id
-            RETURNING {MailboxColumns}
-            """;
-
-        MailboxResponse closed;
-        await using (var closeCmd = new NpgsqlCommand(closeSql, conn, tx))
+        for (var i = 0; i < closures.Length; i++)
         {
-            closeCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", locked.Id));
-            closeCmd.Parameters.Add(new NpgsqlParameter<string>("reason", MailboxStatusMap.ToDbValue(reason)));
-            closeCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+            var locked = closures[i].Locked;
 
-            await using var reader = await closeCmd.ExecuteReaderAsync(cancellationToken);
+            // First close wins: the replay reports the original disposal and releases nothing.
+            if (locked.Status == MailboxStatus.Disposed)
+            {
+                results[i] = new MailboxCloseResult.AlreadyClosed(locked);
+                continue;
+            }
 
-            // Unreachable: we hold this row's lock. Kept as a loud failure rather than a silent NotFound.
-            if (!await reader.ReadAsync(cancellationToken))
-                throw new InvalidOperationException($"Mailbox {locked.Id} vanished while its row lock was held.");
+            // The precondition, failing by its own name: a repeated id would close its row once, and the
+            // rows-affected guard below would then blame a mailbox that never vanished.
+            if (!stagedIds.Add(locked.Id))
+            {
+                throw new InvalidOperationException(
+                    $"Mailbox {locked.Id} was staged for closing twice; callers fold their duplicates first."
+                );
+            }
 
-            closed = ReadMailbox(reader);
+            staged.Add(i);
         }
 
-        var released = await ReleaseAllParkedReceivers(conn, tx, locked.Id, now, cancellationToken);
+        if (staged.Count == 0)
+            return results;
 
-        if (released > 0)
+        var (ids, reasons, nows) = staged
+            .Select(i => (closures[i].Locked.Id, MailboxStatusMap.ToDbValue(closures[i].Reason), closures[i].Now))
+            .ToArray()
+            .Unzip();
+
+        var closed = new Dictionary<Guid, MailboxResponse>(staged.Count);
+        await using (var closeCmd = new NpgsqlCommand(CloseMailboxesSql, conn, tx))
+        {
+            closeCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+            closeCmd.Parameters.Add(new NpgsqlParameter<string[]>("reasons", reasons));
+            closeCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset[]>("nows", nows));
+
+            await using var reader = await closeCmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var row = ReadMailbox(reader);
+                closed[row.Id] = row;
+            }
+        }
+
+        // Unreachable: we hold every one of these rows' locks, and the ids are distinct, so every one of them
+        // has a row of its own to write. Kept as a loud failure rather than a silent NotFound.
+        if (closed.Count != staged.Count)
+        {
+            var missing = ids.Where(id => !closed.ContainsKey(id));
+            throw new InvalidOperationException(
+                $"Mailbox(es) [{string.Join(", ", missing)}] vanished while their row locks were held."
+            );
+        }
+
+        // A closure takes every parked receiver its mailbox has, so each element spans the whole position
+        // range: the lower bound is where the counter starts, the upper the largest position the column can
+        // hold, there being no bound on how far a live mailbox's counter has run.
+        var released = await ReleaseMailboxReceivers(
+            conn,
+            tx,
+            [.. staged.Select(i => (closures[i].Locked.Id, SeqLo: 0L, SeqHi: long.MaxValue, closures[i].Now))],
+            cancellationToken
+        );
+
+        if (released.Count > 0)
             await NotifyStatusChanged(conn, tx, cancellationToken);
 
-        return new MailboxCloseResult.Closed(closed, new MailboxReleaseCounts(Delivered: 0, Closed: released));
+        // The release statement answers in no particular order, so the counts are grouped by mailbox rather
+        // than read off positions.
+        var releasedPerMailbox = new Dictionary<Guid, int>(staged.Count);
+        foreach (var (mailboxId, _) in released)
+        {
+            releasedPerMailbox[mailboxId] = releasedPerMailbox.GetValueOrDefault(mailboxId) + 1;
+        }
+
+        foreach (var i in staged)
+        {
+            var id = closures[i].Locked.Id;
+            results[i] = new MailboxCloseResult.Closed(
+                closed[id],
+                new MailboxReleaseCounts(Delivered: 0, Closed: releasedPerMailbox.GetValueOrDefault(id))
+            );
+        }
+
+        return results;
     }
 
     /// <summary>
-    /// <c>FOR UPDATE</c> is the row lock <see cref="CloseLockedMailbox"/> requires; <c>SKIP LOCKED</c> leaves a
+    /// <c>FOR UPDATE</c> is the row lock <see cref="CloseLockedMailboxes"/> requires; <c>SKIP LOCKED</c> leaves a
     /// held mailbox for the next tick. The predicates are re-evaluated against the locked row.
     /// </summary>
     private const string ClaimOverdueMailboxSql = $"""
@@ -802,14 +854,9 @@ internal sealed partial class EngineRepository
             return default;
         }
 
-        var result = await CloseLockedMailbox(
-            conn,
-            tx,
-            claimed,
-            MailboxDisposedReason.Deadline,
-            now,
-            cancellationToken
-        );
+        var result = (
+            await CloseLockedMailboxes(conn, tx, [(claimed, MailboxDisposedReason.Deadline, now)], cancellationToken)
+        )[0];
 
         await tx.CommitAsync(cancellationToken);
 
