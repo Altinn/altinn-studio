@@ -137,7 +137,10 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
 
   When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
   correct, add it to `.github/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
-  full-form, so inflections need their own lines). If an English spelling genuinely cannot change
+  full-form, so inflections need their own lines); language-neutral tokens — names, quoted
+  identifiers, formats — go in `glossary.shared.txt`, which both languages accept. A glossary
+  entry that no longer rescues any flagged word is reported as stale. If an English spelling
+  genuinely cannot change
   (a wire contract, someone else's API), add a scoped entry to `suppressions.mjs`. Note that
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.

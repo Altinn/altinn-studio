@@ -438,7 +438,7 @@ async function checkEnglish({ registry, root, fix }) {
 
 // -------------------------------------------------------- norwegian check ---
 
-async function checkNorwegian({ registry, root, offline = false }) {
+async function checkNorwegian({ registry, root, offline = false, staleCheck = true }) {
   if (!toolAvailable('hunspell')) {
     return skip('hunspell is not installed (`brew install hunspell` / `apt install hunspell`)');
   }
@@ -446,6 +446,15 @@ async function checkNorwegian({ registry, root, offline = false }) {
 
   const findings = [];
   const countsParts = [];
+
+  // The shared glossary holds language-neutral tokens (names, identifiers,
+  // formats) accepted in both languages; each per-language glossary holds
+  // Norwegian words. Like suppressions, entries must earn their keep: one
+  // that no longer rescues any flagged word is reported as stale (only on a
+  // full run — a scoped run proves nothing about unrelated entries), and a
+  // per-language entry duplicating a shared one is redundant.
+  const shared = readGlossary(join(HERE, 'glossary.shared.txt'));
+  const usedShared = new Set();
   // A language the registry declares must produce values: without this, a
   // registry change that empties one language would skip its pass silently
   // while the other keeps the check green — work must be proven per language.
@@ -471,6 +480,16 @@ async function checkNorwegian({ registry, root, offline = false }) {
     }
 
     const glossary = readGlossary(join(HERE, `glossary.${lang}.txt`));
+    for (const term of [...glossary].filter((t) => shared.has(t)).sort()) {
+      findings.push(
+        finding(
+          `.github/spellcheck/glossary.${lang}.txt`,
+          undefined,
+          `'${term}' is already in glossary.shared.txt — redundant entry, remove it`,
+        ),
+      );
+    }
+    const usedOwn = new Set();
     const fullforms = await ensureOrdbank(lang, { offline });
     const doc = items.map((i) => i.text).join('\n');
     const wordCount = doc.split(/\s+/).filter(Boolean).length;
@@ -482,15 +501,20 @@ async function checkNorwegian({ registry, root, offline = false }) {
     );
     // A word is accepted by ANY of: the hunspell dictionary (which is what
     // handles compounds), the Norsk Ordbank full-form list (which covers the
-    // frozen dictionary's gaps — see dictionaries.mjs), or the curated
-    // glossary. Deliberately unchecked: tokens with digits or other
-    // non-letters (the first filter) and ALL-CAPS tokens (acronyms — BPMN,
-    // PDF); a shouted or digit-bearing misspelling is invisible here.
+    // frozen dictionary's gaps — see dictionaries.mjs), or the glossaries.
+    // Deliberately unchecked: tokens with digits or other non-letters (the
+    // first filter) and ALL-CAPS tokens (acronyms — BPMN, PDF); a shouted or
+    // digit-bearing misspelling is invisible here.
     const words = [...flagged]
       .filter((w) => /^[\p{L}'’-]{2,}$/u.test(w))
       .filter((w) => w !== w.toUpperCase())
       .filter((w) => !fullforms.has(w) && !fullforms.has(w.toLowerCase()))
-      .filter((w) => !glossary.has(w.toLowerCase()))
+      .filter((w) => {
+        const lc = w.toLowerCase();
+        if (glossary.has(lc)) return (usedOwn.add(lc), false);
+        if (shared.has(lc)) return (usedShared.add(lc), false);
+        return true;
+      })
       .sort((a, b) => a.localeCompare(b, 'nb'));
 
     for (const word of words) {
@@ -510,11 +534,36 @@ async function checkNorwegian({ registry, root, offline = false }) {
         message: `${lang}: '${word}' is not in the dictionary or glossary (${hits.length} place(s): ${where}${hits.length > 3 ? ', …' : ''})`,
       });
     }
+    if (staleCheck) {
+      for (const term of [...glossary].filter((t) => !usedOwn.has(t)).sort()) {
+        findings.push(
+          finding(
+            `.github/spellcheck/glossary.${lang}.txt`,
+            undefined,
+            `'${term}' no longer rescues any flagged ${lang} word — stale entry, remove it`,
+          ),
+        );
+      }
+    }
     countsParts.push(
-      `${lang}: ${items.length} values, ~${wordCount} words, ${words.length} distinct flagged`,
+      `${lang}: ${items.length} values, ~${wordCount} words, ${words.length} distinct flagged, ` +
+        `${usedOwn.size}/${glossary.size} glossary terms at work`,
     );
   }
   if (countsParts.length === 0) throw new HarnessError('no Norwegian values were extracted');
+  countsParts.push(`shared glossary: ${usedShared.size}/${shared.size} terms at work`);
+  if (staleCheck) {
+    // Shared terms are alive when either language needed them.
+    for (const term of [...shared].filter((t) => !usedShared.has(t)).sort()) {
+      findings.push(
+        finding(
+          '.github/spellcheck/glossary.shared.txt',
+          undefined,
+          `'${term}' no longer rescues any flagged word — stale entry, remove it`,
+        ),
+      );
+    }
+  }
   return { findings, counts: countsParts.join('; ') };
 }
 
@@ -572,7 +621,12 @@ async function checkQuick(ctx, fileArgs) {
     }
     if (affected.some((g) => Object.keys(g.files ?? {}).some((l) => l === 'nb' || l === 'nn'))) {
       try {
-        const norwegian = await checkNorwegian({ registry: subset, root, offline: true });
+        const norwegian = await checkNorwegian({
+          registry: subset,
+          root,
+          offline: true,
+          staleCheck: false, // a scoped run proves nothing about unrelated entries
+        });
         if (norwegian.skipped) notes.push(`norwegian skipped: ${norwegian.skipped}`);
         else findings.push(...norwegian.findings);
       } catch (err) {
@@ -707,7 +761,9 @@ async function checkSelfTest({ ci }) {
   const english = await checkEnglish({ registry, root: REPO_ROOT, fix: false });
   assertFindings('en', english.findings, 'en');
 
-  const norwegian = await checkNorwegian({ registry, root: REPO_ROOT });
+  // staleCheck off: against fixture values alone, nearly every production
+  // glossary term would read as stale.
+  const norwegian = await checkNorwegian({ registry, root: REPO_ROOT, staleCheck: false });
   if (norwegian.skipped) {
     if (ci) failures.push(finding('(self-test)', undefined, `no: skipped (${norwegian.skipped})`));
     else console.log(`  ⚠ self-test of the Norwegian check skipped: ${norwegian.skipped}`);

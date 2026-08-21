@@ -1,74 +1,53 @@
 # Nynorsk glossary — see glossary.nb.txt for the rules. The two files are
 # separate because the languages are: a term correct in bokmål is not
-# automatically correct in nynorsk.
+# automatically correct in nynorsk. Language-neutral tokens (names,
+# identifiers, formats) live in glossary.shared.txt instead.
 
-# Product and organisation names
-Altinn
-Digdir
-Maskinporten
-Ansattporten
-Gitea
-GitHub
-Kubernetes
-eFormidling
 
-# Ingested from the measured backlog (triaged 2026-08-12): domain
-# compounds, language names, and product/technical terms quoted in UI
-# text. Suspected typos, untranslated English and wrong-language values
-# were deliberately NOT ingested and stay flagged. Reviewing this list
-# IS the native-speaker check — remove a line to re-flag the word.
-anbefalar
-applicationmetadata
-backend
-beskjæringsområde
+# Domain compounds and derivations in UI text: standard Norwegian
+# compounding that the frozen dictionary lacks.
 betalingskvittering
 bildefil
 bildefiler
 datoformat
 deaktivert
-deletionstrategy
-devtool
-disallowusercreate
 enhetsregisteret
 feilforsøk
 feilkonfigurert
-filas
 filopplastingskomponentar
 filstorleik
 filtypane
 filtype
-folderid
 førehandsvis
 førehandsvise
 handsamingsreferanse
-iframes
 innboks
 innboksen
 instansier
-json
 lagringsnamn
 migreringsverktøya
-nuget
 organisasjonsnamn
-personnr
 piltastane
 profilinnstillingane
 prosesstrinn
-showaddbutton
 signatarliste
 signaturdata
 signeringsstatus
 signeringssteg
 sikkerheitsnivå
-srcdoc
 søkefunksjonaliteten
 søkemoglegheita
 tidsformat
 tilgangsstyring
 tilleggsadresse
-ui
 utløpsdato
 utviklarverktøya
 validér
 vedleggstype
 versjonsfeil
+
+# Kept pending a native ruling: used deliberately in the product, but
+# unusual enough to deserve a human yes/no. Remove a line to re-flag.
+anbefalar                   # 'anbefale' is contested nynorsk (tilrå is often preferred), but deliberate here
+beskjæringsområde           # possibly a bokmål form leaking into the nn value (beskjering?)
+filas                       # s-genitive ('filas merking') is unusual in nynorsk

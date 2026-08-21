@@ -1,59 +1,36 @@
-# Bokmål glossary: words the Norwegian spell check accepts although the
-# dictionary rejects them. One word per line; '#' starts a comment;
-# matching is case-insensitive. run.mjs subtracts these from hunspell's
-# findings, so the file stays plain UTF-8 regardless of the dictionary's
-# own encoding.
+# Bokmål glossary: Norwegian words the nb spell check accepts although the
+# dictionary and Norsk Ordbank reject them. Language-neutral tokens (names,
+# identifiers, formats) live in glossary.shared.txt instead. One word per
+# line; '#' starts a comment; matching is case-insensitive.
 #
 # The dictionary is full-form (inflections are separate entries), so an
 # accepted term's other forms need their own lines — add them as the check
 # reports them.
 #
-# Keep this to names and genuine domain terms. A misspelling "fixed" by a
-# glossary entry stays wrong in the product, so prefer fixing the text.
-# Review of this file in a PR IS the native-speaker check: every line is a
-# claim that the word is correct Norwegian (or a name/technical term used
-# deliberately) — remove a line to re-flag the word everywhere.
+# Keep this to genuine domain terms. A misspelling "fixed" by a glossary
+# entry stays wrong in the product, so prefer fixing the text. Reviewing
+# this file in a PR IS the native-speaker check: every line claims the word
+# is correct bokmål used deliberately — remove a line to re-flag it
+# everywhere. An entry that no longer rescues any flagged word is reported
+# as stale by the check itself.
 
-# Product and organisation names
-Altinn
-Digdir
-Maskinporten
-Ansattporten
-Gitea
-GitHub
-Kubernetes
-eFormidling
 
-# Ingested from the measured backlog (triaged 2026-08-12): domain
-# compounds, language names, and product/technical terms quoted in UI
-# text. Suspected typos, untranslated English and wrong-language values
-# were deliberately NOT ingested and stay flagged. Reviewing this list
-# IS the native-speaker check — remove a line to re-flag the word.
-addr
+# Domain compounds and derivations in UI text: standard Norwegian
+# compounding that the frozen dictionary lacks.
 administratorbrukernavn
 administratorbrukernavnet
 administratorkontoer
-agit
-aktiverings
-allof
-anyof
-api
-apier
 appbiblioteket
 appens
-applicationmetadata
 applikasjonsfeil
 applikasjonsmetrikker
 applikasjonsnavnet
-aragonsk
 arbeidslagsnavn
 autentiseringer
 autentiseringsapplikasjonen
 autentiseringstjeneren
 autorisasjonsforespørselen
 autorisasjonsnavn
-autoriseringsforespørselen
-avestisk
 avmerkingsboks
 avmerkingsbokser
 avpubliser
@@ -62,55 +39,26 @@ avpubliserer
 avpubliseres
 avpublisering
 avpublisert
-avstandsjustert
-backend
-bankid
 behandlingsreferanse
-bekreftelses
 bekreftelseskoden
-belarusisk
 beskjæringsområde
-beskrivelsesløse
 betalingsdetaljer
 betalingskvittering
 betalingsoppgave
 betalingssteg
 bildefil
 bildeopplaster
-bislama
-bolsk
-bpmn
 brukerdataene
 brukerkontoer
 brukerpålogging
-buypass
-chamorro
-codebasehq
-codecommit
-com
-commfides
-componentref
-conda
-condarc
-config
-dashboardet
 datamodellbinding
 datamodellfelt
 datamodellfeltet
 datamodellknytning
-dd
 deaktiver
 delegerbar
 delegeringstekst
-deletionstrategy
-delstreng
-devtool
-dhivehi
-dingtalk
-disallowusercreate
 driftsmeldinger
-dzongkha
-ecdsa
 egenregistrering
 endringslogg
 endringsoppsummering
@@ -119,9 +67,6 @@ endringstransaksjonen
 endringsvalg
 engangssamtykke
 enhetsregisterroller
-entraid
-feishu
-figma
 filbane
 filbanen
 filendelse
@@ -133,55 +78,24 @@ filsti
 filstørrelsen
 filvedlegg
 flytkontroll
-folderid
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
-fravelg
-fsck
-fulfulde
-funksjonforsubuttrykk
 funksjonsflagg
-føderert
-gitbucket
-gitignore
-gitlab
-gjennomsynsforespørsel
 gjenopprettingsprosessen
-gjentagende
-godkjenningsoverskrift
-gogs
-grafana
 handlingsknapp
 handlingstype
-haveibeenpwned
-herero
-hiri
-ifm
-iframe
-iframes
 infoside
-ini
 innboks
 innboksen
 innholdstype
 innloggingsløsningen
 innloggingsmetode
 innloggingsmetoden
-inntektsaar
 instansier
 instansiering
 instansieringer
-interlingue
-io
-json
-kanuri
 kartlag
-katanga
-kikongo
-kinyarwanda
-kirundi
-kodelagere
 kodelistefil
 kodenes
 kommaseparert
@@ -190,26 +104,12 @@ komponentid
 konfigurasjonsfeil
 kontogjenoppretting
 kvitteringsside
-kwanyama
-labelsettings
 lagringsnavn
-layoutsets
-lesmeg
-likert
-limburgsk
-lingala
 låsstatus
-mariadb
-maskinportenscope
-md
 medieposisjon
 metadataene
-metadatanavn
 migreringsverktøyene
-minid
 minimumshøyde
-monitorering
-motu
 navigasjonsfelt
 navigasjonsknapper
 navigasjonslinje
@@ -217,24 +117,11 @@ navigasjonsmeny
 navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
-ndebele
-ndonga
 nedtrekksliste
 nedtrekksmeny
 nesteknapp
 nettstedsadministrator
 nettverksfeil
-nistp
-noreply
-notabug
-npm
-npmrc
-nuget
-oauth
-oids
-onedev
-oneof
-openid
 oppdateringssjekker
 oppstartskontroll
 oppsummeringsfelt
@@ -246,57 +133,29 @@ organisasjonsinnstillinger
 organisasjonskoden
 organisasjonsnavn
 organisasjonsnavnet
-orgnr
-packagist
-pacman
-pagebreak
-pageref
 pagineringsvalg
-param
-personnr
-png
-pom
-popups
 portnummer
 postdomenet
-postgresql
-produksjonssette
 prosessteg
 publiseringsdato
 publiseringshistorikk
 publiseringsrettigheter
 publiseringsstatus
 påloggede
-påloggings
-redhat
 redigerbare
 redigeringsknapp
 redigeringsvalg
 redigeringsverktøy
-regex
 registreringssidene
 reinstallere
-releasen
 renderingsregler
-repoet
-repositorier
-repositoriet
-repositorium
 rotbane
-rprofile
-rsa
-rubygem
 rutenettoppsett
 samarbeidskodelagre
 sammendragsvisningsceller
 samtykkemal
 samtykkemetadata
-sango
-sardisk
 seksjonstittel
-sendmail
-sha
-showaddbutton
 sidenavigasjonen
 signatarliste
 signeringsoppgave
@@ -313,14 +172,8 @@ skjemautfyllingen
 sosialnettverkskontoer
 spørreparameter
 spørringsparameter
-srcdoc
-studioctl
-subdomener
-swati
 syntaksfeil
 tekstsøk
-tidb
-tigrinya
 tilbakemeldingsoppgave
 tilgangsliste
 tilgangslisten
@@ -338,14 +191,9 @@ tilleggskontroller
 tittelraden
 tjenerdomene
 tjenerport
-tofaktor
 tredjepartsapplikasjon
 tredjepartsbiblioteker
-trinnsautentisering
-tvangsdyttet
-twi
 uarkiverte
-ui
 ulagrede
 underenhet
 underenheter
@@ -357,9 +205,6 @@ underskjemaet
 underskjemakobling
 underuttrykk
 underuttrykket
-uris
-url
-urler
 utformingsfanen
 utfyllingsoppgaver
 utfyllingssteget
@@ -381,15 +226,41 @@ visningsmodus
 visningsnavn
 visningstype
 visningsverdi
-webauthn
-webhook
-webhooks
+
+# Loanword inflections used deliberately in the UI.
+apier
+dashboardet
+monitorering
+popups
+releasen
+repoet
+repositorier
+repositoriet
+repositorium
+subdomener
+urler
 webserveren
-wechat
-wecom
-wolof
-xml
-yi
-yml
-yyyy
-æøå
+
+# Halves of legitimately hyphenated compounds — the tokenizer splits
+# them at the hyphen, so the halves need their own entries.
+aktiverings             # aktiverings-e-post
+bekreftelses            # bekreftelses-e-post
+påloggings              # påloggings- og registreringssidene
+tofaktor                # tofaktor-autentisering
+trinnsautentisering     # 2-trinnsautentisering
+
+# Kept pending a native ruling: used deliberately in the product, but
+# unusual enough to deserve a human yes/no. Remove a line to re-flag.
+autoriseringsforespørselen  # Gitea translation; the sibling key says 'autorisasjonsforespørselen' — harmonize?
+avstandsjustert             # Gitea's rendering of 'monospace' (avstandsjustert skrift)
+beskrivelsesløse            # ad-hoc -løse derivation in the Gitea UI (emneløse, ikonløse, beskrivelsesløse)
+bolsk                       # calque of 'boolean' used as a data-type label in the expression editor
+delstreng                   # calque of 'substring' in a Gitea validation message
+fravelg                     # calque of 'deselect' in the Gitea UI
+føderert                    # 'føderert avatar-oppslag' (federated) in the Gitea UI
+gjennomsynsforespørsel      # Gitea's rendering of 'review request'
+gjentagende                 # variant of 'gjentakende' in the Designer news feed
+godkjenningsoverskrift      # Gitea's rendering of 'authorization header'
+lesmeg                      # calque of 'README' in the Gitea UI
+produksjonssette            # verbified 'sette i produksjon' in Designer
+tvangsdyttet                # Gitea's rendering of 'force-pushed'
