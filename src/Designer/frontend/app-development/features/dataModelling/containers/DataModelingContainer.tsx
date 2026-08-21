@@ -1,4 +1,4 @@
-import { DataModelling } from '../DataModelling';
+import { DataModeling } from '../DataModeling';
 import classes from './DataModelingContainer.module.css';
 import { dataModelingContainerId } from '@studio/testing/testids';
 

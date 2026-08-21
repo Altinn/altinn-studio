@@ -39,7 +39,7 @@ public class AuthenticationService : IAuthentication
         _generalSettings = generalSettings.Value;
         _certSettings = certSettings.Value;
         _claimsService = claimsService;
-        _organisations = organisations;
+        _organizations = organizations;
     }
 
     ///<inheritdoc/>

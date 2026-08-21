@@ -23,7 +23,7 @@ export const DefaultToolbar = () => {
     [CollapsibleMenus.AdvancedComponents]: advancedComponentsList,
   };
 
-  return Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
+  return Object.values(CollapsibleMenus).map((key: CollapsibleMenus) => {
     return (
       <StudioDetails
         key={key}

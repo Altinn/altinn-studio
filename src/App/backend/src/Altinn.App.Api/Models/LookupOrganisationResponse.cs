@@ -52,6 +52,6 @@ public class OrganisationDetails
     /// </summary>
     public static OrganisationDetails MapFromOrganisation(Organization organization)
     {
-        return new OrganisationDetails { OrgNr = organisation.OrgNumber, Name = organisation.Name };
+        return new OrganisationDetails { OrgNr = organization.OrgNumber, Name = organization.Name };
     }
 }

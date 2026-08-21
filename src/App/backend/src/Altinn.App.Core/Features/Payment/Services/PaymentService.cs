@@ -48,7 +48,7 @@ internal class PaymentService : IPaymentService
         _generalSettings = generalSettings.Value;
         _app = app;
         _authenticationTokenResolver = authenticationTokenResolver;
-        _telemtry = telemtry;
+        _telemetry = telemetry;
     }
 
     /// <inheritdoc/>

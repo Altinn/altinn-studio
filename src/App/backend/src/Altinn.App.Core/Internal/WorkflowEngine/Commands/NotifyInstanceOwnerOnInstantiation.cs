@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// Request payload for NotifyInstanceOwnerOnInstantiation command.
 /// Contains the notification configuration provided at instantiation time.
 /// </summary>
-internal sealed record NotifyInstanceOwnerOnInstantiationPayload(InstantiationNotification Notification)
+internal sealed record NotifyInstanceOwnerOnInstantiationPayload(InstansiationNotification Notification)
     : CommandRequestPayload;
 
 /// <summary>

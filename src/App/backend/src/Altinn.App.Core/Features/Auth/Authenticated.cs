@@ -211,7 +211,7 @@ public abstract class Authenticated
         /// <param name="UserParty">Party object for the user. This means that the user is currently representing themselves as a person</param>
         /// <param name="SelectedParty">
         ///     Party object for the selected party.
-        ///     Selected party and user party will differ when the user has chosed to represent a different entity during party selection (e.g. an organization)
+        ///     Selected party and user party will differ when the user has chosen to represent a different entity during party selection (e.g. an organization)
         /// </param>
         /// <param name="Profile">Users profile</param>
         /// <param name="RepresentsSelf">True if the user represents itself (user party will equal selected party)</param>
@@ -1067,7 +1067,7 @@ public abstract class Authenticated
             );
         if (!OrganisationNumber.TryParse(context.ConsumerClaimValue?.Id, out var supplierOrgNr))
             throw new AuthenticationContextException(
-                $"Invalid organisation number in supplier organisation number claim for system user token: {context.ConsumerClaimValue?.Id}"
+                $"Invalid organization number in supplier organization number claim for system user token: {context.ConsumerClaimValue?.Id}"
             );
 
         return new SystemUser(

@@ -375,7 +375,7 @@ export const validateResource = (
           field: 'consentText',
           index: language,
           error: t('resourceadm.about_resource_error_unknown_metadata_language', {
-            unknownMetadataValues: unknowMetadataValues[language].join(', '),
+            unknownMetadataValues: unknownMetadataValues[language].join(', '),
             lang1: t(`language.${language}`),
           }),
         });

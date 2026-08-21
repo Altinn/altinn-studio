@@ -877,7 +877,7 @@ public partial class PreviewController(
     /// </summary>
     /// <param name="org">The org</param>
     /// <param name="app">The app</param>
-    /// <param name="organisationNumber">The organisation number to lookup</param>
+    /// <param name="organisationNumber">The organization number to look up</param>
     /// <returns></returns>
     [HttpGet]
     [Route("api/v1/lookup/organisation/{organisationNumber}")]

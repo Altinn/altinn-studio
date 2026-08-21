@@ -151,7 +151,7 @@ public sealed class InstanceOwnerResponse
     public required string PersonNumber { get; init; }
 
     /// <summary>
-    /// The organisation number of the party. Null if the party is not an organisation.
+    /// The organization number of the party. Null if the party is not an organization.
     /// </summary>
     public required string OrganisationNumber { get; init; }
 
@@ -197,7 +197,7 @@ public sealed class PartyResponse
     public required string SSN { get; init; }
 
     /// <summary>
-    /// The organisation number of the party. Null if the party is not an organisation.
+    /// The organization number of the party. Null if the party is not an organization.
     /// </summary>
     public required string OrgNumber { get; init; }
 

@@ -353,7 +353,7 @@ public class InstancesController : ControllerBase
         var requestParts = readResult.Ok;
 
         Instance? instanceTemplate = ExtractInstanceTemplate(requestParts);
-        InstantiationNotification? notification = ExtractInstantiationNotification(requestParts);
+        InstansiationNotification? notification = ExtractInstansiationNotification(requestParts);
 
         if (instanceOwnerPartyId is null && instanceTemplate is null)
         {
@@ -615,7 +615,7 @@ public class InstancesController : ControllerBase
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromBody] InstantiationInstance instantiationInstance,
+        [FromBody] InstansiationInstance instantiationInstance,
         [FromQuery] string? language = null
     )
     {
@@ -1888,7 +1888,7 @@ public class InstancesController : ControllerBase
         return null;
     }
 
-    private static InstantiationNotification? ExtractInstantiationNotification(List<RequestPart> parts)
+    private static InstansiationNotification? ExtractInstansiationNotification(List<RequestPart> parts)
     {
         RequestPart? notificationPart = parts.Find(part => part.Name == "notification");
 
@@ -1902,7 +1902,7 @@ public class InstancesController : ControllerBase
                 && notificationPart.ContentType.Contains("application/json", StringComparison.Ordinal)
             )
             {
-                return JsonConvert.DeserializeObject<InstantiationNotification>(
+                return JsonConvert.DeserializeObject<InstansiationNotification>(
                     Encoding.UTF8.GetString(notificationPart.Bytes)
                 );
             }

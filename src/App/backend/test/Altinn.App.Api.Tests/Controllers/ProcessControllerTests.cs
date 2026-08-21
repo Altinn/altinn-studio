@@ -847,7 +847,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
+                    It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstansiationNotification?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

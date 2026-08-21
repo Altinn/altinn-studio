@@ -171,7 +171,7 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     /// <summary>
     /// Implicit conversion from <see cref="OrganisationNumber"/> to string.
     /// </summary>
-    /// <param name="organisationNumber">The organisation number instance</param>
+    /// <param name="organisationNumber">The organization number instance</param>
     public static implicit operator string(OrganisationNumber organisationNumber)
     {
         return organisationNumber._local;

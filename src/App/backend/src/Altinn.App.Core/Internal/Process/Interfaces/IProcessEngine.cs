@@ -25,7 +25,7 @@ internal interface IProcessEngine
         string lockToken,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null,
+        InstansiationNotification? notification = null,
         CancellationToken ct = default
     );
 

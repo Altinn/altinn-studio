@@ -24,7 +24,7 @@ public class LookupOrganisationController : ControllerBase
     /// <summary>
     /// Initialize a new instance of <see cref="LookupOrganisationController"/> with the given services.
     /// </summary>
-    /// <param name="organisationClient">A client for an organisation lookup in ER.</param>
+    /// <param name="organisationClient">A client for an organization lookup in ER.</param>
     /// <param name="logger">A logger for logging.</param>
     public LookupOrganisationController(
         IOrganizationClient organisationClient,

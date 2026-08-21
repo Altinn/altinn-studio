@@ -39,7 +39,7 @@ internal sealed record TaskStartContext
     /// <summary>
     /// Notification to send to instance owner on instantiation. Only relevant when <see cref="IsInitialTaskStart"/> is true.
     /// </summary>
-    public InstantiationNotification? Notification { get; init; }
+    public InstansiationNotification? Notification { get; init; }
 
     /// <summary>
     /// Whether to register events with the events component.

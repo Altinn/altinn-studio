@@ -4,7 +4,7 @@ namespace Altinn.App.Core.Features.FileAnalysis;
 /// Interface for doing extended binary file analyzing.
 /// </summary>
 [ImplementableByApps]
-public interface IFileAnalyzer
+public interface IFileAnalyser
 {
     /// <summary>
     /// The id of the analyzer to be used when enabling it from config.

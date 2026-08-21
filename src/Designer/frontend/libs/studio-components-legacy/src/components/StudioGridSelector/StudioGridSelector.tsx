@@ -108,7 +108,7 @@ const generateLinearGradient = (gridValue: number, hover: boolean): string => {
     const startSquarePosition = `calc(${totalBgWidth} * ${option - 1} / 12)`;
     const endSquarePosition = `calc(${totalBgWidth} * ${option} / 12 - ${gap})`;
     const endGapPosition = `calc(${totalBgWidth} * ${option} / 12)`;
-    const squareColour = option <= gridValue ? insideColour : outsideColour;
+    const squareColor = option <= gridValue ? insideColor : outsideColor;
     const startSquareLine = `${squareColor} ${startSquarePosition}`;
     const endSquareLine = `${squareColor} ${endSquarePosition}`;
     const startGapLine = `${gapColor} ${endSquarePosition}`;

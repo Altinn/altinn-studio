@@ -37,7 +37,7 @@ export function DefaultToolbar() {
 
   return (
     <>
-      {Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
+      {Object.values(CollapsibleMenus).map((key: CollapsibleMenus) => {
         return (
           <StudioDetails
             key={key}

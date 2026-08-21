@@ -32,7 +32,7 @@ public class PlatformBearerTokenHandler : DelegatingHandler
     )
     {
         _altinnAuthenticationClient = altinnAuthenticationClient;
-        _accesTokenGenerator = accessTokenGenerator;
+        _accessTokenGenerator = accessTokenGenerator;
         _generalSettings = generalSettings;
     }
 

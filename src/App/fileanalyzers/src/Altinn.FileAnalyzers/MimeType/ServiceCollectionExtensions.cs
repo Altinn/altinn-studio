@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds support for MimeType analysis and validation by registering
-    /// * IFileAnalyzer implementation
+    /// * IFileAnalyser implementation
     /// * IFileValidator implementation
     /// based on the MimeDetective library.
     /// </summary>
@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
 
     /// <summary>
     /// Adds support for MimeType analysis and validation by registering
-    /// * IFileAnalyzer implementation
+    /// * IFileAnalyser implementation
     /// * IFileValidator implementation
     /// based on the MimeDetective library.
     /// </summary>
@@ -45,7 +45,7 @@ public static class ServiceCollectionExtensions
         IContentInspector inspector
     )
     {
-        services.AddSingleton<IFileAnalyser, MimeTypeAnalyser>();
+        services.AddSingleton<IFileAnalyser, MimeTypeAnalyzer>();
         services.AddSingleton<IFileValidator, MimeTypeValidator>();
 
         services.AddSingleton<IContentInspector>(inspector);

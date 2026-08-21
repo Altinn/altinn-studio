@@ -303,12 +303,12 @@ public class PaymentController : ControllerBase
         var validPaymentConfiguration = paymentConfiguration.Validate();
 
         // Update payment status using ServiceOwner authentication
-        var responsText = await _paymentService.HandlePaymentCompletedWebhook(
+        var responseText = await _paymentService.HandlePaymentCompletedWebhook(
             instance,
             validPaymentConfiguration,
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        return Ok(responsText);
+        return Ok(responseText);
     }
 }

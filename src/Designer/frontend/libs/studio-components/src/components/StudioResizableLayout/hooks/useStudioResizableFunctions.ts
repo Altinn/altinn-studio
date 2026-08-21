@@ -36,7 +36,7 @@ export const useStudioResizableLayoutFunctions = (
     const totalSize = element.size + neighbor.size;
     if (element.maximumSize < newSize) newSize = element.maximumSize;
     if (element.minimumSize > newSize) newSize = element.minimumSize;
-    if (neighbour.minimumSize > totalSize - newSize) newSize = totalSize - neighbour.minimumSize;
+    if (neighbor.minimumSize > totalSize - newSize) newSize = totalSize - neighbor.minimumSize;
     const neighborNewSize = totalSize - newSize;
     return { newSize, neighborNewSize };
   };
@@ -54,7 +54,7 @@ export const useStudioResizableLayoutFunctions = (
 
     const totalFlexGrow = element.flexGrow + neighbor.flexGrow;
     const containerFlexGrow = (newSize / totalPixelSize) * totalFlexGrow;
-    const neighbourFlexGrow = (neighbourNewSize / totalPixelSize) * totalFlexGrow;
+    const neighborFlexGrow = (neighborNewSize / totalPixelSize) * totalFlexGrow;
     return { containerFlexGrow, neighborFlexGrow };
   };
 
@@ -66,10 +66,10 @@ export const useStudioResizableLayoutFunctions = (
       return;
     }
 
-    const { containerFlexGrow, neighbourFlexGrow } = calculateFlexGrow(element, neighbour, size);
+    const { containerFlexGrow, neighborFlexGrow } = calculateFlexGrow(element, neighbor, size);
 
     setContainerSize(index, containerFlexGrow);
-    setContainerSize(neighbour.index, neighbourFlexGrow);
+    setContainerSize(neighbor.index, neighborFlexGrow);
   };
 
   const resizeDelta = (index: number, size: number): void => {

@@ -52,7 +52,7 @@ internal sealed class NotificationService : INotificationService
     public async Task NotifyInstanceOwnerOnInstantiation(
         Instance instance,
         Party party,
-        InstantiationNotification instantiationNotification,
+        InstansiationNotification instantiationNotification,
         CancellationToken ct
     )
     {
@@ -93,7 +93,7 @@ internal sealed class NotificationService : INotificationService
         ApplicationMetadata? applicationMetadata,
         string? instanceOwnerName,
         AltinnCdnOrgName? serviceOwnerName,
-        InstantiationNotification instantiationNotification,
+        InstansiationNotification instantiationNotification,
         Uri conditionEndpoint
     )
     {
@@ -290,7 +290,7 @@ internal sealed class NotificationService : INotificationService
         string language,
         NotificationRecipient requestedRecipient,
         Uri? conditionEndpoint,
-        List<InstantiationNotificationReminder>? requestedReminders
+        List<InstansiationNotificationReminder>? requestedReminders
     )
     {
         if (requestedReminders is null or { Count: 0 })
@@ -321,7 +321,7 @@ internal sealed class NotificationService : INotificationService
     private static NotificationRecipient BuildReminderRecipient(
         string language,
         NotificationRecipient original,
-        InstantiationNotificationReminder reminder
+        InstansiationNotificationReminder reminder
     )
     {
         // Each branch copies the original recipient type and applies any

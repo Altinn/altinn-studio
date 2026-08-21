@@ -9949,13 +9949,13 @@
             "nullable": true
           },
           "notification": {
-            "$ref": "#/components/schemas/InstantiationNotification"
+            "$ref": "#/components/schemas/InstansiationNotification"
           }
         },
         "additionalProperties": false,
         "description": "Specialized model for instantiation of instances"
       },
-      "InstantiationNotification": {
+      "InstansiationNotification": {
         "type": "object",
         "properties": {
           "notificationChannel": {
@@ -9982,14 +9982,14 @@
           "reminders": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/InstantiationNotificationReminder"
+              "$ref": "#/components/schemas/InstansiationNotificationReminder"
             },
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "InstantiationNotificationReminder": {
+      "InstansiationNotificationReminder": {
         "type": "object",
         "properties": {
           "requestedSendTime": {

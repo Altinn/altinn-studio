@@ -165,7 +165,7 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url to the json file which holds the valid organisation entries (which inclides name, organisation number and org identifier)
+        /// Gets or sets the url to the json file which holds the valid organization entries (which includes name, organization number and org identifier)
         /// </summary>
         public string OrganisationRepositoryLocation { get; set; }
 

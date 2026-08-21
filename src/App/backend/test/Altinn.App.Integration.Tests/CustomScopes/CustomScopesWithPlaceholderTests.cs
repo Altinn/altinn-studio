@@ -62,7 +62,7 @@ public class CustomScopesWithPlaceholderTests(ITestOutputHelper _output, AppFixt
 
         var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstantiationInstance
+            new InstansiationInstance
             {
                 InstanceOwner = new InstanceOwner { PartyId = "501337" },
                 Prefill = new() { { "property1", "1" }, { "property2", "1" } },

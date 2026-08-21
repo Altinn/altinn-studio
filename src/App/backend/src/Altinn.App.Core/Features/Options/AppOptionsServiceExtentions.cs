@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Options;
 /// <summary>
 /// Extension methods for <see cref="IServiceCollection"/> for adding app options providers
 /// </summary>
-public static class AppOptionsServiceExtensions
+public static class AppOptionsServiceExtentions
 {
     /// <summary>
     /// Join multiple app options providers into one

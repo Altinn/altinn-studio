@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 const Overview = lazy(() => import('app-development/features/overview/components/Overview'));
 const DataModelingContainer = lazy(
-  () => import('app-development/features/dataModelling/containers/DataModellingContainer'),
+  () => import('app-development/features/dataModelling/containers/DataModelingContainer'),
 );
 const DeployPage = lazy(() => import('app-development/features/appPublish/pages/DeployPage'));
 const ProcessEditor = lazy(() => import('app-development/features/processEditor/ProcessEditor'));

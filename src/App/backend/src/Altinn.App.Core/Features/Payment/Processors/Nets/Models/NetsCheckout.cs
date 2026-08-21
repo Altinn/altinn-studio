@@ -40,7 +40,7 @@ internal class NetsCheckout
     public string? CancelUrl { get; set; }
 
     /// <summary>
-    /// Contains information about the customer. If provided, this information will be used for initating the consumer data of the payment object.
+    /// Contains information about the customer. If provided, this information will be used for initiating the consumer data of the payment object.
     /// See also the property merchantHandlesConsumerData which controls what fields to show on the checkout page.
     /// </summary>
     public NetsCheckoutConsumerDetails? Consumer { get; set; }

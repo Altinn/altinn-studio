@@ -12,9 +12,9 @@ public class FileAnalyserFactory : IFileAnalyserFactory
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FileAnalyzerFactory"/> class.
+    /// Initializes a new instance of the <see cref="FileAnalyserFactory"/> class.
     /// </summary>
-    public FileAnalyzerFactory(IServiceProvider serviceProvider)
+    public FileAnalyserFactory(IServiceProvider serviceProvider)
     {
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
@@ -22,9 +22,9 @@ public class FileAnalyserFactory : IFileAnalyserFactory
     /// <summary>
     /// Finds the specified file analyser implementations based on the specified analyser id's.
     /// </summary>
-    public IEnumerable<IFileAnalyser> GetFileAnalyzers(IEnumerable<string> analyzerIds)
+    public IEnumerable<IFileAnalyser> GetFileAnalysers(IEnumerable<string> analyzerIds)
     {
-        var analyzers = _appImplementationFactory.GetAll<IFileAnalyzer>();
+        var analyzers = _appImplementationFactory.GetAll<IFileAnalyser>();
         return analyzers.Where(x => analyzerIds.Contains(x.Id)).ToArray();
     }
 }

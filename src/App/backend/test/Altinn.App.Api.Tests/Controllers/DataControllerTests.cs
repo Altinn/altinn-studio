@@ -85,7 +85,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
+            services.AddTransient<IFileAnalyser, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -118,7 +118,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
+            services.AddTransient<IFileAnalyser, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -153,7 +153,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerFailureStub>();
+            services.AddTransient<IFileAnalyser, MimeTypeAnalyzerFailureStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -337,7 +337,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 }
 
-public class MimeTypeAnalyzerSuccessStub : IFileAnalyzer
+public class MimeTypeAnalyzerSuccessStub : IFileAnalyser
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
@@ -359,7 +359,7 @@ public class MimeTypeAnalyzerSuccessStub : IFileAnalyzer
     }
 }
 
-public class MimeTypeAnalyzerFailureStub : IFileAnalyzer
+public class MimeTypeAnalyzerFailureStub : IFileAnalyser
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 

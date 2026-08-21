@@ -8,7 +8,7 @@ namespace Altinn.App.Api.Models;
 /// <summary>
 /// Specialized model for instantiation of instances
 /// </summary>
-public class InstantiationInstance
+public class InstansiationInstance
 {
     /// <summary>
     /// Gets or sets the instance owner information.
@@ -38,7 +38,7 @@ public class InstantiationInstance
     /// <summary>
     /// Gets or sets the notifications to send to the instance owner related to the instantiation of the instance.
     /// </summary>
-    public InstantiationNotification Notification { get; set; }
+    public InstansiationNotification Notification { get; set; }
 
     /// <inheritdoc/>
     public override string ToString()

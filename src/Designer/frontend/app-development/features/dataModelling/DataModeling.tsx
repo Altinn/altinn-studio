@@ -17,7 +17,7 @@ interface DataModelingProps {
   createPathOption?: boolean;
 }
 
-export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
+export function DataModeling({ createPathOption = false }: DataModelingProps): ReactNode {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
   const { status: jsonStatus, error: jsonError, data: jsonData } = useDataModelsJsonQuery(org, app);

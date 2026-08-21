@@ -1332,9 +1332,9 @@ namespace Altinn.App.Core.Features
             public const string FiksMessageType = "fiks.message.type";
             public const string FiksSendersReference = "fiks.message.sendersReference";
             public const string NotificationSendersReference = "notification.sendersReference";
-            public const string OrganisationName = "organization.name";
-            public const string OrganisationNumber = "organization.number";
-            public const string OrganisationSystemUserId = "organization.systemuser.id";
+            public const string OrganisationName = "organisation.name";
+            public const string OrganisationNumber = "organisation.number";
+            public const string OrganisationSystemUserId = "organisation.systemuser.id";
             public const string UserAuthenticationInAltinnPortal = "user.authentication.inAltinnPortal";
             public const string UserAuthenticationLevel = "user.authentication.level";
             public const string UserAuthenticationMethod = "user.authentication.method";
@@ -1464,7 +1464,7 @@ namespace Altinn.App.Core.Features.FileAnalysis
         public System.Collections.Generic.IDictionary<string, string> Metadata { get; }
         public string? MimeType { get; set; }
     }
-    public interface IFileAnalyzer
+    public interface IFileAnalyser
     {
         string Id { get; }
         System.Threading.Tasks.Task<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> Analyze(System.IO.Stream stream, string? filename = null);
@@ -1472,19 +1472,19 @@ namespace Altinn.App.Core.Features.FileAnalysis
 }
 namespace Altinn.App.Core.Features.FileAnalysis
 {
-    public class FileAnalyzerFactory : Altinn.App.Core.Features.FileAnalysis.IFileAnalyzerFactory
+    public class FileAnalyserFactory : Altinn.App.Core.Features.FileAnalysis.IFileAnalyserFactory
     {
-        public FileAnalyzerFactory(System.IServiceProvider serviceProvider) { }
-        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyzer> GetFileAnalyzers(System.Collections.Generic.IEnumerable<string> analyzerIds) { }
+        public FileAnalyserFactory(System.IServiceProvider serviceProvider) { }
+        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyser> GetFileAnalysers(System.Collections.Generic.IEnumerable<string> analyzerIds) { }
     }
     public class FileAnalysisService : Altinn.App.Core.Features.FileAnalysis.IFileAnalysisService
     {
-        public FileAnalysisService(Altinn.App.Core.Features.FileAnalysis.IFileAnalyzerFactory fileAnalyzerFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public FileAnalysisService(Altinn.App.Core.Features.FileAnalysis.IFileAnalyserFactory fileAnalyserFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult>> Analyze(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.IO.Stream fileStream, string? filename = null) { }
     }
-    public interface IFileAnalyzerFactory
+    public interface IFileAnalyserFactory
     {
-        System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyzer> GetFileAnalyzers(System.Collections.Generic.IEnumerable<string> analyzerIds);
+        System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyser> GetFileAnalysers(System.Collections.Generic.IEnumerable<string> analyzerIds);
     }
     public interface IFileAnalysisService
     {
@@ -1606,11 +1606,11 @@ namespace Altinn.App.Core.Features.Maskinporten.Models
 }
 namespace Altinn.App.Core.Features.Notifications.Cancellation
 {
-    public interface ICancelInstantiationNotification
+    public interface ICancelInstansiationNotification
     {
         bool ShouldSend(Altinn.Platform.Storage.Interface.Models.Instance instance);
     }
-    public class SendOnProcessNotEnded : Altinn.App.Core.Features.Notifications.Cancellation.ICancelInstantiationNotification
+    public class SendOnProcessNotEnded : Altinn.App.Core.Features.Notifications.Cancellation.ICancelInstansiationNotification
     {
         public SendOnProcessNotEnded() { }
         public bool ShouldSend(Altinn.Platform.Storage.Interface.Models.Instance instance) { }
@@ -1620,7 +1620,7 @@ namespace Altinn.App.Core.Features.Notifications
 {
     public interface INotificationService
     {
-        System.Threading.Tasks.Task NotifyInstanceOwnerOnInstantiation(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Register.Models.Party party, Altinn.App.Core.Models.Notifications.Future.InstantiationNotification instantiationNotification, System.Threading.CancellationToken ct);
+        System.Threading.Tasks.Task NotifyInstanceOwnerOnInstantiation(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Register.Models.Party party, Altinn.App.Core.Models.Notifications.Future.InstansiationNotification instantiationNotification, System.Threading.CancellationToken ct);
     }
 }
 namespace Altinn.App.Core.Features.Notifications.SecretProvider
@@ -1714,7 +1714,7 @@ namespace Altinn.App.Core.Features.Options
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
         public bool IsInstanceAppOptionsProviderRegistered(string optionId) { }
     }
-    public static class AppOptionsServiceExtensions
+    public static class AppOptionsServiceExtentions
     {
         public static void AddJoinedAppOptions(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string id, params string[] subLists) { }
     }
@@ -5150,9 +5150,9 @@ namespace Altinn.App.Core.Models.Notifications.Future
         [System.Text.Json.Serialization.JsonPropertyName("subject")]
         public required string Subject { get; init; }
     }
-    public sealed class InstantiationNotification
+    public sealed class InstansiationNotification
     {
-        public InstantiationNotification() { }
+        public InstansiationNotification() { }
         [System.Text.Json.Serialization.JsonPropertyName("allowSendingAfterWorkHours")]
         public bool AllowSendingAfterWorkHours { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("customEmail")]
@@ -5164,13 +5164,13 @@ namespace Altinn.App.Core.Models.Notifications.Future
         [System.Text.Json.Serialization.JsonPropertyName("notificationChannel")]
         public Altinn.App.Core.Models.Notifications.Future.NotificationChannel NotificationChannel { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("reminders")]
-        public System.Collections.Generic.List<Altinn.App.Core.Models.Notifications.Future.InstantiationNotificationReminder>? Reminders { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Notifications.Future.InstansiationNotificationReminder>? Reminders { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("requestedSendTime")]
         public System.DateTime? RequestedSendTime { get; init; }
     }
-    public sealed class InstantiationNotificationReminder
+    public sealed class InstansiationNotificationReminder
     {
-        public InstantiationNotificationReminder() { }
+        public InstansiationNotificationReminder() { }
         [System.Text.Json.Serialization.JsonPropertyName("customEmail")]
         public Altinn.App.Core.Models.Notifications.Future.CustomEmail? CustomEmail { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("customSms")]

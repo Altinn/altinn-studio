@@ -62,7 +62,7 @@ export type ValidationCategory = (typeof ValidationMask)[ValidationCategoryKey] 
  * Visibility setting used for selecting errors for nodes.
  * 'visible' = Select all validations with a ValidationMask matching the nodes current visibility
  * 'showAll' = Matches both current visibility and all backend validations, needed for "showAllUnboundValidations"
- * number = Select all validations with a ValidationMask maching the mask (number, because you can OR multiple masks together in any combination)
+ * number = Select all validations with a ValidationMask matching the mask (number, because you can OR multiple masks together in any combination)
  */
 export type NodeVisibility = 'visible' | 'showAll' | number;
 

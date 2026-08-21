@@ -51,7 +51,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Adds title to the intance
+        /// Adds title to the instance
         /// </summary>
         public static List<MessageBoxInstance> AddTitleToInstances(List<MessageBoxInstance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
         {

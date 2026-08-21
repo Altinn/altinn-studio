@@ -140,7 +140,7 @@ public abstract record OrganisationOrPersonIdentifier
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is equal to an <see cref="OrganisationNumber"/>.
     /// </summary>
     public static bool operator ==(OrganisationNumber left, OrganisationOrPersonIdentifier right) =>
-        right is Organization organisation && left == organisation.Value;
+        right is Organisation organisation && left == organisation.Value;
 
     /// <summary>
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is not equal to an <see cref="OrganisationNumber"/>.
@@ -151,7 +151,7 @@ public abstract record OrganisationOrPersonIdentifier
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is equal to an <see cref="OrganisationNumber"/>.
     /// </summary>
     public static bool operator ==(OrganisationOrPersonIdentifier left, OrganisationNumber right) =>
-        left is Organization organisation && right == organisation.Value;
+        left is Organisation organisation && right == organisation.Value;
 
     /// <summary>
     /// Determines if a given <see cref="OrganisationOrPersonIdentifier"/> is not equal to an <see cref="OrganisationNumber"/>.

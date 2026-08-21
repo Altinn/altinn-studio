@@ -263,7 +263,7 @@ public class PrefillSI : IPrefill
             {
                 if (propertyValue == null)
                 {
-                    // the object does not exsist, create a new one with the property type
+                    // the object does not exist, create a new one with the property type
                     propertyValue =
                         Activator.CreateInstance(property.PropertyType)
                         ?? throw new Exception(

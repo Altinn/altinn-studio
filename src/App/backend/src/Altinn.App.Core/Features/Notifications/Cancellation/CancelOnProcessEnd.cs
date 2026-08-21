@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Notifications.Cancellation;
 /// <summary>
 /// Default implementation - send notification unless the process has already ended
 /// </summary>
-public class SendOnProcessNotEnded : ICancelInstantiationNotification
+public class SendOnProcessNotEnded : ICancelInstansiationNotification
 {
     /// <summary>
     /// Send if the process has not yet ended

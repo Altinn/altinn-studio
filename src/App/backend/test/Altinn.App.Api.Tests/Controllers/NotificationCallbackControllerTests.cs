@@ -13,7 +13,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class NotificationCallbackControllerTests
 {
-    private readonly Mock<ICancelInstantiationNotification> _instantiationNotificationMock = new(MockBehavior.Strict);
+    private readonly Mock<ICancelInstansiationNotification> _instantiationNotificationMock = new(MockBehavior.Strict);
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<INotificationConditionCodeValidator> _secretValidatorMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();

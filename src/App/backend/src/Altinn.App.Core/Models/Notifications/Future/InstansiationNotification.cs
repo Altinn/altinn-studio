@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Models.Notifications.Future;
 /// <summary>
 /// Model for providing information about notifications to send to the instance owner related to the instantiation of the instance.
 /// </summary>
-public sealed class InstantiationNotification
+public sealed class InstansiationNotification
 {
     /// <summary>
     /// The notification channel to use when sending the notification.
@@ -56,13 +56,13 @@ public sealed class InstantiationNotification
     /// Gets or sets reminder notifications.
     /// </summary>
     [JsonPropertyName("reminders")]
-    public List<InstantiationNotificationReminder>? Reminders { get; set; }
+    public List<InstansiationNotificationReminder>? Reminders { get; set; }
 }
 
 /// <summary>
 /// Model for reminder notification
 /// </summary>
-public sealed class InstantiationNotificationReminder()
+public sealed class InstansiationNotificationReminder()
 {
     /// <summary>
     /// Gets or sets the earliest time the notification(s) should be sent.

@@ -78,7 +78,7 @@ func NewClient(baseURL, pat string, opts ...Option) *Client {
 }
 
 // MintRegistrationToken returns a fresh runner registration token for the
-// given organisation. org is the short Gitea organisation name (e.g. "ttd").
+// given organization. org is the short Gitea organization name (e.g. "ttd").
 //
 // The endpoint requires HTTP POST in Gitea 1.26+ (the GET form was removed).
 // Tokens themselves have no time-based expiry. However, each POST atomically

@@ -119,8 +119,8 @@ public class InstanceIdentifier
 
     /// <summary>
     /// Deconstructs an instance based url string into instanceOwnerId and InstanceGuid.
-    /// The url needs to conform to .../instances/{instanceOwerId}/{instanceOwnerGuid}/... or
-    /// .../instance/{instanceOwerId}/{instanceOwnerGuid}/... pattern.
+    /// The url needs to conform to .../instances/{instanceOwnerId}/{instanceOwnerGuid}/... or
+    /// .../instance/{instanceOwnerId}/{instanceOwnerGuid}/... pattern.
     /// </summary>
     /// <param name="url">The url to parse</param>
     /// <returns>A 2-tuple with the partyId (int) and the instanceGuid (Guid).</returns>

@@ -187,7 +187,7 @@ public class AppSettings
     /// </summary>
     /// <remarks>
     /// If overriding for testing purposes, ensure to only update appsettings.Development.
-    /// Integration will not work if value is overrided in staging or production.
+    /// Integration will not work if value is overridden in staging or production.
     /// </remarks>
     public string EFormidlingSender { get; set; } = "910075918";
 

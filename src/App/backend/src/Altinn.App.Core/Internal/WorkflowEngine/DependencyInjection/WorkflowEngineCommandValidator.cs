@@ -69,7 +69,7 @@ internal static class WorkflowEngineCommandValidator
                     ServiceTaskType = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
-                    Notification = new InstantiationNotification(),
+                    Notification = new InstansiationNotification(),
                     RegisterEvents = false,
                 }
             ),
