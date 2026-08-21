@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'src/common/dotnet/**'
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-format.yaml'
       - '!**/AGENTS.md'
@@ -27,8 +28,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
-          dotnet-version: |
-            9.0.x
+          global-json-file: src/Designer/backend/global.json
       - name: Restore tools
         run: dotnet tool restore
       - name: Run csharpier

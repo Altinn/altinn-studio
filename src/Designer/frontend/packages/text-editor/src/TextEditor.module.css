@@ -36,10 +36,18 @@
 }
 
 .sortAlphabetically {
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
   display: flex;
   align-items: center;
   white-space: nowrap;
+}
+
+.sortChip > input {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .textEditorBody {

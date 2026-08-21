@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -7,6 +8,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
@@ -30,7 +32,9 @@ public class InstancesController(
     IPreviewService previewService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     IInstanceService instanceService,
-    IApplicationMetadataService applicationMetadataService
+    IApplicationMetadataService applicationMetadataService,
+    IAppVersionService appVersionService,
+    IPreviewBootstrapService previewBootstrapService
 ) : Controller
 {
     // <summary>
@@ -46,7 +50,10 @@ public class InstancesController(
             app,
             developer
         );
-        if (!altinnAppGitRepository.AppUsesLayoutSets())
+        // v9 apps never have a layout-sets.json, so AppUsesLayoutSets() is false for them; gate the
+        // redirect on IsV9App too so they are never routed to the v3 (Old*) controllers.
+        bool isV9App = appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org!, app!, developer));
+        if (!isV9App && !altinnAppGitRepository.AppUsesLayoutSets())
         {
             RouteValueDictionary routeData = context.RouteData.Values;
             foreach (var queryParam in context.HttpContext.Request.Query)
@@ -76,6 +83,128 @@ public class InstancesController(
     {
         Instance instanceData = instanceService.GetInstance(instanceGuid);
         return Ok(instanceData);
+    }
+
+    /// <summary>
+    /// The enriched instance (instance with process state embedded). New in v9: replaces the separate
+    /// instance + process GETs.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/enriched")]
+    public IActionResult GetEnrichedInstance(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        Instance instanceData = instanceService.GetInstance(instanceGuid);
+        JsonObject enrichedInstance = previewBootstrapService.GetEnrichedInstance(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+            instanceData
+        );
+
+        return Content(enrichedInstance.ToJsonString(), "application/json");
+    }
+
+    /// <summary>
+    /// Consolidated form bootstrap for a stateful instance (new in v9): the folder's layouts plus each
+    /// data model's schema and initial data.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/bootstrap-form/{uiFolder}")]
+    public async Task<IActionResult> BootstrapFormForInstance(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        [FromRoute] string uiFolder,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        Instance instance = instanceService.GetInstance(instanceGuid);
+        JsonObject formBootstrap = await previewBootstrapService.GetInstanceFormBootstrap(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+            uiFolder,
+            instance,
+            cancellationToken
+        );
+
+        return Content(formBootstrap.ToJsonString(), "application/json");
+    }
+
+    /// <summary>
+    /// Mocked payment information so the payment task's layout renders in preview. Status "Created" shows
+    /// the pre-payment step; it must not be "Uninitialized", which would trigger a real payment redirect.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/payment")]
+    [UseSystemTextJson]
+    public ActionResult GetPaymentInformation([FromQuery] string? taskId)
+    {
+        // paymentDetails is omitted: app-frontend only reads it on the paid/receipt path.
+        return Ok(
+            new
+            {
+                taskId = taskId ?? string.Empty,
+                status = "Created",
+                orderDetails = BuildMockOrderDetails(),
+            }
+        );
+    }
+
+    /// <summary>
+    /// Mocked payment order details for a payment task.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/payment/order-details")]
+    [UseSystemTextJson]
+    public ActionResult GetPaymentOrderDetails()
+    {
+        return Ok(BuildMockOrderDetails());
+    }
+
+    // The app's own payment logic produces the real order at runtime; return a valid but empty order
+    // rather than fabricating amounts.
+    private static object BuildMockOrderDetails() =>
+        new
+        {
+            paymentProcessorId = "preview",
+            currency = "NOK",
+            orderLines = Array.Empty<object>(),
+            totalPriceExVat = 0,
+            totalVat = 0,
+            totalPriceIncVat = 0,
+        };
+
+    /// <summary>
+    /// Mocked signee list so the signing task's layout renders in preview. Empty until real preview
+    /// signees are available.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/signing")]
+    [UseSystemTextJson]
+    public ActionResult GetSigneeList()
+    {
+        return Ok(new { signeeStates = Array.Empty<object>() });
+    }
+
+    /// <summary>
+    /// Mocked list of documents to sign for a signing task.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/signing/data-elements")]
+    [UseSystemTextJson]
+    public ActionResult GetSigningDataElements()
+    {
+        return Ok(new { dataElements = Array.Empty<object>() });
+    }
+
+    /// <summary>
+    /// Mocked list of organizations the user may sign on behalf of for a signing task.
+    /// </summary>
+    [HttpGet("{partyId}/{instanceGuid}/signing/organizations")]
+    [UseSystemTextJson]
+    public ActionResult GetSigningOrganizations()
+    {
+        return Ok(new { organizations = Array.Empty<object>() });
     }
 
     /// <summary>

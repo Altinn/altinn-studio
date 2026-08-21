@@ -866,7 +866,9 @@ public class DataController : ControllerBase
             CancellationToken.None
         );
 
-        if (dataStream is not null)
+        // The stream owns the HTTP response behind it. File(...) hands it to the result pipeline,
+        // which disposes it — until then this scope owns it, including if the read-status update throws.
+        try
         {
             string? userOrgClaim = User.GetOrg();
             if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
@@ -879,11 +881,14 @@ public class DataController : ControllerBase
                     CancellationToken.None
                 );
             }
-
-            return File(dataStream, dataElement.ContentType, dataElement.Filename);
+        }
+        catch
+        {
+            await dataStream.DisposeAsync();
+            throw;
         }
 
-        return NotFound();
+        return File(dataStream, dataElement.ContentType, dataElement.Filename);
     }
 
     private async Task<DataType?> GetDataType(DataElement element)

@@ -55,7 +55,7 @@ describe('Redirect', () => {
     if (!baseUrl || typeof baseUrl !== 'string') {
       throw new Error('baseUrl is not configured');
     }
-    const appOrigin = Cypress.env('type') === 'localtest' ? baseUrl : `https://ttd.apps.${new URL(baseUrl).host}`;
+    const appOrigin = Cypress.expose('type') === 'localtest' ? baseUrl : `https://ttd.apps.${new URL(baseUrl).host}`;
     cy.intercept(
       {
         method: 'GET',

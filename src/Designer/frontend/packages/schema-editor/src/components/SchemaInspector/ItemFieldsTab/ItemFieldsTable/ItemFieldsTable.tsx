@@ -56,6 +56,15 @@ export const ItemFieldsTable = ({ readonly, selectedItem }: ItemFieldsTableProps
             {t('schema_editor.required')}
           </th>
           <th
+            className={cn(
+              classes.tableColumnDuplicate,
+              classes.tableCell,
+              classes.tableHeaderCenter,
+            )}
+          >
+            {t('schema_editor.duplicate')}
+          </th>
+          <th
             className={cn(classes.tableColumnDelete, classes.tableCell, classes.tableHeaderCenter)}
           >
             {t('schema_editor.delete')}

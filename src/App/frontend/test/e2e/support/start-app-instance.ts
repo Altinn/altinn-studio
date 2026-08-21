@@ -45,15 +45,16 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     },
   };
 
-  // Run this using --env environment=<localtest|tt02>,responseFuzzing=on to simulate an unreliable network. This might
-  // help us find bugs (usually race conditions) that only occur requests/responses arrive out of order.
-  if (Cypress.env('responseFuzzing') === 'on') {
+  // Run this using --env environment=<localtest|tt02> --expose responseFuzzing=on to simulate an unreliable
+  // network. This might help us find bugs (usually race conditions) that only occur requests/responses arrive
+  // out of order.
+  if (Cypress.expose('responseFuzzing') === 'on') {
     const [min, max] = [10, 1000];
     cy.log(`Response fuzzing on, will delay responses randomly between ${min}ms and ${max}ms`);
     cy.enableResponseFuzzing({ min, max, matchingRoutes: '**/api/**' });
     cy.enableResponseFuzzing({ min, max, matchingRoutes: '**/instances/**' });
   } else {
-    cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
+    cy.log(`Response fuzzing off, enable with --expose responseFuzzing=on`);
   }
 
   const targetUrlRaw = getTargetUrl(appName) + urlSuffix;
@@ -79,7 +80,7 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     });
   }
 
-  if (Cypress.env('type') === 'localtest') {
+  if (Cypress.expose('type') === 'localtest') {
     cy.clearCookies({ domain: 'local.altinn.cloud' });
   } else {
     cy.clearCookies({ domain: 'tt02.altinn.no' });
@@ -88,7 +89,7 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     cy.clearCookies({ domain: 'platform.tt02.altinn.no' });
   }
 
-  if (tenorUser && cyUser && Cypress.env('type') === 'localtest') {
+  if (tenorUser && cyUser && Cypress.expose('type') === 'localtest') {
     cyUserLogin({ cyUser, authenticationLevel });
   } else if (tenorUser) {
     tenorUserLogin({ appName, tenorUser, authenticationLevel });
@@ -104,7 +105,7 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
 });
 
 export function getTargetUrl(appName: string) {
-  return Cypress.env('type') === 'localtest'
+  return Cypress.expose('type') === 'localtest'
     ? `${Cypress.config('baseUrl')}/ttd/${appName}`
     : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
 }

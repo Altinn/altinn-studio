@@ -1,0 +1,110 @@
+use std::{cell::Cell, rc::Rc};
+
+use sandbox::LocalFuture;
+use serde::{Serialize, de::DeserializeOwned};
+use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
+
+use crate::{Agent, Error, control_plane};
+
+use super::protocol::{
+    JSON_RPC_VERSION, METHOD_APPLY, METHOD_DELETE, METHOD_GET, NameParams, ReadMessage, Request, Response, read_message,
+};
+
+/// A byte stream usable by the Agent Control API client.
+pub trait Connection: AsyncRead + AsyncWrite + Unpin {}
+
+impl<T: AsyncRead + AsyncWrite + Unpin> Connection for T {}
+
+/// Opens one connection for one local API call.
+pub trait Connector {
+    /// Connects to the local control plane.
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>>;
+}
+
+/// Calls an Agent control plane over a local stream transport.
+pub struct Client {
+    connector: Rc<dyn Connector>,
+    next_id: Cell<u64>,
+}
+
+impl Client {
+    /// Creates a client with a replaceable local connector.
+    #[must_use]
+    pub fn new(connector: Rc<dyn Connector>) -> Self {
+        Self {
+            connector,
+            next_id: Cell::new(0),
+        }
+    }
+
+    /// Creates a client for the platform local socket at `path`.
+    #[must_use]
+    pub fn for_path(path: std::path::PathBuf) -> Self {
+        Self::new(Rc::new(super::socket::PathConnector::new(path)))
+    }
+
+    /// Creates or updates an Agent resource.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn apply(&self, request: control_plane::ApplyRequest) -> Result<Agent, Error> {
+        self.call(METHOD_APPLY, request).await
+    }
+
+    /// Gets an Agent resource by name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn get(&self, name: &str) -> Result<Agent, Error> {
+        self.call(METHOD_GET, NameParams { name: name.into() }).await
+    }
+
+    /// Requests deletion of an Agent and its owned sandbox.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn delete(&self, name: &str) -> Result<(), Error> {
+        let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }).await?;
+        Ok(())
+    }
+
+    async fn call<P: Serialize, R: DeserializeOwned>(&self, method: &str, params: P) -> Result<R, Error> {
+        let id = self.next_id.get().wrapping_add(1);
+        self.next_id.set(id);
+        let request = Request {
+            jsonrpc: JSON_RPC_VERSION.into(),
+            method: method.into(),
+            params: serde_json::to_value(params)?,
+            id,
+        };
+        let mut stream = self.connector.connect().await?;
+        let mut bytes = serde_json::to_vec(&request)?;
+        bytes.push(b'\n');
+        stream.write_all(&bytes).await?;
+        stream.flush().await?;
+
+        let mut stream = BufReader::new(stream);
+        let line = match read_message(&mut stream).await? {
+            ReadMessage::Complete(line) => line,
+            ReadMessage::EndOfStream | ReadMessage::TooLarge => {
+                return Err(Error::Invalid("invalid Agent Control API response".into()));
+            }
+        };
+        let response: Response = serde_json::from_slice(&line)?;
+        if response.jsonrpc != JSON_RPC_VERSION || response.id != id {
+            return Err(Error::Invalid("invalid Agent Control API response".into()));
+        }
+        if let Some(error) = response.error {
+            return Err(Error::Rpc(error));
+        }
+        serde_json::from_value(
+            response
+                .result
+                .ok_or_else(|| Error::Invalid("Agent Control API response has no result".into()))?,
+        )
+        .map_err(Error::from)
+    }
+}

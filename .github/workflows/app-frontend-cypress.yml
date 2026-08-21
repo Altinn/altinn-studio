@@ -9,16 +9,19 @@ on:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
+      - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
-      - 'app-libs/form-component/src/**'
-      - 'app-libs/form-component/package.json'
-      - 'app-libs/language/src/**'
-      - 'app-libs/language/package.json'
+      - 'src/common/ts/form-component/src/**'
+      - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
+      - 'src/common/ts/language/src/**'
+      - 'src/common/ts/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
@@ -39,7 +42,7 @@ jobs:
         (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
       )
     name: Build Frontend
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -62,11 +65,11 @@ jobs:
         uses: ./.github/actions/app-build-frontend
 
   build-app-run-targets:
-    name: Build App Run Targets
+    name: Prepare app process outputs
     if: |
       (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
       github.repository_owner == 'Altinn'
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-single' }}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
     timeout-minutes: 45
     outputs:
       app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
@@ -74,7 +77,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Build app run targets
+      - name: Resolve app run targets
         id: app-run-targets
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
@@ -94,7 +97,20 @@ jobs:
             }
             core.setOutput('app-run-targets-json', JSON.stringify(targets));
 
+      - name: Resolve app process cache key
+        id: app-process-cache-key
+        shell: bash
+        run: echo "key=app-process-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/**', 'src/App/backend/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache app process outputs
+        id: cache-app-process-outputs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: app-process-build.tar.gz
+          key: ${{ steps.app-process-cache-key.outputs.key }}
+
       - name: Build app process outputs
+        if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
         shell: bash
         run: |
           mapfile -t app_projects < <(find src/test/apps -path '*/App/*.csproj' -type f | sort)
@@ -109,6 +125,7 @@ jobs:
           done
 
       - name: Package app process outputs
+        if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
         shell: bash
         run: |
           mapfile -t build_dirs < <(find \
@@ -133,6 +150,53 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  build-studioctl:
+    name: Prepare studioctl and LocalTest image caches
+    if: |
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      github.repository_owner == 'Altinn'
+    permissions: {}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
+    timeout-minutes: 15
+    outputs:
+      localtest-image-cache-key: ${{ steps.localtest-images.outputs.cache-key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up studioctl dev install
+        uses: ./.github/actions/setup-studioctl
+
+      - name: Populate LocalTest image cache
+        id: localtest-images
+        uses: ./.github/actions/setup-localtest-images
+        with:
+          populate-cache: true
+
+  prepare-app-frontend-dependencies:
+    name: Prepare App Frontend test dependency cache
+    if: |
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) &&
+      github.repository_owner == 'Altinn'
+    permissions: {}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
+    timeout-minutes: 15
+    outputs:
+      cache-key: ${{ steps.dependencies.outputs.cache-key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Populate App Frontend test dependency cache
+        id: dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          populate-cache: true
+
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -142,9 +206,9 @@ jobs:
         (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
         (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
       )
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 120
-    needs: [build-frontend, build-app-run-targets]
+    needs: [build-frontend, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -157,7 +221,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download app process outputs
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app-process-build
           path: /tmp/app-process-build
@@ -166,12 +230,19 @@ jobs:
         shell: bash
         run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
 
+      - name: Restore App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
+          require-cache-hit: true
+
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
           skip-app-build: true
+          localtest-image-cache-key: ${{ needs.build-studioctl.outputs.localtest-image-cache-key }}
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -209,10 +280,7 @@ jobs:
             --browser "${CHROME_PATH:-chrome}"
             --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
             --spec test/e2e/integration
-            # CYPRESS_LOGS_COLLECTOR prints the browser logs of failed tests to the CI log
-            # (cypress-terminal-report) - without it the assertion failures only exist on
-            # Cypress Cloud.
-            --env environment=localtest,CYPRESS_LOGS_COLLECTOR=true
+            --env environment=localtest
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
@@ -243,7 +311,7 @@ jobs:
 
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    needs: [build-frontend-external, build-app-run-targets]
+    needs: [build-frontend-external, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -253,7 +321,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download app process outputs
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app-process-build
           path: /tmp/app-process-build
@@ -262,12 +330,19 @@ jobs:
         shell: bash
         run: tar -xzf /tmp/app-process-build/app-process-build.tar.gz -C "${GITHUB_WORKSPACE}"
 
+      - name: Restore App Frontend test dependencies
+        uses: ./.github/actions/app-frontend-test-dependencies
+        with:
+          cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
+          require-cache-hit: true
+
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-run-targets.outputs.app-run-targets-json }}
           skip-app-build: true
+          localtest-image-cache-key: ${{ needs.build-studioctl.outputs.localtest-image-cache-key }}
 
       - name: Install Cypress binary
         shell: bash

@@ -33,7 +33,7 @@ const (
 	EnvGiteaPATOverride   = "RUNNER_ORG_SYNC_GITEA_PAT"
 
 	// EnvKedaPATKeyVaultSecretName identifies the Key Vault secret for the
-	// read-only Gitea PAT consumed by KEDA's github-runner scaler.
+	// read-only Gitea PAT consumed by KEDA's metrics-api scaler.
 	EnvKedaPATKeyVaultSecretName = "RUNNER_ORG_SYNC_KEDA_PAT_KEYVAULT_SECRET_NAME" // #nosec G101 -- environment variable name, not a secret value.
 	EnvKedaPATSecretName         = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME"          // #nosec G101 -- environment variable name, not a secret value.
 	EnvKedaPATSecretKey          = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_KEY"           // #nosec G101 -- environment variable name, not a secret value.

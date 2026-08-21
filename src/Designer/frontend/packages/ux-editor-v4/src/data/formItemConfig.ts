@@ -56,10 +56,12 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
 
 // ComponentType also contains the v9 names (OrganizationLookup, Heading) used by ux-editor.
 export type FormItemConfigs = {
-  [T in Exclude<
-    ComponentType | CustomComponentType,
-    ComponentType.OrganizationLookup | ComponentType.Heading
-  >]: FormItemConfig<T>;
+  [
+    T in Exclude<
+      ComponentType | CustomComponentType,
+      ComponentType.OrganizationLookup | ComponentType.Heading
+    >
+  ]: FormItemConfig<T>;
 } & Partial<{
   [ComponentType.OrganizationLookup]: FormItemConfig<ComponentType.OrganizationLookup>;
   [ComponentType.Heading]: FormItemConfig<ComponentType.Heading>;
@@ -170,8 +172,7 @@ export const formItemConfigs: FormItemConfigs = {
     getDisplayName: ({
       actions,
     }: ComponentSpecificConfig<ComponentType.CustomButton>):
-      | ComponentType
-      | CustomComponentType => {
+      ComponentType | CustomComponentType => {
       const isCloseSubformAction =
         actions?.length === 1 &&
         actions[0]?.id === 'closeSubform' &&

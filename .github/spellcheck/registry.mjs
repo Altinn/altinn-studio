@@ -36,9 +36,9 @@ export const GROUPS = [
     name: 'app frontend texts',
     format: 'ts-factory',
     files: {
-      nb: 'app-libs/language/src/texts/nb.ts',
-      nn: 'app-libs/language/src/texts/nn.ts',
-      en: 'app-libs/language/src/texts/en.ts',
+      nb: 'src/common/ts/language/src/texts/nb.ts',
+      nn: 'src/common/ts/language/src/texts/nn.ts',
+      en: 'src/common/ts/language/src/texts/en.ts',
     },
     parity: 'equal',
     english: 'en-gb',
@@ -88,27 +88,29 @@ export const GROUPS = [
     parity: 'none',
     english: null,
   },
-  {
-    // The copy every new app ships with: the app title and the rights
-    // description shown when delegating access.
-    name: 'app template metadata',
-    format: 'json-paths',
-    file: 'src/App/template/src/App/config/applicationmetadata.json',
-    paths: [
-      { path: 'title', langs: ['nb'] },
-      { path: 'access.rightDescription', langs: ['nb', 'nn', 'en'] },
-    ],
-    parity: 'none',
-    english: 'en-gb',
-  },
-  {
-    name: 'app template texts',
-    format: 'text-resource',
-    files: { nb: 'src/App/template/src/App/config/texts/resource.nb.json' },
-    parity: 'none',
-    english: null,
-    mayBeEmpty: true, // ships with "resources": []
-  },
+  // The copy every new app ships with, per template variant: the app title
+  // and the rights description shown when delegating access.
+  ...['v8', 'v9'].flatMap((variant) => [
+    {
+      name: `app template metadata (${variant})`,
+      format: 'json-paths',
+      file: `src/App/template/${variant}/src/App/config/applicationmetadata.json`,
+      paths: [
+        { path: 'title', langs: ['nb'] },
+        { path: 'access.rightDescription', langs: ['nb', 'nn', 'en'] },
+      ],
+      parity: 'none',
+      english: 'en-gb',
+    },
+    {
+      name: `app template texts (${variant})`,
+      format: 'text-resource',
+      files: { nb: `src/App/template/${variant}/src/App/config/texts/resource.nb.json` },
+      parity: 'none',
+      english: null,
+      mayBeEmpty: true, // ships with "resources": []
+    },
+  ]),
   {
     // Our 8-key override of Gitea UI strings. Gitea's own UI language is US
     // English, so the en values follow the surrounding product, not ours.
@@ -178,7 +180,12 @@ export const PRECAUTIONARY_EXCLUDES = [
     reason: 'the git database is never tracked, but typos walks it (ignore-hidden is off)',
   },
   {
-    glob: '**/bin/**',
+    // Not a bare **/bin/**: Rust crates keep real source in src/bin/.
+    glob: '**/bin/[Dd]ebug/**',
+    reason: 'gitignored .NET build output, present in real working trees',
+  },
+  {
+    glob: '**/bin/[Rr]elease/**',
     reason: 'gitignored .NET build output, present in real working trees',
   },
   {
@@ -198,7 +205,7 @@ export const PRECAUTIONARY_EXCLUDES = [
  * patterns) cannot be found by glob — they are registry-maintained by hand.
  */
 export const SCAN_PATTERNS = [
-  'app-libs/language/src/texts/*.ts',
+  'src/common/ts/language/src/texts/*.ts',
   '**/language/src/*.json',
   '**/locale_*.json',
   '**/news.*.json',

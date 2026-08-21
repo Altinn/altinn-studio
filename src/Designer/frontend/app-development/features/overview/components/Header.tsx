@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import { useAppMetadataQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Heading } from '@digdir/designsystemet-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioHeading } from '@studio/components';
 import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResources } from 'app-shared/types/global';
@@ -44,9 +43,9 @@ export const Header = () => {
   }
 
   return (
-    <Heading level={1} size='xlarge'>
+    <StudioHeading level={1} data-size='xl'>
       {title || getAppName(textResources) || app}
-    </Heading>
+    </StudioHeading>
   );
 };
 

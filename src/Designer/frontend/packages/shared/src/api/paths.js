@@ -121,6 +121,8 @@ export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
+// v9 app-frontend uses browser routing, so point straight at the browser-router URL and skip its hash redirect
+export const previewPageV9 = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/${org}/${app}/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}?${s({ selectedLayoutSet })}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
@@ -236,6 +238,9 @@ export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+
+// App Templates (the scaffold a new app is created from)
+export const appTemplatesPath = () => `${apiBasePath}/apptemplates`; // GET
 
 // Custom Templates
 export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET

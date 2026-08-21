@@ -151,6 +151,22 @@ describe('SchemaNode', () => {
     expect(updatedNode.objectKind).toEqual(ObjectKind.Reference);
   });
 
+  it('Saves the model correctly when a node is duplicated', async () => {
+    const { schemaPointer } = objectNodeMock;
+    const schemaModel = setupSchemaModel();
+    const save = jest.fn();
+    const numberOfRootProperties = schemaModel.getRootProperties().length;
+    render({ schemaModel, save, schemaPointer });
+    const duplicateButton = screen.getByRole('button', {
+      name: textMock('schema_editor.duplicate_field'),
+    });
+    await user.click(duplicateButton);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel = getSavedModel(save);
+    expect(savedModel.hasNode(schemaPointer)).toBe(true);
+    expect(savedModel.getRootProperties()).toHaveLength(numberOfRootProperties + 1);
+  });
+
   it('Removes node selection when the node is selected and deleted', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();

@@ -43,12 +43,16 @@ const (
 	studioctlServerRequestTimeout        = 2 * time.Second
 	studioctlServerStartTimeout          = 10 * time.Second
 	studioctlServerRegisterTimeoutMargin = 2 * time.Second
-	studioctlServerUpgradeTimeout        = 30 * time.Second
-	studioctlServerShutdownWait          = 3 * time.Second
-	studioctlServerPollInterval          = 100 * time.Millisecond
-	hostBridgeEndpointPath               = "/internal/host-bridge"
-	studioctlServerLogTailLines          = 40
-	studioctlServerLogSuffix             = ".log"
+	// The v8->v9 upgrade restores and compiles the app against its current packages for exact
+	// detection (plus up to five more restores raising dependency floors), so on a cold NuGet cache
+	// the request runs for minutes, not seconds. Output is buffered server-side and only returned
+	// when the whole upgrade finishes.
+	studioctlServerUpgradeTimeout = 10 * time.Minute
+	studioctlServerShutdownWait   = 3 * time.Second
+	studioctlServerPollInterval   = 100 * time.Millisecond
+	hostBridgeEndpointPath        = "/internal/host-bridge"
+	studioctlServerLogTailLines   = 40
+	studioctlServerLogSuffix      = ".log"
 )
 
 type startConfig struct {
@@ -148,14 +152,43 @@ type AppUpgrade struct {
 	StudioRoot               string `json:"studioRoot,omitempty"`
 	Kind                     string `json:"kind"`
 	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
+	AllowDirty               bool   `json:"allowDirty,omitempty"`
+}
+
+// AppUpgradeStatus describes what a migration step did: "OK", "INFO", "SKIP", "WARN", "TODO" or "FAIL".
+type AppUpgradeStatus string
+
+// The statuses studioctl-server reports, and what each one means.
+const (
+	AppUpgradeStatusOK   AppUpgradeStatus = "OK"   // An applied migration, or a check that passed clean.
+	AppUpgradeStatusInfo AppUpgradeStatus = "INFO" // Neutral information.
+	AppUpgradeStatusSkip AppUpgradeStatus = "SKIP" // A migration that was not needed.
+	AppUpgradeStatusWarn AppUpgradeStatus = "WARN" // Something the user should look at.
+	AppUpgradeStatusTodo AppUpgradeStatus = "TODO" // A migration the user has to finish by hand.
+	AppUpgradeStatusFail AppUpgradeStatus = "FAIL" // A step that tried and failed.
+)
+
+// AppUpgradeMessage is the text and status of one message a migration step reported.
+type AppUpgradeMessage struct {
+	Text   string           `json:"text"`
+	Status AppUpgradeStatus `json:"status"`
+}
+
+// AppUpgradeStep groups everything one migration step reported.
+type AppUpgradeStep struct {
+	Name     string              `json:"name"`
+	Messages []AppUpgradeMessage `json:"messages"`
 }
 
 // AppUpgradeResult describes a studioctl-server upgrade result.
+//
+// Steps carries the structured report the CLI renders itself and is only used for newer migrations (v9). Output is used for older migrations (v4, v8) and is printed verbatim by the CLI.
 type AppUpgradeResult struct {
-	Message  string `json:"message"`
-	Output   string `json:"output"`
-	Error    string `json:"error"`
-	ExitCode int    `json:"exitCode"`
+	Message  string           `json:"message"`
+	Output   string           `json:"output"`
+	Error    string           `json:"error"`
+	Steps    []AppUpgradeStep `json:"steps"`
+	ExitCode int              `json:"exitCode"`
 }
 
 // NewClient constructs a studioctl-server control-plane client.

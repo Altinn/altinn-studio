@@ -443,6 +443,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		StudioRoot:               "",
 		Kind:                     flags.kind,
 		ConvertPackageReferences: false,
+		AllowDirty:               flags.allowDirty,
 	}
 	if flags.kind == appUpgradeKindV9 && detection.InStudioRepo {
 		upgrade.ConvertPackageReferences = true
@@ -453,12 +454,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("upgrade app: %w", err)
 	}
-	if result.Output != "" {
-		c.out.Print(result.Output)
-	}
-	if result.Error != "" {
-		c.out.Error(result.Error)
-	}
+	appsvc.PrintUpgradeResult(c.out, result)
 	if result.ExitCode != 0 {
 		return fmt.Errorf("%w with exit code %d", errAppUpgradeFailed, result.ExitCode)
 	}
@@ -466,8 +462,9 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 }
 
 type appUpgradeFlags struct {
-	appPath string
-	kind    string
+	appPath    string
+	kind       string
+	allowDirty bool
 }
 
 const (
@@ -482,6 +479,7 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 	var flags appUpgradeFlags
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
+	fs.BoolVar(&flags.allowDirty, "allow-dirty", false, "Upgrade even with uncommitted local changes")
 
 	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
 		flags.kind = args[0]
@@ -517,7 +515,7 @@ func isSupportedAppUpgradeKind(kind string) bool {
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
-	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH]"
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH] [--allow-dirty]"
 }
 
 func (c *AppCommand) appUpgradeUsage() string {
@@ -528,6 +526,7 @@ func (c *AppCommand) appUpgradeUsage() string {
 		"",
 		"Options:",
 		"  -p, --path PATH             Specify app directory (overrides auto-detect)",
+		"  --allow-dirty               Allow updating when the repository contains modified or untracked files.",
 		"  -h, --help                  Show this help",
 	)
 }

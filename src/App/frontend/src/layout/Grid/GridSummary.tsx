@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
+import { useIsMobile } from '@app/form-component';
 import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -12,7 +13,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -490,8 +490,7 @@ function SummaryCellWithLabel({
   const refItem = useItemFor(cell.labelFrom);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
-    | ITextResourceBindings
-    | undefined;
+    ITextResourceBindings | undefined;
   const title = trb && 'title' in trb ? trb.title : undefined;
   const required = (refItem && 'required' in refItem && refItem.required) ?? false;
 

@@ -18,9 +18,11 @@
       "autoReplaceStringTemplate": "grafana/k6:{{{newValue}}}-with-browser"
     }
   ],
-  "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "postUpdateOptions": ["gomodTidy"],
+  "vulnerabilityAlerts": {
+    "enabled": false
+  },
   "packageRules": [
     {
       "matchManagers": ["gomod", "pep621"],
@@ -30,10 +32,10 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "description": "Helm Go dependency updates are done manually because even patch releases can change Kubernetes client minor versions",
+      "description": "Require explicit approval for Helm Go dependency updates because even patch releases can change Kubernetes client minor versions",
       "matchManagers": ["gomod"],
       "matchPackageNames": ["helm.sh/helm/v3"],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
@@ -49,7 +51,7 @@
       "groupSlug": "k8s-flux-runtime-go-patches"
     },
     {
-      "description": "Kubernetes, Flux, and cluster tooling Go dependency minor/major updates are done manually after checking target cluster compatibility",
+      "description": "Require explicit approval for Kubernetes, Flux, and cluster tooling Go dependency minor/major updates after checking target cluster compatibility",
       "matchManagers": ["gomod"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
@@ -58,7 +60,7 @@
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
       "matchUpdateTypes": ["minor", "major"],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "groupName": "LibGit2Sharp dependency",
@@ -86,23 +88,43 @@
       "groupName": "Design system in Designer"
     },
     {
-      "matchFileNames": ["src/App/**"],
+      "matchFileNames": ["src/App/**", "src/common/ts/**"],
+      "additionalBranchPrefix": "app/",
+      "commitMessageSuffix": " (app)",
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Keep App Designsystemet updates together and separate from other dependency updates",
+      "matchManagers": ["npm"],
+      "matchFileNames": ["src/App/frontend/**", "src/common/ts/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in App"
     },
     {
-      "matchFileNames": ["src/App/**", "app-libs/**"],
-      "additionalBranchPrefix": "app/",
-      "commitMessageSuffix": " (app)"
+      "description": "Skip @percy/cypress 3.1.9: it depends on a beta @percy/sdk-utils (1.32.3-beta.1) whose waitForReady DOM-readiness step hangs, timing out all Cypress Percy snapshots. Allow again once a fixed release (>3.1.9) ships.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@percy/cypress"],
+      "allowedVersions": "!=3.1.9"
     },
     {
-      "description": "Automerge non-major Altinn app template package updates",
+      "description": "Automerge non-major Altinn app template package updates (v8)",
       "matchManagers": ["nuget"],
-      "matchFileNames": ["src/App/template/src/App/App.csproj"],
+      "matchFileNames": ["src/App/template/v8/src/App/App.csproj"],
       "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Altinn app template NuGet packages",
-      "groupSlug": "app-template-nuget",
+      "groupName": "Altinn app template NuGet packages (v8)",
+      "groupSlug": "app-template-nuget-v8",
+      "addLabels": ["approve"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major Altinn app template package updates (v9). Separate from v8 so the two templates never share a PR.",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v9/src/App/App.csproj"],
+      "matchPackageNames": ["Altinn.App.Api", "Altinn.App.Core"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Altinn app template NuGet packages (v9)",
+      "groupSlug": "app-template-nuget-v9",
       "addLabels": ["approve"],
       "automerge": true
     },
@@ -110,11 +132,6 @@
       "matchFileNames": ["src/Runtime/localtest/**"],
       "additionalBranchPrefix": "localtest/",
       "commitMessageSuffix": " (localtest)"
-    },
-    {
-      "matchFileNames": ["src/Runtime/pdf3/**"],
-      "additionalBranchPrefix": "pdf3/",
-      "commitMessageSuffix": " (pdf3)"
     },
     {
       "description": "Keep Go module updates in repository-wide groups",
@@ -138,7 +155,7 @@
         "/^Microsoft\\.CodeAnalysis/",
         "/^Microsoft\\.Build/"
       ],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "matchFileNames": [
@@ -166,7 +183,7 @@
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"
       ],
-      "enabled": false
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Upgrade React consistently across the entire repository",
@@ -181,6 +198,16 @@
       "groupSlug": "react-ecosystem",
       "additionalBranchPrefix": "",
       "commitMessageSuffix": ""
+    },
+    {
+      "description": "Manage experimental agent platform dependencies manually",
+      "matchFileNames": ["src/experimental/**"],
+      "enabled": false
+    },
+    {
+      "description": "Manage all Rust dependencies manually",
+      "matchManagers": ["cargo"],
+      "enabled": false
     }
   ],
   "schedule": []

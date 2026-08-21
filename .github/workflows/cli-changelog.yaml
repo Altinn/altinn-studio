@@ -1,6 +1,6 @@
 name: CLI - Changelog entry
 
-# Requires PRs that change studioctl code to add an entry to src/cli/CHANGELOG.md
+# Requires PRs that change studioctl code or its shared dependencies to add an entry to src/cli/CHANGELOG.md
 # under [Unreleased], via the releaser's `validate-changelog` command. Apply the
 # 'skip-changelog' label to PRs with no user-visible change (refactors, test-only
 # or CI-only work); the labeled/unlabeled triggers re-evaluate the check when the
@@ -12,6 +12,7 @@ on:
     paths:
       - 'src/cli/**'
       - '!src/cli/**/*.md'
+      - 'src/Runtime/common/dotnet/**'
       - '.github/workflows/cli-changelog.yaml'
 
 concurrency:
@@ -25,7 +26,7 @@ jobs:
   require-changelog-entry:
     name: Require studioctl changelog entry
     if: ${{ !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 10
     steps:
       - name: Checkout repository

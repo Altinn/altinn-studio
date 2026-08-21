@@ -35,11 +35,7 @@ interface NotAnArray extends BaseError {
 }
 
 export type SchemaLookupError =
-  | ReferenceError
-  | MissingRepeatingGroup
-  | MissingProperty
-  | MisCasedProperty
-  | NotAnArray;
+  ReferenceError | MissingRepeatingGroup | MissingProperty | MisCasedProperty | NotAnArray;
 
 const errorMap: Record<SchemaLookupError['error'], true> = {
   referenceError: true,

@@ -1,11 +1,11 @@
 {
   "name": "altinn-studio",
   "devDependencies": {
-    "eslint": "10.5.0",
+    "eslint": "10.8.1",
     "lefthook": "2.1.10",
-    "prettier": "3.8.5"
+    "prettier": "3.9.6"
   },
-  "packageManager": "yarn@4.17.1",
+  "packageManager": "yarn@4.18.0",
   "private": true,
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
@@ -13,11 +13,12 @@
     "docs:validate": "node .github/scripts/agents-docs-validate.mjs",
     "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
-    "lint:libs": "yarn workspace app-libs lint",
+    "lint:libs": "yarn workspace @studio/common-typescript lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
+    "build-app-frontend-bundle": "yarn workspace app-frontend-react build && node src/Designer/development/copy-app-frontend-bundle.mjs",
     "spell:check": "node .github/spellcheck/run.mjs",
     "spell:fix": "node .github/spellcheck/run.mjs --fix",
     "spell:quick": "node .github/spellcheck/run.mjs quick",
@@ -57,8 +58,8 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
-    "app-libs",
-    "app-libs/**"
+    "src/common/ts",
+    "src/common/ts/**"
   ],
   "resolutions": {
     "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"

@@ -41,8 +41,10 @@ extend-exclude = [
 
     # Build output, generated and vendored code. Kept even when currently
     # silent: a typo a generator emits cannot be fixed by hand, so it must
-    # never block CI. The presentation HTML embeds minified reveal.js.
-    "**/bin/**", "**/obj/**", "**/dist/**", "**/node_modules/**", "**/.yarn/**",
+    # never block CI. bin is qualified because Rust crates keep real source
+    # in src/bin/. The presentation HTML embeds minified reveal.js.
+    "**/bin/[Dd]ebug/**", "**/bin/[Rr]elease/**", "**/obj/**", "**/dist/**",
+    "**/node_modules/**", "**/.yarn/**",
     "**/gen/**", "*.g.cs", "*.Designer.cs", "*.verified.*", "**/Migrations/**",
     "src/Runtime/workflow-engine/docs/presentation/**",
 
@@ -56,13 +58,13 @@ extend-exclude = [
     # The registered language files (see .github/spellcheck/registry.mjs).
     # Their values are Norwegian or British and are checked by the runner;
     # excluding them here is asserted by the coverage check.
-    "app-libs/language/src/texts/*.ts",
+    "src/common/ts/language/src/texts/*.ts",
     "src/Designer/frontend/language/src/*.json",
     "src/Designer/frontend/resourceadm/language/src/*.json",
     "src/Designer/frontend/packages/shared/src/constants.js",
     "src/Designer/frontend/app-development/features/overview/components/News/NewsContent/news.nb.json",
-    "src/App/template/src/App/config/applicationmetadata.json",
-    "src/App/template/src/App/config/texts/resource.nb.json",
+    "src/App/template/*/src/App/config/applicationmetadata.json",
+    "src/App/template/*/src/App/config/texts/resource.nb.json",
     "src/gitea/files/locale/**",
 
     # Test-only surface ships nowhere: test projects, colocated test files,

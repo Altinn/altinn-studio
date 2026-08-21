@@ -692,6 +692,8 @@
   "schema_editor.delete_model_confirm": "Are you sure you want to delete {{schemaName}}?",
   "schema_editor.description": "Description",
   "schema_editor.descriptive_fields": "Descriptive fields",
+  "schema_editor.duplicate": "Duplicate",
+  "schema_editor.duplicate_field": "Duplicate field",
   "schema_editor.enum": "Valid values",
   "schema_editor.enum_empty": "The list is empty. All values will be approved.",
   "schema_editor.enum_error_duplicate": "The values must be unique.",

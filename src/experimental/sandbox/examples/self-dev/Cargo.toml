@@ -1,0 +1,19 @@
+[package]
+name = "sandbox-self-dev"
+description = "Self-development example for the backend-neutral Sandbox SDK"
+edition.workspace = true
+license.workspace = true
+publish = false
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+clap.workspace = true
+futures-util.workspace = true
+sandbox = { path = "../.." }
+sandbox-microsandbox = { path = "../../../sandbox-microsandbox" }
+sha2.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true
