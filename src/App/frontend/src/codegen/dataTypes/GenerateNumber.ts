@@ -7,8 +7,8 @@ import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
  * Generates a number value. I.e. a value that is always an integer or float.
  */
 export class GenerateNumber extends DescribableCodeGenerator<number> {
-  private minimum?: number;
-  private maximum?: number;
+  protected minimum?: number;
+  protected maximum?: number;
 
   constructor() {
     super();
@@ -40,6 +40,11 @@ export class GenerateNumber extends DescribableCodeGenerator<number> {
   }
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
-    return { type: 'number', ...this.componentCatalogMetadata() };
+    return {
+      type: 'number',
+      ...(this.minimum !== undefined ? { minimum: this.minimum } : {}),
+      ...(this.maximum !== undefined ? { maximum: this.maximum } : {}),
+      ...this.componentCatalogMetadata(),
+    };
   }
 }

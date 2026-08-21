@@ -1,4 +1,4 @@
-export { componentCatalog } from './component-catalog.generated';
+export { componentCatalog, pageValidationDefinition } from './component-catalog.generated';
 export type {
   ComponentCatalog,
   ComponentDefinition,

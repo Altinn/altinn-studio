@@ -23,10 +23,27 @@ export type PropertyMetadata = Readonly<{
 }>;
 
 export type PropertyValueDefinition =
-  | Readonly<{ type: 'string'; expression?: true; allowedValues?: readonly string[] }>
+  | Readonly<{
+      type: 'string';
+      expression?: true;
+      allowedValues?: readonly string[];
+      pattern?: string;
+    }>
   | Readonly<{ type: 'date'; expression?: true }>
-  | Readonly<{ type: 'number'; expression?: true; allowedValues?: readonly number[] }>
-  | Readonly<{ type: 'integer'; expression?: true; allowedValues?: readonly number[] }>
+  | Readonly<{
+      type: 'number';
+      expression?: true;
+      allowedValues?: readonly number[];
+      minimum?: number;
+      maximum?: number;
+    }>
+  | Readonly<{
+      type: 'integer';
+      expression?: true;
+      allowedValues?: readonly number[];
+      minimum?: number;
+      maximum?: number;
+    }>
   | Readonly<{ type: 'boolean'; expression?: true }>
   | Readonly<{ type: 'null' }>
   | Readonly<{ type: 'any'; expression?: true }>

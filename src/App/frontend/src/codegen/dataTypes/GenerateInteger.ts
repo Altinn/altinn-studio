@@ -25,6 +25,11 @@ export class GenerateInteger extends GenerateNumber {
   }
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
-    return { type: 'integer', ...this.componentCatalogMetadata() };
+    return {
+      type: 'integer',
+      ...(this.minimum !== undefined ? { minimum: this.minimum } : {}),
+      ...(this.maximum !== undefined ? { maximum: this.maximum } : {}),
+      ...this.componentCatalogMetadata(),
+    };
   }
 }

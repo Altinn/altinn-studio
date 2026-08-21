@@ -33,6 +33,10 @@ export class GenerateString extends DescribableCodeGenerator<string> {
   }
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
-    return { type: 'string', ...this.componentCatalogMetadata() };
+    return {
+      type: 'string',
+      ...(this.pattern ? { pattern: this.pattern.source } : {}),
+      ...this.componentCatalogMetadata(),
+    };
   }
 }
