@@ -134,7 +134,6 @@ const common = {
       new CG.prop('sm', CG.common('IGridSize').optional({ default: 'auto' })),
       new CG.prop('md', CG.common('IGridSize').optional({ default: 'auto' })),
       new CG.prop('lg', CG.common('IGridSize').optional({ default: 'auto' })),
-      new CG.prop('xl', CG.common('IGridSize').optional({ default: 'auto' })),
     ),
   IGrid: () =>
     new CG.obj(

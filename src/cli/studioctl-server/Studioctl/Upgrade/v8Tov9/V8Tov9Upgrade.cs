@@ -158,6 +158,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -626,6 +629,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating legacy Datepicker format values", ex);
+        }
+    }
+
+    static async Task<int> MigrateGridXlSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Component grid xl settings");
+        try
+        {
+            var result = await GridXlMigration.Migrate(projectFolder);
+            if (result.PropertiesRemoved == 0)
+            {
+                UpgradeConsole.Skip("No component grid xl settings found");
+                return ExitSuccess;
+            }
+
+            UpgradeConsole.Ok(
+                $"Removed {result.PropertiesRemoved} unsupported xl grid setting(s) from {result.FilesChanged} layout file(s)"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing component grid xl settings", ex);
         }
     }
 

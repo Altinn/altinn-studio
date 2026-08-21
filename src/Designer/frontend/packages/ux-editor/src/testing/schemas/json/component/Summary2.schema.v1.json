@@ -20,7 +20,6 @@
         "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
-        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }

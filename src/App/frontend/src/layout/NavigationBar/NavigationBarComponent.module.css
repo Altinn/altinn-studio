@@ -1,3 +1,5 @@
+@value mediaScreenSmDown from '@app/form-component/styles/breakpoints.module.css';
+
 .menu {
   list-style-type: none;
   text-decoration: none;
@@ -7,7 +9,7 @@
   gap: 6px;
 }
 
-@media screen and (max-width: 600px) {
+@media mediaScreenSmDown {
   .menu {
     flex-direction: column;
   }

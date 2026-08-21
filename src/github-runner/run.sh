@@ -13,16 +13,29 @@ filesystem_type() {
   df -PT "$1" | awk 'NR == 2 { print $2 }'
 }
 
-require_ext4() {
+require_filesystem() {
   local path="$1"
+  local expected="$2"
   local type
 
   type="$(filesystem_type "${path}")"
-  if [[ "${type}" != "ext4" ]]; then
-    log "${path} is ${type}, expected ext4"
+  if [[ "${type}" != "${expected}" ]]; then
+    log "${path} is ${type}, expected ${expected}"
     return 1
   fi
-  log "${path} is ext4"
+  log "${path} is ${expected}"
+}
+
+configure_runner_tmp() {
+  local type
+
+  type="$(filesystem_type /tmp)"
+  if [[ "${type}" == "tmpfs" ]]; then
+    mount -o remount,size=2G,mode=1777,nosuid,nodev /tmp
+  else
+    mount -t tmpfs -o size=2G,mode=1777,nosuid,nodev tmpfs /tmp
+  fi
+  chmod 1777 /tmp
 }
 
 raise_proc_limit() {
@@ -140,18 +153,15 @@ chown -R runner:runner \
   "${NUGET_PACKAGES}" \
   "${GOMODCACHE}"
 
-# Keep large temporary workloads on the direct ext4 root when the Sandbox
-# runtime provides a memory-backed /tmp.
-if [[ "$(filesystem_type /tmp)" == "tmpfs" ]]; then
-  umount /tmp
-  chmod 1777 /tmp
-fi
+# Match the previous runner's bounded, memory-backed /tmp. Browser workloads
+# use it heavily, while workspaces, caches and Docker data remain on ext4.
+configure_runner_tmp
 
-require_ext4 /
-require_ext4 "${RUNNER_HOME}"
-require_ext4 "${RUNNER_WORKDIR}"
-require_ext4 /tmp
-require_ext4 /var/lib/docker
+require_filesystem / ext4
+require_filesystem "${RUNNER_HOME}" ext4
+require_filesystem "${RUNNER_WORKDIR}" ext4
+require_filesystem /tmp tmpfs
+require_filesystem /var/lib/docker ext4
 
 if ! grep -Eq '^[[:space:]]*127\.0\.0\.1[[:space:]].*\bstudio\.localhost\b' /etc/hosts; then
   printf '127.0.0.1 studio.localhost\n' >> /etc/hosts
