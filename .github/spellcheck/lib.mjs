@@ -154,11 +154,19 @@ export function stripNonProse(value) {
 /**
  * Signals that a text is Norwegian: a Nordic letter, or a function word that
  * does not occur in English prose. The list lives here rather than in the
- * engine config so it is unit-tested by the self-test and its work is
- * counted by the caller — an engine-side pattern can rot silently, this
- * cannot.
+ * engine config so it is unit-tested by the self-test, and every word must
+ * earn its keep: the code check reports a signal word that never decides a
+ * classification as stale.
+ *
+ * A dictionary-based classifier (Ordbank forms minus the en_GB word list)
+ * is deliberately NOT used: the two languages share too much orthography,
+ * so it over-classifies English and technical strings ('dialog', 'header'
+ * and short infrastructure names all read as Norwegian-only words) — and
+ * over-classification silently hides English typos. This list errs the
+ * other way: a missed Norwegian string produces visible findings, never
+ * silent acceptance.
  */
-const NORWEGIAN_SIGNAL_WORDS = new Set([
+export const NORWEGIAN_SIGNAL_WORDS = new Set([
   'ikke',
   'som',
   'og',
@@ -198,17 +206,25 @@ const NORWEGIAN_SIGNAL_WORDS = new Set([
   'lik',
 ]);
 
-export function isNorwegianText(text) {
-  if (/[æøåÆØÅ]/.test(text)) return true;
+/**
+ * True when the text reads as Norwegian; matched signal words are added to
+ * `usedSignals` so the caller can prove which list entries do real work.
+ */
+export function isNorwegianText(text, usedSignals) {
+  const nordic = /[æøåÆØÅ]/.test(text);
   // A long unbroken run means data (base64, JWKs, tokens), not prose — and
   // data trivially contains two-letter "words" like og/av between digits.
   // Norwegian prose without a single Nordic letter AND with such a run does
   // not happen; a blob must never count as Norwegian.
-  if (/[A-Za-z0-9+/=_-]{30,}/.test(text)) return false;
-  return text
-    .toLowerCase()
-    .split(/[^a-zæøå]+/)
-    .some((word) => NORWEGIAN_SIGNAL_WORDS.has(word));
+  if (!nordic && /[A-Za-z0-9+/=_-]{30,}/.test(text)) return false;
+  let matched = false;
+  for (const word of text.toLowerCase().split(/[^a-zæøå]+/)) {
+    if (NORWEGIAN_SIGNAL_WORDS.has(word)) {
+      matched = true;
+      usedSignals?.add(word);
+    }
+  }
+  return nordic || matched;
 }
 
 /**
@@ -257,22 +273,25 @@ export function stringSpans(buf) {
  *              tokens, hashes) — data is not words, wherever it occurs.
  *   kept       everything else; a finding.
  *
- * Both classified piles are counted so their work is visible on every run.
+ * Both classified piles are counted so their work is visible on every run,
+ * and `usedSignals` names the signal words that matched — the caller's
+ * evidence for stale-checking NORWEGIAN_SIGNAL_WORDS.
  */
 export function classifyFindings(findings, readLine) {
   const kept = [];
+  const usedSignals = new Set();
   let norwegian = 0;
   let data = 0;
   for (const f of findings) {
-    const cls = classify(f, readLine);
+    const cls = classify(f, readLine, usedSignals);
     if (cls === 'norwegian') norwegian += 1;
     else if (cls === 'data') data += 1;
     else kept.push(f);
   }
-  return { kept, norwegian, data };
+  return { kept, norwegian, data, usedSignals };
 }
 
-function classify(f, readLine) {
+function classify(f, readLine, usedSignals) {
   if (f.line_num === undefined) return 'finding'; // a file-name finding
   const line = readLine(f.path.replace(/^\.\//, ''), f.line_num);
   if (line === undefined) return 'finding';
@@ -301,7 +320,7 @@ function classify(f, readLine) {
   const span = stringSpans(buf).find(
     (sp) => f.byte_offset >= sp.start && f.byte_offset + tok.length <= sp.end,
   );
-  if (span && isNorwegianText(buf.subarray(span.start, span.end).toString('utf8'))) {
+  if (span && isNorwegianText(buf.subarray(span.start, span.end).toString('utf8'), usedSignals)) {
     return 'norwegian';
   }
   return 'finding';

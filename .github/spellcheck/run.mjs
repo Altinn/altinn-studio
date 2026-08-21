@@ -46,6 +46,7 @@ import { join } from 'node:path';
 import { DICTIONARY_FOR_LANG } from './dictionaries.mjs';
 import {
   HarnessError,
+  NORWEGIAN_SIGNAL_WORDS,
   REPO_ROOT,
   applyValueFix,
   classifyFindings,
@@ -98,14 +99,33 @@ function checkCode({ fix, root }) {
   const readLine = fileLineReader(root);
   // Context first (a Norwegian string is not English at all), policy second
   // (a suppression is an accepted English-context spelling).
-  const { kept: unclassified, norwegian, data } = classifyFindings(runTypos([]), readLine);
+  const {
+    kept: unclassified,
+    norwegian,
+    data,
+    usedSignals,
+  } = classifyFindings(runTypos([]), readLine);
   const { kept, suppressedCount, stale } = partitionFindings(unclassified, compiled, readLine);
 
-  const findings = stale.map((e) =>
-    finding(
-      '.github/spellcheck/suppressions.mjs',
-      undefined,
-      `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
+  // Config-health findings first: a stale signal word or suppression is an
+  // actionable defect that must not drown in the backlog.
+  const findings = [...NORWEGIAN_SIGNAL_WORDS]
+    .filter((w) => !usedSignals.has(w))
+    .sort()
+    .map((w) =>
+      finding(
+        '.github/spellcheck/lib.mjs',
+        undefined,
+        `signal word '${w}' decided no Norwegian-string classification — stale entry in NORWEGIAN_SIGNAL_WORDS, remove it`,
+      ),
+    );
+  findings.push(
+    ...stale.map((e) =>
+      finding(
+        '.github/spellcheck/suppressions.mjs',
+        undefined,
+        `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
+      ),
     ),
   );
   const applied = fix ? applyCodeFixes(root, kept) : 0;
@@ -124,7 +144,8 @@ function checkCode({ fix, root }) {
   return {
     findings,
     counts:
-      `${fileCount} files visited, ${norwegian} in Norwegian strings, ${data} in data runs, ` +
+      `${fileCount} files visited, ${norwegian} in Norwegian strings ` +
+      `(${usedSignals.size}/${NORWEGIAN_SIGNAL_WORDS.size} signal words at work), ${data} in data runs, ` +
       `${suppressedCount} finding(s) suppressed by ${compiled.length} scoped rules`,
   };
 }
@@ -835,9 +856,12 @@ function classifierFailures({ lines, cases }) {
   for (const [path, typo, want, what] of cases) {
     // The fixture lines are ASCII, so indexOf is the byte offset.
     const find = { path, line_num: 1, byte_offset: lines[path].indexOf(typo), typo };
-    const { norwegian, data } = classifyFindings([find], readLine);
+    const { norwegian, data, usedSignals } = classifyFindings([find], readLine);
     const got = norwegian === 1 ? 'norwegian' : data === 1 ? 'data' : 'finding';
     if (got !== want) failures.push(`expected ${want} but got ${got} for ${what}`);
+    if (got === 'norwegian' && usedSignals.size === 0) {
+      failures.push(`classification of ${what} recorded no signal-word usage`);
+    }
   }
   return failures;
 }
