@@ -1,5 +1,5 @@
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { containerComponentTypes } from '../data/containerComponentTypes';
+import { containerComponentTypes, isContainerComponentType } from '../data/containerComponentTypes';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormComponent } from '../types/FormComponent';
@@ -11,7 +11,7 @@ describe('generateFormItem', () => {
       (componentType) =>
         componentType !== ComponentType.OrganisationLookup &&
         componentType !== ComponentType.Header &&
-        !containerComponentTypes.includes(componentType),
+        !isContainerComponentType(componentType),
     ),
   )('generates component %s with the given ID', (componentType) => {
     expect(generateFormItem(componentType, 'testId')).toEqual(

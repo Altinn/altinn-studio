@@ -73,9 +73,4 @@ export enum CollapsableMenus {
   // Widgets = 'widget',
 }
 
-export enum LayoutItemType {
-  Container = 'CONTAINER',
-  Component = 'COMPONENT',
-}
-
 export type FormLayoutsSelector<T> = (formLayoutsData: IFormLayouts) => T;

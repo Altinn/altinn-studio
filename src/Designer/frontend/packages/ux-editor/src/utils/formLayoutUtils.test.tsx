@@ -40,7 +40,7 @@ import {
   component3Id,
   internalLayoutWithMultiPageGroup,
 } from '../testing/layoutWithMultiPageGroupMocks';
-import { containerComponentTypes } from '../data/containerComponentTypes';
+import { containerComponentTypes, isContainerComponentType } from '../data/containerComponentTypes';
 
 // Test data:
 const baseContainer: FormContainer<ComponentType.Group> = {
@@ -379,7 +379,7 @@ describe('formLayoutUtils', () => {
         (v) =>
           v !== ComponentType.OrganisationLookup &&
           v !== ComponentType.Header &&
-          !containerComponentTypes.includes(v),
+          !isContainerComponentType(v),
       ),
     )('Adds a new component to the layout when the given type is %s', (componentType) => {
       const id = 'newItemId';
