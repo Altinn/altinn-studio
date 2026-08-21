@@ -19,6 +19,18 @@ internal sealed record ProcessTaskInfo(string? Id, string TaskType, bool AllowsR
 /// </summary>
 internal sealed class ProcessInfo
 {
+    /// <summary>
+    /// The namespaces the app runtime itself requires when it reads a process
+    /// (<c>Process.cs</c> and <c>AltinnTaskExtension.cs</c> in Altinn.App.Core bind to exactly
+    /// these). Matching on local names alone would let an unrelated <c>foo:taskType</c> or
+    /// <c>foo:action</c> from some other vendor extension invent requirements the runtime will never
+    /// ask Storage to authorize.
+    /// </summary>
+    private static readonly XNamespace _bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
+
+    /// <inheritdoc cref="_bpmn"/>
+    private static readonly XNamespace _altinn = "http://altinn.no/process";
+
     private ProcessInfo(IReadOnlyList<ProcessTaskInfo> tasks, HashSet<string> endEventIds)
     {
         Tasks = tasks;
@@ -49,7 +61,7 @@ internal sealed class ProcessInfo
         }
 
         var endEventIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var endEvent in document.Descendants().Where(e => e.Name.LocalName == "endEvent"))
+        foreach (var endEvent in document.Descendants(_bpmn + "endEvent"))
         {
             if (endEvent.Attribute("id")?.Value is { Length: > 0 } id)
             {
@@ -58,7 +70,7 @@ internal sealed class ProcessInfo
         }
 
         var tasks = new List<ProcessTaskInfo>();
-        foreach (var taskType in document.Descendants().Where(e => e.Name.LocalName == "taskType"))
+        foreach (var taskType in document.Descendants(_altinn + "taskType"))
         {
             var type = taskType.Value.Trim();
             if (type.Length == 0)
@@ -66,12 +78,17 @@ internal sealed class ProcessInfo
                 continue;
             }
 
-            // The taskType extension element lives inside the task element, which carries the id.
-            // Nothing between the two has an id of its own, so the nearest one is the task's.
-            var taskElement = taskType.Ancestors().FirstOrDefault(a => a.Attribute("id") is not null);
+            var taskElement = FindHostingFlowNode(taskType);
             tasks.Add(
                 new ProcessTaskInfo(
-                    taskElement?.Attribute("id")?.Value,
+                    // An id is what makes a task-scoped grant recognisable. Without one there is
+                    // nothing to compare a scope against, so the task is left unidentified and its
+                    // requirement ends up unscoped - which reports 'cannot verify' rather than
+                    // 'missing' for a scoped grant.
+                    taskElement?.Attribute("id")?.Value
+                        is { Length: > 0 } taskId
+                        ? taskId
+                        : null,
                     type,
                     AllowsReject: taskElement is not null && DeclaresRejectProcessAction(taskElement)
                 )
@@ -82,14 +99,25 @@ internal sealed class ProcessInfo
     }
 
     /// <summary>
+    /// The flow node a <c>taskType</c> belongs to: the nearest enclosing <c>bpmn:task</c> or
+    /// <c>bpmn:serviceTask</c>. Those are the only two elements that can carry a task extension (see
+    /// <c>Process.cs</c> in Altinn.App.Core, which models the process's element set), so walking up to
+    /// "the nearest ancestor with an id" instead would silently accept the enclosing
+    /// <c>bpmn:process</c> when a task is missing its own id - and then evaluate task-scoped grants
+    /// against the process id.
+    /// </summary>
+    private static XElement? FindHostingFlowNode(XElement taskType) =>
+        taskType.Ancestors().FirstOrDefault(a => a.Name == _bpmn + "task" || a.Name == _bpmn + "serviceTask");
+
+    /// <summary>
     /// Whether the task declares <c>reject</c> in its <c>altinn:actions</c> list as a process
     /// action. A <c>type="serverAction"</c> entry is a user-triggered server action, not a process
     /// transition, so it never reaches the abandon flow.
     /// </summary>
     private static bool DeclaresRejectProcessAction(XElement taskElement) =>
         taskElement
-            .Descendants()
-            .Where(e => e.Name.LocalName == "action" && e.Parent?.Name.LocalName == "actions")
+            .Descendants(_altinn + "action")
+            .Where(e => e.Parent?.Name == _altinn + "actions")
             .Any(action =>
                 string.Equals(action.Value.Trim(), "reject", StringComparison.OrdinalIgnoreCase)
                 && action.Attributes().All(a => a.Name.LocalName != "type" || a.Value == "processAction")

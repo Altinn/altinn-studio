@@ -365,6 +365,75 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
+    public void Process_Elements_Outside_The_Altinn_And_Bpmn_Namespaces_Are_Ignored()
+    {
+        // Every element here has the right local name in the wrong namespace, so the app runtime
+        // (which binds to these namespaces) reads none of it. Honouring it would invent a
+        // 'someVendorType' requirement, a reject requirement and an end-event scope out of a vendor
+        // extension.
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                              xmlns:altinn="http://altinn.no/process"
+                              xmlns:foo="urn:example:vendor">
+              <bpmn:process id="Process_1">
+                <bpmn:task id="Task_1">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>data</altinn:taskType>
+                    </altinn:taskExtension>
+                    <foo:taskExtension>
+                      <foo:taskType>someVendorType</foo:taskType>
+                      <foo:actions><foo:action>reject</foo:action></foo:actions>
+                    </foo:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:task>
+                <foo:endEvent id="VendorEnd_1" />
+              </bpmn:process>
+            </bpmn:definitions>
+            """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void A_Task_Without_An_Id_Does_Not_Borrow_The_Process_Id_As_Its_Scope()
+    {
+        // The policy grants 'confirm' scoped to the enclosing process id. That must not satisfy a
+        // confirmation task's requirement - and equally must not be reported as definitely missing,
+        // since there is no task id to compare a scope against at all.
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.StandardOrgRules,
+                PolicyFixtures.OrgRule(["confirm"], task: "Process_1")
+            ),
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                              xmlns:altinn="http://altinn.no/process">
+              <bpmn:process id="Process_1">
+                <bpmn:task>
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>confirmation</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:task>
+                <bpmn:endEvent id="EndEvent_1" />
+              </bpmn:process>
+            </bpmn:definitions>
+            """
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(NotVerifiable, diagnostic.Id);
+        Assert.Equal(["confirm"], Actions(diagnostics, NotVerifiable));
+    }
+
+    [Fact]
     public void An_Unreadable_Process_Is_Reported_But_The_Baseline_Is_Still_Checked()
     {
         var diagnostics = Collect(PolicyFixtures.Policy(PolicyFixtures.RoleRule("read")), "<bpmn:definitions");
