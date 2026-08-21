@@ -384,6 +384,8 @@ Three independent semaphore pools via `IConcurrencyLimiter`:
 
 When `ActiveWorkflowCount` ≥ `BackpressureThreshold` (default: 500,000), the engine returns HTTP 429 on enqueue requests.
 
+The three buffered mailbox endpoint writes are outside the DB pool. The [mailbox buffers](#the-three-write-paths-are-batched) hold one connection per in-flight flush and take no DB slot, so what bounds them is the sum of their `FlushConcurrency` settings — 2 mint + 1 close + 2 delivery = 5 connections — rather than `MaxDbOperations`, and the `engine.slots.db.*` gauges do not account for them. The rest of the mailbox work still takes a slot each: the deadline sweep's scan and its closes, and every mailbox read.
+
 ## Heartbeat & Stale Recovery
 
 If a worker crashes mid-processing, the `HeartbeatService` enables recovery:
@@ -654,9 +656,10 @@ number that separates "the relay is running" from "the relay is parked".
 
 Each release is written in the same transaction as its cause:
 
-- **the wake** — a delivery lands at the receiver's position, inside the delivery's own transaction;
-- **the closure release** — the mailbox closes, by request or at its deadline, inside the close's own
-  transaction.
+- **the wake** — a delivery lands at the receiver's position, inside the transaction that wrote the
+  delivery;
+- **the closure release** — the mailbox closes, by request or at its deadline, inside the transaction
+  that wrote the close.
 
 Both run the same statement: `Held` → `Enqueued` with a null backoff (so the receiver sorts to the
 front of the fetch order), plus a `released_at` stamp on the registry row. The wake names one
@@ -694,7 +697,7 @@ than by recording a verdict. A receiver becomes runnable in exactly three ways, 
 question first:
 
 1. **born with its message** — the enqueue flush found one at its position, mailbox open or closed;
-2. **released by the wake** — inside the delivery's own transaction, so the message exists;
+2. **released by the wake** — inside the transaction that wrote the delivery, so the message exists;
 3. **released by closure** — and a closed mailbox refuses every further delivery, so no message can
    ever arrive at that position.
 
@@ -848,13 +851,59 @@ registry row whose `workflow_id` points at nothing — which is why that column 
 foreign key. The row is a record of a rendezvous that already happened, and it goes when its mailbox
 does.
 
+### The three write paths are batched
+
+Minting, closing and delivering each go through a channel buffer of their own. A request is handed to
+the buffer, a background loop drains what has queued into a batch of at most `MaxBatchSize` (100),
+and one flush answers the whole batch over a single connection: close and delivery each in one
+transaction, the mint in one or two statements that share neither a transaction nor a lock. A
+delivery batch is bounded by the payload it carries as well as by its size, so a run of large
+messages splits across flushes instead of building one enormous command.
+
+Verdicts stay per request. Every status in the tables above and in the
+[API reference](#api-reference) is still decided for one request, which gets the answer it would have
+received alone. What batching adds is folding: two requests naming the same mint key, the same
+mailbox to close, or the same message key on the same mailbox in the same namespace are decided once,
+and the second is answered exactly as it would have been had it lost the race to the first. The
+delivery's fold takes the namespace in, not just the mailbox and the key — two requests naming one
+mailbox under different namespaces are not each other's repeat, since at most one of them names the
+namespace the row carries and the other is a `404`.
+
+Two properties of a per-request write do not survive batching:
+
+- **A flush is not retried inside the engine.** A per-request write was wrapped in the database
+  retry strategy; a flush is not, since it cannot replay a hundred callers' work on behalf of one
+  caller's transient fault. A flush that fails answers **every** request in it `500`, and convergence
+  is the caller's own retry under the same idempotency key — which is what the key is for: the replay
+  reads back either the row the failed attempt committed or a fresh verdict. This is the workflow
+  enqueue flush's existing bargain, applied to mailboxes.
+- **A flush holds no DB slot.** These three endpoint write paths no longer pass through
+  `MaxDbOperations` — the deadline sweep and the mailbox reads still do — and the flush concurrencies
+  bound them instead (see [Concurrency Model](#concurrency-model)).
+
+Cancelling a call abandons the wait, not the work. A caller who gives up before its batch reaches the
+database is dropped from that batch and writes nothing; one who gives up after the flush has started
+is answered canceled while the write commits anyway. A caller has always had that ambiguity at
+`COMMIT` — a client timeout has never meant "not written" — but the window is wider now, and
+replaying the idempotency key is how a caller finds out which side of it the request fell on.
+
 ### The mailbox row is its own serialization point
 
 Every operation that changes mailbox state takes the mailbox row's lock **before reading anything it
-decides on** — for the single-mailbox endpoints, as the transaction's first act. That is why
-concurrent closes collapse onto a single disposal, and it is the discipline every future mailbox
-operation inherits. The one compound lock order is **mailbox row → workflow row**; nothing takes them
-in reverse, so the ordering is acyclic by inspection.
+decides on**, as the transaction's first act. That is why concurrent closes collapse onto a single
+disposal, and it is the discipline every future mailbox operation inherits. The one compound lock
+order is **mailbox row → workflow row**; nothing takes them in reverse, so the ordering is acyclic by
+inspection.
+
+The close and delivery flushes hold that discipline over plural rows: their first act locks **every
+distinct mailbox the batch names**, in one `SELECT … FOR UPDATE` over the batch's `(id, namespace)`
+pairs with `ORDER BY m.id`. That clause is what makes concurrent flushes deadlock-free — PostgreSQL
+sorts before it locks, so every flush takes contested rows in one agreed order — and it is the same
+total order the enqueue flush's own lock takes. The pairs are handed to the statement in id order
+too, but that is presentation only: .NET's `Guid` comparison is not PostgreSQL's `uuid` ordering, so
+sorting them in C# would prove nothing. The deadline sweep is not batched and stays one transaction
+per mailbox, as [the sweep](#the-deadline-is-enforced-by-one-sweep-running-the-same-routine) spells
+out.
 
 Two deliberate exceptions:
 
@@ -888,6 +937,12 @@ UTF-8 bytes (`413`, refused rather than truncated).
 Both keys are `varchar(200)`, non-empty, validated before the mint reaches the database — an
 over-long value would otherwise come back as a transient-looking database error and be retried to the
 command timeout instead of being answered.
+
+The delivery buffer's queue is bounded as well, and it **waits rather than refuses**: a caller
+arriving at a full queue is delayed until a flush makes room, never turned away. Batching therefore
+leaves the no-admission-gate rule above intact: `MaxMailboxLogLength` stays the only capacity refusal
+on the delivery path, and queue depth (`engine.mailbox_buffer.depth`) is a latency signal rather than
+a loss one.
 
 ## Dependency Graphs
 
@@ -941,6 +996,8 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 | `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
 | `engine.mailboxes.rendezvous.violations`  | Counter   | `state` (`unregistered`/`undecided`)                                                     |
 | `engine.mailboxes.open.overdue`           | Gauge     | —                                                                                        |
+| `engine.mailbox_buffer.flushed`           | Counter   | `operation` (`mint`/`close`/`delivery`)                                                  |
+| `engine.mailbox_buffer.depth`             | Gauge     | `operation` (`mint`/`close`/`delivery`)                                                  |
 
 Reading them:
 
@@ -960,10 +1017,25 @@ Reading them:
   non-zero while one tick drains, so alert on persistence, not a single sample. The count saturates
   rather than being exact — an unbounded `count(*)` would peak during exactly the mass timeout it
   exists to report, and the alert reads "greater than zero", so stopping early costs nothing.
+- `mailbox_buffer.flushed` counts **requests, not flushes** — the requests a batch answered, counted
+  once its database work has returned without faulting, so a batch a fault answered with exceptions
+  counts nothing. `mailbox_buffer.depth` beside it is latency, not capacity: the queues wait rather
+  than refuse when full, so a depth that stays high means callers waiting longer for a verdict, never
+  requests turned away.
+- **The slot gauges do not see the buffered mailbox writes.** A
+  [flush](#the-three-write-paths-are-batched) holds a connection without taking a slot from the
+  `MaxDbOperations` pool, so `engine.slots.db.used` under-reports by up to the five flushes the three
+  buffers may have in flight between them. The deadline sweep and the mailbox reads — including the
+  receipt read every receive workflow makes — still take slots, so mailbox activity has not left the
+  gauges entirely; only the three endpoint write paths have. `engine.db.operations.success` counts
+  **once per flush** on those three paths rather than once per request, so their traffic moves it far
+  less than it used to.
 
 ### Traces
 
 Activity source `WorkflowEngine` with spans for workflow handling, step execution, command callbacks, and resource acquisition. Workflows carry W3C `DistributedTraceContext` for cross-service correlation.
+
+A mailbox write is two traces rather than one. The request's span covers the wait for a verdict — `MailboxMintBuffer.Enqueue`, `MailboxCloseBuffer.Enqueue`, `MailboxDeliveryBuffer.Enqueue` — while the database work runs in a separate trace named for the same buffer — `MailboxDeliveryBuffer.FlushBatch` and so on — tagged `batch.size` and carrying an `ActivityLink` back to every request it answered. Follow the links rather than the parent: a flush belongs to no single request, which is also why the rows it writes share one transaction, and so one `xmin`, with every other request in its batch.
 
 ## Dashboard
 
@@ -1436,12 +1508,12 @@ All via `EngineSettings` (bound from `appsettings.json`):
 
 ### Concurrency
 
-| Setting                             | Default | Description                          |
-| ----------------------------------- | ------- | ------------------------------------ |
-| `Concurrency.MaxWorkers`            | 400     | Concurrent workflow processing tasks |
-| `Concurrency.MaxDbOperations`       | 90      | DB connection pool limit             |
-| `Concurrency.MaxHttpCalls`          | 400     | Outbound HTTP request limit          |
-| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429     |
+| Setting                             | Default | Description                                                      |
+| ----------------------------------- | ------- | ---------------------------------------------------------------- |
+| `Concurrency.MaxWorkers`            | 400     | Concurrent workflow processing tasks                             |
+| `Concurrency.MaxDbOperations`       | 90      | DB connection pool limit — mailbox buffer flushes are outside it |
+| `Concurrency.MaxHttpCalls`          | 400     | Outbound HTTP request limit                                      |
+| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429                                 |
 
 ### Write Buffer
 
@@ -1450,6 +1522,20 @@ All via `EngineSettings` (bound from `appsettings.json`):
 | `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert |
 | `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size        |
 | `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers  |
+
+### Mailbox Buffers
+
+| Setting                                    | Default | Description                                                                              |
+| ------------------------------------------ | ------- | ---------------------------------------------------------------------------------------- |
+| `MailboxBuffers.Mint.MaxBatchSize`         | 100     | Mints per batch flush                                                                    |
+| `MailboxBuffers.Mint.MaxQueueSize`         | 5,000   | Mints that may wait for a flush                                                          |
+| `MailboxBuffers.Mint.FlushConcurrency`     | 2       | Concurrent mint flushes, one connection each, outside `MaxDbOperations`                  |
+| `MailboxBuffers.Close.MaxBatchSize`        | 100     | Closes per batch flush                                                                   |
+| `MailboxBuffers.Close.MaxQueueSize`        | 5,000   | Closes that may wait for a flush                                                         |
+| `MailboxBuffers.Close.FlushConcurrency`    | 1       | Serial — a close takes mailbox row and receiver workflow row locks                       |
+| `MailboxBuffers.Delivery.MaxBatchSize`     | 100     | Deliveries per batch flush                                                               |
+| `MailboxBuffers.Delivery.MaxQueueSize`     | 10,000  | Deliveries that may wait for a flush; waits rather than refusing (see [Limits](#limits)) |
+| `MailboxBuffers.Delivery.FlushConcurrency` | 2       | Low deliberately — a storm aimed at one mailbox convoys on that mailbox's row lock       |
 
 ### Mailboxes
 
