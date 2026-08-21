@@ -132,8 +132,8 @@ __metadata:
   dependencies:
     "@app/language": "workspace:0.1.0"
     "@chromatic-com/storybook": "npm:5.3.0"
-    "@digdir/designsystemet-css": "npm:1.19.0"
-    "@digdir/designsystemet-react": "npm:1.19.0"
+    "@digdir/designsystemet-css": "npm:1.20.0"
+    "@digdir/designsystemet-react": "npm:1.20.0"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:10.0.1"
     "@navikt/aksel-icons": "npm:8.16.1"
@@ -1990,12 +1990,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:1.19.0":
-  version: 1.19.0
-  resolution: "@digdir/designsystemet-css@npm:1.19.0"
+"@digdir/designsystemet-css@npm:1.20.0":
+  version: 1.20.0
+  resolution: "@digdir/designsystemet-css@npm:1.20.0"
   dependencies:
-    "@digdir/designsystemet-types": "npm:1.19.0"
-  checksum: 10/6401b73d2ccaf9c79ff4f073f2ab77053341ee57449fb919463b50c7e9cfbfabac2a2912b92ef4dbe1085c24116adbc0fc856ba6df557bb262254f7f061ba1ad
+    "@digdir/designsystemet-types": "npm:1.20.0"
+  checksum: 10/efebb73bf02bbdd1346def3eb9d562dbec76e45ea0b2a82c0300399227032fe600dea28d5070448fc88e9daa93e1c08a3be2b2866c716fa96165bee27043978f
   languageName: node
   linkType: hard
 
@@ -2033,12 +2033,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-react@npm:1.19.0":
-  version: 1.19.0
-  resolution: "@digdir/designsystemet-react@npm:1.19.0"
+"@digdir/designsystemet-react@npm:1.20.0":
+  version: 1.20.0
+  resolution: "@digdir/designsystemet-react@npm:1.20.0"
   dependencies:
-    "@digdir/designsystemet-types": "npm:1.19.0"
-    "@digdir/designsystemet-web": "npm:1.19.0"
+    "@digdir/designsystemet-types": "npm:1.20.0"
+    "@digdir/designsystemet-web": "npm:1.20.0"
     "@floating-ui/dom": "npm:^1.8.0"
     "@floating-ui/react": "npm:0.26.23"
     "@navikt/aksel-icons": "npm:^8.16.1"
@@ -2048,7 +2048,7 @@ __metadata:
   peerDependencies:
     react: ">=18.3.1 || ^19.0.0"
     react-dom: ">=18.3.1 || ^19.0.0"
-  checksum: 10/20451639e27696f5b92863d6c2deb710ca40b05fa1e7a74e96a6f2494ce203d2c523da73fb5b4b9be3fe5b53c76ad3dffd1f449944380f6c5f3476c6efec025f
+  checksum: 10/544cfdce581712c295596799b97619d5354338616e1988b463bbd2f3f91a96dca6dc2568bf627a882a0c3f1d2ba4a766cc67f7d8c98ee9f371039f4e49905383
   languageName: node
   linkType: hard
 
@@ -2075,10 +2075,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-types@npm:1.19.0":
-  version: 1.19.0
-  resolution: "@digdir/designsystemet-types@npm:1.19.0"
-  checksum: 10/680d18e881321faca07136b382f2f1234550088022b8708172cf9398f61aadb18eecac64c226dd2ac77a08470b3140d683cc5c7bfb4e8c2ba6202f8efad77dae
+"@digdir/designsystemet-types@npm:1.20.0":
+  version: 1.20.0
+  resolution: "@digdir/designsystemet-types@npm:1.20.0"
+  checksum: 10/556b600fee8c07e5e66dc1295a380aece13ad0a94cbb6bc05d7756bf10c717a3c685839f190849f57c6f41f317c5ddcc503462cbdd7aec149dc286eef5a4aff1
   languageName: node
   linkType: hard
 
@@ -2102,16 +2102,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-web@npm:1.19.0":
-  version: 1.19.0
-  resolution: "@digdir/designsystemet-web@npm:1.19.0"
+"@digdir/designsystemet-web@npm:1.20.0":
+  version: 1.20.0
+  resolution: "@digdir/designsystemet-web@npm:1.20.0"
   dependencies:
     "@floating-ui/dom": "npm:^1.8.0"
-    "@u-elements/u-combobox": "npm:^2.1.0"
+    "@u-elements/u-combobox": "npm:^2.1.2"
     "@u-elements/u-datalist": "npm:^2.0.3"
     "@u-elements/u-details": "npm:^1.0.0"
     "@u-elements/u-tabs": "npm:^1.0.4"
-  checksum: 10/1825a8d5b2c102cd8ecd15a88eba9ed83429615eb831a751ebfec9b76eca576f79fdd64c856bad9913e13cfcc29eb67ffb55dc63eae09a70905ca81058bd5d63
+  checksum: 10/4df113fa36b0cea314750d707b16b3810469d158cdc995fdd4a8fcdcf8335585e636f89ddbb3824a63517b9771090027c26c6db3f8479ac7e5b15bfa4de8ffa8
   languageName: node
   linkType: hard
 
@@ -6988,10 +6988,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@u-elements/u-combobox@npm:^2.1.0":
-  version: 2.1.1
-  resolution: "@u-elements/u-combobox@npm:2.1.1"
-  checksum: 10/dba62e549ac5556c4bcfa9d9ae172c4c083171f871998cccd756f742b387e0dc3b6173111b04959d798b68e467f7a178c073a31e8dc0e2aa49ef74897c1d4791
+"@u-elements/u-combobox@npm:^2.1.2":
+  version: 2.1.3
+  resolution: "@u-elements/u-combobox@npm:2.1.3"
+  checksum: 10/e405c3c4dda7fbcc9533d418916043cdb848cb30966614fc4b0dc614d919ec0110b1b632fa01a0e32227affacd334c003d9d54890c96a258dfa959010b2f0362
   languageName: node
   linkType: hard
 
@@ -7576,8 +7576,8 @@ __metadata:
     "@babel/runtime": "npm:7.29.7"
     "@babel/runtime-corejs3": "npm:7.29.7"
     "@date-fns/tz": "npm:1.5.0"
-    "@digdir/designsystemet-css": "npm:1.19.0"
-    "@digdir/designsystemet-react": "npm:1.19.0"
+    "@digdir/designsystemet-css": "npm:1.20.0"
+    "@digdir/designsystemet-react": "npm:1.20.0"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:^10.0.1"
     "@lhci/cli": "npm:^0.15.1"
