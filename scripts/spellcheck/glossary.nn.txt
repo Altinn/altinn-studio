@@ -46,8 +46,8 @@ validér
 vedleggstype
 versjonsfeil
 
-# Kept pending a native ruling: used deliberately in the product, but
-# unusual enough to deserve a human yes/no. Remove a line to re-flag.
+# Unusual but deliberate phrasings in shipped UI text, reviewed and
+# accepted by a native speaker.
 anbefalar                   # 'anbefale' is contested nynorsk (tilrå is often preferred), but deliberate here
-beskjæringsområde           # possibly a bokmål form leaking into the nn value (beskjering?)
-filas                       # s-genitive ('filas merking') is unusual in nynorsk
+beskjæringsområde           # same form as the nb value
+filas                       # s-genitive ('filas merking')

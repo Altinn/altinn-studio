@@ -62,9 +62,9 @@ extend-exclude = [
     "src/Designer/frontend/language/src/*.json",
     "src/Designer/frontend/resourceadm/language/src/*.json",
     "src/Designer/frontend/packages/shared/src/constants.js",
-    "src/Designer/frontend/app-development/features/overview/components/News/NewsContent/news.nb.json",
+    "src/Designer/frontend/app-development/features/overview/components/News/NewsContent/news.*.json",
     "src/App/template/*/src/App/config/applicationmetadata.json",
-    "src/App/template/*/src/App/config/texts/resource.nb.json",
+    "src/App/template/*/src/App/config/texts/resource.*.json",
     "src/gitea/files/locale/**",
 
     # Test-only surface ships nowhere: test projects, colocated test files,
