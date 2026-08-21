@@ -4463,6 +4463,22 @@ const generatedContract = {
   componentCatalog: {
     Accordion: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: false,
+        renderInAccordionGroup: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'Accordion (Trekkspilliste)', en: 'Accordion' },
         lifecycle: { status: 'stable' },
@@ -4538,6 +4554,22 @@ const generatedContract = {
     },
     AccordionGroup: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: false,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'AccordionGroup (Nestet trekkspilliste)', en: 'AccordionGroup' },
         lifecycle: { status: 'stable' },
@@ -4597,6 +4629,22 @@ const generatedContract = {
     },
     ActionButton: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'ActionButton (Handlingsknapp)', en: 'ActionButton' },
         lifecycle: { status: 'stable' },
@@ -4659,6 +4707,22 @@ const generatedContract = {
     },
     Address: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'Address (Adresse)', en: 'Address' },
         lifecycle: { status: 'stable' },
@@ -4778,6 +4842,22 @@ const generatedContract = {
     },
     AddToList: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'AddToList', en: 'AddToList' }, lifecycle: { status: 'beta' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -4857,6 +4937,22 @@ const generatedContract = {
     },
     Alert: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Alert (Varsel)', en: 'Alert' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -4910,6 +5006,22 @@ const generatedContract = {
     },
     AttachmentList: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'AttachmentList (Liste over vedlegg)', en: 'AttachmentList' },
         lifecycle: { status: 'stable' },
@@ -4993,6 +5105,22 @@ const generatedContract = {
     },
     Audio: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: true,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Audio', en: 'Audio' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5041,6 +5169,22 @@ const generatedContract = {
     },
     Button: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Button', en: 'Button' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5100,6 +5244,22 @@ const generatedContract = {
     },
     ButtonGroup: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'ButtonGroup', en: 'ButtonGroup' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5150,6 +5310,22 @@ const generatedContract = {
     },
     Cards: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCardsMedia: false,
+        renderInCards: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Cards', en: 'Cards' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5225,6 +5401,22 @@ const generatedContract = {
     },
     Checkboxes: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'Avkrysningsbokser', en: 'Checkboxes' },
         lifecycle: { status: 'stable' },
@@ -5336,6 +5528,22 @@ const generatedContract = {
     },
     Custom: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: true,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Custom', en: 'Custom' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5418,6 +5626,22 @@ const generatedContract = {
     },
     CustomButton: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'CustomButton', en: 'CustomButton' },
         lifecycle: { status: 'stable' },
@@ -5502,6 +5726,22 @@ const generatedContract = {
     },
     Date: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInTabs: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Date', en: 'Date' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5574,6 +5814,22 @@ const generatedContract = {
     },
     Datepicker: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Datepicker', en: 'Datepicker' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5702,6 +5958,22 @@ const generatedContract = {
     },
     Divider: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Skillelinje', en: 'Divider' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5738,6 +6010,22 @@ const generatedContract = {
     },
     Dropdown: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Nedtrekksliste', en: 'Dropdown' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5828,6 +6116,22 @@ const generatedContract = {
     },
     FileUpload: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: true,
+      },
       metadata: { name: { nb: 'FileUpload', en: 'FileUpload' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -5975,6 +6279,22 @@ const generatedContract = {
     },
     FileUploadWithTag: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: true,
+      },
       metadata: {
         name: { nb: 'FileUploadWithTag', en: 'FileUploadWithTag' },
         lifecycle: { status: 'stable' },
@@ -6143,6 +6463,22 @@ const generatedContract = {
     },
     Grid: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Grid', en: 'Grid' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6191,6 +6527,22 @@ const generatedContract = {
     },
     Group: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Group', en: 'Group' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6277,6 +6629,22 @@ const generatedContract = {
     },
     Heading: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Header', en: 'Header' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6340,6 +6708,22 @@ const generatedContract = {
     },
     IFrame: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'IFrame', en: 'IFrame' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6388,6 +6772,22 @@ const generatedContract = {
     },
     Image: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: true,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Bilde', en: 'Image' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6448,6 +6848,22 @@ const generatedContract = {
     },
     ImageUpload: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInTabs: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: true,
+      },
       metadata: {
         name: { nb: 'Bildeopplaster', en: 'Image Uploader' },
         lifecycle: { status: 'stable' },
@@ -6529,6 +6945,22 @@ const generatedContract = {
     },
     Input: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Input', en: 'Input' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6717,6 +7149,22 @@ const generatedContract = {
     },
     InstanceInformation: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'InstanceInformation', en: 'InstanceInformation' },
         lifecycle: { status: 'stable' },
@@ -6772,6 +7220,22 @@ const generatedContract = {
     },
     InstantiationButton: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'InstantiationButton', en: 'InstantiationButton' },
         lifecycle: { status: 'stable' },
@@ -6825,6 +7289,22 @@ const generatedContract = {
     },
     Likert: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Likert', en: 'Likert' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -6961,6 +7441,22 @@ const generatedContract = {
     },
     Link: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Link', en: 'Link' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7034,6 +7530,22 @@ const generatedContract = {
     },
     List: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'List', en: 'List' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7200,6 +7712,22 @@ const generatedContract = {
     },
     Map: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Map', en: 'Map' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7291,6 +7819,22 @@ const generatedContract = {
     },
     MultipleSelect: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'MultipleSelect', en: 'MultipleSelect' },
         lifecycle: { status: 'stable' },
@@ -7382,6 +7926,22 @@ const generatedContract = {
     },
     NavigationBar: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: false,
+        renderInAccordionGroup: false,
+        renderInCards: false,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'NavigationBar', en: 'NavigationBar' },
         lifecycle: { status: 'stable' },
@@ -7426,6 +7986,22 @@ const generatedContract = {
     },
     NavigationButtons: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: true,
+        renderInAccordion: false,
+        renderInAccordionGroup: false,
+        renderInCards: false,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'NavigationButtons', en: 'NavigationButtons' },
         lifecycle: { status: 'stable' },
@@ -7513,6 +8089,22 @@ const generatedContract = {
     },
     Number: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInTabs: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Number', en: 'Number' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7582,6 +8174,22 @@ const generatedContract = {
     },
     Option: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInTabs: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Option', en: 'Option' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7655,6 +8263,22 @@ const generatedContract = {
     },
     OrganizationLookup: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'OrganisationLookup', en: 'OrganisationLookup' },
         lifecycle: { status: 'stable' },
@@ -7780,6 +8404,22 @@ const generatedContract = {
     },
     Panel: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: false,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Panel', en: 'Panel' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7846,6 +8486,22 @@ const generatedContract = {
     },
     Paragraph: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Paragraph', en: 'Paragraph' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7899,6 +8555,22 @@ const generatedContract = {
     },
     Payment: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: false,
+        renderInAccordionGroup: false,
+        renderInCards: false,
+        renderInCardsMedia: false,
+        renderInTabs: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Payment', en: 'Payment' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -7952,6 +8624,22 @@ const generatedContract = {
     },
     PaymentDetails: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'PaymentDetails', en: 'PaymentDetails' },
         lifecycle: { status: 'stable' },
@@ -8012,6 +8700,22 @@ const generatedContract = {
     },
     PDFPreviewButton: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'PDFPreviewButton', en: 'PDFPreviewButton' },
         lifecycle: { status: 'stable' },
@@ -8064,6 +8768,22 @@ const generatedContract = {
     },
     PersonLookup: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'PersonLookup', en: 'PersonLookup' },
         lifecycle: { status: 'stable' },
@@ -8157,6 +8877,22 @@ const generatedContract = {
     },
     PrintButton: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: true,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'PrintButton', en: 'PrintButton' },
         lifecycle: { status: 'deprecated', replacedBy: 'PDFPreviewButton' },
@@ -8199,6 +8935,22 @@ const generatedContract = {
     },
     RadioButtons: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInTabs: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: true,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'RadioButtons', en: 'RadioButtons' },
         lifecycle: { status: 'stable' },
@@ -8321,6 +9073,22 @@ const generatedContract = {
     },
     RepeatingGroup: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'RepeatingGroup', en: 'RepeatingGroup' },
         lifecycle: { status: 'stable' },
@@ -8660,6 +9428,22 @@ const generatedContract = {
     },
     SigneeList: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'SigneeList', en: 'SigneeList' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -8723,6 +9507,22 @@ const generatedContract = {
     },
     SigningActions: {
       kind: 'component',
+      category: 'Action',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'SigningActions', en: 'SigningActions' },
         lifecycle: { status: 'stable' },
@@ -9002,6 +9802,22 @@ const generatedContract = {
     },
     SigningDocumentList: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'SigningDocumentList', en: 'SigningDocumentList' },
         lifecycle: { status: 'stable' },
@@ -9071,6 +9887,22 @@ const generatedContract = {
     },
     SimpleTable: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: false,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'SimpleTable', en: 'SimpleTable' }, lifecycle: { status: 'beta' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9180,6 +10012,22 @@ const generatedContract = {
     },
     Subform: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Subform', en: 'Subform' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9311,6 +10159,22 @@ const generatedContract = {
     },
     Summary: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: {
         name: { nb: 'Summary', en: 'Summary' },
         lifecycle: { status: 'deprecated', replacedBy: 'Summary2' },
@@ -9396,6 +10260,22 @@ const generatedContract = {
     },
     Summary2: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: false,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Summary2', en: 'Summary2' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9443,6 +10323,22 @@ const generatedContract = {
     },
     Tabs: {
       kind: 'container',
+      category: 'Container',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: false,
+        renderInAccordionGroup: false,
+        renderInTabs: false,
+        renderInCards: false,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Tabs', en: 'Tabs' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9487,6 +10383,22 @@ const generatedContract = {
     },
     Text: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInTabs: true,
+        renderInCards: true,
+        renderInCardsMedia: false,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Text', en: 'Text' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9534,6 +10446,22 @@ const generatedContract = {
     },
     TextArea: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'TextArea', en: 'TextArea' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9627,6 +10555,22 @@ const generatedContract = {
     },
     TimePicker: {
       kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'TimePicker', en: 'TimePicker' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
@@ -9737,6 +10681,22 @@ const generatedContract = {
     },
     Video: {
       kind: 'component',
+      category: 'Presentation',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: true,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: false,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
       metadata: { name: { nb: 'Video', en: 'Video' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],

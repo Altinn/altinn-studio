@@ -385,6 +385,9 @@ export class ComponentConfig {
     this.beforeFinalizing();
     return {
       kind: this.config.category === CompCategory.Container ? 'container' : 'component',
+      category: this.config.category,
+      capabilities: this.config.capabilities,
+      behaviors: this.behaviors,
       metadata: this.config.metadata,
       properties: this.inner.componentCatalogProperties(),
     };

@@ -94,6 +94,9 @@ export type PropertyDefinition = Readonly<
 
 export type ComponentDefinition = Readonly<{
   kind: 'component' | 'container';
+  category: `${CompCategory}`;
+  capabilities: Readonly<ComponentCapabilities>;
+  behaviors: Readonly<ComponentBehaviors>;
   metadata: ComponentMetadata;
   properties: Readonly<Record<string, PropertyDefinition>>;
 }>;

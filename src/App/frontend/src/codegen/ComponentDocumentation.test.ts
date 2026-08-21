@@ -3,12 +3,32 @@ import type { ComponentCatalog } from '@app/layout-contract';
 
 import { generateComponentDocumentation } from 'src/codegen/ComponentDocumentation';
 
+const exampleComponent = {
+  kind: 'component',
+  category: 'Presentation',
+  capabilities: {
+    renderInTable: false,
+    renderInButtonGroup: false,
+    renderInAccordion: false,
+    renderInAccordionGroup: false,
+    renderInTabs: false,
+    renderInCards: false,
+    renderInCardsMedia: false,
+  },
+  behaviors: {
+    isSummarizable: false,
+    canHaveLabel: false,
+    canHaveOptions: false,
+    canHaveAttachments: false,
+  },
+  metadata: { name: { nb: 'Eksempel', en: 'Example' } },
+} as const;
+
 describe('generateComponentDocumentation', () => {
   it('renders nested object and array properties with expression result types', () => {
     const catalog = {
       Example: {
-        kind: 'component',
-        metadata: { name: { nb: 'Eksempel', en: 'Example' } },
+        ...exampleComponent,
         properties: {
           rows: {
             type: 'array',
@@ -42,8 +62,7 @@ describe('generateComponentDocumentation', () => {
   it('parenthesizes union array item types', () => {
     const catalog = {
       Example: {
-        kind: 'component',
-        metadata: { name: { nb: 'Eksempel', en: 'Example' } },
+        ...exampleComponent,
         properties: {
           values: {
             type: 'array',
@@ -68,8 +87,7 @@ describe('generateComponentDocumentation', () => {
   it('distinguishes discriminated object variants in nested paths', () => {
     const catalog = {
       Example: {
-        kind: 'component',
-        metadata: { name: { nb: 'Eksempel', en: 'Example' } },
+        ...exampleComponent,
         properties: {
           items: {
             type: 'array',
@@ -114,8 +132,7 @@ describe('generateComponentDocumentation', () => {
     } as const;
     const catalog = {
       Example: {
-        kind: 'component',
-        metadata: { name: { nb: 'Eksempel', en: 'Example' } },
+        ...exampleComponent,
         properties: { id: constrainedNumber, value: constrainedNumber },
       },
     } as const satisfies ComponentCatalog;

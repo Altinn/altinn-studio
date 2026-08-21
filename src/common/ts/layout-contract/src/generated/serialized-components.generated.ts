@@ -61,6 +61,69 @@ import type { CompTextAreaSerialized } from '@app/layout-contract/generated/comp
 import type { CompTimePickerSerialized } from '@app/layout-contract/generated/components/TimePicker/serialized.generated';
 import type { CompVideoSerialized } from '@app/layout-contract/generated/components/Video/serialized.generated';
 
+export enum ComponentType {
+  Accordion = 'Accordion',
+  AccordionGroup = 'AccordionGroup',
+  ActionButton = 'ActionButton',
+  Address = 'Address',
+  AddToList = 'AddToList',
+  Alert = 'Alert',
+  AttachmentList = 'AttachmentList',
+  Audio = 'Audio',
+  Button = 'Button',
+  ButtonGroup = 'ButtonGroup',
+  Cards = 'Cards',
+  Checkboxes = 'Checkboxes',
+  Custom = 'Custom',
+  CustomButton = 'CustomButton',
+  Date = 'Date',
+  Datepicker = 'Datepicker',
+  Divider = 'Divider',
+  Dropdown = 'Dropdown',
+  FileUpload = 'FileUpload',
+  FileUploadWithTag = 'FileUploadWithTag',
+  Grid = 'Grid',
+  Group = 'Group',
+  Heading = 'Heading',
+  IFrame = 'IFrame',
+  Image = 'Image',
+  ImageUpload = 'ImageUpload',
+  Input = 'Input',
+  InstanceInformation = 'InstanceInformation',
+  InstantiationButton = 'InstantiationButton',
+  Likert = 'Likert',
+  Link = 'Link',
+  List = 'List',
+  Map = 'Map',
+  MultipleSelect = 'MultipleSelect',
+  NavigationBar = 'NavigationBar',
+  NavigationButtons = 'NavigationButtons',
+  Number = 'Number',
+  Option = 'Option',
+  OrganizationLookup = 'OrganizationLookup',
+  Panel = 'Panel',
+  Paragraph = 'Paragraph',
+  Payment = 'Payment',
+  PaymentDetails = 'PaymentDetails',
+  PDFPreviewButton = 'PDFPreviewButton',
+  PersonLookup = 'PersonLookup',
+  PrintButton = 'PrintButton',
+  RadioButtons = 'RadioButtons',
+  RepeatingGroup = 'RepeatingGroup',
+  SigneeList = 'SigneeList',
+  SigningActions = 'SigningActions',
+  SigningDocumentList = 'SigningDocumentList',
+  SimpleTable = 'SimpleTable',
+  Subform = 'Subform',
+  Summary = 'Summary',
+  Summary2 = 'Summary2',
+  Tabs = 'Tabs',
+  Text = 'Text',
+  TextArea = 'TextArea',
+  TimePicker = 'TimePicker',
+  Video = 'Video',
+}
+
 export type SerializedComponent =
   | CompAccordionSerialized
   | CompAccordionGroupSerialized
@@ -123,4 +186,4 @@ export type SerializedComponent =
   | CompTimePickerSerialized
   | CompVideoSerialized;
 
-// Source hash: ac50e7b3d6b1d474eb93c56725a4fd400d5cc1d6e81ca44cb7b226fbc1e02faa
+// Source hash: f46cb029dfa025cfb78178df4ecdb1c5ee06273d82effccdb15aca5c192a3e37
