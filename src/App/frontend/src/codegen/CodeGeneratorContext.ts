@@ -27,11 +27,16 @@ export class CodeGeneratorContext {
     return this.fileContext;
   }
 
+  public static isGeneratingSerializedTypeScript(): boolean {
+    return this.curFile().typeScriptVariant === 'serialized';
+  }
+
   public static async generateTypeScript(
     targetFile: string,
     fn: () => string | Promise<string>,
+    variant: TypeScriptVariant = 'runtime',
   ): Promise<{ result: string }> {
-    const instance = new CodeGeneratorFileContext(targetFile, 'typeScript');
+    const instance = new CodeGeneratorFileContext(targetFile, 'typeScript', variant);
     CodeGeneratorContext.fileContext = instance;
     const functionOutput = await fn();
     const parts: string[] = [];
@@ -139,6 +144,7 @@ export class CodeGeneratorContext {
 }
 
 type FileType = 'jsonSchema' | 'typeScript';
+type TypeScriptVariant = 'runtime' | 'serialized';
 type Imports = { [fileName: string]: Set<string> };
 type SymbolTable<T extends FileType> = { [symbol: string]: T extends 'jsonSchema' ? JSONSchema7 : string };
 
@@ -148,9 +154,12 @@ export class CodeGeneratorFileContext<T extends FileType> {
   public symbols: SymbolTable<T> = {};
   public imports: Imports = {};
 
-  constructor(targetFile: string, type: T) {
+  public readonly typeScriptVariant: TypeScriptVariant;
+
+  constructor(targetFile: string, type: T, typeScriptVariant: TypeScriptVariant = 'runtime') {
     this.targetFile = targetFile.replace(/\.ts$/, '');
     this.type = type;
+    this.typeScriptVariant = typeScriptVariant;
   }
 
   public addImport(symbol: string, from: string): void {

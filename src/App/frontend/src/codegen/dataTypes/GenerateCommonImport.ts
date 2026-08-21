@@ -3,7 +3,8 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { type CodeGeneratorWithProperties, DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
-import { getSourceForCommon } from 'src/codegen/Common';
+import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
+import { getSourceForCommon, isSerializedCommonType } from 'src/codegen/Common';
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import type { ValidCommonKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
@@ -73,9 +74,13 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
   }
 
   toTypeScriptDefinition(): string {
+    const commonFile =
+      CodeGeneratorContext.isGeneratingSerializedTypeScript() && isSerializedCommonType(this.key)
+        ? 'serialized-common.generated'
+        : 'common.generated';
     const _import = new CG.import({
       import: this.realKey ?? this.key,
-      from: '@app/layout-contract/generated/common.generated',
+      from: `@app/layout-contract/generated/${commonFile}`,
     });
 
     this.freeze('toTypeScriptDefinition');

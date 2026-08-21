@@ -1,6 +1,7 @@
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
+import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 
 /**
@@ -12,6 +13,12 @@ export class GenerateDataModelBinding extends GenerateCommonImport<'IDataModelRe
 
   constructor() {
     super('IDataModelReference');
+  }
+
+  toTypeScript(): string {
+    return CodeGeneratorContext.isGeneratingSerializedTypeScript()
+      ? this.rawBinding.toTypeScript()
+      : super.toTypeScript();
   }
 
   toJsonSchema(): JSONSchema7 {

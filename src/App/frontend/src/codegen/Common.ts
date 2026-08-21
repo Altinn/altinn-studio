@@ -1315,6 +1315,23 @@ export function generateCommonTypeScript() {
   }
 }
 
+const serializedCommonTypeKeys = [
+  'IDataModelBindingsSimple',
+  'IDataModelBindingsOptionsSimple',
+  'IDataModelBindingsLikert',
+  'IDataModelBindingsList',
+] as const satisfies readonly ValidCommonKeys[];
+
+export function isSerializedCommonType(key: ValidCommonKeys): boolean {
+  return serializedCommonTypeKeys.some((serializedKey) => serializedKey === key);
+}
+
+export function generateSerializedCommonTypeScript() {
+  for (const key of serializedCommonTypeKeys) {
+    getSourceForCommon(key).toTypeScript();
+  }
+}
+
 export function generateCommonSchema() {
   for (const key in common) {
     const val = getSourceForCommon(key as ValidCommonKeys, 'JsonSchema');

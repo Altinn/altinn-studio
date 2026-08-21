@@ -1,11 +1,28 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 
 import { componentCatalog } from './component-catalog.generated';
+import type { ConfigurableComponent } from './generated/components.generated';
+import type { SerializedComponent } from './generated/serialized-components.generated';
+import type { IDataModelReference } from './generated/common.generated';
 
 describe('componentCatalog', () => {
   it('only exposes components that may be authored in layout files', () => {
     expect('LikertItem' in componentCatalog).toBe(false);
     expect('Option' in componentCatalog).toBe(true);
+  });
+
+  it('only generates types for externally configurable components', () => {
+    expectTypeOf<Extract<ConfigurableComponent, { type: 'Option' }>>().not.toBeNever();
+    expectTypeOf<Extract<ConfigurableComponent, { type: 'LikertItem' }>>().toBeNever();
+    expectTypeOf<Extract<SerializedComponent, { type: 'Option' }>>().not.toBeNever();
+    expectTypeOf<Extract<SerializedComponent, { type: 'LikertItem' }>>().toBeNever();
+  });
+
+  it('generates serialized data-model bindings without renderer normalization', () => {
+    type SerializedMap = Extract<SerializedComponent, { type: 'Map' }>;
+    expectTypeOf<SerializedMap['dataModelBindings']['simpleBinding']>().toEqualTypeOf<
+      string | IDataModelReference | undefined
+    >();
   });
 
   it('includes component lifecycle metadata', () => {

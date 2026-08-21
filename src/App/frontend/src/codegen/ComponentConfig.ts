@@ -359,6 +359,11 @@ export class ComponentConfig {
     return staticElements.join('\n\n');
   }
 
+  public generateSerializedType(): string {
+    this.beforeFinalizing();
+    return `export type Comp${this.typeSymbol}Serialized = ${this.inner.toTypeScriptDefinition(undefined)};`;
+  }
+
   public generateRuntimeConfigFile(): string {
     const impl = new CG.import({
       import: this.typeSymbol,
