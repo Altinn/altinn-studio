@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 
+import { useIsMobileOrTablet } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -10,7 +11,6 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
 import { getGridCellHiddenExpr, useBaseIdsFromGridRows } from 'src/layout/Grid/tools';

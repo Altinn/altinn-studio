@@ -1,7 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
-import { Button, Flex } from '@app/form-component';
+import { Button, Flex, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -13,7 +13,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {

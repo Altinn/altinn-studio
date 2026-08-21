@@ -26,14 +26,5 @@ export const findEffectiveGridSize = (
         selectedViewSizes[ViewSize.Xs] ||
         12
       );
-    case ViewSize.Xl:
-      return (
-        selectedViewSizes[ViewSize.Xl] ||
-        selectedViewSizes[ViewSize.Lg] ||
-        selectedViewSizes[ViewSize.Md] ||
-        selectedViewSizes[ViewSize.Sm] ||
-        selectedViewSizes[ViewSize.Xs] ||
-        12
-      );
   }
 };
