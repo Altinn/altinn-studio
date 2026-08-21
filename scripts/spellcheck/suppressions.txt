@@ -229,3 +229,17 @@ lik
 @paths src/AI/augmenter-agent/TODO-coderabbit.md
 foldes
 prosess
+
+# The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
+# so the old spellings are its working data: the rename map, the rewrite
+# reporting, the orchestration step, and the user-facing changelog entry
+# all must name the misspellings they remove.
+@paths src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/CSharpApiMigration/MisspelledApiMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs src/cli/CHANGELOG.md
+Analyse
+Analyser
+Analysers
+Analyzis
+Extentions
+Indicies
+Instansiation
+Organisation
