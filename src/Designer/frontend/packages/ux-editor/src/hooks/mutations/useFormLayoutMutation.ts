@@ -4,7 +4,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayout';
 import type { SerializedComponent, SerializedFormLayout } from '../../types/SerializedComponent';
 
 type useFormLayoutMutationPayload = {

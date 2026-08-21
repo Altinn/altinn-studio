@@ -6,7 +6,7 @@ import type {
   ExternalData,
   ExternalFormLayout,
   FormLayoutsResponse,
-} from 'app-shared/types/api/FormLayoutsResponse';
+} from 'app-shared/types/api/FormLayout';
 
 export type KnownSerializedComponent<T extends ComponentType = ComponentType> = Extract<
   GeneratedSerializedComponent,

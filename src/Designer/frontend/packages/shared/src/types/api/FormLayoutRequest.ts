@@ -1,16 +1,11 @@
+import type { ExternalComponent } from 'app-shared/types/api/FormLayoutsResponse';
 import type {
-  ExternalComponent,
-  ExternalFormLayout,
-} from 'app-shared/types/api/FormLayoutsResponse';
+  ComponentIdChange,
+  ComponentIdsChange,
+  FormLayoutRequest as GenericFormLayoutRequest,
+} from './FormLayout';
 
-export type ComponentIdChange = {
-  oldComponentId: string;
-  newComponentId: string;
-};
+export type { ComponentIdChange, ComponentIdsChange };
 
-export type ComponentIdsChange = ComponentIdChange[];
-
-export type FormLayoutRequest<TComponent = ExternalComponent> = {
-  layout: ExternalFormLayout<TComponent>;
-  componentIdsChange?: ComponentIdsChange;
-};
+export type FormLayoutRequest<TComponent = ExternalComponent> =
+  GenericFormLayoutRequest<TComponent>;

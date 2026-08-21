@@ -3,7 +3,7 @@ import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { ObjectUtils } from '@studio/pure-functions';
-import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
+import type { ComponentIdsChange } from 'app-shared/types/api/FormLayout';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
