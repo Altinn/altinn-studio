@@ -31,7 +31,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     appMetadata.PartyTypesAllowed = new PartyTypesAllowed
                     {
                         Person = true,
-                        Organization = true,
+                        Organisation = true,
                         SubUnit = true,
                         BankruptcyEstate = true,
                     };
@@ -65,7 +65,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = selectedPartyId,
-                        PartyTypeName = PartyType.Organization,
+                        PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
                 }
@@ -121,7 +121,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = 500600,
-                        PartyTypeName = PartyType.Organization,
+                        PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
                 }
@@ -175,7 +175,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = 500600,
-                        PartyTypeName = PartyType.Organization,
+                        PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
                 }
@@ -280,7 +280,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = 500600,
-                        PartyTypeName = PartyType.Organization,
+                        PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
                 }
@@ -329,7 +329,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = 500600,
-                        PartyTypeName = PartyType.Organization,
+                        PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
                 }
@@ -362,7 +362,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     appMetadata.PartyTypesAllowed = new PartyTypesAllowed
                     {
                         Person = false,
-                        Organization = true,
+                        Organisation = true,
                         SubUnit = false,
                         BankruptcyEstate = false,
                     };

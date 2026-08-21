@@ -74,7 +74,7 @@ public class AltinnAppGitRepositoryTests : IDisposable
         Assert.Equal("Task_1", mainDataType.TaskId);
 
         Assert.False(applicationMetadata.PartyTypesAllowed.Person);
-        Assert.False(applicationMetadata.PartyTypesAllowed.Organization);
+        Assert.False(applicationMetadata.PartyTypesAllowed.Organisation);
         Assert.False(applicationMetadata.PartyTypesAllowed.SubUnit);
         Assert.False(applicationMetadata.PartyTypesAllowed.BankruptcyEstate);
 

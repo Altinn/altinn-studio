@@ -23,7 +23,7 @@ public class AuthenticationService : IAuthentication
     private readonly GeneralSettings _generalSettings;
     private readonly CertificateSettings _certSettings;
     private readonly IClaims _claimsService;
-    private readonly IOrganizations _organisations;
+    private readonly IOrganizations _organizations;
 
     public AuthenticationService(
         AltinnOrgsClient orgsClient,
@@ -198,7 +198,7 @@ public class AuthenticationService : IAuthentication
         ArgumentException.ThrowIfNullOrWhiteSpace(supplierOrgNumber);
         ArgumentException.ThrowIfNullOrWhiteSpace(scope);
         
-        var org = await _organisations.GetOrganization(systemUserOrgNumber);
+        var org = await _organizations.GetOrganization(systemUserOrgNumber);
         if (org is null)
             throw new ArgumentException("Organization not found in register", nameof(systemUserOrgNumber));
 

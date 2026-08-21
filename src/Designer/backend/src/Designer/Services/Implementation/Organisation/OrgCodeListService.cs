@@ -14,11 +14,11 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organization;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Services.Implementation.Organization;
+namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
 public class OrgCodeListService : IOrgCodeListService
 {

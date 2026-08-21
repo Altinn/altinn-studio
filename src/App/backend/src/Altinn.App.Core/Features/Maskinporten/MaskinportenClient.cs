@@ -599,8 +599,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// Renders a JWT with its signature masked, as <see cref="JwtToken"/> does. The grant assertion is a replayable
     /// credential for its lifetime, so the signature must not reach the logs.
     /// </summary>
-    private static string Mask(string jwt) =>
-        JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparsable>";
+    private static string Mask(string jwt) => JwtToken.TryParse(jwt, out var token) ? token.ToString() : "<unparsable>";
 
     private TimeSpan GetTokenExpiryWithMargin(JwtToken token) =>
         token.ExpiresAt - _timeProvider.GetUtcNow() - TokenExpirationMargin;

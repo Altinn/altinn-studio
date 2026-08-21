@@ -9,7 +9,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Studio.Designer.Controllers.Organization;
+namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
 /// Controller for handling general organization content library operations.

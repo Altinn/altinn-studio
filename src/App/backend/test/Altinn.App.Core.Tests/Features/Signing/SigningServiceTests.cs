@@ -1283,7 +1283,7 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     Name = "Digitaliseringsdirektoratet",
                     OrgNumber = "991825827",
-                    PartyTypeName = PartyType.Organization,
+                    PartyTypeName = PartyType.Organisation,
                 }
             );
 

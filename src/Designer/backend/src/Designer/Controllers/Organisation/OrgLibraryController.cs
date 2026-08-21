@@ -10,14 +10,14 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Interfaces.Organization;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Altinn.Studio.Designer.Controllers.Organization;
+namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
 /// Controller containing actions related to the organization library.

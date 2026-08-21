@@ -158,7 +158,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 12345,
-            PartyTypeName = PartyType.Organization,
+            PartyTypeName = PartyType.Organisation,
             OrgNumber = "991825827",
         };
 
@@ -299,7 +299,7 @@ public class InstantiationHelperTests
         var party = new Party
         {
             PartyId = 5001337,
-            PartyTypeName = PartyType.Organization,
+            PartyTypeName = PartyType.Organisation,
             OrgNumber = orgNo,
             Name = "Test Org",
         };

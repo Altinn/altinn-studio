@@ -4,12 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Interfaces.Organization;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Studio.Designer.Controllers.Organization;
+namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
 /// Controller for text resources on organization level

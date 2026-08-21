@@ -75,7 +75,7 @@ public abstract record OrganisationOrPersonIdentifier
     /// <param name="value">The organization number</param>
     public static Organisation Create(OrganisationNumber value)
     {
-        return new Organization(value);
+        return new Organisation(value);
     }
 
     /// <summary>

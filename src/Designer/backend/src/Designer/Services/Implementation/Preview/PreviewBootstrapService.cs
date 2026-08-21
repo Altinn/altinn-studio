@@ -381,7 +381,7 @@ public class PreviewBootstrapService(
     private static void SetMockedPartyTypesAllowedAsAllFalse(ApplicationMetadata applicationMetadata)
     {
         applicationMetadata.PartyTypesAllowed.Person = false;
-        applicationMetadata.PartyTypesAllowed.Organization = false;
+        applicationMetadata.PartyTypesAllowed.Organisation = false;
         applicationMetadata.PartyTypesAllowed.SubUnit = false;
         applicationMetadata.PartyTypesAllowed.BankruptcyEstate = false;
     }

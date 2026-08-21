@@ -5,7 +5,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Services.Interfaces.Organization;
+namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 public interface IOrgCodeListService
 {

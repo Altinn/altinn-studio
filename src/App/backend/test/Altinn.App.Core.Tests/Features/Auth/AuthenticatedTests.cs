@@ -471,7 +471,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
-                                    PartyTypeName = PartyType.Organization,
+                                    PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
                                     Name = "Test AS",
@@ -503,7 +503,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
-                                    PartyTypeName = PartyType.Organization,
+                                    PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
                                     Name = "Test AS",
@@ -540,7 +540,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
-                                    PartyTypeName = PartyType.Organization,
+                                    PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
                                     Name = "Test AS",

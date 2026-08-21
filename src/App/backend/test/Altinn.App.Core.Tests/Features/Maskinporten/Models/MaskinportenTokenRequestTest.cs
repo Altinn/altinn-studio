@@ -120,7 +120,7 @@ public class MaskinportenTokenRequestTest
     {
         var systemUser = new MaskinportenSystemUser
         {
-            Organization = OrganisationNumber.Parse("991825827"),
+            Organisation = OrganisationNumber.Parse("991825827"),
             ExternalRef = input,
         };
 
@@ -135,7 +135,7 @@ public class MaskinportenTokenRequestTest
     {
         // Maskinporten answers MP_302 for these
         var act = () =>
-            new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("991825827"), ExternalRef = input };
+            new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827"), ExternalRef = input };
 
         var ex = Assert.Throws<ArgumentException>(act);
         Assert.Equal("ExternalRef", ex.ParamName);
@@ -147,7 +147,7 @@ public class MaskinportenTokenRequestTest
         var act = () =>
             new MaskinportenSystemUser
             {
-                Organization = OrganisationNumber.Parse("991825827"),
+                Organisation = OrganisationNumber.Parse("991825827"),
                 ExternalRef = new string('a', 256),
             };
 
@@ -186,7 +186,7 @@ public class MaskinportenTokenRequestTest
     [Fact]
     public void SystemUser_RejectsDefaultOrganisationNumber()
     {
-        var act = () => new MaskinportenSystemUser { Organization = default };
+        var act = () => new MaskinportenSystemUser { Organisation = default };
 
         var ex = Assert.Throws<ArgumentException>(act);
         Assert.Equal("Organization", ex.ParamName);
@@ -200,7 +200,7 @@ public class MaskinportenTokenRequestTest
     {
         var systemUser = new MaskinportenSystemUser
         {
-            Organization = OrganisationNumber.Parse("991825827"),
+            Organisation = OrganisationNumber.Parse("991825827"),
             ExternalRef = input,
         };
 
@@ -218,7 +218,7 @@ public class MaskinportenTokenRequestTest
             Resource = "https://api.example.com",
             SystemUser = new MaskinportenSystemUser
             {
-                Organization = OrganisationNumber.Parse("311169963"),
+                Organisation = OrganisationNumber.Parse("311169963"),
                 ExternalRef = "ref",
             },
         };

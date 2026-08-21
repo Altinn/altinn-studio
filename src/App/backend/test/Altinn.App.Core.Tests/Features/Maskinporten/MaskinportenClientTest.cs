@@ -1422,7 +1422,7 @@ public class MaskinportenClientTests
             Scopes = ["scope1"],
             SystemUser = new MaskinportenSystemUser
             {
-                Organization = OrganisationNumber.Parse("991825827"),
+                Organisation = OrganisationNumber.Parse("991825827"),
                 ExternalRef = "systembruker-1",
             },
         };
@@ -1454,7 +1454,7 @@ public class MaskinportenClientTests
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
-            SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("991825827") },
+            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
         };
 
         // Act
@@ -1476,7 +1476,7 @@ public class MaskinportenClientTests
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
-            SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("991825827") },
+            SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
         };
 
         // Act
@@ -1524,7 +1524,7 @@ public class MaskinportenClientTests
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["a"],
-                    SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("991825827") },
+                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
                 }
             },
             {
@@ -1532,7 +1532,7 @@ public class MaskinportenClientTests
                 new MaskinportenTokenRequest
                 {
                     Scopes = ["a"],
-                    SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("311169963") },
+                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
                 }
             },
             {
@@ -1542,7 +1542,7 @@ public class MaskinportenClientTests
                     Scopes = ["a"],
                     SystemUser = new MaskinportenSystemUser
                     {
-                        Organization = OrganisationNumber.Parse("991825827"),
+                        Organisation = OrganisationNumber.Parse("991825827"),
                         ExternalRef = "ref",
                     },
                 }
@@ -1556,7 +1556,7 @@ public class MaskinportenClientTests
                     Scopes = ["a"],
                     SystemUser = new MaskinportenSystemUser
                     {
-                        Organization = OrganisationNumber.Parse("991825827"),
+                        Organisation = OrganisationNumber.Parse("991825827"),
                         ExternalRef = "other-ref",
                     },
                 }
@@ -1568,7 +1568,7 @@ public class MaskinportenClientTests
                     Scopes = ["a"],
                     ConsumerOrg = OrganisationNumber.Parse("991825827"),
                     Resource = "https://api.example.com",
-                    SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("991825827") },
+                    SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("991825827") },
                 }
             },
         };
@@ -1694,7 +1694,7 @@ public class MaskinportenClientTests
             {
                 Scopes = ["scope"],
                 ConsumerOrg = OrganisationNumber.Parse("991825827"),
-                SystemUser = new MaskinportenSystemUser { Organization = OrganisationNumber.Parse("311169963") },
+                SystemUser = new MaskinportenSystemUser { Organisation = OrganisationNumber.Parse("311169963") },
             }
         );
 

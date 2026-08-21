@@ -85,7 +85,7 @@ namespace LocalTest.Services.Register.Implementation
                 case PartyType.Person:
                     party.Person = await _personService.GetPerson(party.SSN);
                     break;
-                case PartyType.Organization:
+                case PartyType.Organisation:
                     party.Organization = await _organizationService.GetOrganization(party.OrgNumber);
                     break;
             }

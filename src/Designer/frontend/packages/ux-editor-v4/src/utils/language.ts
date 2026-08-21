@@ -49,7 +49,6 @@ export function getCollapsibleMenuTitleByType(menu: CollapsibleMenus, t: typeof 
     //   return t('ux_editor.collapsible_text_widgets');
     // }
     // case CollapsibleMenus.ThirdParty: {
-    //   return language['ux_editor.collapsable_text_thirdparty_components'];
     // }
     default: {
       return '';

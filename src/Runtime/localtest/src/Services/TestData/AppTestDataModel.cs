@@ -245,7 +245,7 @@ public class AppTestOrg
             PartyUuid = PartyUuid,
             OrgNumber = OrgNumber,
             IsDeleted = false,
-            PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Organization, // TODO: consider supporting bankrupt or subUnit
+            PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Organisation, // TODO: consider supporting bankrupt or subUnit
             Name = Name,
             ChildParties = childParties,
             //HelperFieldsSetLater

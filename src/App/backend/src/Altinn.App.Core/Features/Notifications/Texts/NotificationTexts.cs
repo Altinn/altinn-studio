@@ -120,11 +120,11 @@ internal static class NotificationTexts
                         ? $"person with social security number {nationalIdentityNumber}"
                         : $"with social security number {nationalIdentityNumber}",
                     LanguageConst.Nn => string.IsNullOrWhiteSpace(instanceOwnerName)
-                        ? $"avgiver med fødselsnummer {nationalIndentityNumber}"
-                        : $"med fødselsnummer {nationalIndentityNumber}",
+                        ? $"avgiver med fødselsnummer {nationalIdentityNumber}"
+                        : $"med fødselsnummer {nationalIdentityNumber}",
                     _ => string.IsNullOrWhiteSpace(instanceOwnerName)
-                        ? $"avgiver med fødselsnummer {nationalIndentityNumber}"
-                        : $"med fødselsnummer {nationalIndentityNumber}",
+                        ? $"avgiver med fødselsnummer {nationalIdentityNumber}"
+                        : $"med fødselsnummer {nationalIdentityNumber}",
                 }
             );
         }

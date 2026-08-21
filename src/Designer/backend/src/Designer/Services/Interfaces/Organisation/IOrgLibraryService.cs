@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 
-namespace Altinn.Studio.Designer.Services.Interfaces.Organization;
+namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 public interface IOrgLibraryService
 {

@@ -403,7 +403,7 @@ public static class TestAuthentication
         var party = new Party()
         {
             PartyId = partyId,
-            PartyTypeName = PartyType.Organization,
+            PartyTypeName = PartyType.Organisation,
             OrgNumber = orgNumber,
             Name = "Test AS",
         };
@@ -487,7 +487,7 @@ public static class TestAuthentication
         var party = new Party()
         {
             PartyId = partyId,
-            PartyTypeName = PartyType.Organization,
+            PartyTypeName = PartyType.Organisation,
             OrgNumber = orgNumber,
             Name = "Test AS",
         };
@@ -597,7 +597,7 @@ public static class TestAuthentication
         var party = new Party()
         {
             PartyId = partyId,
-            PartyTypeName = PartyType.Organization,
+            PartyTypeName = PartyType.Organisation,
             OrgNumber = systemUserOrgNumber,
             Name = "Test AS",
         };
@@ -628,7 +628,7 @@ public static class TestAuthentication
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
-                Organization = true,
+                Organisation = true,
                 Person = true,
                 SubUnit = true,
             },

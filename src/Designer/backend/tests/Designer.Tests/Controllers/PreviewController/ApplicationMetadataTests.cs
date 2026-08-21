@@ -114,7 +114,7 @@ public class ApplicationMetadataTests
         );
 
         Assert.True(originalApplicationMetadata.PartyTypesAllowed.Person);
-        Assert.True(originalApplicationMetadata.PartyTypesAllowed.Organization);
+        Assert.True(originalApplicationMetadata.PartyTypesAllowed.Organisation);
         Assert.True(originalApplicationMetadata.PartyTypesAllowed.SubUnit);
         Assert.True(originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
 
@@ -136,7 +136,7 @@ public class ApplicationMetadataTests
         );
 
         Assert.False(responseApplicationMetadata.PartyTypesAllowed.Person);
-        Assert.False(responseApplicationMetadata.PartyTypesAllowed.Organization);
+        Assert.False(responseApplicationMetadata.PartyTypesAllowed.Organisation);
         Assert.False(responseApplicationMetadata.PartyTypesAllowed.SubUnit);
         Assert.False(responseApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
     }

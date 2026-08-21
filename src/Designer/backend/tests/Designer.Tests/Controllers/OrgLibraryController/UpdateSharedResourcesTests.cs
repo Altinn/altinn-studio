@@ -7,7 +7,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organization;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
