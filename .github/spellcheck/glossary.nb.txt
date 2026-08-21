@@ -227,8 +227,11 @@ visningsnavn
 visningstype
 visningsverdi
 
-# Loanword inflections used deliberately in the UI.
-apier
+# Loanword inflections used deliberately in the UI. Solid inflection is
+# correct for lowercase loanwords (repoet, releasen). INITIALISMS inflect
+# with a hyphen (API-er, URL-en, ID-ene) — the corpus norm — and never need
+# an entry here: the acronym half is an all-caps token the check skips.
+# A solid APIer/URLer is a writing error and must stay a finding.
 dashboardet
 monitorering
 popups
@@ -238,7 +241,6 @@ repositorier
 repositoriet
 repositorium
 subdomener
-urler
 webserveren
 
 # Halves of legitimately hyphenated compounds — the tokenizer splits
