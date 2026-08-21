@@ -2,11 +2,12 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResourceBindings, IOption, IDataModelBindingsKeyValueExplicit } from './global';
 import type { SimpleComponentType } from './SimpleComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import type { BooleanExpression } from '@studio/components';
-import type { IGrid } from '@app/layout-contract/generated/common.generated';
+import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
 
-export interface FormComponentBase<T extends ComponentType = ComponentType> {
-  id: string;
+export type FormComponentBase<T extends ComponentType = ComponentType> = Pick<
+  ComponentBase,
+  'id' | 'hidden' | 'grid'
+> & {
   component?: string;
   type: T;
   name?: string;
@@ -15,10 +16,8 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   dataModelBindings?: IDataModelBindingsKeyValueExplicit;
   textResourceBindings?: ITextResourceBindings;
   disabled?: boolean;
-  hidden?: BooleanExpression;
-  grid?: IGrid;
   [id: string]: any;
-}
+};
 
 export type FormImageComponent = FormComponent<ComponentType.Image>;
 export type FormCheckboxesComponent = FormComponent<ComponentType.Checkboxes>;
