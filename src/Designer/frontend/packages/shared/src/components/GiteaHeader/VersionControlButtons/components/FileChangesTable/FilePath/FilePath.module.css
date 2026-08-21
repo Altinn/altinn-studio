@@ -6,7 +6,7 @@
 }
 
 .filePathWithDiffContainer:hover {
-  color: var(--fds-semantic-surface-action-hover);
+  color: var(--ds-color-accent-base-hover);
 }
 
 .filePathWithDiffContainer,

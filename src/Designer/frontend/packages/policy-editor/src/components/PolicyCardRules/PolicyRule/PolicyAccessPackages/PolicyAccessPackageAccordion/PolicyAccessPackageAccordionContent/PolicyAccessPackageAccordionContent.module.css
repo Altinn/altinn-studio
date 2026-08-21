@@ -1,5 +1,5 @@
 .serviceContainerHeader {
-  color: var(--fds-colors-grey-700);
+  color: var(--ds-color-neutral-text-subtle);
   font-size: var(--ds-size-3);
   padding-top: var(--ds-size-2);
   border-top: 1px solid var(--ds-color-neutral-border-subtle);

@@ -20,7 +20,7 @@
 }
 
 .schemaNodeLabel.isParent .nodeName svg {
-  --background-colour: var(--fds-brand-alt1-800);
+  --background-colour: var(--ds-color-brand1-base-default);
   background-color: var(--background-colour);
   border-radius: var(--ds-border-radius-sm);
   color: var(--ds-color-neutral-surface-default);

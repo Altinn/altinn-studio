@@ -7,5 +7,7 @@
 
 .link {
   display: inline;
-  font: var(--fds-typography-paragraph-small);
+  font-size: var(--ds-font-size-3);
+  line-height: var(--ds-line-height-md);
+  font-weight: var(--ds-font-weight-regular);
 }

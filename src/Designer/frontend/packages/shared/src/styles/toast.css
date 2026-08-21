@@ -1,5 +1,5 @@
 :root:root {
-  --toastify-color-info: var(--fds-semantic-surface-action-primary-default);
+  --toastify-color-info: var(--ds-color-info-base-default);
   --toastify-color-success: var(--ds-color-success-base-default);
   --toastify-color-warning: var(--ds-color-warning-surface-tinted);
   --toastify-color-error: var(--ds-color-danger-base-default);

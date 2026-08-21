@@ -38,7 +38,7 @@
 
 .link,
 .link:focus {
-  background: var(--fds-semantic-surface-action-second-default);
+  background: var(--ds-color-accent-base-default);
 }
 
 a.link,
@@ -56,7 +56,7 @@ a.link svg {
 }
 
 .link:active {
-  background-color: var(--fds-semantic-surface-action-second-active);
+  background-color: var(--ds-color-accent-base-active);
   box-shadow: unset;
 }
 
@@ -69,7 +69,7 @@ a.link svg {
 }
 
 .link:hover {
-  background-color: var(--fds-semantic-surface-action-second-hover);
+  background-color: var(--ds-color-accent-base-hover);
 }
 
 /**********/
