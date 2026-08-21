@@ -8,7 +8,7 @@ on:
       - 'src/experimental/sandbox/**'
       - 'src/experimental/sandbox-authorization/**'
       - 'src/experimental/sandbox-microsandbox/**'
-      - 'src/github-runner/**'
+      - 'src/ci/github-runner/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
 
@@ -49,7 +49,7 @@ jobs:
       runner_repository: ${{ steps.vars.outputs.runner-repository }}
     defaults:
       run:
-        working-directory: src/github-runner
+        working-directory: src/ci/github-runner
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -84,7 +84,7 @@ jobs:
       - name: Resolve Go version
         id: go-version
         run: |
-          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../tools/releaser/go.mod)"
+          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../../tools/releaser/go.mod)"
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
@@ -122,7 +122,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
           docker buildx build \
-            --file src/github-runner/Dockerfile.coordinator \
+            --file src/ci/github-runner/Dockerfile.coordinator \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
             --push \
@@ -151,7 +151,7 @@ jobs:
       digest: ${{ steps.prepared-image.outputs.digest }}
     defaults:
       run:
-        working-directory: src/github-runner
+        working-directory: src/ci/github-runner
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -249,7 +249,7 @@ jobs:
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: Pin runner images by digest
-        working-directory: src/github-runner/infra/kustomize/base
+        working-directory: src/ci/github-runner/infra/kustomize/base
         env:
           COORDINATOR_DIGEST: ${{ needs.build-images.outputs.coordinator_digest }}
           COORDINATOR_REPOSITORY: ${{ needs.build-images.outputs.coordinator_repository }}
@@ -287,7 +287,7 @@ jobs:
           test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
 
       - name: push artifact
-        working-directory: src/github-runner/infra/kustomize
+        working-directory: src/ci/github-runner/infra/kustomize
         env:
           CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
         run: |

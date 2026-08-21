@@ -1,11 +1,11 @@
-name: Deploy KVM Device Plugin
+name: Deploy Sandbox Node
 
 on:
   push:
     branches: [main]
     paths:
-      - 'src/Runtime/k8s-kvm-device-plugin/**'
-      - '.github/workflows/deploy-k8s-kvm-device-plugin.yaml'
+      - 'src/ci/sandbox-node/**'
+      - '.github/workflows/deploy-sandbox-node.yaml'
   workflow_dispatch:
     inputs:
       environments:
@@ -25,7 +25,7 @@ jobs:
       override-default-studio-environments: prod
 
   push-artifact:
-    name: Push KVM device plugin as OCI artifact
+    name: Push Sandbox node as OCI artifact
     runs-on: ubuntu-latest
     environment: dev
     env:
@@ -34,7 +34,7 @@ jobs:
       CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
-        working-directory: src/Runtime/k8s-kvm-device-plugin
+        working-directory: src/ci/sandbox-node
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -44,9 +44,11 @@ jobs:
           SHA="${GITHUB_SHA::10}"
           {
             echo "short-sha=${SHA}"
-            echo "image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/k8s-kvm-device-plugin"
-            echo "image-tag=altinntjenestercontainerregistry.azurecr.io/altinn-studio/k8s-kvm-device-plugin:${SHA}"
-            echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/k8s-kvm-device-plugin-repo:${SHA}"
+            echo "image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node"
+            echo "image-tag=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node:${SHA}"
+            echo "init-image-repository=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node-init"
+            echo "init-image-tag=altinntjenestercontainerregistry.azurecr.io/altinn-studio/sandbox-node-init:${SHA}"
+            echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/sandbox-node-repo:${SHA}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Azure login
@@ -67,7 +69,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ steps.vars.outputs.image-tag }}
         run: |
-          METADATA_FILE="${RUNNER_TEMP}/k8s-kvm-device-plugin-build.json"
+          METADATA_FILE="${RUNNER_TEMP}/sandbox-node-build.json"
           docker buildx build \
             --file Dockerfile \
             --metadata-file "${METADATA_FILE}" \
@@ -83,23 +85,52 @@ jobs:
           esac
           echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
+      - name: Build and push storage-init image
+        id: init-image
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.init-image-tag }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/sandbox-node-init-build.json"
+          docker buildx build \
+            --file Dockerfile.init \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE_TAG}" \
+            .
+
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected init image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
       - name: Pin image digest in configuration
-        working-directory: src/Runtime/k8s-kvm-device-plugin/infra/kustomize/base
+        working-directory: src/ci/sandbox-node/infra/kustomize/base
         env:
           IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
           IMAGE_REPOSITORY: ${{ steps.vars.outputs.image-repository }}
+          INIT_IMAGE_DIGEST: ${{ steps.init-image.outputs.digest }}
+          INIT_IMAGE_REPOSITORY: ${{ steps.vars.outputs.init-image-repository }}
           IMAGE_TAG: ${{ steps.vars.outputs.short-sha }}
         run: |
           IMAGE="${IMAGE_REPOSITORY}@${IMAGE_DIGEST}"
-          export IMAGE
+          INIT_IMAGE="${INIT_IMAGE_REPOSITORY}@${INIT_IMAGE_DIGEST}"
+          export IMAGE INIT_IMAGE
           yq -i '.metadata.annotations["altinn.studio/image"] = strenv(IMAGE)' daemonset.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG)' daemonset.yaml
+          yq -i '.metadata.annotations["altinn.studio/init-image"] = strenv(INIT_IMAGE)' daemonset.yaml
+          yq -i '.metadata.annotations["altinn.studio/init-image-tag"] = strenv(IMAGE_TAG)' daemonset.yaml
 
-          RENDERED_IMAGE="$(kubectl kustomize . | yq -er '.spec.template.spec.containers[] | select(.name == "plugin") | .image')"
+          RENDERED="$(kubectl kustomize .)"
+          RENDERED_IMAGE="$(yq -er '.spec.template.spec.containers[] | select(.name == "plugin") | .image' <<< "${RENDERED}")"
+          RENDERED_INIT_IMAGE="$(yq -er '.spec.template.spec.initContainers[] | select(.name == "prepare-storage") | .image' <<< "${RENDERED}")"
           test "${RENDERED_IMAGE}" = "${IMAGE}"
+          test "${RENDERED_INIT_IMAGE}" = "${INIT_IMAGE}"
 
       - name: Push configuration artifact
-        working-directory: src/Runtime/k8s-kvm-device-plugin/infra/kustomize
+        working-directory: src/ci/sandbox-node/infra/kustomize
         run: |
           flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \

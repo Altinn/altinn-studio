@@ -10,16 +10,16 @@ Build the coordinator image from the repository root:
 
 ```sh
 docker build \
-  -f src/github-runner/Dockerfile.coordinator \
+  -f src/ci/github-runner/Dockerfile.coordinator \
   -t github-runner-coordinator \
   .
 ```
 
-Build the runner image from this directory:
+Build the runner image from the repository root:
 
 ```sh
 docker build \
-  -f src/github-runner/Dockerfile \
+  -f src/ci/github-runner/Dockerfile \
   -t github-runner \
-  src/github-runner
+  src/ci/github-runner
 ```

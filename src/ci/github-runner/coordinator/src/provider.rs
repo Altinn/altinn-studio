@@ -68,6 +68,27 @@ impl ProviderArguments {
         self.open_builder(self.provider_builder(registry_authentication)).await
     }
 
+    /// Removes all state inside the per-process Provider home while preserving its mount point.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the directory cannot be read or one of its entries cannot be removed.
+    pub async fn clear_home(&self) -> Result<(), io::Error> {
+        let mut entries = match tokio::fs::read_dir(&self.provider_home).await {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => return Err(error),
+        };
+        while let Some(entry) = entries.next_entry().await? {
+            if entry.file_type().await?.is_dir() {
+                tokio::fs::remove_dir_all(entry.path()).await?;
+            } else {
+                tokio::fs::remove_file(entry.path()).await?;
+            }
+        }
+        Ok(())
+    }
+
     fn provider_builder(
         &self,
         registry_authentication: Option<RegistryAuthentication>,
@@ -136,7 +157,8 @@ fn parse_runtime_bundle_sha256(contents: &str, filename: &str) -> Result<String,
 
 #[cfg(test)]
 mod tests {
-    use super::parse_runtime_bundle_sha256;
+    use super::{ProviderArguments, parse_runtime_bundle_sha256};
+    use std::path::PathBuf;
 
     #[test]
     fn selects_the_runtime_bundle_published_checksum() {
@@ -155,5 +177,25 @@ mod tests {
     fn rejects_a_missing_or_malformed_runtime_bundle_checksum() {
         assert!(parse_runtime_bundle_sha256("", "runtime.tar.gz").is_err());
         assert!(parse_runtime_bundle_sha256("abc  runtime.tar.gz\n", "runtime.tar.gz").is_err());
+    }
+
+    #[tokio::test]
+    async fn clears_provider_home_contents_without_removing_mount_point() -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        std::fs::create_dir(directory.path().join("nested"))?;
+        std::fs::write(directory.path().join("nested/file"), "state")?;
+        std::fs::write(directory.path().join(".hidden"), "state")?;
+        let arguments = ProviderArguments {
+            provider_home: directory.path().to_path_buf(),
+            cache_directory: PathBuf::from("/cache"),
+            runtime_bundle: PathBuf::from("/runtime"),
+            runtime_bundle_checksums: PathBuf::from("/checksums"),
+        };
+
+        arguments.clear_home().await?;
+
+        assert!(directory.path().is_dir());
+        assert_eq!(std::fs::read_dir(directory.path())?.count(), 0);
+        Ok(())
     }
 }

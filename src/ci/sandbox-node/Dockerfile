@@ -9,11 +9,11 @@ RUN go mod download
 
 COPY . ./
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-    go build -trimpath -ldflags="-s -w" -o /k8s-kvm-device-plugin ./cmd/k8s-kvm-device-plugin
+    go build -trimpath -ldflags="-s -w" -o /sandbox-node ./cmd/sandbox-node
 
 FROM scratch
 
-COPY --from=builder /k8s-kvm-device-plugin /k8s-kvm-device-plugin
+COPY --from=builder /sandbox-node /sandbox-node
 
 USER 0:0
-ENTRYPOINT ["/k8s-kvm-device-plugin"]
+ENTRYPOINT ["/sandbox-node"]

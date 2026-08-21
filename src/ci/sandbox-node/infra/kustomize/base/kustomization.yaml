@@ -6,11 +6,21 @@ resources:
 replacements:
   - source:
       kind: DaemonSet
-      name: k8s-kvm-device-plugin
+      name: sandbox-node
+      fieldPath: metadata.annotations.[altinn.studio/init-image]
+    targets:
+      - select:
+          kind: DaemonSet
+          name: sandbox-node
+        fieldPaths:
+          - spec.template.spec.initContainers.[name=prepare-storage].image
+  - source:
+      kind: DaemonSet
+      name: sandbox-node
       fieldPath: metadata.annotations.[altinn.studio/image]
     targets:
       - select:
           kind: DaemonSet
-          name: k8s-kvm-device-plugin
+          name: sandbox-node
         fieldPaths:
           - spec.template.spec.containers.[name=plugin].image
