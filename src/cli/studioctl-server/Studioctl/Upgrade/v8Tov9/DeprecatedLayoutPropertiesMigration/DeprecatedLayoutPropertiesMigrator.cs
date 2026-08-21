@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -46,7 +48,15 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        WriteIndented = true,
+        // The default encoder escapes everything outside ASCII, which in a Norwegian app means every
+        // "æ", "ø" and "å" in the file - and a "+" in a number format - comes back as "æ". That is
+        // a content change, not a whitespace one, so the restoration below cannot undo it, and it would
+        // bury the actual migration in a file-wide diff.
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private readonly string _projectFolder;
     private readonly List<string> _warnings = [];
@@ -85,6 +95,19 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             if (!changes.Changed)
                 continue;
 
+            // Comments never make it into the node tree, so rewriting the file from it would delete
+            // them without a trace. Leave the file as it is and say so instead.
+            if (ContainsComments(text))
+            {
+                _warnings.Add(
+                    $"{fileName}: left untouched because it has comments, which a rewrite would delete. "
+                        + "Convert `mapping` to `queryParameters` (and `bindingToShowInSummary` to "
+                        + "`summaryBinding`) in this file by hand."
+                );
+                manualActionRequired = true;
+                continue;
+            }
+
             var hadTrailingNewline = text.EndsWith('\n');
             var updated = root.ToJsonString(_jsonOptions);
             if (hadTrailingNewline)
@@ -116,6 +139,35 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             manualActionRequired,
             _warnings
         );
+    }
+
+    /// <summary>
+    /// Whether <paramref name="text"/> holds a JSON comment. Uses the reader rather than a text search so
+    /// that "//" inside a string value - a URL, say - is not mistaken for one.
+    /// </summary>
+    private static bool ContainsComments(string text)
+    {
+        var reader = new Utf8JsonReader(
+            Encoding.UTF8.GetBytes(text),
+            new JsonReaderOptions { CommentHandling = JsonCommentHandling.Allow, AllowTrailingCommas = true }
+        );
+
+        try
+        {
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.Comment)
+                    return true;
+            }
+        }
+        catch (JsonException)
+        {
+            // The document already parsed above, so this cannot be malformed content. Treat an
+            // unreadable file as commented anyway: skipping it is the safe answer either way.
+            return true;
+        }
+
+        return false;
     }
 
     private string? ResolveUiPath()

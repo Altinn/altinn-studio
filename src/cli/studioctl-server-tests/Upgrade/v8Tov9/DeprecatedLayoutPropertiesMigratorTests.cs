@@ -429,4 +429,166 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.Equal(0, result.SummaryBindingsConverted);
         Assert.Empty(result.Warnings);
     }
+
+    [Fact]
+    public async Task LeavesNorwegianCharactersAsTheyWere()
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            """
+            {
+              "data": {
+                "layout": [
+                  {
+                    "id": "colors",
+                    "type": "Dropdown",
+                    "optionsId": "colors",
+                    "textResourceBindings": { "title": "Velg farge på dyret" },
+                    "dataModelBindings": { "simpleBinding": "Dyr.Farge_æøå" },
+                    "formatting": { "number": { "format": "+47 ### ## ###" } },
+                    "mapping": { "Animals.IsForeign": "foreign" }
+                  }
+                ]
+              }
+            }
+            """
+        );
+
+        var result = await Migrate();
+
+        Assert.Equal(1, result.FilesChanged);
+        var written = _app.Read("ui/Task_1/layouts/Side1.json");
+        Assert.Contains("Velg farge på dyret", written, StringComparison.Ordinal);
+        Assert.Contains("Dyr.Farge_æøå", written, StringComparison.Ordinal);
+        Assert.Contains("+47 ### ## ###", written, StringComparison.Ordinal);
+        Assert.DoesNotContain("\\u", written, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task LeavesFilesWithCommentsForTheDeveloper()
+    {
+        var before = """
+            {
+              "data": {
+                "layout": [
+                  {
+                    // The colours on offer depend on where the animal is from
+                    "id": "colors",
+                    "type": "Dropdown",
+                    "optionsId": "colors",
+                    "mapping": { "Animals.IsForeign": "foreign" }
+                  }
+                ]
+              }
+            }
+            """;
+        _app.Write("ui/Task_1/layouts/Side1.json", before);
+
+        var result = await Migrate();
+
+        Assert.Equal(0, result.FilesChanged);
+        Assert.Equal(before, _app.Read("ui/Task_1/layouts/Side1.json"));
+        Assert.True(result.ManualActionRequired);
+        Assert.Contains(result.Warnings, warning => warning.Contains("comments", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DoesNotMistakeASlashInsideAStringForAComment()
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            """
+            {
+              "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+              "data": {
+                "layout": [
+                  {
+                    "id": "colors",
+                    "type": "Dropdown",
+                    "optionsId": "colors",
+                    "mapping": { "Animals.IsForeign": "foreign" }
+                  }
+                ]
+              }
+            }
+            """
+        );
+
+        var result = await Migrate();
+
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Empty(result.Warnings);
+        Assert.Equal(
+            """["dataModel","Animals.IsForeign"]""",
+            Compact(Component("ui/Task_1/layouts/Side1.json", 0)["queryParameters"]?["foreign"])
+        );
+    }
+
+    [Fact]
+    public async Task DoesNotAddAByteOrderMarkToAFileThatHadNone()
+    {
+        _app.Write("ui/Task_1/layouts/Side1.json", LayoutWithSomethingToReformat);
+        _app.CommitEverything();
+
+        var result = await Migrate();
+
+        Assert.Equal(1, result.FilesChanged);
+        Assert.False(StartsWithBom(_app.ReadBytes("ui/Task_1/layouts/Side1.json")));
+    }
+
+    [Fact]
+    public async Task KeepsTheByteOrderMarkOnAFileThatHadOne()
+    {
+        _app.WriteBytes(
+            "ui/Task_1/layouts/Side1.json",
+            [0xEF, 0xBB, 0xBF, .. System.Text.Encoding.UTF8.GetBytes(LayoutWithSomethingToReformat)]
+        );
+        _app.CommitEverything();
+
+        var result = await Migrate();
+
+        Assert.Equal(1, result.FilesChanged);
+        Assert.True(StartsWithBom(_app.ReadBytes("ui/Task_1/layouts/Side1.json")));
+    }
+
+    /// <summary>
+    /// A layout the migrator changes, holding an array compact enough that reserializing expands it -
+    /// so the run produces a whitespace-only hunk for the restoration pass to put back.
+    /// </summary>
+    private const string LayoutWithSomethingToReformat = """
+        {
+          "data": {
+            "layout": [
+              {
+                "id": "colors",
+                "type": "Dropdown",
+                "optionsId": "colors",
+                "mapping": { "Animals.IsForeign": "foreign" }
+              },
+              {
+                "id": "spacer1",
+                "type": "Paragraph",
+                "textResourceBindings": {
+                  "title": "Something between the two so they land in separate hunks"
+                }
+              },
+              {
+                "id": "spacer2",
+                "type": "Paragraph",
+                "textResourceBindings": {
+                  "title": "And a little more, for the same reason"
+                }
+              },
+              {
+                "id": "group",
+                "type": "AccordionGroup",
+                "children": ["first", "second"]
+              }
+            ]
+          }
+        }
+        """;
+
+    private static bool StartsWithBom(byte[] bytes) =>
+        bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
 }
