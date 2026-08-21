@@ -303,6 +303,29 @@ internal interface IEngineRepository
         CancellationToken cancellationToken = default
     );
 
+    /// <summary>
+    /// Mints a whole buffered batch of mailboxes, answering every request at its own position with the verdict
+    /// <see cref="MintMailbox"/> would have given it. Takes no lock and no transaction: the unique index on
+    /// <c>(namespace, idempotencyKey)</c> is what serializes minters, so concurrent flushes over one key
+    /// produce one mailbox and answer the rest with it.
+    /// A key named twice in one batch mints once — the repeat is answered
+    /// <see cref="MailboxMintResult.Existing"/> carrying the row the first occurrence created, exactly as a
+    /// second call would have read it. The collection cap counts the batch's own fresh mints against itself, so
+    /// a flush cannot overshoot <paramref name="maxOpenPerCollection"/> the way a run of concurrent single
+    /// calls can; it stays best-effort in the other direction, being one statement's snapshot. Replays are
+    /// answered even at the cap and consume none of it.
+    /// Unlike <see cref="MintMailbox"/> this takes neither a database slot nor a retry, for the same reasons
+    /// <see cref="BatchEnqueueWorkflows"/> takes neither: the buffer's flush concurrency is what bounds
+    /// connections, and a retry inside would hold one connection for a whole failing batch. A failure faults
+    /// every request in the batch, and the callers' own retries converge because minting is idempotent — a
+    /// mailbox a lost batch created is replayed to the retry, and one it never created is minted by it.
+    /// </summary>
+    Task<MailboxMintResult[]> BatchMintMailboxes(
+        IReadOnlyList<BufferedMailboxMintRequest> requests,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken
+    );
+
     Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>

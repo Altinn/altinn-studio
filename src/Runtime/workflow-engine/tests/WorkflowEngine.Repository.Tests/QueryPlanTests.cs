@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
@@ -278,30 +279,84 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MintMailbox_CountsACollectionsOpenMailboxesThroughTheSharedIndex()
+    public async Task MintMailboxes_ProbesBothMailboxIndexesForEveryCandidateInTheBatch()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
-        var plan = await QueryPlanHelper.ExplainAsync(
+        var plan = await QueryPlanHelper.ExplainAsync(dataSource, EngineRepository.MintMailboxesSql, MintArrays(1), ct);
+
+        AssertMintProbesItsIndexes(plan);
+        await VerifyJson(plan.GetRawText()).UseTextForParameters("width-1");
+
+        // Both widths are pinned because both run: the per-request delegation issues the statement with arrays
+        // of one, a buffered flush with arrays of a hundred, and PostgreSQL plans a custom plan from the array
+        // length it is given — so neither plan is evidence about the other. The wide one is where a count that
+        // stopped probing per key would cost the most, and it gets a snapshot of its own rather than assertions
+        // alone.
+        var flushPlan = await QueryPlanHelper.ExplainAsync(
             dataSource,
-            EngineRepository.MintMailboxSql,
-            [
-                new NpgsqlParameter<Guid>("id", Guid.CreateVersion7()),
-                new NpgsqlParameter<string>("ns", "test-ns"),
-                new NpgsqlParameter<string>("key", "plan-probe"),
-                new NpgsqlParameter<string>("collection_key", "seed-collection-3"),
-                new NpgsqlParameter<TimeSpan>("timeout", TimeSpan.FromHours(1)),
-                new NpgsqlParameter<DateTimeOffset>("deadline", _now.AddHours(1)),
-                new NpgsqlParameter<DateTimeOffset>("now", _now),
-                new NpgsqlParameter<int>("cap", 100),
-            ],
+            EngineRepository.MintMailboxesSql,
+            MintArrays(100),
             ct
         );
 
-        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        AssertMintProbesItsIndexes(flushPlan);
+        await VerifyJson(flushPlan.GetRawText()).UseTextForParameters("width-100");
+    }
+
+    /// <summary>
+    /// The two reads of <c>engine.mailboxes</c> the mint statement makes: one probe of the unique index per
+    /// candidate key to decide what is fresh, and one probe of the collection index per distinct collection key
+    /// to count what is open. A column that fell out of either <c>Index Cond</c> would have a mint read far
+    /// more than the keys it names — the whole namespace's keys, or every open mailbox in it.
+    /// </summary>
+    private static void AssertMintProbesItsIndexes(JsonElement plan)
+    {
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+
+        // Both probes answer out of their index without touching the heap, as the statement they replaced did.
         QueryPlanHelper.AssertHasScanType(plan, "mailboxes", "Index Only Scan");
-        await VerifyJson(plan.GetRawText());
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_namespace_idempotency_key");
+        QueryPlanHelper.AssertIndexCondContains(
+            plan,
+            "ix_mailboxes_namespace_idempotency_key",
+            "t.ns",
+            "t.idempotency_key"
+        );
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        QueryPlanHelper.AssertIndexCondContains(
+            plan,
+            "ix_mailboxes_namespace_collection_key",
+            "k.ns",
+            "k.collection_key"
+        );
+    }
+
+    /// <summary>
+    /// The mint statement's input arrays, <paramref name="width"/> candidates wide: fresh keys in the seeded
+    /// namespace, spread over the seed's collections so the count has real rows to probe for.
+    /// </summary>
+    private static NpgsqlParameter[] MintArrays(int width)
+    {
+        var candidates = Enumerable.Range(0, width).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}")).ToArray();
+
+        return
+        [
+            new NpgsqlParameter<Guid[]>("ids", candidates),
+            new NpgsqlParameter<string[]>("namespaces", [.. candidates.Select(_ => "test-ns")]),
+            new NpgsqlParameter<string[]>("keys", [.. Enumerable.Range(0, width).Select(i => $"plan-probe-{i}")]),
+            new NpgsqlParameter<string?[]>(
+                "collection_keys",
+                [.. Enumerable.Range(0, width).Select(i => $"seed-collection-{i % 50}")]
+            ),
+            new NpgsqlParameter<TimeSpan[]>("timeouts", [.. candidates.Select(_ => TimeSpan.FromHours(1))]),
+            new NpgsqlParameter<DateTimeOffset[]>("deadlines", [.. candidates.Select(_ => _now.AddHours(1))]),
+            new NpgsqlParameter<DateTimeOffset[]>("nows", [.. candidates.Select(_ => _now)]),
+            new NpgsqlParameter<int>("cap", 100),
+        ];
     }
 
     [Fact]
@@ -334,7 +389,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CloseMailboxes_ProbesThePrimaryKeyForEveryMailboxInTheBatch()
+    public async Task CloseLockedMailboxes_ProbesThePrimaryKeyForEveryMailboxInTheBatch()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);

@@ -25,6 +25,237 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+    #region Minting a batch
+
+    [Fact]
+    public async Task BatchMint_KeyNamedTwiceInOneBatch_MintsOneMailboxAndReplaysItToTheRepeat()
+    {
+        // Arrange: two requests, two candidate ids, one key — the race two separate calls would have had on the
+        // unique index, folded into the batch. Which of the two is credited with the mint is the fold's decision
+        // and not the statement's: left to ON CONFLICT DO NOTHING, both requests would still be answered, but
+        // the one called Minted would be whichever the sort emitted first out of two equal keys.
+        var repository = fixture.CreateRepository();
+        var (firstCandidate, secondCandidate) = (Guid.CreateVersion7(), Guid.CreateVersion7());
+
+        // Act
+        var results = await BatchMint(
+            repository,
+            MintRequest("named-twice", firstCandidate),
+            MintRequest("named-twice", secondCandidate)
+        );
+
+        // Assert
+        var minted = Assert.IsType<MailboxMintResult.Minted>(results[0]).Mailbox;
+        Assert.Equal(firstCandidate, minted.Id);
+
+        // The repeat is answered the mailbox that exists, not a mint of its own candidate id.
+        var replay = Assert.IsType<MailboxMintResult.Existing>(results[1]).Mailbox;
+        Assert.Equal(firstCandidate, replay.Id);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(firstCandidate, (await context.Mailboxes.SingleAsync(Ct)).Id);
+    }
+
+    [Fact]
+    public async Task BatchMint_FreshMintsInOneCollection_CountAgainstTheCapAsEachOthersPeers()
+    {
+        // Arrange: nothing open yet, so every refusal below comes from the batch counting itself.
+        var repository = fixture.CreateRepository();
+
+        // Act
+        var results = await BatchMint(
+            repository,
+            cap: 2,
+            MintRequest("k-0", collectionKey: "col"),
+            MintRequest("k-1", collectionKey: "col"),
+            MintRequest("k-2", collectionKey: "col")
+        );
+
+        // Assert: the cap binds in batch order — a flush cannot overshoot it the way three concurrent calls
+        // reading one empty count could.
+        Assert.Equal("k-0", Assert.IsType<MailboxMintResult.Minted>(results[0]).Mailbox.IdempotencyKey);
+        Assert.Equal("k-1", Assert.IsType<MailboxMintResult.Minted>(results[1]).Mailbox.IdempotencyKey);
+        Assert.IsType<MailboxMintResult.AtCollectionCapacity>(results[2]);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(2, await context.Mailboxes.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task BatchMint_KeyNamedTwiceInOneBatch_CostsItsCollectionOneSlotNotTwo()
+    {
+        // Arrange & act: a cap of two, and a batch whose three requests name only two mailboxes.
+        var repository = fixture.CreateRepository();
+
+        var results = await BatchMint(
+            repository,
+            2,
+            MintRequest("k-0", collectionKey: "col"),
+            MintRequest("k-0", collectionKey: "col"),
+            MintRequest("k-1", collectionKey: "col")
+        );
+
+        // Assert: the repeat is not a second mailbox, so the collection's second slot is still the fresh key's
+        // to take. A batch that let its duplicates rank against the cap would refuse this last request.
+        Assert.IsType<MailboxMintResult.Minted>(results[0]);
+        Assert.IsType<MailboxMintResult.Existing>(results[1]);
+        Assert.Equal("k-1", Assert.IsType<MailboxMintResult.Minted>(results[2]).Mailbox.IdempotencyKey);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(2, await context.Mailboxes.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task BatchMint_ReplayedKeyWithItsCollectionAlreadyFull_IsStillAnswered()
+    {
+        // Arrange: the collection is at its cap before the batch starts.
+        var repository = fixture.CreateRepository();
+        var original = await Mint(repository, "k-0", collectionKey: "col", cap: 1);
+
+        // Act
+        var results = await BatchMint(
+            repository,
+            cap: 1,
+            MintRequest("k-0", collectionKey: "col"),
+            MintRequest("k-1", collectionKey: "col")
+        );
+
+        // Assert: a replay is a read of a mailbox that exists, so the cap has nothing to say about it; a fresh
+        // key in the same batch is refused.
+        Assert.Equal(original.Id, Assert.IsType<MailboxMintResult.Existing>(results[0]).Mailbox.Id);
+        Assert.IsType<MailboxMintResult.AtCollectionCapacity>(results[1]);
+    }
+
+    [Fact]
+    public async Task BatchMint_ReplayedKey_ConsumesNoneOfItsCollectionsCap()
+    {
+        // Arrange: one of the cap's two slots is taken, leaving exactly one for the batch to hand out.
+        var repository = fixture.CreateRepository();
+        var original = await Mint(repository, "k-0", collectionKey: "col", cap: 2);
+
+        // Act
+        var results = await BatchMint(
+            repository,
+            cap: 2,
+            MintRequest("k-0", collectionKey: "col"),
+            MintRequest("k-1", collectionKey: "col"),
+            MintRequest("k-2", collectionKey: "col")
+        );
+
+        // Assert: the fresh key behind the replay gets the free slot. Had the replay ranked as a peer ahead of
+        // it, this would be a refusal — which is the whole difference between counting keys and counting
+        // mailboxes.
+        Assert.Equal(original.Id, Assert.IsType<MailboxMintResult.Existing>(results[0]).Mailbox.Id);
+        Assert.Equal("k-1", Assert.IsType<MailboxMintResult.Minted>(results[1]).Mailbox.IdempotencyKey);
+        Assert.IsType<MailboxMintResult.AtCollectionCapacity>(results[2]);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(2, await context.Mailboxes.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task BatchMint_KeyAlreadyHeldByTheCandidateIdItself_IsMintedRatherThanAReplay()
+    {
+        // Arrange: the row already carries the id the batch is about to name it with — what a retried attempt
+        // sees when the attempt before it committed after the client had given up on the answer.
+        var repository = fixture.CreateRepository();
+        var mailboxId = Guid.CreateVersion7();
+        Assert.IsType<MailboxMintResult.Minted>(
+            await repository.MintMailbox(
+                mailboxId,
+                Ns,
+                "already-mine",
+                collectionKey: null,
+                TimeSpan.FromHours(1),
+                Now,
+                maxOpenPerCollection: 1000,
+                Ct
+            )
+        );
+
+        // Act
+        var results = await BatchMint(repository, MintRequest("already-mine", mailboxId));
+
+        // Assert: its own candidate id on the row is what separates a mint from a replay, whichever of the two
+        // reads found the row.
+        Assert.Equal(mailboxId, Assert.IsType<MailboxMintResult.Minted>(Assert.Single(results)).Mailbox.Id);
+    }
+
+    [Fact]
+    public async Task BatchMint_OneCollectionKeyInTwoNamespaces_CountsEachAgainstItsOwnCap()
+    {
+        // Arrange & act: a cap of one, and two fresh mints that share a collection key but not a namespace.
+        var repository = fixture.CreateRepository();
+
+        var results = await BatchMint(
+            repository,
+            1,
+            MintRequest("k-a", collectionKey: "col", ns: "ns-a"),
+            MintRequest("k-b", collectionKey: "col", ns: "ns-b")
+        );
+
+        // Assert: neither is the other's peer, so neither is refused.
+        Assert.All(results, result => Assert.IsType<MailboxMintResult.Minted>(result));
+    }
+
+    [Fact]
+    public async Task BatchMint_ConcurrentBatchesOverOneKey_CreateExactlyOneMailbox()
+    {
+        // Arrange: eight flushes, each naming the contested key first and a key of its own second. The mint
+        // takes no lock, so this is the unique index doing the serializing — and the second position is what
+        // proves a batch that lost the race still committed everything else it carried.
+        var repositories = Enumerable.Range(0, 8).Select(_ => fixture.CreateRepository()).ToArray();
+
+        // Act
+        var results = await Task.WhenAll(
+            repositories.Select(
+                (repository, i) => BatchMint(repository, MintRequest("contested"), MintRequest($"own-{i}"))
+            )
+        );
+
+        // Assert
+        var contested = results.Select(batch => batch[0]).ToArray();
+        Assert.Single(contested.OfType<MailboxMintResult.Minted>());
+        Assert.Single(contested.Select(MailboxIdOf).Distinct());
+        Assert.All(results, batch => Assert.IsType<MailboxMintResult.Minted>(batch[1]));
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(9, await context.Mailboxes.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task BatchMint_AFullFlushOfMailboxes_MintsEveryOneUpToEachCollectionsCap()
+    {
+        // Arrange: the batch size a buffer flushes at, so the array statements run at production width rather
+        // than the singleton the plan test pins — and spread over four collections filled exactly to a cap of
+        // 25, so the last admitted mint of each is the one the peer count only just lets through.
+        var repository = fixture.CreateRepository();
+        var requests = Enumerable
+            .Range(0, 100)
+            .Select(i => MintRequest($"flush-{i}", collectionKey: $"col-{i % 4}"))
+            .ToArray();
+
+        // Act
+        var results = await BatchMint(repository, 25, requests);
+
+        // Assert
+        Assert.Equal(100, results.OfType<MailboxMintResult.Minted>().Count());
+        Assert.Equal(
+            requests.Select(request => request.MailboxId).Order(),
+            results.OfType<MailboxMintResult.Minted>().Select(minted => minted.Mailbox.Id).Order()
+        );
+
+        // Each collection is now full, so the next mint into one is refused.
+        Assert.IsType<MailboxMintResult.AtCollectionCapacity>(
+            Assert.Single(await BatchMint(repository, 25, MintRequest("one-too-many", collectionKey: "col-0")))
+        );
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(100, await context.Mailboxes.CountAsync(Ct));
+    }
+
+    #endregion
+
     #region Closing a batch
 
     [Fact]
@@ -340,6 +571,45 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             new TaskCompletionSource<MailboxCloseResult>(TaskCreationOptions.RunContinuationsAsynchronously)
         );
 
+    private static BufferedMailboxMintRequest MintRequest(
+        string idempotencyKey,
+        Guid? mailboxId = null,
+        string? collectionKey = null,
+        TimeSpan? timeout = null,
+        DateTimeOffset? now = null,
+        string ns = Ns
+    ) =>
+        new(
+            mailboxId ?? Guid.CreateVersion7(),
+            ns,
+            idempotencyKey,
+            collectionKey,
+            timeout ?? TimeSpan.FromHours(1),
+            now ?? Now,
+            TraceContext: null,
+            new TaskCompletionSource<MailboxMintResult>(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+
+    private static Task<MailboxMintResult[]> BatchMint(
+        EngineRepository repository,
+        params BufferedMailboxMintRequest[] requests
+    ) => repository.BatchMintMailboxes(requests, maxOpenPerCollection: 1000, Ct);
+
+    private static Task<MailboxMintResult[]> BatchMint(
+        EngineRepository repository,
+        int cap,
+        params BufferedMailboxMintRequest[] requests
+    ) => repository.BatchMintMailboxes(requests, cap, Ct);
+
+    /// <summary>The mailbox a settled mint verdict names, whichever of the two verdicts carrying one it is.</summary>
+    private static Guid MailboxIdOf(MailboxMintResult result) =>
+        result switch
+        {
+            MailboxMintResult.Minted minted => minted.Mailbox.Id,
+            MailboxMintResult.Existing existing => existing.Mailbox.Id,
+            _ => throw new InvalidOperationException($"Unexpected mint result {result}."),
+        };
+
     private static Task<MailboxCloseResult[]> BatchClose(
         EngineRepository repository,
         params BufferedMailboxCloseRequest[] requests
@@ -362,7 +632,9 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         EngineRepository repository,
         string key,
         TimeSpan? timeout = null,
-        DateTimeOffset? now = null
+        DateTimeOffset? now = null,
+        string? collectionKey = null,
+        int cap = 1000
     ) =>
         Assert
             .IsType<MailboxMintResult.Minted>(
@@ -370,10 +642,10 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
                     Guid.CreateVersion7(),
                     Ns,
                     key,
-                    collectionKey: null,
+                    collectionKey,
                     timeout ?? TimeSpan.FromHours(1),
                     now ?? Now,
-                    maxOpenPerCollection: 1000,
+                    cap,
                     Ct
                 )
             )

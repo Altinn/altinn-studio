@@ -132,6 +132,14 @@ internal static partial class EngineRepositoryLogs
         Exception ex
     );
 
+    [LoggerMessage(LogLevel.Error, "Failed to mint a batch of {MailboxCount} mailbox(es): {Message}")]
+    internal static partial void FailedToBatchMintMailboxes(
+        this ILogger<EngineRepository> logger,
+        int mailboxCount,
+        string message,
+        Exception ex
+    );
+
     [LoggerMessage(LogLevel.Error, "Failed to close a batch of {MailboxCount} mailbox(es): {Message}")]
     internal static partial void FailedToBatchCloseMailboxes(
         this ILogger<EngineRepository> logger,

@@ -173,39 +173,81 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The mint. <c>existing</c> is consulted first so a replay is answered even at the collection cap, and
-    /// <c>ON CONFLICT DO UPDATE</c> hands a losing racer the winner's row instead of nothing. Hoisted so
-    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> the statement the mint actually issues.
+    /// The mint, for a whole batch: one <c>INSERT ... SELECT</c> over the batch's arrays, and no lock and no
+    /// transaction anywhere near it. The unique index on <c>(namespace, idempotency_key)</c> is the
+    /// serialization point — two minters racing over one key convoy on it, and the loser reads the winner's row
+    /// afterwards — so a mint that took the mailbox row lock would only be taking a lock on a row it is
+    /// creating. <c>fresh</c> drops the keys this snapshot already sees, which is what makes a replay consume no
+    /// collection slot; the survivors then rank within their collection (<c>peers_ahead</c>), so a batch counts
+    /// its own fresh mints against the cap instead of admitting all of them off one <c>open_counts</c> reading.
+    /// The cap stays best-effort by design: it is one snapshot's count, and a concurrent mint that has not
+    /// committed is invisible to it. <c>DO NOTHING</c> rather than a token <c>DO UPDATE</c>: a key that lost the
+    /// race is simply absent from the result, and the classification read answers it, as it answers the key this
+    /// call itself inserted on an attempt whose commit it never saw.
+    /// <para>
+    /// The <c>ORDER BY</c> is what keeps two flushes that overlap on several keys from deadlocking against each
+    /// other: an insert meeting another transaction's uncommitted speculative tuple waits for it, so what has to
+    /// hold is that every flush inserts contested keys in one agreed total order. Any consistent order would do;
+    /// this one is the unique index's own column order, <c>(namespace, idempotency_key)</c>, which is the order
+    /// to reach for per table. <c>InsertIdempotencyKeys</c> (<c>Writes.cs</c>) is the same discipline spelled the
+    /// other way round, its own table's key being <c>(idempotency_key, namespace)</c>.
+    /// </para>
+    /// <para>
+    /// <c>open_counts</c> counts through a correlated subquery per distinct collection key, behind an
+    /// <c>AS MATERIALIZED</c> fence. The fence is there for what it guarantees, not for a cost it overrides:
+    /// evaluated once, the CTE is one index probe per distinct <c>(namespace, collection_key)</c>, which is all
+    /// the work this count should ever be. Inlined — and PostgreSQL does inline it — the count moves into the
+    /// outer join's filter as a <c>SubPlan</c>, where nothing holds it to one evaluation per distinct key rather
+    /// than one per candidate row. Spelled the other obvious way, as a grouped <c>count(*)</c> over a join, the
+    /// planner is free to turn the count round entirely and read the whole open-mailbox set once instead of
+    /// probing per key, which at a flush's width is thousands of rows to answer for a few dozen collections.
+    /// </para>
+    /// Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> that both reads of <c>engine.mailboxes</c> stay index
+    /// probes driven by the batch's arrays. Both widths are explained there: PostgreSQL plans a custom plan from
+    /// the array length it is given, so neither width is evidence about the other.
     /// </summary>
-    internal const string MintMailboxSql = $"""
-        WITH existing AS (
-            SELECT {MailboxColumns}
-            FROM engine.mailboxes m
-            WHERE m.namespace = @ns AND m.idempotency_key = @key
+    internal const string MintMailboxesSql = $"""
+        WITH input AS (
+            SELECT *
+            FROM unnest(@ids, @namespaces, @keys, @collection_keys, @timeouts, @deadlines, @nows)
+                WITH ORDINALITY
+                AS t(id, ns, idempotency_key, collection_key, timeout, deadline, now, ord)
         ),
-        open_count AS (
-            SELECT count(*)::int AS n
-            FROM engine.mailboxes m
-            WHERE m.namespace = @ns
-              AND m.collection_key = @collection_key
-              AND m.status = '{MailboxStatusMap.Open}'
-        ),
-        inserted AS (
-            INSERT INTO engine.mailboxes AS m (
-                id, namespace, idempotency_key, collection_key, timeout, deadline,
-                next_idx, next_seq, status, disposed_reason, created_at, disposed_at
+        fresh AS (
+            SELECT i.*,
+                   (row_number() OVER (PARTITION BY i.ns, i.collection_key ORDER BY i.ord) - 1)::int AS peers_ahead
+            FROM input i
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM engine.mailboxes taken
+                WHERE taken.namespace = i.ns
+                  AND taken.idempotency_key = i.idempotency_key
             )
-            SELECT @id, @ns, @key, @collection_key, @timeout, @deadline,
-                   0, 0, '{MailboxStatusMap.Open}', NULL, @now, NULL
-            WHERE NOT EXISTS (SELECT 1 FROM existing)
-              AND (@collection_key IS NULL OR (SELECT n FROM open_count) < @cap)
-            ON CONFLICT (namespace, idempotency_key) DO UPDATE
-                SET namespace = EXCLUDED.namespace
-            RETURNING {MailboxColumns}
+        ),
+        open_counts AS MATERIALIZED (
+            SELECT k.ns,
+                   k.collection_key,
+                   (
+                       SELECT count(*)::int
+                       FROM engine.mailboxes counted
+                       WHERE counted.namespace = k.ns
+                         AND counted.collection_key = k.collection_key
+                         AND counted.status = '{MailboxStatusMap.Open}'
+                   ) AS n
+            FROM (SELECT DISTINCT f.ns, f.collection_key FROM fresh f WHERE f.collection_key IS NOT NULL) k
         )
-        SELECT * FROM inserted
-        UNION ALL
-        SELECT * FROM existing
+        INSERT INTO engine.mailboxes AS m (
+            id, namespace, idempotency_key, collection_key, timeout, deadline,
+            next_idx, next_seq, status, disposed_reason, created_at, disposed_at
+        )
+        SELECT f.id, f.ns, f.idempotency_key, f.collection_key, f.timeout, f.deadline,
+               0, 0, '{MailboxStatusMap.Open}', NULL, f.now, NULL
+        FROM fresh f
+        LEFT JOIN open_counts oc ON oc.ns = f.ns AND oc.collection_key = f.collection_key
+        WHERE f.collection_key IS NULL OR COALESCE(oc.n, 0) + f.peers_ahead < @cap
+        ORDER BY f.ns, f.idempotency_key
+        ON CONFLICT (namespace, idempotency_key) DO NOTHING
+        RETURNING {MailboxColumns}
         """;
 
     /// <inheritdoc/>
@@ -225,42 +267,19 @@ internal sealed partial class EngineRepository
 
         try
         {
-            ns = WorkflowNamespace.Normalize(ns);
-
             MailboxMintResult result = new MailboxMintResult.AtCollectionCapacity();
+
+            // A batch of one: the slot and the retry are this path's own, but the statements inside are the
+            // batch's, so one routine answers a single caller and a whole flush identically.
             await ExecuteWithRetry(
                 async ct =>
-                {
-                    await using var conn = await dataSource.OpenConnectionAsync(ct);
-
-                    await using var cmd = new NpgsqlCommand(MintMailboxSql, conn);
-                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
-                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
-                    cmd.Parameters.Add(new NpgsqlParameter<string>("key", idempotencyKey));
-                    cmd.Parameters.Add(
-                        new NpgsqlParameter("collection_key", (object?)collectionKey ?? DBNull.Value)
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Varchar,
-                        }
-                    );
-                    cmd.Parameters.Add(new NpgsqlParameter<TimeSpan>("timeout", timeout));
-                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("deadline", now + timeout));
-                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                    cmd.Parameters.Add(new NpgsqlParameter<int>("cap", maxOpenPerCollection));
-
-                    await using var reader = await cmd.ExecuteReaderAsync(ct);
-                    if (!await reader.ReadAsync(ct))
-                    {
-                        result = new MailboxMintResult.AtCollectionCapacity();
-                        return;
-                    }
-
-                    var mailbox = ReadMailbox(reader);
-                    result =
-                        mailbox.Id == mailboxId
-                            ? new MailboxMintResult.Minted(mailbox)
-                            : new MailboxMintResult.Existing(mailbox);
-                },
+                    result = (
+                        await MintMailboxes(
+                            [(mailboxId, ns, idempotencyKey, collectionKey, timeout, now)],
+                            maxOpenPerCollection,
+                            ct
+                        )
+                    )[0],
                 cancellationToken
             );
 
@@ -276,6 +295,244 @@ internal sealed partial class EngineRepository
             logger.FailedMailboxOperation("mint", mailboxId, ex.Message, ex);
             throw;
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<MailboxMintResult[]> BatchMintMailboxes(
+        IReadOnlyList<BufferedMailboxMintRequest> requests,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchMintMailboxes");
+
+        try
+        {
+            var results = await MintMailboxes(
+                [
+                    .. requests.Select(request =>
+                        (
+                            request.MailboxId,
+                            request.Namespace,
+                            request.IdempotencyKey,
+                            request.CollectionKey,
+                            request.Timeout,
+                            request.Now
+                        )
+                    ),
+                ],
+                maxOpenPerCollection,
+                cancellationToken
+            );
+
+            // Nothing per item, unlike the close flush: the mint's one metric belongs to the verdict the Engine
+            // hands its caller, not to the row written here. The round-trip itself is all this owes.
+            Metrics.DbOperationsSucceeded.Add(1);
+
+            return results;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToBatchMintMailboxes(requests.Count, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// The two statements both mint entry points run: <see cref="MintMailboxesSql"/> over the batch's candidate
+    /// keys, then a classification read for the keys it did not return. Results are positional — the answer to
+    /// <paramref name="mints"/><c>[i]</c> sits at index <c>i</c>.
+    /// <para>
+    /// Split from <see cref="BatchMintMailboxes"/> so the per-request path can keep its own envelope: routed
+    /// through the public method instead, a single mint would count <see cref="Metrics.DbOperationsSucceeded"/>
+    /// twice (once here, once from its retry), log a failure as a batch of one on top of its own line, and have
+    /// to fabricate a buffer's <c>TaskCompletionSource</c> per attempt to name its request. That is the whole
+    /// reason for this layer — there is no second entry point holding locks, the way the deadline sweep enters
+    /// <see cref="CloseLockedMailboxes"/>.
+    /// </para>
+    /// The two statements deliberately share neither a transaction nor a lock: each is correct on its own, and
+    /// an attempt that dies between them leaves committed mailboxes that the caller's retry reads back as its
+    /// own. Nothing is recorded here, because the per-request path publishes its telemetry outside its retry.
+    /// </summary>
+    private async Task<MailboxMintResult[]> MintMailboxes(
+        (
+            Guid MailboxId,
+            string Namespace,
+            string IdempotencyKey,
+            string? CollectionKey,
+            TimeSpan Timeout,
+            DateTimeOffset Now
+        )[] mints,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken
+    )
+    {
+        var results = new MailboxMintResult[mints.Length];
+        if (mints.Length == 0)
+            return results;
+
+        var keys = new (string Namespace, string IdempotencyKey)[mints.Length];
+        for (var i = 0; i < mints.Length; i++)
+            keys[i] = (WorkflowNamespace.Normalize(mints[i].Namespace), mints[i].IdempotencyKey);
+
+        // The fold, in batch order: one candidate per key reaches the statement, standing in for the
+        // unique-index race two separate calls would have had, and the repeats inherit its verdict once it is
+        // settled. Two properties rest on folding here rather than letting the statement sort it out. The cap:
+        // only candidates rank, so a key named twice costs its collection one slot and not two. And attribution:
+        // ON CONFLICT DO NOTHING tolerates a self-conflict within one statement, so both requests would be
+        // answered even unfolded — but which of them was the one that minted would fall out of the order the
+        // sort happened to emit two equal keys in. Folding first is what makes "the first occurrence mints, the
+        // repeat replays" a rule rather than a coincidence.
+        var candidates = new List<int>(mints.Length);
+        var firstOccurrence = new Dictionary<(string, string), int>(mints.Length);
+        var repeats = new List<(int Index, int PrimaryIndex)>();
+
+        for (var i = 0; i < mints.Length; i++)
+        {
+            if (firstOccurrence.TryGetValue(keys[i], out var primary))
+            {
+                repeats.Add((i, primary));
+                continue;
+            }
+
+            firstOccurrence[keys[i]] = i;
+            candidates.Add(i);
+        }
+
+        var (ids, namespaces, idempotencyKeys, collectionKeys, timeouts, deadlines, nows) = candidates
+            .Select(i =>
+                (
+                    mints[i].MailboxId,
+                    keys[i].Namespace,
+                    keys[i].IdempotencyKey,
+                    mints[i].CollectionKey,
+                    mints[i].Timeout,
+                    Deadline: mints[i].Now + mints[i].Timeout,
+                    mints[i].Now
+                )
+            )
+            .ToArray()
+            .Unzip();
+
+        await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+
+        var inserted = new Dictionary<(string Namespace, string IdempotencyKey), MailboxResponse>(candidates.Count);
+        await using (var cmd = new NpgsqlCommand(MintMailboxesSql, conn))
+        {
+            cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+            cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+            cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", idempotencyKeys));
+            cmd.Parameters.Add(new NpgsqlParameter<string?[]>("collection_keys", collectionKeys));
+            cmd.Parameters.Add(new NpgsqlParameter<TimeSpan[]>("timeouts", timeouts));
+            cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset[]>("deadlines", deadlines));
+            cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset[]>("nows", nows));
+            cmd.Parameters.Add(new NpgsqlParameter<int>("cap", maxOpenPerCollection));
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var mailbox = ReadMailbox(reader);
+                inserted[(mailbox.Namespace, mailbox.IdempotencyKey)] = mailbox;
+            }
+        }
+
+        // What the insert did not return is one of three things, and one read tells them apart: a key somebody
+        // already holds, this call's own insert from an attempt whose commit it never saw, or a candidate the
+        // cap refused — the only one of the three with no row anywhere.
+        var existing = await ReadMailboxesByIdempotencyKey(
+            conn,
+            [.. candidates.Where(i => !inserted.ContainsKey(keys[i])).Select(i => keys[i])],
+            cancellationToken
+        );
+
+        foreach (var i in candidates)
+        {
+            if (!inserted.TryGetValue(keys[i], out var row) && !existing.TryGetValue(keys[i], out row))
+            {
+                results[i] = new MailboxMintResult.AtCollectionCapacity();
+                continue;
+            }
+
+            // One rule for both reads: the row is this request's own mint exactly when it carries the candidate
+            // id, and anything else is a replay of a mailbox somebody already holds. A row the insert returned
+            // always carries it; a row the classification found carries it only when this call's own earlier
+            // attempt committed after the client had given up on it.
+            results[i] =
+                row.Id == mints[i].MailboxId ? new MailboxMintResult.Minted(row) : new MailboxMintResult.Existing(row);
+        }
+
+        foreach (var (index, primaryIndex) in repeats)
+            results[index] = RepeatOfMint(results[primaryIndex]);
+
+        // Every position is a candidate's verdict or a repeat of one, so this holds by construction — but the
+        // buffer hands each result straight to a waiting caller, and a fourth path added above must not answer
+        // one with null.
+        if (results.Any(result => result is null))
+        {
+            throw new UnreachableException("Not all results were set.");
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// What the second request naming a key is answered: the row the first one settled on, but never a second
+    /// <see cref="MailboxMintResult.Minted"/> — one insert is one mint, and the repeat is the replay it would
+    /// have been as a separate call. A refusal repeats unchanged, the collection being no emptier for it.
+    /// Named for its verdict rather than overloading the close fold's <c>RepeatOf</c>, which would have to sit
+    /// adjacent to this and away from the fold it serves.
+    /// </summary>
+    private static MailboxMintResult RepeatOfMint(MailboxMintResult primary) =>
+        primary switch
+        {
+            MailboxMintResult.Minted minted => new MailboxMintResult.Existing(minted.Mailbox),
+            _ => primary,
+        };
+
+    /// <summary>
+    /// Reads the mailboxes behind a set of idempotency keys — the mint's classification read, following the
+    /// <c>ClassifyExistingIdempotencyKeys</c> pattern (<c>Writes.cs</c>): the array join makes it one probe of
+    /// the unique index per key rather than one statement per key. Pairs must be distinct, as a repeated pair
+    /// would multiply its joined row. A pair absent from the result has no mailbox at all, which on the mint
+    /// path is how a candidate the cap refused is recognised.
+    /// </summary>
+    private static async Task<
+        Dictionary<(string Namespace, string IdempotencyKey), MailboxResponse>
+    > ReadMailboxesByIdempotencyKey(
+        NpgsqlConnection conn,
+        (string Namespace, string IdempotencyKey)[] keys,
+        CancellationToken cancellationToken
+    )
+    {
+        var found = new Dictionary<(string Namespace, string IdempotencyKey), MailboxResponse>(keys.Length);
+        if (keys.Length == 0)
+            return found;
+
+        const string sql = $"""
+            SELECT {MailboxColumns}
+            FROM unnest(@namespaces, @keys) AS t(ns, idempotency_key)
+            JOIN engine.mailboxes m ON m.namespace = t.ns AND m.idempotency_key = t.idempotency_key
+            """;
+
+        var (namespaces, idempotencyKeys) = keys.Unzip();
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", idempotencyKeys));
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var mailbox = ReadMailbox(reader);
+            found[(mailbox.Namespace, mailbox.IdempotencyKey)] = mailbox;
+        }
+
+        return found;
     }
 
     /// <inheritdoc/>
