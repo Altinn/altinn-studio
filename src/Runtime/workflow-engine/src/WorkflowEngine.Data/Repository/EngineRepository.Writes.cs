@@ -650,7 +650,6 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// <summary>
     /// One mailbox's state under its row lock. Deliveries are gapless, so <c>seq &lt; NextIdx</c> is exactly
     /// "a delivery already sits at this receiver's position".
     /// </summary>
