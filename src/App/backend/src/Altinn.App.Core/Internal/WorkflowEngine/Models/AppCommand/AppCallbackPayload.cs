@@ -40,8 +40,7 @@ public sealed record AppCallbackPayload
 
     /// <summary>
     /// On a receive workflow's first step: the rendezvous this step consumes. <c>null</c> on every ordinary
-    /// callback. Read from the deliveries log per attempt, and settled before the step can first run — so an
-    /// absent <see cref="AppCallbackMailbox.Delivery"/> is an instruction, not a gap.
+    /// callback. Read from the deliveries log per attempt, and settled before the step can first run.
     /// </summary>
     [JsonPropertyName("mailbox")]
     public AppCallbackMailbox? Mailbox { get; init; }

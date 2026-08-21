@@ -36,8 +36,8 @@ public interface IFiksArkivHost
     );
 
     /// <summary>
-    /// Generates a message of the given type for the active instance and sends it via Fiks Arkiv,
-    /// addressed so the recipient's answers find their way back to the service task waiting for them.
+    /// Generates a message of the given type for the active instance and sends it via Fiks Arkiv, addressed for
+    /// its answer.
     /// </summary>
     /// <param name="taskId">The task ID the message is generated from</param>
     /// <param name="messageType">The Fiks Arkiv message type (create, update, etc)</param>

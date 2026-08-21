@@ -38,7 +38,7 @@ public sealed record MailboxReceipt
     /// </summary>
     public MailboxDisposedReason? DisposedReason { get; }
 
-    /// <summary>A receipt for a receiver whose message is standing at its position.</summary>
+    /// <summary>The message standing at the receiver's position.</summary>
     public static MailboxReceipt Delivered(Guid mailboxId, long seq, MailboxDelivery delivery) =>
         new(mailboxId, seq, delivery, disposedReason: null);
 

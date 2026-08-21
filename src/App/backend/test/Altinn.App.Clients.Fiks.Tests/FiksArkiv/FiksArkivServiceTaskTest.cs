@@ -29,10 +29,6 @@ public class FiksArkivServiceTaskTest
     private static readonly Guid _mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
     private static readonly DateTimeOffset _executionReferenceTime = DateTimeOffset.Parse("2026-05-17T10:15:30+02:00");
 
-    // -------------------------------------------------------------------------------------------
-    // Pipeline shape
-    // -------------------------------------------------------------------------------------------
-
     [Fact]
     public async Task Define_ComposesTheSendStageAndOpensItsMailbox()
     {
@@ -49,10 +45,6 @@ public class FiksArkivServiceTaskTest
 
         Assert.Null(pipeline.FinalStepOptions);
     }
-
-    // -------------------------------------------------------------------------------------------
-    // Send stage
-    // -------------------------------------------------------------------------------------------
 
     [Fact]
     public async Task SendToArchive_SendsWithTheMailboxIdAsReplyAddress_AndCompletesTheStage()
@@ -256,10 +248,6 @@ public class FiksArkivServiceTaskTest
         host.Verify();
     }
 
-    // -------------------------------------------------------------------------------------------
-    // Reply handler — the closing signal
-    // -------------------------------------------------------------------------------------------
-
     [Theory]
     [InlineData(MailboxClosedReason.Deadline, "stayed open for 7 days")]
     [InlineData(MailboxClosedReason.Request, "was closed before a receipt arrived")]
@@ -284,10 +272,6 @@ public class FiksArkivServiceTaskTest
         dataMutator.VerifyNoOtherCalls();
         responseHandler.VerifyNoOtherCalls();
     }
-
-    // -------------------------------------------------------------------------------------------
-    // Reply handler — a message was delivered
-    // -------------------------------------------------------------------------------------------
 
     [Fact]
     public async Task HandleArchiveReply_Acknowledgement_CompletesAndKeepsTheMailboxOpen()
@@ -626,10 +610,6 @@ public class FiksArkivServiceTaskTest
         Assert.Contains("fiks-io-message-id", failed.ErrorMessage);
     }
 
-    // -------------------------------------------------------------------------------------------
-    // Reply handler — the app's own response handler
-    // -------------------------------------------------------------------------------------------
-
     [Theory]
     [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt, false)]
     [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering, false)]
@@ -748,10 +728,6 @@ public class FiksArkivServiceTaskTest
         dataMutator.VerifyNoOtherCalls();
         instanceClient.VerifyNoOtherCalls();
     }
-
-    // -------------------------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------------------------
 
     private static Func<ServiceTaskContext, Task<ServiceTaskStageResult>> SendStage(TestFixture fixture) =>
         fixture.FiksArkivPipeline.Stages.Single(x => x.Name == "SendToArchive").Work;

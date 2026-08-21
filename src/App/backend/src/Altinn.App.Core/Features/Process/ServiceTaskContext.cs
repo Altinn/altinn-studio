@@ -90,7 +90,6 @@ public sealed record ServiceTaskContext
     /// <summary>The nullable half of <see cref="Mailbox"/>; app code gets one way to read it.</summary>
     internal ServiceTaskMailbox? MailboxOrDefault { get; init; }
 
-    /// <summary>Why <see cref="Mailbox"/> is unavailable, phrased for whoever tried to read it.</summary>
     internal string? MailboxUnavailableReason { get; init; }
 
     /// <summary>
@@ -116,10 +115,8 @@ public sealed record ServiceTaskContext
             ? throw new InvalidOperationException(reason)
             : MailboxClosedReasonOrDefault;
 
-    /// <summary>The nullable half of <see cref="Reply"/>.</summary>
     internal ServiceTaskReply? ReplyOrDefault { get; init; }
 
-    /// <summary>The closure reason behind a <c>null</c> <see cref="ReplyOrDefault"/>.</summary>
     internal MailboxClosedReason? MailboxClosedReasonOrDefault { get; init; }
 
     /// <summary>Non-null exactly when this execution does not answer a mailbox message.</summary>
@@ -145,7 +142,6 @@ public sealed record ServiceTaskContext
         return true;
     }
 
-    /// <summary>Read only from the internal halves, never the throwing getters.</summary>
     private string DescribeReply()
     {
         if (ReplyUnavailableReason is not null)

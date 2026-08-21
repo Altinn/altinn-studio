@@ -15,10 +15,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// </remarks>
 internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
 {
-    /// <summary>
-    /// Wraps a message body for delivery into a mailbox, bound to that mailbox, the handler that will read it, and
-    /// the key it is delivered under.
-    /// </summary>
     /// <exception cref="Authentication.WorkflowCallbackSecretNotFoundException">
     /// The app has no usable <c>WorkflowEngineCallback</c> code to sign with.
     /// </exception>
@@ -26,8 +22,8 @@ internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
         signer.Sign(payload, SigningDomain.MailboxDelivery(mailboxId, serviceTaskType, idempotencyKey));
 
     /// <summary>
-    /// Unwraps a delivered message. Every argument is read from the <em>delivered</em> callback and covered by
-    /// the signature, so verification is what makes them trustworthy.
+    /// Every argument is read from the <em>delivered</em> callback and covered by the signature, so verification
+    /// is what makes them trustworthy.
     /// </summary>
     /// <exception cref="MailboxDeliveryEnvelopeException">
     /// Not an envelope this app signed for exactly this message — never wrapped, altered, another app's,
@@ -49,6 +45,5 @@ internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
     }
 }
 
-/// <summary>Thrown when a delivered message's <see cref="MailboxDeliveryEnvelope"/> does not verify.</summary>
 internal sealed class MailboxDeliveryEnvelopeException(string message, Exception? innerException = null)
     : AltinnException(message, innerException);

@@ -12,7 +12,6 @@ internal abstract record MailboxContinuation
         MailboxId = mailboxId;
     }
 
-    /// <summary>The mailbox the exchange runs on.</summary>
     public Guid MailboxId { get; }
 
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>

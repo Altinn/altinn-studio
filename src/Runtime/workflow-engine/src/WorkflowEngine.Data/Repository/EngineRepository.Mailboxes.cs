@@ -499,11 +499,7 @@ internal sealed partial class EngineRepository
         }
     }
 
-    /// <summary>
-    /// The dashboard's read. The limit is per collection — one <c>LATERAL</c> per key, so one busy collection
-    /// cannot starve the rest — with one extra row per key so a truncated window is distinguishable from a full
-    /// one. Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> it.
-    /// </summary>
+    /// <summary>The dashboard's read. Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> it.</summary>
     internal const string SelectMailboxesForCollectionsSql = $"""
         WITH picked AS (
             SELECT p.*
@@ -629,10 +625,7 @@ internal sealed partial class EngineRepository
         );
     }
 
-    /// <summary>
-    /// The gauge's read: open mailboxes past <c>@cutoff</c>, saturating at <c>@limit</c>. Deliberately the
-    /// sweep's own predicate, so the two cannot drift apart on what "overdue" means.
-    /// </summary>
+    /// <summary>Deliberately the sweep's own predicate, so the two cannot drift on what "overdue" means.</summary>
     internal const string CountOverdueOpenMailboxesSql = $"""
         SELECT count(*)
         FROM (
@@ -689,11 +682,11 @@ internal sealed partial class EngineRepository
         }
     }
 
-    /// <summary>
-    /// The executor's read of the rendezvous. No lock and no write: delivery existence at the position is frozen
-    /// before the receiver can run. One statement so a concurrent close cannot launder a genuine
+    /// <inheritdoc/>
+    /// <remarks>
+    /// One statement so a concurrent close cannot launder a genuine
     /// <see cref="MailboxReceiptResult.Undecided"/> into an ordinary closing signal.
-    /// </summary>
+    /// </remarks>
     public async Task<MailboxReceiptResult> ReadMailboxReceipt(
         Guid workflowId,
         CancellationToken cancellationToken = default
@@ -1074,7 +1067,6 @@ internal sealed partial class EngineRepository
         LIMIT @batch_size
         """;
 
-    /// <summary>Takes no locks: each candidate is claimed under its own transaction below.</summary>
     private async Task<List<Guid>> SelectOverdueMailboxCandidates(
         DateTimeOffset now,
         int batchSize,
@@ -1596,7 +1588,6 @@ internal sealed partial class EngineRepository
             );
         }
 
-        // Unreachable through the rendezvous; reported rather than smoothed into the closing signal.
         if (status != MailboxStatus.Disposed)
             return new MailboxReceiptResult.Undecided(mailboxId, seq);
 
@@ -1660,9 +1651,7 @@ internal sealed partial class EngineRepository
     }
 }
 
-/// <summary>
-/// One per-collection read's result: the mailboxes, newest first, and the keys whose window was full.
-/// </summary>
+/// <summary>The mailboxes, newest first, and the keys whose window was full.</summary>
 internal sealed record MailboxCollectionPage(
     IReadOnlyList<MailboxSnapshot> Mailboxes,
     IReadOnlyList<string> TruncatedCollections
@@ -1672,15 +1661,12 @@ internal sealed record MailboxCollectionPage(
 }
 
 /// <summary>
-/// A mailbox with its log laid out by position. <see cref="Positions"/> is empty for a mailbox minted but
-/// not yet delivered into or received from — a real and often long-lived state.
+/// <see cref="Positions"/> is empty for a mailbox minted but not yet delivered into or received from — a real
+/// and often long-lived state.
 /// </summary>
 internal sealed record MailboxSnapshot(MailboxResponse Mailbox, IReadOnlyList<MailboxPosition> Positions);
 
-/// <summary>
-/// One position of the log, from both sides: the two logs share one position space, so a position carries a
-/// delivery, a receiver, or both.
-/// </summary>
+/// <summary>The two logs share one position space, so a position carries a delivery, a receiver, or both.</summary>
 internal sealed record MailboxPosition(
     long Position,
     string? DeliveryIdempotencyKey,
@@ -1719,10 +1705,7 @@ internal abstract record MailboxMintResult
     /// <summary>A replay, answered even at the collection cap.</summary>
     internal sealed record Existing(MailboxResponse Mailbox) : MailboxMintResult;
 
-    /// <summary>
-    /// Refused before the database: an over-long key would otherwise read as a transient database error and be
-    /// retried to the command timeout.
-    /// </summary>
+    /// <summary>Refused before the database: an over-long key would read as a transient error and be retried.</summary>
     internal sealed record Invalid(string Message) : MailboxMintResult;
 
     internal sealed record AtCollectionCapacity : MailboxMintResult;
@@ -1763,7 +1746,6 @@ internal readonly record struct MailboxSweepResult(
     public bool IsEmpty => Closed == 0 && Failed == 0;
 }
 
-/// <summary>Outcome of closing a mailbox.</summary>
 internal abstract record MailboxCloseResult
 {
     private MailboxCloseResult() { }
@@ -1773,7 +1755,6 @@ internal abstract record MailboxCloseResult
 
     internal sealed record Closed(MailboxResponse Mailbox, MailboxReleaseCounts Released) : MailboxCloseResult
     {
-        /// <summary>The reason is read from the row that was written, not from the parameter that asked.</summary>
         public override void Record()
         {
             if (Mailbox.DisposedReason is { } reason)
@@ -1820,9 +1801,6 @@ internal abstract record MailboxDeliveryResult
 
     internal sealed record PayloadTooLarge(string Message) : MailboxDeliveryResult;
 
-    /// <summary>
-    /// Refused before the database: an over-long key would otherwise read as a transient database error and be
-    /// retried to the command timeout.
-    /// </summary>
+    /// <summary>Refused before the database: an over-long key would read as a transient error and be retried.</summary>
     internal sealed record Invalid(string Message) : MailboxDeliveryResult;
 }

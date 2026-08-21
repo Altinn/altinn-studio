@@ -102,8 +102,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // The blob restores into two halves: instance data, and the non-data carry threaded through the command
-        // and back out below.
         InstanceDataUnitOfWork instanceDataUnitOfWork;
         WorkflowCallbackStateCarry stateCarry;
         try

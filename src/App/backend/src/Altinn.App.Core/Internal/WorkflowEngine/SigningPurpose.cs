@@ -27,17 +27,15 @@ internal enum SigningPurpose
     CallbackState = 1,
 
     /// <summary>
-    /// A message forwarded into a mailbox, bound to the mailbox, the handler's service task, and the source's
-    /// message id. Versioned: a change to the coverage takes a new member, invalidating in-flight envelopes
-    /// rather than reinterpreting them.
+    /// A message forwarded into a mailbox. Versioned: a change to the coverage takes a new member, invalidating
+    /// in-flight envelopes rather than reinterpreting them.
     /// </summary>
     MailboxDeliveryV1 = 2,
 }
 
 /// <summary>
-/// A purpose plus what it binds — the whole identity of a signature domain. The constructor is private and
-/// the factories are the only way in, so no wrong combination compiles; <see langword="default"/> carries
-/// <see cref="SigningPurpose.Unspecified"/>, which cannot derive a key.
+/// A purpose plus what it binds — the whole identity of a signature domain. The factories are the only way in,
+/// so no wrong combination compiles.
 /// </summary>
 internal readonly record struct SigningDomain
 {
@@ -65,9 +63,7 @@ internal readonly record struct SigningDomain
     public static SigningDomain MailboxDelivery(Guid mailboxId, string serviceTaskType, string idempotencyKey) =>
         new(SigningPurpose.MailboxDeliveryV1, new DeliveryBinding(mailboxId, serviceTaskType, idempotencyKey));
 
-    /// <summary>
-    /// The key-derivation tag; <see langword="null"/> for a domain signing under the app-code directly.
-    /// </summary>
+    /// <summary>The key-derivation tag; <see langword="null"/> for a domain signing under the app-code directly.</summary>
     /// <remarks>
     /// Length-prefixed, load-bearing: the task type and message id are free-form, so raw concatenation would
     /// let <c>type "a", id "b:c"</c> and <c>type "a:b", id "c"</c> derive the same key. The prefix counts

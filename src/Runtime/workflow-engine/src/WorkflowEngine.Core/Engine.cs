@@ -62,10 +62,7 @@ internal interface IEngine
     /// </summary>
     Task<NudgeWorkflowResult> NudgeWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Mints a mailbox, idempotent on the caller's key within the namespace. Validates the request itself and
-    /// answers <see cref="MailboxMintResult.Invalid"/> when it is inadmissible.
-    /// </summary>
+    /// <summary>Mints a mailbox, idempotent on the caller's key within the namespace.</summary>
     Task<MailboxMintResult> MintMailbox(
         string ns,
         MailboxCreateRequest request,
@@ -77,11 +74,7 @@ internal interface IEngine
     /// </summary>
     Task<MailboxCloseResult> CloseMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Delivers one message, idempotent on the caller's key within the mailbox. Validates the request itself
-    /// and answers <see cref="MailboxDeliveryResult.Invalid"/> or
-    /// <see cref="MailboxDeliveryResult.PayloadTooLarge"/> before the database.
-    /// </summary>
+    /// <summary>Delivers one message, idempotent on the caller's key within the mailbox.</summary>
     Task<MailboxDeliveryResult> DeliverToMailbox(
         Guid mailboxId,
         string ns,
@@ -467,16 +460,13 @@ internal sealed class Engine(
         return new NudgeWorkflowResult.NotParked(status.Value);
     }
 
-    /// <summary>
-    /// The longest mailbox key the schema stores: <c>idempotency_key</c> and <c>collection_key</c> are
-    /// both <c>varchar(200)</c>.
-    /// </summary>
+    /// <summary><c>idempotency_key</c> and <c>collection_key</c> are both <c>varchar(200)</c>.</summary>
     private const int MaxMailboxKeyLength = 200;
 
     /// <summary>
-    /// Validates a mint request before the database. Length must be caught here: Postgres answers an over-long
-    /// <c>varchar(200)</c> with SQLSTATE 22001, which the retry classifier reads as transient — a typo retried
-    /// to the command timeout and logged as a suspected outage.
+    /// Length must be caught before the database: Postgres answers an over-long <c>varchar(200)</c> with SQLSTATE
+    /// 22001, which the retry classifier reads as transient — a typo retried to the command timeout and logged as
+    /// a suspected outage.
     /// </summary>
     private MailboxMintResult.Invalid? ValidateMailboxRequest(MailboxCreateRequest request)
     {
@@ -560,9 +550,8 @@ internal sealed class Engine(
     }
 
     /// <summary>
-    /// Validates a delivery request before the database. Key length for the reason
-    /// <see cref="ValidateMailboxRequest"/> gives; the payload cap because it needs no row state, so refusing
-    /// early spends no connection on an answer knowable from the request.
+    /// Key length for the reason <see cref="ValidateMailboxRequest"/> gives; the payload cap because it needs no
+    /// row state, so refusing early spends no connection on an answer knowable from the request.
     /// </summary>
     private MailboxDeliveryResult? ValidateMailboxDeliveryRequest(MailboxDeliveryRequest request)
     {
@@ -772,14 +761,13 @@ internal sealed class Engine(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox with an empty id."
                     );
 
-                // A receiver that finds neither its delivery nor a closed mailbox is born Held, and a held row has no
-                // schedule: nothing consults its StartAt, so honoring both would mean silently ignoring one.
+                // A held row has no schedule — nothing consults its StartAt — so honoring both would mean
+                // silently ignoring one.
                 if (workflow.StartAt is { } startAt)
                     return new RequestConstraintValidationResult.Invalid(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares both a mailbox and a startAt ({startAt:O}); a mailbox receiver has no schedule."
                     );
 
-                // Without a step there is nothing to hand the delivery to.
                 if (workflow.Steps.Count == 0)
                     return new RequestConstraintValidationResult.Invalid(
                         $"Workflow '{workflow.Ref ?? $"#{i}"}' declares a mailbox but has no steps to receive into."

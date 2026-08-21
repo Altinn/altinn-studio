@@ -88,7 +88,6 @@ internal sealed class EnqueueReceiveWorkflow(
             WorkflowRequest receiveWorkflow = payload.EnqueueRequest.Workflows[0] with
             {
                 Mailbox = new MailboxReference { Id = mailboxId },
-                // The state this step executed with, which already carries the mailbox id.
                 State = context.Payload.State,
             };
 

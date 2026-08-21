@@ -12,10 +12,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models;
 /// </remarks>
 internal sealed class WorkflowCallbackStateCarry
 {
-    /// <summary>Creates a carry holding nothing — the shape of every workflow that has opened no mailbox.</summary>
+    /// <summary>The shape of every workflow that has opened no mailbox.</summary>
     public WorkflowCallbackStateCarry() { }
 
-    /// <summary>Creates the carry described by a restored state blob.</summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
         MailboxId = state.MailboxId;

@@ -120,10 +120,7 @@ public abstract record ServiceTaskResult
     public static ServiceTaskAwaitNextReplyResult AwaitNextReply() => ServiceTaskAwaitNextReplyResult.Instance;
 }
 
-/// <summary>
-/// A conclusion handler finished its message while the exchange stays open. Created via
-/// <see cref="ServiceTaskResult.AwaitNextReply"/>; carries nothing.
-/// </summary>
+/// <summary>A conclusion handler finished its message while the exchange stays open.</summary>
 public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskResult
 {
     internal static readonly ServiceTaskAwaitNextReplyResult Instance = new();

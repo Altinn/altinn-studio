@@ -395,11 +395,9 @@ public class ExecuteServiceTaskReplyTests
     public static TheoryData<string, Guid, string, string> ForeignSeals =>
         new()
         {
-            // Sealed for another mailbox.
             { "mailbox", new Guid("018f4e00-0000-7000-8000-0000000000bb"), "archiving", "fiks-message-42" },
             // Sealed for another handler — the case the address binding alone would not catch.
             { "service task", _mailboxId, "someOtherArchivingTask", "fiks-message-42" },
-            // The same captured envelope under a fresh idempotency key.
             { "idempotency key", _mailboxId, "archiving", "fiks-message-43" },
         };
 

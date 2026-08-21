@@ -324,9 +324,8 @@ internal interface IEngineRepository
 
     /// <summary>
     /// The dashboard's read: mailboxes per collection key, newest first, at most
-    /// <paramref name="limitPerCollection"/> <em>per key</em> so a busy collection cannot starve the rest.
-    /// Takes no locks; the page names the keys whose window was full. A null <paramref name="ns"/> reads every
-    /// namespace.
+    /// <paramref name="limitPerCollection"/> <em>per key</em> so a busy collection cannot starve the rest. The
+    /// page names the keys whose window was full. A null <paramref name="ns"/> reads every namespace.
     /// </summary>
     Task<MailboxCollectionPage> GetMailboxesForCollections(
         string? ns,

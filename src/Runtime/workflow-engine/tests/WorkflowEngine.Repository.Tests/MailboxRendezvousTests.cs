@@ -270,7 +270,6 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     [Fact]
     public async Task Close_LeavesARunningReceiverAloneEvenWithNoReleaseStampToExcludeIt()
     {
-        // A state a correct engine cannot reach, constructed so the status guard stands alone.
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
         var running = await EnqueueReceiver(repository, mailbox.Id);

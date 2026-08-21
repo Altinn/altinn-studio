@@ -58,11 +58,6 @@ internal static class ServiceTaskLookupExtensions
                     + "return the pipeline composed from the supplied builder."
             );
 
-        // WithReplyFrom returns the declared pipeline rather than mutating the one it was called on, so a Define
-        // that ignores its return value composes a mailbox and then hands back the pipeline from before it. The
-        // declaration marks the builder it came from — the one handed in here — so a builder that saw a
-        // declaration while the returned pipeline carries none means the result was discarded and the mailbox
-        // would never open.
         if (builder.MailboxDeclared && pipeline.Mailbox is null)
         {
             throw new InvalidOperationException(

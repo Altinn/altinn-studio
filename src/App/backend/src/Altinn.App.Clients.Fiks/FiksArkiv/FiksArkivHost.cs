@@ -271,7 +271,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 message.IsErrorResponse ? Telemetry.Fiks.FiksResult.Error : Telemetry.Fiks.FiksResult.Success
             );
 
-            // The echoed correlation id is the id of the mailbox the waiting task opened.
             if (!Guid.TryParse(correlationId, out Guid mailboxId) || mailboxId == Guid.Empty)
             {
                 _logger.LogError(
@@ -309,7 +308,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 }
                 else
                 {
-                    // Settled: redelivery places this nowhere. Acknowledged and logged as an error.
                     _logger.LogError(
                         e,
                         "Fiks Arkiv message {MessageId} could not be delivered to a waiting service task ({Outcome}) and will not be retried: {Error}",
@@ -371,7 +369,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             _ => exception.IsTransient,
         };
 
-    /// <summary>Decrypts the message and delivers it into the mailbox the archive echoed back.</summary>
     private async Task ForwardReply(FiksIOReceivedMessage message, Guid mailboxId)
     {
         var payloads = await message.Message.GetDecryptedPayloads();

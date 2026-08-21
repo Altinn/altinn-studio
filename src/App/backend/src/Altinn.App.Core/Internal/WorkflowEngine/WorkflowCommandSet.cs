@@ -204,7 +204,7 @@ internal sealed class WorkflowCommandSet
 
     /// <summary>
     /// The one step a receive workflow runs: the same <c>ExecuteServiceTask</c> conclusion step a non-mailbox
-    /// task ends with, identified by a null stage name.
+    /// task ends with.
     /// </summary>
     internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType) =>
         CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType));

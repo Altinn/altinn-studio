@@ -34,12 +34,10 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 
-    /// <summary>What <see cref="ServiceTaskContext.Mailbox"/> says when the task opens none — a constant.</summary>
     private const string NoMailboxDeclaredReason =
         "ServiceTaskContext.Mailbox was read, but this task opens no mailbox. Declare one on the pipeline with "
         + "WithReplyFrom(\"<stage>\", new MailboxOptions { Timeout = … }), and read it in that stage.";
 
-    /// <summary>What <see cref="ServiceTaskContext.Reply"/> says when the task opens no mailbox.</summary>
     private const string NoMailboxDeclaredReplyReason =
         "ServiceTaskContext.Reply was read, but this task is not answered by a message. Declare a mailbox on the "
         + "pipeline with WithReplyFrom(\"<stage>\", new MailboxOptions { Timeout = … }); the pipeline's Finally "
@@ -67,11 +65,9 @@ internal sealed class ExecuteServiceTask(
                 appImplementationFactory.FindServiceTask(serviceTaskType)
                 ?? throw new ProcessException($"No service task found for type {serviceTaskType}");
 
-            // Null stage name is the conclusion; a name is a composed stage.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            // Opened before the declaring stage runs, so it has an address to publish; keyed on this step, so a
-            // retry gets the same address.
+            // Before the declaring stage runs: the stage must never send without an address.
             MailboxResolution mailbox = await ResolveMailbox(context, pipeline, payload.StageName);
             if (mailbox.Failure is { } mintFailure)
             {
@@ -116,7 +112,6 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskResult conclusion = await pipeline.Final(serviceTaskContext);
 
-            // A conclusion that answers a message is the relay's decision, not the ordinary mapping's.
             return context.Payload.Mailbox is { } receipt
                 ? MailboxRelay.Decide(conclusion, serviceTaskType, context.Payload.StepId, receipt, context.StateCarry)
                 : MapServiceTaskResult(conclusion, serviceTask);
@@ -128,20 +123,12 @@ internal sealed class ExecuteServiceTask(
         }
     }
 
-    /// <summary>
-    /// The mailbox when this is the declaring stage, the sentence explaining where it <em>is</em> readable
-    /// otherwise — or the failure when it should have been opened and could not be.
-    /// </summary>
     private readonly record struct MailboxResolution(
         ServiceTaskMailbox? Mailbox,
         string? UnavailableReason,
         FailedProcessEngineCommandResult? Failure
     );
 
-    /// <summary>
-    /// Mints the pipeline's mailbox on the declaring stage; otherwise records why
-    /// <see cref="ServiceTaskContext.Mailbox"/> is not readable here.
-    /// </summary>
     private async Task<MailboxResolution> ResolveMailbox(
         ProcessEngineCommandContext context,
         ServiceTaskPipeline pipeline,
@@ -166,8 +153,6 @@ internal sealed class ExecuteServiceTask(
             );
         }
 
-        // An engine that sent no step id leaves it empty — a *constant*, so every mailbox in the namespace
-        // would collapse onto one shared inbox.
         if (context.Payload.StepId == Guid.Empty)
         {
             return new MailboxResolution(
@@ -220,7 +205,7 @@ internal sealed class ExecuteServiceTask(
                 )
             ),
 
-            // At the open-mailbox cap. Retryable, but named on the first failure: a cap hit is a runaway.
+            // Named on the first failure rather than retried silently: a cap hit is a runaway.
             MailboxMintResult.AtCapacity atCapacity => new MailboxResolution(
                 null,
                 null,
@@ -235,10 +220,6 @@ internal sealed class ExecuteServiceTask(
         };
     }
 
-    /// <summary>
-    /// The message, the closure that stands in for one, the sentence explaining that this execution answers
-    /// none — or the failure when the rendezvous block and the pipeline contradict each other.
-    /// </summary>
     private readonly record struct ReplyResolution(
         ServiceTaskReply? Reply,
         MailboxClosedReason? ClosedReason,
@@ -247,8 +228,8 @@ internal sealed class ExecuteServiceTask(
     );
 
     /// <summary>
-    /// Reads the rendezvous block into what the conclusion sees. Every block/pipeline disagreement is a
-    /// permanent failure rather than a silent default: either wrong answer concludes the task falsely.
+    /// Every block/pipeline disagreement is a permanent failure rather than a silent default: either wrong
+    /// answer concludes the task falsely.
     /// </summary>
     private ReplyResolution ResolveReply(
         ProcessEngineCommandContext context,
@@ -308,8 +289,7 @@ internal sealed class ExecuteServiceTask(
             return new ReplyResolution(null, null, NoMailboxDeclaredReplyReason, null);
         }
 
-        // A declaring pipeline's conclusion only runs on receive workflows, so it must have a block: without
-        // one it would conclude the task on nothing.
+        // A declaring pipeline's conclusion only runs on receive workflows, so it must have a block.
         if (receipt is null)
         {
             return new ReplyResolution(
@@ -448,7 +428,6 @@ internal sealed class ExecuteServiceTask(
             _ => throw new UnreachableException($"Unknown stage result type: {result.GetType().Name}"),
         };
 
-    /// <summary>Only a declaring pipeline's conclusion holds a message, so nothing else has one to follow.</summary>
     private static FailedProcessEngineCommandResult AwaitNextReplyOutsideAnExchange(IPipelineServiceTask task) =>
         FailedProcessEngineCommandResult.Permanent(
             $"Service task '{task.Type}' answered AwaitNextReply, but this execution is not answering a mailbox "

@@ -476,7 +476,7 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// Removes intra-batch duplicates from <paramref name="indicesToCheck"/>, each paired with the request it
-    /// duplicates — a refused primary releases its key, so its duplicates must inherit its verdict.
+    /// duplicates.
     /// </summary>
     private static List<(int Index, int PrimaryIndex)> RemoveDuplicates(
         IReadOnlyList<BufferedEnqueueRequest> requests,
@@ -655,7 +655,7 @@ internal sealed partial class EngineRepository
     /// </summary>
     private sealed record MailboxReceiverRow(string Namespace, bool IsDisposed, long NextIdx, long NextSeq);
 
-    /// <summary>Receiver births by state, published after the commit.</summary>
+    /// <summary>Published after the commit.</summary>
     private readonly record struct MailboxBirthCounts(long Delivered, long Closed, long Held)
     {
         public void Record()
@@ -681,8 +681,8 @@ internal sealed partial class EngineRepository
     );
 
     /// <summary>
-    /// What one flush decided about its mailbox receivers. Rejected requests are already answered, but their
-    /// idempotency keys must be released before commit; registrations cover every receiver, parked or not.
+    /// Rejected requests are already answered, but their idempotency keys must be released before commit;
+    /// registrations cover every receiver, parked or not.
     /// </summary>
     private sealed record MailboxReceiverPlan(
         List<int> RejectedRequestIndices,
@@ -698,10 +698,9 @@ internal sealed partial class EngineRepository
         status is BatchEnqueueResultStatus.MailboxNotFound or BatchEnqueueResultStatus.MailboxLogFull;
 
     /// <summary>
-    /// Locks every declared mailbox's row and reads the state births are decided from — the lock leaves only
-    /// two interleavings between a delivery and its receiver's enqueue. Returns <c>null</c> when the batch
-    /// declares no mailbox (keeping the ordinary path free of mailbox statements); an empty dictionary means
-    /// the named mailboxes do not exist.
+    /// The lock leaves only two interleavings between a delivery and its receiver's enqueue. Returns
+    /// <c>null</c> when the batch declares no mailbox (keeping the ordinary path free of mailbox statements); an
+    /// empty dictionary means the named mailboxes do not exist.
     /// </summary>
     private static async Task<Dictionary<Guid, MailboxReceiverRow>?> LockAndReadMailboxes(
         NpgsqlConnection conn,
@@ -756,10 +755,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Decides each receiver's position and birth state: <c>Enqueued</c> with its delivery when one sits at
-    /// its position, <c>Enqueued</c> with the closing signal when the mailbox is closed, <c>Held</c> otherwise.
-    /// The first outranks the second, so a saga replaying after the deadline drains its promised backlog. A
-    /// request is refused whole or not at all.
+    /// A delivery at the position outranks a closed mailbox, so a saga replaying after the deadline drains its
+    /// promised backlog. A request is refused whole or not at all.
     /// </summary>
     private MailboxReceiverPlan PlanMailboxReceivers(
         IReadOnlyList<BufferedEnqueueRequest> requests,
@@ -775,8 +772,7 @@ internal sealed partial class EngineRepository
 
         var cap = settings.Value.MaxMailboxLogLength;
 
-        // One clock read, from the engine's own time provider: these stamps are compared against instants the
-        // engine writes.
+        // The engine's own clock: these stamps are compared against instants the engine writes.
         var now = timeProvider.GetUtcNow();
         var rejected = new List<int>();
         var registrations = new List<MailboxReceiverRegistration>();
@@ -909,8 +905,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Writes the registry rows and advances each mailbox's receivers counter. The transaction is what makes
-    /// the log gapless: every position handed out is written with the counter that consumed it, or not at all.
+    /// The transaction is what makes the log gapless: every position handed out is written with the counter that
+    /// consumed it, or not at all.
     /// </summary>
     private static async Task WriteMailboxReceivers(
         NpgsqlConnection conn,

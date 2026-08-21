@@ -15,12 +15,11 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// The mailbox relay saga. Correct under at-least-once retries by three invariants, all properties of this
-/// file: the mailbox closes before anything downstream starts; at most one execution concludes (structural,
-/// via <see cref="MailboxContinuation"/>); and every engine call is keyed off
-/// <see cref="AppCallbackPayload.StepId"/>, so a replayed attempt deduplicates instead of forking. Every
-/// enqueue lands as a collection head from inside the still-unsettled receiver, keeping the frontier
-/// non-empty for the whole exchange.
+/// The mailbox relay saga. Correct under at-least-once retries by three invariants: the mailbox closes before
+/// anything downstream starts; at most one execution concludes (structural, via
+/// <see cref="MailboxContinuation"/>); and every engine call is keyed off
+/// <see cref="AppCallbackPayload.StepId"/>. Every enqueue lands as a collection head from inside the
+/// still-unsettled receiver, keeping the frontier non-empty for the whole exchange.
 /// </summary>
 internal sealed class MailboxRelay
 {
@@ -42,12 +41,12 @@ internal sealed class MailboxRelay
         _processEngine = processEngine;
     }
 
-    /// <summary>Derived from the concluding step, so a replayed conclusion advances the process once.</summary>
+    /// <summary>Keyed so a replayed conclusion advances the process once.</summary>
     internal static string CreateAfterWorkflowIdempotencyKey(Guid stepId) => $"{stepId}:mailbox-after";
 
     /// <summary>
-    /// Turns a reply handler's verdict into the callback's outcome and, when the saga has something to do, the
-    /// continuation <see cref="Continue"/> runs once the handler's data changes are saved.
+    /// The continuation returned alongside the outcome is run by <see cref="Continue"/> once the handler's data
+    /// changes are saved.
     /// </summary>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskResult result,
@@ -60,8 +59,8 @@ internal sealed class MailboxRelay
         switch (result)
         {
             case ServiceTaskAwaitNextReplyResult:
-                // The one contract violation the engine leaves to the app-lib: no message means the mailbox is closed,
-                // so there is no next message to await, and a retry re-derives the same truth.
+                // The one contract violation the engine leaves to the app-lib. Permanent because a retry
+                // re-derives the same truth.
                 if (mailbox.Delivery is null)
                 {
                     return FailedProcessEngineCommandResult.Permanent(
@@ -78,7 +77,6 @@ internal sealed class MailboxRelay
                     return noKey;
                 }
 
-                // The exchange stays open: the task concludes on a later message or the closing signal.
                 return new SuccessfulProcessEngineCommandResult
                 {
                     MailboxContinuation = new MailboxContinuation.AwaitNextMessage(
@@ -89,8 +87,7 @@ internal sealed class MailboxRelay
                 };
 
             case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
-                // The close still happens; nothing downstream starts, and a failing callback publishes no blob, so
-                // there is nothing for the carry to un-say.
+                // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
                     $"Service task '{serviceTaskType}' failed: {failed.ErrorMessage}",
                     "ServiceTaskFailedException",
@@ -128,9 +125,8 @@ internal sealed class MailboxRelay
     }
 
     /// <summary>
-    /// Refuses a verdict that would make a keyed call when the engine supplied no step id: an empty id is a
-    /// constant, so every exchange in the app would share one key — cross-exchange damage, not repeated work.
-    /// Only the two keyed verdicts are refused, before anything is closed or enqueued.
+    /// Only the two keyed verdicts are refused, and before anything is closed or enqueued: refusing a verdict
+    /// that makes no keyed call would fail a working callback over a key it never uses.
     /// </summary>
     private static FailedProcessEngineCommandResult? StepIdMissing(Guid stepId, string serviceTaskType, string wouldDo)
     {
@@ -147,18 +143,16 @@ internal sealed class MailboxRelay
         );
     }
 
-    /// <summary>Runs the saga for one verdict, called from the callback controller.</summary>
     public async Task Continue(MailboxContinuation continuation, MailboxRelayRequest request, CancellationToken ct)
     {
         switch (continuation)
         {
             case MailboxContinuation.AwaitNextMessage awaitNext:
-                // The one workflow this enqueues keeps the frontier non-empty once the receiver settles.
                 await EnqueueSuccessorReceiver(awaitNext, request, ct);
                 return;
 
             case MailboxContinuation.Conclude conclude:
-                // Invariant 1: the mailbox stops accepting messages before anything downstream starts. Awaited.
+                // Invariant 1: the mailbox stops accepting messages before anything downstream starts.
                 await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), conclude.MailboxId, ct);
 
                 if (request.AutoAdvanceProcess)
@@ -173,10 +167,7 @@ internal sealed class MailboxRelay
         }
     }
 
-    /// <summary>
-    /// Enqueues the receive workflow for the next message — the same shape
-    /// <see cref="Commands.EnqueueReceiveWorkflow"/> gives the first one.
-    /// </summary>
+    /// <summary>The same shape <see cref="Commands.EnqueueReceiveWorkflow"/> gives the first receiver.</summary>
     private async Task EnqueueSuccessorReceiver(
         MailboxContinuation.AwaitNextMessage continuation,
         MailboxRelayRequest request,
@@ -263,7 +254,6 @@ internal sealed class MailboxRelay
         return labels;
     }
 
-    /// <summary>Enqueues the ordinary auto-advance workflow, with the relay's own idempotency key.</summary>
     private Task EnqueueAfterWorkflow(MailboxRelayRequest request, CancellationToken ct) =>
         _processEngine.EnqueueProcessNext(
             request.Instance,
@@ -286,17 +276,12 @@ internal sealed class MailboxRelay
     private static string GetNamespace(AppIdentifier appId) => $"{appId.Org}/{appId.App}";
 }
 
-/// <summary>Everything the relay needs that is not the verdict itself.</summary>
 internal readonly record struct MailboxRelayRequest
 {
     public required AppIdentifier AppId { get; init; }
 
     public required InstanceIdentifier InstanceId { get; init; }
 
-    /// <summary>
-    /// The callback being answered — the source of the actor, the lock token, and the step id every key is
-    /// derived from.
-    /// </summary>
     public required AppCallbackPayload Payload { get; init; }
 
     public required Instance Instance { get; init; }

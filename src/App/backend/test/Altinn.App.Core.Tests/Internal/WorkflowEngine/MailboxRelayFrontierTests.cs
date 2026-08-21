@@ -323,7 +323,6 @@ public class MailboxRelayFrontierTests
         WorkflowEngineService reader = CreateReader(collection);
         Instance instance = CreateInstance();
 
-        // Where 7b leaves off: Main enqueued receiver 1 as a head and is about to settle.
         Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Held);
         collection.Settle(main);

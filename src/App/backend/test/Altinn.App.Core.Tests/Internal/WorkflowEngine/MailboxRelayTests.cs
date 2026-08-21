@@ -452,8 +452,7 @@ public class MailboxRelayTests
     [Fact]
     public void AVerdictThatMakesNoKeyedCall_IsUnaffectedByAMissingStepId()
     {
-        // Narrow on purpose: a conclusion that starts nothing only closes (no key), and refusing it too would
-        // take the close with it.
+        // Refusing this too would take the close with it.
         var carry = new WorkflowCallbackStateCarry();
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(
@@ -498,10 +497,6 @@ public class MailboxRelayTests
             )
         );
     }
-
-    // ---------------------------------------------------------------------------------------------
-    // The successor's shape.
-    // ---------------------------------------------------------------------------------------------
 
     [Fact]
     public async Task SuccessorReceiver_IsAHeadThatDependsOnNoHead_AndCarriesTheExchangesMailbox()
@@ -581,10 +576,6 @@ public class MailboxRelayTests
         Assert.Equal("published-state", state);
         Assert.Equal("reject", action);
     }
-
-    // ---------------------------------------------------------------------------------------------
-    // The verdict mapping.
-    // ---------------------------------------------------------------------------------------------
 
     [Fact]
     public void Success_ConcludesAndStopsTheMailboxIdTraveling()

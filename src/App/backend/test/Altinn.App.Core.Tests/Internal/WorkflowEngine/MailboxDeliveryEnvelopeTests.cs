@@ -13,10 +13,9 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 /// <summary>
-/// The integrity envelope a forwarded message travels in: it must round-trip a body unchanged, refuse
-/// anything this app did not sign, refuse anything signed for a <em>different message</em> — another
-/// mailbox, another handler, another idempotency key — and keep its signature domain disjoint from the
-/// callback state blob's.
+/// The integrity envelope a forwarded message travels in: it must refuse anything signed for a
+/// <em>different message</em> — another mailbox, another handler, another idempotency key — and keep its
+/// signature domain disjoint from the callback state blob's.
 /// </summary>
 public class MailboxDeliveryEnvelopeTests
 {
@@ -246,7 +245,6 @@ public class MailboxDeliveryEnvelopeTests
                 "jZjFm/3SmMj7dJ1wdUYynHHoJxglxUZkFWz4dmwLIbA="
             },
             {
-                // Mailbox differs, nothing else.
                 GoldenCode,
                 "018f4e00-0000-7000-8000-00000000ffbb",
                 "archive",
@@ -255,7 +253,6 @@ public class MailboxDeliveryEnvelopeTests
                 "DZ6IV8Qv9kLPDODd13MuEvzyse8GfYkvLZEc0oGJyq4="
             },
             {
-                // Service task type differs, nothing else.
                 GoldenCode,
                 "018f4e00-0000-7000-8000-00000000ffaa",
                 "eFormidling",
@@ -264,7 +261,6 @@ public class MailboxDeliveryEnvelopeTests
                 "6RFGYzSUYU+Z7u4EH6aSYe7dcQRKRAIvt9/vdSAxdzo="
             },
             {
-                // Idempotency key differs, nothing else.
                 GoldenCode,
                 "018f4e00-0000-7000-8000-00000000ffaa",
                 "archive",

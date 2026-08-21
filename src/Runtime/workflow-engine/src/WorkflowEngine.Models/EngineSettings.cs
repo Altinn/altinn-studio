@@ -119,7 +119,7 @@ public sealed record EngineSettings
     [JsonPropertyName("minStepDeferDelay")]
     public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
 
-    /// <summary>The largest timeout a mint may request — the longest a single exchange can stay open.</summary>
+    /// <summary>The largest timeout a mint may request.</summary>
     /// <remarks>
     /// A term in the callback-token lifetime bound: the token minted at a receiver's enqueue must outlive the
     /// park, the sweep's coarseness, the wait budgets, retention and the retry ladder.

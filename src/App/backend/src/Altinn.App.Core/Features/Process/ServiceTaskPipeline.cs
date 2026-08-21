@@ -114,5 +114,4 @@ internal sealed record ServiceTaskStage(
     ProcessStepOptions? StepOptions
 );
 
-/// <summary>One declared mailbox: the stage that opens it and the terms it is opened on.</summary>
 internal sealed record ServiceTaskMailboxDeclaration(string StageName, MailboxOptions Options);
