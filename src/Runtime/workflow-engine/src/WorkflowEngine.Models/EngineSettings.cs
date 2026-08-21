@@ -242,6 +242,12 @@ public sealed record EngineSettings
     public UpdateBufferSettings UpdateBuffer { get; set; } = new();
 
     /// <summary>
+    /// Buffer settings for the three mailbox hot paths.
+    /// </summary>
+    [JsonPropertyName("mailboxBuffers")]
+    public MailboxBufferSettings MailboxBuffers { get; set; } = new();
+
+    /// <summary>
     /// Data retention settings.
     /// </summary>
     [JsonPropertyName("retention")]
@@ -294,6 +300,52 @@ public sealed record UpdateBufferSettings
     /// </summary>
     [JsonPropertyName("maxQueueSize")]
     public int MaxQueueSize { get; set; }
+}
+
+/// <summary>
+/// Settings for one channel-based batch buffer: the requests one flush may carry, the requests that may wait
+/// for a flush, and the flushes that may run at once.
+/// </summary>
+public sealed record BatchBufferSettings
+{
+    /// <summary>
+    /// Maximum number of requests per batch flush.
+    /// </summary>
+    [JsonPropertyName("maxBatchSize")]
+    public int MaxBatchSize { get; set; }
+
+    /// <summary>
+    /// Maximum number of requests waiting for a flush. The channel is bounded and <em>waits</em> when full, so a
+    /// caller arriving at a full queue is delayed rather than refused.
+    /// </summary>
+    [JsonPropertyName("maxQueueSize")]
+    public int MaxQueueSize { get; set; }
+
+    /// <summary>
+    /// Number of concurrent flushes, and with that the database connections the buffer can hold at once — one
+    /// per in-flight flush.
+    /// </summary>
+    [JsonPropertyName("flushConcurrency")]
+    public int FlushConcurrency { get; set; }
+}
+
+/// <summary>
+/// Settings for the mailbox hot-path buffers, one per operation: minting, closing, and delivering are separate
+/// batch statements against separate rows, so they queue and flush independently.
+/// </summary>
+public sealed record MailboxBufferSettings
+{
+    /// <summary>Buffer for minting mailboxes.</summary>
+    [JsonPropertyName("mint")]
+    public BatchBufferSettings Mint { get; set; } = new();
+
+    /// <summary>Buffer for closing mailboxes.</summary>
+    [JsonPropertyName("close")]
+    public BatchBufferSettings Close { get; set; } = new();
+
+    /// <summary>Buffer for delivering messages into mailboxes.</summary>
+    [JsonPropertyName("delivery")]
+    public BatchBufferSettings Delivery { get; set; } = new();
 }
 
 /// <summary>

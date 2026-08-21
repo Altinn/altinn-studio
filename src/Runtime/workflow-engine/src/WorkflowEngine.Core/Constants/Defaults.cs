@@ -54,6 +54,32 @@ internal static class Defaults
             MaxQueueSize = 10_000,
         },
         UpdateBuffer = new UpdateBufferSettings { MaxBatchSize = 1000, MaxQueueSize = 5_000 },
+        MailboxBuffers = new MailboxBufferSettings
+        {
+            Mint = new BatchBufferSettings
+            {
+                MaxBatchSize = 100,
+                MaxQueueSize = 5_000,
+                FlushConcurrency = 2,
+            },
+            Close = new BatchBufferSettings
+            {
+                MaxBatchSize = 100,
+                MaxQueueSize = 5_000,
+                // Serial: a close locks the mailbox row and the workflow row of every receiver it releases, so a
+                // second concurrent flush would spend its connection waiting on the first one's locks.
+                FlushConcurrency = 1,
+            },
+            Delivery = new BatchBufferSettings
+            {
+                MaxBatchSize = 100,
+                MaxQueueSize = 10_000,
+                // Deliberately low even though delivery is the busiest of the three: a storm aimed at one
+                // mailbox convoys on that mailbox's row lock, so further flushes in flight would hold more
+                // connections without appending any faster.
+                FlushConcurrency = 2,
+            },
+        },
         Retention = new RetentionSettings
         {
             RetentionPeriod = TimeSpan.FromDays(60),

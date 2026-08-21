@@ -261,6 +261,61 @@ public static class OptionsBuilderExtensions
 
                 if (config.UpdateBuffer.MaxQueueSize <= 0)
                     config.UpdateBuffer.MaxQueueSize = Defaults.EngineSettings.UpdateBuffer.MaxQueueSize;
+
+                if (config.MailboxBuffers.Mint.MaxBatchSize <= 0)
+                    config.MailboxBuffers.Mint.MaxBatchSize = Defaults.EngineSettings.MailboxBuffers.Mint.MaxBatchSize;
+
+                if (config.MailboxBuffers.Mint.MaxQueueSize <= 0)
+                    config.MailboxBuffers.Mint.MaxQueueSize = Defaults.EngineSettings.MailboxBuffers.Mint.MaxQueueSize;
+
+                if (config.MailboxBuffers.Mint.FlushConcurrency <= 0)
+                    config.MailboxBuffers.Mint.FlushConcurrency = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Mint
+                        .FlushConcurrency;
+
+                if (config.MailboxBuffers.Close.MaxBatchSize <= 0)
+                    config.MailboxBuffers.Close.MaxBatchSize = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Close
+                        .MaxBatchSize;
+
+                if (config.MailboxBuffers.Close.MaxQueueSize <= 0)
+                    config.MailboxBuffers.Close.MaxQueueSize = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Close
+                        .MaxQueueSize;
+
+                if (config.MailboxBuffers.Close.FlushConcurrency <= 0)
+                    config.MailboxBuffers.Close.FlushConcurrency = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Close
+                        .FlushConcurrency;
+
+                if (config.MailboxBuffers.Delivery.MaxBatchSize <= 0)
+                    config.MailboxBuffers.Delivery.MaxBatchSize = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Delivery
+                        .MaxBatchSize;
+
+                if (config.MailboxBuffers.Delivery.MaxQueueSize <= 0)
+                    config.MailboxBuffers.Delivery.MaxQueueSize = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Delivery
+                        .MaxQueueSize;
+
+                if (config.MailboxBuffers.Delivery.FlushConcurrency <= 0)
+                    config.MailboxBuffers.Delivery.FlushConcurrency = Defaults
+                        .EngineSettings
+                        .MailboxBuffers
+                        .Delivery
+                        .FlushConcurrency;
             });
 
             return builder;
