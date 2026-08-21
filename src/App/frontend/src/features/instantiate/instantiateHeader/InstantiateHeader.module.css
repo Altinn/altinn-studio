@@ -1,3 +1,5 @@
+@value mediaOnlyScreenSmUp from '@app/form-component/styles/breakpoints.module.css';
+
 .app-bar-wrapper {
   flex-grow: 1;
 }
@@ -38,7 +40,7 @@
   margin: 6px 0 0 0;
 }
 
-@media only screen and (min-width: 768px) {
+@media mediaOnlyScreenSmUp {
   .header-link-list {
     /* Make the links line up with the altinn logo */
     font-size: 1.25rem;
