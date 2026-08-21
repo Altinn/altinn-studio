@@ -88,24 +88,6 @@ internal sealed partial class EngineRepository
         return released;
     }
 
-    private static async Task<bool> ReleaseReceiverAt(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        Guid mailboxId,
-        long seq,
-        DateTimeOffset now,
-        CancellationToken cancellationToken
-    )
-    {
-        var released = await ReleaseMailboxReceivers(
-            conn,
-            tx,
-            [(mailboxId, SeqLo: seq, SeqHi: seq, now)],
-            cancellationToken
-        );
-        return released.Count > 0;
-    }
-
     /// <summary>
     /// Issued inside the releasing transaction: PostgreSQL queues the <c>NOTIFY</c> until commit, and a separate
     /// post-commit statement could fail and make <see cref="ExecuteWithRetry"/> re-run the whole delegate.
@@ -1284,6 +1266,171 @@ internal sealed partial class EngineRepository
         );
     }
 
+    /// <summary>
+    /// The replay lookup, for a whole batch: one probe of the <c>(mailbox_id, idempotency_key)</c> unique index
+    /// per pair named, answering with the delivery each key already holds. It runs before any refusal is
+    /// decided, which is the <em>accepted versus kept</em> rule — a message the log holds keeps replaying even
+    /// once its mailbox closed or filled, because reporting a refusal for a message sitting there waiting to be
+    /// read would have a forwarder dead-letter it.
+    /// Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> that both key columns stay in the probe — pinned at
+    /// a singleton and at a full flush's width, because PostgreSQL plans from the array length it is handed and
+    /// both widths run: the per-request delegation issues this with arrays of one, a flush with arrays of a
+    /// hundred. A mailbox id alone in the <c>Index Cond</c> would have one flush read every message of every
+    /// mailbox it names and filter the rest away.
+    /// <para>
+    /// The probe is an <c>Index Scan</c> and not an <c>Index Only Scan</c>, which is the projection's doing and
+    /// not a missing index: <c>MailboxDeliveryColumns</c> selects the position and the acceptance instant, and a
+    /// two-column index on <c>(mailbox_id, idempotency_key)</c> carries neither, so every row it finds is
+    /// fetched from the heap. Widening the index to cover them would buy a replay lookup nothing worth the write
+    /// cost on the append path.
+    /// </para>
+    /// </summary>
+    internal const string SelectExistingMailboxDeliveriesSql = $"""
+        SELECT {MailboxDeliveryColumns}
+        FROM unnest(@mailbox_ids, @keys) AS t(mailbox_id, idempotency_key)
+        JOIN engine.mailbox_deliveries d
+            ON d.mailbox_id = t.mailbox_id AND d.idempotency_key = t.idempotency_key
+        """;
+
+    /// <summary>
+    /// Runs <see cref="SelectExistingMailboxDeliveriesSql"/> over the pairs a batch is about to decide on, keyed
+    /// back by the pair that named each row. Pairs must be distinct, as a repeated pair would multiply its
+    /// joined row; a pair absent from the result names a key the mailbox has never accepted.
+    /// </summary>
+    private static async Task<
+        Dictionary<(Guid MailboxId, string IdempotencyKey), MailboxDeliveryResponse>
+    > SelectExistingMailboxDeliveries(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        (Guid MailboxId, string IdempotencyKey)[] pairs,
+        CancellationToken cancellationToken
+    )
+    {
+        var existing = new Dictionary<(Guid, string), MailboxDeliveryResponse>(pairs.Length);
+        if (pairs.Length == 0)
+            return existing;
+
+        var (mailboxIds, keys) = pairs.Unzip();
+
+        await using var cmd = new NpgsqlCommand(SelectExistingMailboxDeliveriesSql, conn, tx);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", mailboxIds));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", keys));
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var delivery = ReadMailboxDelivery(reader);
+            existing[(delivery.MailboxId, delivery.IdempotencyKey)] = delivery;
+        }
+
+        return existing;
+    }
+
+    /// <summary>
+    /// Advances each mailbox's delivery counter by the number of positions the batch took from it — one
+    /// statement however many mailboxes it spans, each taking its own count from the array element naming it.
+    /// </summary>
+    private const string AdvanceMailboxDeliveryCountersSql = """
+        UPDATE engine.mailboxes AS m
+        SET next_idx = m.next_idx + v.n
+        FROM unnest(@ids, @counts) AS v(id, n)
+        WHERE m.id = v.id
+        """;
+
+    /// <summary>
+    /// Runs <see cref="AdvanceMailboxDeliveryCountersSql"/> for the mailboxes a batch appended to. This is what
+    /// makes the log gapless, on the same argument <c>WriteMailboxReceivers</c>' receivers counter rests on
+    /// (<c>Writes.cs</c>): the bump and the insert that consumes what it reserved are statements of one
+    /// transaction, so either every position handed out is written or none is, and the mailbox row locks are
+    /// held across both, so no concurrent delivery can hand out a position from the counter's old value.
+    /// Rows affected is asserted rather than ignored: a counter that did not move would have the next batch
+    /// hand out a position this one already wrote.
+    /// </summary>
+    private static async Task AdvanceMailboxDeliveryCounters(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        Dictionary<Guid, long> counts,
+        CancellationToken cancellationToken
+    )
+    {
+        var (ids, appended) = counts.Select(count => (count.Key, count.Value)).ToArray().Unzip();
+
+        await using var cmd = new NpgsqlCommand(AdvanceMailboxDeliveryCountersSql, conn, tx);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+        cmd.Parameters.Add(new NpgsqlParameter<long[]>("counts", appended));
+
+        var affected = await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+        // Unreachable: we hold every one of these rows' locks, and the ids are distinct. Kept as a loud failure
+        // rather than a silently non-gapless log.
+        if (affected != counts.Count)
+        {
+            throw new InvalidOperationException(
+                $"Advancing the delivery counters of {counts.Count} locked mailbox(es) updated {affected} row(s)."
+            );
+        }
+    }
+
+    /// <summary>
+    /// Appends the batch's accepted messages, each at the position the plan assigned it. No <c>ON CONFLICT</c>,
+    /// because neither of the table's keys can conflict here: the position came from a counter read and bumped
+    /// under the mailbox's row lock, and the message key was looked up under that same lock by
+    /// <see cref="SelectExistingMailboxDeliveriesSql"/>. A conflict would therefore be a bug, and is left to
+    /// raise as one rather than smoothed over.
+    /// </summary>
+    private const string InsertMailboxDeliveriesSql = $"""
+        INSERT INTO engine.mailbox_deliveries AS d (mailbox_id, idx, idempotency_key, payload, accepted_at)
+        SELECT t.mailbox_id, t.idx, t.idempotency_key, t.payload, t.accepted_at
+        FROM unnest(@mailbox_ids, @idxs, @keys, @payloads, @accepted_ats)
+            AS t(mailbox_id, idx, idempotency_key, payload, accepted_at)
+        RETURNING {MailboxDeliveryColumns}
+        """;
+
+    /// <summary>
+    /// Runs <see cref="InsertMailboxDeliveriesSql"/> and returns what it wrote, keyed by position. The rows are
+    /// read back rather than assembled in C# so an append and a later replay of the same key report one
+    /// <c>acceptedAt</c> — the one the column holds, at the precision the column holds it.
+    /// </summary>
+    private static async Task<Dictionary<(Guid MailboxId, long Idx), MailboxDeliveryResponse>> InsertMailboxDeliveries(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        (Guid MailboxId, long Idx, string IdempotencyKey, string Payload, DateTimeOffset AcceptedAt)[] appends,
+        CancellationToken cancellationToken
+    )
+    {
+        var (mailboxIds, idxs, keys, payloads, acceptedAts) = appends.Unzip();
+
+        await using var cmd = new NpgsqlCommand(InsertMailboxDeliveriesSql, conn, tx);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", mailboxIds));
+        cmd.Parameters.Add(new NpgsqlParameter<long[]>("idxs", idxs));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", keys));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("payloads", payloads));
+        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset[]>("accepted_ats", acceptedAts));
+
+        var inserted = new Dictionary<(Guid, long), MailboxDeliveryResponse>(appends.Length);
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var delivery = ReadMailboxDelivery(reader);
+            inserted[(delivery.MailboxId, delivery.Idx)] = delivery;
+        }
+
+        // Unreachable: an insert writes every row its input names or throws, and the positions are distinct.
+        // Kept loud rather than failing further down on a position with no row to report. Reported the same way
+        // as the counter bump's guard above and the closure's "vanished while locked" — one write statement not
+        // touching the rows it was given is one class of breach — which leaves UnreachableException in this file
+        // meaning only the positional-completeness guard every batch core ends with.
+        if (inserted.Count != appends.Length)
+        {
+            throw new InvalidOperationException(
+                $"Appending {appends.Length} message(s) returned {inserted.Count} delivery row(s)."
+            );
+        }
+
+        return inserted;
+    }
+
     /// <inheritdoc/>
     public async Task<MailboxDeliveryResult> DeliverToMailbox(
         Guid mailboxId,
@@ -1300,132 +1447,24 @@ internal sealed partial class EngineRepository
 
         try
         {
-            ns = WorkflowNamespace.Normalize(ns);
-
             MailboxDeliveryResult result = new MailboxDeliveryResult.NotFound();
+
+            // A batch of one: the slot and the retry are this path's own, but the transaction inside is the
+            // batch's, so one routine answers a single caller and a whole flush identically.
             await ExecuteWithRetry(
                 async ct =>
-                {
-                    await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    await using var tx = await conn.BeginTransactionAsync(ct);
-
-                    // The mailbox row lock is this transaction's first act; everything below decides on
-                    // that row's state.
-                    const string lockSql = $"""
-                        SELECT {MailboxColumns}
-                        FROM engine.mailboxes m
-                        WHERE m.id = @id AND m.namespace = @ns
-                        FOR UPDATE
-                        """;
-
-                    MailboxResponse? locked;
-                    await using (var lockCmd = new NpgsqlCommand(lockSql, conn, tx))
-                    {
-                        lockCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
-                        lockCmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
-
-                        await using var reader = await lockCmd.ExecuteReaderAsync(ct);
-                        locked = await reader.ReadAsync(ct) ? ReadMailbox(reader) : null;
-                    }
-
-                    if (locked is null)
-                    {
-                        await tx.RollbackAsync(ct);
-                        result = new MailboxDeliveryResult.NotFound();
-                        return;
-                    }
-
-                    // Looked up before the refusals — the "accepted versus kept" rule: a kept message replays
-                    // even once the mailbox is closed or full. Also what makes ExecuteWithRetry safe here.
-                    const string existingSql = $"""
-                        SELECT {MailboxDeliveryColumns}
-                        FROM engine.mailbox_deliveries d
-                        WHERE d.mailbox_id = @id AND d.idempotency_key = @key
-                        """;
-
-                    MailboxDeliveryResponse? existing;
-                    await using (var existingCmd = new NpgsqlCommand(existingSql, conn, tx))
-                    {
-                        existingCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
-                        existingCmd.Parameters.Add(new NpgsqlParameter<string>("key", idempotencyKey));
-
-                        await using var reader = await existingCmd.ExecuteReaderAsync(ct);
-                        existing = await reader.ReadAsync(ct) ? ReadMailboxDelivery(reader) : null;
-                    }
-
-                    if (existing is not null)
-                    {
-                        await tx.RollbackAsync(ct);
-                        result = new MailboxDeliveryResult.Duplicate(existing);
-                        return;
-                    }
-
-                    // Every non-append path rolls back, so a refusal inserts nothing and claims no key.
-                    if (locked.Status == MailboxStatus.Disposed)
-                    {
-                        await tx.RollbackAsync(ct);
-                        result = new MailboxDeliveryResult.Closed(locked);
-                        return;
-                    }
-
-                    if (locked.NextIdx >= maxLogLength)
-                    {
-                        await tx.RollbackAsync(ct);
-                        result = new MailboxDeliveryResult.LogFull(locked.NextIdx);
-                        return;
-                    }
-
-                    // The increment and the insert that consumes it are one statement, so the log is gapless.
-                    const string appendSql = $"""
-                        WITH bumped AS (
-                            UPDATE engine.mailboxes
-                            SET next_idx = next_idx + 1
-                            WHERE id = @id
-                            RETURNING next_idx - 1 AS idx
+                    result = (
+                        await LockAndDeliverToMailboxes(
+                            [(mailboxId, ns, idempotencyKey, payload, now)],
+                            maxLogLength,
+                            ct
                         )
-                        INSERT INTO engine.mailbox_deliveries AS d (
-                            mailbox_id, idx, idempotency_key, payload, accepted_at
-                        )
-                        SELECT @id, bumped.idx, @key, @payload, @now FROM bumped
-                        RETURNING {MailboxDeliveryColumns}
-                        """;
-
-                    MailboxDeliveryResponse appended;
-                    await using (var appendCmd = new NpgsqlCommand(appendSql, conn, tx))
-                    {
-                        appendCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
-                        appendCmd.Parameters.Add(new NpgsqlParameter<string>("key", idempotencyKey));
-                        appendCmd.Parameters.Add(new NpgsqlParameter<string>("payload", payload));
-                        appendCmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-
-                        await using var reader = await appendCmd.ExecuteReaderAsync(ct);
-
-                        // Unreachable: this row's lock is held. Kept loud rather than silently answering NotFound.
-                        if (!await reader.ReadAsync(ct))
-                            throw new InvalidOperationException(
-                                $"Mailbox {mailboxId} vanished while its row lock was held."
-                            );
-
-                        appended = ReadMailboxDelivery(reader);
-                    }
-
-                    // The wake, inside the delivery's own transaction: a held receiver has no timer, so a lost wake
-                    // would park it until the deadline.
-                    var released = await ReleaseReceiverAt(conn, tx, mailboxId, appended.Idx, now, ct);
-
-                    if (released)
-                        await NotifyStatusChanged(conn, tx, ct);
-
-                    result = new MailboxDeliveryResult.Accepted(appended, released);
-
-                    await tx.CommitAsync(ct);
-                },
+                    )[0],
                 cancellationToken
             );
 
-            // After the commit: a release that rolled back is not a release.
-            if (result is MailboxDeliveryResult.Accepted { ReleasedReceiver: true })
-                new MailboxReleaseCounts(Delivered: 1, Closed: 0).Record();
+            // Outside the retry: an attempt that was rolled back and re-run woke nobody.
+            RecordDeliveryReleases([result]);
 
             return result;
         }
@@ -1440,6 +1479,251 @@ internal sealed partial class EngineRepository
             throw;
         }
     }
+
+    /// <inheritdoc/>
+    public async Task<MailboxDeliveryResult[]> BatchDeliverToMailboxes(
+        IReadOnlyList<BufferedMailboxDeliveryRequest> requests,
+        int maxLogLength,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchDeliverToMailboxes");
+
+        try
+        {
+            var results = await LockAndDeliverToMailboxes(
+                [
+                    .. requests.Select(request =>
+                        (request.MailboxId, request.Namespace, request.IdempotencyKey, request.Payload, request.Now)
+                    ),
+                ],
+                maxLogLength,
+                cancellationToken
+            );
+
+            // After the commit, for the whole flush: the wakes are all this owes per request, and a refusal or a
+            // replay woke nobody.
+            RecordDeliveryReleases(results);
+
+            Metrics.DbOperationsSucceeded.Add(1);
+
+            return results;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToBatchDeliverToMailboxes(requests.Count, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Publishes the wake metric a settled batch owes, as one increment per flush rather than one per message.
+    /// Call once, after the commit: a wake an attempt rolled back woke nobody, and by the time this runs a
+    /// repeat carries its primary's <see cref="MailboxDeliveryResult.Duplicate"/>, so no wake is counted twice.
+    /// </summary>
+    private static void RecordDeliveryReleases(IReadOnlyList<MailboxDeliveryResult> results)
+    {
+        var released = results.Count(result => result is MailboxDeliveryResult.Accepted { ReleasedReceiver: true });
+        new MailboxReleaseCounts(Delivered: released, Closed: 0).Record();
+    }
+
+    /// <summary>
+    /// The transaction both delivery entry points run: lock every named mailbox, replay the keys its log already
+    /// holds, decide the rest against the locked rows, append what was accepted and wake whoever was parked at
+    /// the positions it took. Results are positional — the answer to <paramref name="deliveries"/><c>[i]</c>
+    /// sits at index <c>i</c> — and nothing is recorded here, because the per-request path publishes its
+    /// telemetry outside its retry.
+    /// <para>
+    /// Split from <see cref="BatchDeliverToMailboxes"/> so the per-request path can keep its own envelope:
+    /// routed through the public method instead, a single delivery would count
+    /// <see cref="Metrics.DbOperationsSucceeded"/> twice (once there, once from its retry), log a failure as a
+    /// batch of one on top of its own line, nest a batch span inside every attempt, and have to fabricate a
+    /// buffer's <c>TaskCompletionSource</c> per attempt to name its request. That is the whole reason for this
+    /// layer — there is no second entry point holding locks, the way the deadline sweep enters
+    /// <see cref="CloseLockedMailboxes"/>.
+    /// </para>
+    /// </summary>
+    private async Task<MailboxDeliveryResult[]> LockAndDeliverToMailboxes(
+        (Guid MailboxId, string Namespace, string IdempotencyKey, string Payload, DateTimeOffset Now)[] deliveries,
+        int maxLogLength,
+        CancellationToken cancellationToken
+    )
+    {
+        var results = new MailboxDeliveryResult[deliveries.Length];
+        if (deliveries.Length == 0)
+            return results;
+
+        var pairs = new (Guid Id, string Namespace)[deliveries.Length];
+        for (var i = 0; i < deliveries.Length; i++)
+            pairs[i] = (deliveries[i].MailboxId, WorkflowNamespace.Normalize(deliveries[i].Namespace));
+
+        await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var tx = await conn.BeginTransactionAsync(cancellationToken);
+
+        var locked = await LockMailboxesForMutation(conn, tx, pairs, cancellationToken);
+
+        // The fold, in batch order: a pair the lock did not match is this method's own refusal, and a key named
+        // twice for one mailbox is folded away here, standing in for the row-lock race two separate calls would
+        // have had — where the second would have read the first's delivery and replayed it. The namespace is
+        // part of the fold key alongside the mailbox and the message key, because two requests naming one
+        // mailbox under different namespaces are not each other's repeat: at most one of them names the
+        // namespace the row carries, and the other is a miss.
+        var primaries = new List<(int Index, MailboxResponse Locked)>(deliveries.Length);
+        var firstOccurrence = new Dictionary<(Guid, string, string), int>(deliveries.Length);
+        var repeats = new List<(int Index, int PrimaryIndex)>();
+
+        for (var i = 0; i < deliveries.Length; i++)
+        {
+            var foldKey = (pairs[i].Id, pairs[i].Namespace, deliveries[i].IdempotencyKey);
+            if (firstOccurrence.TryGetValue(foldKey, out var primary))
+            {
+                repeats.Add((i, primary));
+                continue;
+            }
+
+            firstOccurrence[foldKey] = i;
+
+            if (locked.TryGetValue(pairs[i], out var mailbox))
+                primaries.Add((i, mailbox));
+            else
+                results[i] = new MailboxDeliveryResult.NotFound();
+        }
+
+        // Distinct by construction, as the lookup requires: the fold keys are distinct, and a mailbox row
+        // carries one namespace, so no two matched primaries can share a mailbox and a key while differing only
+        // in the namespace that matched.
+        var existing = await SelectExistingMailboxDeliveries(
+            conn,
+            tx,
+            [.. primaries.Select(primary => (primary.Locked.Id, deliveries[primary.Index].IdempotencyKey))],
+            cancellationToken
+        );
+
+        // The plan, in batch order (the PlanMailboxReceivers accounting style, Writes.cs): a per-mailbox count
+        // of what this batch has taken so far, added to the counter the locked row carried, is the position the
+        // next accepted message gets — consecutive, gapless, and in arrival order. A refusal is simply absent
+        // from the write arrays, which is what keeps its key free for a later attempt.
+        var accepted = new List<(int Index, Guid MailboxId, long Idx)>(primaries.Count);
+        var appendCounts = new Dictionary<Guid, long>(locked.Count);
+
+        foreach (var (index, mailbox) in primaries)
+        {
+            var delivery = deliveries[index];
+
+            // Before the refusals, always: the mailbox may have closed or filled since, but what it kept it
+            // keeps answering for.
+            if (existing.TryGetValue((mailbox.Id, delivery.IdempotencyKey), out var kept))
+            {
+                results[index] = new MailboxDeliveryResult.Duplicate(kept);
+                continue;
+            }
+
+            if (mailbox.Status == MailboxStatus.Disposed)
+            {
+                results[index] = new MailboxDeliveryResult.Closed(mailbox);
+                continue;
+            }
+
+            var idx = mailbox.NextIdx + appendCounts.GetValueOrDefault(mailbox.Id);
+
+            // The cap binds against the position this request would take, so the message that fills the log is
+            // accepted and the one behind it in the same batch is refused — the verdicts two separate calls
+            // would have had.
+            if (idx >= maxLogLength)
+            {
+                results[index] = new MailboxDeliveryResult.LogFull(idx);
+                continue;
+            }
+
+            accepted.Add((index, mailbox.Id, idx));
+            appendCounts[mailbox.Id] = appendCounts.GetValueOrDefault(mailbox.Id) + 1;
+        }
+
+        if (accepted.Count > 0)
+        {
+            await AdvanceMailboxDeliveryCounters(conn, tx, appendCounts, cancellationToken);
+
+            var appended = await InsertMailboxDeliveries(
+                conn,
+                tx,
+                [
+                    .. accepted.Select(append =>
+                        (
+                            append.MailboxId,
+                            append.Idx,
+                            deliveries[append.Index].IdempotencyKey,
+                            deliveries[append.Index].Payload,
+                            AcceptedAt: deliveries[append.Index].Now
+                        )
+                    ),
+                ],
+                cancellationToken
+            );
+
+            // The wake, inside the delivery's own transaction: a held receiver has no timer, so a lost wake
+            // would park it until its mailbox's deadline. One element per appended position, and the positions
+            // of one mailbox are distinct, so no two ranges over it overlap.
+            var released = await ReleaseMailboxReceivers(
+                conn,
+                tx,
+                [
+                    .. accepted.Select(append =>
+                        (append.MailboxId, SeqLo: append.Idx, SeqHi: append.Idx, deliveries[append.Index].Now)
+                    ),
+                ],
+                cancellationToken
+            );
+
+            if (released.Count > 0)
+                await NotifyStatusChanged(conn, tx, cancellationToken);
+
+            // Keyed off the positions the release answered with, never off its result order — it has none.
+            var woken = new HashSet<(Guid MailboxId, long Seq)>(released);
+
+            foreach (var (index, mailboxId, idx) in accepted)
+            {
+                results[index] = new MailboxDeliveryResult.Accepted(
+                    appended[(mailboxId, idx)],
+                    ReleasedReceiver: woken.Contains((mailboxId, idx))
+                );
+            }
+        }
+
+        await tx.CommitAsync(cancellationToken);
+
+        // Resolved once the primaries are settled, so a repeat replays a delivery that has committed.
+        foreach (var (index, primaryIndex) in repeats)
+            results[index] = RepeatOfDelivery(results[primaryIndex]);
+
+        // Every position is a repeat, an append, a replay or a refusal, so this holds by construction — but the
+        // buffer hands each result straight to a waiting caller, and a further path added above must not answer
+        // one with null.
+        if (results.Any(result => result is null))
+        {
+            throw new UnreachableException("Not all results were set.");
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// What the second request naming a mailbox and a message key is answered: the delivery the first one
+    /// settled on, but never a second <see cref="MailboxDeliveryResult.Accepted"/> — one insert is one message,
+    /// and the repeat is the replay it would have been as a separate call. A refusal repeats unchanged, the
+    /// mailbox being no more open and no less full for it. Named for its verdict rather than overloading the
+    /// close fold's <c>RepeatOf</c>, which would have to sit adjacent to this and away from the fold it serves.
+    /// </summary>
+    private static MailboxDeliveryResult RepeatOfDelivery(MailboxDeliveryResult primary) =>
+        primary switch
+        {
+            MailboxDeliveryResult.Accepted accepted => new MailboxDeliveryResult.Duplicate(accepted.Delivery),
+            _ => primary,
+        };
 
     private static MailboxResponse ReadMailbox(NpgsqlDataReader reader)
     {

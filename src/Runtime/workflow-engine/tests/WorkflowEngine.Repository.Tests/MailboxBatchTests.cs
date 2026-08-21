@@ -550,6 +550,347 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
 
     #endregion
 
+    #region Delivering a batch
+
+    [Fact]
+    public async Task BatchDeliver_MessagesForSeveralMailboxes_TakeConsecutivePositionsInBatchOrder()
+    {
+        // Arrange: two mailboxes, and one batch whose messages for them are interleaved — each mailbox's
+        // positions are its own run, so a batch counting positions per flush rather than per mailbox would
+        // hand out something else.
+        var repository = fixture.CreateRepository();
+        var first = await Mint(repository, "first");
+        var second = await Mint(repository, "second");
+
+        // Act
+        var results = await BatchDeliver(
+            repository,
+            DeliveryRequest(first.Id, "f-0"),
+            DeliveryRequest(second.Id, "s-0"),
+            DeliveryRequest(first.Id, "f-1"),
+            DeliveryRequest(second.Id, "s-1"),
+            DeliveryRequest(first.Id, "f-2")
+        );
+
+        // Assert
+        Assert.Equal(0, AssertAccepted(results[0]).Idx);
+        Assert.Equal(0, AssertAccepted(results[1]).Idx);
+        Assert.Equal(1, AssertAccepted(results[2]).Idx);
+        Assert.Equal(1, AssertAccepted(results[3]).Idx);
+        Assert.Equal(2, AssertAccepted(results[4]).Idx);
+
+        // Gapless, and in arrival order: the log reads back the way the batch was handed over.
+        Assert.Equal(["f-0", "f-1", "f-2"], await LogOf(first.Id));
+        Assert.Equal(["s-0", "s-1"], await LogOf(second.Id));
+    }
+
+    [Fact]
+    public async Task BatchDeliver_KeyNamedTwiceInOneBatch_AppendsOneMessageAndReplaysItsPosition()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await Mint(repository, "named-twice");
+
+        // Act: the third request would have been the loser of the row-lock race between two separate calls,
+        // reading the first one's message rather than appending a second.
+        var results = await BatchDeliver(
+            repository,
+            DeliveryRequest(mailbox.Id, "dup", payload: """{"attempt":1}"""),
+            DeliveryRequest(mailbox.Id, "other"),
+            DeliveryRequest(mailbox.Id, "dup", payload: """{"attempt":2}""")
+        );
+
+        // Assert
+        var appended = AssertAccepted(results[0]);
+        Assert.Equal(0, appended.Idx);
+        Assert.Equal(1, AssertAccepted(results[1]).Idx);
+
+        var replay = Assert.IsType<MailboxDeliveryResult.Duplicate>(results[2]).Delivery;
+        Assert.Equal(appended.Idx, replay.Idx);
+        Assert.Equal(appended.AcceptedAt, replay.AcceptedAt);
+
+        // One row, holding the first occurrence's payload: the repeat wrote nothing at all.
+        Assert.Equal(["dup", "other"], await LogOf(mailbox.Id));
+        await using var context = fixture.CreateDbContext();
+        var stored = await context.MailboxDeliveries.SingleAsync(d => d.IdempotencyKey == "dup", Ct);
+        Assert.Equal("""{"attempt":1}""", stored.Payload);
+        Assert.Equal(2, await NextIdxOf(mailbox.Id));
+    }
+
+    [Fact]
+    public async Task BatchDeliver_ReplayedKeyOnAMailboxThatClosedOrFilled_ReplaysTheMessageRatherThanRefusingIt()
+    {
+        // Arrange: two mailboxes each already holding one message — one since closed, one at the log cap this
+        // batch runs under.
+        var repository = fixture.CreateRepository();
+        var closed = await Mint(repository, "closed");
+        var full = await Mint(repository, "full");
+        var keptOnClosed = AssertAccepted(
+            Assert.Single(await BatchDeliver(repository, DeliveryRequest(closed.Id, "c-kept")))
+        );
+        var keptOnFull = AssertAccepted(
+            Assert.Single(await BatchDeliver(repository, DeliveryRequest(full.Id, "f-kept")))
+        );
+        Assert.IsType<MailboxCloseResult.Closed>(
+            await repository.CloseMailbox(closed.Id, Ns, MailboxDisposedReason.Request, Now, Ct)
+        );
+
+        // Act
+        var results = await BatchDeliver(
+            repository,
+            logCap: 1,
+            DeliveryRequest(closed.Id, "c-kept"),
+            DeliveryRequest(closed.Id, "c-fresh"),
+            DeliveryRequest(full.Id, "f-kept"),
+            DeliveryRequest(full.Id, "f-fresh")
+        );
+
+        // Assert: the lookup runs before either refusal, so what the log holds keeps replaying — reporting a
+        // refusal for a message sitting there waiting to be read would have a forwarder dead-letter it.
+        var replayedOnClosed = Assert.IsType<MailboxDeliveryResult.Duplicate>(results[0]).Delivery;
+        Assert.Equal(keptOnClosed.Idx, replayedOnClosed.Idx);
+        Assert.Equal(keptOnClosed.AcceptedAt, replayedOnClosed.AcceptedAt);
+
+        var replayedOnFull = Assert.IsType<MailboxDeliveryResult.Duplicate>(results[2]).Delivery;
+        Assert.Equal(keptOnFull.Idx, replayedOnFull.Idx);
+
+        // The fresh keys are refused, and closure outranks the log cap: the closed mailbox is equally full.
+        Assert.Equal(
+            MailboxDisposedReason.Request,
+            Assert.IsType<MailboxDeliveryResult.Closed>(results[1]).Mailbox.DisposedReason
+        );
+        Assert.Equal(1, Assert.IsType<MailboxDeliveryResult.LogFull>(results[3]).LogLength);
+
+        Assert.Equal(["c-kept"], await LogOf(closed.Id));
+        Assert.Equal(["f-kept"], await LogOf(full.Id));
+    }
+
+    [Fact]
+    public async Task BatchDeliver_RefusedAndMissingRequests_WriteNothingWhileTheirBatchMatesAreAppended()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var open = await Mint(repository, "open");
+        var closed = await Mint(repository, "closed");
+        Assert.IsType<MailboxCloseResult.Closed>(
+            await repository.CloseMailbox(closed.Id, Ns, MailboxDisposedReason.Deadline, Now, Ct)
+        );
+        var unknown = Guid.CreateVersion7();
+
+        // Act: the fourth request names the open mailbox's id and the third request's key, but a namespace the
+        // mailbox does not live in — two requests, not a request and its repeat.
+        var results = await BatchDeliver(
+            repository,
+            DeliveryRequest(unknown, "u-0"),
+            DeliveryRequest(closed.Id, "c-0"),
+            DeliveryRequest(open.Id, "o-0"),
+            DeliveryRequest(open.Id, "o-0", ns: "other-ns"),
+            DeliveryRequest(open.Id, "o-1")
+        );
+
+        // Assert
+        Assert.IsType<MailboxDeliveryResult.NotFound>(results[0]);
+        Assert.IsType<MailboxDeliveryResult.Closed>(results[1]);
+        Assert.Equal(0, AssertAccepted(results[2]).Idx);
+        Assert.IsType<MailboxDeliveryResult.NotFound>(results[3]);
+        Assert.Equal(1, AssertAccepted(results[4]).Idx);
+
+        // Only the accepted pair is on disk, and the refusals took no position from the mailbox they named.
+        Assert.Equal(["o-0", "o-1"], await LogOf(open.Id));
+        Assert.Empty(await LogOf(closed.Id));
+        Assert.Equal(0, await NextIdxOf(closed.Id));
+    }
+
+    [Fact]
+    public async Task BatchDeliver_LogFilledPartwayThroughTheBatch_RefusesTheOverflowAndLeavesItsKeysFree()
+    {
+        // Arrange
+        var repository = fixture.CreateRepository();
+        var mailbox = await Mint(repository, "filling-up");
+
+        // Act
+        var results = await BatchDeliver(
+            repository,
+            logCap: 2,
+            DeliveryRequest(mailbox.Id, "k-0"),
+            DeliveryRequest(mailbox.Id, "k-1"),
+            DeliveryRequest(mailbox.Id, "k-2"),
+            DeliveryRequest(mailbox.Id, "k-3")
+        );
+
+        // Assert: the message that fills the log is accepted and the ones behind it are not — the verdicts four
+        // separate calls would have had, because the cap binds against the position each request would take.
+        Assert.Equal(0, AssertAccepted(results[0]).Idx);
+        Assert.Equal(1, AssertAccepted(results[1]).Idx);
+        Assert.Equal(2, Assert.IsType<MailboxDeliveryResult.LogFull>(results[2]).LogLength);
+        Assert.Equal(2, Assert.IsType<MailboxDeliveryResult.LogFull>(results[3]).LogLength);
+
+        Assert.Equal(["k-0", "k-1"], await LogOf(mailbox.Id));
+        Assert.Equal(2, await NextIdxOf(mailbox.Id));
+
+        // A refusal stores nothing, so its key is still the caller's to use once the reason is gone.
+        var retried = await BatchDeliver(
+            repository,
+            logCap: 4,
+            DeliveryRequest(mailbox.Id, "k-2"),
+            DeliveryRequest(mailbox.Id, "k-3")
+        );
+
+        Assert.Equal(2, AssertAccepted(retried[0]).Idx);
+        Assert.Equal(3, AssertAccepted(retried[1]).Idx);
+    }
+
+    [Fact]
+    public async Task BatchDeliver_Counters_AdvanceByExactlyTheMessagesAppended()
+    {
+        // Arrange: a mailbox already holding one message and one parked receiver, so both counters start
+        // nonzero and the delivery counter is the only one this batch may move.
+        var repository = fixture.CreateRepository();
+        var appending = await Mint(repository, "appending");
+        var refusing = await Mint(repository, "refusing");
+        AssertAccepted(Assert.Single(await BatchDeliver(repository, DeliveryRequest(appending.Id, "kept"))));
+        await EnqueueReceiver(repository, appending.Id, "r-appending");
+        Assert.IsType<MailboxCloseResult.Closed>(
+            await repository.CloseMailbox(refusing.Id, Ns, MailboxDisposedReason.Request, Now, Ct)
+        );
+
+        // Act: five requests, three of which append.
+        var results = await BatchDeliver(
+            repository,
+            DeliveryRequest(appending.Id, "kept"),
+            DeliveryRequest(appending.Id, "fresh-0"),
+            DeliveryRequest(refusing.Id, "refused"),
+            DeliveryRequest(appending.Id, "fresh-1"),
+            DeliveryRequest(appending.Id, "fresh-2")
+        );
+
+        // Assert
+        Assert.IsType<MailboxDeliveryResult.Duplicate>(results[0]);
+        Assert.IsType<MailboxDeliveryResult.Closed>(results[2]);
+
+        // Three appends, three positions: the counter is bumped by exactly the rows inserted, and neither the
+        // replay nor the refusal costs a position.
+        Assert.Equal(4, await NextIdxOf(appending.Id));
+        Assert.Equal(4, (await LogOf(appending.Id)).Count);
+        Assert.Equal(0, await NextIdxOf(refusing.Id));
+
+        // The receivers counter is not the delivery counter: a delivery never moves it.
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(1, (await context.Mailboxes.SingleAsync(m => m.Id == appending.Id, Ct)).NextSeq);
+    }
+
+    [Fact]
+    public async Task BatchDeliver_AndEveryReceiverItWakes_ShareOneTransactionId()
+    {
+        // Arrange: two mailboxes with a receiver parked at position 0 and one with nobody waiting.
+        var repository = fixture.CreateRepository();
+        var first = await Mint(repository, "first");
+        var second = await Mint(repository, "second");
+        var nobody = await Mint(repository, "nobody");
+        var onFirst = await EnqueueReceiver(repository, first.Id, "r-first");
+        var onSecond = await EnqueueReceiver(repository, second.Id, "r-second");
+
+        // Act
+        var results = await BatchDeliver(
+            repository,
+            DeliveryRequest(first.Id, "f-0"),
+            DeliveryRequest(second.Id, "s-0"),
+            DeliveryRequest(nobody.Id, "n-0")
+        );
+
+        // Assert
+        Assert.True(Assert.IsType<MailboxDeliveryResult.Accepted>(results[0]).ReleasedReceiver);
+        Assert.True(Assert.IsType<MailboxDeliveryResult.Accepted>(results[1]).ReleasedReceiver);
+        Assert.False(Assert.IsType<MailboxDeliveryResult.Accepted>(results[2]).ReleasedReceiver);
+
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(onFirst));
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(onSecond));
+
+        // Every row the flush wrote carries one transaction id, across all three mailboxes: the appends and the
+        // wakes they caused commit together or not at all. A held receiver has no timer, so a wake that could
+        // commit separately from its message would park it until the mailbox's deadline.
+        var batchTx = await TransactionId("engine.mailboxes", "id", first.Id);
+        Assert.Equal(batchTx, await TransactionId("engine.mailboxes", "id", second.Id));
+        Assert.Equal(batchTx, await TransactionId("engine.mailboxes", "id", nobody.Id));
+        Assert.Equal(batchTx, await TransactionId("engine.mailbox_deliveries", "mailbox_id", first.Id));
+        Assert.Equal(batchTx, await TransactionId("engine.mailbox_deliveries", "mailbox_id", second.Id));
+        Assert.Equal(batchTx, await TransactionId("engine.mailbox_deliveries", "mailbox_id", nobody.Id));
+        Assert.Equal(batchTx, await TransactionId("engine.workflows", "id", onFirst));
+        Assert.Equal(batchTx, await TransactionId("engine.workflows", "id", onSecond));
+        Assert.Equal(batchTx, await TransactionId("engine.mailbox_receivers", "workflow_id", onFirst));
+        Assert.Equal(batchTx, await TransactionId("engine.mailbox_receivers", "workflow_id", onSecond));
+    }
+
+    [Fact]
+    public async Task BatchDeliver_ConcurrentBatchesOverOneMailbox_AssignEveryPositionExactlyOnce()
+    {
+        // Arrange: eight flushes of five messages each, all into one mailbox — the convoy on its row lock that
+        // a single-mailbox storm becomes.
+        const int flushes = 8;
+        const int perFlush = 5;
+        var mailbox = await Mint(fixture.CreateRepository(), "contested");
+        var repositories = Enumerable.Range(0, flushes).Select(_ => fixture.CreateRepository()).ToArray();
+
+        // Act
+        var results = await Task.WhenAll(
+            repositories.Select(
+                (repository, flush) =>
+                    BatchDeliver(
+                        repository,
+                        [
+                            .. Enumerable
+                                .Range(0, perFlush)
+                                .Select(i => DeliveryRequest(mailbox.Id, $"flush-{flush}-msg-{i}")),
+                        ]
+                    )
+            )
+        );
+
+        // Assert: every position handed out exactly once, and no position skipped — the log is gapless however
+        // the flushes interleaved.
+        var positions = results.SelectMany(batch => batch).Select(result => AssertAccepted(result).Idx).ToArray();
+        Assert.Equal(Enumerable.Range(0, flushes * perFlush).Select(i => (long)i), positions.Order());
+        Assert.Equal(flushes * perFlush, (await LogOf(mailbox.Id)).Count);
+        Assert.Equal(flushes * perFlush, await NextIdxOf(mailbox.Id));
+
+        // And each flush's own positions are a contiguous run: it holds the mailbox row lock from its first
+        // append to its commit, so no other flush can take a position in the middle of its range.
+        foreach (var batch in results)
+        {
+            var run = batch.Select(result => AssertAccepted(result).Idx).Order().ToArray();
+            Assert.Equal(run[0] + perFlush - 1, run[^1]);
+        }
+    }
+
+    [Fact]
+    public async Task BatchDeliver_AFullFlushOfMessages_AppendsEveryOne()
+    {
+        // Arrange: the batch size a buffer flushes at, so the array statements are exercised at the width they
+        // run at in production rather than the handful the other tests name — spread over four mailboxes, so
+        // the per-mailbox position runs are interleaved throughout.
+        var repository = fixture.CreateRepository();
+        var mailboxes = new List<MailboxResponse>();
+        for (var i = 0; i < 4; i++)
+            mailboxes.Add(await Mint(repository, $"flush-target-{i}"));
+
+        var requests = Enumerable.Range(0, 100).Select(i => DeliveryRequest(mailboxes[i % 4].Id, $"msg-{i}")).ToArray();
+
+        // Act
+        var results = await BatchDeliver(repository, requests);
+
+        // Assert
+        Assert.Equal(100, results.Length);
+        Assert.All(results, result => AssertAccepted(result));
+
+        foreach (var (mailbox, index) in mailboxes.Select((mailbox, index) => (mailbox, index)))
+        {
+            Assert.Equal([.. Enumerable.Range(0, 25).Select(i => $"msg-{(i * 4) + index}")], await LogOf(mailbox.Id));
+            Assert.Equal(25, await NextIdxOf(mailbox.Id));
+        }
+    }
+
+    #endregion
+
     #region Helpers
 
     private static DateTimeOffset Now => DateTimeOffset.UtcNow;
@@ -614,6 +955,54 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         EngineRepository repository,
         params BufferedMailboxCloseRequest[] requests
     ) => repository.BatchCloseMailboxes(requests, Ct);
+
+    private static BufferedMailboxDeliveryRequest DeliveryRequest(
+        Guid mailboxId,
+        string idempotencyKey,
+        string payload = "{}",
+        DateTimeOffset? now = null,
+        string ns = Ns
+    ) =>
+        new(
+            mailboxId,
+            ns,
+            idempotencyKey,
+            payload,
+            now ?? Now,
+            TraceContext: null,
+            new TaskCompletionSource<MailboxDeliveryResult>(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+
+    private static Task<MailboxDeliveryResult[]> BatchDeliver(
+        EngineRepository repository,
+        params BufferedMailboxDeliveryRequest[] requests
+    ) => repository.BatchDeliverToMailboxes(requests, maxLogLength: 1000, Ct);
+
+    private static Task<MailboxDeliveryResult[]> BatchDeliver(
+        EngineRepository repository,
+        int logCap,
+        params BufferedMailboxDeliveryRequest[] requests
+    ) => repository.BatchDeliverToMailboxes(requests, logCap, Ct);
+
+    private static MailboxDeliveryResponse AssertAccepted(MailboxDeliveryResult result) =>
+        Assert.IsType<MailboxDeliveryResult.Accepted>(result).Delivery;
+
+    /// <summary>The keys a mailbox's log holds, position by position — the gapless order it is read in.</summary>
+    private async Task<List<string>> LogOf(Guid mailboxId)
+    {
+        await using var context = fixture.CreateDbContext();
+        return await context
+            .MailboxDeliveries.Where(delivery => delivery.MailboxId == mailboxId)
+            .OrderBy(delivery => delivery.Idx)
+            .Select(delivery => delivery.IdempotencyKey)
+            .ToListAsync(Ct);
+    }
+
+    private async Task<long> NextIdxOf(Guid mailboxId)
+    {
+        await using var context = fixture.CreateDbContext();
+        return (await context.Mailboxes.SingleAsync(mailbox => mailbox.Id == mailboxId, Ct)).NextIdx;
+    }
 
     private static MailboxCloseResult.Closed AssertClosed(
         MailboxCloseResult result,

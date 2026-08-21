@@ -148,6 +148,14 @@ internal static partial class EngineRepositoryLogs
         Exception ex
     );
 
+    [LoggerMessage(LogLevel.Error, "Failed to deliver a batch of {DeliveryCount} mailbox message(s): {Message}")]
+    internal static partial void FailedToBatchDeliverToMailboxes(
+        this ILogger<EngineRepository> logger,
+        int deliveryCount,
+        string message,
+        Exception ex
+    );
+
     [LoggerMessage(
         LogLevel.Error,
         "Failed to read the mailbox receipt for receive workflow {WorkflowId} after all retries exhausted. Database down? Error: {Message}"

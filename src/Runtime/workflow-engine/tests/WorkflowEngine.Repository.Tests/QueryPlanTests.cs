@@ -389,6 +389,76 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SelectExistingMailboxDeliveries_ProbesTheMessageKeyForEveryPairInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectExistingMailboxDeliveriesSql,
+            DeliveryLookupArrays(1),
+            ct
+        );
+
+        AssertDeliveryLookupProbesItsIndex(plan);
+        await VerifyJson(plan.GetRawText()).UseTextForParameters("width-1");
+
+        // Both widths are pinned because both run: the per-request delegation issues the statement with arrays
+        // of one, a buffered flush with arrays of a hundred, and PostgreSQL plans a custom plan from the array
+        // length it is given — so neither plan is evidence about the other. The wide one is the riskier of the
+        // two and gets a snapshot of its own rather than assertions alone.
+        var flushPlan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectExistingMailboxDeliveriesSql,
+            DeliveryLookupArrays(100),
+            ct
+        );
+
+        AssertDeliveryLookupProbesItsIndex(flushPlan);
+        await VerifyJson(flushPlan.GetRawText()).UseTextForParameters("width-100");
+    }
+
+    /// <summary>
+    /// The replay lookup's one read: a probe of the <c>(mailbox_id, idempotency_key)</c> unique index per pair
+    /// the batch names, driven by its arrays. Which columns sit in the <c>Index Cond</c> is the assertion that
+    /// matters, not the node type — the shape to catch here is an index scan that keeps the index and loses its
+    /// leading-column restriction, reading far more of the index than the pairs it was asked about. With the
+    /// message key out of the condition the lookup reads every message of every mailbox in the flush and filters
+    /// them; with both columns out of it, the whole index.
+    /// An <c>Index Scan</c> rather than an <c>Index Only Scan</c> is expected here and asserted as such; the
+    /// statement's own docstring says why the projection cannot be answered from the index.
+    /// </summary>
+    private static void AssertDeliveryLookupProbesItsIndex(JsonElement plan)
+    {
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_deliveries");
+        QueryPlanHelper.AssertUsesIndexScan(
+            plan,
+            "mailbox_deliveries",
+            "ix_mailbox_deliveries_mailbox_id_idempotency_key"
+        );
+        QueryPlanHelper.AssertIndexCondContains(
+            plan,
+            "ix_mailbox_deliveries_mailbox_id_idempotency_key",
+            "t.mailbox_id",
+            "t.idempotency_key"
+        );
+    }
+
+    /// <summary>
+    /// The replay lookup's input arrays, <paramref name="width"/> pairs wide — one mailbox per pair, as a flush
+    /// spread over many mailboxes issues, since a single-mailbox storm is the narrower probe of the two.
+    /// </summary>
+    private static NpgsqlParameter[] DeliveryLookupArrays(int width) =>
+        [
+            new NpgsqlParameter<Guid[]>(
+                "mailbox_ids",
+                [.. Enumerable.Range(1, width).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}"))]
+            ),
+            new NpgsqlParameter<string[]>("keys", [.. Enumerable.Range(1, width).Select(i => $"plan-probe-msg-{i}")]),
+        ];
+
+    [Fact]
     public async Task CloseLockedMailboxes_ProbesThePrimaryKeyForEveryMailboxInTheBatch()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -404,6 +404,30 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Delivers a whole buffered batch of messages in one transaction, answering every request at its own
+    /// position with the verdict <see cref="DeliverToMailbox"/> would have given it. Each distinct
+    /// <c>(mailboxId, ns)</c> pair is locked once, in mailbox-id order, as the transaction's first act, so a
+    /// delivery flush cannot deadlock against a concurrent enqueue or close flush.
+    /// The idempotency lookup still runs <em>before</em> the refusals, for the whole batch at once, so a kept
+    /// message replays <see cref="MailboxDeliveryResult.Duplicate"/> even on a mailbox this batch finds closed
+    /// or full. A key named twice for one mailbox in one batch is appended once: the repeat is answered
+    /// <see cref="MailboxDeliveryResult.Duplicate"/> at the first occurrence's position, exactly as a second
+    /// call would have read it. Positions stay gapless and consecutive in batch-arrival order — the counter is
+    /// advanced by exactly the rows appended, in the same transaction as the append — and refusals write
+    /// nothing, so a refused key stays free for a later attempt.
+    /// Unlike <see cref="DeliverToMailbox"/> this takes neither a database slot nor a retry, for the same
+    /// reasons <see cref="BatchEnqueueWorkflows"/> takes neither: the buffer's flush concurrency is what bounds
+    /// connections, and a retry inside would hold one connection for a whole failing batch. A failure faults
+    /// every request in the batch, and the callers' own retries converge because delivering is idempotent — a
+    /// message a lost batch committed is replayed to the retry, and one it never committed is appended by it.
+    /// </summary>
+    Task<MailboxDeliveryResult[]> BatchDeliverToMailboxes(
+        IReadOnlyList<BufferedMailboxDeliveryRequest> requests,
+        int maxLogLength,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Closes up to <paramref name="batchSize"/> overdue mailboxes, one <c>FOR UPDATE SKIP LOCKED</c>-claimed
     /// transaction each, running exactly the routine <see cref="CloseMailbox"/> runs. A close that throws is
     /// contained to its own mailbox rather than abandoning the deadline-ordered batch.

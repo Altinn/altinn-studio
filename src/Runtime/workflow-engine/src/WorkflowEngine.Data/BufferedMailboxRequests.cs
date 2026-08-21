@@ -36,3 +36,19 @@ internal sealed record BufferedMailboxCloseRequest(
     string? TraceContext,
     TaskCompletionSource<MailboxCloseResult> Completion
 ) : IBufferedRequest<MailboxCloseResult>;
+
+/// <summary>
+/// A single caller's delivery request waiting in the mailbox delivery buffer. <c>Now</c> rides on the record
+/// rather than being taken by the flush: the <c>acceptedAt</c> a caller is answered with — and replayed on every
+/// later resend of the same key — is the instant its own call minted, however long its request waited for a
+/// batch. Caps stay method parameters of the batch call, matching the per-request repository signature.
+/// </summary>
+internal sealed record BufferedMailboxDeliveryRequest(
+    Guid MailboxId,
+    string Namespace,
+    string IdempotencyKey,
+    string Payload,
+    DateTimeOffset Now,
+    string? TraceContext,
+    TaskCompletionSource<MailboxDeliveryResult> Completion
+) : IBufferedRequest<MailboxDeliveryResult>;
