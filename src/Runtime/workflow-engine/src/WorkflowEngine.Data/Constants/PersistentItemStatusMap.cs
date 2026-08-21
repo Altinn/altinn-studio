@@ -59,6 +59,12 @@ internal static class PersistentItemStatusMap
     public const string ProcessingSqlLiteral = "1";
 
     /// <summary>
+    /// <see cref="PersistentItemStatus.Requeued"/> as an integer literal, for interpolation
+    /// into compile-time-constant SQL. Same constancy contract as <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string RequeuedSqlLiteral = "2";
+
+    /// <summary>
     /// Renders a status set as a comma-separated list of integer literals, in ascending order
     /// (e.g. <c>"3, 4, 5, 6, 7"</c>). Raw SQL interpolates the <c>*SqlList</c> constants above
     /// (which tests pin to this rendering) so the sets cannot drift apart when a status is added.
