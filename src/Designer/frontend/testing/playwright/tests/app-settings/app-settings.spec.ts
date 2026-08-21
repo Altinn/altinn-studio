@@ -8,10 +8,12 @@ import { SettingsPage } from '../../pages/SettingsPage';
 import { PolicyEditor } from '../../components/PolicyEditor';
 import { Gitea } from '../../helpers/Gitea';
 
-test.beforeAll(async ({ testAppName, request, storageState }) => {
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
   // Create a new app
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState);
+  const response = await designerApi.createApp(request, storageState as StorageState, {
+    appTemplate: testAppTemplate,
+  });
   expect(response.ok()).toBeTruthy();
 });
 

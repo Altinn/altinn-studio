@@ -43,7 +43,7 @@ function componentWithValidationSpan(
   const innerSpan: IGridStyling = {};
   const validationSpan: IGridStyling = {};
 
-  for (const breakpoint of ['xs', 'sm', 'md', 'lg', 'xl'] as const) {
+  for (const breakpoint of ['xs', 'sm', 'md', 'lg'] as const) {
     const innerWidth = toWidth(innerGrid?.[breakpoint]);
     const validationWidth = toWidth(validationGrid?.[breakpoint]);
     if (innerWidth == null && validationWidth == null) {

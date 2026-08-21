@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
+import { useIsMobile } from '@app/form-component';
 import { CompCategory } from '@app/layout-contract';
 import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -22,7 +23,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
