@@ -522,7 +522,10 @@ public static class Metrics
     /// Gauge of mailbox requests waiting for a batch flush, tagged with <c>operation</c> (<c>mint</c>,
     /// <c>close</c> or <c>delivery</c>). Read it as latency rather than as capacity: the queues wait rather than
     /// refuse when full, so a depth that stays high means callers are waiting longer for their verdict, never
-    /// that requests are being turned away.
+    /// that requests are being turned away. And read only the sustained value: this is a coarse sample —
+    /// written once per <c>MetricsCollectionInterval</c> and exported every 10 s, while a queue fills and drains
+    /// between flushes — so a zero is not evidence that the queue never filled, and the gauge cannot show
+    /// whether requests are being batched at all.
     /// </summary>
     public static readonly ObservableGauge<long> MailboxBufferDepth = Meter.CreateObservableGauge(
         "engine.mailbox_buffer.depth",
