@@ -26,21 +26,27 @@ only in which app they create and which template they create it from:
 {
   name: TestNames.UI_EDITOR,
   testDir: './tests/ui-editor/',
-  use: { testAppName: AppNames.UI_EDITOR_APP, testAppTemplate: AppTemplate.V8 },
+  use: { testAppName: AppNames.UI_EDITOR_APP, testAppTemplate: AppTemplate.V9 },
 },
 {
-  name: TestNames.UI_EDITOR_V9,
+  name: TestNames.UI_EDITOR_V8,
   testDir: './tests/ui-editor/',
-  use: { testAppName: AppNames.UI_EDITOR_V9_APP, testAppTemplate: AppTemplate.V9 },
+  use: { testAppName: AppNames.UI_EDITOR_V8_APP, testAppTemplate: AppTemplate.V8 },
 }
 ```
+
+The unsuffixed name is always the **latest** app version, and older versions carry the suffix — the same
+convention the `ux-editor` packages follow, where `ux-editor` is current and `ux-editor-v4`/`-v3` are the
+older ones. When v8 support is dropped, the `-v8` projects are deleted and nothing has to be renamed.
 
 Every suite that creates an app through the API has such a pair, so v9 gets the same coverage as v8. The
 exceptions are `tests/create-app-only/`, which creates its app through the dashboard form rather than the
 API, and `tests/logout/` and `tests/invalid-login/`, which do not create an app at all.
 
-`testAppTemplate` defaults to `AppTemplate.V8`, so a project that does not set it keeps its old behaviour.
-The specs read the option in `beforeAll` and pass it on:
+`testAppTemplate` defaults to `AppTemplate.V9` to match the unsuffixed project names. Note that the
+backend default is the opposite — `GeneralSettings.DefaultAppTemplate` is still `v8` — so a project that
+wants a v8 app has to set the option explicitly rather than rely on either default. The specs read the
+option in `beforeAll` and pass it on:
 
 ```ts
 await designerApi.createApp(request, storageState as StorageState, {
