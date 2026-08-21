@@ -107,8 +107,12 @@ describe('PageHeader', () => {
   it('hides the center navigation on mobile', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
     renderPageHeader();
-    expect(screen.queryByText(textMock('dashboard.header_item_dashboard'))).not.toBeInTheDocument();
-    expect(screen.queryByText(textMock('dashboard.header_item_library'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: textMock('dashboard.header_item_library') }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders the dashboard nav link with correct href', () => {

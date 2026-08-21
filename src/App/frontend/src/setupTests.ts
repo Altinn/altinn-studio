@@ -94,6 +94,10 @@ beforeEach(() => {
       postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
       altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
       helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+      logoutUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/logout',
+      loginUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goto={goTo}',
+      upgradeAuthenticationLevelUrl:
+        'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high',
       arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
       arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
       arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',

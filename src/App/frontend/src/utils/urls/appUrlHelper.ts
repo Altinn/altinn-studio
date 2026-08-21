@@ -1,6 +1,6 @@
 import { IgnoredValidators } from 'src/features/validation';
 import { GlobalData } from 'src/GlobalData';
-import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
+import { fillUrlTemplate, getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
 const { org, app } = window;
 const origin = window.location.origin;
@@ -89,44 +89,18 @@ export const getProcessNextUrl = (instanceId: string, language?: string, returnI
 
 export const getProcessResumeUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process/resume`;
 
-/**
- * Builds the platform authentication URL that triggers a step-up to security level high (`idporten-loa-high`),
- * returning the user to the app (`goTo`) once the higher level has been obtained.
- */
-/**
- * Builds the platform authentication URL that triggers a step-up to security level high (`idporten-loa-high`),
- * returning the user to the app (`goTo`) once the higher level has been obtained.
- */
+/** Triggers a step-up to security level high, returning the user to the app afterwards. */
 export const getUpgradeAuthLevelUrl = () =>
-  `https://platform.${getHostname()}/authentication/api/v1/authentication?goTo=${encodeURIComponent(
-    appPath,
-  )}&acr_values=idporten-loa-high`;
+  fillUrlTemplate(GlobalData.platformFrontendSettings.upgradeAuthenticationLevelUrl, { goTo: appPath });
 
-export const getEnvironmentLoginUrl = (oidcProvider: string | null) => {
-  // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplitted: string[] = window.location.host.split('.');
-  const encodedGoToUrl = encodeURIComponent(window.location.href);
-  let issParam = '';
-  if (oidcProvider != null && oidcProvider != '') {
-    issParam = `&iss=${oidcProvider}`;
+export const getEnvironmentLoginUrl = (oidcProvider: string | null): string | undefined => {
+  const loginUrl = fillUrlTemplate(GlobalData.platformFrontendSettings.loginUrl, {
+    goTo: window.location.href,
+  });
+  if (!loginUrl || !oidcProvider) {
+    return loginUrl;
   }
-
-  if (domainSplitted.length === 5) {
-    return (
-      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
-    );
-  }
-
-  if (domainSplitted.length === 4) {
-    return (
-      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
-    );
-  }
-
-  // TODO: what if altinn3?
-  throw new Error('Unknown domain');
+  return `${loginUrl}${loginUrl.includes('?') ? '&' : '?'}iss=${oidcProvider}`;
 };
 
 export const getHostname = () => {
@@ -146,7 +120,10 @@ export const getHostname = () => {
 };
 
 export const redirectToUpgrade = () => {
-  window.location.href = getUpgradeAuthLevelUrl();
+  const upgradeUrl = getUpgradeAuthLevelUrl();
+  if (upgradeUrl) {
+    window.location.href = upgradeUrl;
+  }
 };
 
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;

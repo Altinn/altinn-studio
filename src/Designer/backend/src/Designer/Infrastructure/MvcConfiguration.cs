@@ -57,8 +57,6 @@ public static class MvcConfiguration
             options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
         });
 
-        mvc.AddXmlSerializerFormatters();
-
         services.AddAntiforgery(options =>
         {
             // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.

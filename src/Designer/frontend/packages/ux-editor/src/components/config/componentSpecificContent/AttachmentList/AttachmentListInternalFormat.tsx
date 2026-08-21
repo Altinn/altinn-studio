@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
+import { StudioFieldset, StudioSwitch, StudioValidationMessage } from '@studio/components';
 
 type AttachmentListInternalFormatProps = {
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;
@@ -79,33 +79,31 @@ export const AttachmentListInternalFormat = ({
     : t('ux_editor.component_title.AttachmentList_error');
 
   return (
-    <Fieldset
+    <StudioFieldset
       legend={t('ux_editor.component_title.AttachmentList_legend')}
-      error={!isValid && errorMessage}
       className={className}
     >
-      <Switch
+      <StudioSwitch
+        data-size='sm'
         onChange={(e) => handleCurrentTaskChange(e.target.checked)}
-        size='small'
         checked={currentTask}
-      >
-        {t('ux_editor.component_properties.current_task')}
-      </Switch>
+        label={t('ux_editor.component_properties.current_task')}
+      />
       {isTaskCustomReceipt && (
-        <Switch
+        <StudioSwitch
+          data-size='sm'
           onChange={(e) => handleIncludePdfChange(e.target.checked)}
-          size='small'
           checked={includePdf}
-        >
-          {t('ux_editor.component_properties.select_pdf')}
-        </Switch>
+          label={t('ux_editor.component_properties.select_pdf')}
+        />
       )}
       <AttachmentListContent
         currentAvailableAttachments={currentAvailableAttachments}
         selectedDataTypes={ArrayUtils.intersection(selectedDataTypes, currentAvailableAttachments)}
         onChange={handleSelectedDataTypesChange}
       />
-    </Fieldset>
+      {!isValid && <StudioValidationMessage>{errorMessage}</StudioValidationMessage>}
+    </StudioFieldset>
   );
 };
 

@@ -20,7 +20,6 @@
         "sm": { "$ref": "#/definitions/IGridSize" },
         "md": { "$ref": "#/definitions/IGridSize" },
         "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -167,8 +166,8 @@
     },
     "timeStamp": {
       "title": "Include time",
-      "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true. If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
-      "default": true,
+      "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to false. If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
+      "default": false,
       "type": "boolean"
     },
     "format": {

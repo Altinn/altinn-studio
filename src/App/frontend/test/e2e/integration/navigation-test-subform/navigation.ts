@@ -104,7 +104,8 @@ describe('navigation', () => {
       isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('textbox', { name: /Alder/ }).type('123');
-      cy.get(appFrontend.errorReport).should('be.visible');
+      cy.findByText(/Største gyldig tall er 99/).should('be.visible');
+      cy.get(appFrontend.errorReport).should('not.exist');
 
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
@@ -488,7 +489,7 @@ describe('navigation', () => {
     // Make sure this does not lead to everything staying disabled.
     cy.findByRole('textbox', { name: /Fødselsdag/ }).type('1234');
     cy.findByRole('button', { name: 'Neste' }).click();
-    cy.get(appFrontend.errorReport).should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: 'Neste' }).should('not.be.disabled');
   });
 });

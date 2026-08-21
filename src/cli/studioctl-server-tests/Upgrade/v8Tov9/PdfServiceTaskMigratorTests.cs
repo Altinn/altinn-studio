@@ -639,7 +639,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     {
         // A freshly-scaffolded app's applicationmetadata.json has no enablePdfCreation, so the
         // migrator must do nothing and leave the file byte-for-byte untouched. The fixture is a
-        // verbatim copy of src/App/template/src/App/config/applicationmetadata.json; its [ORG]/[APP]
+        // verbatim copy of src/App/template/v8/src/App/config/applicationmetadata.json; its [ORG]/[APP]
         // placeholders are valid JSON string values and irrelevant to this migrator.
         var metadata = await File.ReadAllTextAsync(
             Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-appmetadata.json"),

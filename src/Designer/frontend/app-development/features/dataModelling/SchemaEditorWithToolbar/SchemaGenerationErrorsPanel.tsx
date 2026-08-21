@@ -1,8 +1,12 @@
 import classes from './SchemaGenerationErrorsPanel.module.css';
-import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { StudioCloseIcon } from '@studio/icons';
-import { StudioButton, StudioError } from '@studio/components';
+import {
+  StudioButton,
+  StudioError,
+  StudioParagraph,
+  StudioValidationMessage,
+} from '@studio/components';
 
 export interface SchemaGenerationErrorsPanelProps {
   onCloseErrorsPanel: () => void;
@@ -28,12 +32,12 @@ export const SchemaGenerationErrorsPanel = ({
     <StudioError>
       <div className={classes.errorPanel}>
         <div>
-          <Paragraph>{t('api_errors.DM_01')}</Paragraph>
+          <StudioParagraph>{t('api_errors.DM_01')}</StudioParagraph>
           <ul>
             {schemaGenerationErrorMessages?.map((errorMessage, index) => {
               return (
                 <li key={`${errorMessage}-${index}`}>
-                  <ErrorMessage>
+                  <StudioValidationMessage>
                     {isKnownErrorMessage(errorMessage) ? (
                       <Trans
                         i18nKey={'api_errors.DM_CsharpCompiler_NameCollision'}
@@ -43,7 +47,7 @@ export const SchemaGenerationErrorsPanel = ({
                     ) : (
                       errorMessage
                     )}
-                  </ErrorMessage>
+                  </StudioValidationMessage>
                 </li>
               );
             })}

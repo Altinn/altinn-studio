@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
@@ -9,7 +8,6 @@ using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -36,7 +34,6 @@ public class InternalsController(
     /// <returns>Accepted response when pipeline is queued</returns>
     [HttpGet("sync-gitops/{environment}/push")]
     [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
-    [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
     public async Task<IActionResult> PublishSyncRoot(
         string org,
         string environment,

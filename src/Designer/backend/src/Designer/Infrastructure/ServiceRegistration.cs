@@ -53,6 +53,11 @@ public static class ServiceRegistration
         services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+        services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
+        services.AddTransient<RepositoryCleanupCandidateSource>();
+        services.AddTransient<RepositoryCleanupCandidateProcessor>();
+        services.AddTransient<RepositoryFileTimestampScanner>();
+        services.AddTransient<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
 
         services.AddTransient<ISourceControl, SourceControlService>();
 
@@ -115,6 +120,7 @@ public static class ServiceRegistration
         services.AddTransient<ILayoutReferenceUpdater, LayoutReferenceUpdater>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
+        services.AddTransient<IPreviewBootstrapService, PreviewBootstrapService>();
         services.AddTransient<IDataService, DataService>();
         services.AddTransient<IInstanceService, InstanceService>();
         services.AddTransient<IProcessModelingService, ProcessModelingService>();
@@ -129,6 +135,7 @@ public static class ServiceRegistration
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+        services.AddSingleton<IAppTemplateCatalog, AppTemplateCatalog>();
         services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
         services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IBotAccountService, BotAccountService>();

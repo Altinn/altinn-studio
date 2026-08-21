@@ -6,10 +6,12 @@ on:
     paths:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/package.json'
-      - 'app-libs/form-component/src/**'
-      - 'app-libs/form-component/package.json'
-      - 'app-libs/language/src/**'
-      - 'app-libs/language/package.json'
+      - 'src/common/ts/form-component/src/**'
+      - 'src/common/ts/form-component/package.json'
+      - 'src/common/ts/form-engine/src/**'
+      - 'src/common/ts/form-engine/package.json'
+      - 'src/common/ts/language/src/**'
+      - 'src/common/ts/language/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
       - '!**/AGENTS.md'
       - '!**/CLAUDE.md'
@@ -22,7 +24,7 @@ concurrency:
 jobs:
   unit-tests:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     name: Type-checks, eslint, unit tests and SonarCloud
     defaults:

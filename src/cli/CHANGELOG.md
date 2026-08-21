@@ -9,6 +9,30 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl app upgrade v9` now compiles the app against its current (v8) packages before touching anything, so the C# checks and rewrites work from exact type information instead of name matching. What you will notice: warnings no longer fire on your app's own types that happen to share a name with an SDK type (for example your own `ServiceTaskErrorHandling`); removed APIs are found in every spelling, including aliased and fully qualified uses; and `WithData` calls whose argument the upgrade previously could not classify — asking you to finish the rewrite by hand — are now rewritten automatically when the type is provable. The compilation adds some time to the upgrade (a few seconds with a warm package cache) and its duration is printed. When the app cannot be compiled — it did not build before the upgrade either, the SDK the app targets is not installed, or you are offline — the upgrade says so and runs exactly as before, with the previous name-based checks.
+
+## [0.1.0-preview.22] - 2026-08-18
+
+### Added
+
+- Allow CI jobs to reuse prebuilt development images by setting `STUDIOCTL_PREBUILT_DEV_IMAGES=true` together with `STUDIOCTL_INTERNAL_DEV=true`. `studioctl env up` now requires the expected local image tags in this mode instead of rebuilding or pulling other images.
+- Added option --allow-dirty to upgrade script. `studioctl app upgrade --allow-dirty` allows updating when the repository contains modified or untracked files.
+
+### Changed
+
+- `studioctl app upgrade v9` removes the unsupported `xl` component-grid setting from layout files.
+- End every `studioctl app upgrade` with the same closing advice, whichever migration you run. The v4 upgrade previously ended without any, and the v8 upgrade worded its own differently.
+- Improve the output of `studioctl app upgrade` for v9 migrations. We print one line per result, naming the migration step it came from and labelling what it means: `OK` (migration applied), `SKIP` (not needed for this app), `INFO` (neutral information), `WARN` (worth a look), `TODO` (you have to do this manually) and `FAIL` (the step could not complete). Each label has its own color. The `TODO` and `FAIL` are the lines to act on.
+- Rewrite legacy Datepicker `format` values (`DD.MM.YYYY`, `DD/MM/YYYY`, `YYYY-MM-DD`) to their supported equivalents (`dd.MM.yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`) in layout files when running `studioctl app upgrade v9`.
+- `studioctl app upgrade v9` automatically adds `timeStamp: true` to `Datepicker` components that do not set the property. This preserves existing full timestamp values after the Datepicker default changes to date-only in v9.
+
+### Fixed
+
+- `studioctl env up` now starts a workflow engine that matches the v9 app libraries. The pinned engine image predated a change to the app callback contract, so an app on `Altinn.App.Api`/`Altinn.App.Core` `9.0.0-preview.4` failed as soon as an instance was created, with `AppCommand failed with client error BadRequest` and a complaint about a missing `executionReferenceTime` property. Apps on earlier v9 previews were unaffected and stay working.
+- Relax rules for validating Altinn.App.Api and Altinn.App.Core nuget versions to allow missing Core reference and range versions `8.*`, `[8.11.3]` and `[8.0,9.0)`
+
 ## [0.1.0-preview.21] - 2026-08-11
 
 ### Added

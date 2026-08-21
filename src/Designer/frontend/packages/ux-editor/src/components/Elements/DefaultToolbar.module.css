@@ -1,12 +1,7 @@
-.accordionItem > div {
-  border-bottom: none !important;
+.detailsElement {
+  border-top: none;
 }
 
-.accordionHeader > button {
-  border: none;
-  padding: var(--ds-size-6) var(--ds-size-6);
-}
-
-.accordionContent {
-  padding: 0;
+.detailsContent {
+  margin-inline: 0;
 }
