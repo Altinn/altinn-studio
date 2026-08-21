@@ -52,7 +52,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstansiationNotification? notification = null,
+        InstantiationNotification? notification = null,
         CancellationToken ct = default
     )
     {
@@ -367,7 +367,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         IEnumerable<WorkflowRef>? dependsOn = null,
         string? collectionKey = null,
         Dictionary<string, string>? prefill = null,
-        InstansiationNotification? notification = null,
+        InstantiationNotification? notification = null,
         CancellationToken ct = default
     )
     {
@@ -398,7 +398,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Actor? actor = null,
         IEnumerable<WorkflowRef>? dependsOn = null,
         Dictionary<string, string>? prefill = null,
-        InstansiationNotification? notification = null
+        InstantiationNotification? notification = null
     ) =>
         _processNextRequestFactory.Create(
             instance,

@@ -18,7 +18,7 @@ namespace Altinn.App.Api.Controllers;
 [Route("{org}/{app}/api/v1/notification-webhook-listener")]
 public class NotificationCallbackController(
     ILogger<NotificationCallbackController> logger,
-    ICancelInstansiationNotification instantiationNotification,
+    ICancelInstantiationNotification instantiationNotification,
     INotificationConditionCodeValidator validator,
     IInstanceClient instanceClient
 ) : ControllerBase

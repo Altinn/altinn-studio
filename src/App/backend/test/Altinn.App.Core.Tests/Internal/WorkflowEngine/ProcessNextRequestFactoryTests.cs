@@ -897,7 +897,7 @@ public class ProcessNextRequestFactoryTests
         // Arrange
         var factory = CreateFactory(registerEvents: false);
         var stateChange = CreateInitialTaskStart();
-        var notification = new InstansiationNotification();
+        var notification = new InstantiationNotification();
 
         // Act
         var bundle = await factory.Create(
@@ -1031,7 +1031,7 @@ public class ProcessNextRequestFactoryTests
         // Arrange
         var factory = CreateFactory();
         var stateChange = CreateInitialTaskStart();
-        var notification = new InstansiationNotification();
+        var notification = new InstantiationNotification();
 
         // Act
         var bundle = await factory.Create(

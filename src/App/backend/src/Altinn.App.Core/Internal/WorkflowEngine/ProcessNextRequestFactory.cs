@@ -118,7 +118,7 @@ internal sealed class ProcessNextRequestFactory
         Actor? actor = null,
         IEnumerable<WorkflowRef>? dependsOn = null,
         Dictionary<string, string>? prefill = null,
-        InstansiationNotification? notification = null,
+        InstantiationNotification? notification = null,
         string? idempotencyKey = null
     )
     {
@@ -266,7 +266,7 @@ internal sealed class ProcessNextRequestFactory
         ProcessStateChange processStateChange,
         bool isInstantiation,
         Dictionary<string, string>? prefill = null,
-        InstansiationNotification? notification = null
+        InstantiationNotification? notification = null
     )
     {
         var taskEndSteps = new List<StepRequest>();
@@ -350,7 +350,7 @@ internal sealed class ProcessNextRequestFactory
         bool isInitialTaskStart,
         bool isInstantiation,
         Dictionary<string, string>? prefill,
-        InstansiationNotification? notification
+        InstantiationNotification? notification
     )
     {
         switch (eventType)

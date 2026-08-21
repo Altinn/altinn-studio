@@ -26,7 +26,7 @@ public class WorkflowCommandSetTests
                 ServiceTaskType = "pdf",
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
-                Notification = new InstansiationNotification(),
+                Notification = new InstantiationNotification(),
                 RegisterEvents = true,
             }
         );

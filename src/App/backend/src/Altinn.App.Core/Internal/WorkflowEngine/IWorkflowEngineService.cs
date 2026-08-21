@@ -15,7 +15,7 @@ internal interface IWorkflowEngineService
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstansiationNotification? notification = null,
+        InstantiationNotification? notification = null,
         CancellationToken ct = default
     );
 

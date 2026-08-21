@@ -20,7 +20,7 @@ public interface INotificationService
     Task NotifyInstanceOwnerOnInstantiation(
         Instance instance,
         Party party,
-        InstansiationNotification instantiationNotification,
+        InstantiationNotification instantiationNotification,
         CancellationToken ct
     );
 }

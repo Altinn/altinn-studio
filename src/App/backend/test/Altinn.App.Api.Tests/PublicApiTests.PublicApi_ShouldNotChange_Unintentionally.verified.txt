@@ -397,7 +397,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/notification-webhook-listener")]
     public class NotificationCallbackController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public NotificationCallbackController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.NotificationCallbackController> logger, Altinn.App.Core.Features.Notifications.Cancellation.ICancelInstansiationNotification instantiationNotification, Altinn.App.Core.Features.Notifications.SecretProvider.INotificationConditionCodeValidator validator, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) { }
+        public NotificationCallbackController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.NotificationCallbackController> logger, Altinn.App.Core.Features.Notifications.Cancellation.ICancelInstantiationNotification instantiationNotification, Altinn.App.Core.Features.Notifications.SecretProvider.INotificationConditionCodeValidator validator, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Controllers.NotificationCallbackResponse), 200)]
@@ -1074,7 +1074,7 @@ namespace Altinn.App.Api.Models
         public InstansiationInstance() { }
         public System.DateTime? DueBefore { get; set; }
         public Altinn.Platform.Storage.Interface.Models.InstanceOwner InstanceOwner { get; set; }
-        public Altinn.App.Core.Models.Notifications.Future.InstansiationNotification Notification { get; set; }
+        public Altinn.App.Core.Models.Notifications.Future.InstantiationNotification Notification { get; set; }
         public System.Collections.Generic.Dictionary<string, string> Prefill { get; set; }
         public string SourceInstanceId { get; set; }
         public System.DateTime? VisibleAfter { get; set; }
