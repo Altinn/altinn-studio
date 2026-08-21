@@ -7,7 +7,7 @@
  * since 2018, so the pin is stable.
  *
  * The dictionaries are licensed GPL-2.0, which is why they are fetched into a
- * git-ignored cache (.github/spellcheck/.cache/) rather than vendored into
+ * git-ignored cache (scripts/spellcheck/.cache/) rather than vendored into
  * this MIT-licensed repository. They are tooling data consumed by hunspell at
  * check time and are not distributed with any product artifact.
  *

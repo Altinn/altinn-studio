@@ -13,7 +13,7 @@
  * loanwords (dashboard), glossary terms (Altinn, Maskinporten).
  */
 
-const LANG = '.github/spellcheck/selftest/fixtures/lang';
+const LANG = 'scripts/spellcheck/selftest/fixtures/lang';
 
 export const GROUPS = [
   {

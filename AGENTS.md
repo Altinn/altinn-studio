@@ -108,7 +108,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   check is deliberately **not** wired into `dotnet build`/`tsc` — a spelling finding should never
   slow or break a compile, and CI is the gate.
 
-  The harness lives in `.github/spellcheck/`. Its one hard rule: **no check may pass without
+  The harness lives in `scripts/spellcheck/`. Its one hard rule: **no check may pass without
   proving it ran** — every check counts its work, tool exit codes are inspected, a committed
   self-test plants one of every defect class and asserts the production configuration catches
   each one, and every check runs independently so a failure in one cannot hide another.
@@ -116,7 +116,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   `typos.toml` is **engine configuration only** and holds no named exceptions, and its excludes
   cannot rot: a glob that matches no tracked file fails the coverage check unless declared
   precautionary (with a reason) in `registry.mjs`. Every accepted
-  spelling lives in `.github/spellcheck/suppressions.txt`, scoped to the paths — and where
+  spelling lives in `scripts/spellcheck/suppressions.txt`, scoped to the paths — and where
   possible the exact identifiers — where it is load-bearing, with a reason. The same token outside
   its scope is still reported, and an entry that matches nothing is reported as stale. For this
   reason never run bare `typos` (it reports accepted contract spellings) and never run
@@ -128,7 +128,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   identifier or in markup text is still reported and must be fixed or suppressed.
 
   Every file holding user-facing translation text is declared once, in
-  `.github/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a
+  `scripts/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a
   language-file-shaped path is neither registered nor explicitly out of scope, and when a
   registered file is not excluded from the code pass in `typos.toml`. The coverage check finds
   files by the naming patterns in `SCAN_PATTERNS` — a language file that starts a **new naming
@@ -136,7 +136,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   embedded inline in a code file cannot be found by any pattern and must be registered by hand.
 
   When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
-  correct, add it to `.github/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
+  correct, add it to `scripts/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
   full-form, so inflections need their own lines); language-neutral tokens — names, quoted
   identifiers, formats — go in `glossary.shared.txt`, which both languages accept. A glossary
   entry that no longer rescues any flagged word is reported as stale. If an English spelling

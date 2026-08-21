@@ -27,8 +27,8 @@
  *              LibreOffice dictionaries, glossary.*.txt)
  *
  * Usage:
- *   node .github/spellcheck/run.mjs [check ...]     default: self-test + all
- *   node .github/spellcheck/run.mjs quick [files…]  changed files only, for
+ *   node scripts/spellcheck/run.mjs [check ...]     default: self-test + all
+ *   node scripts/spellcheck/run.mjs quick [files…]  changed files only, for
  *           the inner dev loop and the pre-commit hook; never fetches
  *           dictionaries. `yarn spell:quick`.
  *   --fix   apply unambiguous corrections through the suppression registry
@@ -117,7 +117,7 @@ function checkCode({ fix, root }) {
   // is a deliberate maintenance act guided by the count.
   const findings = stale.map((e) =>
     finding(
-      '.github/spellcheck/suppressions.txt',
+      'scripts/spellcheck/suppressions.txt',
       undefined,
       `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
     ),
@@ -502,7 +502,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
     for (const term of [...glossary].filter((t) => shared.has(t)).sort()) {
       configFindings.push(
         finding(
-          `.github/spellcheck/glossary.${lang}.txt`,
+          `scripts/spellcheck/glossary.${lang}.txt`,
           undefined,
           `'${term}' is already in glossary.shared.txt — redundant entry, remove it`,
         ),
@@ -557,7 +557,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
       for (const term of [...glossary].filter((t) => !usedOwn.has(t)).sort()) {
         configFindings.push(
           finding(
-            `.github/spellcheck/glossary.${lang}.txt`,
+            `scripts/spellcheck/glossary.${lang}.txt`,
             undefined,
             `'${term}' no longer rescues any flagged ${lang} word — stale entry, remove it`,
           ),
@@ -576,7 +576,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
     for (const term of [...shared].filter((t) => !usedShared.has(t)).sort()) {
       configFindings.push(
         finding(
-          '.github/spellcheck/glossary.shared.txt',
+          'scripts/spellcheck/glossary.shared.txt',
           undefined,
           `'${term}' no longer rescues any flagged word — stale entry, remove it`,
         ),

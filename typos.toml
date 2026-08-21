@@ -6,12 +6,12 @@
 # per-project excludes, no extend-ignore-re. typos' own exception mechanisms
 # are repo-wide and uncounted, so they over-suppress and rot silently.
 # Instead, every accepted misspelling lives in
-# .github/spellcheck/suppressions.txt, scoped to the paths and identifiers
+# scripts/spellcheck/suppressions.txt, scoped to the paths and identifiers
 # where it is load-bearing and enforced by the runner — a suppressed token
 # outside its scope is still reported, and a suppression that matches nothing
 # is itself a finding. Norwegian copy inside string literals and tokens
 # inside base64/JWT data runs are classified by the runner (classifyFindings
-# in .github/spellcheck/lib.mjs), where the logic is unit-tested and its work
+# in scripts/spellcheck/lib.mjs), where the logic is unit-tested and its work
 # counted on every run.
 #
 # Because policy lives in the runner, `typos` invoked directly reports
@@ -52,10 +52,10 @@ extend-exclude = [
     # errors (the self-test copies them elsewhere and checks them with THIS
     # config), the Norwegian glossaries, and the suppression registry — which
     # necessarily quotes the misspellings it governs.
-    ".github/spellcheck/selftest/**", ".github/spellcheck/glossary.*.txt",
-    ".github/spellcheck/suppressions.txt",
+    "scripts/spellcheck/selftest/**", "scripts/spellcheck/glossary.*.txt",
+    "scripts/spellcheck/suppressions.txt",
 
-    # The registered language files (see .github/spellcheck/registry.mjs).
+    # The registered language files (see scripts/spellcheck/registry.mjs).
     # Their values are Norwegian or British and are checked by the runner;
     # excluding them here is asserted by the coverage check.
     "src/common/ts/language/src/texts/*.ts",
