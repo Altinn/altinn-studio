@@ -1,5 +1,4 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
-using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Validation;

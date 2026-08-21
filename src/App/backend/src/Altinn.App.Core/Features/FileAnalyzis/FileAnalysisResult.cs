@@ -1,5 +1,3 @@
-using Altinn.App.Core.Features.FileAnalysis;
-
 namespace Altinn.App.Core.Features.FileAnalysis;
 
 /// <summary>

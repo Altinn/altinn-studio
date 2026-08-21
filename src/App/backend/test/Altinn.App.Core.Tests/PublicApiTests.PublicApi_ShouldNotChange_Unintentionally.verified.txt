@@ -1455,6 +1455,11 @@ namespace Altinn.App.Core.Features.ExternalApi
 }
 namespace Altinn.App.Core.Features.FileAnalysis
 {
+    public class FileAnalyserFactory : Altinn.App.Core.Features.FileAnalysis.IFileAnalyserFactory
+    {
+        public FileAnalyserFactory(System.IServiceProvider serviceProvider) { }
+        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyser> GetFileAnalysers(System.Collections.Generic.IEnumerable<string> analyzerIds) { }
+    }
     public class FileAnalysisResult
     {
         public FileAnalysisResult(string analyzerId) { }
@@ -1464,23 +1469,15 @@ namespace Altinn.App.Core.Features.FileAnalysis
         public System.Collections.Generic.IDictionary<string, string> Metadata { get; }
         public string? MimeType { get; set; }
     }
-    public interface IFileAnalyser
-    {
-        string Id { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> Analyze(System.IO.Stream stream, string? filename = null);
-    }
-}
-namespace Altinn.App.Core.Features.FileAnalysis
-{
-    public class FileAnalyserFactory : Altinn.App.Core.Features.FileAnalysis.IFileAnalyserFactory
-    {
-        public FileAnalyserFactory(System.IServiceProvider serviceProvider) { }
-        public System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.IFileAnalyser> GetFileAnalysers(System.Collections.Generic.IEnumerable<string> analyzerIds) { }
-    }
     public class FileAnalysisService : Altinn.App.Core.Features.FileAnalysis.IFileAnalysisService
     {
         public FileAnalysisService(Altinn.App.Core.Features.FileAnalysis.IFileAnalyserFactory fileAnalyserFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult>> Analyze(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.IO.Stream fileStream, string? filename = null) { }
+    }
+    public interface IFileAnalyser
+    {
+        string Id { get; }
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> Analyze(System.IO.Stream stream, string? filename = null);
     }
     public interface IFileAnalyserFactory
     {
@@ -1591,7 +1588,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Models
     {
         public MaskinportenSystemUser() { }
         public string? ExternalRef { get; init; }
-        public required Altinn.App.Core.Models.OrganisationNumber Organization { get; init; }
+        public required Altinn.App.Core.Models.OrganisationNumber Organisation { get; init; }
     }
     public sealed class MaskinportenTokenRequest : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenTokenRequest>
     {
@@ -4598,7 +4595,7 @@ namespace Altinn.App.Core.Models
         protected OrganisationOrPersonIdentifier() { }
         public abstract string ToUrnFormattedString();
         public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Person Create(Altinn.App.Core.Models.NationalIdentityNumber value) { }
-        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organization Create(Altinn.App.Core.Models.OrganisationNumber value) { }
+        public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organisation Create(Altinn.App.Core.Models.OrganisationNumber value) { }
         public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier Parse(Altinn.Platform.Register.Models.Party party) { }
         public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier Parse(string value) { }
         public static Altinn.App.Core.Models.OrganisationOrPersonIdentifier op_Implicit(Altinn.App.Core.Models.NationalIdentityNumber person) { }
@@ -4611,14 +4608,14 @@ namespace Altinn.App.Core.Models
         public static bool operator ==(Altinn.App.Core.Models.OrganisationNumber left, Altinn.App.Core.Models.OrganisationOrPersonIdentifier right) { }
         public static bool operator ==(Altinn.App.Core.Models.OrganisationOrPersonIdentifier left, Altinn.App.Core.Models.NationalIdentityNumber right) { }
         public static bool operator ==(Altinn.App.Core.Models.OrganisationOrPersonIdentifier left, Altinn.App.Core.Models.OrganisationNumber right) { }
-        public sealed class Organization : Altinn.App.Core.Models.OrganisationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organization>
+        public sealed class Organisation : Altinn.App.Core.Models.OrganisationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organisation>
         {
-            public Organization(Altinn.App.Core.Models.OrganisationNumber Value) { }
+            public Organisation(Altinn.App.Core.Models.OrganisationNumber Value) { }
             public Altinn.App.Core.Models.OrganisationNumber Value { get; init; }
             public Altinn.App.Core.Models.OrganisationNumber ToOrganisationNumber() { }
             public override string ToString() { }
             public override string ToUrnFormattedString() { }
-            public static Altinn.App.Core.Models.OrganisationNumber op_Implicit(Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organization org) { }
+            public static Altinn.App.Core.Models.OrganisationNumber op_Implicit(Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Organisation org) { }
         }
         public sealed class Person : Altinn.App.Core.Models.OrganisationOrPersonIdentifier, System.IEquatable<Altinn.App.Core.Models.OrganisationOrPersonIdentifier.Person>
         {
