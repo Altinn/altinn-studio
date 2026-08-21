@@ -576,19 +576,19 @@ export async function ensureOrdbank(lang, { offline = false } = {}) {
 /**
  * Parses the suppression registry's text format: '#' comment and blank
  * lines are free; a section is one or more @directive lines followed by one
- * token per line, each token becoming an entry with the section's scope and
- * reason. A directive after a token line starts a NEW section — nothing is
- * inherited, every section states its own @reason and scope. Directives:
+ * token per line, each token becoming an entry with the section's scope. A
+ * directive after a token line starts a NEW section — nothing is inherited,
+ * every section states its own scope. Reasons are ordinary comments, next
+ * to the section or the token they explain. Directives:
  *
- *   @reason <text>             why these spellings are load-bearing
  *   @paths <glob> <glob> …     allowed anywhere in matching files
  *   @identifiers <Name> …      allowed only as/inside these exact
  *                              identifiers (narrow with @paths if needed)
  *   @identifier-part           allowed inside any LONGER identifier within
  *                              @paths; the bare word stays enforced
  *
- * Completeness (reason present, exactly one scope style) is enforced by
- * compileSuppressions on the parsed entries.
+ * Scope completeness (exactly one style) is enforced by compileSuppressions
+ * on the parsed entries.
  */
 export function parseSuppressions(text, name) {
   const entries = [];
@@ -604,10 +604,7 @@ export function parseSuppressions(text, name) {
         sealed = false;
       }
       const [directive, ...args] = line.split(/\s+/);
-      if (directive === '@reason') {
-        section.reason = line.slice('@reason'.length).trim();
-        if (!section.reason) throw new HarnessError(`${where}: @reason needs text`);
-      } else if (directive === '@paths') {
+      if (directive === '@paths') {
         if (args.length === 0) throw new HarnessError(`${where}: @paths needs globs`);
         section.paths = args;
       } else if (directive === '@identifiers') {
@@ -639,15 +636,15 @@ export function readSuppressions(path) {
 
 /**
  * Validates suppression entries and compiles their globs. Each entry must
- * carry token and reason, plus exactly one scope style:
+ * carry a token plus exactly one scope style:
  * `identifiers` (optionally narrowed by paths), `identifierPart` (requires
  * paths), or bare `paths`.
  */
 export function compileSuppressions(entries) {
   return entries.map((e, i) => {
     const where = `suppression #${i} ('${e.token ?? '?'}')`;
-    if (!e.token || !e.reason) {
-      throw new HarnessError(`${where} needs token and reason`);
+    if (!e.token) {
+      throw new HarnessError(`${where} needs a token`);
     }
     if (e.identifiers && e.identifierPart) {
       throw new HarnessError(`${where} cannot combine identifiers and identifierPart`);

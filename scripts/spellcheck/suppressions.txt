@@ -9,7 +9,8 @@
 # Format: '#' comments and blank lines are free. A section is one or more
 # @directives followed by one token per line (the exact word typos
 # reports). A directive after a token starts a new section; nothing is
-# inherited. Every section needs @reason and exactly one scope:
+# inherited. Every section needs exactly one scope — say WHY in a comment
+# next to the section or token:
 #
 #   @paths glob glob …         tokens allowed anywhere in matching files
 #   @identifiers Name Name …   tokens allowed only as/inside these exact
@@ -30,87 +31,86 @@
 # them would churn on every PR, so the family is allowed inside identifiers
 # in the contract-adjacent trees. The bare word stays enforced everywhere:
 # prose, comments, docs and any standalone `organisation` variable.
-@reason Storage/Register DTO member spelling, mirrored through the SDK surface
 @identifier-part
 @paths src/App/backend/** src/App/frontend/** src/Designer/backend/** src/Designer/frontend/** src/Runtime/localtest/**
 Organisation
 organisation
 
-@reason plural identifier forms derived from the same DTO family (OrganisationNumbers, …)
+# plural identifier forms derived from the same DTO family (OrganisationNumbers, …)
 @identifier-part
 @paths src/App/backend/** src/Designer/backend/** src/Runtime/localtest/**
 Organisations
 organisations
 
-@reason Altinn.Platform.Storage.Interface ProcessElementInfo.Occured wire property
+# Altinn.Platform.Storage.Interface ProcessElementInfo.Occured wire property
 @identifiers Occured
 @paths src/Runtime/localtest/** src/App/backend/**
 Occured
 
-@reason Storage InstanceEventType.Submited enum member (instance event wire value)
+# Storage InstanceEventType.Submited enum member (instance event wire value)
 @identifiers Submited
 @paths src/App/backend/** src/Runtime/localtest/**
 Submited
 
-@reason doc comments quoting the submited instance-event wire value in query examples
+# doc comments quoting the submited instance-event wire value in query examples
 @identifiers submited
 @paths src/Runtime/localtest/**
 submited
 
-@reason Storage application metadata wire field
+# Storage application metadata wire field
 @identifiers AllowedContributers allowedContributers
 Contributers
 
-@reason Storage application metadata wire field
+# Storage application metadata wire field
 @identifiers EnabledFileAnalysers enabledFileAnalysers
 Analysers
 
-@reason file-analyzer id that deployed apps reference by name
+# file-analyzer id that deployed apps reference by name
 @identifiers mimeTypeAnalyser enabledFileAnalysers
 Analyser
 
-@reason deprecated layout-settings alias apps still have on disk; see AutoSaveBehaviorLegacy
+# deprecated layout-settings alias apps still have on disk; see AutoSaveBehaviorLegacy
 @identifiers autoSaveBehaviour
 Behaviour
 
-@reason MaskinportenSettings member name apps configure by key
+# MaskinportenSettings member name apps configure by key
 @identifiers ExhangeToAltinnToken
 Exhange
 
-@reason @navikt/aksel-icons export names
+# @navikt/aksel-icons export names
 @identifiers MenuElipsisVerticalIcon MenuElipsisHorizontalIcon
 Elipsis
 
-@reason mirrors the W3C aria-labelledby attribute
+# mirrors the W3C aria-labelledby attribute
 @identifiers ariaLabelledBy AriaLabelledBy hasAriaLabelledBy
 Labelled
 
-@reason BuildKit SolveStatus field name
+# BuildKit SolveStatus field name
 @paths src/Runtime/devenv/pkg/container/dockerapi/**
 Vertexes
 vertexes
 
-@reason axe-core accessibility tooling (cypress-axe)
+# axe-core accessibility tooling (cypress-axe)
 @paths **/cypress.config.js
 axe
 Axe
 
 # --------------------------------------------------- codes and slugs ---
 
-@reason Altinn service-owner org slug used as config/test values
+# Altinn service-owner org slug used as config/test values
 @paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/development/setup.js
 als
 
-@reason Altinn org slug (uppercased) in fixtures and policy data
+# Altinn org slug (uppercased) in fixtures and policy data
 @paths src/runner-org-sync/** src/AI/agents/**
 ACN
 
-@reason Azure Kubernetes Service, in infra config and the code that talks to it
+# Azure Kubernetes Service, in infra config and the code that talks to it
 @paths charts/** infra/** src/**
 AKS
 aks
 
-@reason file extensions and schemes in the MIME type map
+# file extensions and schemes in the MIME type map
 @paths **/MimeTypeMap.cs
 caf
 itms
@@ -118,19 +118,19 @@ mak
 odf
 thn
 
-@reason ISO 4217 currency code (Jordanian dinar) in generated-schema source data
+# ISO 4217 currency code (Jordanian dinar) in generated-schema source data
 @paths src/App/frontend/src/codegen/**
 JOD
 
-@reason gpg --with-colons fingerprint field selector
+# gpg --with-colons fingerprint field selector
 @paths src/Runtime/pdf3/**
 fpr
 
-@reason botAccount shorthand, and ba inside git SHAs in test fixtures
+# botAccount shorthand, and ba inside git SHAs in test fixtures
 @paths src/App/backend/Makefile **/BotAccounts/**
 ba
 
-@reason "Statistisk sentralbyrå" named in the codelists docs
+# "Statistisk sentralbyrå" named in the codelists docs
 @paths src/App/codelists/**
 Statistisk
 
@@ -138,46 +138,46 @@ Statistisk
 # Only the specific foreign tokens are accepted, and only where they occur
 # — a whole-directory exclude would hide real English typos as collateral.
 
-@reason KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
+# KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
 @paths src/App/backend/**/Altinn.App.Clients.Fiks*/**
 Registrering
 registrering
 Dokument
 Som
 
-@reason the v8 API really was named Authorisation; the upgrade tooling matches it to rewrite it, and release notes describe it
+# the v8 API really was named Authorisation; the upgrade tooling matches it to rewrite it, and release notes describe it
 @paths src/cli/**/Upgrade/** **/CHANGELOG.md
 Authorisation
 
-@reason v8 API names in upgrade tooling and changelogs; sample data in pagination stories
+# v8 API names in upgrade tooling and changelogs; sample data in pagination stories
 @paths src/cli/**/Upgrade/** **/CHANGELOG.md **/StudioTable*Pagination/**
 authorisation
 
-@reason v8 API names the upgrade tooling matches in order to rewrite them
+# v8 API names the upgrade tooling matches in order to rewrite them
 @paths src/cli/**/Upgrade/**
 Organisation
 
-@reason official English name of a Norwegian ministry, used as sample table data
+# official English name of a Norwegian ministry, used as sample table data
 @paths **/StudioTable*Pagination/**
 Labour
 
-@reason Norwegian field names in Tenor test-person data and e2e selectors
+# Norwegian field names in Tenor test-person data and e2e selectors
 @paths **/Services/Tenor/**
 Adresse
 adresse
 hel
 Hel
 
-@reason Norwegian sample content in Storybook stories and JSX text nodes
+# Norwegian sample content in Storybook stories and JSX text nodes
 @paths **/MergeConflictWarning/**
 som
 Noen
 appen
 
-@reason Norwegian JSX text nodes
+# Norwegian JSX text nodes
 @paths **/AddItem/ToggleAddComponentPoc.tsx **/DownloadXMLButton/DownloadXMLButton.tsx
 ned
 
-@reason Norwegian JSX text node
+# Norwegian JSX text node
 @paths **/AddItem/ToggleAddComponentPoc.tsx
 designet

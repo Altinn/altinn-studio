@@ -119,7 +119,7 @@ function checkCode({ fix, root }) {
     finding(
       'scripts/spellcheck/suppressions.txt',
       undefined,
-      `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
+      `suppression for '${e.token}' matched nothing — stale entry, remove it`,
     ),
   );
   const applied = fix ? applyCodeFixes(root, kept) : 0;
@@ -911,32 +911,31 @@ function excludeLivenessFailures() {
 function suppressionParserFailures() {
   const failures = [];
   const doc = [
-    '# comment',
-    '@reason first section',
+    '# first section',
     '@identifier-part',
     '@paths a/** b/**',
     'Tokena',
     'tokenb  # trailing note',
     '',
-    '@reason second section',
+    '# second section',
     '@identifiers SomeName',
     'Tokenc',
   ].join('\n');
   const entries = parseSuppressions(doc, '(synthetic)');
   const want = [
-    { token: 'Tokena', reason: 'first section', identifierPart: true, paths: ['a/**', 'b/**'] },
-    { token: 'tokenb', reason: 'first section', identifierPart: true, paths: ['a/**', 'b/**'] },
-    { token: 'Tokenc', reason: 'second section', identifiers: ['SomeName'] },
+    { token: 'Tokena', identifierPart: true, paths: ['a/**', 'b/**'] },
+    { token: 'tokenb', identifierPart: true, paths: ['a/**', 'b/**'] },
+    { token: 'Tokenc', identifiers: ['SomeName'] },
   ];
   if (JSON.stringify(entries) !== JSON.stringify(want)) {
     failures.push(`parsed ${JSON.stringify(entries)}`);
   }
   const rejects = [
     ['orphan token', 'Tokena'],
-    ['unknown directive', '@nonsense x\nTokena'],
-    ['empty @paths', '@reason r\n@paths\nTokena'],
-    ['empty @reason', '@reason\n@paths a/**\nTokena'],
-    ['trailing directives', '@reason r\n@paths a/**\nTokena\n@reason dangling'],
+    ['unknown directive', '@reason retired\nTokena'],
+    ['empty @paths', '@paths\nTokena'],
+    ['empty @identifiers', '@identifiers\nTokena'],
+    ['trailing directives', '@paths a/**\nTokena\n@identifier-part'],
   ];
   for (const [what, text] of rejects) {
     try {
@@ -957,9 +956,9 @@ function suppressionParserFailures() {
 function suppressionFailures() {
   const failures = [];
   const entries = compileSuppressions([
-    { token: 'Suppressme', paths: ['docs/allowed/**'], reason: 'planted' },
-    { token: 'Contracted', identifiers: ['ContractedField'], reason: 'planted' },
-    { token: 'Phantom', paths: ['**'], reason: 'planted stale entry' },
+    { token: 'Suppressme', paths: ['docs/allowed/**'] },
+    { token: 'Contracted', identifiers: ['ContractedField'] },
+    { token: 'Phantom', paths: ['**'] },
   ]);
   const lines = {
     'docs/allowed/a.md': 'the Suppressme word',

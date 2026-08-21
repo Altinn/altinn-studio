@@ -117,7 +117,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   cannot rot: a glob that matches no tracked file fails the coverage check unless declared
   precautionary (with a reason) in `registry.mjs`. Every accepted
   spelling lives in `scripts/spellcheck/suppressions.txt`, scoped to the paths — and where
-  possible the exact identifiers — where it is load-bearing, with a reason. The same token outside
+  possible the exact identifiers — where it is load-bearing, with the reason in a comment. The same token outside
   its scope is still reported, and an entry that matches nothing is reported as stale. For this
   reason never run bare `typos` (it reports accepted contract spellings) and never run
   `typos --write-changes` (it would "fix" them); `spell:quick`/`spell:check`/`spell:fix` apply the
