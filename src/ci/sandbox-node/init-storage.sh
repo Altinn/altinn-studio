@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly ARRAY_DEVICE=/dev/md/altinn-sandbox
 readonly ARRAY_NAME=altinn-sandbox
-readonly FILESYSTEM_LABEL=altinn-sandbox
+readonly FILESYSTEM_LABEL=altinn-sbx
 readonly MOUNT_POINT=/var/lib/altinn/sandbox
 LOCAL_NVME_DEVICES=()
 
