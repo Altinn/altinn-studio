@@ -11,10 +11,8 @@ using WorkflowEngine.Repository.Tests.Fixtures;
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
-/// Covers the batched mailbox repository methods — the flush a buffer performs, as opposed to the single
-/// caller's call the rest of the mailbox suites drive. Two things separate a batch from a run of separate
-/// calls, and both are established here: every position is answered with the verdict its own call would have
-/// received, and the races separate calls would have had against each other are folded inside the flush.
+/// Covers the batched mailbox repository methods — the flush a buffer performs, where the other mailbox suites
+/// drive one caller's call.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
@@ -30,10 +28,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_KeyNamedTwiceInOneBatch_MintsOneMailboxAndReplaysItToTheRepeat()
     {
-        // Arrange: two requests, two candidate ids, one key — the race two separate calls would have had on the
-        // unique index, folded into the batch. Which of the two is credited with the mint is the fold's decision
-        // and not the statement's: left to ON CONFLICT DO NOTHING, both requests would still be answered, but
-        // the one called Minted would be whichever the sort emitted first out of two equal keys.
+        // Arrange
         var repository = fixture.CreateRepository();
         var (firstCandidate, secondCandidate) = (Guid.CreateVersion7(), Guid.CreateVersion7());
 
@@ -48,7 +43,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         var minted = Assert.IsType<MailboxMintResult.Minted>(results[0]).Mailbox;
         Assert.Equal(firstCandidate, minted.Id);
 
-        // The repeat is answered the mailbox that exists, not a mint of its own candidate id.
         var replay = Assert.IsType<MailboxMintResult.Existing>(results[1]).Mailbox;
         Assert.Equal(firstCandidate, replay.Id);
 
@@ -59,7 +53,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_FreshMintsInOneCollection_CountAgainstTheCapAsEachOthersPeers()
     {
-        // Arrange: nothing open yet, so every refusal below comes from the batch counting itself.
+        // Arrange
         var repository = fixture.CreateRepository();
 
         // Act
@@ -71,8 +65,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             MintRequest("k-2", collectionKey: "col")
         );
 
-        // Assert: the cap binds in batch order — a flush cannot overshoot it the way three concurrent calls
-        // reading one empty count could.
+        // Assert
         Assert.Equal("k-0", Assert.IsType<MailboxMintResult.Minted>(results[0]).Mailbox.IdempotencyKey);
         Assert.Equal("k-1", Assert.IsType<MailboxMintResult.Minted>(results[1]).Mailbox.IdempotencyKey);
         Assert.IsType<MailboxMintResult.AtCollectionCapacity>(results[2]);
@@ -84,7 +77,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_KeyNamedTwiceInOneBatch_CostsItsCollectionOneSlotNotTwo()
     {
-        // Arrange & act: a cap of two, and a batch whose three requests name only two mailboxes.
+        // Arrange & act
         var repository = fixture.CreateRepository();
 
         var results = await BatchMint(
@@ -95,8 +88,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             MintRequest("k-1", collectionKey: "col")
         );
 
-        // Assert: the repeat is not a second mailbox, so the collection's second slot is still the fresh key's
-        // to take. A batch that let its duplicates rank against the cap would refuse this last request.
+        // Assert
         Assert.IsType<MailboxMintResult.Minted>(results[0]);
         Assert.IsType<MailboxMintResult.Existing>(results[1]);
         Assert.Equal("k-1", Assert.IsType<MailboxMintResult.Minted>(results[2]).Mailbox.IdempotencyKey);
@@ -108,7 +100,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_ReplayedKeyWithItsCollectionAlreadyFull_IsStillAnswered()
     {
-        // Arrange: the collection is at its cap before the batch starts.
+        // Arrange
         var repository = fixture.CreateRepository();
         var original = await Mint(repository, "k-0", collectionKey: "col", cap: 1);
 
@@ -120,8 +112,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             MintRequest("k-1", collectionKey: "col")
         );
 
-        // Assert: a replay is a read of a mailbox that exists, so the cap has nothing to say about it; a fresh
-        // key in the same batch is refused.
+        // Assert
         Assert.Equal(original.Id, Assert.IsType<MailboxMintResult.Existing>(results[0]).Mailbox.Id);
         Assert.IsType<MailboxMintResult.AtCollectionCapacity>(results[1]);
     }
@@ -129,7 +120,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_ReplayedKey_ConsumesNoneOfItsCollectionsCap()
     {
-        // Arrange: one of the cap's two slots is taken, leaving exactly one for the batch to hand out.
+        // Arrange
         var repository = fixture.CreateRepository();
         var original = await Mint(repository, "k-0", collectionKey: "col", cap: 2);
 
@@ -142,9 +133,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             MintRequest("k-2", collectionKey: "col")
         );
 
-        // Assert: the fresh key behind the replay gets the free slot. Had the replay ranked as a peer ahead of
-        // it, this would be a refusal — which is the whole difference between counting keys and counting
-        // mailboxes.
+        // Assert
         Assert.Equal(original.Id, Assert.IsType<MailboxMintResult.Existing>(results[0]).Mailbox.Id);
         Assert.Equal("k-1", Assert.IsType<MailboxMintResult.Minted>(results[1]).Mailbox.IdempotencyKey);
         Assert.IsType<MailboxMintResult.AtCollectionCapacity>(results[2]);
@@ -156,8 +145,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_KeyAlreadyHeldByTheCandidateIdItself_IsMintedRatherThanAReplay()
     {
-        // Arrange: the row already carries the id the batch is about to name it with — what a retried attempt
-        // sees when the attempt before it committed after the client had given up on the answer.
+        // Arrange
         var repository = fixture.CreateRepository();
         var mailboxId = Guid.CreateVersion7();
         Assert.IsType<MailboxMintResult.Minted>(
@@ -176,15 +164,14 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         // Act
         var results = await BatchMint(repository, MintRequest("already-mine", mailboxId));
 
-        // Assert: its own candidate id on the row is what separates a mint from a replay, whichever of the two
-        // reads found the row.
+        // Assert
         Assert.Equal(mailboxId, Assert.IsType<MailboxMintResult.Minted>(Assert.Single(results)).Mailbox.Id);
     }
 
     [Fact]
     public async Task BatchMint_OneCollectionKeyInTwoNamespaces_CountsEachAgainstItsOwnCap()
     {
-        // Arrange & act: a cap of one, and two fresh mints that share a collection key but not a namespace.
+        // Arrange & act
         var repository = fixture.CreateRepository();
 
         var results = await BatchMint(
@@ -194,16 +181,14 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             MintRequest("k-b", collectionKey: "col", ns: "ns-b")
         );
 
-        // Assert: neither is the other's peer, so neither is refused.
+        // Assert
         Assert.All(results, result => Assert.IsType<MailboxMintResult.Minted>(result));
     }
 
     [Fact]
     public async Task BatchMint_ConcurrentBatchesOverOneKey_CreateExactlyOneMailbox()
     {
-        // Arrange: eight flushes, each naming the contested key first and a key of its own second. The mint
-        // takes no lock, so this is the unique index doing the serializing — and the second position is what
-        // proves a batch that lost the race still committed everything else it carried.
+        // Arrange
         var repositories = Enumerable.Range(0, 8).Select(_ => fixture.CreateRepository()).ToArray();
 
         // Act
@@ -226,9 +211,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchMint_AFullFlushOfMailboxes_MintsEveryOneUpToEachCollectionsCap()
     {
-        // Arrange: the batch size a buffer flushes at, so the array statements run at production width rather
-        // than the singleton the plan test pins — and spread over four collections filled exactly to a cap of
-        // 25, so the last admitted mint of each is the one the peer count only just lets through.
+        // Arrange: 100 = a buffer's MaxBatchSize
         var repository = fixture.CreateRepository();
         var requests = Enumerable
             .Range(0, 100)
@@ -245,7 +228,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             results.OfType<MailboxMintResult.Minted>().Select(minted => minted.Mailbox.Id).Order()
         );
 
-        // Each collection is now full, so the next mint into one is refused.
         Assert.IsType<MailboxMintResult.AtCollectionCapacity>(
             Assert.Single(await BatchMint(repository, 25, MintRequest("one-too-many", collectionKey: "col-0")))
         );
@@ -261,9 +243,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchClose_ClosesEveryOpenMailbox_AndReleasesEveryReceiverParkedOnIt()
     {
-        // Arrange: three mailboxes with nothing, one and two receivers parked on them, each closed with its own
-        // reason at its own instant — the per-request values ride in the statement's arrays, so a batch that
-        // collapsed them onto one element would still close every mailbox.
+        // Arrange
         var repository = fixture.CreateRepository();
         var empty = await Mint(repository, "empty");
         var single = await Mint(repository, "single");
@@ -314,7 +294,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         var receiver = await EnqueueReceiver(repository, mailbox.Id, "r-0");
         var (firstAt, secondAt) = (Now.AddSeconds(-20), Now.AddSeconds(-10));
 
-        // Act: the second request would have been the loser of a row-lock race between two separate calls.
+        // Act
         var results = await BatchClose(
             repository,
             CloseRequest(mailbox.Id, firstAt),
@@ -329,7 +309,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(MailboxDisposedReason.Request, replay.DisposedReason);
         Assert.Equal(firstAt, replay.DisposedAt!.Value, TimeSpan.FromMilliseconds(1));
 
-        // Released once, by the request that did the closing.
         Assert.Equal(closed.Mailbox.DisposedAt, (await Registration(receiver)).ReleasedAt);
     }
 
@@ -341,8 +320,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         var mailbox = await Mint(repository, "known");
         var unknown = Guid.CreateVersion7();
 
-        // Act: the same mailbox named under two namespaces is two different requests, and only the one naming
-        // its own namespace may close it.
+        // Act
         var results = await BatchClose(
             repository,
             CloseRequest(unknown),
@@ -356,7 +334,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.IsType<MailboxCloseResult.NotFound>(results[1]);
         Assert.IsType<MailboxCloseResult.Closed>(results[2]);
 
-        // A repeat of a miss is a miss: it inherits the verdict of the request it duplicates.
         Assert.IsType<MailboxCloseResult.NotFound>(results[3]);
 
         await using var context = fixture.CreateDbContext();
@@ -410,8 +387,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         // Act
         var results = await BatchClose(repository, CloseRequest(first.Id), CloseRequest(second.Id));
 
-        // Assert: every row the flush wrote carries one transaction id, across both mailboxes — the whole batch
-        // and all of its releases commit together or not at all.
+        // Assert
         Assert.All(results, result => Assert.IsType<MailboxCloseResult.Closed>(result));
 
         var batchTx = await TransactionId("engine.mailboxes", "id", first.Id);
@@ -425,8 +401,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchClose_AFullFlushOfMailboxes_ClosesEveryOne()
     {
-        // Arrange: the batch size a buffer flushes at, so the array statements are exercised at the width they
-        // run at in production rather than the two elements the plan tests pin.
+        // Arrange: 100 = a buffer's MaxBatchSize
         var repository = fixture.CreateRepository();
         var mailboxes = new List<MailboxResponse>();
         for (var i = 0; i < 100; i++)
@@ -467,7 +442,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         // Act
         var results = await BatchClose(repository, CloseRequest(swept.Id), CloseRequest(untouched.Id));
 
-        // Assert: one disposal survives, and it is the sweep's.
+        // Assert
         var already = Assert.IsType<MailboxCloseResult.AlreadyClosed>(results[0]).Mailbox;
         Assert.Equal(MailboxDisposedReason.Deadline, already.DisposedReason);
         Assert.Equal(releasedBySweep, already.DisposedAt);
@@ -508,8 +483,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchClose_RacingTheSweepOverTheSameMailboxes_DisposesEachExactlyOnce()
     {
-        // Arrange: every mailbox is both in the batch and claimable by the sweep, so whichever order the two
-        // reach a row in, the loser must fold onto the winner's disposal rather than write a second one.
+        // Arrange
         var closer = fixture.CreateRepository();
         var sweeper = fixture.CreateRepository();
         var mailboxes = new List<MailboxResponse>();
@@ -527,7 +501,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         var results = await batch;
         var sweep = await sweeping;
 
-        // Assert: every mailbox disposed once, counted by whichever closure got there first.
+        // Assert
         Assert.Equal(0, sweep.Failed);
         Assert.DoesNotContain(results, result => result is MailboxCloseResult.NotFound);
         Assert.Equal(6, results.OfType<MailboxCloseResult.Closed>().Count() + sweep.Closed);
@@ -535,7 +509,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         Assert.Equal(0, await context.Mailboxes.CountAsync(m => m.Status == MailboxStatus.Open, Ct));
 
-        // Each receiver released exactly once — by the closure that won its mailbox, and by nobody else.
         Assert.Equal(
             6,
             results.OfType<MailboxCloseResult.Closed>().Sum(closed => closed.Released.Closed) + sweep.ReceiversReleased
@@ -555,9 +528,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchDeliver_MessagesForSeveralMailboxes_TakeConsecutivePositionsInBatchOrder()
     {
-        // Arrange: two mailboxes, and one batch whose messages for them are interleaved — each mailbox's
-        // positions are its own run, so a batch counting positions per flush rather than per mailbox would
-        // hand out something else.
+        // Arrange
         var repository = fixture.CreateRepository();
         var first = await Mint(repository, "first");
         var second = await Mint(repository, "second");
@@ -579,7 +550,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(1, AssertAccepted(results[3]).Idx);
         Assert.Equal(2, AssertAccepted(results[4]).Idx);
 
-        // Gapless, and in arrival order: the log reads back the way the batch was handed over.
         Assert.Equal(["f-0", "f-1", "f-2"], await LogOf(first.Id));
         Assert.Equal(["s-0", "s-1"], await LogOf(second.Id));
     }
@@ -591,8 +561,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         var repository = fixture.CreateRepository();
         var mailbox = await Mint(repository, "named-twice");
 
-        // Act: the third request would have been the loser of the row-lock race between two separate calls,
-        // reading the first one's message rather than appending a second.
+        // Act
         var results = await BatchDeliver(
             repository,
             DeliveryRequest(mailbox.Id, "dup", payload: """{"attempt":1}"""),
@@ -609,7 +578,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(appended.Idx, replay.Idx);
         Assert.Equal(appended.AcceptedAt, replay.AcceptedAt);
 
-        // One row, holding the first occurrence's payload: the repeat wrote nothing at all.
         Assert.Equal(["dup", "other"], await LogOf(mailbox.Id));
         await using var context = fixture.CreateDbContext();
         var stored = await context.MailboxDeliveries.SingleAsync(d => d.IdempotencyKey == "dup", Ct);
@@ -620,8 +588,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchDeliver_ReplayedKeyOnAMailboxThatClosedOrFilled_ReplaysTheMessageRatherThanRefusingIt()
     {
-        // Arrange: two mailboxes each already holding one message — one since closed, one at the log cap this
-        // batch runs under.
+        // Arrange
         var repository = fixture.CreateRepository();
         var closed = await Mint(repository, "closed");
         var full = await Mint(repository, "full");
@@ -645,8 +612,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             DeliveryRequest(full.Id, "f-fresh")
         );
 
-        // Assert: the lookup runs before either refusal, so what the log holds keeps replaying — reporting a
-        // refusal for a message sitting there waiting to be read would have a forwarder dead-letter it.
+        // Assert
         var replayedOnClosed = Assert.IsType<MailboxDeliveryResult.Duplicate>(results[0]).Delivery;
         Assert.Equal(keptOnClosed.Idx, replayedOnClosed.Idx);
         Assert.Equal(keptOnClosed.AcceptedAt, replayedOnClosed.AcceptedAt);
@@ -654,7 +620,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         var replayedOnFull = Assert.IsType<MailboxDeliveryResult.Duplicate>(results[2]).Delivery;
         Assert.Equal(keptOnFull.Idx, replayedOnFull.Idx);
 
-        // The fresh keys are refused, and closure outranks the log cap: the closed mailbox is equally full.
         Assert.Equal(
             MailboxDisposedReason.Request,
             Assert.IsType<MailboxDeliveryResult.Closed>(results[1]).Mailbox.DisposedReason
@@ -677,8 +642,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         );
         var unknown = Guid.CreateVersion7();
 
-        // Act: the fourth request names the open mailbox's id and the third request's key, but a namespace the
-        // mailbox does not live in — two requests, not a request and its repeat.
+        // Act
         var results = await BatchDeliver(
             repository,
             DeliveryRequest(unknown, "u-0"),
@@ -695,7 +659,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.IsType<MailboxDeliveryResult.NotFound>(results[3]);
         Assert.Equal(1, AssertAccepted(results[4]).Idx);
 
-        // Only the accepted pair is on disk, and the refusals took no position from the mailbox they named.
         Assert.Equal(["o-0", "o-1"], await LogOf(open.Id));
         Assert.Empty(await LogOf(closed.Id));
         Assert.Equal(0, await NextIdxOf(closed.Id));
@@ -718,8 +681,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             DeliveryRequest(mailbox.Id, "k-3")
         );
 
-        // Assert: the message that fills the log is accepted and the ones behind it are not — the verdicts four
-        // separate calls would have had, because the cap binds against the position each request would take.
+        // Assert
         Assert.Equal(0, AssertAccepted(results[0]).Idx);
         Assert.Equal(1, AssertAccepted(results[1]).Idx);
         Assert.Equal(2, Assert.IsType<MailboxDeliveryResult.LogFull>(results[2]).LogLength);
@@ -728,7 +690,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(["k-0", "k-1"], await LogOf(mailbox.Id));
         Assert.Equal(2, await NextIdxOf(mailbox.Id));
 
-        // A refusal stores nothing, so its key is still the caller's to use once the reason is gone.
         var retried = await BatchDeliver(
             repository,
             logCap: 4,
@@ -743,8 +704,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchDeliver_Counters_AdvanceByExactlyTheMessagesAppended()
     {
-        // Arrange: a mailbox already holding one message and one parked receiver, so both counters start
-        // nonzero and the delivery counter is the only one this batch may move.
+        // Arrange
         var repository = fixture.CreateRepository();
         var appending = await Mint(repository, "appending");
         var refusing = await Mint(repository, "refusing");
@@ -754,7 +714,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             await repository.CloseMailbox(refusing.Id, Ns, MailboxDisposedReason.Request, Now, Ct)
         );
 
-        // Act: five requests, three of which append.
+        // Act
         var results = await BatchDeliver(
             repository,
             DeliveryRequest(appending.Id, "kept"),
@@ -768,13 +728,10 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.IsType<MailboxDeliveryResult.Duplicate>(results[0]);
         Assert.IsType<MailboxDeliveryResult.Closed>(results[2]);
 
-        // Three appends, three positions: the counter is bumped by exactly the rows inserted, and neither the
-        // replay nor the refusal costs a position.
         Assert.Equal(4, await NextIdxOf(appending.Id));
         Assert.Equal(4, (await LogOf(appending.Id)).Count);
         Assert.Equal(0, await NextIdxOf(refusing.Id));
 
-        // The receivers counter is not the delivery counter: a delivery never moves it.
         await using var context = fixture.CreateDbContext();
         Assert.Equal(1, (await context.Mailboxes.SingleAsync(m => m.Id == appending.Id, Ct)).NextSeq);
     }
@@ -782,7 +739,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchDeliver_AndEveryReceiverItWakes_ShareOneTransactionId()
     {
-        // Arrange: two mailboxes with a receiver parked at position 0 and one with nobody waiting.
+        // Arrange
         var repository = fixture.CreateRepository();
         var first = await Mint(repository, "first");
         var second = await Mint(repository, "second");
@@ -806,9 +763,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(onFirst));
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(onSecond));
 
-        // Every row the flush wrote carries one transaction id, across all three mailboxes: the appends and the
-        // wakes they caused commit together or not at all. A held receiver has no timer, so a wake that could
-        // commit separately from its message would park it until the mailbox's deadline.
         var batchTx = await TransactionId("engine.mailboxes", "id", first.Id);
         Assert.Equal(batchTx, await TransactionId("engine.mailboxes", "id", second.Id));
         Assert.Equal(batchTx, await TransactionId("engine.mailboxes", "id", nobody.Id));
@@ -824,8 +778,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchDeliver_ConcurrentBatchesOverOneMailbox_AssignEveryPositionExactlyOnce()
     {
-        // Arrange: eight flushes of five messages each, all into one mailbox — the convoy on its row lock that
-        // a single-mailbox storm becomes.
+        // Arrange
         const int flushes = 8;
         const int perFlush = 5;
         var mailbox = await Mint(fixture.CreateRepository(), "contested");
@@ -846,15 +799,12 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             )
         );
 
-        // Assert: every position handed out exactly once, and no position skipped — the log is gapless however
-        // the flushes interleaved.
+        // Assert
         var positions = results.SelectMany(batch => batch).Select(result => AssertAccepted(result).Idx).ToArray();
         Assert.Equal(Enumerable.Range(0, flushes * perFlush).Select(i => (long)i), positions.Order());
         Assert.Equal(flushes * perFlush, (await LogOf(mailbox.Id)).Count);
         Assert.Equal(flushes * perFlush, await NextIdxOf(mailbox.Id));
 
-        // And each flush's own positions are a contiguous run: it holds the mailbox row lock from its first
-        // append to its commit, so no other flush can take a position in the middle of its range.
         foreach (var batch in results)
         {
             var run = batch.Select(result => AssertAccepted(result).Idx).Order().ToArray();
@@ -865,9 +815,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     [Fact]
     public async Task BatchDeliver_AFullFlushOfMessages_AppendsEveryOne()
     {
-        // Arrange: the batch size a buffer flushes at, so the array statements are exercised at the width they
-        // run at in production rather than the handful the other tests name — spread over four mailboxes, so
-        // the per-mailbox position runs are interleaved throughout.
+        // Arrange: 100 = a buffer's MaxBatchSize
         var repository = fixture.CreateRepository();
         var mailboxes = new List<MailboxResponse>();
         for (var i = 0; i < 4; i++)
@@ -942,7 +890,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
         params BufferedMailboxMintRequest[] requests
     ) => repository.BatchMintMailboxes(requests, cap, Ct);
 
-    /// <summary>The mailbox a settled mint verdict names, whichever of the two verdicts carrying one it is.</summary>
     private static Guid MailboxIdOf(MailboxMintResult result) =>
         result switch
         {
@@ -987,7 +934,6 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     private static MailboxDeliveryResponse AssertAccepted(MailboxDeliveryResult result) =>
         Assert.IsType<MailboxDeliveryResult.Accepted>(result).Delivery;
 
-    /// <summary>The keys a mailbox's log holds, position by position — the gapless order it is read in.</summary>
     private async Task<List<string>> LogOf(Guid mailboxId)
     {
         await using var context = fixture.CreateDbContext();
@@ -1041,8 +987,8 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
             .Mailbox;
 
     /// <summary>
-    /// Mints a mailbox the deadline sweep will claim: the deadline is derived from the mint instant, so minting
-    /// in the past is the only way to produce an overdue one.
+    /// The deadline is derived from the mint instant, so minting in the past is the only way to produce a mailbox
+    /// the deadline sweep will claim.
     /// </summary>
     private static Task<MailboxResponse> MintOverdue(EngineRepository repository, string key) =>
         Mint(repository, key, TimeSpan.FromMinutes(1), Now.AddDays(-1));
@@ -1092,8 +1038,7 @@ public sealed class MailboxBatchTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// The transaction that last wrote a row (<c>xmin</c>): equal ids across rows prove one transaction wrote
-    /// them all.
+    /// The transaction that last wrote a row (<c>xmin</c>): equal ids prove one transaction wrote them all.
     /// </summary>
     private async Task<string> TransactionId(string table, string column, Guid id)
     {

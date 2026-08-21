@@ -4,12 +4,7 @@ using WorkflowEngine.Models;
 namespace WorkflowEngine.Data;
 
 /// <summary>
-/// A single caller's mint request waiting in the mailbox mint buffer. <c>MailboxId</c> is the candidate id the
-/// caller minted before joining the batch, and it is what decides the verdict: a returned row carrying it was
-/// this request's own insert, any other row is somebody else's mailbox replayed. <c>Now</c> rides on the record
-/// rather than being taken by the flush, so the <c>created_at</c> and deadline a caller is answered with are
-/// the ones its own call minted, however long its request waited for a batch. Caps stay method parameters of
-/// the batch call, matching the per-request repository signature.
+/// One caller's mint request waiting in the mailbox mint buffer.
 /// </summary>
 internal sealed record BufferedMailboxMintRequest(
     Guid MailboxId,
@@ -23,10 +18,7 @@ internal sealed record BufferedMailboxMintRequest(
 ) : IBufferedRequest<MailboxMintResult>;
 
 /// <summary>
-/// A single caller's close request waiting in the mailbox close buffer. <c>Now</c> rides on the record rather
-/// than being taken by the flush: the disposal instant a caller was answered with is the one it minted, however
-/// long its request waited for a batch. Caps and other limits stay method parameters of the batch call, matching
-/// the per-request repository signatures.
+/// One caller's close request waiting in the mailbox close buffer.
 /// </summary>
 internal sealed record BufferedMailboxCloseRequest(
     Guid MailboxId,
@@ -38,10 +30,7 @@ internal sealed record BufferedMailboxCloseRequest(
 ) : IBufferedRequest<MailboxCloseResult>;
 
 /// <summary>
-/// A single caller's delivery request waiting in the mailbox delivery buffer. <c>Now</c> rides on the record
-/// rather than being taken by the flush: the <c>acceptedAt</c> a caller is answered with — and replayed on every
-/// later resend of the same key — is the instant its own call minted, however long its request waited for a
-/// batch. Caps stay method parameters of the batch call, matching the per-request repository signature.
+/// One caller's delivery request waiting in the mailbox delivery buffer.
 /// </summary>
 internal sealed record BufferedMailboxDeliveryRequest(
     Guid MailboxId,

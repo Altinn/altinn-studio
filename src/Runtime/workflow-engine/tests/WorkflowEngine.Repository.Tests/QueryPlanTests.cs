@@ -289,11 +289,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         AssertMintProbesItsIndexes(plan);
         await VerifyJson(plan.GetRawText()).UseTextForParameters("width-1");
 
-        // Both widths are pinned because both run: the per-request delegation issues the statement with arrays
-        // of one, a buffered flush with arrays of a hundred, and PostgreSQL plans a custom plan from the array
-        // length it is given — so neither plan is evidence about the other. The wide one is where a count that
-        // stopped probing per key would cost the most, and it gets a snapshot of its own rather than assertions
-        // alone.
+        // PostgreSQL plans a custom plan from the array's length, so neither width is evidence about the other
         var flushPlan = await QueryPlanHelper.ExplainAsync(
             dataSource,
             EngineRepository.MintMailboxesSql,
@@ -306,16 +302,13 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// The two reads of <c>engine.mailboxes</c> the mint statement makes: one probe of the unique index per
-    /// candidate key to decide what is fresh, and one probe of the collection index per distinct collection key
-    /// to count what is open. A column that fell out of either <c>Index Cond</c> would have a mint read far
-    /// more than the keys it names — the whole namespace's keys, or every open mailbox in it.
+    /// A column out of either <c>Index Cond</c> would have a mint read the whole namespace's keys, or every open
+    /// mailbox in it, rather than one probe per candidate key and per distinct collection key.
     /// </summary>
     private static void AssertMintProbesItsIndexes(JsonElement plan)
     {
         QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
 
-        // Both probes answer out of their index without touching the heap, as the statement they replaced did.
         QueryPlanHelper.AssertHasScanType(plan, "mailboxes", "Index Only Scan");
 
         QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_namespace_idempotency_key");
@@ -336,8 +329,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// The mint statement's input arrays, <paramref name="width"/> candidates wide: fresh keys in the seeded
-    /// namespace, spread over the seed's collections so the count has real rows to probe for.
+    /// <paramref name="width"/> fresh candidate keys, spread over the seed's collections so the count has real
+    /// rows to probe for.
     /// </summary>
     private static NpgsqlParameter[] MintArrays(int width)
     {
@@ -365,9 +358,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
-        // A whole flush's worth of ids, not the two the other batch plans pin: PostgreSQL estimates an array
-        // parameter's length when it plans a custom plan, so a batch a hundred wide is a different plan than a
-        // batch of two — and the wide one is what a buffered flush actually issues.
+        // PostgreSQL plans a custom plan from the array's length, so a hundred ids is a different plan than two
         var ids = Enumerable.Range(1, 100).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}")).ToArray();
 
         var plan = await QueryPlanHelper.ExplainAsync(
@@ -380,8 +371,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        // One primary-key probe per id named, driven by the arrays. An id that fell out of the Index Cond would
-        // have every mutating flush read the whole mailbox table before it could lock a row.
         QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "pk_mailboxes");
         QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailboxes", "t.id");
 
@@ -404,10 +393,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         AssertDeliveryLookupProbesItsIndex(plan);
         await VerifyJson(plan.GetRawText()).UseTextForParameters("width-1");
 
-        // Both widths are pinned because both run: the per-request delegation issues the statement with arrays
-        // of one, a buffered flush with arrays of a hundred, and PostgreSQL plans a custom plan from the array
-        // length it is given — so neither plan is evidence about the other. The wide one is the riskier of the
-        // two and gets a snapshot of its own rather than assertions alone.
+        // PostgreSQL plans a custom plan from the array's length, so neither width is evidence about the other
         var flushPlan = await QueryPlanHelper.ExplainAsync(
             dataSource,
             EngineRepository.SelectExistingMailboxDeliveriesSql,
@@ -420,14 +406,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// The replay lookup's one read: a probe of the <c>(mailbox_id, idempotency_key)</c> unique index per pair
-    /// the batch names, driven by its arrays. Which columns sit in the <c>Index Cond</c> is the assertion that
-    /// matters, not the node type — the shape to catch here is an index scan that keeps the index and loses its
-    /// leading-column restriction, reading far more of the index than the pairs it was asked about. With the
-    /// message key out of the condition the lookup reads every message of every mailbox in the flush and filters
-    /// them; with both columns out of it, the whole index.
-    /// An <c>Index Scan</c> rather than an <c>Index Only Scan</c> is expected here and asserted as such; the
-    /// statement's own docstring says why the projection cannot be answered from the index.
+    /// Which columns sit in the <c>Index Cond</c> is the assertion that matters, not the node type: an index scan
+    /// that keeps the index but loses the message key reads every message of every mailbox in the flush.
     /// </summary>
     private static void AssertDeliveryLookupProbesItsIndex(JsonElement plan)
     {
@@ -446,8 +426,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     /// <summary>
-    /// The replay lookup's input arrays, <paramref name="width"/> pairs wide — one mailbox per pair, as a flush
-    /// spread over many mailboxes issues, since a single-mailbox storm is the narrower probe of the two.
+    /// <paramref name="width"/> pairs, one mailbox each — the wider probe of the two shapes a flush can have.
     /// </summary>
     private static NpgsqlParameter[] DeliveryLookupArrays(int width) =>
         [
@@ -478,9 +457,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        // The batch arrays drive the close: one primary-key probe per mailbox named, never a scan of the table
-        // filtered by the array. Ids that fell out of the Index Cond would make a flush of a hundred closes
-        // read every mailbox in the namespace.
         QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "pk_mailboxes");
         QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailboxes", "t.id");
 
@@ -495,8 +471,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         await SeedParkedReceivers(dataSource, ct);
 
-        // Both shapes the one statement carries: a wake naming the single position a delivery landed at
-        // (the position SeedParkedReceivers parks), and a closure release taking its mailbox's whole range.
+        // Both shapes the statement carries: a wake naming one position, a closure release taking a whole range
         var plan = await QueryPlanHelper.ExplainAsync(
             dataSource,
             EngineRepository.ReleaseMailboxReceiversSql,
@@ -519,9 +494,6 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_receivers");
         QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
 
-        // Both key columns in both probes, named by the alias that identifies each: the batch arrays drive the
-        // release itself, and the CTE's released positions drive the stamp. A position that slipped out of
-        // either Index Cond into a Filter would read the mailbox's whole registry slice per released receiver.
         QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailbox_receivers", "t.mailbox_id", "t.seq_lo", "t.seq_hi");
         QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailbox_receivers", "released.mailbox_id", "released.seq");
         QueryPlanHelper.AssertIndexCondContains(plan, "pk_workflows", "workflow_id");
@@ -552,10 +524,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     // --- Seed data ---
 
     /// <summary>
-    /// Tops the seed up with parked receivers on open mailboxes. <see cref="SeedData"/> leaves every receiver
-    /// released and no workflow <c>Held</c>, and a registry with nothing to release does not plan like the
-    /// production statement: with <c>status = held</c> estimated empty, the planner drives the release from the
-    /// workflows index and checks the batch arrays as a join filter, which is the one shape a wake never runs.
+    /// Tops the seed up with parked receivers on open mailboxes. <see cref="SeedData"/> leaves nothing to
+    /// release, and with <c>status = held</c> estimated empty the planner drives the release from the workflows
+    /// index and checks the batch arrays as a join filter — the one shape a wake never runs.
     /// </summary>
     private static async Task SeedParkedReceivers(NpgsqlDataSource dataSource, CancellationToken ct)
     {

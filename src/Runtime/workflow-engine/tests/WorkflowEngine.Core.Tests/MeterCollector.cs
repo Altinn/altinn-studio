@@ -5,15 +5,12 @@ using WorkflowEngine.Telemetry;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Collects every <see cref="long"/> measurement the engine's meter publishes, with its tags, for tests
-/// asserting on a counter's tagged series. Local rather than the TestKit's collector, which this project does
-/// not reference.
+/// Collects every <see cref="long"/> measurement the engine's meter publishes, with its tags.
 /// </summary>
 /// <remarks>
-/// The meter is process-global, so an exact-total assertion holds only if nothing else records into that same
-/// instrument while the test runs. Which is why the classes asserting on <c>engine.mailbox_buffer.*</c> all
-/// share the background-service collection; a test asserting on a further instrument has to establish the same
-/// thing for itself.
+/// The meter is process-global, so an exact-total assertion holds only if nothing else records into the same
+/// instrument while the test runs — which is why the classes asserting on <c>engine.mailbox_buffer.*</c> all
+/// share one test collection.
 /// </remarks>
 internal sealed class MeterCollector : IDisposable
 {
@@ -37,15 +34,11 @@ internal sealed class MeterCollector : IDisposable
     }
 
     /// <summary>
-    /// Takes one reading of every observable instrument on the meter. Gauges publish nothing on their own, so a
-    /// test asserting on one calls this after the code that set it has run.
+    /// Takes one reading of every observable instrument. Gauges publish nothing on their own, so a test asserting
+    /// on one calls this after the code that set it has run.
     /// </summary>
     public void RecordObservableInstruments() => _listener.RecordObservableInstruments();
 
-    /// <summary>
-    /// The totals <paramref name="instrumentName"/> recorded, summed per distinct value of
-    /// <paramref name="tagKey"/>.
-    /// </summary>
     public Dictionary<string, long> ByTag(string instrumentName, string tagKey) =>
         _taken
             .Where(m => m.Name == instrumentName)

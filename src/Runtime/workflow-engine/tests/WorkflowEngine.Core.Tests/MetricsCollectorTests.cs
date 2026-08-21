@@ -18,9 +18,8 @@ namespace WorkflowEngine.Core.Tests;
 /// mailbox the deadline sweep never closed, and the depths of the three mailbox buffers.
 /// </summary>
 /// <remarks>
-/// In the background-service collection with the buffer suites, so no test here observes the meter while one of
-/// them is recording into it. Without that, an assertion on <c>engine.mailbox_buffer.flushed</c> would see
-/// whatever the buffer suites flushed in parallel.
+/// In the background-service collection with the buffer suites: the meter is process-global, so an assertion
+/// here would otherwise see whatever they flushed in parallel.
 /// </remarks>
 [Collection("BackgroundServiceTests")]
 public class MetricsCollectorTests
@@ -67,8 +66,8 @@ public class MetricsCollectorTests
         };
 
     /// <summary>
-    /// The three buffers the collector reads its depth gauge from, built the way the host builds them but never
-    /// started — nothing drains their channels, so whatever is submitted to one stays queued for the whole pass.
+    /// The three buffers the collector reads its depth gauge from — never started, so what is submitted to one
+    /// stays queued for the whole pass.
     /// </summary>
     private static (MailboxMintBuffer Mint, MailboxCloseBuffer Close, MailboxDeliveryBuffer Delivery) CreateBuffers(
         EngineSettings settings
@@ -233,9 +232,8 @@ public class MetricsCollectorTests
             overdue: 0,
             queue: (mint, close, delivery) =>
             {
-                // Discarded: nothing drains these buffers, so no verdict is coming. Enqueue runs synchronously
-                // up to its wait on one, which is what leaves the request counted in the queue. No token
-                // either — nothing here abandons a request, and a canceled one would leave the queue again.
+                // Discarded: no verdict is coming, and Enqueue runs synchronously up to its wait, which is what
+                // leaves the request counted in the queue
                 for (int i = 1; i <= 2; i++)
                 {
                     _ = mint.Enqueue(

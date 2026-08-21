@@ -70,7 +70,6 @@ public class MailboxCloseBufferTests
 
     private static Guid[] NewIds(int count) => [.. Enumerable.Range(0, count).Select(_ => Guid.NewGuid())];
 
-    /// <summary>The mailbox the request named, as the repository would have returned it just closed.</summary>
     private static MailboxResponse ClosedMailbox(BufferedMailboxCloseRequest request) =>
         new()
         {
@@ -87,7 +86,6 @@ public class MailboxCloseBufferTests
             DisposedAt = request.Now,
         };
 
-    /// <summary>Sets the mock up to close everything it is handed.</summary>
     private static void SetupMockClosed(Mock<IEngineRepository> repo)
     {
         repo.Setup(r =>
@@ -112,8 +110,8 @@ public class MailboxCloseBufferTests
     }
 
     /// <summary>
-    /// Waits for the buffer's queue to reach <paramref name="depth"/>. A condition rather than a delay: a test
-    /// whose arrangement never materializes fails on its own deadline instead of racing.
+    /// Waits for the buffer's queue to reach <paramref name="depth"/> — a condition rather than a delay, so an
+    /// arrangement that never materializes fails on its own deadline instead of racing.
     /// </summary>
     private static async Task WaitForQueueDepth(MailboxCloseBuffer buffer, int depth, CancellationToken ct)
     {
@@ -128,9 +126,8 @@ public class MailboxCloseBufferTests
     }
 
     /// <summary>
-    /// Submits without the service running, which leaves every request sitting in the channel: <c>Enqueue</c>
-    /// runs synchronously up to its wait on the verdict, so a batch's exact contents can be arranged before the
-    /// drain loop ever sees them.
+    /// Submits without the service running: <c>Enqueue</c> runs synchronously up to its wait, so a batch's exact
+    /// contents can be arranged before the drain loop sees them.
     /// </summary>
     private static List<Task<MailboxCloseResult>> Preload(
         MailboxCloseBuffer buffer,
@@ -173,7 +170,6 @@ public class MailboxCloseBufferTests
             Assert.Equal(mailboxId, closed.Mailbox.Id);
             Assert.Equal(now, closed.Mailbox.DisposedAt);
 
-            // The caller's own reason and instant reach the repository untouched.
             repo.Verify(
                 r =>
                     r.BatchCloseMailboxes(
@@ -204,8 +200,6 @@ public class MailboxCloseBufferTests
         var ids = NewIds(3);
         var (notFoundId, alreadyClosedId) = (ids[0], ids[1]);
 
-        // The disposal of a mailbox somebody else closed first, which a replay is answered with instead of a
-        // freshly stamped one.
         var originalDisposal = new MailboxResponse
         {
             Id = alreadyClosedId,
@@ -223,8 +217,6 @@ public class MailboxCloseBufferTests
 
         var batchSizes = new List<int>();
 
-        // Verdicts are assigned per mailbox id and the array is built in the batch's own order, so a fan-out
-        // pairing callers with results any other way hands every caller somebody else's verdict.
         repo.Setup(r =>
                 r.BatchCloseMailboxes(
                     It.IsAny<IReadOnlyList<BufferedMailboxCloseRequest>>(),
@@ -315,8 +307,7 @@ public class MailboxCloseBufferTests
     [Fact]
     public async Task SerialFlushConcurrency_SecondBatchWaitsForFirst()
     {
-        // Closing is configured to flush serially (Defaults.EngineSettings.MailboxBuffers.Close), which is what
-        // this arrangement reproduces: one flush permit, and two batches' worth of requests to spend it on.
+        // Serial flushing, as Defaults.EngineSettings.MailboxBuffers.Close configures it.
         var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 2, flushConcurrency: 1));
 
         var batchSizes = new List<int>();
@@ -364,9 +355,6 @@ public class MailboxCloseBufferTests
         {
             await firstFlushEntered.Task.WaitAsync(TestContext.Current.CancellationToken);
 
-            // The gated first flush holds the only flush permit while the loop takes the remaining two requests
-            // out of the channel and parks on the semaphore with them. An empty queue is therefore a resting
-            // state, not a window: nothing can advance until the gate opens.
             await WaitForQueueDepth(buffer, 0, TestContext.Current.CancellationToken);
 
             lock (batchSizes)
@@ -412,8 +400,6 @@ public class MailboxCloseBufferTests
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
             );
 
-            // Two requests, one flush — and both measurements carry this path's tag, so a dashboard dividing
-            // them per operation gets the close buffer's own mean batch size.
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["close"] = 1 },
                 meters.ByTag("engine.mailbox_buffer.batches", "operation")

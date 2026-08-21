@@ -66,17 +66,15 @@ internal static class Defaults
             {
                 MaxBatchSize = 100,
                 MaxQueueSize = 5_000,
-                // Serial: a close locks the mailbox row and the workflow row of every receiver it releases, so a
-                // second concurrent flush would spend its connection waiting on the first one's locks.
+                // Serial: concurrent flushes would only wait on each other's mailbox and workflow row locks
                 FlushConcurrency = 1,
             },
             Delivery = new BatchBufferSettings
             {
                 MaxBatchSize = 100,
                 MaxQueueSize = 10_000,
-                // Deliberately low even though delivery is the busiest of the three: a storm aimed at one
-                // mailbox convoys on that mailbox's row lock, so further flushes in flight would hold more
-                // connections without appending any faster.
+                // Low despite being the busiest path: a storm at one mailbox convoys on its row lock, so more
+                // flushes in flight would only hold more connections
                 FlushConcurrency = 2,
             },
         },

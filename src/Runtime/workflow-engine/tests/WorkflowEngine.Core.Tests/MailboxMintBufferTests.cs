@@ -71,7 +71,6 @@ public class MailboxMintBufferTests
         return (buffer, repo);
     }
 
-    /// <summary>The mailbox the request asked for, as the repository would have returned it freshly minted.</summary>
     private static MailboxResponse MintedMailbox(BufferedMailboxMintRequest request) =>
         new()
         {
@@ -87,7 +86,6 @@ public class MailboxMintBufferTests
             CreatedAt = request.Now,
         };
 
-    /// <summary>Sets the mock up to mint everything it is handed.</summary>
     private static void SetupMockMinted(Mock<IEngineRepository> repo)
     {
         repo.Setup(r =>
@@ -110,9 +108,8 @@ public class MailboxMintBufferTests
     }
 
     /// <summary>
-    /// Submits without the service running, which leaves every request sitting in the channel: <c>Enqueue</c>
-    /// runs synchronously up to its wait on the verdict, so a batch's exact contents can be arranged before the
-    /// drain loop ever sees them.
+    /// Submits without the service running: <c>Enqueue</c> runs synchronously up to its wait, so a batch's exact
+    /// contents can be arranged before the drain loop sees them.
     /// </summary>
     private static List<Task<MailboxMintResult>> Preload(
         MailboxMintBuffer buffer,
@@ -170,8 +167,6 @@ public class MailboxMintBufferTests
             Assert.Equal(mailboxId, minted.Mailbox.Id);
             Assert.Equal(now + timeout, minted.Mailbox.Deadline);
 
-            // The caller's own candidate id and instant reach the repository untouched, and the collection cap
-            // comes from settings.
             repo.Verify(
                 r =>
                     r.BatchMintMailboxes(
@@ -202,8 +197,6 @@ public class MailboxMintBufferTests
     {
         var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10));
 
-        // Somebody else's mailbox, so a replay answered with it cannot be confused with the caller's own
-        // candidate id.
         var existingMailbox = new MailboxResponse
         {
             Id = Guid.NewGuid(),
@@ -219,8 +212,6 @@ public class MailboxMintBufferTests
 
         var batchSizes = new List<int>();
 
-        // Verdicts are assigned per key and the array is built in the batch's own order, so a fan-out pairing
-        // callers with results any other way hands every caller somebody else's verdict.
         repo.Setup(r =>
                 r.BatchMintMailboxes(
                     It.IsAny<IReadOnlyList<BufferedMailboxMintRequest>>(),
@@ -326,8 +317,6 @@ public class MailboxMintBufferTests
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
             );
 
-            // Two requests, one flush — and both measurements carry this path's tag, so a dashboard dividing
-            // them per operation gets the mint buffer's own mean batch size.
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["mint"] = 1 },
                 meters.ByTag("engine.mailbox_buffer.batches", "operation")

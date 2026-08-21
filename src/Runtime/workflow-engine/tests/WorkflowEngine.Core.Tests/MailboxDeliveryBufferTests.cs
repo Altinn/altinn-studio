@@ -17,8 +17,8 @@ public class MailboxDeliveryBufferTests
     private const int MaxLogLength = 42;
 
     /// <summary>
-    /// A payload length that makes three requests exceed the buffer's 4 MiB payload budget while two stay under
-    /// it, with margin on both sides so a split is the budget's doing and not a boundary's.
+    /// A payload length that puts three requests over the buffer's 4 MiB payload budget and two under it, with
+    /// margin on both sides so a split is the budget's doing and not a boundary's.
     /// </summary>
     private const int BudgetSplittingPayloadUnits = 1_500_000;
 
@@ -104,10 +104,6 @@ public class MailboxDeliveryBufferTests
             ReleasedReceiver: false
         );
 
-    /// <summary>
-    /// Sets the mock up to accept everything it is handed, at consecutive positions within each batch, recording
-    /// the size of every batch it sees into <paramref name="batchSizes"/>.
-    /// </summary>
     private static void SetupMockAccepted(Mock<IEngineRepository> repo, List<int>? batchSizes = null)
     {
         repo.Setup(r =>
@@ -135,8 +131,8 @@ public class MailboxDeliveryBufferTests
     }
 
     /// <summary>
-    /// Waits for the buffer's queue to reach <paramref name="depth"/>. A condition rather than a delay: a test
-    /// whose arrangement never materializes fails on its own deadline instead of racing.
+    /// Waits for the buffer's queue to reach <paramref name="depth"/> — a condition rather than a delay, so an
+    /// arrangement that never materializes fails on its own deadline instead of racing.
     /// </summary>
     private static async Task WaitForQueueDepth(MailboxDeliveryBuffer buffer, int depth, CancellationToken ct)
     {
@@ -151,9 +147,8 @@ public class MailboxDeliveryBufferTests
     }
 
     /// <summary>
-    /// Submits without the service running, which leaves every request sitting in the channel: <c>Enqueue</c>
-    /// runs synchronously up to its wait on the verdict, so a batch's exact contents can be arranged before the
-    /// drain loop ever sees them.
+    /// Submits without the service running: <c>Enqueue</c> runs synchronously up to its wait, so a batch's exact
+    /// contents can be arranged before the drain loop sees them.
     /// </summary>
     private static List<Task<MailboxDeliveryResult>> Preload(
         MailboxDeliveryBuffer buffer,
@@ -170,9 +165,6 @@ public class MailboxDeliveryBufferTests
         return tasks;
     }
 
-    /// <summary>
-    /// Queues a request whose caller then abandons it alongside one that waits, both before the service runs.
-    /// </summary>
     private static (Task<MailboxDeliveryResult> Abandoned, Task<MailboxDeliveryResult> Kept) PreloadAbandonedAndKept(
         MailboxDeliveryBuffer buffer,
         CancellationToken abandonedToken,
@@ -187,9 +179,7 @@ public class MailboxDeliveryBufferTests
         return (abandoned, kept);
     }
 
-    /// <summary>
-    /// Submits from the thread pool rather than from one caller: the channel is configured for many writers.
-    /// </summary>
+    /// <summary>Submits from the thread pool rather than from one caller: the channel allows many writers.</summary>
     private static List<Task<MailboxDeliveryResult>> DeliverConcurrently(
         MailboxDeliveryBuffer buffer,
         int count,
@@ -223,7 +213,6 @@ public class MailboxDeliveryBufferTests
             Assert.Equal(mailboxId, accepted.Delivery.MailboxId);
             Assert.Equal("idem-1", accepted.Delivery.IdempotencyKey);
 
-            // The caller's own instant reaches the repository untouched, and the log cap comes from settings.
             repo.Verify(
                 r =>
                     r.BatchDeliverToMailboxes(
@@ -333,7 +322,7 @@ public class MailboxDeliveryBufferTests
 
     /// <summary>
     /// The one assertion the flush-counter pair exists for: over a batch that split, requests ÷ batches is the
-    /// mean batch size actually achieved, and reads as neither 1 nor <c>MaxBatchSize</c>.
+    /// mean batch size achieved, and reads as neither 1 nor <c>MaxBatchSize</c>.
     /// </summary>
     [Fact]
     public async Task TheFlushCounters_OverASplitBatch_DivideIntoTheMeanBatchSize()
@@ -353,13 +342,9 @@ public class MailboxDeliveryBufferTests
         {
             await Task.WhenAll(tasks);
 
-            // The preload fixed the split before the drain loop started, so the repository saw exactly three
-            // batches — 2, 2, 1 — which is what makes the exact counter totals below safe to assert.
             Assert.Equal(3, batchSizes.Count);
 
-            // 5 ÷ 3 = 1.67, the mean batch size this arrangement achieved. A counter that moved by the batch's
-            // size, or once per request, would read 1.00 here and hide the split entirely — which is the reading
-            // an operator would take as "batching is not happening".
+            // 5 ÷ 3 = 1.67. A counter carrying the other's units would read 1.00 here and hide the split.
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 5 },
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
@@ -379,8 +364,6 @@ public class MailboxDeliveryBufferTests
     [Fact]
     public async Task Enqueue_PayloadBudgetExceeded_SplitsIntoBatches()
     {
-        // The batch-size limit is deliberately larger than the arrangement, so only the payload budget can split
-        // it, and serial flushing keeps the two batches in a fixed order.
         var (buffer, repo) = CreateBuffer(CreateSettings(maxBatchSize: 10, flushConcurrency: 1));
 
         var batchSizes = new List<int>();
@@ -396,8 +379,6 @@ public class MailboxDeliveryBufferTests
         {
             await Task.WhenAll(tasks);
 
-            // Two payloads fit the budget and the third does not, so it leads the next batch instead of joining
-            // this one or being dropped.
             List<int> expected = [2, 1];
             Assert.Equal(expected, batchSizes);
         }
@@ -430,8 +411,6 @@ public class MailboxDeliveryBufferTests
 
         var batchSizes = new List<int>();
 
-        // Verdicts are assigned per key and the array is built in the batch's own order, so a fan-out pairing
-        // callers with results any other way hands every caller somebody else's verdict.
         repo.Setup(r =>
                 r.BatchDeliverToMailboxes(
                     It.IsAny<IReadOnlyList<BufferedMailboxDeliveryRequest>>(),
@@ -537,7 +516,6 @@ public class MailboxDeliveryBufferTests
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        // Nothing is draining yet, so the queue depth after the throw is the whole story.
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Deliver(buffer, "canceled", cts.Token));
         Assert.Equal(0, buffer.QueueDepth);
 
@@ -569,8 +547,6 @@ public class MailboxDeliveryBufferTests
             TestContext.Current.CancellationToken
         );
 
-        // Canceled while queued and before anything drains, so the flush meets it already canceled — the state
-        // a caller that gave up while waiting leaves behind.
         await cts.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceledTask);
 
@@ -581,7 +557,6 @@ public class MailboxDeliveryBufferTests
         {
             Assert.IsType<MailboxDeliveryResult.Accepted>(await keptTask);
 
-            // The canceled request never reached the database, and it did not take its batch-mate with it.
             repo.Verify(
                 r =>
                     r.BatchDeliverToMailboxes(
@@ -638,8 +613,6 @@ public class MailboxDeliveryBufferTests
 
         await buffer.StartAsync(serviceCts.Token);
 
-        // The gated first flush holds the only flush permit, so the loop drains a second batch and parks on the
-        // semaphore still holding it. Exactly one request is left in the channel: that is the arrangement.
         await WaitForQueueDepth(buffer, 1, TestContext.Current.CancellationToken);
 
         using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -647,8 +620,6 @@ public class MailboxDeliveryBufferTests
         gate.SetResult();
         await stopTask;
 
-        // The batch the loop was holding and the request still queued are both flushed on the way out, each
-        // bounded by MaxBatchSize rather than merged into one command.
         await Task.WhenAll(tasks);
 
         List<int> expected = [2, 2, 1];
@@ -666,8 +637,6 @@ public class MailboxDeliveryBufferTests
         {
             ShouldListenTo = source => source == Metrics.Source,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
-            // Started rather than stopped: the links are fixed at creation, and the flush answers its callers
-            // before it disposes its own activity.
             ActivityStarted = activity =>
             {
                 if (activity.OperationName != $"{nameof(MailboxDeliveryBuffer)}.FlushBatch")
@@ -701,8 +670,6 @@ public class MailboxDeliveryBufferTests
                 Times.Once
             );
 
-            // The flush is a separate trace, tied back to the enqueueing call by a link built from that
-            // captured context rather than by parentage.
             Activity flush;
             lock (flushActivities)
             {
@@ -742,16 +709,11 @@ public class MailboxDeliveryBufferTests
                 meters.ByTag("engine.mailbox_buffer.flushed", "operation")
             );
 
-            // Three requests, one flush: this counter is incremented by one per flush whatever its batch held,
-            // which is what lets the two divide into a mean batch size.
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 1 },
                 meters.ByTag("engine.mailbox_buffer.batches", "operation")
             );
 
-            // A batch nobody was answered from must leave both counts where they were: they sit after the
-            // database work returns, so a flush that throws contributes to neither — a flush counted without
-            // its requests would deflate every mean batch size the pair reports.
             repo.Reset();
             repo.Setup(r =>
                     r.BatchDeliverToMailboxes(

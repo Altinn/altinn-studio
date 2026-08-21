@@ -12,34 +12,19 @@ using WorkflowEngine.Telemetry.Extensions;
 namespace WorkflowEngine.Core;
 
 /// <summary>
-/// Coalesces concurrent single-request calls into batched database writes. Each caller submits a request into a
-/// shared channel and awaits the <see cref="TaskCompletionSource{TResult}"/> on it; a background loop drains the
-/// channel and hands batches to a bounded pool of concurrent flushers, each using its own DB connection.
-/// <para>
-/// The mechanics are <see cref="WorkflowWriteBuffer"/>'s — the bounded channel, the greedy drain, the
-/// semaphore-bounded flushers, the 30-second shutdown drain — plus <see cref="WorkflowUpdateBuffer"/>'s
-/// accumulate-before-draining yield. One thing is deliberately not carried over verbatim: the shutdown drain
-/// keeps the batch bounds rather than flushing everything left as one batch, since a subclass bounding a
-/// batch's cost has the same reason to on the way out. A subclass supplies only what is specific to its
-/// operation: how a caller's arguments become a request (<see cref="EnqueueItem"/>), and what one batch does
-/// in the database (<see cref="FlushCore"/>).
-/// </para>
+/// Coalesces concurrent single-request calls into batched database writes: each caller awaits the
+/// <see cref="TaskCompletionSource{TResult}"/> on its request while a drain loop hands batches to a bounded pool
+/// of flushers, each using its own DB connection.
 /// </summary>
 /// <remarks>
-/// The two assertions in here fail into deliberately different domains, which matters when registering a
-/// subclass as a hosted service. <see cref="CompleteInOrder"/> asserts inside <see cref="FlushBatch"/>'s
-/// <c>try</c>, so a violation faults that one batch's callers and the loop carries on. The assertion in
-/// <see cref="FillBatch"/> has no such catch — <see cref="ExecuteAsync"/> handles only cancellation — so it
-/// escapes as an unhandled <see cref="BackgroundService"/> exception and, under the framework default
-/// <see cref="BackgroundServiceExceptionBehavior.StopHost"/>, stops the process loudly. That is the wanted
-/// direction, and the engine configures no other behaviour: under
-/// <see cref="BackgroundServiceExceptionBehavior.Ignore"/> the drain loop would be dead while the channel kept
-/// accepting writes, and since a full channel waits rather than refusing, callers would block forever with
-/// neither an error nor a refusal. Do not switch a host composing these buffers to ignoring
-/// background-service exceptions.
+/// The assertion in <see cref="FillBatch"/> escapes as an unhandled <see cref="BackgroundService"/> exception and
+/// stops the host under the framework default <see cref="BackgroundServiceExceptionBehavior.StopHost"/>. That is
+/// wanted, and why a host composing these buffers must not switch to
+/// <see cref="BackgroundServiceExceptionBehavior.Ignore"/>: a dead drain loop behind a
+/// <see cref="BoundedChannelFullMode.Wait"/> channel blocks callers forever, with neither an error nor a refusal.
+/// Subclasses record nothing: commit-gated metrics belong to the repository, verdict-shaped ones to the
+/// caller-facing layer.
 /// </remarks>
-/// <typeparam name="TItem">The buffered request type.</typeparam>
-/// <typeparam name="TResult">The verdict a request is answered with.</typeparam>
 internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
     where TItem : class, IBufferedRequest<TResult>
 {
@@ -53,11 +38,8 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
     private readonly string _flushActivityName;
 
     /// <remarks>
-    /// <paramref name="operation"/> is the <c>operation</c> tag this buffer's flush measurements —
-    /// <see cref="Metrics.MailboxBufferFlushedItems"/> and <see cref="Metrics.MailboxBufferFlushedBatches"/> —
-    /// carry, the mailbox path it serves. A constructor argument rather than something derived from
-    /// <see cref="object.GetType"/>, so the tag values a dashboard groups by are not a class rename away from
-    /// changing.
+    /// <paramref name="operation"/> tags this buffer's flush measurements. A constructor argument rather than
+    /// <see cref="object.GetType"/>, so a class rename cannot move a dashboard's series.
     /// </remarks>
     protected BatchBuffer(
         IServiceScopeFactory scopeFactory,
@@ -71,7 +53,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
         _settings = settings;
         _operation = operation;
 
-        // The concrete type's own name, so activities and logs cannot drift from the class they came from.
         _name = GetType().Name;
         _enqueueActivityName = $"{_name}.Enqueue";
         _flushActivityName = $"{_name}.FlushBatch";
@@ -79,8 +60,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
         _channel = Channel.CreateBounded<TItem>(
             new BoundedChannelOptions(_settings.MaxQueueSize)
             {
-                // Wait rather than drop or refuse: a caller meeting a full queue is delayed until the buffer
-                // has room, never answered an admission refusal.
                 FullMode = BoundedChannelFullMode.Wait,
                 SingleReader = true,
                 SingleWriter = false,
@@ -88,33 +67,17 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
         );
     }
 
-    /// <summary>
-    /// Requests waiting for a flush. Read as a gauge — it is a snapshot of a channel being written and drained
-    /// concurrently, never a count anything can be decided on.
-    /// </summary>
     internal int QueueDepth => _channel.Reader.Count;
 
     /// <summary>
-    /// Runs one batch against the database and answers every request in it. Results are positional, so an
-    /// implementation is a batch repository call followed by <see cref="CompleteInOrder"/>.
+    /// Runs one batch and answers every request in it. Results are positional; a throw faults every request in
+    /// the batch, so exceptions may escape.
     /// </summary>
-    /// <remarks>
-    /// Records nothing: commit-gated metrics belong to the repository, which knows what committed, and
-    /// verdict-shaped metrics belong to the caller-facing layer, which knows what a verdict means. A throw
-    /// faults every request in the batch — <see cref="FlushBatch"/> does that, so an implementation may let
-    /// exceptions out.
-    /// </remarks>
     protected abstract Task FlushCore(IReadOnlyList<TItem> batch, IEngineRepository repository, CancellationToken ct);
 
     /// <summary>
-    /// Whether <paramref name="item"/> may join the batch currently being drained, which already holds
-    /// <paramref name="batch"/>. Default <c>true</c>: the batch size is the only bound.
-    /// <para>
-    /// Override where requests differ in what they cost a flush — large payloads can build an oversized command
-    /// well before the batch-size limit is reached. Only the drain loop can hold a candidate back, since it is
-    /// what owns the channel, which is why this is a hook rather than something a subclass could decide inside
-    /// its <see cref="FlushCore"/>.
-    /// </para>
+    /// Whether <paramref name="item"/> may join the batch being drained, which already holds
+    /// <paramref name="batch"/>. Override where requests differ in what they cost a flush, such as payload size.
     /// </summary>
     /// <remarks>
     /// Never consulted for a batch's first item, which always joins: an item nothing would accept would sit at
@@ -123,21 +86,19 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
     protected virtual bool CanAddToBatch(TItem item, IReadOnlyList<TItem> batch) => true;
 
     /// <summary>
-    /// Submits <paramref name="item"/> for batched execution. The returned task completes when the batch
-    /// containing it has been flushed, carrying the verdict at this request's position.
+    /// Submits <paramref name="item"/> for batched execution, answered with the verdict at its own position once
+    /// its batch has flushed. A full queue delays the caller rather than refusing.
     /// </summary>
     /// <remarks>
-    /// Cancelling <paramref name="ct"/> abandons the wait, not the work. A request whose token fires before its
-    /// batch reaches the database is dropped from that batch and writes nothing, but one canceled after the
-    /// flush has started may still commit — the caller is answered canceled either way. Replaying the same
-    /// idempotency key is how a caller finds out which of the two happened.
+    /// Cancelling <paramref name="ct"/> abandons the wait, not the work: a request canceled after its flush
+    /// started may still commit, and replaying the idempotency key is how a caller finds out which happened.
     /// </remarks>
     protected async Task<TResult> EnqueueItem(TItem item, CancellationToken ct)
     {
         using var activity = Metrics.Source.StartActivity(_enqueueActivityName);
 
-        // Register cancellation before writing so there's no window where the token fires
-        // after the write but before the registration is in place
+        // Registered before the write: the token could otherwise fire in the gap and leave the request queued
+        // but never canceled
         await using var reg = ct.Register(() => item.Completion.TrySetCanceled(ct));
 
         await _channel.Writer.WriteAsync(item, ct);
@@ -145,10 +106,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
         return await item.Completion.Task;
     }
 
-    /// <summary>
-    /// Answers every request in <paramref name="batch"/> with the result at its own position — the shape every
-    /// batch repository method returns.
-    /// </summary>
     protected static void CompleteInOrder(IReadOnlyList<TItem> batch, TResult[] results)
     {
         Assert.That(results.Length == batch.Count, "Batch results are not index-aligned with the batch.");
@@ -175,9 +132,7 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
                     break;
                 }
 
-                // Brief yield to let more items accumulate before draining — the same one
-                // WorkflowUpdateBuffer takes, which credits it with significantly better batch fill under
-                // stampede conditions.
+                // Yield so more items accumulate before draining — measurably better batch fill under stampede
                 await Task.Yield();
 
                 FillBatch(batch);
@@ -205,7 +160,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
             // Expected on shutdown
         }
 
-        // Wait for all in-flight flushes to complete (bounded to prevent indefinite hangs)
         using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         try
         {
@@ -214,9 +168,7 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
                 await flushSemaphore.WaitAsync(drainCts.Token);
             }
 
-            // batch may still hold items from an interrupted iteration — top it up from the channel and flush,
-            // in batches bounded exactly as the loop above bounds them. Shutting down is no reason to build a
-            // bigger command than a running engine would.
+            // batch may still hold items from an interrupted iteration
             FillBatch(batch);
             while (batch.Count > 0)
             {
@@ -232,13 +184,11 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
         }
         catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
-            // Cancel any items still in the current batch
             foreach (var pending in batch)
             {
                 pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
-            // Cancel any items still queued in the channel
             while (_channel.Reader.TryRead(out var pending))
             {
                 pending.Completion.TrySetCanceled(drainCts.Token);
@@ -248,11 +198,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
         }
     }
 
-    /// <summary>
-    /// Moves what is already queued into <paramref name="batch"/>, stopping at
-    /// <see cref="BatchBufferSettings.MaxBatchSize"/> or at the first item <see cref="CanAddToBatch"/> holds
-    /// back. A held-back item stays at the head of the channel and leads the next batch.
-    /// </summary>
     private void FillBatch(List<TItem> batch)
     {
         while (batch.Count < _settings.MaxBatchSize && _channel.Reader.TryPeek(out var next))
@@ -262,8 +207,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
                 break;
             }
 
-            // Nothing else reads this channel: ExecuteAsync's drain loop and its shutdown path are the only
-            // readers and run in sequence, so the read takes the item that was just peeked.
             bool read = _channel.Reader.TryRead(out var item);
             Assert.That(read && ReferenceEquals(item, next), "A peeked item was not the one read.");
 
@@ -273,7 +216,6 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
 
     private async Task FlushBatch(List<TItem> batch, CancellationToken ct)
     {
-        // Filter out items whose callers have already canceled
         for (int i = batch.Count - 1; i >= 0; i--)
         {
             if (batch[i].Completion.Task.IsCanceled)
@@ -298,10 +240,8 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
 
             await FlushCore(batch, repo, ct);
 
-            // Here and nowhere else: the batch's database work has returned and its verdicts are out. Anything
-            // earlier would count requests that a fault is about to answer with an exception instead. The two
-            // measurements are one pair — requests over batches is the mean batch size — so they are recorded
-            // together and a faulted flush counts in neither.
+            // Recorded together, at the one point a batch is known answered: a dashboard divides the two, so a
+            // faulted flush must count in neither
             Metrics.MailboxBufferFlushedItems.Add(batch.Count, ("operation", _operation));
             Metrics.MailboxBufferFlushedBatches.Add(1, ("operation", _operation));
         }

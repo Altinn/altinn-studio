@@ -184,10 +184,9 @@ internal static class QueryPlanHelper
 
     /// <summary>
     /// Asserts that some node reading <paramref name="indexName"/> carries an <c>Index Cond</c> mentioning every
-    /// one of <paramref name="fragments"/>. Stronger than the index-name assertions and the whole point of them:
-    /// a column that only appears in a node's <c>Filter</c> narrows nothing, so the scan reads every row the
-    /// remaining index columns match and throws the rest away. Naming the join alias in a fragment is what keeps
-    /// the assertion on the intended node when several scans share an index.
+    /// one of <paramref name="fragments"/>. Stronger than the index-name assertions: a column that only appears
+    /// in a node's <c>Filter</c> narrows nothing, so the scan reads every row the remaining columns match. Name
+    /// the join alias in a fragment when several scans share an index.
     /// </summary>
     public static void AssertIndexCondContains(JsonElement plan, string indexName, params string[] fragments)
     {

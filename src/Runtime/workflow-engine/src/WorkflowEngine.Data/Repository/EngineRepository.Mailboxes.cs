@@ -19,14 +19,12 @@ internal sealed partial class EngineRepository
     private const string MailboxDeliveryColumns = "d.mailbox_id, d.idx, d.idempotency_key, d.accepted_at";
 
     /// <summary>
-    /// The one statement that releases parked receivers: a wake names one position, a closure release names its
-    /// mailbox's whole position range. One statement so the status transition and the <c>released_at</c> stamp
-    /// cannot diverge. Arrays so one round-trip releases for a whole batch of mailboxes, each element carrying
-    /// its own <c>now</c> so the timestamps a caller pinned stay per-mailbox. The range is expressed as two
-    /// bounds rather than a nullable position on purpose: a <c>t.seq IS NULL OR mr.seq = t.seq</c> disjunction
-    /// over a joined column cannot be const-folded, so the position drops out of the index probe and every wake
-    /// reads its mailbox's entire registry slice. Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> that both
-    /// key columns stay in the probe.
+    /// Releases parked receivers: a wake names one position, a closure release its mailbox's whole range. One
+    /// statement so the status transition and the <c>released_at</c> stamp cannot diverge.
+    /// The range is two bounds rather than a nullable position on purpose: a
+    /// <c>t.seq IS NULL OR mr.seq = t.seq</c> disjunction over a joined column never becomes an index qual, so
+    /// the position drops out of the <c>(mailbox_id, seq)</c> probe and every wake reads its mailbox's entire
+    /// registry slice — a measured 100× the reads. Hoisted for <c>QueryPlanTests</c>.
     /// </summary>
     internal const string ReleaseMailboxReceiversSql = """
         WITH released AS (
@@ -53,10 +51,8 @@ internal sealed partial class EngineRepository
         """;
 
     /// <summary>
-    /// Runs <see cref="ReleaseMailboxReceiversSql"/> and returns the positions it released, in no particular
-    /// order. Each element names a mailbox and an inclusive range of its positions. Ranges over one mailbox must
-    /// not overlap: an overlapped position is released once, and which element's <c>Now</c> gets stamped on it is
-    /// arbitrary — so callers fold their duplicates before getting here.
+    /// Returns the positions released, in no particular order. Ranges over one mailbox must not overlap: an
+    /// overlapped position is released once, stamped by an arbitrary element's <c>Now</c>.
     /// </summary>
     private static async Task<List<(Guid MailboxId, long Seq)>> ReleaseMailboxReceivers(
         NpgsqlConnection conn,
@@ -104,11 +100,9 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// The lock every mutation of existing mailboxes takes as its transaction's first act. <c>ORDER BY m.id</c>
-    /// is what makes the order binding: PostgreSQL sorts before it locks, so a close flush, a delivery flush and
-    /// an enqueue flush all take their rows in one total order — the order
-    /// <c>LockAndReadMailboxes</c> takes too — and concurrent flushes convoy instead of deadlocking. Hoisted so
-    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> that the ids stay a primary-key probe rather than degrading into
-    /// a scan filtered by the array, which would have one flush of a hundred read the whole table.
+    /// is what makes the order binding — PostgreSQL sorts before it locks — so the close, delivery and enqueue
+    /// flushes take their rows in one total order and convoy instead of deadlocking. Hoisted for
+    /// <c>QueryPlanTests</c>.
     /// </summary>
     internal const string LockMailboxesForMutationSql = $"""
         SELECT {MailboxColumns}
@@ -119,13 +113,9 @@ internal sealed partial class EngineRepository
         """;
 
     /// <summary>
-    /// Runs <see cref="LockMailboxesForMutationSql"/> over the pairs a flush is about to decide on, keyed back by
-    /// the pair that named each row. Pairs are deduplicated before the statement sees them: a mailbox named by a
-    /// hundred requests of one batch is locked and read once, not a hundred times. They are presented in id order
-    /// too, as <c>LockAndReadMailboxes</c> presents its own, but it is the statement's <c>ORDER BY</c> that binds
-    /// — PostgreSQL's <c>uuid</c> ordering is the order the locks are taken in, and .NET's <c>Guid</c> comparison
-    /// is not the same one. A pair with no entry in the result matched no row; what that means is the caller's,
-    /// since only it knows whether a missing mailbox is a refusal or an error.
+    /// Runs <see cref="LockMailboxesForMutationSql"/>, keyed back by the pair that named each row. The C#
+    /// ordering below is presentational: it is the statement's <c>ORDER BY</c> that binds, .NET's <c>Guid</c>
+    /// comparison not being PostgreSQL's <c>uuid</c> ordering.
     /// </summary>
     private static async Task<Dictionary<(Guid Id, string Namespace), MailboxResponse>> LockMailboxesForMutation(
         NpgsqlConnection conn,
@@ -155,38 +145,20 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The mint, for a whole batch: one <c>INSERT ... SELECT</c> over the batch's arrays, and no lock and no
-    /// transaction anywhere near it. The unique index on <c>(namespace, idempotency_key)</c> is the
-    /// serialization point — two minters racing over one key convoy on it, and the loser reads the winner's row
-    /// afterwards — so a mint that took the mailbox row lock would only be taking a lock on a row it is
-    /// creating. <c>fresh</c> drops the keys this snapshot already sees, which is what makes a replay consume no
-    /// collection slot; the survivors then rank within their collection (<c>peers_ahead</c>), so a batch counts
-    /// its own fresh mints against the cap instead of admitting all of them off one <c>open_counts</c> reading.
-    /// The cap stays best-effort by design: it is one snapshot's count, and a concurrent mint that has not
-    /// committed is invisible to it. <c>DO NOTHING</c> rather than a token <c>DO UPDATE</c>: a key that lost the
-    /// race is simply absent from the result, and the classification read answers it, as it answers the key this
-    /// call itself inserted on an attempt whose commit it never saw.
+    /// The mint, for a whole batch. The unique index on <c>(namespace, idempotency_key)</c> is the serialization
+    /// point, so no lock and no transaction; the cap is one snapshot's count and best-effort by design.
     /// <para>
-    /// The <c>ORDER BY</c> is what keeps two flushes that overlap on several keys from deadlocking against each
-    /// other: an insert meeting another transaction's uncommitted speculative tuple waits for it, so what has to
-    /// hold is that every flush inserts contested keys in one agreed total order. Any consistent order would do;
-    /// this one is the unique index's own column order, <c>(namespace, idempotency_key)</c>, which is the order
-    /// to reach for per table. <c>InsertIdempotencyKeys</c> (<c>Writes.cs</c>) is the same discipline spelled the
-    /// other way round, its own table's key being <c>(idempotency_key, namespace)</c>.
+    /// The <c>ORDER BY</c> is what keeps two flushes overlapping on several keys from deadlocking: an insert
+    /// meeting another transaction's uncommitted speculative tuple waits for it, so contested keys have to go in
+    /// one agreed order — here the unique index's own, as <c>InsertIdempotencyKeys</c> (<c>Writes.cs</c>) does.
     /// </para>
     /// <para>
-    /// <c>open_counts</c> counts through a correlated subquery per distinct collection key, behind an
-    /// <c>AS MATERIALIZED</c> fence. The fence is there for what it guarantees, not for a cost it overrides:
-    /// evaluated once, the CTE is one index probe per distinct <c>(namespace, collection_key)</c>, which is all
-    /// the work this count should ever be. Inlined — and PostgreSQL does inline it — the count moves into the
-    /// outer join's filter as a <c>SubPlan</c>, where nothing holds it to one evaluation per distinct key rather
-    /// than one per candidate row. Spelled the other obvious way, as a grouped <c>count(*)</c> over a join, the
-    /// planner is free to turn the count round entirely and read the whole open-mailbox set once instead of
-    /// probing per key, which at a flush's width is thousands of rows to answer for a few dozen collections.
+    /// The <c>AS MATERIALIZED</c> fence on <c>open_counts</c> is there for what it guarantees: evaluated once,
+    /// the CTE is one index probe per distinct <c>(namespace, collection_key)</c>. Inlined — and PostgreSQL does
+    /// inline it — the count becomes a <c>SubPlan</c> in the join filter, with nothing holding it to one
+    /// evaluation per key rather than one per candidate row.
     /// </para>
-    /// Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> that both reads of <c>engine.mailboxes</c> stay index
-    /// probes driven by the batch's arrays. Both widths are explained there: PostgreSQL plans a custom plan from
-    /// the array length it is given, so neither width is evidence about the other.
+    /// Hoisted for <c>QueryPlanTests</c>.
     /// </summary>
     internal const string MintMailboxesSql = $"""
         WITH input AS (
@@ -251,8 +223,6 @@ internal sealed partial class EngineRepository
         {
             MailboxMintResult result = new MailboxMintResult.AtCollectionCapacity();
 
-            // A batch of one: the slot and the retry are this path's own, but the statements inside are the
-            // batch's, so one routine answers a single caller and a whole flush identically.
             await ExecuteWithRetry(
                 async ct =>
                     result = (
@@ -307,8 +277,6 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // Nothing per item, unlike the close flush: the mint's one metric belongs to the verdict the Engine
-            // hands its caller, not to the row written here. The round-trip itself is all this owes.
             Metrics.DbOperationsSucceeded.Add(1);
 
             return results;
@@ -326,20 +294,10 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The two statements both mint entry points run: <see cref="MintMailboxesSql"/> over the batch's candidate
-    /// keys, then a classification read for the keys it did not return. Results are positional — the answer to
-    /// <paramref name="mints"/><c>[i]</c> sits at index <c>i</c>.
-    /// <para>
-    /// Split from <see cref="BatchMintMailboxes"/> so the per-request path can keep its own envelope: routed
-    /// through the public method instead, a single mint would count <see cref="Metrics.DbOperationsSucceeded"/>
-    /// twice (once here, once from its retry), log a failure as a batch of one on top of its own line, and have
-    /// to fabricate a buffer's <c>TaskCompletionSource</c> per attempt to name its request. That is the whole
-    /// reason for this layer — there is no second entry point holding locks, the way the deadline sweep enters
-    /// <see cref="CloseLockedMailboxes"/>.
-    /// </para>
-    /// The two statements deliberately share neither a transaction nor a lock: each is correct on its own, and
-    /// an attempt that dies between them leaves committed mailboxes that the caller's retry reads back as its
-    /// own. Nothing is recorded here, because the per-request path publishes its telemetry outside its retry.
+    /// The two statements both mint entry points run. Results are positional — the answer to
+    /// <paramref name="mints"/><c>[i]</c> sits at index <c>i</c>. The two share neither a transaction nor a lock:
+    /// each is correct alone, and an attempt that dies between them leaves committed mailboxes the caller's retry
+    /// reads back as its own.
     /// </summary>
     private async Task<MailboxMintResult[]> MintMailboxes(
         (
@@ -362,14 +320,8 @@ internal sealed partial class EngineRepository
         for (var i = 0; i < mints.Length; i++)
             keys[i] = (WorkflowNamespace.Normalize(mints[i].Namespace), mints[i].IdempotencyKey);
 
-        // The fold, in batch order: one candidate per key reaches the statement, standing in for the
-        // unique-index race two separate calls would have had, and the repeats inherit its verdict once it is
-        // settled. Two properties rest on folding here rather than letting the statement sort it out. The cap:
-        // only candidates rank, so a key named twice costs its collection one slot and not two. And attribution:
-        // ON CONFLICT DO NOTHING tolerates a self-conflict within one statement, so both requests would be
-        // answered even unfolded — but which of them was the one that minted would fall out of the order the
-        // sort happened to emit two equal keys in. Folding first is what makes "the first occurrence mints, the
-        // repeat replays" a rule rather than a coincidence.
+        // Folded here rather than left to ON CONFLICT, which tolerates a self-conflict within one statement:
+        // which of two equal keys was credited with the mint would fall out of the sort order
         var candidates = new List<int>(mints.Length);
         var firstOccurrence = new Dictionary<(string, string), int>(mints.Length);
         var repeats = new List<(int Index, int PrimaryIndex)>();
@@ -423,9 +375,6 @@ internal sealed partial class EngineRepository
             }
         }
 
-        // What the insert did not return is one of three things, and one read tells them apart: a key somebody
-        // already holds, this call's own insert from an attempt whose commit it never saw, or a candidate the
-        // cap refused — the only one of the three with no row anywhere.
         var existing = await ReadMailboxesByIdempotencyKey(
             conn,
             [.. candidates.Where(i => !inserted.ContainsKey(keys[i])).Select(i => keys[i])],
@@ -440,10 +389,6 @@ internal sealed partial class EngineRepository
                 continue;
             }
 
-            // One rule for both reads: the row is this request's own mint exactly when it carries the candidate
-            // id, and anything else is a replay of a mailbox somebody already holds. A row the insert returned
-            // always carries it; a row the classification found carries it only when this call's own earlier
-            // attempt committed after the client had given up on it.
             results[i] =
                 row.Id == mints[i].MailboxId ? new MailboxMintResult.Minted(row) : new MailboxMintResult.Existing(row);
         }
@@ -451,9 +396,6 @@ internal sealed partial class EngineRepository
         foreach (var (index, primaryIndex) in repeats)
             results[index] = RepeatOfMint(results[primaryIndex]);
 
-        // Every position is a candidate's verdict or a repeat of one, so this holds by construction — but the
-        // buffer hands each result straight to a waiting caller, and a fourth path added above must not answer
-        // one with null.
         if (results.Any(result => result is null))
         {
             throw new UnreachableException("Not all results were set.");
@@ -462,13 +404,6 @@ internal sealed partial class EngineRepository
         return results;
     }
 
-    /// <summary>
-    /// What the second request naming a key is answered: the row the first one settled on, but never a second
-    /// <see cref="MailboxMintResult.Minted"/> — one insert is one mint, and the repeat is the replay it would
-    /// have been as a separate call. A refusal repeats unchanged, the collection being no emptier for it.
-    /// Named for its verdict rather than overloading the close fold's <c>RepeatOf</c>, which would have to sit
-    /// adjacent to this and away from the fold it serves.
-    /// </summary>
     private static MailboxMintResult RepeatOfMint(MailboxMintResult primary) =>
         primary switch
         {
@@ -477,11 +412,8 @@ internal sealed partial class EngineRepository
         };
 
     /// <summary>
-    /// Reads the mailboxes behind a set of idempotency keys — the mint's classification read, following the
-    /// <c>ClassifyExistingIdempotencyKeys</c> pattern (<c>Writes.cs</c>): the array join makes it one probe of
-    /// the unique index per key rather than one statement per key. Pairs must be distinct, as a repeated pair
-    /// would multiply its joined row. A pair absent from the result has no mailbox at all, which on the mint
-    /// path is how a candidate the cap refused is recognised.
+    /// The mint's classification read: one probe of the unique index per key. Pairs must be distinct, as a
+    /// repeated pair would multiply its joined row.
     /// </summary>
     private static async Task<
         Dictionary<(string Namespace, string IdempotencyKey), MailboxResponse>
@@ -829,14 +761,11 @@ internal sealed partial class EngineRepository
         {
             MailboxCloseResult result = new MailboxCloseResult.NotFound();
 
-            // A batch of one: the retry and the slot are this path's own, but the transaction inside is the
-            // batch's, so one routine answers a single caller and a whole flush identically.
             await ExecuteWithRetry(
                 async ct => result = (await LockAndCloseMailboxes([(mailboxId, ns, reason, now)], ct))[0],
                 cancellationToken
             );
 
-            // Outside the retry: an attempt that was rolled back and re-run closed nothing to report.
             result.Record();
 
             return result;
@@ -868,8 +797,6 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // After the commit, per request: a repeat and a miss owe no telemetry, so this is the closes and
-            // their release counts only.
             foreach (var result in results)
                 result.Record();
 
@@ -890,10 +817,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The transaction both close entry points run: lock every named mailbox, fold the batch down to one close
-    /// per mailbox, close them, release what was parked on them. Results are positional — the answer to
-    /// <paramref name="closes"/><c>[i]</c> sits at index <c>i</c> — and nothing is recorded here, because the
-    /// per-request path publishes its telemetry outside its retry.
+    /// The transaction both close entry points run. Results are positional — the answer to
+    /// <paramref name="closes"/><c>[i]</c> sits at index <c>i</c>. Records nothing; both entry points publish
+    /// after their own commit.
     /// </summary>
     private async Task<MailboxCloseResult[]> LockAndCloseMailboxes(
         (Guid MailboxId, string Namespace, MailboxDisposedReason Reason, DateTimeOffset Now)[] closes,
@@ -913,10 +839,6 @@ internal sealed partial class EngineRepository
 
         var locked = await LockMailboxesForMutation(conn, tx, pairs, cancellationToken);
 
-        // The fold, in batch order: a pair the lock did not match is this method's own refusal, and a pair named
-        // twice is folded away here, standing in for the row-lock race two separate calls would have had. What
-        // survives is one request per mailbox — distinct pairs, and a matched pair's namespace is its row's, so
-        // distinct ids — which is what CloseLockedMailboxes requires of its input.
         var matched = new List<(int Index, MailboxResponse Locked)>(closes.Length);
         var firstOccurrence = new Dictionary<(Guid, string), int>(closes.Length);
         var repeats = new List<(int Index, int PrimaryIndex)>();
@@ -952,12 +874,9 @@ internal sealed partial class EngineRepository
 
         await tx.CommitAsync(cancellationToken);
 
-        // Resolved once the primaries are settled, so a repeat reports the disposal that is now on the row.
         foreach (var (index, primaryIndex) in repeats)
             results[index] = RepeatOf(results[primaryIndex]);
 
-        // Every position is a repeat, a close, or a miss, so this holds by construction — but the buffer hands
-        // each result straight to a waiting caller, and a fifth path added above must not answer one with null.
         if (results.Any(result => result is null))
         {
             throw new UnreachableException("Not all results were set.");
@@ -966,10 +885,6 @@ internal sealed partial class EngineRepository
         return results;
     }
 
-    /// <summary>
-    /// What the second request naming a mailbox is answered: the same verdict as the first, except that a close
-    /// is a close only once — the repeat replays it, as it would have on the next call.
-    /// </summary>
     private static MailboxCloseResult RepeatOf(MailboxCloseResult primary) =>
         primary switch
         {
@@ -978,9 +893,7 @@ internal sealed partial class EngineRepository
         };
 
     /// <summary>
-    /// Closes a whole set of mailboxes in one statement, each row taking its own reason and timestamp from the
-    /// array element naming it, so a batch's per-request <c>now</c> values stay distinct. Hoisted so
-    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> that the ids stay a primary-key probe.
+    /// Closes a whole set of mailboxes in one statement. Hoisted for <c>QueryPlanTests</c>.
     /// </summary>
     internal const string CloseLockedMailboxesSql = $"""
         UPDATE engine.mailboxes AS m
@@ -994,13 +907,10 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// Closes mailboxes whose rows the caller already locked and read, and releases every receiver parked on
-    /// them — two statements however many mailboxes are closing. Split from <see cref="CloseMailbox"/> so the
-    /// deadline sweep can run the identical routine under its own claim; releasing under the same lock keeps a
-    /// concurrent enqueue from parking a receiver on a closed mailbox. Each element carries the reason and
-    /// timestamp to stamp on its locked mailbox, and is answered by the result at the same position.
-    /// Precondition: the ids staged for closing are distinct, because one <c>UPDATE</c> row per id is what the
-    /// results and the release counts are read back through. Callers fold their duplicates — deciding what the
-    /// second one is answered — before getting here, and a repeat is refused below rather than closed twice.
+    /// them. Releasing under the caller's lock is what keeps a concurrent enqueue from parking a receiver on a
+    /// mailbox this closes.
+    /// Precondition: the staged ids are distinct, because one <c>UPDATE</c> row per id is what the results and
+    /// the release counts are read back through.
     /// </summary>
     private static async Task<MailboxCloseResult[]> CloseLockedMailboxes(
         NpgsqlConnection conn,
@@ -1017,15 +927,13 @@ internal sealed partial class EngineRepository
         {
             var locked = closures[i].Locked;
 
-            // First close wins: the replay reports the original disposal and releases nothing.
             if (locked.Status == MailboxStatus.Disposed)
             {
                 results[i] = new MailboxCloseResult.AlreadyClosed(locked);
                 continue;
             }
 
-            // The precondition, failing by its own name: a repeated id would close its row once, and the
-            // rows-affected guard below would then blame a mailbox that never vanished.
+            // Caught here because the rows-affected guard below would blame a mailbox that never vanished
             if (!stagedIds.Add(locked.Id))
             {
                 throw new InvalidOperationException(
@@ -1059,8 +967,6 @@ internal sealed partial class EngineRepository
             }
         }
 
-        // Unreachable: we hold every one of these rows' locks, and the ids are distinct, so every one of them
-        // has a row of its own to write. Kept as a loud failure rather than a silent NotFound.
         if (closed.Count != staged.Count)
         {
             var missing = ids.Where(id => !closed.ContainsKey(id));
@@ -1069,9 +975,6 @@ internal sealed partial class EngineRepository
             );
         }
 
-        // A closure takes every parked receiver its mailbox has, so each element spans the whole position
-        // range: the lower bound is where the counter starts, the upper the largest position the column can
-        // hold, there being no bound on how far a live mailbox's counter has run.
         var released = await ReleaseMailboxReceivers(
             conn,
             tx,
@@ -1082,8 +985,6 @@ internal sealed partial class EngineRepository
         if (released.Count > 0)
             await NotifyStatusChanged(conn, tx, cancellationToken);
 
-        // The release statement answers in no particular order, so the counts are grouped by mailbox rather
-        // than read off positions.
         var releasedPerMailbox = new Dictionary<Guid, int>(staged.Count);
         foreach (var (mailboxId, _) in released)
         {
@@ -1103,8 +1004,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// <c>FOR UPDATE</c> is the row lock <see cref="CloseLockedMailboxes"/> requires; <c>SKIP LOCKED</c> leaves a
-    /// held mailbox for the next tick. The predicates are re-evaluated against the locked row.
+    /// <c>SKIP LOCKED</c> leaves a held mailbox for the next tick, and the predicates are re-evaluated against
+    /// the row once locked.
     /// </summary>
     private const string ClaimOverdueMailboxSql = $"""
         SELECT {MailboxColumns}
@@ -1268,22 +1169,9 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// The replay lookup, for a whole batch: one probe of the <c>(mailbox_id, idempotency_key)</c> unique index
-    /// per pair named, answering with the delivery each key already holds. It runs before any refusal is
-    /// decided, which is the <em>accepted versus kept</em> rule — a message the log holds keeps replaying even
-    /// once its mailbox closed or filled, because reporting a refusal for a message sitting there waiting to be
-    /// read would have a forwarder dead-letter it.
-    /// Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> that both key columns stay in the probe — pinned at
-    /// a singleton and at a full flush's width, because PostgreSQL plans from the array length it is handed and
-    /// both widths run: the per-request delegation issues this with arrays of one, a flush with arrays of a
-    /// hundred. A mailbox id alone in the <c>Index Cond</c> would have one flush read every message of every
-    /// mailbox it names and filter the rest away.
-    /// <para>
-    /// The probe is an <c>Index Scan</c> and not an <c>Index Only Scan</c>, which is the projection's doing and
-    /// not a missing index: <c>MailboxDeliveryColumns</c> selects the position and the acceptance instant, and a
-    /// two-column index on <c>(mailbox_id, idempotency_key)</c> carries neither, so every row it finds is
-    /// fetched from the heap. Widening the index to cover them would buy a replay lookup nothing worth the write
-    /// cost on the append path.
-    /// </para>
+    /// per pair named. Hoisted for <c>QueryPlanTests</c>. It is an <c>Index Scan</c> and not an
+    /// <c>Index Only Scan</c> because the projection needs the position and the acceptance instant, which the
+    /// two-column index does not carry.
     /// </summary>
     internal const string SelectExistingMailboxDeliveriesSql = $"""
         SELECT {MailboxDeliveryColumns}
@@ -1293,9 +1181,8 @@ internal sealed partial class EngineRepository
         """;
 
     /// <summary>
-    /// Runs <see cref="SelectExistingMailboxDeliveriesSql"/> over the pairs a batch is about to decide on, keyed
-    /// back by the pair that named each row. Pairs must be distinct, as a repeated pair would multiply its
-    /// joined row; a pair absent from the result names a key the mailbox has never accepted.
+    /// Runs <see cref="SelectExistingMailboxDeliveriesSql"/>, keyed back by the pair that named each row. Pairs
+    /// must be distinct, as a repeated pair would multiply its joined row.
     /// </summary>
     private static async Task<
         Dictionary<(Guid MailboxId, string IdempotencyKey), MailboxDeliveryResponse>
@@ -1326,10 +1213,6 @@ internal sealed partial class EngineRepository
         return existing;
     }
 
-    /// <summary>
-    /// Advances each mailbox's delivery counter by the number of positions the batch took from it — one
-    /// statement however many mailboxes it spans, each taking its own count from the array element naming it.
-    /// </summary>
     private const string AdvanceMailboxDeliveryCountersSql = """
         UPDATE engine.mailboxes AS m
         SET next_idx = m.next_idx + v.n
@@ -1338,13 +1221,9 @@ internal sealed partial class EngineRepository
         """;
 
     /// <summary>
-    /// Runs <see cref="AdvanceMailboxDeliveryCountersSql"/> for the mailboxes a batch appended to. This is what
-    /// makes the log gapless, on the same argument <c>WriteMailboxReceivers</c>' receivers counter rests on
-    /// (<c>Writes.cs</c>): the bump and the insert that consumes what it reserved are statements of one
-    /// transaction, so either every position handed out is written or none is, and the mailbox row locks are
-    /// held across both, so no concurrent delivery can hand out a position from the counter's old value.
-    /// Rows affected is asserted rather than ignored: a counter that did not move would have the next batch
-    /// hand out a position this one already wrote.
+    /// What makes the log gapless: the bump and the insert consuming what it reserved are statements of one
+    /// transaction, under mailbox row locks the caller holds across both, so no concurrent delivery can hand out
+    /// a position from the counter's old value.
     /// </summary>
     private static async Task AdvanceMailboxDeliveryCounters(
         NpgsqlConnection conn,
@@ -1361,8 +1240,6 @@ internal sealed partial class EngineRepository
 
         var affected = await cmd.ExecuteNonQueryAsync(cancellationToken);
 
-        // Unreachable: we hold every one of these rows' locks, and the ids are distinct. Kept as a loud failure
-        // rather than a silently non-gapless log.
         if (affected != counts.Count)
         {
             throw new InvalidOperationException(
@@ -1375,8 +1252,8 @@ internal sealed partial class EngineRepository
     /// Appends the batch's accepted messages, each at the position the plan assigned it. No <c>ON CONFLICT</c>,
     /// because neither of the table's keys can conflict here: the position came from a counter read and bumped
     /// under the mailbox's row lock, and the message key was looked up under that same lock by
-    /// <see cref="SelectExistingMailboxDeliveriesSql"/>. A conflict would therefore be a bug, and is left to
-    /// raise as one rather than smoothed over.
+    /// <see cref="SelectExistingMailboxDeliveriesSql"/>. A conflict would be a bug, and a defensive clause added
+    /// later would mask it.
     /// </summary>
     private const string InsertMailboxDeliveriesSql = $"""
         INSERT INTO engine.mailbox_deliveries AS d (mailbox_id, idx, idempotency_key, payload, accepted_at)
@@ -1387,9 +1264,8 @@ internal sealed partial class EngineRepository
         """;
 
     /// <summary>
-    /// Runs <see cref="InsertMailboxDeliveriesSql"/> and returns what it wrote, keyed by position. The rows are
-    /// read back rather than assembled in C# so an append and a later replay of the same key report one
-    /// <c>acceptedAt</c> — the one the column holds, at the precision the column holds it.
+    /// Rows are read back rather than assembled in C# so an append and a later replay of the same key report the
+    /// same <c>acceptedAt</c>, at the precision the column holds it.
     /// </summary>
     private static async Task<Dictionary<(Guid MailboxId, long Idx), MailboxDeliveryResponse>> InsertMailboxDeliveries(
         NpgsqlConnection conn,
@@ -1416,11 +1292,6 @@ internal sealed partial class EngineRepository
             inserted[(delivery.MailboxId, delivery.Idx)] = delivery;
         }
 
-        // Unreachable: an insert writes every row its input names or throws, and the positions are distinct.
-        // Kept loud rather than failing further down on a position with no row to report. Reported the same way
-        // as the counter bump's guard above and the closure's "vanished while locked" — one write statement not
-        // touching the rows it was given is one class of breach — which leaves UnreachableException in this file
-        // meaning only the positional-completeness guard every batch core ends with.
         if (inserted.Count != appends.Length)
         {
             throw new InvalidOperationException(
@@ -1449,8 +1320,6 @@ internal sealed partial class EngineRepository
         {
             MailboxDeliveryResult result = new MailboxDeliveryResult.NotFound();
 
-            // A batch of one: the slot and the retry are this path's own, but the transaction inside is the
-            // batch's, so one routine answers a single caller and a whole flush identically.
             await ExecuteWithRetry(
                 async ct =>
                     result = (
@@ -1463,7 +1332,6 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // Outside the retry: an attempt that was rolled back and re-run woke nobody.
             RecordDeliveryReleases([result]);
 
             return result;
@@ -1501,8 +1369,6 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // After the commit, for the whole flush: the wakes are all this owes per request, and a refusal or a
-            // replay woke nobody.
             RecordDeliveryReleases(results);
 
             Metrics.DbOperationsSucceeded.Add(1);
@@ -1522,9 +1388,8 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Publishes the wake metric a settled batch owes, as one increment per flush rather than one per message.
-    /// Call once, after the commit: a wake an attempt rolled back woke nobody, and by the time this runs a
-    /// repeat carries its primary's <see cref="MailboxDeliveryResult.Duplicate"/>, so no wake is counted twice.
+    /// Publishes the wake metric a settled batch owes, one increment per flush. Call once, after the commit: a
+    /// wake an attempt rolled back woke nobody.
     /// </summary>
     private static void RecordDeliveryReleases(IReadOnlyList<MailboxDeliveryResult> results)
     {
@@ -1533,20 +1398,9 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// The transaction both delivery entry points run: lock every named mailbox, replay the keys its log already
-    /// holds, decide the rest against the locked rows, append what was accepted and wake whoever was parked at
-    /// the positions it took. Results are positional — the answer to <paramref name="deliveries"/><c>[i]</c>
-    /// sits at index <c>i</c> — and nothing is recorded here, because the per-request path publishes its
-    /// telemetry outside its retry.
-    /// <para>
-    /// Split from <see cref="BatchDeliverToMailboxes"/> so the per-request path can keep its own envelope:
-    /// routed through the public method instead, a single delivery would count
-    /// <see cref="Metrics.DbOperationsSucceeded"/> twice (once there, once from its retry), log a failure as a
-    /// batch of one on top of its own line, nest a batch span inside every attempt, and have to fabricate a
-    /// buffer's <c>TaskCompletionSource</c> per attempt to name its request. That is the whole reason for this
-    /// layer — there is no second entry point holding locks, the way the deadline sweep enters
-    /// <see cref="CloseLockedMailboxes"/>.
-    /// </para>
+    /// The transaction both delivery entry points run. Results are positional — the answer to
+    /// <paramref name="deliveries"/><c>[i]</c> sits at index <c>i</c>. Records nothing; both entry points publish
+    /// after their own commit.
     /// </summary>
     private async Task<MailboxDeliveryResult[]> LockAndDeliverToMailboxes(
         (Guid MailboxId, string Namespace, string IdempotencyKey, string Payload, DateTimeOffset Now)[] deliveries,
@@ -1567,12 +1421,9 @@ internal sealed partial class EngineRepository
 
         var locked = await LockMailboxesForMutation(conn, tx, pairs, cancellationToken);
 
-        // The fold, in batch order: a pair the lock did not match is this method's own refusal, and a key named
-        // twice for one mailbox is folded away here, standing in for the row-lock race two separate calls would
-        // have had — where the second would have read the first's delivery and replayed it. The namespace is
-        // part of the fold key alongside the mailbox and the message key, because two requests naming one
-        // mailbox under different namespaces are not each other's repeat: at most one of them names the
-        // namespace the row carries, and the other is a miss.
+        // The namespace belongs in the fold key: without it, two requests naming one mailbox under different
+        // namespaces would be each other's repeat, and the one that cannot see the mailbox would be answered
+        // Duplicate for a delivery it never made.
         var primaries = new List<(int Index, MailboxResponse Locked)>(deliveries.Length);
         var firstOccurrence = new Dictionary<(Guid, string, string), int>(deliveries.Length);
         var repeats = new List<(int Index, int PrimaryIndex)>();
@@ -1594,9 +1445,6 @@ internal sealed partial class EngineRepository
                 results[i] = new MailboxDeliveryResult.NotFound();
         }
 
-        // Distinct by construction, as the lookup requires: the fold keys are distinct, and a mailbox row
-        // carries one namespace, so no two matched primaries can share a mailbox and a key while differing only
-        // in the namespace that matched.
         var existing = await SelectExistingMailboxDeliveries(
             conn,
             tx,
@@ -1604,10 +1452,6 @@ internal sealed partial class EngineRepository
             cancellationToken
         );
 
-        // The plan, in batch order (the PlanMailboxReceivers accounting style, Writes.cs): a per-mailbox count
-        // of what this batch has taken so far, added to the counter the locked row carried, is the position the
-        // next accepted message gets — consecutive, gapless, and in arrival order. A refusal is simply absent
-        // from the write arrays, which is what keeps its key free for a later attempt.
         var accepted = new List<(int Index, Guid MailboxId, long Idx)>(primaries.Count);
         var appendCounts = new Dictionary<Guid, long>(locked.Count);
 
@@ -1615,8 +1459,6 @@ internal sealed partial class EngineRepository
         {
             var delivery = deliveries[index];
 
-            // Before the refusals, always: the mailbox may have closed or filled since, but what it kept it
-            // keeps answering for.
             if (existing.TryGetValue((mailbox.Id, delivery.IdempotencyKey), out var kept))
             {
                 results[index] = new MailboxDeliveryResult.Duplicate(kept);
@@ -1631,9 +1473,6 @@ internal sealed partial class EngineRepository
 
             var idx = mailbox.NextIdx + appendCounts.GetValueOrDefault(mailbox.Id);
 
-            // The cap binds against the position this request would take, so the message that fills the log is
-            // accepted and the one behind it in the same batch is refused — the verdicts two separate calls
-            // would have had.
             if (idx >= maxLogLength)
             {
                 results[index] = new MailboxDeliveryResult.LogFull(idx);
@@ -1665,9 +1504,8 @@ internal sealed partial class EngineRepository
                 cancellationToken
             );
 
-            // The wake, inside the delivery's own transaction: a held receiver has no timer, so a lost wake
-            // would park it until its mailbox's deadline. One element per appended position, and the positions
-            // of one mailbox are distinct, so no two ranges over it overlap.
+            // Inside the delivery's own transaction: a held receiver has no timer, so a wake that could commit
+            // separately would park it to its mailbox's deadline
             var released = await ReleaseMailboxReceivers(
                 conn,
                 tx,
@@ -1682,7 +1520,7 @@ internal sealed partial class EngineRepository
             if (released.Count > 0)
                 await NotifyStatusChanged(conn, tx, cancellationToken);
 
-            // Keyed off the positions the release answered with, never off its result order — it has none.
+            // Keyed off the positions returned, never their order — RETURNING has none
             var woken = new HashSet<(Guid MailboxId, long Seq)>(released);
 
             foreach (var (index, mailboxId, idx) in accepted)
@@ -1696,13 +1534,9 @@ internal sealed partial class EngineRepository
 
         await tx.CommitAsync(cancellationToken);
 
-        // Resolved once the primaries are settled, so a repeat replays a delivery that has committed.
         foreach (var (index, primaryIndex) in repeats)
             results[index] = RepeatOfDelivery(results[primaryIndex]);
 
-        // Every position is a repeat, an append, a replay or a refusal, so this holds by construction — but the
-        // buffer hands each result straight to a waiting caller, and a further path added above must not answer
-        // one with null.
         if (results.Any(result => result is null))
         {
             throw new UnreachableException("Not all results were set.");
@@ -1711,13 +1545,6 @@ internal sealed partial class EngineRepository
         return results;
     }
 
-    /// <summary>
-    /// What the second request naming a mailbox and a message key is answered: the delivery the first one
-    /// settled on, but never a second <see cref="MailboxDeliveryResult.Accepted"/> — one insert is one message,
-    /// and the repeat is the replay it would have been as a separate call. A refusal repeats unchanged, the
-    /// mailbox being no more open and no less full for it. Named for its verdict rather than overloading the
-    /// close fold's <c>RepeatOf</c>, which would have to sit adjacent to this and away from the fold it serves.
-    /// </summary>
     private static MailboxDeliveryResult RepeatOfDelivery(MailboxDeliveryResult primary) =>
         primary switch
         {
