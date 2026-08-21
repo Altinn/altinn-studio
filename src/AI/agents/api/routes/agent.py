@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Optional, List
 from shared.models import AttachmentUpload, AgentAttachment
 from shared.models.attachments import get_session_dir, cleanup_session_attachments
+from shared.models.experiment import ExperimentContext
 
 router = APIRouter()
 log = get_logger(__name__)
@@ -46,6 +47,7 @@ class StartReq(BaseModel):
     allow_app_changes: bool = False
     org: str
     attachments: List[AttachmentUpload] = Field(default_factory=list)
+    experiment: Optional[ExperimentContext] = None
 
     @field_validator("session_id")
     @classmethod
@@ -133,6 +135,7 @@ async def start_agent(
             attachments=saved_attachments,
             designer_api_key=designer_api_key,
             conversation_history=conversation_history,
+            experiment=req.experiment,
         )
 
         sink.add_to_conversation_history(req.session_id, "user", req.goal)
