@@ -47,6 +47,7 @@ export const ConfigBooleanProperties = ({
           handleComponentChange={handleComponentUpdate}
           propertyKey={propertyKey}
           defaultValue={getBooleanDefault(properties[propertyKey])}
+          definition={properties[propertyKey]}
           className={className}
         />
       ))}
@@ -69,6 +70,7 @@ export const ConfigBooleanProperties = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             defaultValue={getBooleanDefault(properties[propertyKey])}
+            definition={properties[propertyKey]}
             className={className}
           />
         ))}

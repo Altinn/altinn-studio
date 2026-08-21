@@ -23,7 +23,6 @@ describe('externalGroupComponentToInternal', () => {
         itemType: 'CONTAINER',
         type: ComponentType.Group,
         pageIndex,
-        propertyPath: 'definitions/groupComponent',
         customProperty,
       });
     },

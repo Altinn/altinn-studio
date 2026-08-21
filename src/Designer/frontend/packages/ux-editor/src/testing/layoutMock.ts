@@ -26,7 +26,6 @@ export const component1Mock: FormComponent<ComponentType.Input> = {
   type: component1TypeMock,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
-  propertyPath: 'definitions/inputComponent',
   pageIndex: null,
 };
 export const component2IdMock = componentMocks[ComponentType.Paragraph].id;
@@ -44,7 +43,6 @@ export const component3Mock: FormComponent = {
   description: 'test',
   displayMode: 'list',
   pageIndex: null,
-  propertyPath: 'definitions/fileUploadComponent',
   hasCustomFileEndings: false,
   maxFileSizeInMB: 1,
   maxNumberOfAttachments: 1,
@@ -57,7 +55,6 @@ export const componentWithOptionsMock: FormComponent = {
   itemType: 'COMPONENT',
   pageIndex: null,
   optionsId: '',
-  propertyPath: 'definitions/radioAndCheckboxComponents',
 };
 
 export const componentWithMultipleSelectMock: FormComponent = {
@@ -67,7 +64,6 @@ export const componentWithMultipleSelectMock: FormComponent = {
   itemType: 'COMPONENT',
   pageIndex: null,
   optionsId: '',
-  propertyPath: 'definitions/multipleSelectComponent',
 };
 
 export const subformComponentMock: FormComponent = {
@@ -76,7 +72,6 @@ export const subformComponentMock: FormComponent = {
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
   pageIndex: null,
-  propertyPath: 'definitions/subformComponent',
 };
 
 export const container1IdMock = 'Container-1';
@@ -111,7 +106,6 @@ export const layoutMock: IInternalLayout = {
       itemType: 'CONTAINER',
       type: ComponentType.Group,
       pageIndex: null,
-      propertyPath: 'definitions/groupComponent',
     },
     [container2IdMock]: {
       id: container2IdMock,
@@ -119,7 +113,6 @@ export const layoutMock: IInternalLayout = {
       type: ComponentType.RepeatingGroup,
       dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       pageIndex: null,
-      propertyPath: 'definitions/repeatingGroupComponent',
     },
   },
   order: {

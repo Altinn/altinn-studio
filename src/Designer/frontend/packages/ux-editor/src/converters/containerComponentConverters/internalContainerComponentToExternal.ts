@@ -7,7 +7,6 @@ export const internalContainerComponentToExternal = (
 ): ExternalContainerComponent => {
   const propertiesToKeep = { ...internalContainerComponent };
   delete propertiesToKeep.itemType;
-  delete propertiesToKeep.propertyPath;
   delete propertiesToKeep.pageIndex;
   return {
     ...propertiesToKeep,

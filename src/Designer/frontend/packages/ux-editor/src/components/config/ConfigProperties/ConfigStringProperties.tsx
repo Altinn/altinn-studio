@@ -5,6 +5,7 @@ import { componentComparison } from './ConfigPropertiesUtils';
 import { useTranslateKeyValue } from './useTranslateKeyValue';
 import { useConfigProperty } from './useConfigProperty';
 import { getStringChoices } from '../../../data/componentCatalog';
+import type { PropertyDefinition } from '@app/layout-contract';
 
 export interface ConfigStringPropertiesProps extends CatalogConfigProps {
   stringPropertyKeys: string[];
@@ -28,6 +29,7 @@ export const ConfigStringProperties = ({
         handleComponentChange={handleComponentUpdate}
         propertyKey={propertyKey}
         enumValues={getStringChoices(properties[propertyKey])}
+        definition={properties[propertyKey]}
       />
     ));
   }
@@ -42,6 +44,7 @@ export const ConfigStringProperties = ({
           handleComponentUpdate={handleComponentUpdate}
           className={className}
           enumValues={getStringChoices(properties[propertyKey])}
+          definition={properties[propertyKey]}
         />
       ))}
     </>
@@ -52,6 +55,7 @@ type ConfigStringPropertyProps = Partial<CatalogConfigProps> & {
   propertyKey: string;
   className?: string;
   enumValues?: string[];
+  definition?: PropertyDefinition;
 };
 
 const ConfigStringProperty = ({
@@ -60,6 +64,7 @@ const ConfigStringProperty = ({
   handleComponentUpdate,
   className,
   enumValues,
+  definition,
 }: ConfigStringPropertyProps) => {
   const {
     initialPropertyValue,
@@ -86,6 +91,7 @@ const ConfigStringProperty = ({
         handleComponentChange={handleComponentChange}
         propertyKey={propertyKey}
         enumValues={enumValues}
+        definition={definition}
       />
     </SelectPropertyEditor>
   );

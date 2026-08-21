@@ -1,5 +1,4 @@
 import type { FormComponent } from '../../types/FormComponent';
-import { formItemConfigs } from '../../data/formItemConfig';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { convertDataBindingToInternalFormat } from '../../utils/dataModelUtils';
 import type {
@@ -13,15 +12,11 @@ export const externalSimpleComponentToInternal = (
   pageIndex: number | null,
   layoutDefaultDataType?: string,
 ): FormComponent => {
-  const formItemConfig = formItemConfigs[externalComponent.type];
-  const propertyPath = formItemConfig?.propertyPath;
-
   const explicitBindings =
     externalComponent.dataModelBindings &&
     convertAllDatamodelBindings(layoutDefaultDataType, externalComponent.dataModelBindings);
 
   return {
-    ...(propertyPath ? { propertyPath } : {}),
     ...externalComponent,
     dataModelBindings: explicitBindings,
     itemType: 'COMPONENT',

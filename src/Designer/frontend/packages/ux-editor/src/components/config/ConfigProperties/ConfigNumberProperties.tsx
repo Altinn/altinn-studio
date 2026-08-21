@@ -5,6 +5,7 @@ import { componentComparison } from './ConfigPropertiesUtils';
 import { useConfigProperty } from './useConfigProperty';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { getNumberChoices } from '../../../data/componentCatalog';
+import type { PropertyDefinition } from '@app/layout-contract';
 
 export interface ConfigNumberPropertiesProps extends CatalogConfigProps {
   numberPropertyKeys: string[];
@@ -28,6 +29,7 @@ export const ConfigNumberProperties = ({
         propertyKey={propertyKey}
         key={propertyKey}
         enumValues={getNumberChoices(properties[propertyKey])}
+        definition={properties[propertyKey]}
       />
     ));
   }
@@ -43,6 +45,7 @@ export const ConfigNumberProperties = ({
           handleComponentUpdate={handleComponentUpdate}
           className={className}
           enumValues={getNumberChoices(properties[propertyKey])}
+          definition={properties[propertyKey]}
         />
       ))}
     </>
@@ -53,6 +56,7 @@ type ConfigNumberPropertyProps = Partial<CatalogConfigProps> & {
   propertyKey: string;
   className?: string;
   enumValues?: number[];
+  definition?: PropertyDefinition;
 };
 
 const ConfigNumberProperty = ({
@@ -61,6 +65,7 @@ const ConfigNumberProperty = ({
   handleComponentUpdate,
   className,
   enumValues,
+  definition,
 }: ConfigNumberPropertyProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const {
@@ -89,6 +94,7 @@ const ConfigNumberProperty = ({
         handleComponentChange={handleComponentChange}
         propertyKey={propertyKey}
         enumValues={enumValues}
+        definition={definition}
       />
     </SelectPropertyEditor>
   );

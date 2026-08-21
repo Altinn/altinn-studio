@@ -16,7 +16,6 @@ import {
 } from '../../../testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';
@@ -337,10 +336,6 @@ const renderComponentConfig = (
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, formItemContextProps.formItem?.type],
-    componentSchemaMocks[formItemContextProps.formItem?.type],
-  );
   queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], []);
 

@@ -26,7 +26,6 @@ export const SelectDataFieldBinding = ({
   componentType,
 }: SelectDataFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
   const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat || {
     dataType: '',
     field: '',
@@ -59,7 +58,6 @@ export const SelectDataFieldBinding = ({
       id={`selectDataModelField-${bindingKey}`}
       onChange={handleDataModelFieldChange}
       value={isBindingError ? '' : currentDataModelField}
-      propertyPath={propertyPath}
       helpText={componentPropertyHelpText(`data_model_bindings.${bindingKey}`)}
       label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (

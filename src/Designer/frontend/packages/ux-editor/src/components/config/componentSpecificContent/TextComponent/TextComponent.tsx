@@ -1,7 +1,6 @@
 import React, { useState, type JSX } from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { properties } from '../../../../testing/schemas/json/component/Text.schema.v1.json';
 import { type StringExpression, StudioManualExpression, StudioProperty } from '@studio/components';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
@@ -9,8 +8,7 @@ import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 import { getDisplayValues } from './TextComponentUtils';
 import { StudioConfigCard } from '@studio/components';
 
-type TextProperties = keyof typeof properties;
-const textSpecificProperty: TextProperties = 'value';
+const textSpecificProperty = 'value';
 
 export type TextComponentProps = {
   component: FormItem<ComponentType.Text>;

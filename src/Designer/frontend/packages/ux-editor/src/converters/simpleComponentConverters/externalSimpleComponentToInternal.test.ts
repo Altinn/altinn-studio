@@ -1,13 +1,11 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalSimpleComponentToInternal } from './externalSimpleComponentToInternal';
-import { formItemConfigs } from '../../data/formItemConfig';
 
 // Test data:
 const id = '1';
 const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
-const propertyPath = formItemConfigs[type].propertyPath;
 
 describe('externalSimpleComponentToInternal', () => {
   it.each([null, 0, 1, 2])(
@@ -24,7 +22,6 @@ describe('externalSimpleComponentToInternal', () => {
         id,
         itemType: 'COMPONENT',
         pageIndex,
-        propertyPath,
         type,
         customProperty,
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },

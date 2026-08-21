@@ -122,7 +122,6 @@ const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag>
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
   optionsId: '',
-  propertyPath: 'definitions/fileUploadComponent',
   pageIndex: null,
 };
 const buttonComponent: FormComponent<ComponentType.Button> = {

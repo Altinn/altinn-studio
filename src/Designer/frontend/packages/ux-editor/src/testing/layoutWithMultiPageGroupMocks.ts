@@ -36,7 +36,6 @@ const internalComponent2: FormComponent = {
   id: component2Id,
   itemType: 'COMPONENT',
   pageIndex: null,
-  propertyPath: 'definitions/inputComponent',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
 };
@@ -51,7 +50,6 @@ const internalComponent3: FormContainer = {
   itemType: 'CONTAINER',
   type: ComponentType.Group,
   pageIndex: null,
-  propertyPath: 'definitions/groupComponent',
 };
 
 const externalComponent3_1: ExternalComponent = {
@@ -73,7 +71,6 @@ const internalComponent3_1: FormContainer<ComponentType.RepeatingGroup> = {
   type: ComponentType.RepeatingGroup,
   dataModelBindings: { group: { field: 'some-path', dataType: '' } },
   pageIndex: null,
-  propertyPath: 'definitions/repeatingGroupComponent',
 };
 
 const externalComponent3_1_1: ExternalComponent = {
@@ -96,7 +93,6 @@ const internalComponent3_1_2: FormContainer = {
   itemType: 'CONTAINER',
   type: ComponentType.ButtonGroup,
   pageIndex: 0,
-  propertyPath: 'definitions/buttonGroupComponent',
 };
 
 const externalComponent3_1_3: ExternalComponent = {
@@ -109,7 +105,6 @@ const internalComponent3_1_3: FormContainer = {
   itemType: 'CONTAINER',
   type: ComponentType.Accordion,
   pageIndex: 1,
-  propertyPath: 'definitions/accordionComponent',
 };
 
 const externalComponent3_1_4: ExternalComponent = {

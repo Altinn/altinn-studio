@@ -18,7 +18,6 @@ type ContainerBase<T extends ContainerComponentType> = {
   itemType: 'CONTAINER';
   pageBreak?: PageBreak;
   pageIndex?: number;
-  propertyPath?: string;
   textResourceBindings?: ITextResourceBindings;
   type: T;
 };

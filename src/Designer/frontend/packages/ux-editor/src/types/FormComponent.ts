@@ -27,7 +27,6 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   hidden?: BooleanExpression;
   grid?: GridSizes;
   [id: string]: any;
-  propertyPath?: string;
 }
 
 export type FormImageComponent = FormComponent<ComponentType.Image>;

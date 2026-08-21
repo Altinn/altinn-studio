@@ -1,10 +1,9 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
-import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormImageComponent } from '../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,19 +21,12 @@ const componentData: FormImageComponent = {
   dataModelBindings: {},
 };
 
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current.layoutSchemaQuery.isSuccess).toBe(true));
-};
-
 const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>> = {}) => {
   const allProps: IGenericEditComponent<ComponentType.Image> = {
     component: componentData,
     handleComponentChange: jest.fn(),
     ...props,
   };
-
-  await waitForData();
 
   return renderWithProviders(<ImageComponent {...allProps} />);
 };

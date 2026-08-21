@@ -1,4 +1,3 @@
-import { formItemConfigs } from '../../data/formItemConfig';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import type { FormContainer } from '../../types/FormContainer';
 
@@ -13,7 +12,6 @@ export const externalContainerComponentToInternal = (
     ...propertiesToKeep,
     itemType: 'CONTAINER',
     type: externalComponent.type,
-    propertyPath: formItemConfigs[externalComponent.type].propertyPath,
     pageIndex,
   } as FormContainer;
 };

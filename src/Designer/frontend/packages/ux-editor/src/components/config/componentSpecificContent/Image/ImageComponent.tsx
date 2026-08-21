@@ -1,6 +1,6 @@
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { FormField } from '../../../FormField';
+import { FormField } from 'app-shared/components/FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioFieldset, StudioSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -62,7 +62,6 @@ export const ImageComponent = ({
         label={t('ux_editor.modal_properties_image_src_value_label')}
         onChange={handleSourceChange}
         value={nbSrc && { nb: nbSrc }}
-        propertyPath={`${component.propertyPath}/properties/image/properties/src`}
         renderField={({ fieldProps }) => (
           <StudioTextfield
             {...fieldProps}
@@ -77,7 +76,6 @@ export const ImageComponent = ({
         label={t('ux_editor.modal_properties_image_placement_label')}
         onChange={handlePlacementChange}
         value={selectedPlacement?.[0]?.value}
-        propertyPath={`${component.propertyPath}/properties/image/properties/align`}
         renderField={({ fieldProps }) => (
           <StudioSelect
             label={fieldProps.label}

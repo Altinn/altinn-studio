@@ -51,7 +51,6 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   defaultProperties: ComponentSpecificConfig;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
-  propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
 // ComponentType also contains legacy names (OrganisationLookup, Header) used by ux-editor-v4.
@@ -74,14 +73,12 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       severity: 'info',
     },
-    propertyPath: 'definitions/alertComponent',
     icon: ExclamationmarkTriangleIcon,
   },
   [ComponentType.Accordion]: {
     name: ComponentType.Accordion,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/accordionComponent',
     icon: AccordionIcon,
     validChildTypes: [ComponentType.Paragraph],
   },
@@ -89,7 +86,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.AccordionGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/accordionGroupComponent',
     icon: ChevronDownDoubleIcon,
     validChildTypes: [ComponentType.Accordion],
   },
@@ -114,28 +110,24 @@ export const formItemConfigs: FormItemConfigs = {
       simplified: true,
       saveWhileTyping: 400,
     },
-    propertyPath: 'definitions/addressComponent',
     icon: HouseIcon,
   },
   [ComponentType.AttachmentList]: {
     name: ComponentType.AttachmentList,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/attachmentListComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.Button]: {
     name: ComponentType.Button,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/actionButtonComponent',
     icon: FingerButtonIcon,
   },
   [ComponentType.ButtonGroup]: {
     name: ComponentType.ButtonGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/buttonGroupComponent',
     icon: FingerButtonIcon,
     validChildTypes: [
       ComponentType.ActionButton,
@@ -154,7 +146,6 @@ export const formItemConfigs: FormItemConfigs = {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: CheckboxIcon,
   },
   [ComponentType.Custom]: {
@@ -214,7 +205,6 @@ export const formItemConfigs: FormItemConfigs = {
       maxDate: '2100-01-01T12:00:00.000Z',
       timeStamp: false,
     },
-    propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
   },
   [ComponentType.Dropdown]: {
@@ -226,7 +216,6 @@ export const formItemConfigs: FormItemConfigs = {
       },
       optionsId: '',
     },
-    propertyPath: 'definitions/selectionComponents',
     icon: SelectIcon,
   },
   [ComponentType.FileUpload]: {
@@ -239,7 +228,6 @@ export const formItemConfigs: FormItemConfigs = {
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
     },
-    propertyPath: 'definitions/fileUploadComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.FileUploadWithTag]: {
@@ -253,7 +241,6 @@ export const formItemConfigs: FormItemConfigs = {
       minNumberOfAttachments: 1,
       optionsId: '',
     },
-    propertyPath: 'definitions/fileUploadWithTagComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.Grid]: {
@@ -262,14 +249,12 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       rows: [],
     },
-    propertyPath: 'definitions/gridComponent',
     icon: TableIcon,
   },
   [ComponentType.Group]: {
     name: ComponentType.Group,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-    propertyPath: 'definitions/groupComponent',
     icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
@@ -280,7 +265,6 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       size: 'L',
     },
-    propertyPath: 'definitions/headingComponent',
     icon: TitleIcon,
   },
   [ComponentType.IFrame]: {
@@ -301,7 +285,6 @@ export const formItemConfigs: FormItemConfigs = {
         align: 'center',
       },
     },
-    propertyPath: 'definitions/imageComponent',
     icon: ImageIcon,
   },
   [ComponentType.ImageUpload]: {
@@ -313,7 +296,6 @@ export const formItemConfigs: FormItemConfigs = {
         diameter: 250,
       },
     },
-    propertyPath: 'definitions/imageUploadComponent',
     icon: ImageIcon,
   },
   [ComponentType.Input]: {
@@ -324,14 +306,12 @@ export const formItemConfigs: FormItemConfigs = {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/inputComponent',
     icon: ShortTextIcon,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/instanceInformationComponent',
     icon: InformationSquareIcon,
   },
   [ComponentType.InstantiationButton]: {
@@ -349,7 +329,6 @@ export const formItemConfigs: FormItemConfigs = {
         answer: '',
       },
     },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: LikertIcon,
   },
   [ComponentType.Link]: {
@@ -368,7 +347,6 @@ export const formItemConfigs: FormItemConfigs = {
       tableHeaders: {},
       dataListId: '',
     },
-    propertyPath: 'definitions/listComponent',
     icon: TasklistIcon,
   },
   [ComponentType.Map]: {
@@ -384,7 +362,6 @@ export const formItemConfigs: FormItemConfigs = {
       },
       zoom: 1,
     },
-    propertyPath: 'definitions/mapComponent',
     icon: PinIcon,
   },
   [ComponentType.MultipleSelect]: {
@@ -396,21 +373,18 @@ export const formItemConfigs: FormItemConfigs = {
       },
       optionsId: '',
     },
-    propertyPath: 'definitions/selectionComponents',
     icon: SelectIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/navigationBarComponent',
     icon: NavBarIcon,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/navigationButtonsComponent',
     icon: FingerButtonIcon,
   },
   // The current editor uses the renamed contract; ux-editor-v4 retains OrganisationLookup.
@@ -427,7 +401,6 @@ export const formItemConfigs: FormItemConfigs = {
       variant: FormPanelVariant.Info,
       showIcon: true,
     },
-    propertyPath: 'definitions/panelComponent',
     icon: FileTextIcon,
   },
   [ComponentType.Paragraph]: {
@@ -472,7 +445,6 @@ export const formItemConfigs: FormItemConfigs = {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: RadioButtonIcon,
   },
   [ComponentType.RepeatingGroup]: {
@@ -483,7 +455,6 @@ export const formItemConfigs: FormItemConfigs = {
         group: '',
       },
     },
-    propertyPath: 'definitions/repeatingGroupComponent',
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
@@ -491,7 +462,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.Subform,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/subform',
     icon: ClipboardIcon,
   },
   [ComponentType.Summary]: {
@@ -500,7 +470,6 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       componentRef: '',
     },
-    propertyPath: 'definitions/summaryComponent',
     icon: FileTextIcon,
   },
   [ComponentType.Summary2]: {
@@ -511,7 +480,6 @@ export const formItemConfigs: FormItemConfigs = {
         type: 'layoutSet',
       },
     },
-    propertyPath: 'definitions/summary2Component',
     icon: FileTextIcon,
   },
   [ComponentType.Text]: {
@@ -520,7 +488,6 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       value: '',
     },
-    propertyPath: 'definitions/textComponent',
     icon: TextIcon,
   },
   [ComponentType.TextArea]: {
@@ -531,7 +498,6 @@ export const formItemConfigs: FormItemConfigs = {
         simpleBinding: '',
       },
     },
-    propertyPath: 'definitions/textAreaComponent',
     icon: LongTextIcon,
   },
   [ComponentType.Divider]: {
@@ -541,7 +507,6 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       type: ComponentType.Divider,
     },
-    propertyPath: 'definitions/dividerComponent',
     icon: MinusIcon,
   },
 };

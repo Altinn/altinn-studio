@@ -4,7 +4,9 @@ import {
   getArrayStringChoices,
   getBooleanDefault,
   getEditablePropertyType,
+  getNestedPropertyDefinition,
   getPropertyChoices,
+  validateCatalogValue,
 } from './componentCatalog';
 
 describe('componentCatalog', () => {
@@ -66,5 +68,27 @@ describe('componentCatalog', () => {
       required: false,
     };
     expect(getArrayStringChoices(definition)).toEqual(['one', 'two']);
+  });
+
+  it('resolves properties nested in arrays and objects', () => {
+    expect(getNestedPropertyDefinition('Map', ['layers', 'url'])).toMatchObject({
+      type: 'string',
+      required: true,
+    });
+  });
+
+  it('validates generated constraints', () => {
+    const definition: PropertyDefinition = {
+      type: 'integer',
+      required: true,
+      minimum: 1,
+      maximum: 3,
+    };
+
+    expect(validateCatalogValue(definition, '')).toBe('required');
+    expect(validateCatalogValue(definition, 1.5)).toBe('integer');
+    expect(validateCatalogValue(definition, 0)).toBe('minimum');
+    expect(validateCatalogValue(definition, 4)).toBe('maximum');
+    expect(validateCatalogValue(definition, 2)).toBe('');
   });
 });

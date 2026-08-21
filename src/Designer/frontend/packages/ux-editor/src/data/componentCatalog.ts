@@ -104,3 +104,55 @@ export function getArrayStringChoices(definition: PropertyDefinition): string[] 
     ) ?? []
   );
 }
+
+export function getNestedPropertyDefinition(
+  componentType: string,
+  path: readonly string[],
+): PropertyDefinition | undefined {
+  let definition: PropertyValueDefinition | ComponentDefinition | undefined =
+    getComponentDefinition(componentType);
+  for (const segment of path) {
+    definition = getChildDefinition(definition, segment);
+    if (!definition) return undefined;
+  }
+  return definition as PropertyDefinition | undefined;
+}
+
+function getChildDefinition(
+  definition: PropertyValueDefinition | ComponentDefinition | undefined,
+  property: string,
+): PropertyDefinition | undefined {
+  if (!definition) return undefined;
+  if ('kind' in definition) return definition.properties[property];
+  if (definition.type === 'array') return getChildDefinition(definition.items, property);
+  if (definition.type === 'object') return definition.properties[property];
+  if (definition.type === 'union') {
+    for (const variant of definition.variants) {
+      const child = getChildDefinition(variant, property);
+      if (child) return child;
+    }
+  }
+  return undefined;
+}
+
+export function validateCatalogValue(
+  definition: PropertyDefinition | undefined,
+  value: unknown,
+): string {
+  if (!definition) return '';
+  if (value === undefined || value === null || value === '') {
+    return definition.required ? 'required' : '';
+  }
+  if (definition.type === 'string' && definition.pattern) {
+    return new RegExp(definition.pattern).test(String(value)) ? '' : 'pattern';
+  }
+  if (
+    (definition.type === 'number' || definition.type === 'integer') &&
+    typeof value === 'number'
+  ) {
+    if (definition.type === 'integer' && !Number.isInteger(value)) return 'integer';
+    if (definition.minimum !== undefined && value < definition.minimum) return 'minimum';
+    if (definition.maximum !== undefined && value > definition.maximum) return 'maximum';
+  }
+  return '';
+}

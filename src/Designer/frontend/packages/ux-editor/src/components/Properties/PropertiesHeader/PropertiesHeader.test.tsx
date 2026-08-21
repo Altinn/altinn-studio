@@ -6,7 +6,6 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
@@ -195,13 +194,6 @@ describe('PropertiesHeader', () => {
 });
 
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
-  const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
-
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, componentType],
-    componentSchemaMocks[componentType],
-  );
-
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(<PropertiesHeader {...defaultProps} {...props} />);

@@ -8,6 +8,5 @@ export const internalSimpleComponentToExternal = <T extends SimpleComponentType>
   const propertiesToKeep = { ...internalComponent };
   delete propertiesToKeep.itemType;
   delete propertiesToKeep.pageIndex;
-  delete propertiesToKeep.propertyPath;
   return propertiesToKeep;
 };

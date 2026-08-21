@@ -4,9 +4,6 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 
 // Test data:
 const srcValueLabel = 'Source';
@@ -43,16 +40,5 @@ const defaultProps: IEditFormComponentProps = {
 };
 
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {
-  const component = props.component ?? defaultProps.component;
-  const componentType = component.type;
-
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData(
-    [QueryKey.FormComponent, componentMocks[componentType].type],
-    componentSchemaMocks[componentMocks[componentType].type],
-  );
-
-  renderWithProviders(<EditFormComponent {...defaultProps} {...props} />, {
-    queryClient,
-  });
+  renderWithProviders(<EditFormComponent {...defaultProps} {...props} />);
 };

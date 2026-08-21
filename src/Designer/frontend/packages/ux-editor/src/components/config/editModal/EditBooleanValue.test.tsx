@@ -82,13 +82,10 @@ describe('EditBooleanValue', () => {
     ).toBeInTheDocument();
   });
 
-  it('should update value when propertyPath is set', async () => {
+  it('should update the boolean value', async () => {
     const handleComponentChange = jest.fn();
     renderEditBooleanValue({
       handleComponentChange,
-      componentOverrides: {
-        propertyPath: 'definitions/inputComponent',
-      },
     });
     const inputElement = screen.getByLabelText(textMock('ux_editor.component_properties.required'));
     await user.click(inputElement);
@@ -102,7 +99,6 @@ describe('EditBooleanValue', () => {
         required: true,
         itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-        propertyPath: 'definitions/inputComponent',
       });
     });
   });
