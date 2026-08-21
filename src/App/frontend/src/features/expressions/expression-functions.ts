@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { SearchParams } from 'src/core/routing/types';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
@@ -29,7 +30,6 @@ import type {
   ValidValue,
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstanceDataSources } from 'src/types/shared';
 
 type ArgsToActual<T extends readonly AnyExprArg[]> = {

@@ -3,6 +3,33 @@ export type LocalizedText = Readonly<{
   en: string;
 }>;
 
+/** Broad component categories shared by layout tooling and the App renderer. */
+export enum CompCategory {
+  Presentation = 'Presentation',
+  Form = 'Form',
+  Action = 'Action',
+  Container = 'Container',
+}
+
+export type ComponentCapabilities = {
+  renderInTable: boolean;
+  renderInButtonGroup: boolean;
+  renderInAccordion: boolean;
+  renderInAccordionGroup: boolean;
+  renderInTabs: boolean;
+  renderInCards: boolean;
+  renderInCardsMedia: boolean;
+};
+
+export type ComponentBehaviors = {
+  isSummarizable: boolean;
+  canHaveLabel: boolean;
+  canHaveOptions: boolean;
+  canHaveAttachments: boolean;
+};
+
+export type ComponentAvailability = 'configurable' | 'internal';
+
 export type ComponentLifecycle = Readonly<{
   status: 'stable' | 'beta' | 'deprecated';
   replacedBy?: string;

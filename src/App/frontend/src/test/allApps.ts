@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
+import type { ILayoutFile, ILayoutSettings } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -12,7 +13,6 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { GlobalPageSettings, UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
-import type { ILayoutFile, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
 

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import classNames from 'classnames';
+import type { IGridStyling } from '@app/layout-contract/generated/common.generated';
 
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
@@ -21,7 +22,6 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes } from 'src/layout/layout';

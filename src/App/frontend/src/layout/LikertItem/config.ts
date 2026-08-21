@@ -1,6 +1,7 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
 import { asOptionsComponent } from 'src/features/options/config';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = asOptionsComponent(
   new CG.component({

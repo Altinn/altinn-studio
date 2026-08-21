@@ -1,5 +1,6 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from 'src/layout/Input/constants';
 
 export const Config = new CG.component({

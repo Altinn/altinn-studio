@@ -44,8 +44,8 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
-    CodeGeneratorContext.curFile().addImport('ExprVal', 'src/features/expressions/types');
-    CodeGeneratorContext.curFile().addImport('ExprValToActualOrExpr', 'src/features/expressions/types');
+    CodeGeneratorContext.curFile().addImport('ExprVal', '@app/layout-contract');
+    CodeGeneratorContext.curFile().addImport('ExprValToActualOrExpr', '@app/layout-contract');
     return symbol ? `type ${symbol} = ${toTsMap[this.valueType]};` : toTsMap[this.valueType];
   }
 

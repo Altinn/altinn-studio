@@ -1,6 +1,4 @@
-import type { ComponentMetadata } from '@app/layout-contract';
-
-import type { CompCategory } from 'src/layout/common';
+import type { CompCategory, ComponentBehaviors, ComponentCapabilities, ComponentMetadata } from '@app/layout-contract';
 
 export interface RequiredComponentConfig {
   category: CompCategory;
@@ -33,15 +31,7 @@ export interface FunctionalityConfig {
  * @see CompWithCap
  * @see getComponentCapabilities
  */
-export interface CompCapabilities {
-  renderInTable: boolean;
-  renderInButtonGroup: boolean;
-  renderInAccordion: boolean;
-  renderInAccordionGroup: boolean;
-  renderInTabs: boolean;
-  renderInCards: boolean;
-  renderInCardsMedia: boolean;
-}
+export type CompCapabilities = ComponentCapabilities;
 
 /**
  * Behaviors are more implicit, and are derived from the component config. I.e. when making a component summarizable,
@@ -49,9 +39,4 @@ export interface CompCapabilities {
  * @see CompWithBehavior
  * @see getComponentBehavior
  */
-export interface CompBehaviors {
-  isSummarizable: boolean;
-  canHaveLabel: boolean;
-  canHaveOptions: boolean;
-  canHaveAttachments: boolean;
-}
+export type CompBehaviors = ComponentBehaviors;

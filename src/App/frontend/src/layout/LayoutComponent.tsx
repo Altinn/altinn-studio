@@ -1,12 +1,18 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import { CompCategory } from '@app/layout-contract';
+import type {
+  ComponentBase,
+  FormComponentProps,
+  IDataModelReference,
+  SummarizableComponentProps,
+} from '@app/layout-contract/generated/common.generated';
 import type { ErrorObject } from 'ajv';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
-import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import type { CompCapabilities } from 'src/codegen/Config';
@@ -15,12 +21,6 @@ import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
-import type {
-  ComponentBase,
-  FormComponentProps,
-  IDataModelReference,
-  SummarizableComponentProps,
-} from 'src/layout/common.generated';
 import type {
   ComponentValidationContext,
   DataModelBindingValidationContext,

@@ -1,3 +1,4 @@
+import { CompCategory } from '@app/layout-contract';
 import type { ComponentDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -7,7 +8,6 @@ import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
 import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
-import { CompCategory } from 'src/layout/common';
 import type { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
@@ -305,7 +305,7 @@ export class ComponentConfig {
 
     return new CG.import({
       import: `${this.type}SummaryOverridesWithRef`,
-      from: `src/layout/${this.type}/config.generated.ts`,
+      from: `@app/layout-contract/generated/components/${this.type}/config.generated`,
     });
   }
 
@@ -329,33 +329,27 @@ export class ComponentConfig {
     }
   }
 
-  public generateConfigFile(): string {
+  public generateConfigTypes(): string {
     this.beforeFinalizing();
     // Forces the objects to register in the context and be exported via the context symbols table
     this.inner.exportAs(`Comp${this.typeSymbol}External`);
     this.inner.toTypeScript();
 
-    const impl = new CG.import({
-      import: this.typeSymbol,
-      from: `./index`,
-    });
-
     const CompCategory = new CG.import({
       import: 'CompCategory',
-      from: `src/layout/common`,
+      from: '@app/layout-contract',
     });
 
     const staticElements = [
-      `export function getConfig() {
-         return {
-           def: new ${impl.toTypeScript()}(),
-           capabilities: ${JSON.stringify(this.config.capabilities, null, 2)} as const,
-           behaviors: ${JSON.stringify(this.behaviors, null, 2)} as const,
-         };
-       }`,
-      `export type TypeConfig = {
+      `export const componentConfig = {
          category: ${CompCategory}.${this.config.category},
-         availability: '${this.config.availability}';
+         availability: '${this.config.availability}',
+         capabilities: ${JSON.stringify(this.config.capabilities, null, 2)},
+         behaviors: ${JSON.stringify(this.behaviors, null, 2)},
+       } as const;`,
+      `export type TypeConfig = {
+         category: typeof componentConfig.category;
+         availability: typeof componentConfig.availability;
          layout: ${this.inner};
          summaryOverrides: ${this.getSummaryOverridesImport('plain')?.toTypeScript() ?? 'undefined'};
          summaryOverridesWithRef: ${this.getSummaryOverrides()?.toTypeScript() ?? 'undefined'};
@@ -363,6 +357,23 @@ export class ComponentConfig {
     ];
 
     return staticElements.join('\n\n');
+  }
+
+  public generateRuntimeConfigFile(): string {
+    const impl = new CG.import({
+      import: this.typeSymbol,
+      from: `src/layout/${this.type}/index`,
+    });
+    const componentConfig = new CG.import({
+      import: 'componentConfig',
+      from: `@app/layout-contract/generated/components/${this.type}/config.generated`,
+    });
+    return `export function getConfig() {
+      return {
+        def: new ${impl.toTypeScript()}(),
+        ...${componentConfig.toTypeScript()},
+      };
+    }`;
   }
 
   public generateComponentCatalogEntry(): ComponentDefinition {

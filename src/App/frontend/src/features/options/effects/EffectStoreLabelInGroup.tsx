@@ -2,15 +2,15 @@ import { useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import type { IDataModelBindingsForGroupCheckbox } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import type { IDataModelBindingsForGroupMultiselect } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 type Row = Record<string, unknown>;

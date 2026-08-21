@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { LinkStyle } from '@app/layout-contract/generated/components/Link/config.generated';
 
 import { LinkComponent } from 'src/layout/Link/LinkComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { LinkStyle } from 'src/layout/Link/config.generated';
 
 describe('LinkComponent', () => {
   it('renders an anchor with the resolved target when style is link', async () => {

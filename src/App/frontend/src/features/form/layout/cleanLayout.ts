@@ -1,5 +1,6 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { getComponentConfigs } from 'src/layout/components.generated';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes, ILayout } from 'src/layout/layout';
 
 type ComponentTypeCaseMapping = { [key: string]: CompTypes };

@@ -1,5 +1,6 @@
+import type { ILayoutSettings } from '@app/layout-contract/generated/common.generated';
+
 import type { GlobalPageSettings } from 'src/features/form/ui/types';
-import type { ILayoutSettings } from 'src/layout/common.generated';
 
 export const defaultGlobalUiSettings: GlobalPageSettings = {
   hideCloseButton: false,

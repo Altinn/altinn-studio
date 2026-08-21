@@ -1,11 +1,12 @@
 import { useCallback, useMemo } from 'react';
 
+import type { IDataModelReference, SaveWhileTyping } from '@app/layout-contract/generated/common.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FDNewValue, FDSetValueResult } from 'src/features/formData/FormDataWriteStateMachine';
-import type { IDataModelReference, SaveWhileTyping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 // Describes how you want the data to be returned from the useDataModelBindings hook. Usually, if you're

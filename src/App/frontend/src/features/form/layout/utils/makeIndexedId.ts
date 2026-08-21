@@ -1,6 +1,7 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function makeIndexedId(
   subjectId: string,

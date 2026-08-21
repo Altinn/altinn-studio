@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { Button, ConditionalWrapper, Fieldset, Flex, FullWidthWrapper } from '@app/form-component';
 import { PlusIcon } from '@navikt/aksel-icons';
+import type { ButtonPosition } from '@app/layout-contract/generated/common.generated';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -25,7 +26,6 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { ButtonPosition } from 'src/layout/common.generated';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
   const baseComponentId = useRepeatingGroupComponentId();

@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 
+import type { FormComponentProps, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
 import type { CompIntermediate, CompIntermediateExact, CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
 

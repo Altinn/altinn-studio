@@ -9,7 +9,9 @@ describe('componentCatalog', () => {
   });
 
   it('includes component lifecycle metadata', () => {
-    expect(Object.values(componentCatalog).every((component) => component.metadata.lifecycle)).toBe(true);
+    expect(Object.values(componentCatalog).every((component) => component.metadata.lifecycle)).toBe(
+      true,
+    );
     expect(componentCatalog.Accordion.metadata.lifecycle).toEqual({ status: 'stable' });
     expect(componentCatalog.Summary.metadata.lifecycle).toEqual({
       status: 'deprecated',
@@ -34,12 +36,18 @@ describe('componentCatalog', () => {
   });
 
   it('describes bindings', () => {
-    expect(componentCatalog.Input.properties.textResourceBindings.properties).toHaveProperty('title');
+    expect(componentCatalog.Input.properties.textResourceBindings.properties).toHaveProperty(
+      'title',
+    );
     expect(componentCatalog.FileUpload.properties.dataModelBindings).toMatchObject({
       type: 'union',
       variants: expect.arrayContaining([
-        expect.objectContaining({ properties: expect.objectContaining({ simpleBinding: expect.any(Object) }) }),
-        expect.objectContaining({ properties: expect.objectContaining({ list: expect.any(Object) }) }),
+        expect.objectContaining({
+          properties: expect.objectContaining({ simpleBinding: expect.any(Object) }),
+        }),
+        expect.objectContaining({
+          properties: expect.objectContaining({ list: expect.any(Object) }),
+        }),
       ]),
     });
   });

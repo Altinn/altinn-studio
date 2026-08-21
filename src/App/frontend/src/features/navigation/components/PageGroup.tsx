@@ -2,6 +2,11 @@ import React, { useLayoutEffect, useState } from 'react';
 
 import { CheckmarkIcon, ChevronDownIcon, InformationIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
+import type {
+  NavigationPageGroup,
+  NavigationPageGroupMultiple,
+  NavigationPageGroupSingle,
+} from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
@@ -19,11 +24,6 @@ import {
 } from 'src/features/navigation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useProcessingMutation } from 'src/hooks/useProcessingMutation';
-import type {
-  NavigationPageGroup,
-  NavigationPageGroupMultiple,
-  NavigationPageGroupSingle,
-} from 'src/layout/common.generated';
 
 export function PageGroup({ group, onNavigate }: { group: NavigationPageGroup; onNavigate?: () => void }) {
   const visiblePages = useVisiblePages(group.order);

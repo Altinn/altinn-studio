@@ -242,6 +242,7 @@ __metadata:
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.8.1"
     globals: "npm:17.9.0"
+    prettier: "npm:3.9.6"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vitest: "npm:4.1.10"
   languageName: unknown

@@ -1,6 +1,7 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
 import { asAttachmentUploader } from 'src/features/attachments/config';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = asAttachmentUploader(
   new CG.component({

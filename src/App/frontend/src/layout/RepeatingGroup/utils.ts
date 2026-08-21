@@ -1,5 +1,8 @@
 import { useCallback, useMemo } from 'react';
 
+import { CompCategory } from '@app/layout-contract';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
@@ -7,7 +10,6 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getComponentDef } from 'src/layout';
-import { CompCategory } from 'src/layout/common';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
@@ -15,7 +17,6 @@ import { getRepeatingChildBaseIds } from 'src/utils/layout/plugins/claimRepeatin
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';

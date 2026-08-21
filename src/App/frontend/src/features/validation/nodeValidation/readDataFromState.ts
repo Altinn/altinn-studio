@@ -1,7 +1,7 @@
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import type { FormStoreState } from 'src/features/form/FormContext';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function readDataFromState(state: FormStoreState, reference: IDataModelReference | undefined): unknown {
   if (!reference) {

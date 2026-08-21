@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
+import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
@@ -20,7 +21,6 @@ import { RepeatingGroupsFocusProvider } from 'src/layout/RepeatingGroup/Provider
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
-import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
 vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({

@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
+import type { GridRows } from '@app/layout-contract/generated/common.generated';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
@@ -14,7 +15,6 @@ import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataMo
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { GridRows } from 'src/layout/common.generated';
 
 interface Common {
   selected: string | undefined;

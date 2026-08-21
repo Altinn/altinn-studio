@@ -75,7 +75,7 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
   toTypeScriptDefinition(): string {
     const _import = new CG.import({
       import: this.realKey ?? this.key,
-      from: 'src/layout/common.generated',
+      from: '@app/layout-contract/generated/common.generated',
     });
 
     this.freeze('toTypeScriptDefinition');

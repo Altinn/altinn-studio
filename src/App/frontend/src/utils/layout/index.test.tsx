@@ -1,4 +1,5 @@
-import { LayoutStyle } from 'src/layout/common.generated';
+import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
+
 import { shouldUseRowLayout } from 'src/utils/layout/index';
 
 describe('shouldUseRowLayout', () => {

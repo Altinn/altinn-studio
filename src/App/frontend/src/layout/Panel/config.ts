@@ -1,5 +1,6 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 // Mirrors PanelVariant in @app/form-component. Inlined so codegen (run via tsx)
 // does not pull in the lib barrel, which transitively imports CSS modules.

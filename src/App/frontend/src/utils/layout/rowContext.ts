@@ -1,4 +1,5 @@
-import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
+import type { IDataModelReference, IMapping } from '@app/layout-contract/generated/common.generated';
+
 import type { CompExternal, CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 export type RowContext = {
