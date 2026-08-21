@@ -46,11 +46,12 @@ var (
 
 // Service contains doctor application logic.
 type Service struct {
-	cfg             *config.Config
-	debugf          func(format string, args ...any)
-	lookPath        func(file string) (string, error)
-	versionOutput   func(ctx context.Context, name string, args ...string) ([]byte, error)
-	containerDetect func(ctx context.Context) (container.ContainerClient, error)
+	cfg                      *config.Config
+	debugf                   func(format string, args ...any)
+	lookPath                 func(file string) (string, error)
+	versionOutput            func(ctx context.Context, name string, args ...string) ([]byte, error)
+	containerDetect          func(ctx context.Context) (container.ContainerClient, error)
+	systemdUserUnitLoadState func(ctx context.Context, unit string) (string, error)
 }
 
 // Report is the doctor application-layer output model.
@@ -93,6 +94,7 @@ type Prerequisites struct {
 	WindowsValue      string          `json:"-"`
 	ContainerResolved string          `json:"containerResolved,omitempty"`
 	ContainerHost     string          `json:"containerHost,omitempty"`
+	ContainerHostHint string          `json:"-"`
 	ContainerClient   string          `json:"containerClient,omitempty"`
 	ContainerServer   string          `json:"containerServer,omitempty"`
 	ContainerTools    []ContainerTool `json:"containerTools,omitempty"`
@@ -149,11 +151,12 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 		debugf = func(string, ...any) {}
 	}
 	return &Service{
-		cfg:             cfg,
-		debugf:          debugf,
-		lookPath:        exec.LookPath,
-		versionOutput:   commandVersionOutput,
-		containerDetect: container.Detect,
+		cfg:                      cfg,
+		debugf:                   debugf,
+		lookPath:                 exec.LookPath,
+		versionOutput:            commandVersionOutput,
+		containerDetect:          container.Detect,
+		systemdUserUnitLoadState: commandSystemdUserUnitLoadState,
 	}
 }
 
@@ -193,16 +196,14 @@ func (s *Service) HasIssues(report Report) bool {
 	return report.LocaltestEnv == nil || report.LocaltestEnv.HasIssues
 }
 
-func (s *Service) lookupPath(file string) (string, error) {
+func (s *Service) commandExists(file string) bool {
 	if s != nil && s.lookPath != nil {
-		return s.lookPath(file)
+		_, err := s.lookPath(file)
+		return err == nil
 	}
 
-	path, err := exec.LookPath(file)
-	if err != nil {
-		return "", fmt.Errorf("lookup %s in PATH: %w", file, err)
-	}
-	return path, nil
+	_, err := exec.LookPath(file)
+	return err == nil
 }
 
 func (s *Service) runVersionOutput(ctx context.Context, name string, args ...string) ([]byte, error) {

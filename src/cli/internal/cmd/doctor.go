@@ -223,10 +223,21 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prereq
 		doctorKeyValue(table, "Tools", tools)
 	}
 	if prerequisites.ContainerHost != "" {
-		doctorKeyValue(table, "DOCKER_HOST", prerequisites.ContainerHost)
+		doctorKeyValue(
+			table,
+			"DOCKER_HOST",
+			doctorContainerHostLabel(prerequisites.ContainerHost, prerequisites.ContainerHostHint),
+		)
 	}
 
 	c.renderDoctorWindowsPrerequisite(table, prerequisites)
+}
+
+func doctorContainerHostLabel(host, hint string) string {
+	if hint == "" {
+		return host
+	}
+	return host + " (" + hint + ")"
 }
 
 func doctorContainerToolsLabel(tools []doctorsvc.ContainerTool) string {
