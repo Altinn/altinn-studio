@@ -1,0 +1,88 @@
+name: Recover app OCI artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing app release version to recover (for example, 9.0.0-rc.1).'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-recovery-context:
+    name: Resolve recovery context
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.context.outputs.environment }}
+      tag: ${{ steps.context.outputs.tag }}
+      version: ${{ steps.context.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Validate version and resolve environment
+        id: context
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="${INPUT_VERSION#v}"
+          environment="$("$GITHUB_WORKSPACE/.github/scripts/resolve-app-release-environment.sh" "$version")"
+
+          {
+            echo "environment=$environment"
+            # Keep this convention aligned with Component.Tag() in src/tools/releaser/internal/component.go.
+            echo "tag=app/v$version"
+            echo "version=$version"
+          } >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Build frontend and push OCI artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: resolve-recovery-context
+    permissions:
+      contents: read
+      packages: write
+    concurrency: app-dist-v${{ needs.resolve-recovery-context.outputs.version }}
+    environment: ${{ needs.resolve-recovery-context.outputs.environment }}
+    steps:
+      - name: Checkout released version
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ needs.resolve-recovery-context.outputs.tag }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.node-version'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Build frontend
+        working-directory: src/App/frontend
+        env:
+          HUSKY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
+          YARN_ENABLE_GLOBAL_CACHE: false
+          YARN_NM_MODE: hardlinks-local
+        run: |
+          yarn install --immutable --inline-builds
+          yarn build
+
+      - name: Resolve release revision
+        id: revision
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish app-dist OCI artifact
+        uses: ./.github/actions/publish-app-dist
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          actor: ${{ github.actor }}
+          version: ${{ needs.resolve-recovery-context.outputs.version }}
+          revision: ${{ steps.revision.outputs.sha }}
