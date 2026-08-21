@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Npgsql;
 using NpgsqlTypes;
 using WorkflowEngine.Data.Constants;
@@ -117,6 +118,58 @@ internal sealed partial class EngineRepository
     {
         await using var cmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx);
         await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The lock every mutation of existing mailboxes takes as its transaction's first act. <c>ORDER BY m.id</c>
+    /// is what makes the order binding: PostgreSQL sorts before it locks, so a close flush, a delivery flush and
+    /// an enqueue flush all take their rows in one total order — the order
+    /// <c>LockAndReadMailboxes</c> takes too — and concurrent flushes convoy instead of deadlocking. Hoisted so
+    /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> that the ids stay a primary-key probe rather than degrading into
+    /// a scan filtered by the array, which would have one flush of a hundred read the whole table.
+    /// </summary>
+    internal const string LockMailboxesForMutationSql = $"""
+        SELECT {MailboxColumns}
+        FROM engine.mailboxes m
+        JOIN unnest(@ids, @namespaces) AS t(id, ns) ON m.id = t.id AND m.namespace = t.ns
+        ORDER BY m.id
+        FOR UPDATE
+        """;
+
+    /// <summary>
+    /// Runs <see cref="LockMailboxesForMutationSql"/> over the pairs a flush is about to decide on, keyed back by
+    /// the pair that named each row. Pairs are deduplicated before the statement sees them: a mailbox named by a
+    /// hundred requests of one batch is locked and read once, not a hundred times. They are presented in id order
+    /// too, as <c>LockAndReadMailboxes</c> presents its own, but it is the statement's <c>ORDER BY</c> that binds
+    /// — PostgreSQL's <c>uuid</c> ordering is the order the locks are taken in, and .NET's <c>Guid</c> comparison
+    /// is not the same one. A pair with no entry in the result matched no row; what that means is the caller's,
+    /// since only it knows whether a missing mailbox is a refusal or an error.
+    /// </summary>
+    private static async Task<Dictionary<(Guid Id, string Namespace), MailboxResponse>> LockMailboxesForMutation(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        IReadOnlyList<(Guid Id, string Namespace)> pairs,
+        CancellationToken cancellationToken
+    )
+    {
+        var (ids, namespaces) = pairs.Distinct().OrderBy(pair => pair.Id).ToArray().Unzip();
+
+        var locked = new Dictionary<(Guid, string), MailboxResponse>(ids.Length);
+        if (ids.Length == 0)
+            return locked;
+
+        await using var cmd = new NpgsqlCommand(LockMailboxesForMutationSql, conn, tx);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+        cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var mailbox = ReadMailbox(reader);
+            locked[(mailbox.Id, mailbox.Namespace)] = mailbox;
+        }
+
+        return locked;
     }
 
     /// <summary>
@@ -535,47 +588,16 @@ internal sealed partial class EngineRepository
 
         try
         {
-            ns = WorkflowNamespace.Normalize(ns);
-
             MailboxCloseResult result = new MailboxCloseResult.NotFound();
+
+            // A batch of one: the retry and the slot are this path's own, but the transaction inside is the
+            // batch's, so one routine answers a single caller and a whole flush identically.
             await ExecuteWithRetry(
-                async ct =>
-                {
-                    await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    await using var tx = await conn.BeginTransactionAsync(ct);
-
-                    // The mailbox row lock is this transaction's first act.
-                    const string lockSql = $"""
-                        SELECT {MailboxColumns}
-                        FROM engine.mailboxes m
-                        WHERE m.id = @id AND m.namespace = @ns
-                        FOR UPDATE
-                        """;
-
-                    MailboxResponse? locked;
-                    await using (var lockCmd = new NpgsqlCommand(lockSql, conn, tx))
-                    {
-                        lockCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailboxId));
-                        lockCmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
-
-                        await using var reader = await lockCmd.ExecuteReaderAsync(ct);
-                        locked = await reader.ReadAsync(ct) ? ReadMailbox(reader) : null;
-                    }
-
-                    if (locked is null)
-                    {
-                        await tx.RollbackAsync(ct);
-                        result = new MailboxCloseResult.NotFound();
-                        return;
-                    }
-
-                    result = (await CloseLockedMailboxes(conn, tx, [(locked, reason, now)], ct))[0];
-
-                    await tx.CommitAsync(ct);
-                },
+                async ct => result = (await LockAndCloseMailboxes([(mailboxId, ns, reason, now)], ct))[0],
                 cancellationToken
             );
 
+            // Outside the retry: an attempt that was rolled back and re-run closed nothing to report.
             result.Record();
 
             return result;
@@ -592,12 +614,136 @@ internal sealed partial class EngineRepository
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<MailboxCloseResult[]> BatchCloseMailboxes(
+        IReadOnlyList<BufferedMailboxCloseRequest> requests,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchCloseMailboxes");
+
+        try
+        {
+            var results = await LockAndCloseMailboxes(
+                [.. requests.Select(request => (request.MailboxId, request.Namespace, request.Reason, request.Now))],
+                cancellationToken
+            );
+
+            // After the commit, per request: a repeat and a miss owe no telemetry, so this is the closes and
+            // their release counts only.
+            foreach (var result in results)
+                result.Record();
+
+            Metrics.DbOperationsSucceeded.Add(1);
+
+            return results;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToBatchCloseMailboxes(requests.Count, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// The transaction both close entry points run: lock every named mailbox, fold the batch down to one close
+    /// per mailbox, close them, release what was parked on them. Results are positional — the answer to
+    /// <paramref name="closes"/><c>[i]</c> sits at index <c>i</c> — and nothing is recorded here, because the
+    /// per-request path publishes its telemetry outside its retry.
+    /// </summary>
+    private async Task<MailboxCloseResult[]> LockAndCloseMailboxes(
+        (Guid MailboxId, string Namespace, MailboxDisposedReason Reason, DateTimeOffset Now)[] closes,
+        CancellationToken cancellationToken
+    )
+    {
+        var results = new MailboxCloseResult[closes.Length];
+        if (closes.Length == 0)
+            return results;
+
+        var pairs = new (Guid Id, string Namespace)[closes.Length];
+        for (var i = 0; i < closes.Length; i++)
+            pairs[i] = (closes[i].MailboxId, WorkflowNamespace.Normalize(closes[i].Namespace));
+
+        await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var tx = await conn.BeginTransactionAsync(cancellationToken);
+
+        var locked = await LockMailboxesForMutation(conn, tx, pairs, cancellationToken);
+
+        // The fold, in batch order: a pair the lock did not match is this method's own refusal, and a pair named
+        // twice is folded away here, standing in for the row-lock race two separate calls would have had. What
+        // survives is one request per mailbox — distinct pairs, and a matched pair's namespace is its row's, so
+        // distinct ids — which is what CloseLockedMailboxes requires of its input.
+        var matched = new List<(int Index, MailboxResponse Locked)>(closes.Length);
+        var firstOccurrence = new Dictionary<(Guid, string), int>(closes.Length);
+        var repeats = new List<(int Index, int PrimaryIndex)>();
+
+        for (var i = 0; i < closes.Length; i++)
+        {
+            if (firstOccurrence.TryGetValue(pairs[i], out var primary))
+            {
+                repeats.Add((i, primary));
+                continue;
+            }
+
+            firstOccurrence[pairs[i]] = i;
+
+            if (locked.TryGetValue(pairs[i], out var mailbox))
+                matched.Add((i, mailbox));
+            else
+                results[i] = new MailboxCloseResult.NotFound();
+        }
+
+        if (matched.Count > 0)
+        {
+            var closed = await CloseLockedMailboxes(
+                conn,
+                tx,
+                [.. matched.Select(m => (m.Locked, closes[m.Index].Reason, closes[m.Index].Now))],
+                cancellationToken
+            );
+
+            for (var i = 0; i < matched.Count; i++)
+                results[matched[i].Index] = closed[i];
+        }
+
+        await tx.CommitAsync(cancellationToken);
+
+        // Resolved once the primaries are settled, so a repeat reports the disposal that is now on the row.
+        foreach (var (index, primaryIndex) in repeats)
+            results[index] = RepeatOf(results[primaryIndex]);
+
+        // Every position is a repeat, a close, or a miss, so this holds by construction — but the buffer hands
+        // each result straight to a waiting caller, and a fifth path added above must not answer one with null.
+        if (results.Any(result => result is null))
+        {
+            throw new UnreachableException("Not all results were set.");
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// What the second request naming a mailbox is answered: the same verdict as the first, except that a close
+    /// is a close only once — the repeat replays it, as it would have on the next call.
+    /// </summary>
+    private static MailboxCloseResult RepeatOf(MailboxCloseResult primary) =>
+        primary switch
+        {
+            MailboxCloseResult.Closed closed => new MailboxCloseResult.AlreadyClosed(closed.Mailbox),
+            _ => primary,
+        };
+
     /// <summary>
     /// Closes a whole set of mailboxes in one statement, each row taking its own reason and timestamp from the
     /// array element naming it, so a batch's per-request <c>now</c> values stay distinct. Hoisted so
     /// <c>QueryPlanTests</c> can <c>EXPLAIN</c> that the ids stay a primary-key probe.
     /// </summary>
-    internal const string CloseMailboxesSql = $"""
+    internal const string CloseLockedMailboxesSql = $"""
         UPDATE engine.mailboxes AS m
         SET status = '{MailboxStatusMap.Disposed}',
             disposed_reason = t.reason,
@@ -660,7 +806,7 @@ internal sealed partial class EngineRepository
             .Unzip();
 
         var closed = new Dictionary<Guid, MailboxResponse>(staged.Count);
-        await using (var closeCmd = new NpgsqlCommand(CloseMailboxesSql, conn, tx))
+        await using (var closeCmd = new NpgsqlCommand(CloseLockedMailboxesSql, conn, tx))
         {
             closeCmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
             closeCmd.Parameters.Add(new NpgsqlParameter<string[]>("reasons", reasons));

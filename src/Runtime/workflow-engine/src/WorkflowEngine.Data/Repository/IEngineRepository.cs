@@ -347,6 +347,24 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Closes a whole buffered batch of mailboxes in one transaction, answering every request at its own
+    /// position with the verdict <see cref="CloseMailbox"/> would have given it. Each distinct
+    /// <c>(mailboxId, ns)</c> pair is locked once, in mailbox-id order, as the transaction's first act, so a
+    /// close flush cannot deadlock against a concurrent enqueue or delivery flush. A mailbox named twice in one
+    /// batch is closed once: the repeat is answered <see cref="MailboxCloseResult.AlreadyClosed"/> carrying the
+    /// row the first occurrence wrote, exactly as a second call would have read it.
+    /// Unlike <see cref="CloseMailbox"/> this takes neither a database slot nor a retry, for the same reasons
+    /// <see cref="BatchEnqueueWorkflows"/> takes neither: the buffer's flush concurrency is what bounds
+    /// connections, and a retry inside would hold one connection for a whole failing batch. A failure faults
+    /// every request in the batch, and the callers' own retries converge because closing is idempotent — the
+    /// mailbox a lost batch left open is closed by the retry, and one it had already closed replays.
+    /// </summary>
+    Task<MailboxCloseResult[]> BatchCloseMailboxes(
+        IReadOnlyList<BufferedMailboxCloseRequest> requests,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Appends one message at the next gapless position. Idempotent on <c>(mailboxId, idempotencyKey)</c>,
     /// and the lookup runs <em>before</em> the refusals: a kept message answers
     /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox is closed or full. Refusals write

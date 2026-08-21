@@ -305,6 +305,35 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task LockMailboxesForMutation_ProbesThePrimaryKeyForEveryMailboxInAFullBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        // A whole flush's worth of ids, not the two the other batch plans pin: PostgreSQL estimates an array
+        // parameter's length when it plans a custom plan, so a batch a hundred wide is a different plan than a
+        // batch of two — and the wide one is what a buffered flush actually issues.
+        var ids = Enumerable.Range(1, 100).Select(i => new Guid($"0197a4f0-0000-7000-8000-{i:D12}")).ToArray();
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.LockMailboxesForMutationSql,
+            [
+                new NpgsqlParameter<Guid[]>("ids", ids),
+                new NpgsqlParameter<string[]>("namespaces", [.. ids.Select(_ => "test-ns")]),
+            ],
+            ct
+        );
+
+        // One primary-key probe per id named, driven by the arrays. An id that fell out of the Index Cond would
+        // have every mutating flush read the whole mailbox table before it could lock a row.
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "pk_mailboxes");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailboxes", "t.id");
+
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
     public async Task CloseMailboxes_ProbesThePrimaryKeyForEveryMailboxInTheBatch()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -312,7 +341,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         var plan = await QueryPlanHelper.ExplainAsync(
             dataSource,
-            EngineRepository.CloseMailboxesSql,
+            EngineRepository.CloseLockedMailboxesSql,
             [
                 new NpgsqlParameter<Guid[]>(
                     "ids",
