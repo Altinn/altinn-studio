@@ -18,47 +18,73 @@ internal sealed partial class EngineRepository
     private const string MailboxDeliveryColumns = "d.mailbox_id, d.idx, d.idempotency_key, d.accepted_at";
 
     /// <summary>
-    /// The one statement that releases parked receivers: the wake passes a position, the closure release passes
-    /// <c>null</c>. One statement so the status transition and the <c>released_at</c> stamp cannot diverge.
+    /// The one statement that releases parked receivers: a wake names one position, a closure release names its
+    /// mailbox's whole position range. One statement so the status transition and the <c>released_at</c> stamp
+    /// cannot diverge. Arrays so one round-trip releases for a whole batch of mailboxes, each element carrying
+    /// its own <c>now</c> so the timestamps a caller pinned stay per-mailbox. The range is expressed as two
+    /// bounds rather than a nullable position on purpose: a <c>t.seq IS NULL OR mr.seq = t.seq</c> disjunction
+    /// over a joined column cannot be const-folded, so the position drops out of the index probe and every wake
+    /// reads its mailbox's entire registry slice. Hoisted so <c>QueryPlanTests</c> can <c>EXPLAIN</c> that both
+    /// key columns stay in the probe.
     /// </summary>
-    private const string ReleaseMailboxReceiversSql = """
+    internal const string ReleaseMailboxReceiversSql = """
         WITH released AS (
             UPDATE engine.workflows AS w
             SET status = @enqueued,
                 backoff_until = NULL,
-                updated_at = @now
+                updated_at = t.now
             FROM engine.mailbox_receivers AS mr
-            WHERE mr.mailbox_id = @mailbox_id
-              AND (@seq IS NULL OR mr.seq = @seq)
-              AND mr.released_at IS NULL
+                JOIN unnest(@mailbox_ids, @seq_los, @seq_his, @nows) AS t(mailbox_id, seq_lo, seq_hi, now)
+                    ON mr.mailbox_id = t.mailbox_id
+                    AND mr.seq >= t.seq_lo
+                    AND mr.seq <= t.seq_hi
+            WHERE mr.released_at IS NULL
               AND w.id = mr.workflow_id
               AND w.status = @held
-            RETURNING w.id
+            RETURNING mr.mailbox_id, mr.seq, t.now
         )
         UPDATE engine.mailbox_receivers AS mr
-        SET released_at = @now
+        SET released_at = released.now
         FROM released
-        WHERE mr.workflow_id = released.id
+        WHERE mr.mailbox_id = released.mailbox_id
+          AND mr.seq = released.seq
+        RETURNING mr.mailbox_id, mr.seq
         """;
 
-    private static async Task<int> ReleaseMailboxReceivers(
+    /// <summary>
+    /// Runs <see cref="ReleaseMailboxReceiversSql"/> and returns the positions it released, in no particular
+    /// order. Each element names a mailbox and an inclusive range of its positions. Ranges over one mailbox must
+    /// not overlap: an overlapped position is released once, and which element's <c>Now</c> gets stamped on it is
+    /// arbitrary — so callers fold their duplicates before getting here.
+    /// </summary>
+    private static async Task<List<(Guid MailboxId, long Seq)>> ReleaseMailboxReceivers(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
-        Guid mailboxId,
-        long? seq,
-        DateTimeOffset now,
+        (Guid MailboxId, long SeqLo, long SeqHi, DateTimeOffset Now)[] releases,
         CancellationToken cancellationToken
     )
     {
+        var released = new List<(Guid MailboxId, long Seq)>();
+        if (releases.Length == 0)
+            return released;
+
+        var (mailboxIds, seqLos, seqHis, nows) = releases.Unzip();
+
         await using var cmd = new NpgsqlCommand(ReleaseMailboxReceiversSql, conn, tx);
-        cmd.Parameters.Add(new NpgsqlParameter<Guid>("mailbox_id", mailboxId));
-        cmd.Parameters.Add(
-            new NpgsqlParameter("seq", NpgsqlDbType.Bigint) { Value = seq.HasValue ? seq.Value : DBNull.Value }
-        );
-        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("mailbox_ids", mailboxIds));
+        cmd.Parameters.Add(new NpgsqlParameter<long[]>("seq_los", seqLos));
+        cmd.Parameters.Add(new NpgsqlParameter<long[]>("seq_his", seqHis));
+        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset[]>("nows", nows));
         cmd.Parameters.Add(new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued));
         cmd.Parameters.Add(new NpgsqlParameter<int>("held", (int)PersistentItemStatus.Held));
-        return await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            released.Add((reader.GetGuid(0), reader.GetInt64(1)));
+        }
+
+        return released;
     }
 
     private static async Task<bool> ReleaseReceiverAt(
@@ -68,15 +94,38 @@ internal sealed partial class EngineRepository
         long seq,
         DateTimeOffset now,
         CancellationToken cancellationToken
-    ) => await ReleaseMailboxReceivers(conn, tx, mailboxId, seq, now, cancellationToken) > 0;
+    )
+    {
+        var released = await ReleaseMailboxReceivers(
+            conn,
+            tx,
+            [(mailboxId, SeqLo: seq, SeqHi: seq, now)],
+            cancellationToken
+        );
+        return released.Count > 0;
+    }
 
-    private static Task<int> ReleaseAllParkedReceivers(
+    /// <summary>
+    /// Releases across the whole position range: a closure takes every parked receiver the mailbox has. The
+    /// lower bound is where the mailbox's counter starts; the upper is the largest position the column can
+    /// hold, there being no bound on how far a live mailbox's counter has run.
+    /// </summary>
+    private static async Task<int> ReleaseAllParkedReceivers(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
         Guid mailboxId,
         DateTimeOffset now,
         CancellationToken cancellationToken
-    ) => ReleaseMailboxReceivers(conn, tx, mailboxId, seq: null, now, cancellationToken);
+    )
+    {
+        var released = await ReleaseMailboxReceivers(
+            conn,
+            tx,
+            [(mailboxId, SeqLo: 0, SeqHi: long.MaxValue, now)],
+            cancellationToken
+        );
+        return released.Count;
+    }
 
     /// <summary>
     /// Issued inside the releasing transaction: PostgreSQL queues the <c>NOTIFY</c> until commit, and a separate

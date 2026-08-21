@@ -14,6 +14,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     private static readonly DateTimeOffset _now = new(2026, 3, 19, 12, 0, 0, TimeSpan.Zero);
     private readonly FakeTimeProvider _timeProvider = new(_now);
 
+    /// <summary>The log position <see cref="SeedParkedReceivers"/> parks a receiver at.</summary>
+    private const long ParkedSeq = 2;
+
     public async ValueTask InitializeAsync()
     {
         await fixture.Reset();
@@ -302,6 +305,48 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ReleaseMailboxReceivers_ProbesTheReceiverKeyForEveryPositionInTheBatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        await SeedParkedReceivers(dataSource, ct);
+
+        // Both shapes the one statement carries: a wake naming the single position a delivery landed at
+        // (the position SeedParkedReceivers parks), and a closure release taking its mailbox's whole range.
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.ReleaseMailboxReceiversSql,
+            [
+                new NpgsqlParameter<Guid[]>(
+                    "mailbox_ids",
+                    [new Guid("0197a4f0-0000-7000-8000-000000000001"), new Guid("0197a4f0-0000-7000-8000-000000000002")]
+                ),
+                new NpgsqlParameter<long[]>("seq_los", [ParkedSeq, 0]),
+                new NpgsqlParameter<long[]>("seq_his", [ParkedSeq, long.MaxValue]),
+                new NpgsqlParameter<DateTimeOffset[]>("nows", [_now, _now]),
+                new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued),
+                new NpgsqlParameter<int>("held", (int)PersistentItemStatus.Held),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailbox_receivers", "pk_mailbox_receivers");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "workflows", "pk_workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_receivers");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+
+        // Both key columns in both probes, named by the alias that identifies each: the batch arrays drive the
+        // release itself, and the CTE's released positions drive the stamp. A position that slipped out of
+        // either Index Cond into a Filter would read the mailbox's whole registry slice per released receiver.
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailbox_receivers", "t.mailbox_id", "t.seq_lo", "t.seq_hi");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_mailbox_receivers", "released.mailbox_id", "released.seq");
+        QueryPlanHelper.AssertIndexCondContains(plan, "pk_workflows", "workflow_id");
+
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
     public async Task CountOverdueOpenMailboxes_UsesIndexScans()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -322,6 +367,62 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     // --- Seed data ---
+
+    /// <summary>
+    /// Tops the seed up with parked receivers on open mailboxes. <see cref="SeedData"/> leaves every receiver
+    /// released and no workflow <c>Held</c>, and a registry with nothing to release does not plan like the
+    /// production statement: with <c>status = held</c> estimated empty, the planner drives the release from the
+    /// workflows index and checks the batch arrays as a join filter, which is the one shape a wake never runs.
+    /// </summary>
+    private static async Task SeedParkedReceivers(NpgsqlDataSource dataSource, CancellationToken ct)
+    {
+        const int parkedCount = 500;
+
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.workflows
+                    (id, operation_id, idempotency_key, namespace, status, created_at, updated_at, reclaim_count)
+                SELECT gen_random_uuid(), 'test-op', 'held-' || g, 'test-ns', @held, @baseTime, @baseTime, 0
+                FROM generate_series(0, @parked - 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("held", (int)PersistentItemStatus.Held);
+            cmd.Parameters.AddWithValue("parked", parkedCount);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        // ParkedSeq onwards is free: the seed's receivers occupy positions 0 and 1 of every mailbox.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+                SELECT m.id, @parkedSeq, w.id, @baseTime, NULL, NULL
+                FROM (
+                    SELECT id, row_number() OVER (ORDER BY id) AS rn
+                    FROM engine.workflows WHERE status = @held
+                ) w
+                JOIN (
+                    SELECT id, row_number() OVER (ORDER BY id) AS rn
+                    FROM engine.mailboxes WHERE status = 'open' LIMIT @parked
+                ) m ON m.rn = w.rn
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("held", (int)PersistentItemStatus.Held);
+            cmd.Parameters.AddWithValue("parked", parkedCount);
+            cmd.Parameters.AddWithValue("parkedSeq", ParkedSeq);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await using var analyzeCmd = dataSource.CreateCommand("ANALYZE engine.workflows, engine.mailbox_receivers");
+        await analyzeCmd.ExecuteNonQueryAsync(ct);
+    }
 
     /// <summary>
     /// Seeds representative data across all statuses at sufficient volume that the planner's
