@@ -445,6 +445,10 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
   const cacheDir = await ensureDictionaries({ offline });
 
   const findings = [];
+  // Glossary-health findings are reported FIRST — a stale or redundant
+  // entry is an actionable config defect and must never drown in the word
+  // backlog below the display cap.
+  const configFindings = [];
   const countsParts = [];
 
   // The shared glossary holds language-neutral tokens (names, identifiers,
@@ -481,7 +485,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
 
     const glossary = readGlossary(join(HERE, `glossary.${lang}.txt`));
     for (const term of [...glossary].filter((t) => shared.has(t)).sort()) {
-      findings.push(
+      configFindings.push(
         finding(
           `.github/spellcheck/glossary.${lang}.txt`,
           undefined,
@@ -536,7 +540,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
     }
     if (staleCheck) {
       for (const term of [...glossary].filter((t) => !usedOwn.has(t)).sort()) {
-        findings.push(
+        configFindings.push(
           finding(
             `.github/spellcheck/glossary.${lang}.txt`,
             undefined,
@@ -555,7 +559,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
   if (staleCheck) {
     // Shared terms are alive when either language needed them.
     for (const term of [...shared].filter((t) => !usedShared.has(t)).sort()) {
-      findings.push(
+      configFindings.push(
         finding(
           '.github/spellcheck/glossary.shared.txt',
           undefined,
@@ -564,7 +568,7 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
       );
     }
   }
-  return { findings, counts: countsParts.join('; ') };
+  return { findings: [...configFindings, ...findings], counts: countsParts.join('; ') };
 }
 
 // ------------------------------------------------------------ quick check ---
