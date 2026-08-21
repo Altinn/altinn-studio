@@ -29,6 +29,25 @@ export const Config = asOptionsComponent(
   .makeSummarizable()
   .addSummaryOverrides()
   .extendTextResources(CG.common('TRBLabel'))
-  .addProperty(new CG.prop('value', new CG.expr(ExprVal.String)))
+  .addProperty(
+    new CG.prop(
+      'value',
+      new CG.expr(ExprVal.String)
+        .setTitle('Selected value', 'Valgt verdi')
+        .setDescription('The value represented by the option.', 'Verdien alternativet representerer.'),
+    ),
+  )
   .addProperty(new CG.prop('direction', new CG.enum('horizontal', 'vertical').optional({ default: 'horizontal' })))
-  .addProperty(new CG.prop('icon', new CG.str().optional().addExample('https://example.com/icon.svg')));
+  .addProperty(
+    new CG.prop(
+      'icon',
+      new CG.str()
+        .optional()
+        .setTitle('Icon', 'Ikon')
+        .setDescription(
+          'The URL of an icon displayed with the option.',
+          'URL-en til et ikon som vises med alternativet.',
+        )
+        .addExample('https://example.com/icon.svg'),
+    ),
+  );

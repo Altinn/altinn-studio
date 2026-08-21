@@ -31,8 +31,11 @@ export const Config = asOptionsComponent(
       'alertOnChange',
       new CG.expr(ExprVal.Boolean)
         .optional({ default: false })
-        .setTitle('Alert on change')
-        .setDescription('Boolean value indicating if the component should alert on change'),
+        .setTitle('Alert on change', 'Varsel ved endring')
+        .setDescription(
+          'Boolean value indicating if the component should alert on change',
+          'Angir om komponenten skal varsle ved endringer.',
+        ),
     ),
   )
   .addSummaryOverrides()

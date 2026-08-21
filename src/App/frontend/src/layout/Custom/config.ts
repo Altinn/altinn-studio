@@ -27,10 +27,18 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Title (passed on as the "text" property to the component)',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: {
+        en: 'Title (passed on as the "text" property to the component)',
+        nb: 'Ledeteksten, sendt til komponentens «text»-egenskap.',
+      },
     }),
   )
   .addProperty(
-    new CG.prop('tagName', new CG.str().setTitle('Tag name').setDescription('Web component tag name to use')),
+    new CG.prop(
+      'tagName',
+      new CG.str()
+        .setTitle('Tag name', 'Taggnavn')
+        .setDescription('Web component tag name to use', 'Navnet på web component-taggen som skal brukes.'),
+    ),
   );

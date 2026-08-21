@@ -29,9 +29,10 @@ export const Config = new CG.component({
       'maxLength',
       new CG.int()
         .optional()
-        .setTitle('Max length')
+        .setTitle('Max length', 'Maksimal lengde')
         .setDescription(
           'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+          'Maksimal lengde for inndatafeltet. Viser en teller med antall gjenstående tegn.',
         ),
     ),
   )

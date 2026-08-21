@@ -13,11 +13,11 @@ const IGridSize = {
 const IGridStyling = {
   type: 'object',
   properties: {
-    xs: { type: 'union', variants: IGridSize['variants'], required: false },
-    sm: { type: 'union', variants: IGridSize['variants'], required: false },
-    md: { type: 'union', variants: IGridSize['variants'], required: false },
-    lg: { type: 'union', variants: IGridSize['variants'], required: false },
-    xl: { type: 'union', variants: IGridSize['variants'], required: false },
+    xs: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
+    sm: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
+    md: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
+    lg: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
+    xl: { type: 'union', variants: IGridSize['variants'], default: 'auto', required: false },
   },
   additionalProperties: false,
 } as const;
@@ -34,24 +34,34 @@ const IGrid = {
       type: 'object',
       properties: IGridStyling['properties'],
       additionalProperties: false,
+      description: { en: 'Column widths for the label.', nb: 'Kolonnebredder for ledeteksten.' },
       required: false,
     },
     innerGrid: {
       type: 'object',
       properties: IGridStyling['properties'],
       additionalProperties: false,
+      description: { en: 'Column widths for the content.', nb: 'Kolonnebredder for innholdet.' },
       required: false,
     },
     validationGrid: {
       type: 'object',
       properties: IGridStyling['properties'],
       additionalProperties: false,
+      title: { en: 'Validation grid', nb: 'Valideringsrutenett' },
+      description: {
+        en: 'Column widths for validation messages. Uses the same area as innerGrid and defaults to innerGrid when omitted.',
+        nb: 'Kolonnebredder for valideringsmeldinger. Bruker samme område som innerGrid og arver verdien når egenskapen ikke er satt.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Grid',
-  description: 'Settings for the components grid. Used for controlling horizontal alignment',
+  title: { en: 'Grid', nb: 'Rutenett' },
+  description: {
+    en: "Grid settings controlling the component's horizontal placement and width.",
+    nb: 'Rutenettinnstillinger som styrer komponentens horisontale plassering og bredde.',
+  },
 } as const;
 
 const IPageBreak = {
@@ -60,9 +70,11 @@ const IPageBreak = {
     breakBefore: {
       type: 'string',
       expression: true,
-      title: 'Page break before',
-      description:
-        "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+      title: { en: 'Page break before', nb: 'Sideskift før' },
+      description: {
+        en: "PDF only: Indicates whether to insert a page break before the component. Can be 'auto', 'always', or 'avoid'.",
+        nb: "For PDF: Angir om det skal settes inn et sideskift før komponenten. Verdien kan være 'auto', 'always' eller 'avoid'.",
+      },
       default: 'auto',
       examples: ['auto', 'always', 'avoid'],
       required: false,
@@ -70,17 +82,22 @@ const IPageBreak = {
     breakAfter: {
       type: 'string',
       expression: true,
-      title: 'Page break after',
-      description:
-        "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+      title: { en: 'Page break after', nb: 'Sideskift etter' },
+      description: {
+        en: "PDF only: Indicates whether to insert a page break after the component. Can be 'auto', 'always', or 'avoid'.",
+        nb: "For PDF: Angir om det skal settes inn et sideskift etter komponenten. Verdien kan være 'auto', 'always' eller 'avoid'.",
+      },
       default: 'auto',
       examples: ['auto', 'always', 'avoid'],
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Page break',
-  description: 'Optionally insert page-break before/after component when rendered in PDF',
+  title: { en: 'Page break', nb: 'Sideskift' },
+  description: {
+    en: 'Settings for optional page breaks before or after the component when rendered in PDF.',
+    nb: 'Innstillinger for valgfrie sideskift før eller etter komponenten når den vises i PDF.',
+  },
 } as const;
 
 const ComponentBase = {
@@ -89,17 +106,21 @@ const ComponentBase = {
     id: {
       type: 'string',
       pattern: '^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$',
-      title: 'ID',
-      description:
-        'The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.',
+      title: { en: 'ID', nb: 'ID' },
+      description: {
+        en: 'The component ID. It must be unique across all pages in a layout set and cannot end with a dash followed by a number.',
+        nb: 'Komponent-ID-en. Den må være unik på tvers av alle sider i et layout-sett og kan ikke slutte med bindestrek etterfulgt av et tall.',
+      },
       required: true,
     },
     hidden: {
       type: 'boolean',
       expression: true,
-      title: 'Hidden',
-      description:
-        'Boolean value or expression indicating if the component should be hidden. Defaults to false.',
+      title: { en: 'Hidden', nb: 'Skjult' },
+      description: {
+        en: 'Boolean value or expression indicating whether the component should be hidden.',
+        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal skjules.',
+      },
       default: false,
       required: false,
     },
@@ -107,16 +128,16 @@ const ComponentBase = {
       type: 'object',
       properties: IGrid['properties'],
       additionalProperties: false,
-      title: 'Grid',
-      description: 'Settings for the components grid. Used for controlling horizontal alignment',
+      title: IGrid['title'],
+      description: IGrid['description'],
       required: false,
     },
     pageBreak: {
       type: 'object',
       properties: IPageBreak['properties'],
       additionalProperties: false,
-      title: 'Page break',
-      description: 'Optionally insert page-break before/after component when rendered in PDF',
+      title: IPageBreak['title'],
+      description: IPageBreak['description'],
       required: false,
     },
   },
@@ -128,18 +149,22 @@ const SummarizableComponentProps = {
   properties: {
     renderAsSummary: {
       type: 'boolean',
-      title: 'Render as summary',
-      description:
-        'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+      title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+      description: {
+        en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+        nb: 'Angir om komponenten skal vises som en oppsummering.',
+      },
       default: false,
       required: false,
     },
     forceShowInSummary: {
       type: 'boolean',
       expression: true,
-      title: 'Force show in summary',
-      description:
-        'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+      title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+      description: {
+        en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+        nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+      },
       default: false,
       required: false,
     },
@@ -153,16 +178,21 @@ const TRBSummarizable = {
     summaryTitle: {
       type: 'string',
       expression: true,
-      title: 'Summary title',
-      description: 'Title used in the summary view (overrides the default title)',
+      title: { en: 'Summary title', nb: 'Tittel i oppsummering' },
+      description: {
+        en: 'Title used in the summary view (overrides the default title)',
+        nb: 'Tittelen som vises i oppsummeringen. Overstyrer den vanlige tittelen.',
+      },
       required: false,
     },
     summaryAccessibleTitle: {
       type: 'string',
       expression: true,
-      title: 'Accessible summary title',
-      description:
-        'Title used for aria-label on the edit button in the summary view (overrides the default and summary title)',
+      title: { en: 'Accessible summary title', nb: 'Tilgjengelig tittel i oppsummering' },
+      description: {
+        en: 'Title used for aria-label on the edit button in the summary view (overrides the default and summary title)',
+        nb: 'Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen.',
+      },
       required: false,
     },
   },
@@ -174,8 +204,11 @@ const HeadingLevel = { type: 'number', allowedValues: [2, 3, 4, 5, 6] } as const
 const ActionButtonStyle = {
   type: 'string',
   allowedValues: ['primary', 'secondary'],
-  title: 'Button style',
-  description: 'The style/color scheme of the button.',
+  title: { en: 'Button style', nb: 'Knappestil' },
+  description: {
+    en: 'The style/color scheme of the button.',
+    nb: 'Knappens stil eller fargepalett.',
+  },
 } as const;
 
 const AllowedValidationMasks = {
@@ -192,8 +225,11 @@ const AllowedValidationMasks = {
       'All',
     ],
   },
-  title: 'Validation types',
-  description: 'List of validation types to show',
+  title: { en: 'Validation types', nb: 'Valideringstyper' },
+  description: {
+    en: 'List of validation types to show',
+    nb: 'Liste over valideringstypene som skal vises.',
+  },
 } as const;
 
 const FormComponentProps = {
@@ -202,26 +238,30 @@ const FormComponentProps = {
     readOnly: {
       type: 'boolean',
       expression: true,
-      title: 'Read only/disabled?',
-      description:
-        'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+      title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+      description: {
+        en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+      },
       default: false,
       required: false,
     },
     required: {
       type: 'boolean',
       expression: true,
-      title: 'Required?',
-      description:
-        'Boolean value or expression indicating if the component should be required. Defaults to false.',
+      title: { en: 'Required?', nb: 'Påkrevd' },
+      description: {
+        en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+      },
       default: false,
       required: false,
     },
     showValidations: {
       type: 'array',
       items: AllowedValidationMasks['items'],
-      title: 'Validation types',
-      description: 'List of validation types to show',
+      title: AllowedValidationMasks['title'],
+      description: AllowedValidationMasks['description'],
       required: false,
     },
   },
@@ -233,12 +273,20 @@ const ILabelSettings = {
   properties: {
     optionalIndicator: {
       type: 'boolean',
-      title: 'Optional indicator',
-      description: 'Show optional indicator on label',
+      title: { en: 'Optional indicator', nb: 'Markering av valgfritt felt' },
+      description: {
+        en: 'Show optional indicator on label',
+        nb: 'Viser en markering for valgfrie felt ved ledeteksten.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
+  title: { en: 'Label settings', nb: 'Innstillinger for ledetekst' },
+  description: {
+    en: 'Controls how the component label is displayed.',
+    nb: 'Styrer hvordan ledeteksten til komponenten vises.',
+  },
 } as const;
 
 const LabeledComponentProps = {
@@ -248,6 +296,8 @@ const LabeledComponentProps = {
       type: 'object',
       properties: ILabelSettings['properties'],
       additionalProperties: false,
+      title: ILabelSettings['title'],
+      description: ILabelSettings['description'],
       required: false,
     },
   },
@@ -260,24 +310,31 @@ const TRBFormComp = {
     tableTitle: {
       type: 'string',
       expression: true,
-      title: 'Table title',
-      description: 'Title used in the table view (overrides the default title)',
+      title: { en: 'Table title', nb: 'Tittel i tabellvisning' },
+      description: {
+        en: 'Title used in the table view (overrides the default title)',
+        nb: 'Tittelen som vises i tabellvisningen. Overstyrer den vanlige tittelen.',
+      },
       required: false,
     },
     shortName: {
       type: 'string',
       expression: true,
-      title: 'Short name (for validation)',
-      description:
-        'Alternative name used for required validation messages (overrides the default title)',
+      title: { en: 'Short name (for validation)', nb: 'Kortnavn for validering' },
+      description: {
+        en: 'Alternative name used for required validation messages (overrides the default title)',
+        nb: 'Alternativt navn i valideringsmeldinger for påkrevde felt. Overstyrer den vanlige tittelen.',
+      },
       required: false,
     },
     requiredValidation: {
       type: 'string',
       expression: true,
-      title: 'Required validation message',
-      description:
-        'Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)',
+      title: { en: 'Required validation message', nb: 'Valideringsmelding for påkrevd felt' },
+      description: {
+        en: 'Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)',
+        nb: 'Hele valideringsmeldingen som vises når komponenten er påkrevd og mangler verdi. Overstyrer både standardmeldingen og kortnavnet.',
+      },
       required: false,
     },
   },
@@ -289,14 +346,20 @@ const IDataModelReference = {
   properties: {
     dataType: {
       type: 'string',
-      title: 'Data type',
-      description: 'The name of the datamodel type to reference',
+      title: { en: 'Data type', nb: 'Datatype' },
+      description: {
+        en: 'The name of the datamodel type to reference',
+        nb: 'Navnet på datamodelltypen det skal refereres til.',
+      },
       required: true,
     },
     field: {
       type: 'string',
-      title: 'Field',
-      description: 'The path to the property using dot-notation',
+      title: { en: 'Field', nb: 'Felt' },
+      description: {
+        en: 'The path to the property using dot-notation',
+        nb: 'Stien til egenskapen i punktnotasjon.',
+      },
       required: true,
     },
   },
@@ -310,41 +373,81 @@ const IDataModelBindingsForAddress = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for address', nb: 'Datamodellbinding for adresse' },
+      description: {
+        en: 'Describes the location in the data model where the component should store the address.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre adressen.',
+      },
       required: true,
     },
     zipCode: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for zip code', nb: 'Datamodellbinding for postnummer' },
+      description: {
+        en: 'Describes the location in the data model where the component should store the zip code.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre postnummeret.',
+      },
       required: true,
     },
     postPlace: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for post place', nb: 'Datamodellbinding for poststed' },
+      description: {
+        en: 'Describes the location in the data model where the component should store the post place.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre poststedet.',
+      },
       required: true,
     },
     careOf: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for care of', nb: 'Datamodellbinding for c/o' },
+      description: {
+        en: 'Describes the location in the data model where the component should store care of.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre c/o-adressen.',
+      },
       required: false,
     },
     houseNumber: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for house number', nb: 'Datamodellbinding for husnummer' },
+      description: {
+        en: 'Describes the location in the data model where the component should store the house number.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre husnummeret.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
+} as const;
+
+const SaveWhileTyping = {
+  type: 'number',
+  title: { en: 'Automatic saving while typing', nb: 'Automatisk lagring mens brukeren skriver' },
+  description: {
+    en: 'Lets you control how long we wait before saving the value locally while typing. This value is usually also used to determine how long we wait before saving the value to the server. The default value is 400 milliseconds.',
+    nb: 'Angir hvor lenge appen venter før den lagrer verdien mens brukeren skriver. Standardverdien er 400 millisekunder.',
+  },
+  default: 400,
 } as const;
 
 const AlertSeverity = {
   type: 'string',
   allowedValues: ['success', 'warning', 'danger', 'info'],
-  title: 'Alert severity',
-  description: 'The severity of the alert',
+  title: { en: 'Alert severity', nb: 'Alvorlighetsgrad' },
+  description: { en: 'The severity of the alert', nb: 'Varselets alvorlighetsgrad.' },
 } as const;
 
 const AudioSrc = {
@@ -352,17 +455,30 @@ const AudioSrc = {
   properties: {
     nb: {
       type: 'string',
-      title: 'Audio source (when using norwegian bokmål language)',
+      title: {
+        en: 'Audio source (when using norwegian bokmål language)',
+        nb: 'Lydkilde for norsk bokmål',
+      },
       required: false,
     },
     nn: {
       type: 'string',
-      title: 'Audio source (when using norwegian nynorsk language)',
+      title: {
+        en: 'Audio source (when using norwegian nynorsk language)',
+        nb: 'Lydkilde for norsk nynorsk',
+      },
       required: false,
     },
-    en: { type: 'string', title: 'Audio source (when using english language)', required: false },
+    en: {
+      type: 'string',
+      title: { en: 'Audio source (when using english language)', nb: 'Lydkilde for engelsk' },
+      required: false,
+    },
   },
-  additionalProperties: { type: 'string', title: 'Audio source (when using other languages)' },
+  additionalProperties: {
+    type: 'string',
+    title: { en: 'Audio source (when using other languages)', nb: 'Lydkilde for andre språk' },
+  },
   examples: [
     {
       nb: 'https://example.com/audio.mp3',
@@ -389,24 +505,33 @@ const IAudio = {
 const ButtonSize = {
   type: 'string',
   allowedValues: ['sm', 'md', 'lg'],
-  title: 'Size',
-  description: 'The size of the button. Only effective using style of primary or secondary',
+  title: { en: 'Size', nb: 'Størrelse' },
+  description: {
+    en: 'The size of the button. Only effective using style of primary or secondary',
+    nb: 'Knappens størrelse. Har bare effekt når stilen er primary eller secondary.',
+  },
   default: 'md',
 } as const;
 
 const ButtonTextAlign = {
   type: 'string',
   allowedValues: ['left', 'center', 'right'],
-  title: 'Text Align',
-  description: 'Text align when using style of primary or secondary.',
+  title: { en: 'Text Align', nb: 'Tekstjustering' },
+  description: {
+    en: 'Text align when using style of primary or secondary.',
+    nb: 'Justerer teksten når stilen er primary eller secondary.',
+  },
   default: 'center',
 } as const;
 
 const ButtonPosition = {
   type: 'string',
   allowedValues: ['left', 'center', 'right'],
-  title: 'Position',
-  description: 'Position the button left, center or right on the screen.',
+  title: { en: 'Position', nb: 'Plassering' },
+  description: {
+    en: 'Position the button left, center or right on the screen.',
+    nb: 'Plasserer knappen til venstre, i midten eller til høyre på skjermen.',
+  },
 } as const;
 
 const IButtonProps = {
@@ -415,30 +540,33 @@ const IButtonProps = {
     size: {
       type: 'string',
       allowedValues: ButtonSize['allowedValues'],
-      title: 'Size',
-      description: 'The size of the button. Only effective using style of primary or secondary',
+      title: ButtonSize['title'],
+      description: ButtonSize['description'],
       default: 'md',
       required: false,
     },
     textAlign: {
       type: 'string',
       allowedValues: ButtonTextAlign['allowedValues'],
-      title: 'Text Align',
-      description: 'Text align when using style of primary or secondary.',
+      title: ButtonTextAlign['title'],
+      description: ButtonTextAlign['description'],
       default: 'center',
       required: false,
     },
     fullWidth: {
       type: 'boolean',
-      title: 'Full width',
-      description: 'Whether a link button should expand to full width',
+      title: { en: 'Full width', nb: 'Full bredde' },
+      description: {
+        en: 'Whether a link button should expand to full width',
+        nb: 'Angir om en lenkeknapp skal fylle hele bredden.',
+      },
       required: false,
     },
     position: {
       type: 'string',
       allowedValues: ButtonPosition['allowedValues'],
-      title: 'Position',
-      description: 'Position the button left, center or right on the screen.',
+      title: ButtonPosition['title'],
+      description: ButtonPosition['description'],
       required: false,
     },
   },
@@ -448,8 +576,8 @@ const IButtonProps = {
 const ButtonMode = {
   type: 'string',
   allowedValues: ['submit', 'save', 'instantiate'],
-  title: 'Mode',
-  description: 'The mode of the button',
+  title: { en: 'Mode', nb: 'Modus' },
+  description: { en: 'The mode of the button', nb: 'Knappens modus.' },
   default: 'submit',
 } as const;
 
@@ -457,9 +585,11 @@ const IMapping = {
   type: 'object',
   properties: {},
   additionalProperties: { type: 'string' },
-  title: 'Mapping',
-  description:
-    'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+  title: { en: 'Mapping', nb: 'Kobling' },
+  description: {
+    en: 'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+    nb: 'En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.',
+  },
 } as const;
 
 const TRBLabel = {
@@ -468,22 +598,31 @@ const TRBLabel = {
     title: {
       type: 'string',
       expression: true,
-      title: 'Title',
-      description: 'Label text/title shown above the component',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: {
+        en: 'Label text/title shown above the component',
+        nb: 'Ledeteksten eller tittelen som vises over komponenten.',
+      },
       required: false,
     },
     description: {
       type: 'string',
       expression: true,
-      title: 'Description',
-      description: 'Label description shown above the component, below the title',
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: {
+        en: 'Label description shown above the component, below the title',
+        nb: 'Beskrivelsen som vises mellom ledeteksten og komponenten.',
+      },
       required: false,
     },
     help: {
       type: 'string',
       expression: true,
-      title: 'Help text',
-      description: 'Help text shown in a tooltip when clicking the help button',
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'Help text shown in a tooltip when clicking the help button',
+        nb: 'Hjelpeteksten som vises når brukeren åpner hjelpeknappen.',
+      },
       required: false,
     },
   },
@@ -493,16 +632,19 @@ const TRBLabel = {
 const CardsMediaPosition = {
   type: 'string',
   allowedValues: ['top', 'bottom'],
-  title: 'ImagePosition',
-  description: 'Position of the media (image/video/audio) in each card',
+  title: { en: 'ImagePosition', nb: 'Bildeplassering' },
+  description: {
+    en: 'Position of the media (image/video/audio) in each card',
+    nb: 'Plasseringen av mediet, bilde, video eller lyd, i hvert kort.',
+  },
   default: 'top',
 } as const;
 
 const CardsColor = {
   type: 'string',
   allowedValues: ['neutral', 'subtle'],
-  title: 'Card color',
-  description: 'The color style for these cards',
+  title: { en: 'Card color', nb: 'Kortfarge' },
+  description: { en: 'The color style for these cards', nb: 'Fargestilen for kortene.' },
 } as const;
 
 const CardConfig = {
@@ -510,29 +652,42 @@ const CardConfig = {
   properties: {
     media: {
       type: 'string',
-      title: 'Media',
-      description:
-        'Media to display on the top/bottom of the card (must reference an Image, Audio or Video component',
+      title: { en: 'Media', nb: 'Medium' },
+      description: {
+        en: 'Media to display on the top/bottom of the card (must reference an Image, Audio or Video component',
+        nb: 'Mediet som vises øverst eller nederst i kortet. Må referere til en Image-, Audio- eller Video-komponent.',
+      },
       required: false,
     },
-    title: { type: 'string', title: 'Title', description: 'Title of the card', required: false },
+    title: {
+      type: 'string',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Title of the card', nb: 'Kortets tittel.' },
+      required: false,
+    },
     description: {
       type: 'string',
-      title: 'Description/body text',
-      description: 'Full text displayed underneath the title, above any component children',
+      title: { en: 'Description/body text', nb: 'Beskrivelse/brødtekst' },
+      description: {
+        en: 'Full text displayed underneath the title, above any component children',
+        nb: 'Hele teksten som vises under tittelen og over eventuelle underkomponenter.',
+      },
       required: false,
     },
     footer: {
       type: 'string',
-      title: 'Footer',
-      description: 'Footer text of the card',
+      title: { en: 'Footer', nb: 'Bunntekst' },
+      description: { en: 'Footer text of the card', nb: 'Bunnteksten i kortet.' },
       required: false,
     },
     children: {
       type: 'array',
       items: { type: 'string' },
-      title: 'Children',
-      description: 'Child component IDs to show inside the card',
+      title: { en: 'Children', nb: 'Underkomponenter' },
+      description: {
+        en: 'Child component IDs to show inside the card',
+        nb: 'ID-ene til komponentene som skal vises i kortet.',
+      },
       required: false,
     },
   },
@@ -543,15 +698,25 @@ const IQueryParameters = {
   type: 'object',
   properties: {},
   additionalProperties: { type: 'string', expression: true },
-  title: 'Query parameters',
-  description:
-    'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+  title: { en: 'Query parameters', nb: 'Spørringsparametere' },
+  description: {
+    en: 'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+    nb: 'Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes.',
+  },
 } as const;
 
 const IRawOption = {
   type: 'object',
   properties: {
-    label: { type: 'string', required: true },
+    label: {
+      type: 'string',
+      title: { en: 'Option label', nb: 'Ledetekst for alternativ' },
+      description: {
+        en: 'The text displayed for the option.',
+        nb: 'Teksten som vises for alternativet.',
+      },
+      required: true,
+    },
     value: {
       type: 'union',
       variants: [
@@ -560,12 +725,32 @@ const IRawOption = {
         { type: 'boolean' },
         { type: 'constant', value: null },
       ],
+      title: { en: 'Option value', nb: 'Alternativverdi' },
+      description: {
+        en: 'The value stored when the option is selected.',
+        nb: 'Verdien som lagres når alternativet velges.',
+      },
       required: true,
     },
-    description: { type: 'string', required: false },
-    helpText: { type: 'string', required: false },
+    description: {
+      type: 'string',
+      title: { en: 'Option description', nb: 'Beskrivelse av alternativ' },
+      description: {
+        en: 'Additional text displayed with the option.',
+        nb: 'Utfyllende tekst som vises med alternativet.',
+      },
+      required: false,
+    },
+    helpText: {
+      type: 'string',
+      title: { en: 'Option help text', nb: 'Hjelpetekst for alternativ' },
+      description: { en: 'Help text for the option.', nb: 'Hjelpetekst for alternativet.' },
+      required: false,
+    },
   },
   additionalProperties: false,
+  title: { en: 'Option', nb: 'Alternativ' },
+  description: { en: 'Defines one selectable option.', nb: 'Definerer ett valgbart alternativ.' },
   examples: [{ label: '', value: '' }],
 } as const;
 
@@ -574,57 +759,73 @@ const IOptionSource = {
   properties: {
     dataType: {
       type: 'string',
-      title: 'Data type',
-      description:
-        'The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used.',
+      title: { en: 'Data type', nb: 'Datatype' },
+      description: {
+        en: 'The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used.',
+        nb: 'Datamodellen der dataene til den repeterende gruppen lagres. Hvis den ikke er angitt, brukes datamodellen fra layout-settet.',
+      },
       required: false,
     },
     group: {
       type: 'string',
-      title: 'Group',
-      description: 'The repeating group to base options on.',
+      title: { en: 'Group', nb: 'Gruppe' },
+      description: {
+        en: 'The repeating group to base options on.',
+        nb: 'Den repeterende gruppen som alternativene skal bygges fra.',
+      },
       examples: ['model.some.group'],
       required: true,
     },
     label: {
       type: 'string',
       expression: true,
-      title: 'Label',
-      description:
-        'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+      title: { en: 'Label', nb: 'Ledetekst' },
+      description: {
+        en: 'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+        nb: 'Ledetekst for alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk.',
+      },
       examples: ['some.text.key'],
       required: true,
     },
     value: {
       type: 'string',
-      title: 'Value',
-      description: 'Field in the group that should be used as value',
+      title: { en: 'Value', nb: 'Verdi' },
+      description: {
+        en: 'Field in the group that should be used as value',
+        nb: 'Feltet i gruppen som skal brukes som verdi.',
+      },
       examples: ['model.some.group[{0}].someField'],
       required: true,
     },
     description: {
       type: 'string',
       expression: true,
-      title: 'Description',
-      description:
-        'A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: {
+        en: 'A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+        nb: 'Beskrivelse av alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk.',
+      },
       examples: ['some.text.key', 'My Description'],
       required: false,
     },
     helpText: {
       type: 'string',
       expression: true,
-      title: 'Help Text',
-      description:
-        'A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+      title: { en: 'Help Text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+        nb: 'Hjelpetekst for alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk.',
+      },
       examples: ['some.text.key', 'My Help Text'],
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Option source',
-  description:
-    'Allows for fetching options from the data model, pointing to a repeating group structure',
+  title: { en: 'Option source', nb: 'Kilde for alternativer' },
+  description: {
+    en: 'Allows for fetching options from the data model, pointing to a repeating group structure',
+    nb: 'Henter alternativer fra en repeterende gruppestruktur i datamodellen.',
+  },
 } as const;
 
 const ISelectionComponent = {
@@ -632,64 +833,91 @@ const ISelectionComponent = {
   properties: {
     optionsId: {
       type: 'string',
-      title: 'Dynamic options (fetched from server)',
-      description: 'ID of the option list to fetch from the server',
+      title: {
+        en: 'Dynamic options (fetched from server)',
+        nb: 'Dynamiske alternativer fra serveren',
+      },
+      description: {
+        en: 'ID of the option list to fetch from the server',
+        nb: 'ID-en til listen med alternativer som skal hentes fra serveren.',
+      },
       required: false,
     },
     mapping: {
       type: 'object',
       properties: IMapping['properties'],
       additionalProperties: IMapping['additionalProperties'],
-      title: 'Mapping',
-      description:
-        'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+      title: IMapping['title'],
+      description: IMapping['description'],
+      deprecated: true,
       required: false,
     },
     queryParameters: {
       type: 'object',
       properties: IQueryParameters['properties'],
       additionalProperties: IQueryParameters['additionalProperties'],
-      title: 'Query parameters',
-      description:
-        'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+      title: { en: 'Query parameters', nb: 'Spørringsparametere' },
+      description: {
+        en: 'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+        nb: 'Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes.',
+      },
       required: false,
     },
     options: {
       type: 'array',
-      items: IRawOption,
-      title: 'Static options',
-      description: 'List of static options',
+      items: {
+        type: 'object',
+        properties: IRawOption['properties'],
+        additionalProperties: false,
+        title: IRawOption['title'],
+        description: IRawOption['description'],
+        examples: IRawOption['examples'],
+      },
+      title: { en: 'Static options', nb: 'Statiske alternativer' },
+      description: { en: 'List of static options', nb: 'Liste over statiske alternativer.' },
       required: false,
     },
     secure: {
       type: 'boolean',
-      title: 'Secure options (when using optionsId)',
-      description:
-        'Whether to call the secure API endpoint when fetching options from the server (allows for user/instance-specific options)',
+      title: {
+        en: 'Secure options (when using optionsId)',
+        nb: 'Sikre alternativer med optionsId',
+      },
+      description: {
+        en: 'Whether to call the secure API endpoint when fetching options from the server (allows for user/instance-specific options)',
+        nb: 'Angir om det sikre API-endepunktet skal brukes når alternativer hentes fra serveren.',
+      },
       default: false,
       required: false,
     },
     sortOrder: {
       type: 'string',
       allowedValues: ['asc', 'desc'],
-      description: 'Sorts the code list in either ascending or descending order by label.',
+      description: {
+        en: 'Sorts the code list in either ascending or descending order by label.',
+        nb: 'Sorterer kodelisten stigende eller synkende etter ledetekst.',
+      },
       required: false,
     },
     source: {
       type: 'object',
       properties: IOptionSource['properties'],
       additionalProperties: false,
-      title: 'Option source',
-      description:
-        'Allows for fetching options from the data model, pointing to a repeating group structure',
+      title: IOptionSource['title'],
+      description: IOptionSource['description'],
       required: false,
     },
     optionFilter: {
       type: 'boolean',
       expression: true,
-      title: 'Filter options (using an expression)',
-      description:
-        'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
+      title: {
+        en: 'Filter options (using an expression)',
+        nb: 'Filtrer alternativer med et uttrykk',
+      },
+      description: {
+        en: 'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
+        nb: 'Filtrerer listen med alternativer ved hjelp av et uttrykk. Uttrykket skal returnere true for å beholde alternativet og false for å fjerne det. Bruk ["value"] for verdien og ["value", "label"] for tekstressurs-ID-en. Tilsvarende gjelder «description» og «helpText».',
+      },
       required: false,
     },
   },
@@ -709,8 +937,11 @@ const ISelectionComponentFull = {
     optionFilter: ISelectionComponent['properties']['optionFilter'],
     preselectedOptionIndex: {
       type: 'integer',
-      title: 'Preselected option index',
-      description: 'Index of the option to preselect (if no option has been selected yet)',
+      title: { en: 'Preselected option index', nb: 'Indeks for forhåndsvalgt alternativ' },
+      description: {
+        en: 'Index of the option to preselect (if no option has been selected yet)',
+        nb: 'Indeksen til alternativet som skal være forhåndsvalgt når brukeren ikke har valgt noe.',
+      },
       required: false,
     },
   },
@@ -724,18 +955,33 @@ const IDataModelBindingsOptionsSimple = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for value', nb: 'Datamodellbinding for verdi' },
+      description: {
+        en: 'Describes the location in the data model where the component should store its values.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre verdiene.',
+      },
       required: true,
     },
     label: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for label', nb: 'Datamodellbinding for ledetekst' },
+      description: {
+        en: 'Describes the location in the data model where the component should store its labels',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+      },
       required: false,
     },
     metadata: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for metadata', nb: 'Datamodellbinding for metadata' },
+      description: {
+        en: 'Describes the location in the data model where the component should store its metadata',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre metadata.',
+      },
       required: false,
     },
   },
@@ -752,29 +998,56 @@ const IDataModelBindingsForGroupCheckbox = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'group', nb: 'gruppe' },
+      description: {
+        en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
+        nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
+      },
       required: false,
     },
     checked: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'checked', nb: 'valgt' },
+      description: {
+        en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
+        nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const LayoutStyle = {
   type: 'string',
   allowedValues: ['column', 'row', 'table'],
-  title: 'Layout',
-  description: 'Define the layout style for the options',
+  title: { en: 'Layout', nb: 'Layout' },
+  description: {
+    en: 'Define the layout style for the options',
+    nb: 'Angir hvordan alternativene skal plasseres.',
+  },
 } as const;
 
 const IDataModelBindingsForCustom = {
   type: 'object',
   properties: {},
-  additionalProperties: IDataModelReference,
+  additionalProperties: {
+    type: 'object',
+    properties: IDataModelReference['properties'],
+    additionalProperties: false,
+  },
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const PageValidation = {
@@ -783,15 +1056,18 @@ const PageValidation = {
     page: {
       type: 'string',
       allowedValues: ['current', 'currentAndPrevious', 'all'],
-      title: 'Page',
-      description: 'Which pages should be validated when the next button is clicked.',
+      title: { en: 'Page', nb: 'Side' },
+      description: {
+        en: 'Which pages should be validated when the next button is clicked.',
+        nb: 'Angir hvilke sider som skal valideres når brukeren velger neste-knappen.',
+      },
       required: true,
     },
     show: {
       type: 'array',
       items: AllowedValidationMasks['items'],
-      title: 'Validation types',
-      description: 'List of validation types to show',
+      title: AllowedValidationMasks['title'],
+      description: AllowedValidationMasks['description'],
       required: true,
     },
   },
@@ -891,23 +1167,26 @@ const CustomAction = { type: 'union', variants: [ClientAction, ServerAction] } a
 const ButtonStyle = {
   type: 'string',
   allowedValues: ['primary', 'secondary', 'tertiary'],
-  title: 'Button style',
-  description: 'The style/color scheme of the button.',
+  title: { en: 'Button style', nb: 'Knappestil' },
+  description: {
+    en: 'The style/color scheme of the button.',
+    nb: 'Knappens stil eller fargepalett.',
+  },
   default: 'secondary',
 } as const;
 
 const ButtonColor = {
   type: 'string',
   allowedValues: ['first', 'second', 'success', 'danger'],
-  title: 'Button color override',
-  description: 'The color scheme of the button.',
+  title: { en: 'Button color override', nb: 'Overstyr knappens farge' },
+  description: { en: 'The color scheme of the button.', nb: 'Knappens fargepalett.' },
 } as const;
 
 const CustomButtonSize = {
   type: 'string',
   allowedValues: ['sm', 'md', 'lg', 'small', 'medium', 'large'],
-  title: 'Button size override',
-  description: 'The size of the button.',
+  title: { en: 'Button size override', nb: 'Overstyr knappens størrelse' },
+  description: { en: 'The size of the button.', nb: 'Knappens størrelse.' },
 } as const;
 
 const IDataModelBindingsSimple = {
@@ -917,6 +1196,11 @@ const IDataModelBindingsSimple = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding', nb: 'Datamodellbinding' },
+      description: {
+        en: 'Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre verdien. En enkel binding brukes for komponenter som lagrer én verdi, vanligvis en streng.',
+      },
       required: true,
     },
   },
@@ -930,6 +1214,11 @@ const IDataModelBindingsList = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for values', nb: 'Datamodellbinding for verdier' },
+      description: {
+        en: 'Describes the location in the data model where the component should store its values. A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre verdiene. En listebinding brukes for komponenter som lagrer flere enkle verdier.',
+      },
       required: true,
     },
   },
@@ -939,9 +1228,11 @@ const IDataModelBindingsList = {
 const ITableColumnsAlignText = {
   type: 'string',
   allowedValues: ['left', 'center', 'right'],
-  title: 'Align Text',
-  description:
-    "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
+  title: { en: 'Align Text', nb: 'Tekstjustering' },
+  description: {
+    en: "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
+    nb: 'Angir om teksten i tabellceller skal venstrejusteres, midtstilles eller høyrejusteres. Standard er venstrejustering for tekst og høyrejustering for tall.',
+  },
 } as const;
 
 const ITableColumnsTextOverflow = {
@@ -949,16 +1240,21 @@ const ITableColumnsTextOverflow = {
   properties: {
     lineWrap: {
       type: 'boolean',
-      title: 'Line Wrap',
-      description: 'Toggle line wrapping on or off. Defaults to true',
+      title: { en: 'Line Wrap', nb: 'Tekstbryting' },
+      description: {
+        en: 'Toggle line wrapping on or off. Defaults to true',
+        nb: 'Slår tekstbryting av eller på. Standardverdien er true.',
+      },
       default: true,
       required: false,
     },
     maxHeight: {
       type: 'number',
-      title: 'Max Height',
-      description:
-        'Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.',
+      title: { en: 'Max Height', nb: 'Maksimal høyde' },
+      description: {
+        en: 'Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.',
+        nb: 'Angir hvor mange linjer som vises i en tabellcelle før resten skjules med ellipse.',
+      },
       default: 2,
       required: false,
     },
@@ -972,17 +1268,19 @@ const ITableColumnProperties = {
     width: {
       type: 'string',
       pattern: '^([0-9]{1,2}%|100%|auto)$',
-      title: 'Width',
-      description: "Width of cell in % or 'auto'. Defaults to 'auto'",
+      title: { en: 'Width', nb: 'Bredde' },
+      description: {
+        en: "Width of cell in % or 'auto'. Defaults to 'auto'",
+        nb: 'Bredden på cellen i prosent eller «auto». Standardverdien er «auto».',
+      },
       default: 'auto',
       required: false,
     },
     alignText: {
       type: 'string',
       allowedValues: ITableColumnsAlignText['allowedValues'],
-      title: 'Align Text',
-      description:
-        "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
+      title: ITableColumnsAlignText['title'],
+      description: ITableColumnsAlignText['description'],
       required: false,
     },
     textOverflow: {
@@ -994,16 +1292,18 @@ const ITableColumnProperties = {
     hidden: {
       type: 'boolean',
       expression: true,
-      title: 'Hidden column?',
-      description:
-        'Expression or boolean indicating whether each column should be hidden. An expression will be evaluated per column, and if it evaluates to true, the column will be hidden.',
+      title: { en: 'Hidden column?', nb: 'Skjult kolonne' },
+      description: {
+        en: 'Expression or boolean indicating whether each column should be hidden. An expression will be evaluated per column, and if it evaluates to true, the column will be hidden.',
+        nb: 'Uttrykk eller boolsk verdi som angir om hver kolonne skal skjules.',
+      },
       default: false,
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Column options',
-  description: 'Options for the row/column',
+  title: { en: 'Column options', nb: 'Kolonneinnstillinger' },
+  description: { en: 'Options for the row/column', nb: 'Innstillinger for raden eller kolonnen.' },
   examples: [{ width: 'auto', alignText: 'left', textOverflow: { lineWrap: true, maxHeight: 2 } }],
 } as const;
 
@@ -1013,14 +1313,20 @@ const IGridColumnProperties = {
     colSpan: {
       type: 'number',
       expression: true,
-      title: 'Column span',
-      description: 'Number of columns this cell should span. Defaults to 1 if not set.',
+      title: { en: 'Column span', nb: 'Kolonnespenn' },
+      description: {
+        en: 'Number of columns this cell should span. Defaults to 1 if not set.',
+        nb: 'Antall kolonner cellen skal spenne over. Standardverdien er 1.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Grid column properties',
-  description: 'Additional properties for columns in the Grid component',
+  title: { en: 'Grid column properties', nb: 'Egenskaper for rutenettkolonne' },
+  description: {
+    en: 'Additional properties for columns in the Grid component',
+    nb: 'Flere egenskaper for kolonner i Grid-komponenten.',
+  },
 } as const;
 
 const GridComponentRef = {
@@ -1032,16 +1338,16 @@ const GridComponentRef = {
     hidden: ITableColumnProperties['properties']['hidden'],
     component: {
       type: 'string',
-      title: 'Component ID',
-      description: 'ID of the component',
+      title: { en: 'Component ID', nb: 'Komponent-ID' },
+      description: { en: 'ID of the component', nb: 'Komponentens ID.' },
       required: false,
     },
     columnOptions: {
       type: 'object',
       properties: ITableColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Column options',
-      description: 'Options for the row/column',
+      title: ITableColumnProperties['title'],
+      description: ITableColumnProperties['description'],
       examples: ITableColumnProperties['examples'],
       required: false,
     },
@@ -1049,8 +1355,8 @@ const GridComponentRef = {
       type: 'object',
       properties: IGridColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Grid column properties',
-      description: 'Additional properties for columns in the Grid component',
+      title: IGridColumnProperties['title'],
+      description: IGridColumnProperties['description'],
       required: false,
     },
   },
@@ -1066,17 +1372,25 @@ const GridCellText = {
     hidden: ITableColumnProperties['properties']['hidden'],
     text: {
       type: 'string',
-      title: 'Text',
-      description: 'Text to display (can also be a key in text resources)',
+      title: { en: 'Text', nb: 'Tekst' },
+      description: {
+        en: 'Text to display (can also be a key in text resources)',
+        nb: 'Teksten som skal vises. Kan også være en nøkkel til en tekstressurs.',
+      },
       required: true,
     },
-    help: { type: 'string', title: 'Help', description: 'Help text to display', required: false },
+    help: {
+      type: 'string',
+      title: { en: 'Help', nb: 'Hjelp' },
+      description: { en: 'Help text to display', nb: 'Hjelpeteksten som skal vises.' },
+      required: false,
+    },
     columnOptions: {
       type: 'object',
       properties: ITableColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Column options',
-      description: 'Options for the row/column',
+      title: ITableColumnProperties['title'],
+      description: ITableColumnProperties['description'],
       examples: ITableColumnProperties['examples'],
       required: false,
     },
@@ -1084,8 +1398,8 @@ const GridCellText = {
       type: 'object',
       properties: IGridColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Grid column properties',
-      description: 'Additional properties for columns in the Grid component',
+      title: IGridColumnProperties['title'],
+      description: IGridColumnProperties['description'],
       required: false,
     },
   },
@@ -1101,16 +1415,22 @@ const GridCellLabelFrom = {
     hidden: ITableColumnProperties['properties']['hidden'],
     labelFrom: {
       type: 'string',
-      title: 'Fetch label from other component',
-      description: 'Set this to a component id to display the label from that component',
+      title: {
+        en: 'Fetch label from other component',
+        nb: 'Hent ledetekst fra en annen komponent',
+      },
+      description: {
+        en: 'Set this to a component id to display the label from that component',
+        nb: 'Angi ID-en til en annen komponent for å vise ledeteksten fra den komponenten.',
+      },
       required: true,
     },
     columnOptions: {
       type: 'object',
       properties: ITableColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Column options',
-      description: 'Options for the row/column',
+      title: ITableColumnProperties['title'],
+      description: ITableColumnProperties['description'],
       examples: ITableColumnProperties['examples'],
       required: false,
     },
@@ -1118,8 +1438,8 @@ const GridCellLabelFrom = {
       type: 'object',
       properties: IGridColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Grid column properties',
-      description: 'Additional properties for columns in the Grid component',
+      title: IGridColumnProperties['title'],
+      description: IGridColumnProperties['description'],
       required: false,
     },
   },
@@ -1129,32 +1449,42 @@ const GridCellLabelFrom = {
 const GridCell = {
   type: 'union',
   variants: [
-    GridComponentRef,
+    { type: 'object', properties: GridComponentRef['properties'], additionalProperties: false },
     IRawOption['properties']['value']['variants']['3'],
-    GridCellText,
-    GridCellLabelFrom,
+    { type: 'object', properties: GridCellText['properties'], additionalProperties: false },
+    { type: 'object', properties: GridCellLabelFrom['properties'], additionalProperties: false },
   ],
 } as const;
 
 const GridRow = {
   type: 'object',
   properties: {
-    header: { type: 'boolean', title: 'Is header row?', default: false, required: false },
-    readOnly: { type: 'boolean', title: 'Is row read-only?', default: false, required: false },
+    header: {
+      type: 'boolean',
+      title: { en: 'Is header row?', nb: 'Er overskriftsrad' },
+      default: false,
+      required: false,
+    },
+    readOnly: {
+      type: 'boolean',
+      title: { en: 'Is row read-only?', nb: 'Er raden skrivebeskyttet' },
+      default: false,
+      required: false,
+    },
     columnOptions: {
       type: 'object',
       properties: ITableColumnProperties['properties'],
       additionalProperties: false,
-      title: 'Column options',
-      description: 'Options for the row/column',
+      title: ITableColumnProperties['title'],
+      description: ITableColumnProperties['description'],
       examples: ITableColumnProperties['examples'],
       required: false,
     },
     cells: {
       type: 'array',
-      items: GridCell,
-      title: 'Cells in table row',
-      description: 'The list of cells in this row',
+      items: { type: 'union', variants: GridCell['variants'] },
+      title: { en: 'Cells in table row', nb: 'Celler i tabellraden' },
+      description: { en: 'The list of cells in this row', nb: 'Listen over cellene i raden.' },
       required: true,
     },
   },
@@ -1163,9 +1493,9 @@ const GridRow = {
 
 const GridRows = {
   type: 'array',
-  items: GridRow,
-  title: 'Rows in Grid or Grid-like component',
-  description: 'The list of rows in this grid',
+  items: { type: 'object', properties: GridRow['properties'], additionalProperties: false },
+  title: { en: 'Rows in Grid or Grid-like component', nb: 'Rader i Grid eller lignende komponent' },
+  description: { en: 'The list of rows in this grid', nb: 'Listen over radene i rutenettet.' },
   examples: [
     [
       {
@@ -1182,17 +1512,21 @@ const ISandboxProperties = {
   properties: {
     allowPopups: {
       type: 'boolean',
-      title: 'Allow popups',
-      description:
-        'Sets "allow-popups" in the sandbox attribute on the iframe. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#sandbox',
+      title: { en: 'Allow popups', nb: 'Tillat popupvinduer' },
+      description: {
+        en: 'Sets "allow-popups" in the sandbox attribute on the iframe. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#sandbox',
+        nb: 'Legger «allow-popups» til i sandbox-attributtet på iframe-elementet.',
+      },
       default: false,
       required: false,
     },
     allowPopupsToEscapeSandbox: {
       type: 'boolean',
-      title: 'Allow popups to escape sandbox',
-      description:
-        'Sets "allow-popups-to-escape-sandbox" in the sandbox attribute on the iframe. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#sandbox',
+      title: { en: 'Allow popups to escape sandbox', nb: 'Tillat popupvinduer å forlate sandbox' },
+      description: {
+        en: 'Sets "allow-popups-to-escape-sandbox" in the sandbox attribute on the iframe. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#sandbox',
+        nb: 'Legger «allow-popups-to-escape-sandbox» til i sandbox-attributtet på iframe-elementet.',
+      },
       default: false,
       required: false,
     },
@@ -1205,17 +1539,35 @@ const IImageSrc = {
   properties: {
     nb: {
       type: 'string',
-      title: 'Image source (when using norwegian bokmål language)',
+      title: {
+        en: 'Image source (when using norwegian bokmål language)',
+        nb: 'Bildekilde for norsk bokmål',
+      },
       required: false,
     },
     nn: {
       type: 'string',
-      title: 'Image source (when using norwegian nynorsk language)',
+      title: {
+        en: 'Image source (when using norwegian nynorsk language)',
+        nb: 'Bildekilde for norsk nynorsk',
+      },
       required: false,
     },
-    en: { type: 'string', title: 'Image source (when using english language)', required: false },
+    en: {
+      type: 'string',
+      title: { en: 'Image source (when using english language)', nb: 'Bildekilde for engelsk' },
+      required: false,
+    },
   },
-  additionalProperties: { type: 'string', title: 'Image source (when using other languages)' },
+  additionalProperties: {
+    type: 'string',
+    title: { en: 'Image source (when using other languages)', nb: 'Bildekilde for andre språk' },
+  },
+  title: { en: 'Image sources', nb: 'Bildekilder' },
+  description: {
+    en: 'Image sources for each supported language.',
+    nb: 'Bildekilder for hvert språk appen støtter.',
+  },
   examples: [
     {
       nb: 'https://example.com/bilde.png',
@@ -1235,8 +1587,11 @@ const GridJustification = {
     'space-around',
     'space-evenly',
   ],
-  title: 'Justification/alignment',
-  description: 'Justification/alignment of the image',
+  title: { en: 'Justification/alignment', nb: 'Justering/plassering' },
+  description: {
+    en: 'Justification/alignment of the image',
+    nb: 'Bildets justering eller plassering.',
+  },
 } as const;
 
 const IImage = {
@@ -1246,19 +1601,31 @@ const IImage = {
       type: 'object',
       properties: IImageSrc['properties'],
       additionalProperties: IImageSrc['additionalProperties'],
+      title: IImageSrc['title'],
+      description: IImageSrc['description'],
       examples: IImageSrc['examples'],
       required: true,
     },
-    width: { type: 'string', title: 'Image width', examples: ['100%'], required: true },
+    width: {
+      type: 'string',
+      title: { en: 'Image width', nb: 'Bildebredde' },
+      examples: ['100%'],
+      required: true,
+    },
     align: {
       type: 'string',
       allowedValues: GridJustification['allowedValues'],
-      title: 'Justification/alignment',
-      description: 'Justification/alignment of the image',
+      title: GridJustification['title'],
+      description: GridJustification['description'],
       required: true,
     },
   },
   additionalProperties: false,
+  title: { en: 'Image settings', nb: 'Bildeinnstillinger' },
+  description: {
+    en: 'Configures the image source, width, and alignment.',
+    nb: 'Konfigurerer bildekilde, bredde og plassering.',
+  },
 } as const;
 
 const CropConfigCircle = {
@@ -1267,14 +1634,14 @@ const CropConfigCircle = {
     shape: {
       type: 'constant',
       value: 'circle',
-      title: 'Shape',
-      description: 'Circular cropping area',
+      title: { en: 'Shape', nb: 'Form' },
+      description: { en: 'Circular cropping area', nb: 'Sirkelformet beskjæringsområde.' },
       required: true,
     },
     diameter: {
       type: 'number',
-      title: 'Diameter',
-      description: 'Diameter of the circle',
+      title: { en: 'Diameter', nb: 'Diameter' },
+      description: { en: 'Diameter of the circle', nb: 'Sirkelens diameter.' },
       default: 250,
       required: false,
     },
@@ -1288,21 +1655,21 @@ const CropConfigRect = {
     shape: {
       type: 'constant',
       value: 'rectangle',
-      title: 'Shape',
-      description: 'Rectangular cropping area',
+      title: { en: 'Shape', nb: 'Form' },
+      description: { en: 'Rectangular cropping area', nb: 'Rektangulært beskjæringsområde.' },
       required: true,
     },
     width: {
       type: 'number',
-      title: 'Width',
-      description: 'Width of the rectangle',
+      title: { en: 'Width', nb: 'Bredde' },
+      description: { en: 'Width of the rectangle', nb: 'Rektangelets bredde.' },
       default: 250,
       required: false,
     },
     height: {
       type: 'number',
-      title: 'Height',
-      description: 'Height of the rectangle',
+      title: { en: 'Height', nb: 'Høyde' },
+      description: { en: 'Height of the rectangle', nb: 'Rektangelets høyde.' },
       default: 250,
       required: false,
     },
@@ -1313,6 +1680,11 @@ const CropConfigRect = {
 const CropConfig = {
   type: 'union',
   variants: [CropConfigCircle, CropConfigRect],
+  title: { en: 'Cropping area', nb: 'Beskjæringsområde' },
+  description: {
+    en: 'Configures the shape and size of the image cropping area.',
+    nb: 'Konfigurerer formen og størrelsen på beskjæringsområdet.',
+  },
   default: { shape: 'circle', diameter: 250 },
 } as const;
 
@@ -1357,9 +1729,11 @@ const NumberFormatProps = {
     prefix: { type: 'string', expression: true, required: false },
   },
   additionalProperties: false,
-  title: 'Number formatting options',
-  description:
-    'These options are sent directly to react-number-format in order to make it possible to format pretty numbers in the input field.',
+  title: { en: 'Number formatting options', nb: 'Innstillinger for tallformat' },
+  description: {
+    en: 'These options are sent directly to react-number-format in order to make it possible to format pretty numbers in the input field.',
+    nb: 'Alternativene sendes direkte til react-number-format for å formatere tall i inndatafeltet.',
+  },
 } as const;
 
 const IFormatting = {
@@ -1539,9 +1913,11 @@ const IFormatting = {
         'ZMW',
         'ZWL',
       ],
-      title: 'Language-sensitive currency formatting',
-      description:
-        'Enables currency to be language sensitive based on selected app language. Note: parts that already exist in number property are not overridden by this prop.',
+      title: { en: 'Language-sensitive currency formatting', nb: 'Språktilpasset valutaformat' },
+      description: {
+        en: 'Enables currency to be language sensitive based on selected app language. Note: parts that already exist in number property are not overridden by this prop.',
+        nb: 'Tilpasser valutaformatet til språket som er valgt i appen. Deler som allerede finnes i number-egenskapen, blir ikke overstyrt.',
+      },
       required: false,
     },
     unit: {
@@ -1570,20 +1946,47 @@ const IFormatting = {
         'week',
         'year',
       ],
-      title: 'Language-sensitive number formatting based on unit',
-      description:
-        'Enables unit along with thousand and decimal separators to be language sensitive based on selected app language. They are configured in number property. Note: parts that already exist in number property are not overridden by this prop.',
+      title: {
+        en: 'Language-sensitive number formatting based on unit',
+        nb: 'Språktilpasset tallformat etter enhet',
+      },
+      description: {
+        en: 'Enables unit along with thousand and decimal separators to be language sensitive based on selected app language. They are configured in number property. Note: parts that already exist in number property are not overridden by this prop.',
+        nb: 'Tilpasser enhet, tusenskilletegn og desimalskilletegn til språket som er valgt i appen.',
+      },
       required: false,
     },
     position: {
       type: 'string',
       allowedValues: ['prefix', 'suffix'],
-      title: 'Position of the currency/unit symbol',
-      description:
-        'Display the unit as prefix or suffix. Default is prefix. (Use only when using currency or unit options)',
+      title: {
+        en: 'Position of the currency/unit symbol',
+        nb: 'Plassering av valuta-/enhetssymbol',
+      },
+      description: {
+        en: 'Display the unit as prefix or suffix. Default is prefix. (Use only when using currency or unit options)',
+        nb: 'Viser enheten som prefiks eller suffiks. Standard er prefiks. Brukes bare sammen med valuta eller enhet.',
+      },
       required: false,
     },
-    number: { type: 'union', variants: [PatternFormatProps, NumberFormatProps], required: false },
+    number: {
+      type: 'union',
+      variants: [
+        {
+          type: 'object',
+          properties: PatternFormatProps['properties'],
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          properties: NumberFormatProps['properties'],
+          additionalProperties: false,
+          title: NumberFormatProps['title'],
+          description: NumberFormatProps['description'],
+        },
+      ],
+      required: false,
+    },
     align: {
       type: 'string',
       allowedValues: ['right', 'center', 'left'],
@@ -1616,23 +2019,28 @@ const ILikertColumnProperties = {
           value: {
             type: 'union',
             variants: [{ type: 'string', pattern: '^\\d+$' }, { type: 'number' }],
-            title: 'Value',
-            description: 'The value of the answer column',
+            title: { en: 'Value', nb: 'Verdi' },
+            description: { en: 'The value of the answer column', nb: 'Verdien i svarkolonnen.' },
             required: true,
           },
           divider: {
             type: 'string',
             allowedValues: ['before', 'after', 'both'],
-            title: 'Divider',
-            description:
-              "Choose if the divider should be shown 'before', 'after' or on 'both' sides of the column.",
+            title: { en: 'Divider', nb: 'Skillelinje' },
+            description: {
+              en: "Choose if the divider should be shown 'before', 'after' or on 'both' sides of the column.",
+              nb: 'Angir om skillelinjen skal vises før, etter eller på begge sider av kolonnen.',
+            },
             required: false,
           },
         },
         additionalProperties: false,
       },
-      title: 'Columns',
-      description: 'Add customization to the columns of the likert component',
+      title: { en: 'Columns', nb: 'Kolonner' },
+      description: {
+        en: 'Add customization to the columns of the likert component',
+        nb: 'Tilpasser kolonnene i Likert-komponenten.',
+      },
       required: false,
     },
   },
@@ -1646,12 +2054,22 @@ const IDataModelBindingsLikert = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for answer', nb: 'Datamodellbinding for svar' },
+      description: {
+        en: 'Dot notation location for the answers. This must point to a property of the objects inside the question array. The answer for each question will be stored in the answer property of the corresponding question object.',
+        nb: 'Plassering i punktnotasjon for svarene. Må peke på en egenskap i objektene i spørsmålslisten.',
+      },
       required: true,
     },
     questions: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Data model binding for questions', nb: 'Datamodellbinding for spørsmål' },
+      description: {
+        en: 'Dot notation location for a likert structure (array of objects), where the data is stored',
+        nb: 'Plassering i punktnotasjon for Likert-strukturen, en liste med objekter, der dataene lagres.',
+      },
       required: true,
     },
   },
@@ -1672,16 +2090,21 @@ const ILikertFilter = {
     },
     additionalProperties: false,
   },
-  title: 'Filter',
-  description:
-    'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)',
+  title: { en: 'Filter', nb: 'Filter' },
+  description: {
+    en: 'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)',
+    nb: 'Filtrerer radene i Likert-gruppen med start- og stoppindekser.',
+  },
 } as const;
 
 const LinkStyle = {
   type: 'string',
   allowedValues: ['primary', 'secondary', 'link'],
-  title: 'Style',
-  description: 'The style of the link (a primary/secondary button, or an actual link)',
+  title: { en: 'Style', nb: 'Stil' },
+  description: {
+    en: 'The style of the link (a primary/secondary button, or an actual link)',
+    nb: 'Lenkens stil: primary- eller secondary-knapp, eller vanlig lenke.',
+  },
 } as const;
 
 const IDataModelBindingsForList = {
@@ -1691,16 +2114,35 @@ const IDataModelBindingsForList = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'group binding', nb: 'gruppebinding' },
+      description: {
+        en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
+        nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
+      },
       required: false,
     },
     checked: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'checked', nb: 'valgt' },
+      description: {
+        en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
+        nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
+      },
       required: false,
     },
   },
-  additionalProperties: IDataModelReference,
+  additionalProperties: {
+    type: 'object',
+    properties: IDataModelReference['properties'],
+    additionalProperties: false,
+  },
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const IPagination = {
@@ -1709,21 +2151,29 @@ const IPagination = {
     alternatives: {
       type: 'array',
       items: { type: 'number' },
-      title: 'Alternatives',
-      description:
-        'List of page sizes the user can choose from. Make sure to test the performance of the largest number of items per page you are allowing.',
+      title: { en: 'Alternatives', nb: 'Alternativer' },
+      description: {
+        en: 'List of page sizes the user can choose from. Make sure to test the performance of the largest number of items per page you are allowing.',
+        nb: 'Liste over sidestørrelsene brukeren kan velge. Test ytelsen med høyeste tillatte verdi.',
+      },
       required: true,
     },
     default: {
       type: 'number',
-      title: 'Default',
-      description: 'The pagination size that is set to default.',
+      title: { en: 'Default', nb: 'Standard' },
+      description: {
+        en: 'The pagination size that is set to default.',
+        nb: 'Sidestørrelsen som brukes som standard.',
+      },
       required: true,
     },
   },
   additionalProperties: false,
-  title: 'Pagination',
-  description: 'Pagination settings. Set this to enable pagination (must be supported by backend).',
+  title: { en: 'Pagination', nb: 'Paginering' },
+  description: {
+    en: 'Pagination settings. Set this to enable pagination (must be supported by backend).',
+    nb: 'Innstillinger for paginering. Egenskapen slår på paginering, som også må støttes av backend.',
+  },
 } as const;
 
 const IDataModelBindingsForMap = {
@@ -1739,40 +2189,69 @@ const IDataModelBindingsForMap = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      description: {
+        en: 'Should point to an array of objects like {data: string, label: string} (these can also be configured via separate bindings)',
+        nb: 'Skal peke på en liste med objekter på formen {data: string, label: string}. Verdiene kan også konfigureres med separate bindinger.',
+      },
       required: false,
     },
     geometryLabel: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      description: {
+        en: 'Should point to a string (defaults to a "label" property on the geometries array objects)',
+        nb: 'Skal peke på en streng. Standard er «label»-egenskapen i objektene i geometrilisten.',
+      },
       required: false,
     },
     geometryData: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      description: {
+        en: 'Should point to a string (defaults to a "data" property on the geometries array objects)',
+        nb: 'Skal peke på en streng. Standard er «data»-egenskapen i objektene i geometrilisten.',
+      },
       required: false,
     },
     geometryIsEditable: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      description: {
+        en: 'Should point to a boolean indicating if this geometry is editable. This has no default value, geometries will not be editable if this is not specified.',
+        nb: 'Skal peke på en boolsk verdi som angir om geometrien kan redigeres. Geometrien kan ikke redigeres hvis egenskapen ikke er satt.',
+      },
       required: false,
     },
     geometryIsHidden: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      description: {
+        en: 'Should point to a boolean indicating if this geometry is hidden. Geometries will be visible by default if this is not specified.',
+        nb: 'Skal peke på en boolsk verdi som angir om geometrien er skjult. Geometrien er synlig hvis egenskapen ikke er satt.',
+      },
       required: false,
     },
     geometryStyle: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      description: {
+        en: 'Should point to a JSON-serialized Leaflet PathOptions object (e.g. \'{"color":"#ff0000","weight":2,"fillOpacity":0.3}\') used as the style for this geometry. Overrides the default style. Invalid JSON is ignored.',
+        nb: 'Skal peke på et JSON-serialisert Leaflet PathOptions-objekt som brukes som stil for geometrien. Overstyrer standardstilen. Ugyldig JSON ignoreres.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const MapTileLayer = {
@@ -1780,44 +2259,57 @@ const MapTileLayer = {
   properties: {
     url: {
       type: 'string',
-      title: 'Map layer url',
-      description:
-        'Url to a map tile. {z}/{x}/{y} will be replaced with tile coordinates, {s} will be replaced with a random subdomain if subdomains are given',
+      title: { en: 'Map layer url', nb: 'URL til kartlag' },
+      description: {
+        en: 'Url to a map tile. {z}/{x}/{y} will be replaced with tile coordinates, {s} will be replaced with a random subdomain if subdomains are given',
+        nb: 'URL-en til en kartflis. Plassholderne erstattes med fliskoordinater og eventuelt et subdomene.',
+      },
       required: true,
     },
     attribution: {
       type: 'string',
-      title: 'Attribution',
-      description: 'Ascribing a work or remark to a particular unit for recognition',
+      title: { en: 'Attribution', nb: 'Kreditering' },
+      description: {
+        en: 'Ascribing a work or remark to a particular unit for recognition',
+        nb: 'Kreditering av opphavsperson eller organisasjon.',
+      },
       required: false,
     },
     subdomains: {
       type: 'array',
       items: { type: 'string' },
-      title: 'Subdomains',
-      description:
-        'List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.',
+      title: { en: 'Subdomains', nb: 'Subdomener' },
+      description: {
+        en: 'List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.',
+        nb: 'Liste over subdomener som fordeler lasten mellom kartservere.',
+      },
       required: false,
     },
     type: {
       type: 'constant',
       value: 'TileLayer',
-      title: 'Layer Type',
-      description: 'Type of the map layer',
+      title: { en: 'Layer Type', nb: 'Lagtype' },
+      description: { en: 'Type of the map layer', nb: 'Kartlagets type.' },
       default: 'TileLayer',
       required: false,
     },
     minZoom: {
       type: 'number',
-      title: 'Minimum Zoom Level',
-      description: 'The minimum zoom level for the layer',
+      title: { en: 'Minimum Zoom Level', nb: 'Minimalt zoomnivå' },
+      description: {
+        en: 'The minimum zoom level for the layer',
+        nb: 'Minimalt zoomnivå for laget.',
+      },
       default: 0,
       required: false,
     },
     maxZoom: {
       type: 'number',
-      title: 'Maximum Zoom Level',
-      description: 'The maximum zoom level for the layer',
+      title: { en: 'Maximum Zoom Level', nb: 'Maksimalt zoomnivå' },
+      description: {
+        en: 'The maximum zoom level for the layer',
+        nb: 'Maksimalt zoomnivå for laget.',
+      },
       default: 18,
       required: false,
     },
@@ -1830,8 +2322,11 @@ const MapWMSLayer = {
   properties: {
     url: {
       type: 'string',
-      title: 'Map layer url',
-      description: 'Url to a wms-type map server',
+      title: { en: 'Map layer url', nb: 'URL til kartlag' },
+      description: {
+        en: 'Url to a wms-type map server',
+        nb: 'URL-en til en kartserver av typen WMS.',
+      },
       required: true,
     },
     attribution: { type: 'string', required: false },
@@ -1839,37 +2334,50 @@ const MapWMSLayer = {
     type: { type: 'constant', value: 'WMS', required: true },
     layers: {
       type: 'string',
-      title: 'WMS Layers',
-      description:
-        'Comma-separated list of one or more WMS layers to display. Sent as a prop to the WMS map server.',
+      title: { en: 'WMS Layers', nb: 'WMS-lag' },
+      description: {
+        en: 'Comma-separated list of one or more WMS layers to display. Sent as a prop to the WMS map server.',
+        nb: 'Kommaseparert liste over ett eller flere WMS-lag som skal vises. Sendes som en egenskap til WMS-kartserveren.',
+      },
       required: true,
     },
     format: {
       type: 'string',
-      title: 'Image Format',
-      description:
-        "The MIME type of the WMS tiles to request from the WMS server, as specified by the WMS standard. (use 'image/png' for layers with transparency).",
+      title: { en: 'Image Format', nb: 'Bildeformat' },
+      description: {
+        en: "The MIME type of the WMS tiles to request from the WMS server, as specified by the WMS standard. (use 'image/png' for layers with transparency).",
+        nb: 'MIME-typen for WMS-flisene som skal hentes fra WMS-serveren. Bruk «image/png» for lag med gjennomsiktighet.',
+      },
       default: 'image/jpeg',
       required: false,
     },
     version: {
       type: 'string',
-      title: 'WMS Version',
-      description: 'The version of the WMS standard to use',
+      title: { en: 'WMS Version', nb: 'WMS-versjon' },
+      description: {
+        en: 'The version of the WMS standard to use',
+        nb: 'Versjonen av WMS-standarden som skal brukes.',
+      },
       default: '1.1.1',
       required: false,
     },
     transparent: {
       type: 'boolean',
-      title: 'Transparency',
-      description: 'Whether the WMS layer should be transparent',
+      title: { en: 'Transparency', nb: 'Gjennomsiktighet' },
+      description: {
+        en: 'Whether the WMS layer should be transparent',
+        nb: 'Angir om WMS-laget skal være gjennomsiktig.',
+      },
       default: false,
       required: false,
     },
     uppercase: {
       type: 'boolean',
-      title: 'Uppercase',
-      description: 'Whether the WMS parameters should be uppercase',
+      title: { en: 'Uppercase', nb: 'Store bokstaver' },
+      description: {
+        en: 'Whether the WMS parameters should be uppercase',
+        nb: 'Angir om WMS-parameterne skal skrives med store bokstaver.',
+      },
       default: false,
       required: false,
     },
@@ -1888,8 +2396,8 @@ const Location = {
     longitude: { type: 'number', expression: true, required: true },
   },
   additionalProperties: false,
-  title: 'Center location',
-  description: 'Center location of the map',
+  title: { en: 'Center location', nb: 'Kartets midtpunkt' },
+  description: { en: 'Center location of the map', nb: 'Kartets midtpunkt.' },
 } as const;
 
 const IGeometryType = {
@@ -1904,42 +2412,60 @@ const Toolbar = {
     polyline: {
       type: 'boolean',
       expression: true,
-      description: 'Expression or boolean allowing the user to draw lines on the map',
+      description: {
+        en: 'Expression or boolean allowing the user to draw lines on the map',
+        nb: 'Uttrykk eller boolsk verdi som angir om brukeren kan tegne linjer på kartet.',
+      },
       default: false,
       required: false,
     },
     polygon: {
       type: 'boolean',
       expression: true,
-      description: 'Expression or boolean allowing the user to draw a polygon on the map',
+      description: {
+        en: 'Expression or boolean allowing the user to draw a polygon on the map',
+        nb: 'Uttrykk eller boolsk verdi som angir om brukeren kan tegne et polygon på kartet.',
+      },
       default: false,
       required: false,
     },
     rectangle: {
       type: 'boolean',
       expression: true,
-      description: 'Expression or boolean allowing the user to draw a rectangle on the map',
+      description: {
+        en: 'Expression or boolean allowing the user to draw a rectangle on the map',
+        nb: 'Uttrykk eller boolsk verdi som angir om brukeren kan tegne et rektangel på kartet.',
+      },
       default: false,
       required: false,
     },
     circle: {
       type: 'boolean',
       expression: true,
-      description: 'Expression or boolean allowing the user to draw a circle on the map',
+      description: {
+        en: 'Expression or boolean allowing the user to draw a circle on the map',
+        nb: 'Uttrykk eller boolsk verdi som angir om brukeren kan tegne en sirkel på kartet.',
+      },
       default: false,
       required: false,
     },
     marker: {
       type: 'boolean',
       expression: true,
-      description: 'Expression or boolean allowing the user to place multiple markers on the map',
+      description: {
+        en: 'Expression or boolean allowing the user to place multiple markers on the map',
+        nb: 'Uttrykk eller boolsk verdi som angir om brukeren kan plassere flere markører på kartet.',
+      },
       default: false,
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Toolbar',
-  description: 'Sets which geometries the user is allowed to draw',
+  title: { en: 'Toolbar', nb: 'Verktøylinje' },
+  description: {
+    en: 'Sets which geometries the user is allowed to draw',
+    nb: 'Angir hvilke geometrier brukeren kan tegne.',
+  },
 } as const;
 
 const IDataModelBindingsForGroupMultiselect = {
@@ -1952,23 +2478,38 @@ const IDataModelBindingsForGroupMultiselect = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'group', nb: 'gruppe' },
+      description: {
+        en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
+        nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
+      },
       required: false,
     },
     checked: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'checked', nb: 'valgt' },
+      description: {
+        en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
+        nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const PanelVariant = {
   type: 'string',
   allowedValues: ['info', 'warning', 'error', 'success'],
-  title: 'Panel variant',
-  description: 'Change the look of the panel',
+  title: { en: 'Panel variant', nb: 'Panelvariant' },
+  description: { en: 'Change the look of the panel', nb: 'Endrer utseendet på panelet.' },
 } as const;
 
 const IDataModelBindingsForPersonLookup = {
@@ -1978,34 +2519,79 @@ const IDataModelBindingsForPersonLookup = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: {
+        en: 'Data model binding for social security number',
+        nb: 'Datamodellbinding for fødselsnummer',
+      },
+      description: {
+        en: 'Describes the location in the data model where the component should store the ssn of the person to look up.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre fødselsnummeret til personen som slås opp.',
+      },
       required: true,
     },
     person_lookup_name: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: {
+        en: 'Data model binding for the full name of a person',
+        nb: 'Datamodellbinding for fullt navn',
+      },
+      description: {
+        en: 'Describes the location in the data model where the component should store the name of the person to look up.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre navnet på personen som slås opp.',
+      },
       required: false,
     },
     person_lookup_last_name: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: {
+        en: 'Data model binding for the last name of a person',
+        nb: 'Datamodellbinding for etternavn',
+      },
+      description: {
+        en: 'Describes the location in the data model where the component should store the last name of the person to look up.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre etternavnet til personen som slås opp.',
+      },
       required: false,
     },
     person_lookup_middle_name: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: {
+        en: 'Data model binding for the middle name of a person',
+        nb: 'Datamodellbinding for mellomnavn',
+      },
+      description: {
+        en: 'Describes the location in the data model where the component should store the middle name of the person to look up.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre mellomnavnet til personen som slås opp.',
+      },
       required: false,
     },
     person_lookup_first_name: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: {
+        en: 'Data model binding for the first name of a person',
+        nb: 'Datamodellbinding for fornavn',
+      },
+      description: {
+        en: 'Describes the location in the data model where the component should store the first name of the person to look up.',
+        nb: 'Angir hvor i datamodellen komponenten skal lagre fornavnet til personen som slås opp.',
+      },
       required: false,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const IDataModelBindingsForGroup = {
@@ -2015,10 +2601,20 @@ const IDataModelBindingsForGroup = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'Group', nb: 'Gruppe' },
+      description: {
+        en: 'Dot notation location for a repeating group structure (array of objects), where the data is stored',
+        nb: 'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
+      },
       required: true,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const IGroupEditProperties = {
@@ -2027,48 +2623,65 @@ const IGroupEditProperties = {
     mode: {
       type: 'string',
       allowedValues: ['hideTable', 'showTable', 'showAll', 'onlyTable'],
-      title: 'Mode',
-      description: 'The mode of the repeating group',
+      title: { en: 'Mode', nb: 'Modus' },
+      description: {
+        en: 'The mode of the repeating group',
+        nb: 'Modusen til den repeterende gruppen.',
+      },
       default: 'showTable',
       required: false,
     },
     addButton: {
       type: 'boolean',
       expression: true,
-      title: 'Add button',
-      description: 'Expression or boolean indicating whether to show the "Add" button',
+      title: { en: 'Add button', nb: 'Legg til-knapp' },
+      description: {
+        en: 'Expression or boolean indicating whether to show the "Add" button',
+        nb: 'Uttrykk eller boolsk verdi som angir om «Legg til»-knappen skal vises.',
+      },
       default: true,
       required: false,
     },
     saveButton: {
       type: 'boolean',
       expression: true,
-      title: 'Save button',
-      description: 'Expression or boolean indicating whether to show the "Save" button',
+      title: { en: 'Save button', nb: 'Lagre-knapp' },
+      description: {
+        en: 'Expression or boolean indicating whether to show the "Save" button',
+        nb: 'Uttrykk eller boolsk verdi som angir om «Lagre»-knappen skal vises.',
+      },
       default: true,
       required: false,
     },
     deleteButton: {
       type: 'boolean',
       expression: true,
-      title: 'Delete button',
-      description: 'Expression or boolean indicating whether to show the "Delete" button',
+      title: { en: 'Delete button', nb: 'Slett-knapp' },
+      description: {
+        en: 'Expression or boolean indicating whether to show the "Delete" button',
+        nb: 'Uttrykk eller boolsk verdi som angir om «Slett»-knappen skal vises.',
+      },
       default: true,
       required: false,
     },
     editButton: {
       type: 'boolean',
       expression: true,
-      title: 'Edit button',
-      description: 'Expression or boolean indicating whether to show the "Edit" button',
+      title: { en: 'Edit button', nb: 'Redigeringsknapp' },
+      description: {
+        en: 'Expression or boolean indicating whether to show the "Edit" button',
+        nb: 'Uttrykk eller boolsk verdi som angir om «Rediger»-knappen skal vises.',
+      },
       default: true,
       required: false,
     },
     multiPage: {
       type: 'boolean',
-      title: 'Multi page functionality',
-      description:
-        'Turning this on makes it possible to display the edit mode for a repeating group with multiple inner pages. Every component referenced in the "children" property should have a prefix with the page number it should be displayed on (e.g. "1:component1", "2:component2", etc.)',
+      title: { en: 'Multi page functionality', nb: 'Flersidefunksjonalitet' },
+      description: {
+        en: 'Turning this on makes it possible to display the edit mode for a repeating group with multiple inner pages. Every component referenced in the "children" property should have a prefix with the page number it should be displayed on (e.g. "1:component1", "2:component2", etc.)',
+        nb: 'Gjør det mulig å redigere en repeterende gruppe over flere interne sider.',
+      },
       default: false,
       required: false,
     },
@@ -2079,52 +2692,64 @@ const IGroupEditProperties = {
         { type: 'constant', value: 'first' },
         { type: 'constant', value: 'last' },
       ],
-      title: 'Open by default',
-      description:
-        'If set to true, a row of the repeating group will be opened by default, if the group has no rows already. If set to "first" or "last", the first or last row will be opened by default',
+      title: { en: 'Open by default', nb: 'Åpen som standard' },
+      description: {
+        en: 'If set to true, a row of the repeating group will be opened by default, if the group has no rows already. If set to "first" or "last", the first or last row will be opened by default',
+        nb: 'Åpner en rad som standard når gruppen er tom.',
+      },
       default: false,
       required: false,
     },
     alertOnDelete: {
       type: 'boolean',
       expression: true,
-      title: 'Alert on delete',
-      description:
-        'Expression or boolean indicating whether to show an alert when the user clicks the "Delete" button, prompting them to confirm the deletion',
+      title: { en: 'Alert on delete', nb: 'Varsel ved sletting' },
+      description: {
+        en: 'Expression or boolean indicating whether to show an alert when the user clicks the "Delete" button, prompting them to confirm the deletion',
+        nb: 'Uttrykk eller boolsk verdi som angir om brukeren skal bekrefte sletting.',
+      },
       default: false,
       required: false,
     },
     saveAndNextButton: {
       type: 'boolean',
       expression: true,
-      title: 'Save and next button',
-      description:
-        'Expression or boolean indicating whether to show the "Save and next" button when editing a repeating group row. This button will save the current row and open the next row for editing.',
+      title: { en: 'Save and next button', nb: 'Lagre og neste-knapp' },
+      description: {
+        en: 'Expression or boolean indicating whether to show the "Save and next" button when editing a repeating group row. This button will save the current row and open the next row for editing.',
+        nb: 'Uttrykk eller boolsk verdi som angir om «Lagre og neste»-knappen skal vises.',
+      },
       default: false,
       required: false,
     },
     alwaysShowAddButton: {
       type: 'boolean',
-      title: 'Always show add button',
-      description:
-        'If set to true, the "Add" button will always be shown, even if the user is currently editing another row',
+      title: { en: 'Always show add button', nb: 'Vis alltid Legg til-knappen' },
+      description: {
+        en: 'If set to true, the "Add" button will always be shown, even if the user is currently editing another row',
+        nb: 'Viser alltid «Legg til»-knappen, også under redigering.',
+      },
       default: false,
       required: false,
     },
     compactButtons: {
       type: 'boolean',
-      title: 'Compact buttons',
-      description:
-        'If true, edit and delete buttons in the table only show icons when the row is not in edit mode. Text will still be shown when the row is in edit mode.',
+      title: { en: 'Compact buttons', nb: 'Kompakte knapper' },
+      description: {
+        en: 'If true, edit and delete buttons in the table only show icons when the row is not in edit mode. Text will still be shown when the row is in edit mode.',
+        nb: 'Viser bare ikoner på redigerings- og sletteknappene når raden ikke redigeres.',
+      },
       default: false,
       required: false,
     },
     buttonLayout: {
       type: 'string',
       allowedValues: ['horizontal', 'vertical'],
-      title: 'Button layout',
-      description:
-        'In desktop table view, controls how the edit and delete buttons are laid out. "horizontal" uses two table columns (edit and delete side by side). "vertical" uses a single button column with edit above delete, saving horizontal space. Does not apply to mobile/tablet layout. Can be combined with compactButtons.',
+      title: { en: 'Button layout', nb: 'Knappelayout' },
+      description: {
+        en: 'In desktop table view, controls how the edit and delete buttons are laid out. "horizontal" uses two table columns (edit and delete side by side). "vertical" uses a single button column with edit above delete, saving horizontal space. Does not apply to mobile/tablet layout. Can be combined with compactButtons.',
+        nb: 'Angir plasseringen av redigerings- og sletteknappene i tabellvisning på store skjermer.',
+      },
       default: 'horizontal',
       required: false,
     },
@@ -2141,16 +2766,21 @@ const IGroupColumnFormatting = {
     hidden: ITableColumnProperties['properties']['hidden'],
     editInTable: {
       type: 'boolean',
-      title: 'Edit in table',
-      description: 'If set to true, the component will be editable directly in the table view. ',
+      title: { en: 'Edit in table', nb: 'Rediger i tabell' },
+      description: {
+        en: 'If set to true, the component will be editable directly in the table view. ',
+        nb: 'Gjør komponenten redigerbar direkte i tabellvisningen.',
+      },
       default: false,
       required: false,
     },
     showInExpandedEdit: {
       type: 'boolean',
-      title: 'Show in expanded edit',
-      description:
-        'If set to true, the component will be shown in the expanded edit view. This is also the default behaviour, but can be turned off for components that are only to be edited in the table view.',
+      title: { en: 'Show in expanded edit', nb: 'Vis i utvidet redigering' },
+      description: {
+        en: 'If set to true, the component will be shown in the expanded edit view. This is also the default behaviour, but can be turned off for components that are only to be edited in the table view.',
+        nb: 'Viser komponenten i den utvidede redigeringsvisningen.',
+      },
       default: true,
       required: false,
     },
@@ -2165,10 +2795,20 @@ const IDataModelBindingsForTable = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      title: { en: 'TableData', nb: 'Tabelldata' },
+      description: {
+        en: 'Array of objects where the data is stored',
+        nb: 'Liste over objektene der dataene lagres.',
+      },
       required: true,
     },
   },
   additionalProperties: false,
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
 } as const;
 
 const Columns = {
@@ -2178,8 +2818,11 @@ const Columns = {
     accessors: {
       type: 'array',
       items: { type: 'string' },
-      title: 'Accessors',
-      description: 'List of fields that should be included in the cell',
+      title: { en: 'Accessors', nb: 'Tilgangsfunksjoner' },
+      description: {
+        en: 'List of fields that should be included in the cell',
+        nb: 'Liste over feltene som skal tas med i cellen.',
+      },
       required: true,
     },
     component: {
@@ -2201,8 +2844,11 @@ const Columns = {
             type: { type: 'constant', value: 'date', required: true },
             format: {
               type: 'string',
-              title: 'Date format',
-              description: 'Date format used when displaying the date to the user',
+              title: { en: 'Date format', nb: 'Datoformat' },
+              description: {
+                en: 'Date format used when displaying the date to the user',
+                nb: 'Datoformatet som brukes når datoen vises til brukeren.',
+              },
               examples: ['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'],
               required: false,
             },
@@ -2250,14 +2896,20 @@ const ISubformCellContent = {
         value: {
           type: 'string',
           expression: true,
-          title: 'The cell value',
-          description: 'The cell value to display from an expression or static value',
+          title: { en: 'The cell value', nb: 'Celleverdi' },
+          description: {
+            en: 'The cell value to display from an expression or static value',
+            nb: 'Celleverdien som skal vises fra et uttrykk eller en statisk verdi.',
+          },
           required: true,
         },
         default: {
           type: 'string',
-          title: 'The default cell value',
-          description: 'The cell value to display if `query` or `value` returns no result.',
+          title: { en: 'The default cell value', nb: 'Standard celleverdi' },
+          description: {
+            en: 'The cell value to display if `query` or `value` returns no result.',
+            nb: 'Standardverdien som vises hvis query eller value ikke gir et resultat.',
+          },
           required: false,
         },
       },
@@ -2268,15 +2920,24 @@ const ISubformCellContent = {
       properties: {
         query: {
           type: 'string',
-          title: 'The cell value via data model lookup',
-          description: 'The cell value to display from a data model lookup (dot notation).',
+          title: {
+            en: 'The cell value via data model lookup',
+            nb: 'Celleverdi fra oppslag i datamodellen',
+          },
+          description: {
+            en: 'The cell value to display from a data model lookup (dot notation).',
+            nb: 'Celleverdien som skal vises fra et oppslag i datamodellen, angitt med punktnotasjon.',
+          },
           deprecated: true,
           required: true,
         },
         default: {
           type: 'string',
-          title: 'The default cell value',
-          description: 'The cell value to display if `query` or `value` returns no result.',
+          title: { en: 'The default cell value', nb: 'Standard celleverdi' },
+          description: {
+            en: 'The cell value to display if `query` or `value` returns no result.',
+            nb: 'Standardverdien som vises hvis query eller value ikke gir et resultat.',
+          },
           required: false,
         },
       },
@@ -2290,47 +2951,61 @@ const SummaryDisplayProperties = {
   properties: {
     hideChangeButton: {
       type: 'boolean',
-      title: 'Hide change button',
-      description:
-        'Set to true if the change button should be hidden for the summary component. False by default.',
+      title: { en: 'Hide change button', nb: 'Skjul endringsknappen' },
+      description: {
+        en: 'Set to true if the change button should be hidden for the summary component. False by default.',
+        nb: 'Skjuler endringsknappen i oppsummeringskomponenten.',
+      },
       default: false,
       required: false,
     },
     hideValidationMessages: {
       type: 'boolean',
-      title: 'Hide validation messages',
-      description:
-        'Set to true if the validation messages should be hidden for the component when shown in Summary. False by default.',
+      title: { en: 'Hide validation messages', nb: 'Skjul valideringsmeldinger' },
+      description: {
+        en: 'Set to true if the validation messages should be hidden for the component when shown in Summary. False by default.',
+        nb: 'Skjuler valideringsmeldingene når komponenten vises i Summary.',
+      },
       default: false,
       required: false,
     },
     useComponentGrid: {
       type: 'boolean',
-      title: 'Use component grid',
-      description:
-        'Set to true to allow summary component to use the grid setup of the referenced component. For group summary, this will apply for all group child components.',
+      title: { en: 'Use component grid', nb: 'Bruk komponentens rutenett' },
+      description: {
+        en: 'Set to true to allow summary component to use the grid setup of the referenced component. For group summary, this will apply for all group child components.',
+        nb: 'Lar oppsummeringskomponenten bruke rutenettinnstillingene fra komponenten den refererer til.',
+      },
       default: false,
       required: false,
     },
     hideBottomBorder: {
       type: 'boolean',
-      title: 'Hide bottom border',
-      description:
-        'Set to true to hide the blue dashed border below the summary component. False by default.',
+      title: { en: 'Hide bottom border', nb: 'Skjul nederste kantlinje' },
+      description: {
+        en: 'Set to true to hide the blue dashed border below the summary component. False by default.',
+        nb: 'Skjuler den blå, stiplede linjen under oppsummeringskomponenten.',
+      },
       default: false,
       required: false,
     },
     nextButton: {
       type: 'boolean',
-      title: 'Display the next button',
-      description: 'Set to to true display a "next" button as well as the return to summary button',
+      title: { en: 'Display the next button', nb: 'Vis neste-knappen' },
+      description: {
+        en: 'Set to to true display a "next" button as well as the return to summary button',
+        nb: 'Viser en «Neste»-knapp i tillegg til knappen som går tilbake til oppsummeringen.',
+      },
       default: false,
       required: false,
     },
   },
   additionalProperties: false,
-  title: 'Display properties',
-  description: 'Optional properties to configure how summary is displayed',
+  title: { en: 'Display properties', nb: 'Visningsinnstillinger' },
+  description: {
+    en: 'Optional properties to configure how summary is displayed',
+    nb: 'Valgfrie egenskaper som styrer hvordan oppsummeringen vises.',
+  },
 } as const;
 
 const SummaryTargetPage = {
@@ -2340,8 +3015,11 @@ const SummaryTargetPage = {
     id: { type: 'string', required: true },
     taskId: {
       type: 'string',
-      title: 'Task ID',
-      description: 'Use this if you want to render a page from another task.',
+      title: { en: 'Task ID', nb: 'Oppgave-ID' },
+      description: {
+        en: 'Use this if you want to render a page from another task.',
+        nb: 'Brukes for å vise en side fra en annen oppgave.',
+      },
       required: false,
     },
   },
@@ -2354,8 +3032,11 @@ const SummaryTargetLayoutSet = {
     type: { type: 'constant', value: 'layoutSet', required: true },
     taskId: {
       type: 'string',
-      title: 'Task ID',
-      description: 'Use this if you want to render a layout set from another task.',
+      title: { en: 'Task ID', nb: 'Oppgave-ID' },
+      description: {
+        en: 'Use this if you want to render a layout set from another task.',
+        nb: 'Brukes for å vise et layout-sett fra en annen oppgave.',
+      },
       required: false,
     },
   },
@@ -2369,8 +3050,11 @@ const SummaryTargetComponent = {
     id: { type: 'string', required: true },
     taskId: {
       type: 'string',
-      title: 'Task ID',
-      description: 'Use this if you want to render a single component from another task.',
+      title: { en: 'Task ID', nb: 'Oppgave-ID' },
+      description: {
+        en: 'Use this if you want to render a single component from another task.',
+        nb: 'Brukes for å vise én komponent fra en annen oppgave.',
+      },
       required: false,
     },
   },
@@ -2397,8 +3081,14 @@ const AddressSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Address',
-      description: 'Properties for how to display the summary of this Address component',
+      title: {
+        en: 'Summary overrides for Address',
+        nb: 'Overstyringer av oppsummering for Address',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Address component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Address-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2408,8 +3098,14 @@ const AddressSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Address', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Address',
-      description: 'Properties for how to display the summary of all Address components',
+      title: {
+        en: 'Summary overrides for all Address',
+        nb: 'Overstyringer av oppsummering for alle Address-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Address components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Address-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2422,8 +3118,11 @@ const CheckboxesSummaryOverrides = {
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
-      title: 'Display type',
-      description: 'How data should be displayed for this checkboxes component in the summary',
+      title: { en: 'Display type', nb: 'Visningstype' },
+      description: {
+        en: 'How data should be displayed for this checkboxes component in the summary',
+        nb: 'Angir hvordan data fra Checkboxes-komponenten skal vises i oppsummeringen.',
+      },
       required: false,
     },
   },
@@ -2442,8 +3141,14 @@ const CheckboxesSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Checkboxes',
-      description: 'Properties for how to display the summary of this Checkboxes component',
+      title: {
+        en: 'Summary overrides for Checkboxes',
+        nb: 'Overstyringer av oppsummering for Checkboxes',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Checkboxes component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Checkboxes-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2454,8 +3159,14 @@ const CheckboxesSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Checkboxes', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Checkboxes',
-      description: 'Properties for how to display the summary of all Checkboxes components',
+      title: {
+        en: 'Summary overrides for all Checkboxes',
+        nb: 'Overstyringer av oppsummering for alle Checkboxes-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Checkboxes components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Checkboxes-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2471,8 +3182,11 @@ const DateSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Date',
-      description: 'Properties for how to display the summary of this Date component',
+      title: { en: 'Summary overrides for Date', nb: 'Overstyringer av oppsummering for Date' },
+      description: {
+        en: 'Properties for how to display the summary of this Date component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Date-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2482,8 +3196,14 @@ const DateSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Date', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Date',
-      description: 'Properties for how to display the summary of all Date components',
+      title: {
+        en: 'Summary overrides for all Date',
+        nb: 'Overstyringer av oppsummering for alle Date-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Date components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Date-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2499,8 +3219,14 @@ const DatepickerSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Datepicker',
-      description: 'Properties for how to display the summary of this Datepicker component',
+      title: {
+        en: 'Summary overrides for Datepicker',
+        nb: 'Overstyringer av oppsummering for Datepicker',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Datepicker component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Datepicker-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2510,8 +3236,14 @@ const DatepickerSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Datepicker', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Datepicker',
-      description: 'Properties for how to display the summary of all Datepicker components',
+      title: {
+        en: 'Summary overrides for all Datepicker',
+        nb: 'Overstyringer av oppsummering for alle Datepicker-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Datepicker components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Datepicker-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2527,8 +3259,14 @@ const DividerSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Divider',
-      description: 'Properties for how to display the summary of this Divider component',
+      title: {
+        en: 'Summary overrides for Divider',
+        nb: 'Overstyringer av oppsummering for Divider',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Divider component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Divider-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2538,8 +3276,14 @@ const DividerSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Divider', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Divider',
-      description: 'Properties for how to display the summary of all Divider components',
+      title: {
+        en: 'Summary overrides for all Divider',
+        nb: 'Overstyringer av oppsummering for alle Divider-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Divider components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Divider-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2555,8 +3299,14 @@ const DropdownSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Dropdown',
-      description: 'Properties for how to display the summary of this Dropdown component',
+      title: {
+        en: 'Summary overrides for Dropdown',
+        nb: 'Overstyringer av oppsummering for Dropdown',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Dropdown component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Dropdown-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2566,8 +3316,14 @@ const DropdownSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Dropdown', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Dropdown',
-      description: 'Properties for how to display the summary of all Dropdown components',
+      title: {
+        en: 'Summary overrides for all Dropdown',
+        nb: 'Overstyringer av oppsummering for alle Dropdown-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Dropdown components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Dropdown-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2579,9 +3335,11 @@ const GridSummaryOverrides = {
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
     hideEmptyRows: {
       type: 'boolean',
-      title: 'Hide empty rows',
-      description:
-        'Whether to hide empty rows in the Grid. Rows are considered empty only when they contain components, and all those components are hidden or empty.',
+      title: { en: 'Hide empty rows', nb: 'Skjul tomme rader' },
+      description: {
+        en: 'Whether to hide empty rows in the Grid. Rows are considered empty only when they contain components, and all those components are hidden or empty.',
+        nb: 'Angir om tomme rader i Grid skal skjules. En rad regnes bare som tom når den inneholder komponenter og alle er skjult eller tomme.',
+      },
       required: false,
     },
   },
@@ -2600,8 +3358,11 @@ const GridSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Grid',
-      description: 'Properties for how to display the summary of this Grid component',
+      title: { en: 'Summary overrides for Grid', nb: 'Overstyringer av oppsummering for Grid' },
+      description: {
+        en: 'Properties for how to display the summary of this Grid component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Grid-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2612,8 +3373,14 @@ const GridSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Grid', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Grid',
-      description: 'Properties for how to display the summary of all Grid components',
+      title: {
+        en: 'Summary overrides for all Grid',
+        nb: 'Overstyringer av oppsummering for alle Grid-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Grid components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Grid-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2629,8 +3396,11 @@ const GroupSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Group',
-      description: 'Properties for how to display the summary of this Group component',
+      title: { en: 'Summary overrides for Group', nb: 'Overstyringer av oppsummering for Group' },
+      description: {
+        en: 'Properties for how to display the summary of this Group component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Group-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2640,8 +3410,14 @@ const GroupSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Group', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Group',
-      description: 'Properties for how to display the summary of all Group components',
+      title: {
+        en: 'Summary overrides for all Group',
+        nb: 'Overstyringer av oppsummering for alle Group-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Group components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Group-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2657,8 +3433,14 @@ const HeadingSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Heading',
-      description: 'Properties for how to display the summary of this Heading component',
+      title: {
+        en: 'Summary overrides for Heading',
+        nb: 'Overstyringer av oppsummering for Heading',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Heading component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Heading-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2668,8 +3450,14 @@ const HeadingSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Heading', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Heading',
-      description: 'Properties for how to display the summary of all Heading components',
+      title: {
+        en: 'Summary overrides for all Heading',
+        nb: 'Overstyringer av oppsummering for alle Heading-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Heading components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Heading-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2685,8 +3473,14 @@ const ImageUploadSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for ImageUpload',
-      description: 'Properties for how to display the summary of this ImageUpload component',
+      title: {
+        en: 'Summary overrides for ImageUpload',
+        nb: 'Overstyringer av oppsummering for ImageUpload',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this ImageUpload component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne ImageUpload-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2696,8 +3490,14 @@ const ImageUploadSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'ImageUpload', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all ImageUpload',
-      description: 'Properties for how to display the summary of all ImageUpload components',
+      title: {
+        en: 'Summary overrides for all ImageUpload',
+        nb: 'Overstyringer av oppsummering for alle ImageUpload-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all ImageUpload components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle ImageUpload-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2713,8 +3513,11 @@ const InputSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Input',
-      description: 'Properties for how to display the summary of this Input component',
+      title: { en: 'Summary overrides for Input', nb: 'Overstyringer av oppsummering for Input' },
+      description: {
+        en: 'Properties for how to display the summary of this Input component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Input-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2724,8 +3527,14 @@ const InputSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Input', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Input',
-      description: 'Properties for how to display the summary of all Input components',
+      title: {
+        en: 'Summary overrides for all Input',
+        nb: 'Overstyringer av oppsummering for alle Input-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Input components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Input-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2741,8 +3550,11 @@ const LikertSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Likert',
-      description: 'Properties for how to display the summary of this Likert component',
+      title: { en: 'Summary overrides for Likert', nb: 'Overstyringer av oppsummering for Likert' },
+      description: {
+        en: 'Properties for how to display the summary of this Likert component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Likert-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2752,8 +3564,14 @@ const LikertSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Likert', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Likert',
-      description: 'Properties for how to display the summary of all Likert components',
+      title: {
+        en: 'Summary overrides for all Likert',
+        nb: 'Overstyringer av oppsummering for alle Likert-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Likert components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Likert-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2769,8 +3587,11 @@ const ListSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for List',
-      description: 'Properties for how to display the summary of this List component',
+      title: { en: 'Summary overrides for List', nb: 'Overstyringer av oppsummering for List' },
+      description: {
+        en: 'Properties for how to display the summary of this List component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne List-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2780,8 +3601,14 @@ const ListSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'List', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all List',
-      description: 'Properties for how to display the summary of all List components',
+      title: {
+        en: 'Summary overrides for all List',
+        nb: 'Overstyringer av oppsummering for alle List-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all List components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle List-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2797,8 +3624,11 @@ const MapSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Map',
-      description: 'Properties for how to display the summary of this Map component',
+      title: { en: 'Summary overrides for Map', nb: 'Overstyringer av oppsummering for Map' },
+      description: {
+        en: 'Properties for how to display the summary of this Map component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Map-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2808,8 +3638,14 @@ const MapSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Map', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Map',
-      description: 'Properties for how to display the summary of all Map components',
+      title: {
+        en: 'Summary overrides for all Map',
+        nb: 'Overstyringer av oppsummering for alle Map-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Map components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Map-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2822,9 +3658,11 @@ const MultipleSelectSummaryOverrides = {
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
-      title: 'Display type',
-      description:
-        'How data should be displayed for the this multiple select component in the summary',
+      title: { en: 'Display type', nb: 'Visningstype' },
+      description: {
+        en: 'How data should be displayed for the this multiple select component in the summary',
+        nb: 'Angir hvordan data fra MultipleSelect-komponenten skal vises i oppsummeringen.',
+      },
       required: false,
     },
   },
@@ -2843,8 +3681,14 @@ const MultipleSelectSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for MultipleSelect',
-      description: 'Properties for how to display the summary of this MultipleSelect component',
+      title: {
+        en: 'Summary overrides for MultipleSelect',
+        nb: 'Overstyringer av oppsummering for MultipleSelect',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this MultipleSelect component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne MultipleSelect-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2855,8 +3699,14 @@ const MultipleSelectSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'MultipleSelect', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all MultipleSelect',
-      description: 'Properties for how to display the summary of all MultipleSelect components',
+      title: {
+        en: 'Summary overrides for all MultipleSelect',
+        nb: 'Overstyringer av oppsummering for alle MultipleSelect-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all MultipleSelect components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle MultipleSelect-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2872,8 +3722,11 @@ const NumberSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Number',
-      description: 'Properties for how to display the summary of this Number component',
+      title: { en: 'Summary overrides for Number', nb: 'Overstyringer av oppsummering for Number' },
+      description: {
+        en: 'Properties for how to display the summary of this Number component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Number-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2883,8 +3736,14 @@ const NumberSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Number', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Number',
-      description: 'Properties for how to display the summary of all Number components',
+      title: {
+        en: 'Summary overrides for all Number',
+        nb: 'Overstyringer av oppsummering for alle Number-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Number components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Number-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2900,8 +3759,11 @@ const OptionSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Option',
-      description: 'Properties for how to display the summary of this Option component',
+      title: { en: 'Summary overrides for Option', nb: 'Overstyringer av oppsummering for Option' },
+      description: {
+        en: 'Properties for how to display the summary of this Option component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Option-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2911,8 +3773,14 @@ const OptionSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Option', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Option',
-      description: 'Properties for how to display the summary of all Option components',
+      title: {
+        en: 'Summary overrides for all Option',
+        nb: 'Overstyringer av oppsummering for alle Option-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Option components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Option-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2928,8 +3796,14 @@ const OrganizationLookupSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for OrganizationLookup',
-      description: 'Properties for how to display the summary of this OrganizationLookup component',
+      title: {
+        en: 'Summary overrides for OrganizationLookup',
+        nb: 'Overstyringer av oppsummering for OrganizationLookup',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this OrganizationLookup component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne OrganizationLookup-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2939,8 +3813,14 @@ const OrganizationLookupSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'OrganizationLookup', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all OrganizationLookup',
-      description: 'Properties for how to display the summary of all OrganizationLookup components',
+      title: {
+        en: 'Summary overrides for all OrganizationLookup',
+        nb: 'Overstyringer av oppsummering for alle OrganizationLookup-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all OrganizationLookup components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle OrganizationLookup-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2956,8 +3836,14 @@ const ParagraphSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Paragraph',
-      description: 'Properties for how to display the summary of this Paragraph component',
+      title: {
+        en: 'Summary overrides for Paragraph',
+        nb: 'Overstyringer av oppsummering for Paragraph',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Paragraph component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Paragraph-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2967,8 +3853,14 @@ const ParagraphSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Paragraph', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Paragraph',
-      description: 'Properties for how to display the summary of all Paragraph components',
+      title: {
+        en: 'Summary overrides for all Paragraph',
+        nb: 'Overstyringer av oppsummering for alle Paragraph-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Paragraph components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Paragraph-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -2984,8 +3876,14 @@ const PaymentSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Payment',
-      description: 'Properties for how to display the summary of this Payment component',
+      title: {
+        en: 'Summary overrides for Payment',
+        nb: 'Overstyringer av oppsummering for Payment',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Payment component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Payment-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -2995,8 +3893,14 @@ const PaymentSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Payment', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Payment',
-      description: 'Properties for how to display the summary of all Payment components',
+      title: {
+        en: 'Summary overrides for all Payment',
+        nb: 'Overstyringer av oppsummering for alle Payment-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Payment components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Payment-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3012,8 +3916,14 @@ const PersonLookupSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for PersonLookup',
-      description: 'Properties for how to display the summary of this PersonLookup component',
+      title: {
+        en: 'Summary overrides for PersonLookup',
+        nb: 'Overstyringer av oppsummering for PersonLookup',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this PersonLookup component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne PersonLookup-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3023,8 +3933,14 @@ const PersonLookupSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'PersonLookup', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all PersonLookup',
-      description: 'Properties for how to display the summary of all PersonLookup components',
+      title: {
+        en: 'Summary overrides for all PersonLookup',
+        nb: 'Overstyringer av oppsummering for alle PersonLookup-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all PersonLookup components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle PersonLookup-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3040,8 +3956,14 @@ const RadioButtonsSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for RadioButtons',
-      description: 'Properties for how to display the summary of this RadioButtons component',
+      title: {
+        en: 'Summary overrides for RadioButtons',
+        nb: 'Overstyringer av oppsummering for RadioButtons',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this RadioButtons component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne RadioButtons-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3051,8 +3973,14 @@ const RadioButtonsSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'RadioButtons', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all RadioButtons',
-      description: 'Properties for how to display the summary of all RadioButtons components',
+      title: {
+        en: 'Summary overrides for all RadioButtons',
+        nb: 'Overstyringer av oppsummering for alle RadioButtons-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all RadioButtons components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle RadioButtons-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3065,8 +3993,11 @@ const RepeatingGroupSummaryOverrides = {
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
-      title: 'Display type',
-      description: 'Show the summary as a table or as full summary components',
+      title: { en: 'Display type', nb: 'Visningstype' },
+      description: {
+        en: 'Show the summary as a table or as full summary components',
+        nb: 'Viser oppsummeringen som en tabell eller som fullstendige oppsummeringskomponenter.',
+      },
       default: 'full',
       required: false,
     },
@@ -3086,8 +4017,14 @@ const RepeatingGroupSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for RepeatingGroup',
-      description: 'Properties for how to display the summary of this RepeatingGroup component',
+      title: {
+        en: 'Summary overrides for RepeatingGroup',
+        nb: 'Overstyringer av oppsummering for RepeatingGroup',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this RepeatingGroup component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne RepeatingGroup-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3098,8 +4035,14 @@ const RepeatingGroupSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'RepeatingGroup', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all RepeatingGroup',
-      description: 'Properties for how to display the summary of all RepeatingGroup components',
+      title: {
+        en: 'Summary overrides for all RepeatingGroup',
+        nb: 'Overstyringer av oppsummering for alle RepeatingGroup-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all RepeatingGroup components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle RepeatingGroup-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3112,8 +4055,11 @@ const SubformSummaryOverrides = {
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
-      title: 'Display type',
-      description: 'Show the summary as a table or as full summary components',
+      title: { en: 'Display type', nb: 'Visningstype' },
+      description: {
+        en: 'Show the summary as a table or as full summary components',
+        nb: 'Viser oppsummeringen som en tabell eller som fullstendige oppsummeringskomponenter.',
+      },
       default: 'table',
       required: false,
     },
@@ -3133,8 +4079,14 @@ const SubformSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Subform',
-      description: 'Properties for how to display the summary of this Subform component',
+      title: {
+        en: 'Summary overrides for Subform',
+        nb: 'Overstyringer av oppsummering for Subform',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this Subform component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Subform-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3145,8 +4097,14 @@ const SubformSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Subform', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Subform',
-      description: 'Properties for how to display the summary of all Subform components',
+      title: {
+        en: 'Summary overrides for all Subform',
+        nb: 'Overstyringer av oppsummering for alle Subform-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Subform components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Subform-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3162,8 +4120,11 @@ const TabsSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Tabs',
-      description: 'Properties for how to display the summary of this Tabs component',
+      title: { en: 'Summary overrides for Tabs', nb: 'Overstyringer av oppsummering for Tabs' },
+      description: {
+        en: 'Properties for how to display the summary of this Tabs component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Tabs-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3173,8 +4134,14 @@ const TabsSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Tabs', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Tabs',
-      description: 'Properties for how to display the summary of all Tabs components',
+      title: {
+        en: 'Summary overrides for all Tabs',
+        nb: 'Overstyringer av oppsummering for alle Tabs-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Tabs components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Tabs-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3190,8 +4157,11 @@ const TextSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for Text',
-      description: 'Properties for how to display the summary of this Text component',
+      title: { en: 'Summary overrides for Text', nb: 'Overstyringer av oppsummering for Text' },
+      description: {
+        en: 'Properties for how to display the summary of this Text component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Text-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3201,8 +4171,14 @@ const TextSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'Text', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all Text',
-      description: 'Properties for how to display the summary of all Text components',
+      title: {
+        en: 'Summary overrides for all Text',
+        nb: 'Overstyringer av oppsummering for alle Text-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Text components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Text-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3218,8 +4194,14 @@ const TextAreaSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for TextArea',
-      description: 'Properties for how to display the summary of this TextArea component',
+      title: {
+        en: 'Summary overrides for TextArea',
+        nb: 'Overstyringer av oppsummering for TextArea',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this TextArea component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne TextArea-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3229,8 +4211,14 @@ const TextAreaSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'TextArea', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all TextArea',
-      description: 'Properties for how to display the summary of all TextArea components',
+      title: {
+        en: 'Summary overrides for all TextArea',
+        nb: 'Overstyringer av oppsummering for alle TextArea-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all TextArea components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle TextArea-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3246,8 +4234,14 @@ const TimePickerSummaryOverridesWithRef = {
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for TimePicker',
-      description: 'Properties for how to display the summary of this TimePicker component',
+      title: {
+        en: 'Summary overrides for TimePicker',
+        nb: 'Overstyringer av oppsummering for TimePicker',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this TimePicker component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne TimePicker-komponenten vises.',
+      },
     },
     {
       type: 'object',
@@ -3257,8 +4251,14 @@ const TimePickerSummaryOverridesWithRef = {
         componentType: { type: 'constant', value: 'TimePicker', required: true },
       },
       additionalProperties: false,
-      title: 'Summary overrides for all TimePicker',
-      description: 'Properties for how to display the summary of all TimePicker components',
+      title: {
+        en: 'Summary overrides for all TimePicker',
+        nb: 'Overstyringer av oppsummering for alle TimePicker-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all TimePicker components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle TimePicker-komponenter vises.',
+      },
     },
   ],
 } as const;
@@ -3304,21 +4304,29 @@ const SummaryOverrideForPage = {
     hidden: { type: 'boolean', default: false, required: false },
   },
   additionalProperties: false,
-  title: 'Page-level override',
-  description: 'Override for a specific page',
+  title: { en: 'Page-level override', nb: 'Overstyring på sidenivå' },
+  description: { en: 'Override for a specific page', nb: 'Overstyring for en bestemt side.' },
 } as const;
 
 const TabConfig = {
   type: 'object',
   properties: {
     id: { type: 'string', required: true },
-    title: { type: 'string', title: 'Title', description: 'Title of the tab', required: true },
+    title: {
+      type: 'string',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Title of the tab', nb: 'Fanens tittel.' },
+      required: true,
+    },
     icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
     children: {
       type: 'array',
       items: { type: 'string' },
-      title: 'Children',
-      description: 'List of component IDs that should be displayed in the Tab',
+      title: { en: 'Children', nb: 'Underkomponenter' },
+      description: {
+        en: 'List of component IDs that should be displayed in the Tab',
+        nb: 'Liste over komponent-ID-er som skal vises i fanen.',
+      },
       required: true,
     },
   },
@@ -3383,9 +4391,11 @@ const HTMLAutoCompleteValues = {
     'url',
     'photo',
   ],
-  title: 'HTML autocomplete values',
-  description:
-    'Autocomplete hints to the browser. See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete',
+  title: { en: 'HTML autocomplete values', nb: 'Verdier for HTML-autofullføring' },
+  description: {
+    en: 'Autocomplete hints to the browser. See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete',
+    nb: 'Forslag til nettleserens autofullføring. Se https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete',
+  },
 } as const;
 
 const VideoSrc = {
@@ -3393,17 +4403,35 @@ const VideoSrc = {
   properties: {
     nb: {
       type: 'string',
-      title: 'Video source (when using norwegian bokmål language)',
+      title: {
+        en: 'Video source (when using norwegian bokmål language)',
+        nb: 'Videokilde for norsk bokmål',
+      },
       required: false,
     },
     nn: {
       type: 'string',
-      title: 'Video source (when using norwegian nynorsk language)',
+      title: {
+        en: 'Video source (when using norwegian nynorsk language)',
+        nb: 'Videokilde for norsk nynorsk',
+      },
       required: false,
     },
-    en: { type: 'string', title: 'Video source (when using english language)', required: false },
+    en: {
+      type: 'string',
+      title: { en: 'Video source (when using english language)', nb: 'Videokilde for engelsk' },
+      required: false,
+    },
   },
-  additionalProperties: { type: 'string', title: 'Video source (when using other languages)' },
+  additionalProperties: {
+    type: 'string',
+    title: { en: 'Video source (when using other languages)', nb: 'Videokilde for andre språk' },
+  },
+  title: { en: 'Video sources', nb: 'Videokilder' },
+  description: {
+    en: 'Video sources for each supported language.',
+    nb: 'Videokilder for hvert språk appen støtter.',
+  },
   examples: [
     {
       nb: 'https://example.com/video.mp4',
@@ -3420,11 +4448,15 @@ const IVideo = {
       type: 'object',
       properties: VideoSrc['properties'],
       additionalProperties: VideoSrc['additionalProperties'],
+      title: VideoSrc['title'],
+      description: VideoSrc['description'],
       examples: VideoSrc['examples'],
       required: true,
     },
   },
   additionalProperties: false,
+  title: { en: 'Video settings', nb: 'Videoinnstillinger' },
+  description: { en: 'Configures the video sources.', nb: 'Konfigurerer videokildene.' },
 } as const;
 
 const generatedContract = {
@@ -3442,7 +4474,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Accordion', required: true },
+        type: {
+          type: 'constant',
+          value: 'Accordion',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -3451,27 +4492,40 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the accordion',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The title of the accordion',
+                nb: 'Ledeteksten til trekkspillelementet.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         children: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Children',
-          description:
-            'List of child component IDs to show inside the Accordion (limited to a few component types)',
+          title: { en: 'Children', nb: 'Underkomponenter' },
+          description: {
+            en: 'List of child component IDs to show inside the Accordion (limited to a few component types)',
+            nb: 'Liste over ID-ene til underkomponentene som skal vises i trekkspillelementet. Bare enkelte komponenttyper støttes.',
+          },
           required: true,
         },
         openByDefault: {
           type: 'boolean',
           expression: true,
-          title: 'Open by default',
-          description: 'Boolean value indicating if the accordion should be open by default',
+          title: { en: 'Open by default', nb: 'Åpen som standard' },
+          description: {
+            en: 'Boolean value indicating if the accordion should be open by default',
+            nb: 'Angir om trekkspillelementet skal være åpent som standard.',
+          },
           default: false,
           required: false,
         },
@@ -3495,7 +4549,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'AccordionGroup', required: true },
+        type: {
+          type: 'constant',
+          value: 'AccordionGroup',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -3504,20 +4567,30 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the accordion group',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The title of the accordion group',
+                nb: 'Ledeteksten til trekkspillgruppen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         children: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Children',
-          description:
-            'List of child component IDs to show inside the accordion group (limited to other Accordion components)',
+          title: { en: 'Children', nb: 'Underkomponenter' },
+          description: {
+            en: 'List of child component IDs to show inside the accordion group (limited to other Accordion components)',
+            nb: 'Liste over ID-ene til underkomponentene som skal vises i trekkspillgruppen. Bare Accordion-komponenter støttes.',
+          },
           required: true,
         },
       },
@@ -3533,33 +4606,53 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'ActionButton', required: true },
+        type: {
+          type: 'constant',
+          value: 'ActionButton',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Button title/text',
-              description: 'The text to display on the button.',
+              title: { en: 'Button title/text', nb: 'Knappetekst' },
+              description: {
+                en: 'The text to display on the button.',
+                nb: 'Teksten som vises på knappen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         action: {
           type: 'string',
           allowedValues: ['instantiate', 'confirm', 'sign', 'reject'],
-          title: 'Action',
-          description: 'The action to perform when the button is clicked.',
+          title: { en: 'Action', nb: 'Handling' },
+          description: {
+            en: 'The action to perform when the button is clicked.',
+            nb: 'Handlingen som utføres når brukeren velger knappen.',
+          },
           required: true,
         },
         buttonStyle: {
           type: 'string',
           allowedValues: ActionButtonStyle['allowedValues'],
-          title: 'Button style',
-          description: 'The style/color scheme of the button.',
+          title: ActionButtonStyle['title'],
+          description: ActionButtonStyle['description'],
           required: true,
         },
       },
@@ -3581,7 +4674,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Address', required: true },
+        type: {
+          type: 'constant',
+          value: 'Address',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -3593,68 +4695,82 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'Title of the component',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'Title of the component', nb: 'Ledeteksten til komponenten.' },
               required: false,
             },
             careOfTitle: {
               type: 'string',
               expression: true,
-              title: 'Care Of Title',
-              description: 'Title for care-of',
+              title: { en: 'Care Of Title', nb: 'Ledetekst for c/o' },
+              description: { en: 'Title for care-of', nb: 'Ledetekst for c/o.' },
               required: false,
             },
             zipCodeTitle: {
               type: 'string',
               expression: true,
-              title: 'Zip Code Title',
-              description: 'Title for the zip code',
+              title: { en: 'Zip Code Title', nb: 'Ledetekst for postnummer' },
+              description: { en: 'Title for the zip code', nb: 'Ledetekst for postnummer.' },
               required: false,
             },
             postPlaceTitle: {
               type: 'string',
               expression: true,
-              title: 'Post place Title',
-              description: 'Title for post place',
+              title: { en: 'Post place Title', nb: 'Ledetekst for poststed' },
+              description: { en: 'Title for post place', nb: 'Ledetekst for poststed.' },
               required: false,
             },
             houseNumberTitle: {
               type: 'string',
               expression: true,
-              title: 'House number Title',
-              description: 'Title for house number',
+              title: { en: 'House number Title', nb: 'Ledetekst for husnummer' },
+              description: { en: 'Title for house number', nb: 'Ledetekst for husnummer.' },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForAddress['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForAddress['title'],
+          description: IDataModelBindingsForAddress['description'],
           required: true,
         },
         saveWhileTyping: {
           type: 'number',
-          title: 'Automatic saving while typing',
-          description:
-            'Lets you control how long we wait before saving the value locally while typing. This value is usually also used to determine how long we wait before saving the value to the server. The default value is 400 milliseconds.',
-          default: 400,
+          title: SaveWhileTyping['title'],
+          description: SaveWhileTyping['description'],
+          default: true,
           required: false,
         },
         simplified: {
           type: 'boolean',
-          title: 'Simplified',
-          description: 'Whether to use the simplified address input or not',
+          title: { en: 'Simplified', nb: 'Forenklet' },
+          description: {
+            en: 'Whether to use the simplified address input or not',
+            nb: 'Angir om det forenklede adressefeltet skal brukes.',
+          },
           default: true,
           required: false,
         },
@@ -3673,7 +4789,16 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'AddToList', required: true },
+        type: {
+          type: 'constant',
+          value: 'AddToList',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -3684,15 +4809,25 @@ const generatedContract = {
             summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         title: { type: 'string', required: true },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
@@ -3702,10 +4837,20 @@ const generatedContract = {
               type: 'object',
               properties: IDataModelReference['properties'],
               additionalProperties: false,
+              title: { en: 'Data', nb: 'Data' },
+              description: {
+                en: 'Dot notation location for a repeating group structure (array of objects), where the data is stored',
+                nb: 'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
+              },
               required: true,
             },
           },
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
       },
@@ -3718,33 +4863,47 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Alert', required: true },
+        type: {
+          type: 'constant',
+          value: 'Alert',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the alert',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the alert', nb: 'Ledeteksten til varselet.' },
               required: false,
             },
             body: {
               type: 'string',
               expression: true,
-              title: 'Body',
-              description: 'The body text of the alert',
+              title: { en: 'Body', nb: 'Brødtekst' },
+              description: { en: 'The body text of the alert', nb: 'Brødteksten i varselet.' },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         severity: {
           type: 'string',
           allowedValues: AlertSeverity['allowedValues'],
-          title: 'Alert severity',
-          description: 'The severity of the alert',
+          title: AlertSeverity['title'],
+          description: AlertSeverity['description'],
           required: true,
         },
       },
@@ -3760,44 +4919,73 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'AttachmentList', required: true },
+        type: {
+          type: 'constant',
+          value: 'AttachmentList',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'Title shown above the attachment list',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'Title shown above the attachment list',
+                nb: 'Ledeteksten som vises over vedleggslisten.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         dataTypeIds: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Data type IDs',
-          description: 'List of data type IDs for the attachment list to show',
+          title: { en: 'Data type IDs', nb: 'Datatype-ID-er' },
+          description: {
+            en: 'List of data type IDs for the attachment list to show',
+            nb: 'Liste over datatype-ID-ene som vedleggslisten skal vise.',
+          },
           required: false,
         },
         links: {
           type: 'boolean',
-          title: 'Link to each attachment',
-          description: 'Disable this to remove the link to each attachment',
+          title: { en: 'Link to each attachment', nb: 'Lenke til hvert vedlegg' },
+          description: {
+            en: 'Disable this to remove the link to each attachment',
+            nb: 'Slå av for å fjerne lenken til hvert vedlegg.',
+          },
           default: true,
           required: false,
         },
         groupByDataTypeGrouping: {
           type: 'boolean',
-          description: 'Group attachments by their data type grouping',
+          description: {
+            en: 'Group attachments by their data type grouping',
+            nb: 'Grupperer vedlegg etter datatypens gruppering.',
+          },
           default: false,
           required: false,
         },
         showDataTypeDescriptions: {
           type: 'boolean',
-          description: 'Show the corresponding data type description for each attachment',
+          description: {
+            en: 'Show the corresponding data type description for each attachment',
+            nb: 'Viser beskrivelsen av den tilhørende datatypen for hvert vedlegg.',
+          },
           default: false,
           required: false,
         },
@@ -3811,19 +4999,36 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Audio', required: true },
+        type: {
+          type: 'constant',
+          value: 'Audio',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             altText: {
               type: 'string',
               expression: true,
-              title: 'Alt text',
-              description: 'Alternative text for the audio (for screen readers).',
+              title: { en: 'Alt text', nb: 'Alternativ tekst' },
+              description: {
+                en: 'Alternative text for the audio (for screen readers).',
+                nb: 'Alternativ tekst for lydinnholdet, beregnet på skjermlesere.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         audio: {
@@ -3846,26 +5051,40 @@ const generatedContract = {
         textAlign: IButtonProps['properties']['textAlign'],
         fullWidth: IButtonProps['properties']['fullWidth'],
         position: IButtonProps['properties']['position'],
-        type: { type: 'constant', value: 'Button', required: true },
+        type: {
+          type: 'constant',
+          value: 'Button',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title/text on the button',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         mode: {
           type: 'string',
           allowedValues: ButtonMode['allowedValues'],
-          title: 'Mode',
-          description: 'The mode of the button',
+          title: ButtonMode['title'],
+          description: ButtonMode['description'],
           default: 'submit',
           required: false,
         },
@@ -3873,9 +5092,8 @@ const generatedContract = {
           type: 'object',
           properties: IMapping['properties'],
           additionalProperties: IMapping['additionalProperties'],
-          title: 'Mapping',
-          description:
-            'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+          title: IMapping['title'],
+          description: IMapping['description'],
           required: false,
         },
       },
@@ -3891,7 +5109,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'ButtonGroup', required: true },
+        type: {
+          type: 'constant',
+          value: 'ButtonGroup',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -3902,13 +5129,21 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         children: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Children',
-          description: 'Child component IDs of button-like components to be rendered in this group',
+          title: { en: 'Children', nb: 'Underkomponenter' },
+          description: {
+            en: 'Child component IDs of button-like components to be rendered in this group',
+            nb: 'ID-ene til knappekomponentene som skal vises i gruppen.',
+          },
           required: true,
         },
       },
@@ -3923,7 +5158,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Cards', required: true },
+        type: {
+          type: 'constant',
+          value: 'Cards',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -3931,20 +5175,28 @@ const generatedContract = {
             summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         mediaPosition: {
           type: 'string',
           allowedValues: CardsMediaPosition['allowedValues'],
-          title: 'ImagePosition',
-          description: 'Position of the media (image/video/audio) in each card',
+          title: CardsMediaPosition['title'],
+          description: CardsMediaPosition['description'],
           default: 'top',
           required: false,
         },
         minMediaHeight: {
           type: 'string',
-          title: 'minMediaHeight',
-          description: 'Fixed minimum height of media (if media is present)',
+          title: { en: 'minMediaHeight', nb: 'minste mediehøyde' },
+          description: {
+            en: 'Fixed minimum height of media (if media is present)',
+            nb: 'Fast minimumshøyde for mediet, hvis kortet har et medium.',
+          },
           default: '150px',
           examples: ['100px', '100%', '100rem'],
           required: false,
@@ -3952,8 +5204,11 @@ const generatedContract = {
         minWidth: {
           type: 'string',
           pattern: '^[0-9]+(px|rem|%)?$',
-          title: 'minWidth',
-          description: 'Fixed minimum width of the card',
+          title: { en: 'minWidth', nb: 'minste bredde' },
+          description: {
+            en: 'Fixed minimum width of the card',
+            nb: 'Fast minimumsbredde for kortet.',
+          },
           default: '250px',
           examples: ['100', '100px', '100%', '100rem'],
           required: false,
@@ -3961,8 +5216,8 @@ const generatedContract = {
         color: {
           type: 'string',
           allowedValues: CardsColor['allowedValues'],
-          title: 'Card color',
-          description: 'The color style for these cards',
+          title: CardsColor['title'],
+          description: CardsColor['description'],
           required: true,
         },
         cards: { type: 'array', items: CardConfig, required: true },
@@ -3994,7 +5249,16 @@ const generatedContract = {
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Checkboxes', required: true },
+        type: {
+          type: 'constant',
+          value: 'Checkboxes',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4008,43 +5272,63 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForGroupCheckbox['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForGroupCheckbox['title'],
+          description: IDataModelBindingsForGroupCheckbox['description'],
           required: true,
         },
         deletionStrategy: { type: 'string', allowedValues: ['soft', 'hard'], required: false },
         layout: {
           type: 'string',
           allowedValues: LayoutStyle['allowedValues'],
-          title: 'Layout',
-          description: 'Define the layout style for the options',
+          title: LayoutStyle['title'],
+          description: LayoutStyle['description'],
           required: false,
         },
         showLabelsInTable: {
           type: 'boolean',
-          title: 'Show label when single option in table',
-          description:
-            'Boolean value indicating if the label should be visible when only one option exists in table',
+          title: {
+            en: 'Show label when single option in table',
+            nb: 'Vis ledetekst ved ett alternativ i tabellen',
+          },
+          description: {
+            en: 'Boolean value indicating if the label should be visible when only one option exists in table',
+            nb: 'Angir om ledeteksten skal vises når tabellen bare har ett alternativ.',
+          },
           default: false,
           required: false,
         },
         alertOnChange: {
           type: 'boolean',
           expression: true,
-          title: 'Alert on change',
-          description: 'Boolean value indicating if the component should alert on change',
+          title: { en: 'Alert on change', nb: 'Varsel ved endring' },
+          description: {
+            en: 'Boolean value indicating if the component should alert on change',
+            nb: 'Angir om komponenten skal varsle ved endringer.',
+          },
           default: false,
           required: false,
         },
@@ -4063,7 +5347,16 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Custom', required: true },
+        type: {
+          type: 'constant',
+          value: 'Custom',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4075,32 +5368,50 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'Title (passed on as the "text" property to the component)',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'Title (passed on as the "text" property to the component)',
+                nb: 'Ledeteksten, sendt til komponentens «text»-egenskap.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForCustom['properties'],
-          additionalProperties: IDataModelReference,
+          additionalProperties: IDataModelBindingsForCustom['additionalProperties'],
+          title: IDataModelBindingsForCustom['title'],
+          description: IDataModelBindingsForCustom['description'],
           required: false,
         },
         tagName: {
           type: 'string',
-          title: 'Tag name',
-          description: 'Web component tag name to use',
+          title: { en: 'Tag name', nb: 'Taggnavn' },
+          description: {
+            en: 'Web component tag name to use',
+            nb: 'Navnet på web component-taggen som skal brukes.',
+          },
           required: true,
         },
       },
@@ -4116,28 +5427,46 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'CustomButton', required: true },
-        actions: { type: 'array', items: CustomAction, required: true },
+        type: {
+          type: 'constant',
+          value: 'CustomButton',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        actions: {
+          type: 'array',
+          items: CustomAction,
+          title: { en: 'Actions', nb: 'Handlinger' },
+          description: {
+            en: 'Actions to run when the user selects the button.',
+            nb: 'Handlingene som kjøres når brukeren velger knappen.',
+          },
+          required: true,
+        },
         buttonStyle: {
           type: 'string',
           allowedValues: ButtonStyle['allowedValues'],
-          title: 'Button style',
-          description: 'The style/color scheme of the button.',
+          title: ButtonStyle['title'],
+          description: ButtonStyle['description'],
           default: 'secondary',
           required: false,
         },
         buttonColor: {
           type: 'string',
           allowedValues: ButtonColor['allowedValues'],
-          title: 'Button color override',
-          description: 'The color scheme of the button.',
+          title: ButtonColor['title'],
+          description: ButtonColor['description'],
           required: false,
         },
         buttonSize: {
           type: 'string',
           allowedValues: CustomButtonSize['allowedValues'],
-          title: 'Button size override',
-          description: 'The size of the button.',
+          title: CustomButtonSize['title'],
+          description: CustomButtonSize['description'],
           required: false,
         },
         textResourceBindings: {
@@ -4146,19 +5475,27 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title/text on the button',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
               required: false,
             },
             tableTitle: {
               type: 'string',
               expression: true,
-              title: 'Table title',
-              description: 'The title/text for the button when rendered in a table',
+              title: { en: 'Table title', nb: 'Tabelltittel' },
+              description: {
+                en: 'The title/text for the button when rendered in a table',
+                nb: 'Knappeteksten når knappen vises i en tabell.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -4173,7 +5510,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Date', required: true },
+        type: {
+          type: 'constant',
+          value: 'Date',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4184,17 +5530,46 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
-        format: { type: 'string', examples: ['dd.MM.yyyy'], required: false },
-        value: { type: 'string', expression: true, required: true },
+        format: {
+          type: 'string',
+          title: { en: 'Date format', nb: 'Datoformat' },
+          description: {
+            en: 'The format used to display the date.',
+            nb: 'Formatet som brukes for å vise datoen.',
+          },
+          examples: ['dd.MM.yyyy'],
+          required: false,
+        },
+        value: {
+          type: 'string',
+          expression: true,
+          title: { en: 'Date value', nb: 'Datoverdi' },
+          description: { en: 'The date value to display.', nb: 'Datoverdien som skal vises.' },
+          required: true,
+        },
         direction: {
           type: 'string',
           allowedValues: ['horizontal', 'vertical'],
           default: 'horizontal',
           required: false,
         },
-        icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
+        icon: {
+          type: 'string',
+          title: { en: 'Icon', nb: 'Ikon' },
+          description: {
+            en: 'The URL of an icon displayed with the date.',
+            nb: 'URL-en til et ikon som vises sammen med datoen.',
+          },
+          examples: ['https://example.com/icon.svg'],
+          required: false,
+        },
       },
     },
     Datepicker: {
@@ -4211,7 +5586,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Datepicker', required: true },
+        type: {
+          type: 'constant',
+          value: 'Datepicker',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4225,20 +5609,35 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
         autocomplete: { type: 'constant', value: 'bday', required: false },
@@ -4252,9 +5651,11 @@ const generatedContract = {
             { type: 'constant', value: 'oneYearAgo' },
             { type: 'constant', value: 'oneYearFromNow' },
           ],
-          title: 'Earliest date',
-          description:
-            "Sets the earliest allowed date. Can also use keyword 'today' to disable all past dates dynamically based on the current date. Defaults to 1900-01-01T12:00:00.000Z.",
+          title: { en: 'Earliest date', nb: 'Tidligste dato' },
+          description: {
+            en: "Sets the earliest allowed date. Can also use keyword 'today' to disable all past dates dynamically based on the current date. Defaults to 1900-01-01T12:00:00.000Z.",
+            nb: 'Angir tidligste tillatte dato. Nøkkelordet «today» sperrer dynamisk alle tidligere datoer.',
+          },
           default: '1900-01-01T12:00:00.000Z',
           required: false,
         },
@@ -4268,25 +5669,31 @@ const generatedContract = {
             { type: 'constant', value: 'oneYearAgo' },
             { type: 'constant', value: 'oneYearFromNow' },
           ],
-          title: 'Latest date',
-          description:
-            "Sets the latest allowed date. Can also use keyword 'today' to disable all future dates dynamically based on the current date. Defaults to 2100-01-01T12:00:00.000Z.",
+          title: { en: 'Latest date', nb: 'Seneste dato' },
+          description: {
+            en: "Sets the latest allowed date. Can also use keyword 'today' to disable all future dates dynamically based on the current date. Defaults to 2100-01-01T12:00:00.000Z.",
+            nb: 'Angir seneste tillatte dato. Nøkkelordet «today» sperrer dynamisk alle fremtidige datoer.',
+          },
           default: '2100-01-01T12:00:00.000Z',
           required: false,
         },
         timeStamp: {
           type: 'boolean',
-          title: 'Include time',
-          description:
-            "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to false. If true: 'yyyy-MM-ddThh:mm:ss.sssZ', if false 'yyyy-MM-dd';",
+          title: { en: 'Include time', nb: 'Ta med klokkeslett' },
+          description: {
+            en: "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to false. If true: 'yyyy-MM-ddThh:mm:ss.sssZ', if false 'yyyy-MM-dd';",
+            nb: 'Angir om dato og klokkeslett skal lagres som et tidsstempel.',
+          },
           default: false,
           required: false,
         },
         format: {
           type: 'string',
-          title: 'Date format',
-          description:
-            "Date format used when filling out and displaying the date to the user. If not set the format will be based on the user's selected language.",
+          title: { en: 'Date format', nb: 'Datoformat' },
+          description: {
+            en: "Date format used when filling out and displaying the date to the user. If not set the format will be based on the user's selected language.",
+            nb: 'Datoformatet som brukes ved utfylling og visning.',
+          },
           default: 'dd.MM.yyyy',
           examples: ['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'],
           required: false,
@@ -4303,7 +5710,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Divider', required: true },
+        type: {
+          type: 'constant',
+          value: 'Divider',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4311,6 +5727,11 @@ const generatedContract = {
             summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -4338,7 +5759,16 @@ const generatedContract = {
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Dropdown', required: true },
+        type: {
+          type: 'constant',
+          value: 'Dropdown',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4352,28 +5782,46 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         alertOnChange: {
           type: 'boolean',
           expression: true,
-          title: 'Alert on change',
-          description: 'Boolean value indicating if the component should alert on change',
+          title: { en: 'Alert on change', nb: 'Varsel ved endring' },
+          description: {
+            en: 'Boolean value indicating if the component should alert on change',
+            nb: 'Angir om komponenten skal varsle ved endringer.',
+          },
           default: false,
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsOptionsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
       },
@@ -4392,7 +5840,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'FileUpload', required: true },
+        type: {
+          type: 'constant',
+          value: 'FileUpload',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4406,64 +5863,111 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'union',
-          variants: [IDataModelBindingsSimple, IDataModelBindingsList],
+          variants: [
+            {
+              type: 'object',
+              properties: IDataModelBindingsSimple['properties'],
+              additionalProperties: false,
+              title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+              description: {
+                en: 'Connects component values to fields in the data model.',
+                nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+              },
+            },
+            {
+              type: 'object',
+              properties: IDataModelBindingsList['properties'],
+              additionalProperties: false,
+            },
+          ],
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: false,
         },
         maxFileSizeInMB: {
           type: 'integer',
-          title: 'Max file size (MB)',
-          description: 'Sets the maximum file size allowed in megabytes',
+          title: { en: 'Max file size (MB)', nb: 'Maksimal filstørrelse (MB)' },
+          description: {
+            en: 'Sets the maximum file size allowed in megabytes',
+            nb: 'Angir maksimal tillatt filstørrelse i megabyte.',
+          },
           required: true,
         },
         maxNumberOfAttachments: {
           type: 'number',
           expression: true,
-          title: 'Max number of attachments',
-          description: 'Sets the maximum number of attachments allowed to upload',
+          title: { en: 'Max number of attachments', nb: 'Maksimalt antall vedlegg' },
+          description: {
+            en: 'Sets the maximum number of attachments allowed to upload',
+            nb: 'Angir maksimalt antall vedlegg brukeren kan laste opp.',
+          },
           required: true,
         },
         minNumberOfAttachments: {
           type: 'number',
           expression: true,
-          title: 'Min number of attachments',
-          description: 'Sets the minimum number of attachments required to upload',
+          title: { en: 'Min number of attachments', nb: 'Minste antall vedlegg' },
+          description: {
+            en: 'Sets the minimum number of attachments required to upload',
+            nb: 'Angir minste antall vedlegg brukeren må laste opp.',
+          },
           required: true,
         },
         displayMode: { type: 'string', allowedValues: ['simple', 'list'], required: true },
         hasCustomFileEndings: {
           type: 'boolean',
-          title: 'Has custom file endings',
-          description: 'Boolean value indicating if the component has valid file endings',
+          title: { en: 'Has custom file endings', nb: 'Har egendefinerte filendelser' },
+          description: {
+            en: 'Boolean value indicating if the component has valid file endings',
+            nb: 'Angir om komponenten har gyldige filendelser.',
+          },
           default: false,
           required: false,
         },
         validFileEndings: {
           type: 'union',
           variants: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
-          title: 'Valid file endings',
-          description:
-            'A separated string of valid file endings to upload. If not set all endings are accepted.',
+          title: { en: 'Valid file endings', nb: 'Tillatte filendelser' },
+          description: {
+            en: 'A separated string of valid file endings to upload. If not set all endings are accepted.',
+            nb: 'En kommaseparert liste over tillatte filendelser. Alle filendelser godtas hvis egenskapen ikke er satt.',
+          },
           examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
           required: false,
         },
         alertOnDelete: {
           type: 'boolean',
           expression: true,
-          title: 'Alert on delete',
-          description:
-            'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
+          title: { en: 'Alert on delete', nb: 'Varsel ved sletting' },
+          description: {
+            en: 'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
+            nb: 'Angir om en advarsel skal vises når brukeren prøver å slette et element.',
+          },
           default: false,
           required: false,
         },
@@ -4494,7 +5998,16 @@ const generatedContract = {
         sortOrder: ISelectionComponent['properties']['sortOrder'],
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
-        type: { type: 'constant', value: 'FileUploadWithTag', required: true },
+        type: {
+          type: 'constant',
+          value: 'FileUploadWithTag',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4509,70 +6022,120 @@ const generatedContract = {
             tagTitle: {
               type: 'string',
               expression: true,
-              title: 'Tag title',
-              description: 'The title to show when selecting a tag for each uploaded file',
+              title: { en: 'Tag title', nb: 'Ledetekst for tagg' },
+              description: {
+                en: 'The title to show when selecting a tag for each uploaded file',
+                nb: 'Ledeteksten som vises når brukeren velger en tagg for hver opplastede fil.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'union',
-          variants: [IDataModelBindingsSimple, IDataModelBindingsList],
+          variants: [
+            {
+              type: 'object',
+              properties: IDataModelBindingsSimple['properties'],
+              additionalProperties: false,
+              title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+              description: {
+                en: 'Connects component values to fields in the data model.',
+                nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+              },
+            },
+            {
+              type: 'object',
+              properties: IDataModelBindingsList['properties'],
+              additionalProperties: false,
+            },
+          ],
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: false,
         },
         maxFileSizeInMB: {
           type: 'integer',
-          title: 'Max file size (MB)',
-          description: 'Sets the maximum file size allowed in megabytes',
+          title: { en: 'Max file size (MB)', nb: 'Maksimal filstørrelse (MB)' },
+          description: {
+            en: 'Sets the maximum file size allowed in megabytes',
+            nb: 'Angir maksimal tillatt filstørrelse i megabyte.',
+          },
           required: true,
         },
         maxNumberOfAttachments: {
           type: 'number',
           expression: true,
-          title: 'Max number of attachments',
-          description: 'Sets the maximum number of attachments allowed to upload',
+          title: { en: 'Max number of attachments', nb: 'Maksimalt antall vedlegg' },
+          description: {
+            en: 'Sets the maximum number of attachments allowed to upload',
+            nb: 'Angir maksimalt antall vedlegg brukeren kan laste opp.',
+          },
           required: true,
         },
         minNumberOfAttachments: {
           type: 'number',
           expression: true,
-          title: 'Min number of attachments',
-          description: 'Sets the minimum number of attachments required to upload',
+          title: { en: 'Min number of attachments', nb: 'Minste antall vedlegg' },
+          description: {
+            en: 'Sets the minimum number of attachments required to upload',
+            nb: 'Angir minste antall vedlegg brukeren må laste opp.',
+          },
           required: true,
         },
         displayMode: { type: 'string', allowedValues: ['simple', 'list'], required: true },
         hasCustomFileEndings: {
           type: 'boolean',
-          title: 'Has custom file endings',
-          description: 'Boolean value indicating if the component has valid file endings',
+          title: { en: 'Has custom file endings', nb: 'Har egendefinerte filendelser' },
+          description: {
+            en: 'Boolean value indicating if the component has valid file endings',
+            nb: 'Angir om komponenten har gyldige filendelser.',
+          },
           default: false,
           required: false,
         },
         validFileEndings: {
           type: 'union',
           variants: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
-          title: 'Valid file endings',
-          description:
-            'A separated string of valid file endings to upload. If not set all endings are accepted.',
+          title: { en: 'Valid file endings', nb: 'Tillatte filendelser' },
+          description: {
+            en: 'A separated string of valid file endings to upload. If not set all endings are accepted.',
+            nb: 'En kommaseparert liste over tillatte filendelser. Alle filendelser godtas hvis egenskapen ikke er satt.',
+          },
           examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
           required: false,
         },
         alertOnDelete: {
           type: 'boolean',
           expression: true,
-          title: 'Alert on delete',
-          description:
-            'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
+          title: { en: 'Alert on delete', nb: 'Varsel ved sletting' },
+          description: {
+            en: 'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
+            nb: 'Angir om en advarsel skal vises når brukeren prøver å slette et element.',
+          },
           default: false,
           required: false,
         },
@@ -4589,7 +6152,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Grid', required: true },
+        type: {
+          type: 'constant',
+          value: 'Grid',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4600,13 +6172,18 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         rows: {
           type: 'array',
-          items: GridRow,
-          title: 'Rows in Grid or Grid-like component',
-          description: 'The list of rows in this grid',
+          items: GridRows['items'],
+          title: GridRows['title'],
+          description: GridRows['description'],
           examples: GridRows['examples'],
           required: true,
         },
@@ -4622,7 +6199,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Group', required: true },
+        type: {
+          type: 'constant',
+          value: 'Group',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4631,41 +6217,60 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the group (shown above the group)',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The title of the group (shown above the group)',
+                nb: 'Ledeteksten som vises over gruppen.',
+              },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'The description text shown underneath the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'The description text shown underneath the title',
+                nb: 'Beskrivelsen som vises under ledeteksten.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         groupingIndicator: {
           type: 'string',
           allowedValues: ['indented', 'panel'],
-          title: 'Set grouping indicator',
-          description:
-            'Can visually group components together by indenting them or by putting them in a panel. ',
+          title: { en: 'Set grouping indicator', nb: 'Vis grupperingsmarkør' },
+          description: {
+            en: 'Can visually group components together by indenting them or by putting them in a panel. ',
+            nb: 'Grupperer komponenter visuelt med innrykk eller et panel.',
+          },
           required: false,
         },
         children: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Children',
-          description: 'Array of component IDs that should be displayed in the group',
+          title: { en: 'Children', nb: 'Underkomponenter' },
+          description: {
+            en: 'Array of component IDs that should be displayed in the group',
+            nb: 'Liste over komponent-ID-er som skal vises i gruppen.',
+          },
           required: true,
         },
         headingLevel: {
           type: 'number',
           allowedValues: [2, 3, 4, 5, 6],
-          title: 'Heading level',
-          description: 'The heading level of the group title.',
+          title: { en: 'Heading level', nb: 'Overskriftsnivå' },
+          description: {
+            en: 'The heading level of the group title.',
+            nb: 'Overskriftsnivået for gruppetittelen.',
+          },
           required: false,
         },
       },
@@ -4680,7 +6285,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Heading', required: true },
+        type: {
+          type: 'constant',
+          value: 'Heading',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4689,26 +6303,37 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The text to display in the heading',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The text to display in the heading',
+                nb: 'Teksten som vises i overskriften.',
+              },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help text',
-              description: 'The text to display in the help tooltip/popup',
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'The text to display in the help tooltip/popup',
+                nb: 'Teksten som vises i hjelpetekstvinduet.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         size: {
           type: 'string',
           allowedValues: ['L', 'M', 'S', 'h2', 'h3', 'h4'],
-          title: 'Size',
-          description: 'The size of the heading',
+          title: { en: 'Size', nb: 'Størrelse' },
+          description: { en: 'The size of the heading', nb: 'Overskriftens størrelse.' },
           required: true,
         },
       },
@@ -4721,20 +6346,36 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'IFrame', required: true },
+        type: {
+          type: 'constant',
+          value: 'IFrame',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title/text/content',
-              description:
-                'The content of the IFrame. Can for example be be set to a string containing HTML, a text resource key, or an expression looking up a value from the data model',
+              title: { en: 'Title/text/content', nb: 'Tittel/tekst/innhold' },
+              description: {
+                en: 'The content of the IFrame. Can for example be set to a string containing HTML, a text resource key, or an expression looking up a value from the data model',
+                nb: 'Innholdet i IFrame-komponenten. Kan være en streng med HTML, en tekstressursnøkkel eller et uttrykk som henter en verdi fra datamodellen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         sandbox: {
@@ -4753,32 +6394,54 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Image', required: true },
+        type: {
+          type: 'constant',
+          value: 'Image',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             altTextImg: {
               type: 'string',
               expression: true,
-              title: 'Alt text',
-              description: 'Alternative text for the image (for screen readers).',
+              title: { en: 'Alt text', nb: 'Alternativ tekst' },
+              description: {
+                en: 'Alternative text for the image (for screen readers).',
+                nb: 'Alternativ tekst for bildet, beregnet på skjermlesere.',
+              },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help text',
-              description: 'Help text for the image (shown in help text tooltip/popup)',
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text for the image (shown in help text tooltip/popup)',
+                nb: 'Hjelpetekst for bildet, vist i et hjelpetekstvindu.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         image: {
           type: 'object',
           properties: IImage['properties'],
           additionalProperties: false,
+          title: IImage['title'],
+          description: IImage['description'],
           required: false,
         },
       },
@@ -4800,7 +6463,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'ImageUpload', required: true },
+        type: {
+          type: 'constant',
+          value: 'ImageUpload',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4814,26 +6486,43 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         crop: {
           type: 'union',
           variants: CropConfig['variants'],
+          title: CropConfig['title'],
+          description: CropConfig['description'],
           default: CropConfig['default'],
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: false,
         },
       },
@@ -4852,7 +6541,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Input', required: true },
+        type: {
+          type: 'constant',
+          value: 'Input',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -4867,41 +6565,61 @@ const generatedContract = {
             prefix: {
               type: 'string',
               expression: true,
-              title: 'Prefix',
-              description: 'Prefix shown before the input field',
+              title: { en: 'Prefix', nb: 'Prefiks' },
+              description: {
+                en: 'Prefix shown before the input field',
+                nb: 'Prefiks som vises foran inndatafeltet.',
+              },
               required: false,
             },
             suffix: {
               type: 'string',
               expression: true,
-              title: 'Suffix',
-              description: 'Suffix shown after the input field',
+              title: { en: 'Suffix', nb: 'Suffiks' },
+              description: {
+                en: 'Suffix shown after the input field',
+                nb: 'Suffiks som vises etter inndatafeltet.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
         saveWhileTyping: {
           type: 'number',
-          title: 'Automatic saving while typing',
-          description:
-            'Lets you control how long we wait before saving the value locally while typing. This value is usually also used to determine how long we wait before saving the value to the server. The default value is 400 milliseconds.',
-          default: 400,
+          title: SaveWhileTyping['title'],
+          description: SaveWhileTyping['description'],
+          default: true,
           required: false,
         },
         formatting: {
@@ -4914,8 +6632,11 @@ const generatedContract = {
         variant: {
           type: 'string',
           allowedValues: ['text', 'search'],
-          title: 'Input variant',
-          description: 'The variant of the input field (text or search).',
+          title: { en: 'Input variant', nb: 'Variant for inndatafelt' },
+          description: {
+            en: 'The variant of the input field (text or search).',
+            nb: 'Varianten til inndatafeltet: tekst eller søk.',
+          },
           default: 'text',
           required: false,
         },
@@ -4976,16 +6697,20 @@ const generatedContract = {
             'url',
             'photo',
           ],
-          title: 'Autocomplete',
-          description:
-            'The HTML autocomplete attribute helps browsers suggest or autofill input values based on the expected type of data.',
+          title: { en: 'Autocomplete', nb: 'Autofullføring' },
+          description: {
+            en: 'The HTML autocomplete attribute helps browsers suggest or autofill input values based on the expected type of data.',
+            nb: 'HTML-attributtet autocomplete hjelper nettleseren med å foreslå eller fylle ut verdier ut fra forventet datatype.',
+          },
           required: false,
         },
         maxLength: {
           type: 'integer',
-          title: 'Max length',
-          description:
-            'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+          title: { en: 'Max length', nb: 'Maksimal lengde' },
+          description: {
+            en: 'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+            nb: 'Maksimal lengde for inndatafeltet. Viser en teller med antall gjenstående tegn.',
+          },
           required: false,
         },
       },
@@ -5002,7 +6727,16 @@ const generatedContract = {
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'InstanceInformation', required: true },
+        type: {
+          type: 'constant',
+          value: 'InstanceInformation',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         elements: {
           type: 'object',
           properties: {
@@ -5012,8 +6746,11 @@ const generatedContract = {
             referenceNumber: { type: 'boolean', required: false },
           },
           additionalProperties: false,
-          title: 'Elements',
-          description: 'Which elements to show in the instance information',
+          title: { en: 'Elements', nb: 'Elementer' },
+          description: {
+            en: 'Which elements to show in the instance information',
+            nb: 'Angir hvilke elementer som skal vises i instansinformasjonen.',
+          },
           required: false,
         },
         textResourceBindings: {
@@ -5024,6 +6761,11 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -5039,28 +6781,44 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'InstantiationButton', required: true },
+        type: {
+          type: 'constant',
+          value: 'InstantiationButton',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title/text to display on the button',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The title/text to display on the button',
+                nb: 'Teksten som vises på knappen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         mapping: {
           type: 'object',
           properties: IMapping['properties'],
           additionalProperties: IMapping['additionalProperties'],
-          title: 'Mapping',
-          description:
-            'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+          title: IMapping['title'],
+          description: IMapping['description'],
           required: false,
         },
       },
@@ -5087,7 +6845,16 @@ const generatedContract = {
         required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
         columns: ILikertColumnProperties['properties']['columns'],
-        type: { type: 'constant', value: 'Likert', required: true },
+        type: {
+          type: 'constant',
+          value: 'Likert',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5096,72 +6863,98 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the group',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the group', nb: 'Ledeteksten til gruppen.' },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'The description text for the Likert table.',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'The description text for the Likert table.',
+                nb: 'Beskrivelsen av Likert-tabellen.',
+              },
               required: false,
             },
             leftColumnHeader: {
               type: 'string',
               expression: true,
-              title: 'Left column header',
-              description: 'The header text for the left column in the Likert table',
+              title: { en: 'Left column header', nb: 'Overskrift for venstre kolonne' },
+              description: {
+                en: 'The header text for the left column in the Likert table',
+                nb: 'Overskriften for venstre kolonne i Likert-tabellen.',
+              },
               required: false,
             },
             questions: {
               type: 'string',
               expression: true,
-              title: 'Questions',
-              description:
-                'The questions to be displayed in each row (use a dynamic text resource)',
+              title: { en: 'Questions', nb: 'Spørsmål' },
+              description: {
+                en: 'The questions to be displayed in each row (use a dynamic text resource)',
+                nb: 'Spørsmålene som vises i hver rad. Bruk en dynamisk tekstressurs.',
+              },
               required: false,
             },
             questionDescriptions: {
               type: 'string',
               expression: true,
-              title: 'Question descriptions',
-              description:
-                'The descriptions to be displayed in each row (use a dynamic text resource)',
+              title: { en: 'Question descriptions', nb: 'Spørsmålsbeskrivelser' },
+              description: {
+                en: 'The descriptions to be displayed in each row (use a dynamic text resource)',
+                nb: 'Beskrivelsene som vises i hver rad. Bruk en dynamisk tekstressurs.',
+              },
               required: false,
             },
             questionHelpTexts: {
               type: 'string',
               expression: true,
-              title: 'Question help texts',
-              description:
-                'The help texts to be displayed in each row (use a dynamic text resource)',
+              title: { en: 'Question help texts', nb: 'Hjelpetekster for spørsmål' },
+              description: {
+                en: 'The help texts to be displayed in each row (use a dynamic text resource)',
+                nb: 'Hjelpetekstene som vises i hver rad. Bruk en dynamisk tekstressurs.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsLikert['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
         filter: {
           type: 'array',
           items: ILikertFilter['items'],
-          title: 'Filter',
-          description:
-            'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)',
+          title: ILikertFilter['title'],
+          description: ILikertFilter['description'],
           required: false,
         },
       },
@@ -5178,47 +6971,63 @@ const generatedContract = {
         textAlign: IButtonProps['properties']['textAlign'],
         fullWidth: IButtonProps['properties']['fullWidth'],
         position: IButtonProps['properties']['position'],
-        type: { type: 'constant', value: 'Link', required: true },
+        type: {
+          type: 'constant',
+          value: 'Link',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             target: {
               type: 'string',
               expression: true,
-              title: 'Target',
-              description: 'The target of the link',
+              title: { en: 'Target', nb: 'Mål' },
+              description: { en: 'The target of the link', nb: 'Målet for lenken.' },
               required: false,
             },
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title/text of the link',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title/text of the link', nb: 'Teksten på lenken.' },
               required: false,
             },
             download: {
               type: 'string',
               expression: true,
-              title: 'Download',
-              description:
-                'Download target instead of navigating to it. Non-blank value is passed to the download attribute and becomes the filename of the downloaded file. Blank value means default filename is used.',
+              title: { en: 'Download', nb: 'Last ned' },
+              description: {
+                en: 'Download target instead of navigating to it. Non-blank value is passed to the download attribute and becomes the filename of the downloaded file. Blank value means default filename is used.',
+                nb: 'Laster ned målet i stedet for å navigere til det. En verdi brukes som filnavn for den nedlastede filen. En tom verdi bruker standardfilnavnet.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         style: {
           type: 'string',
           allowedValues: LinkStyle['allowedValues'],
-          title: 'Style',
-          description: 'The style of the link (a primary/secondary button, or an actual link)',
+          title: LinkStyle['title'],
+          description: LinkStyle['description'],
           required: true,
         },
         openInNewTab: {
           type: 'boolean',
-          title: 'Open in new tab',
-          description: 'Open the link in a new tab',
+          title: { en: 'Open in new tab', nb: 'Åpne i ny fane' },
+          description: { en: 'Open the link in a new tab', nb: 'Åpner lenken i en ny fane.' },
           required: false,
         },
       },
@@ -5237,7 +7046,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'List', required: true },
+        type: {
+          type: 'constant',
+          value: 'List',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5251,20 +7069,32 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForList['properties'],
-          additionalProperties: IDataModelReference,
+          additionalProperties: IDataModelBindingsForList['additionalProperties'],
+          title: IDataModelBindingsForList['title'],
+          description: IDataModelBindingsForList['description'],
           required: false,
         },
         deletionStrategy: { type: 'string', allowedValues: ['soft', 'hard'], required: false },
@@ -5272,40 +7102,48 @@ const generatedContract = {
           type: 'object',
           properties: {},
           additionalProperties: { type: 'string' },
-          title: 'Table Headers',
-          description:
-            'An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages.',
+          title: { en: 'Table Headers', nb: 'Tabelloverskrifter' },
+          description: {
+            en: 'An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages.',
+            nb: 'Kobler feltene i datalisten til kolonneoverskrifter.',
+          },
           examples: [{ productId: 'product.id', description: 'Beskrivelse av produkt' }],
           required: true,
         },
         sortableColumns: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Sortable columns',
-          description:
-            'An array of column keys that can be sorted (note that your API backend needs to support this as well). The column has to be represented by the the header name that is written in tableHeaders.',
+          title: { en: 'Sortable columns', nb: 'Sorterbare kolonner' },
+          description: {
+            en: 'An array of column keys that can be sorted (note that your API backend needs to support this as well). The column has to be represented by the the header name that is written in tableHeaders.',
+            nb: 'Liste over kolonnenøkler som kan sorteres. API-et i backend må også støtte sortering.',
+          },
           required: false,
         },
         pagination: {
           type: 'object',
           properties: IPagination['properties'],
           additionalProperties: false,
-          title: 'Pagination',
-          description:
-            'Pagination settings. Set this to enable pagination (must be supported by backend).',
+          title: IPagination['title'],
+          description: IPagination['description'],
           required: false,
         },
         dataListId: {
           type: 'string',
-          title: 'Data list ID',
-          description: 'The ID of the data list to use (must be implemented in your backend).',
+          title: { en: 'Data list ID', nb: 'Dataliste-ID' },
+          description: {
+            en: 'The ID of the data list to use (must be implemented in your backend).',
+            nb: 'ID-en til datalisten som skal brukes. Datalisten må være implementert i backend.',
+          },
           required: true,
         },
         secure: {
           type: 'boolean',
-          title: 'Secure',
-          description:
-            'Boolean value indicating if the options should be instance aware. Defaults to false.',
+          title: { en: 'Secure', nb: 'Sikker' },
+          description: {
+            en: 'Boolean value indicating if the options should be instance aware. Defaults to false.',
+            nb: 'Angir om alternativene skal tilpasses instansen.',
+          },
           default: false,
           required: false,
         },
@@ -5313,41 +7151,49 @@ const generatedContract = {
           type: 'object',
           properties: IMapping['properties'],
           additionalProperties: IMapping['additionalProperties'],
-          title: 'Mapping',
-          description:
-            'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+          title: IMapping['title'],
+          description: IMapping['description'],
+          deprecated: true,
           required: false,
         },
         queryParameters: {
           type: 'object',
           properties: IQueryParameters['properties'],
           additionalProperties: IQueryParameters['additionalProperties'],
-          title: 'Query parameters',
-          description:
-            'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+          title: IQueryParameters['title'],
+          description: IQueryParameters['description'],
           required: false,
         },
         summaryBinding: {
           type: 'string',
-          title: 'Data model binding to show in summary',
-          description:
-            'Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.',
+          title: {
+            en: 'Data model binding to show in summary',
+            nb: 'Datamodellbinding som vises i oppsummeringen',
+          },
+          description: {
+            en: 'Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.',
+            nb: 'Angi en av nøklene i dataModelBindings-objektet som skal vises i oppsummeringen av listen.',
+          },
           required: false,
         },
         bindingToShowInSummary: {
           type: 'string',
-          title: 'Binding to show in summary',
-          description:
-            'The value of this binding will be shown in the summary component for the list. It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.',
+          title: { en: 'Binding to show in summary', nb: 'Binding som vises i oppsummeringen' },
+          description: {
+            en: 'The value of this binding will be shown in the summary component for the list. It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.',
+            nb: 'Verdien som vises i oppsummeringen av listen. Forventer en sti i datamodellen.',
+          },
           deprecated: true,
           required: false,
         },
         tableHeadersMobile: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Table Headers Mobile',
-          description:
-            'An array of strings representing the columns that is chosen to be shown in the mobile view.',
+          title: { en: 'Table Headers Mobile', nb: 'Tabelloverskrifter på mobil' },
+          description: {
+            en: 'An array of strings representing the columns that is chosen to be shown in the mobile view.',
+            nb: 'En liste over kolonnene som skal vises i mobilvisningen.',
+          },
           required: false,
         },
       },
@@ -5366,7 +7212,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'Map', required: true },
+        type: {
+          type: 'constant',
+          value: 'Map',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5380,20 +7235,32 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForMap['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForMap['title'],
+          description: IDataModelBindingsForMap['description'],
           required: true,
         },
         layers: { type: 'array', items: MapLayer, required: false },
@@ -5401,8 +7268,8 @@ const generatedContract = {
           type: 'object',
           properties: Location['properties'],
           additionalProperties: false,
-          title: 'Center location',
-          description: 'Center location of the map',
+          title: Location['title'],
+          description: Location['description'],
           required: false,
         },
         zoom: { type: 'number', required: false },
@@ -5416,8 +7283,8 @@ const generatedContract = {
           type: 'object',
           properties: Toolbar['properties'],
           additionalProperties: false,
-          title: 'Toolbar',
-          description: 'Sets which geometries the user is allowed to draw',
+          title: Toolbar['title'],
+          description: Toolbar['description'],
           required: false,
         },
       },
@@ -5448,7 +7315,16 @@ const generatedContract = {
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'MultipleSelect', required: true },
+        type: {
+          type: 'constant',
+          value: 'MultipleSelect',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5462,28 +7338,43 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         alertOnChange: {
           type: 'boolean',
           expression: true,
-          title: 'Alert on change',
-          description: 'Boolean value indicating if the component should alert on change',
+          title: { en: 'Alert on change', nb: 'Varsel ved endring' },
+          description: {
+            en: 'Boolean value indicating if the component should alert on change',
+            nb: 'Angir om komponenten skal varsle ved endringer.',
+          },
           default: false,
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForGroupMultiselect['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForGroupMultiselect['title'],
+          description: IDataModelBindingsForGroupMultiselect['description'],
           required: true,
         },
         deletionStrategy: { type: 'string', allowedValues: ['soft', 'hard'], required: false },
@@ -5500,11 +7391,23 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'NavigationBar', required: true },
+        type: {
+          type: 'constant',
+          value: 'NavigationBar',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         compact: {
           type: 'boolean',
-          title: 'Compact',
-          description: 'Change appearance of navbar as compact in desktop view',
+          title: { en: 'Compact', nb: 'Kompakt' },
+          description: {
+            en: 'Change appearance of navbar as compact in desktop view',
+            nb: 'Viser navigasjonslinjen i kompakt format på store skjermer.',
+          },
           required: false,
         },
         validateOnForward: {
@@ -5532,40 +7435,65 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'NavigationButtons', required: true },
+        type: {
+          type: 'constant',
+          value: 'NavigationButtons',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             back: {
               type: 'string',
               expression: true,
-              title: 'Back',
-              description: 'Text on the back/previous page button',
+              title: { en: 'Back', nb: 'Tilbake' },
+              description: {
+                en: 'Text on the back/previous page button',
+                nb: 'Teksten på knappen for å gå tilbake til forrige side.',
+              },
               required: false,
             },
             next: {
               type: 'string',
               expression: true,
-              title: 'Next',
-              description: 'Text on the next page button',
+              title: { en: 'Next', nb: 'Neste' },
+              description: {
+                en: 'Text on the next page button',
+                nb: 'Teksten på knappen for å gå til neste side.',
+              },
               required: false,
             },
             backToPage: {
               type: 'string',
               expression: true,
-              title: 'Back to Page',
-              description:
-                'Text on the "Back to Page" button when linkToPage/linkToComponent expression is used.',
+              title: { en: 'Back to Page', nb: 'Tilbake til side' },
+              description: {
+                en: 'Text on the "Back to Page" button when linkToPage/linkToComponent expression is used.',
+                nb: 'Teksten på knappen «Tilbake til side» når uttrykket linkToPage eller linkToComponent brukes.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         showBackButton: {
           type: 'boolean',
-          title: 'Show back button',
-          description: "Shows two buttons (back/next) instead of just 'next'.",
+          title: { en: 'Show back button', nb: 'Vis tilbakeknappen' },
+          description: {
+            en: "Shows two buttons (back/next) instead of just 'next'.",
+            nb: 'Viser både tilbake- og neste-knapp i stedet for bare neste-knappen.',
+          },
           default: true,
           required: false,
         },
@@ -5593,7 +7521,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Number', required: true },
+        type: {
+          type: 'constant',
+          value: 'Number',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5604,6 +7541,11 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         formatting: {
@@ -5613,14 +7555,29 @@ const generatedContract = {
           examples: IFormatting['examples'],
           required: false,
         },
-        value: { type: 'number', expression: true, required: true },
+        value: {
+          type: 'number',
+          expression: true,
+          title: { en: 'Number value', nb: 'Tallverdi' },
+          description: { en: 'The number to display.', nb: 'Tallet som skal vises.' },
+          required: true,
+        },
         direction: {
           type: 'string',
           allowedValues: ['horizontal', 'vertical'],
           default: 'horizontal',
           required: false,
         },
-        icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
+        icon: {
+          type: 'string',
+          title: { en: 'Icon', nb: 'Ikon' },
+          description: {
+            en: 'The URL of an icon displayed with the number.',
+            nb: 'URL-en til et ikon som vises sammen med tallet.',
+          },
+          examples: ['https://example.com/icon.svg'],
+          required: false,
+        },
       },
     },
     Option: {
@@ -5641,7 +7598,16 @@ const generatedContract = {
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Option', required: true },
+        type: {
+          type: 'constant',
+          value: 'Option',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5652,16 +7618,39 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
-        value: { type: 'string', expression: true, required: true },
+        value: {
+          type: 'string',
+          expression: true,
+          title: { en: 'Selected value', nb: 'Valgt verdi' },
+          description: {
+            en: 'The value represented by the option.',
+            nb: 'Verdien alternativet representerer.',
+          },
+          required: true,
+        },
         direction: {
           type: 'string',
           allowedValues: ['horizontal', 'vertical'],
           default: 'horizontal',
           required: false,
         },
-        icon: { type: 'string', examples: ['https://example.com/icon.svg'], required: false },
+        icon: {
+          type: 'string',
+          title: { en: 'Icon', nb: 'Ikon' },
+          description: {
+            en: 'The URL of an icon displayed with the option.',
+            nb: 'URL-en til et ikon som vises med alternativet.',
+          },
+          examples: ['https://example.com/icon.svg'],
+          required: false,
+        },
       },
     },
     OrganizationLookup: {
@@ -5680,7 +7669,16 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'OrganizationLookup', required: true },
+        type: {
+          type: 'constant',
+          value: 'OrganizationLookup',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5692,34 +7690,50 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the component',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the component', nb: 'Ledeteksten til komponenten.' },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'Description, optionally shown below the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'Description, optionally shown below the title',
+                nb: 'Valgfri beskrivelse som vises under ledeteksten.',
+              },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help Text',
-              description: 'Help text, optionally shown next to the title',
+              title: { en: 'Help Text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text, optionally shown next to the title',
+                nb: 'Valgfri hjelpetekst som vises ved ledeteksten.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
@@ -5729,16 +7743,37 @@ const generatedContract = {
               type: 'object',
               properties: IDataModelReference['properties'],
               additionalProperties: false,
+              title: {
+                en: 'Data binding for organization number',
+                nb: 'Databinding for organisasjonsnummer',
+              },
+              description: {
+                en: 'Describes the location in the data model where the component should store the organization number of the organization to look up.',
+                nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp.',
+              },
               required: true,
             },
             organization_lookup_name: {
               type: 'object',
               properties: IDataModelReference['properties'],
               additionalProperties: false,
+              title: {
+                en: 'Data binding for organization name',
+                nb: 'Databinding for organisasjonsnavn',
+              },
+              description: {
+                en: 'Describes the location in the data model where the component should store the name of the organisation.',
+                nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
       },
@@ -5751,39 +7786,59 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Panel', required: true },
+        type: {
+          type: 'constant',
+          value: 'Panel',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'Header/title of the panel',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'Header/title of the panel',
+                nb: 'Overskriften eller tittelen i panelet.',
+              },
               required: false,
             },
             body: {
               type: 'string',
               expression: true,
-              title: 'Body',
-              description: 'Body of the panel',
+              title: { en: 'Body', nb: 'Brødtekst' },
+              description: { en: 'Body of the panel', nb: 'Brødteksten i panelet.' },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         variant: {
           type: 'string',
           allowedValues: PanelVariant['allowedValues'],
-          title: 'Panel variant',
-          description: 'Change the look of the panel',
+          title: PanelVariant['title'],
+          description: PanelVariant['description'],
           required: false,
         },
         showIcon: {
           type: 'boolean',
-          title: 'Show icon',
-          description: 'Show icon in the panel header',
+          title: { en: 'Show icon', nb: 'Vis ikon' },
+          description: {
+            en: 'Show icon in the panel header',
+            nb: 'Viser et ikon i paneloverskriften.',
+          },
           default: true,
           required: false,
         },
@@ -5799,7 +7854,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Paragraph', required: true },
+        type: {
+          type: 'constant',
+          value: 'Paragraph',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5808,19 +7872,27 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the paragraph',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help text',
-              description: 'Help text, optionally shown in a tooltip',
+              title: { en: 'Help text', nb: 'Hjelpetekst' },
+              description: {
+                en: 'Help text, optionally shown in a tooltip',
+                nb: 'Valgfri hjelpetekst som vises i et hjelpetekstvindu.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -5835,7 +7907,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Payment', required: true },
+        type: {
+          type: 'constant',
+          value: 'Payment',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5844,19 +7925,27 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the paragraph',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'Description, optionally shown below the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'Description, optionally shown below the title',
+                nb: 'Valgfri beskrivelse som vises under ledeteksten.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -5872,35 +7961,51 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'PaymentDetails', required: true },
+        type: {
+          type: 'constant',
+          value: 'PaymentDetails',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the paragraph',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'Description, optionally shown below the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'Description, optionally shown below the title',
+                nb: 'Valgfri beskrivelse som vises under ledeteksten.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         mapping: {
           type: 'object',
           properties: IMapping['properties'],
           additionalProperties: IMapping['additionalProperties'],
-          title: 'Mapping',
-          description:
-            'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
+          title: IMapping['title'],
+          description: IMapping['description'],
           required: false,
         },
       },
@@ -5916,26 +8021,43 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'PDFPreviewButton', required: true },
+        type: {
+          type: 'constant',
+          value: 'PDFPreviewButton',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Button title/text',
-              description: 'The text to display on the button.',
+              title: { en: 'Button title/text', nb: 'Knappetekst' },
+              description: {
+                en: 'The text to display on the button.',
+                nb: 'Teksten som vises på knappen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         buttonStyle: {
           type: 'string',
           allowedValues: ActionButtonStyle['allowedValues'],
-          title: 'Button style',
-          description: 'The style/color scheme of the button.',
+          title: ActionButtonStyle['title'],
+          description: ActionButtonStyle['description'],
           required: true,
         },
       },
@@ -5956,7 +8078,16 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'PersonLookup', required: true },
+        type: {
+          type: 'constant',
+          value: 'PersonLookup',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -5968,40 +8099,58 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the component',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title of the component', nb: 'Ledeteksten til komponenten.' },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'Description, optionally shown below the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'Description, optionally shown below the title',
+                nb: 'Valgfri beskrivelse som vises under ledeteksten.',
+              },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help',
-              description: 'Help text, optionally shown next to the title',
+              title: { en: 'Help', nb: 'Hjelp' },
+              description: {
+                en: 'Help text, optionally shown next to the title',
+                nb: 'Valgfri hjelpetekst som vises ved ledeteksten.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForPersonLookup['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForPersonLookup['title'],
+          description: IDataModelBindingsForPersonLookup['description'],
           required: true,
         },
       },
@@ -6017,19 +8166,33 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'PrintButton', required: true },
+        type: {
+          type: 'constant',
+          value: 'PrintButton',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title/text on the button',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -6060,7 +8223,16 @@ const generatedContract = {
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'RadioButtons', required: true },
+        type: {
+          type: 'constant',
+          value: 'RadioButtons',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -6074,50 +8246,75 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsOptionsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
         layout: {
           type: 'string',
           allowedValues: LayoutStyle['allowedValues'],
-          title: 'Layout',
-          description: 'Define the layout style for the options',
+          title: LayoutStyle['title'],
+          description: LayoutStyle['description'],
           required: false,
         },
         alertOnChange: {
           type: 'boolean',
           expression: true,
-          title: 'Alert on change',
-          description: 'Boolean value indicating if the component should alert on change',
+          title: { en: 'Alert on change', nb: 'Varsel ved endring' },
+          description: {
+            en: 'Boolean value indicating if the component should alert on change',
+            nb: 'Angir om komponenten skal varsle ved endringer.',
+          },
           default: false,
           required: false,
         },
         showLabelsInTable: {
           type: 'boolean',
-          title: 'Show label when single option in table',
-          description:
-            'Boolean value indicating if the label should be visible when only one option exists in table',
+          title: {
+            en: 'Show label when single option in table',
+            nb: 'Vis ledetekst ved ett alternativ i tabellen',
+          },
+          description: {
+            en: 'Boolean value indicating if the label should be visible when only one option exists in table',
+            nb: 'Angir om ledeteksten skal vises når tabellen bare har ett alternativ.',
+          },
           default: false,
           required: false,
         },
         showAsCard: {
           type: 'boolean',
-          title: 'Show as card',
-          description:
-            'Boolean value indicating if the options should be displayed as cards. Defaults to false.',
+          title: { en: 'Show as card', nb: 'Vis som kort' },
+          description: {
+            en: 'Boolean value indicating if the options should be displayed as cards. Defaults to false.',
+            nb: 'Angir om alternativene skal vises som kort.',
+          },
           required: false,
         },
       },
@@ -6135,7 +8332,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'RepeatingGroup', required: true },
+        type: {
+          type: 'constant',
+          value: 'RepeatingGroup',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -6144,139 +8350,205 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the group (shown above each instance in a Summary)',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The title of the group (shown above each instance in a Summary)',
+                nb: 'Ledeteksten til gruppen, vist over hver forekomst i en oppsummering.',
+              },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'The description text shown underneath the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'The description text shown underneath the title',
+                nb: 'Beskrivelsen som vises under ledeteksten.',
+              },
               required: false,
             },
             add_button_full: {
               type: 'string',
               expression: true,
-              title: 'Add button (full) (for repeating groups)',
-              description:
-                'The text for the "Add" button (overrides "add_button", and sets the full text for the button)',
+              title: {
+                en: 'Add button (full) (for repeating groups)',
+                nb: 'Legg til-knapp (full tekst, for repeterende grupper)',
+              },
+              description: {
+                en: 'The text for the "Add" button (overrides "add_button", and sets the full text for the button)',
+                nb: 'Teksten på «Legg til»-knappen. Overstyrer «add_button» og angir hele knappeteksten.',
+              },
               required: false,
             },
             add_button: {
               type: 'string',
               expression: true,
-              title: 'Add button (suffix) (for repeating groups)',
-              description:
-                'The text for the "Add" button (used as a suffix after the default button text)',
+              title: {
+                en: 'Add button (suffix) (for repeating groups)',
+                nb: 'Legg til-knapp (suffiks, for repeterende grupper)',
+              },
+              description: {
+                en: 'The text for the "Add" button (used as a suffix after the default button text)',
+                nb: 'Teksten som legges til etter standardteksten på «Legg til»-knappen.',
+              },
               required: false,
             },
             save_button: {
               type: 'string',
               expression: true,
-              title: 'Save button (for repeating groups)',
-              description:
-                'The text for the "Save" button when the repeating group item is in edit mode',
+              title: {
+                en: 'Save button (for repeating groups)',
+                nb: 'Lagre-knapp (for repeterende grupper)',
+              },
+              description: {
+                en: 'The text for the "Save" button when the repeating group item is in edit mode',
+                nb: 'Teksten på «Lagre»-knappen når raden i den repeterende gruppen redigeres.',
+              },
               required: false,
             },
             save_and_next_button: {
               type: 'string',
               expression: true,
-              title: 'Save and next button (for repeating groups)',
-              description:
-                'The text for the "Save and next" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true)',
+              title: {
+                en: 'Save and next button (for repeating groups)',
+                nb: 'Lagre og neste-knapp (for repeterende grupper)',
+              },
+              description: {
+                en: 'The text for the "Save and next" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true)',
+                nb: 'Teksten på «Lagre og neste»-knappen når raden redigeres. Vises bare når edit.saveAndNextButton er true.',
+              },
               required: false,
             },
             edit_button_close: {
               type: 'string',
               expression: true,
-              title: 'Edit button (close) (for repeating groups)',
-              description:
-                'The text for the "Edit" button when the repeating group item is in edit mode (i.e. the user can close the edit mode)',
+              title: {
+                en: 'Edit button (close) (for repeating groups)',
+                nb: 'Redigeringsknapp (lukk, for repeterende grupper)',
+              },
+              description: {
+                en: 'The text for the "Edit" button when the repeating group item is in edit mode (i.e. the user can close the edit mode)',
+                nb: 'Teksten på «Rediger»-knappen når raden redigeres og brukeren kan lukke redigeringsvisningen.',
+              },
               required: false,
             },
             edit_button_open: {
               type: 'string',
               expression: true,
-              title: 'Edit button (open) (for repeating groups)',
-              description:
-                'The text for the "Edit" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)',
+              title: {
+                en: 'Edit button (open) (for repeating groups)',
+                nb: 'Redigeringsknapp (åpne, for repeterende grupper)',
+              },
+              description: {
+                en: 'The text for the "Edit" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)',
+                nb: 'Teksten på «Rediger»-knappen når raden i den repeterende gruppen ikke redigeres.',
+              },
               required: false,
             },
             pagination_next_button: {
               type: 'string',
               expression: true,
-              title: 'Next button in pagination',
-              description: 'The text for the "Next" button in pagination',
+              title: { en: 'Next button in pagination', nb: 'Neste-knapp i paginering' },
+              description: {
+                en: 'The text for the "Next" button in pagination',
+                nb: 'Teksten på «Neste»-knappen i paginering.',
+              },
               required: false,
             },
             pagination_back_button: {
               type: 'string',
               expression: true,
-              title: 'Back button in pagination',
-              description: 'The text for the "Back" button in pagination',
+              title: { en: 'Back button in pagination', nb: 'Tilbakeknapp i paginering' },
+              description: {
+                en: 'The text for the "Back" button in pagination',
+                nb: 'Teksten på «Tilbake»-knappen i paginering.',
+              },
               required: false,
             },
             multipage_back_button: {
               type: 'string',
               expression: true,
-              title: 'Back button in multipage navigation',
-              description: 'The text for the "Back" button in multipage navigation',
+              title: {
+                en: 'Back button in multipage navigation',
+                nb: 'Tilbakeknapp i flersidenavigasjon',
+              },
+              description: {
+                en: 'The text for the "Back" button in multipage navigation',
+                nb: 'Teksten på «Tilbake»-knappen i flersidenavigasjon.',
+              },
               required: false,
             },
             multipage_next_button: {
               type: 'string',
               expression: true,
-              title: 'Next button in multipage navigation',
-              description: 'The text for the "Next" button in multipage navigation',
+              title: {
+                en: 'Next button in multipage navigation',
+                nb: 'Neste-knapp i flersidenavigasjon',
+              },
+              description: {
+                en: 'The text for the "Next" button in multipage navigation',
+                nb: 'Teksten på «Neste»-knappen i flersidenavigasjon.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         rowsBefore: {
           type: 'array',
-          items: GridRow,
-          title: 'Rows in Grid or Grid-like component',
-          description: 'The list of rows in this grid',
+          items: GridRows['items'],
+          title: GridRows['title'],
+          description: GridRows['description'],
           examples: GridRows['examples'],
           required: false,
         },
         rowsAfter: {
           type: 'array',
-          items: GridRow,
-          title: 'Rows in Grid or Grid-like component',
-          description: 'The list of rows in this grid',
+          items: GridRows['items'],
+          title: GridRows['title'],
+          description: GridRows['description'],
           examples: GridRows['examples'],
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForGroup['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForGroup['title'],
+          description: IDataModelBindingsForGroup['description'],
           required: true,
         },
         showValidations: {
           type: 'array',
           items: AllowedValidationMasks['items'],
-          title: 'Validation types',
-          description: 'List of validation types to show',
+          title: AllowedValidationMasks['title'],
+          description: AllowedValidationMasks['description'],
           required: false,
         },
         validateOnSaveRow: {
           type: 'array',
           items: AllowedValidationMasks['items'],
-          title: 'Validation types',
-          description: 'List of validation types to show',
+          title: AllowedValidationMasks['title'],
+          description: AllowedValidationMasks['description'],
           required: false,
         },
         edit: {
@@ -6289,32 +8561,42 @@ const generatedContract = {
           type: 'object',
           properties: { rowsPerPage: { type: 'integer', minimum: 1, required: true } },
           additionalProperties: false,
-          title: 'Pagination options',
-          description: 'Pagination options for the repeating group rows.',
+          title: { en: 'Pagination options', nb: 'Pagineringsinnstillinger' },
+          description: {
+            en: 'Pagination options for the repeating group rows.',
+            nb: 'Innstillinger for paginering av radene i den repeterende gruppen.',
+          },
           required: false,
         },
         maxCount: {
           type: 'integer',
           minimum: 1,
-          title: 'Max number of rows',
-          description: 'Maximum number of rows that can be added.',
+          title: { en: 'Max number of rows', nb: 'Maksimalt antall rader' },
+          description: {
+            en: 'Maximum number of rows that can be added.',
+            nb: 'Maksimalt antall rader brukeren kan legge til.',
+          },
           required: false,
         },
         minCount: {
           type: 'integer',
           minimum: 0,
-          title: 'Min number of rows',
-          description:
-            'Minimum number of rows that should be added. If the user has not added enough rows, the repeating group will show a validation error',
+          title: { en: 'Min number of rows', nb: 'Minste antall rader' },
+          description: {
+            en: 'Minimum number of rows that should be added. If the user has not added enough rows, the repeating group will show a validation error',
+            nb: 'Minste antall rader brukeren må legge til. Gruppen viser en valideringsfeil hvis den har for få rader.',
+          },
           default: 0,
           required: false,
         },
         tableHeaders: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Table headers',
-          description:
-            'Array of component IDs that should be displayed as table headers. If not defined, all components referenced in the "children" property will be displayed as table headers',
+          title: { en: 'Table headers', nb: 'Tabelloverskrifter' },
+          description: {
+            en: 'Array of component IDs that should be displayed as table headers. If not defined, all components referenced in the "children" property will be displayed as table headers',
+            nb: 'Liste over komponent-ID-er som skal vises som tabelloverskrifter.',
+          },
           required: false,
         },
         tableColumns: {
@@ -6327,16 +8609,21 @@ const generatedContract = {
         hiddenRow: {
           type: 'boolean',
           expression: true,
-          title: 'Hidden row?',
-          description:
-            'Expression or boolean indicating whether each row should be hidden. An expression will be evaluated per row, and if it evaluates to true, the row will be hidden. If set to true, all rows will be hidden.',
+          title: { en: 'Hidden row?', nb: 'Skjult rad' },
+          description: {
+            en: 'Expression or boolean indicating whether each row should be hidden. An expression will be evaluated per row, and if it evaluates to true, the row will be hidden. If set to true, all rows will be hidden.',
+            nb: 'Uttrykk eller boolsk verdi som angir om hver rad skal skjules.',
+          },
           default: false,
           required: false,
         },
         stickyHeader: {
           type: 'boolean',
-          title: 'Sticky header',
-          description: 'If set to true, the header of the repeating group will be sticky',
+          title: { en: 'Sticky header', nb: 'Fast overskrift' },
+          description: {
+            en: 'If set to true, the header of the repeating group will be sticky',
+            nb: 'Fester overskriften til den repeterende gruppen mens brukeren ruller.',
+          },
           default: false,
           required: false,
         },
@@ -6344,6 +8631,8 @@ const generatedContract = {
           type: 'object',
           properties: ILabelSettings['properties'],
           additionalProperties: false,
+          title: ILabelSettings['title'],
+          description: ILabelSettings['description'],
           required: false,
         },
         addButton: {
@@ -6360,9 +8649,11 @@ const generatedContract = {
         children: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Children',
-          description:
-            'List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)',
+          title: { en: 'Children', nb: 'Underkomponenter' },
+          description: {
+            en: 'List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)',
+            nb: 'Liste over ID-ene til underkomponentene som skal vises. Komponentene gjentas for hver rad i datamodellbindingen.',
+          },
           required: true,
         },
       },
@@ -6375,40 +8666,57 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'SigneeList', required: true },
+        type: {
+          type: 'constant',
+          value: 'SigneeList',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'Header/title of the list',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'Header/title of the list',
+                nb: 'Overskriften eller ledeteksten til listen.',
+              },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'Description of the list',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: { en: 'Description of the list', nb: 'Beskrivelse av listen.' },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help',
-              description: 'Help text of the list',
+              title: { en: 'Help', nb: 'Hjelp' },
+              description: { en: 'Help text of the list', nb: 'Hjelpetekst for listen.' },
               required: false,
             },
             summaryTitle: {
               type: 'string',
               expression: true,
-              title: 'SummaryTitle',
-              description: 'Title of the summary',
+              title: { en: 'SummaryTitle', nb: 'Tittel i oppsummering' },
+              description: { en: 'Title of the summary', nb: 'Ledeteksten til oppsummeringen.' },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -6424,181 +8732,270 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'SigningActions', required: true },
+        type: {
+          type: 'constant',
+          value: 'SigningActions',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             awaitingSignaturePanelTitle: {
               type: 'string',
               expression: true,
-              title: 'Awaiting signature panel title',
-              description: 'The title of the panel that is displayed when the user should sign',
+              title: { en: 'Awaiting signature panel title', nb: 'Tittel mens signering avventes' },
+              description: {
+                en: 'The title of the panel that is displayed when the user should sign',
+                nb: 'Tittelen på panelet som vises når brukeren skal signere.',
+              },
               required: false,
             },
             checkboxLabel: {
               type: 'string',
               expression: true,
-              title: 'Checkbox label',
-              description:
-                'The text to display when a user is asked to confirm what they are signing',
+              title: { en: 'Checkbox label', nb: 'Ledetekst for avkrysningsboks' },
+              description: {
+                en: 'The text to display when a user is asked to confirm what they are signing',
+                nb: 'Teksten som vises når brukeren skal bekrefte hva de signerer.',
+              },
               required: false,
             },
             checkboxDescription: {
               type: 'string',
               expression: true,
-              title: 'Checkbox description',
-              description: 'A text that describes the checkbox label in more detail if needed',
+              title: { en: 'Checkbox description', nb: 'Beskrivelse av avkrysningsboks' },
+              description: {
+                en: 'A text that describes the checkbox label in more detail if needed',
+                nb: 'En utfyllende beskrivelse av ledeteksten til avkrysningsboksen.',
+              },
               required: false,
             },
             signingButton: {
               type: 'string',
               expression: true,
-              title: 'Signing button',
-              description:
-                'The text to display in the button that the user clicks in order to sign',
+              title: { en: 'Signing button', nb: 'Signeringsknapp' },
+              description: {
+                en: 'The text to display in the button that the user clicks in order to sign',
+                nb: 'Teksten på knappen brukeren velger for å signere.',
+              },
               required: false,
             },
             noActionRequiredPanelTitleHasSigned: {
               type: 'string',
               expression: true,
-              title: 'Go to inbox panel title signed',
-              description:
-                'The title of the panel that is displayed when the user has signed and no further action is required',
+              title: {
+                en: 'Go to inbox panel title signed',
+                nb: 'Tittel for innbokspanel etter signering',
+              },
+              description: {
+                en: 'The title of the panel that is displayed when the user has signed and no further action is required',
+                nb: 'Tittelen på panelet som vises når brukeren har signert og ikke trenger å gjøre mer.',
+              },
               required: false,
             },
             noActionRequiredPanelTitleNotSigned: {
               type: 'string',
               expression: true,
-              title: 'Go to inbox panel title not signed',
-              description:
-                'The title of the panel that is displayed when the user has not signed and no further action is required',
+              title: {
+                en: 'Go to inbox panel title not signed',
+                nb: 'Tittel for innbokspanel uten signering',
+              },
+              description: {
+                en: 'The title of the panel that is displayed when the user has not signed and no further action is required',
+                nb: 'Tittelen på panelet som vises når brukeren ikke har signert og ikke trenger å gjøre mer.',
+              },
               required: false,
             },
             noActionRequiredPanelDescriptionHasSigned: {
               type: 'string',
               expression: true,
-              title: 'Go to inbox panel description signed',
-              description:
-                'The description of the panel that is displayed when the user has signed and no further action is required',
+              title: {
+                en: 'Go to inbox panel description signed',
+                nb: 'Beskrivelse av innbokspanel etter signering',
+              },
+              description: {
+                en: 'The description of the panel that is displayed when the user has signed and no further action is required',
+                nb: 'Beskrivelsen av panelet som vises når brukeren har signert og ikke trenger å gjøre mer.',
+              },
               required: false,
             },
             noActionRequiredPanelDescriptionNotSigned: {
               type: 'string',
               expression: true,
-              title: 'Go to inbox panel description not signed',
-              description:
-                'The description of the panel that is displayed when the user has not signed and no further action is required',
+              title: {
+                en: 'Go to inbox panel description not signed',
+                nb: 'Beskrivelse av innbokspanel uten signering',
+              },
+              description: {
+                en: 'The description of the panel that is displayed when the user has not signed and no further action is required',
+                nb: 'Beskrivelsen av panelet som vises når brukeren ikke har signert og ikke trenger å gjøre mer.',
+              },
               required: false,
             },
             noActionRequiredButton: {
               type: 'string',
               expression: true,
-              title: 'Go to inbox button',
-              description:
-                'The text to display in the button that the user clicks in order to go to the inbox and no further action is required',
+              title: { en: 'Go to inbox button', nb: 'Knapp for å gå til innboksen' },
+              description: {
+                en: 'The text to display in the button that the user clicks in order to go to the inbox and no further action is required',
+                nb: 'Teksten på knappen som går til innboksen når brukeren ikke trenger å gjøre mer.',
+              },
               required: false,
             },
             awaitingOtherSignaturesPanelTitle: {
               type: 'string',
               expression: true,
-              title: 'Not ready for submit title',
-              description: 'The title for the panel when the signing task is not ready for submit',
+              title: {
+                en: 'Not ready for submit title',
+                nb: 'Tittel når oppgaven ikke kan sendes inn',
+              },
+              description: {
+                en: 'The title for the panel when the signing task is not ready for submit',
+                nb: 'Tittelen på panelet når signeringsoppgaven ikke kan sendes inn.',
+              },
               required: false,
             },
             awaitingOtherSignaturesPanelDescriptionNotSigning: {
               type: 'string',
               expression: true,
-              title: 'Awaiting other signatures description not signing',
-              description: 'The description for the panel when the current user is not signing',
+              title: {
+                en: 'Awaiting other signatures description not signing',
+                nb: 'Beskrivelse mens andre signaturer avventes',
+              },
+              description: {
+                en: 'The description for the panel when the current user is not signing',
+                nb: 'Beskrivelsen av panelet når den gjeldende brukeren ikke skal signere.',
+              },
               required: false,
             },
             awaitingOtherSignaturesPanelDescriptionSigned: {
               type: 'string',
               expression: true,
-              title: 'Signed description',
-              description: 'The description for the panel when the current user has signed',
+              title: { en: 'Signed description', nb: 'Beskrivelse etter signering' },
+              description: {
+                en: 'The description for the panel when the current user has signed',
+                nb: 'Beskrivelsen av panelet når den gjeldende brukeren har signert.',
+              },
               required: false,
             },
             submitPanelTitle: {
               type: 'string',
               expression: true,
-              title: 'Ready for submit title',
-              description: 'The title for the panel when the signing task is ready for submit',
+              title: { en: 'Ready for submit title', nb: 'Tittel når oppgaven kan sendes inn' },
+              description: {
+                en: 'The title for the panel when the signing task is ready for submit',
+                nb: 'Tittelen på panelet når signeringsoppgaven kan sendes inn.',
+              },
               required: false,
             },
             submitPanelDescription: {
               type: 'string',
               expression: true,
-              title: 'Ready for submit description',
-              description:
-                'The description for the panel when the signing task is ready for submit',
+              title: {
+                en: 'Ready for submit description',
+                nb: 'Beskrivelse når oppgaven kan sendes inn',
+              },
+              description: {
+                en: 'The description for the panel when the signing task is ready for submit',
+                nb: 'Beskrivelsen av panelet når signeringsoppgaven kan sendes inn.',
+              },
               required: false,
             },
             submitButton: {
               type: 'string',
               expression: true,
-              title: 'Submit button',
-              description:
-                'The text to display in the button that the user clicks in order to submit the signing task',
+              title: { en: 'Submit button', nb: 'Send inn-knapp' },
+              description: {
+                en: 'The text to display in the button that the user clicks in order to submit the signing task',
+                nb: 'Teksten på knappen som sender inn signeringsoppgaven.',
+              },
               required: false,
             },
             errorPanelTitle: {
               type: 'string',
               expression: true,
-              title: 'Error panel title',
-              description:
-                'The title of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form',
+              title: { en: 'Error panel title', nb: 'Tittel i feilpanel' },
+              description: {
+                en: 'The title of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form',
+                nb: 'Tittelen på panelet som vises når minst én signatar er ugyldig og ikke har fått tilgang til skjemaet.',
+              },
               required: false,
             },
             errorPanelDescription: {
               type: 'string',
               expression: true,
-              title: 'Error panel description',
-              description:
-                'The description of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form',
+              title: { en: 'Error panel description', nb: 'Beskrivelse i feilpanel' },
+              description: {
+                en: 'The description of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form',
+                nb: 'Beskrivelsen av panelet som vises når minst én signatar er ugyldig og ikke har fått tilgang til skjemaet.',
+              },
               required: false,
             },
             rejectModalTitle: {
               type: 'string',
               expression: true,
-              title: 'Reject modal title',
-              description:
-                'The title of the modal that is displayed when the use clicked on the reject button',
+              title: { en: 'Reject modal title', nb: 'Tittel i avvisningsdialog' },
+              description: {
+                en: 'The title of the modal that is displayed when the use clicked on the reject button',
+                nb: 'Tittelen på dialogen som vises når brukeren velger avvisningsknappen.',
+              },
               required: false,
             },
             rejectModalDescription: {
               type: 'string',
               expression: true,
-              title: 'Reject modal description',
-              description:
-                'The description of the modal that is displayed when the use clicked on the reject button',
+              title: { en: 'Reject modal description', nb: 'Beskrivelse i avvisningsdialog' },
+              description: {
+                en: 'The description of the modal that is displayed when the use clicked on the reject button',
+                nb: 'Beskrivelsen av dialogen som vises når brukeren velger avvisningsknappen.',
+              },
               required: false,
             },
             rejectModalButton: {
               type: 'string',
               expression: true,
-              title: 'Reject modal button',
-              description:
-                'The text to display in the button that the user clicks in the modal in order to confirm reject of the signing task',
+              title: { en: 'Reject modal button', nb: 'Avvisningsknapp i dialog' },
+              description: {
+                en: 'The text to display in the button that the user clicks in the modal in order to confirm reject of the signing task',
+                nb: 'Teksten på knappen som bekrefter avvisning av signeringsoppgaven.',
+              },
               required: false,
             },
             rejectModalCloseButton: {
               type: 'string',
               expression: true,
-              title: 'Reject modal close button',
-              description:
-                'The text to display in the button that closes the modal without rejecting the signing task, i.e. continuing the signing',
+              title: { en: 'Reject modal close button', nb: 'Lukkeknapp i avvisningsdialog' },
+              description: {
+                en: 'The text to display in the button that closes the modal without rejecting the signing task, i.e. continuing the signing',
+                nb: 'Teksten på knappen som lukker dialogen uten å avvise signeringsoppgaven.',
+              },
               required: false,
             },
             rejectModalTriggerButton: {
               type: 'string',
               expression: true,
-              title: 'Reject modal trigger button',
-              description: 'The text to display in the button that triggers the reject modal',
+              title: {
+                en: 'Reject modal trigger button',
+                nb: 'Knapp som åpner avvisningsdialogen',
+              },
+              description: {
+                en: 'The text to display in the button that triggers the reject modal',
+                nb: 'Teksten på knappen som åpner avvisningsdialogen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -6614,40 +9011,60 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'SigningDocumentList', required: true },
+        type: {
+          type: 'constant',
+          value: 'SigningDocumentList',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'Header/title of the list',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'Header/title of the list',
+                nb: 'Overskriften eller ledeteksten til listen.',
+              },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'Description of the list',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: { en: 'Description of the list', nb: 'Beskrivelse av listen.' },
               required: false,
             },
             help: {
               type: 'string',
               expression: true,
-              title: 'Help',
-              description: 'Help text of the list',
+              title: { en: 'Help', nb: 'Hjelp' },
+              description: { en: 'Help text of the list', nb: 'Hjelpetekst for listen.' },
               required: false,
             },
             summaryTitle: {
               type: 'string',
               expression: true,
-              title: 'Summary title',
-              description: 'Header/title of the summary',
+              title: { en: 'Summary title', nb: 'Tittel i oppsummering' },
+              description: {
+                en: 'Header/title of the summary',
+                nb: 'Overskriften eller ledeteksten til oppsummeringen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
       },
@@ -6666,7 +9083,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'SimpleTable', required: true },
+        type: {
+          type: 'constant',
+          value: 'SimpleTable',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -6680,47 +9106,68 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         title: { type: 'string', required: true },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsForTable['properties'],
           additionalProperties: false,
+          title: IDataModelBindingsForTable['title'],
+          description: IDataModelBindingsForTable['description'],
           required: false,
         },
         columns: { type: 'array', items: Columns, required: true },
         zebra: {
           type: 'boolean',
-          title: 'Size',
-          description: 'If true, the table will have zebra striping',
+          title: { en: 'Size', nb: 'Størrelse' },
+          description: {
+            en: 'If true, the table will have zebra striping',
+            nb: 'Viser tabellen med stripete rader.',
+          },
           required: false,
         },
         enableDelete: {
           type: 'boolean',
-          title: 'Enable delete',
-          description: 'If true, will allow user to delete row',
+          title: { en: 'Enable delete', nb: 'Tillat sletting' },
+          description: {
+            en: 'If true, will allow user to delete row',
+            nb: 'Lar brukeren slette raden.',
+          },
           required: false,
         },
         enableEdit: {
           type: 'boolean',
-          title: 'Enable delete',
-          description: 'If true, will allow user to edit row',
+          title: { en: 'Enable delete', nb: 'Tillat sletting' },
+          description: {
+            en: 'If true, will allow user to edit row',
+            nb: 'Lar brukeren redigere raden.',
+          },
           required: false,
         },
         size: {
           type: 'string',
           allowedValues: ['sm', 'md', 'lg'],
-          title: 'Size',
-          description: 'Size of table.',
+          title: { en: 'Size', nb: 'Størrelse' },
+          description: { en: 'Size of table.', nb: 'Tabellens størrelse.' },
           required: false,
         },
         externalApi: {
@@ -6744,7 +9191,16 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Subform', required: true },
+        type: {
+          type: 'constant',
+          value: 'Subform',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -6756,40 +9212,59 @@ const generatedContract = {
             title: {
               type: 'string',
               expression: true,
-              title: 'Title',
-              description: 'The title of the subform component',
+              title: { en: 'Title', nb: 'Ledetekst' },
+              description: {
+                en: 'The title of the subform component',
+                nb: 'Ledeteksten til underskjemakomponenten.',
+              },
               required: false,
             },
             description: {
               type: 'string',
               expression: true,
-              title: 'Description',
-              description: 'The description text shown underneath the title',
+              title: { en: 'Description', nb: 'Beskrivelse' },
+              description: {
+                en: 'The description text shown underneath the title',
+                nb: 'Beskrivelsen som vises under ledeteksten.',
+              },
               required: false,
             },
             addButton: {
               type: 'string',
               expression: true,
-              title: 'Add button (suffix)',
-              description:
-                'The text for the "Add" button (used as a suffix after the default button text)',
+              title: { en: 'Add button (suffix)', nb: 'Legg til-knapp (suffiks)' },
+              description: {
+                en: 'The text for the "Add" button (used as a suffix after the default button text)',
+                nb: 'Teksten som legges til etter standardteksten på «Legg til»-knappen.',
+              },
               required: false,
             },
             tableEditButton: {
               type: 'string',
               expression: true,
-              title: 'Table edit button',
-              description: 'The text for the "Edit" button in the table rows',
+              title: { en: 'Table edit button', nb: 'Redigeringsknapp i tabell' },
+              description: {
+                en: 'The text for the "Edit" button in the table rows',
+                nb: 'Teksten på «Rediger»-knappen i tabellradene.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         layoutSet: {
           type: 'string',
-          title: 'Layout set ID',
-          description: 'The layout set to load for this subform',
+          title: { en: 'Layout set ID', nb: 'ID for layout-sett' },
+          description: {
+            en: 'The layout set to load for this subform',
+            nb: 'Layout-settet som skal lastes inn i underskjemaet.',
+          },
           required: true,
         },
         showAddButton: { type: 'boolean', default: true, required: false },
@@ -6802,9 +9277,11 @@ const generatedContract = {
             properties: {
               headerContent: {
                 type: 'string',
-                title: 'The column header value',
-                description:
-                  'The header value to display. May contain a text resource bindings, but no data model lookups.',
+                title: { en: 'The column header value', nb: 'Kolonneoverskrift' },
+                description: {
+                  en: 'The header value to display. May contain a text resource bindings, but no data model lookups.',
+                  nb: 'Kolonneoverskriften som skal vises. Kan inneholde en tekstressursbinding, men ikke oppslag i datamodellen.',
+                },
                 required: true,
               },
               cellContent: {
@@ -6819,9 +9296,14 @@ const generatedContract = {
         },
         summaryDelimiter: {
           type: 'string',
-          title: 'The summary view cell delimiter',
-          description:
-            'The value used to separate cells/elements in a summary view where rich layout is not available. Typically a comma, dash or similar.',
+          title: {
+            en: 'The summary view cell delimiter',
+            nb: 'Skilletegn mellom celler i oppsummeringen',
+          },
+          description: {
+            en: 'The value used to separate cells/elements in a summary view where rich layout is not available. Typically a comma, dash or similar.',
+            nb: 'Verdien som skiller celler eller elementer når oppsummeringen ikke kan bruke rik layout, vanligvis komma, bindestrek eller lignende.',
+          },
           default: ' — ',
           required: false,
         },
@@ -6838,27 +9320,43 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Summary', required: true },
+        type: {
+          type: 'constant',
+          value: 'Summary',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         componentRef: {
           type: 'string',
-          title: 'Component reference',
-          description: 'String value indicating which layout component (by ID) the summary is for.',
+          title: { en: 'Component reference', nb: 'Komponentreferanse' },
+          description: {
+            en: 'String value indicating which layout component (by ID) the summary is for.',
+            nb: 'ID-en til komponenten som oppsummeringen gjelder.',
+          },
           required: true,
         },
         largeGroup: {
           type: 'boolean',
-          title: 'Large group',
-          description:
-            'Boolean value indicating if summary of repeating group should be displayed in large format. Useful for displaying summary with nested groups.',
+          title: { en: 'Large group', nb: 'Stor gruppe' },
+          description: {
+            en: 'Boolean value indicating if summary of repeating group should be displayed in large format. Useful for displaying summary with nested groups.',
+            nb: 'Angir om oppsummeringen av den repeterende gruppen skal vises i stort format.',
+          },
           default: false,
           required: false,
         },
         excludedChildren: {
           type: 'array',
           items: { type: 'string' },
-          title: 'Excluded child components',
-          description:
-            "Array of component IDs that should not be shown in a repeating group's summary",
+          title: { en: 'Excluded child components', nb: 'Utelatte underkomponenter' },
+          description: {
+            en: "Array of component IDs that should not be shown in a repeating group's summary",
+            nb: 'Liste over komponent-ID-er som ikke skal vises i oppsummeringen av en repeterende gruppe.',
+          },
           required: false,
         },
         textResourceBindings: {
@@ -6867,21 +9365,31 @@ const generatedContract = {
             returnToSummaryButtonTitle: {
               type: 'string',
               expression: true,
-              title: 'ReturnToSummaryButtonTitle',
-              description:
-                'Used to specify the text on the NavigationButtons component that should be used after clicking "Change" on the summary component',
+              title: {
+                en: 'ReturnToSummaryButtonTitle',
+                nb: 'Tekst på tilbakeknapp til oppsummering',
+              },
+              description: {
+                en: 'Used to specify the text on the NavigationButtons component that should be used after clicking "Change" on the summary component',
+                nb: 'Angir teksten i NavigationButtons-komponenten etter at brukeren har valgt «Endre» i oppsummeringen.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         display: {
           type: 'object',
           properties: SummaryDisplayProperties['properties'],
           additionalProperties: false,
-          title: 'Display properties',
-          description: 'Optional properties to configure how summary is displayed',
+          title: SummaryDisplayProperties['title'],
+          description: SummaryDisplayProperties['description'],
           required: false,
         },
       },
@@ -6894,7 +9402,16 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Summary2', required: true },
+        type: {
+          type: 'constant',
+          value: 'Summary2',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         target: {
           type: 'union',
           variants: [SummaryTargetPage, SummaryTargetLayoutSet, SummaryTargetComponent],
@@ -6905,13 +9422,21 @@ const generatedContract = {
         isCompact: { type: 'boolean', required: false },
         hideEmptyFields: {
           type: 'boolean',
-          description:
-            "Set this to true if you don't want to show fields that have not been filled out.",
+          description: {
+            en: "Set this to true if you don't want to show fields that have not been filled out.",
+            nb: 'Skjuler felter uten verdi.',
+          },
           required: false,
         },
         overrides: {
           type: 'array',
-          items: { type: 'union', variants: [AnySummaryOverride, SummaryOverrideForPage] },
+          items: {
+            type: 'union',
+            variants: [
+              { type: 'union', variants: AnySummaryOverride['variants'] },
+              SummaryOverrideForPage,
+            ],
+          },
           required: false,
         },
       },
@@ -6926,7 +9451,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Tabs', required: true },
+        type: {
+          type: 'constant',
+          value: 'Tabs',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -6934,6 +9468,11 @@ const generatedContract = {
             summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         size: {
@@ -6956,7 +9495,16 @@ const generatedContract = {
         pageBreak: ComponentBase['properties']['pageBreak'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        type: { type: 'constant', value: 'Text', required: true },
+        type: {
+          type: 'constant',
+          value: 'Text',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -6967,6 +9515,11 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         value: { type: 'string', expression: true, required: true },
@@ -6993,7 +9546,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'TextArea', required: true },
+        type: {
+          type: 'constant',
+          value: 'TextArea',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -7007,43 +9569,58 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
         saveWhileTyping: {
           type: 'number',
-          title: 'Automatic saving while typing',
-          description:
-            'Lets you control how long we wait before saving the value locally while typing. This value is usually also used to determine how long we wait before saving the value to the server. The default value is 400 milliseconds.',
-          default: 400,
+          title: SaveWhileTyping['title'],
+          description: SaveWhileTyping['description'],
+          default: true,
           required: false,
         },
         autocomplete: {
           type: 'string',
           allowedValues: HTMLAutoCompleteValues['allowedValues'],
-          title: 'HTML autocomplete values',
-          description:
-            'Autocomplete hints to the browser. See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete',
+          title: HTMLAutoCompleteValues['title'],
+          description: HTMLAutoCompleteValues['description'],
           required: false,
         },
         maxLength: {
           type: 'integer',
-          title: 'Max length',
-          description:
-            'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+          title: { en: 'Max length', nb: 'Maksimal lengde' },
+          description: {
+            en: 'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+            nb: 'Maksimal lengde for inndatafeltet. Viser en teller med antall gjenstående tegn.',
+          },
           required: false,
         },
       },
@@ -7062,7 +9639,16 @@ const generatedContract = {
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: { type: 'constant', value: 'TimePicker', required: true },
+        type: {
+          type: 'constant',
+          value: 'TimePicker',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
@@ -7076,20 +9662,35 @@ const generatedContract = {
             help: TRBLabel['properties']['help'],
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
-          title: 'Remove fields from component dataModelBindings when hidden expression is true',
-          description:
-            'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
           required: false,
         },
         dataModelBindings: {
           type: 'object',
           properties: IDataModelBindingsSimple['properties'],
           additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
           required: true,
         },
         autocomplete: { type: 'constant', value: 'time', required: false },
@@ -7101,9 +9702,11 @@ const generatedContract = {
             { type: 'constant', value: 'hh:mm a' },
             { type: 'constant', value: 'hh:mm:ss a' },
           ],
-          title: 'Time format',
-          description:
-            'Time format used for displaying and input. HH:mm for 24-hour format, hh:mm a for 12-hour format with AM/PM.',
+          title: { en: 'Time format', nb: 'Tidsformat' },
+          description: {
+            en: 'Time format used for displaying and input. HH:mm for 24-hour format, hh:mm a for 12-hour format with AM/PM.',
+            nb: 'Tidsformatet for visning og inndata.',
+          },
           default: 'HH:mm',
           examples: ['HH:mm', 'hh:mm a', 'HH:mm:ss'],
           required: false,
@@ -7111,16 +9714,22 @@ const generatedContract = {
         minTime: {
           type: 'union',
           variants: [{ type: 'string', expression: true }, { type: 'string' }],
-          title: 'Earliest time',
-          description: 'Sets the earliest allowed time in HH:mm format.',
+          title: { en: 'Earliest time', nb: 'Tidligste klokkeslett' },
+          description: {
+            en: 'Sets the earliest allowed time in HH:mm format.',
+            nb: 'Angir tidligste tillatte klokkeslett i formatet HH:mm.',
+          },
           examples: ['08:00', '09:30'],
           required: false,
         },
         maxTime: {
           type: 'union',
           variants: [{ type: 'string', expression: true }, { type: 'string' }],
-          title: 'Latest time',
-          description: 'Sets the latest allowed time in HH:mm format.',
+          title: { en: 'Latest time', nb: 'Seneste klokkeslett' },
+          description: {
+            en: 'Sets the latest allowed time in HH:mm format.',
+            nb: 'Angir seneste tillatte klokkeslett i formatet HH:mm.',
+          },
           examples: ['17:00', '23:30'],
           required: false,
         },
@@ -7134,31 +9743,59 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        type: { type: 'constant', value: 'Video', required: true },
+        type: {
+          type: 'constant',
+          value: 'Video',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {
             altText: {
               type: 'string',
               expression: true,
-              title: 'Alt text',
-              description: 'Alternative text for the video (for screen readers).',
+              title: { en: 'Alt text', nb: 'Alternativ tekst' },
+              description: {
+                en: 'Alternative text for the video (for screen readers).',
+                nb: 'Alternativ tekst for videoen, beregnet på skjermlesere.',
+              },
               required: false,
             },
           },
           additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
           required: false,
         },
         video: {
           type: 'object',
           properties: IVideo['properties'],
           additionalProperties: false,
+          title: IVideo['title'],
+          description: IVideo['description'],
           required: false,
         },
       },
     },
   },
-  pageValidationDefinition: PageValidation,
+  commonProperties: {
+    type: 'object',
+    properties: ComponentBase['properties'],
+    additionalProperties: false,
+  },
+  pageValidationDefinition: {
+    type: 'object',
+    properties: PageValidation['properties'],
+    additionalProperties: false,
+  },
 } as const;
 
 export const componentCatalog = generatedContract.componentCatalog satisfies ComponentCatalog;

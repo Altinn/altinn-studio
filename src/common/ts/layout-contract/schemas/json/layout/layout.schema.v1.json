@@ -1552,6 +1552,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Accordion"
             },
             "textResourceBindings": {
@@ -1560,6 +1562,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -1640,6 +1644,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "AccordionGroup"
             },
             "textResourceBindings": {
@@ -1648,6 +1654,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -1714,9 +1722,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "ActionButton"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -1788,6 +1800,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Address"
             },
             "textResourceBindings": {
@@ -1799,6 +1813,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -1915,6 +1931,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "AddToList"
             },
             "textResourceBindings": {
@@ -1947,6 +1965,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "type": "object",
               "properties": {
                 "data": {
@@ -2003,9 +2023,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Alert"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -2060,9 +2084,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "AttachmentList"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -2134,9 +2162,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Audio"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "altText": {
@@ -2187,9 +2219,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Button"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -2251,6 +2287,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "ButtonGroup"
             },
             "textResourceBindings": {
@@ -2324,6 +2362,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Cards"
             },
             "textResourceBindings": {
@@ -2421,6 +2461,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Checkboxes"
             },
             "textResourceBindings": {
@@ -2535,9 +2577,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "CustomButton"
             },
             "actions": {
+              "title": "Actions",
+              "description": "Actions to run when the user selects the button.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/CustomAction"
@@ -2553,6 +2599,8 @@
               "$ref": "#/definitions/CustomButtonSize"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -2613,6 +2661,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Custom"
             },
             "textResourceBindings": {
@@ -2624,6 +2674,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -2706,6 +2758,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Date"
             },
             "textResourceBindings": {
@@ -2730,12 +2784,16 @@
               ]
             },
             "format": {
+              "title": "Date format",
+              "description": "The format used to display the date.",
               "examples": [
                 "dd.MM.yyyy"
               ],
               "type": "string"
             },
             "value": {
+              "title": "Date value",
+              "description": "The date value to display.",
               "$ref": "expression.schema.v1.json#/definitions/string"
             },
             "direction": {
@@ -2746,6 +2804,8 @@
               ]
             },
             "icon": {
+              "title": "Icon",
+              "description": "The URL of an icon displayed with the date.",
               "examples": [
                 "https://example.com/icon.svg"
               ],
@@ -2801,6 +2861,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Datepicker"
             },
             "textResourceBindings": {
@@ -2836,6 +2898,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsSimple"
             },
             "autocomplete": {
@@ -2959,6 +3023,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Divider"
             },
             "textResourceBindings": {
@@ -3011,6 +3077,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Dropdown"
             },
             "textResourceBindings": {
@@ -3052,6 +3120,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsOptionsSimple"
             }
           },
@@ -3116,6 +3186,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "FileUpload"
             },
             "textResourceBindings": {
@@ -3151,8 +3223,12 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "anyOf": [
                 {
+                  "title": "Data model bindings",
+                  "description": "Connects component values to fields in the data model.",
                   "$ref": "#/definitions/IDataModelBindingsSimple"
                 },
                 {
@@ -3285,6 +3361,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "FileUploadWithTag"
             },
             "textResourceBindings": {
@@ -3299,6 +3377,8 @@
                   "$ref": "#/definitions/TRBLabel"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "tagTitle": {
@@ -3331,8 +3411,12 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "anyOf": [
                 {
+                  "title": "Data model bindings",
+                  "description": "Connects component values to fields in the data model.",
                   "$ref": "#/definitions/IDataModelBindingsSimple"
                 },
                 {
@@ -3467,6 +3551,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Grid"
             },
             "textResourceBindings": {
@@ -3535,6 +3621,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Group"
             },
             "textResourceBindings": {
@@ -3543,6 +3631,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -3639,6 +3729,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Heading"
             },
             "textResourceBindings": {
@@ -3647,6 +3739,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -3723,14 +3817,18 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "IFrame"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
                   "title": "Title/text/content",
-                  "description": "The content of the IFrame. Can for example be be set to a string containing HTML, a text resource key, or an expression looking up a value from the data model",
+                  "description": "The content of the IFrame. Can for example be set to a string containing HTML, a text resource key, or an expression looking up a value from the data model",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -3773,9 +3871,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Image"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "altTextImg": {
@@ -3837,6 +3939,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "ImageUpload"
             },
             "textResourceBindings": {
@@ -3875,6 +3979,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsSimple"
             }
           },
@@ -3928,6 +4034,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Input"
             },
             "textResourceBindings": {
@@ -3942,6 +4050,8 @@
                   "$ref": "#/definitions/TRBLabel"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "prefix": {
@@ -3980,6 +4090,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsSimple"
             },
             "saveWhileTyping": {
@@ -4113,6 +4225,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "InstanceInformation"
             },
             "elements": {
@@ -4173,9 +4287,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "InstantiationButton"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -4235,6 +4353,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Likert"
             },
             "textResourceBindings": {
@@ -4243,6 +4363,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -4299,6 +4421,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsLikert"
             },
             "filter": {
@@ -4359,9 +4483,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Link"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "target": {
@@ -4440,6 +4568,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "List"
             },
             "textResourceBindings": {
@@ -4612,6 +4742,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Map"
             },
             "textResourceBindings": {
@@ -4727,6 +4859,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "MultipleSelect"
             },
             "textResourceBindings": {
@@ -4830,6 +4964,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "NavigationBar"
             },
             "compact": {
@@ -4878,9 +5014,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "NavigationButtons"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "back": {
@@ -4952,6 +5092,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Number"
             },
             "textResourceBindings": {
@@ -4979,6 +5121,8 @@
               "$ref": "#/definitions/IFormatting"
             },
             "value": {
+              "title": "Number value",
+              "description": "The number to display.",
               "$ref": "expression.schema.v1.json#/definitions/number"
             },
             "direction": {
@@ -4989,6 +5133,8 @@
               ]
             },
             "icon": {
+              "title": "Icon",
+              "description": "The URL of an icon displayed with the number.",
               "examples": [
                 "https://example.com/icon.svg"
               ],
@@ -5031,13 +5177,13 @@
       "properties": {
         "id": {
           "title": "ID",
-          "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+          "description": "The component ID. It must be unique across all pages in a layout set and cannot end with a dash followed by a number.",
           "type": "string",
           "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
         },
         "hidden": {
           "title": "Hidden",
-          "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+          "description": "Boolean value or expression indicating whether the component should be hidden.",
           "default": false,
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
@@ -5068,6 +5214,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Option"
             },
             "textResourceBindings": {
@@ -5092,6 +5240,8 @@
               ]
             },
             "value": {
+              "title": "Selected value",
+              "description": "The value represented by the option.",
               "$ref": "expression.schema.v1.json#/definitions/string"
             },
             "direction": {
@@ -5102,6 +5252,8 @@
               ]
             },
             "icon": {
+              "title": "Icon",
+              "description": "The URL of an icon displayed with the option.",
               "examples": [
                 "https://example.com/icon.svg"
               ],
@@ -5161,6 +5313,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "OrganizationLookup"
             },
             "textResourceBindings": {
@@ -5172,6 +5326,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -5213,6 +5369,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "type": "object",
               "properties": {
                 "organization_lookup_orgnr": {
@@ -5269,9 +5427,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Panel"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -5334,6 +5496,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Paragraph"
             },
             "textResourceBindings": {
@@ -5342,6 +5506,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -5403,9 +5569,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "PaymentDetails"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -5461,6 +5631,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Payment"
             },
             "textResourceBindings": {
@@ -5469,6 +5641,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -5530,9 +5704,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "PDFPreviewButton"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -5588,6 +5766,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "PersonLookup"
             },
             "textResourceBindings": {
@@ -5599,6 +5779,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -5684,9 +5866,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "PrintButton"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -5742,6 +5928,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "RadioButtons"
             },
             "textResourceBindings": {
@@ -5777,6 +5965,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsOptionsSimple"
             },
             "layout": {
@@ -5858,6 +6048,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "RepeatingGroup"
             },
             "textResourceBindings": {
@@ -5866,6 +6058,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -6107,9 +6301,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "SigneeList"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -6168,9 +6366,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "SigningActions"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "awaitingSignaturePanelTitle": {
@@ -6319,9 +6521,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "SigningDocumentList"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "title": {
@@ -6389,6 +6595,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "SimpleTable"
             },
             "textResourceBindings": {
@@ -6520,6 +6728,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Subform"
             },
             "textResourceBindings": {
@@ -6531,6 +6741,8 @@
                   "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
                   "type": "object",
                   "properties": {
                     "title": {
@@ -6663,6 +6875,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Summary2"
             },
             "target": {
@@ -6741,6 +6955,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Summary"
             },
             "componentRef": {
@@ -6763,6 +6979,8 @@
               }
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "returnToSummaryButtonTitle": {
@@ -6818,6 +7036,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Tabs"
             },
             "textResourceBindings": {
@@ -6889,6 +7109,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "TextArea"
             },
             "textResourceBindings": {
@@ -6924,6 +7146,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsSimple"
             },
             "saveWhileTyping": {
@@ -6987,6 +7211,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Text"
             },
             "textResourceBindings": {
@@ -7075,6 +7301,8 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "TimePicker"
             },
             "textResourceBindings": {
@@ -7110,6 +7338,8 @@
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
               "$ref": "#/definitions/IDataModelBindingsSimple"
             },
             "autocomplete": {
@@ -7218,9 +7448,13 @@
           "type": "object",
           "properties": {
             "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
               "const": "Video"
             },
             "textResourceBindings": {
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
               "type": "object",
               "properties": {
                 "altText": {
@@ -7259,7 +7493,8 @@
       ]
     },
     "CropConfig": {
-      "title": "CropConfig",
+      "title": "Cropping area",
+      "description": "Configures the shape and size of the image cropping area.",
       "default": {
         "shape": "circle",
         "diameter": 250
@@ -8202,7 +8437,8 @@
       }
     },
     "IDataModelBindingsForAddress": {
-      "title": "IDataModelBindingsForAddress",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {
         "address": {
@@ -8229,7 +8465,8 @@
       "additionalProperties": false
     },
     "IDataModelBindingsForCustom": {
-      "title": "IDataModelBindingsForCustom",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {},
       "additionalProperties": {
@@ -8237,7 +8474,8 @@
       }
     },
     "IDataModelBindingsForGroup": {
-      "title": "IDataModelBindingsForGroup",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {
         "group": {
@@ -8255,7 +8493,8 @@
           "$ref": "#/definitions/IDataModelBindingsOptionsSimple"
         },
         {
-          "title": "IDataModelBindingsForGroupCheckbox",
+          "title": "Data model bindings",
+          "description": "Connects component values to fields in the data model.",
           "type": "object",
           "properties": {
             "group": {
@@ -8288,7 +8527,8 @@
           "$ref": "#/definitions/IDataModelBindingsOptionsSimple"
         },
         {
-          "title": "IDataModelBindingsForGroupMultiselect",
+          "title": "Data model bindings",
+          "description": "Connects component values to fields in the data model.",
           "type": "object",
           "properties": {
             "group": {
@@ -8316,7 +8556,8 @@
       ]
     },
     "IDataModelBindingsForList": {
-      "title": "IDataModelBindingsForList",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {
         "group": {
@@ -8331,7 +8572,8 @@
       }
     },
     "IDataModelBindingsForMap": {
-      "title": "IDataModelBindingsForMap",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {
         "simpleBinding": {
@@ -8359,7 +8601,8 @@
       "additionalProperties": false
     },
     "IDataModelBindingsForPersonLookup": {
-      "title": "IDataModelBindingsForPersonLookup",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {
         "person_lookup_ssn": {
@@ -8384,7 +8627,8 @@
       "additionalProperties": false
     },
     "IDataModelBindingsForTable": {
-      "title": "IDataModelBindingsForTable",
+      "title": "Data model bindings",
+      "description": "Connects component values to fields in the data model.",
       "type": "object",
       "properties": {
         "tableData": {
@@ -8743,18 +8987,20 @@
         },
         {
           "title": "Grid",
-          "description": "Settings for the components grid. Used for controlling horizontal alignment",
+          "description": "Grid settings controlling the component's horizontal placement and width.",
           "type": "object",
           "properties": {
             "labelGrid": {
+              "description": "Column widths for the label.",
               "$ref": "#/definitions/IGridStyling"
             },
             "innerGrid": {
+              "description": "Column widths for the content.",
               "$ref": "#/definitions/IGridStyling"
             },
             "validationGrid": {
               "title": "Validation grid",
-              "description": "Column span for validation messages. Same container as innerGrid. If larger than innerGrid, the container expands to fit. Defaults to innerGrid when omitted.",
+              "description": "Column widths for validation messages. Uses the same area as innerGrid and defaults to innerGrid when omitted.",
               "$ref": "#/definitions/IGridStyling"
             }
           }
@@ -8973,7 +9219,8 @@
       "additionalProperties": false
     },
     "IImage": {
-      "title": "IImage",
+      "title": "Image settings",
+      "description": "Configures the image source, width, and alignment.",
       "type": "object",
       "properties": {
         "src": {
@@ -8998,7 +9245,8 @@
       "additionalProperties": false
     },
     "IImageSrc": {
-      "title": "IImageSrc",
+      "title": "Image sources",
+      "description": "Image sources for each supported language.",
       "examples": [
         {
           "nb": "https://example.com/bilde.png",
@@ -9027,7 +9275,8 @@
       }
     },
     "ILabelSettings": {
-      "title": "ILabelSettings",
+      "title": "Label settings",
+      "description": "Controls how the component label is displayed.",
       "type": "object",
       "properties": {
         "optionalIndicator": {
@@ -9365,12 +9614,12 @@
     },
     "IPageBreak": {
       "title": "Page break",
-      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "description": "Settings for optional page breaks before or after the component when rendered in PDF.",
       "type": "object",
       "properties": {
         "breakBefore": {
           "title": "Page break before",
-          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "description": "PDF only: Indicates whether to insert a page break before the component. Can be 'auto', 'always', or 'avoid'.",
           "examples": [
             "auto",
             "always",
@@ -9381,7 +9630,7 @@
         },
         "breakAfter": {
           "title": "Page break after",
-          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "description": "PDF only: Indicates whether to insert a page break after the component. Can be 'auto', 'always', or 'avoid'.",
           "examples": [
             "auto",
             "always",
@@ -9439,7 +9688,8 @@
       ]
     },
     "IRawOption": {
-      "title": "IRawOption",
+      "title": "Option",
+      "description": "Defines one selectable option.",
       "examples": [
         {
           "label": "",
@@ -9449,9 +9699,13 @@
       "type": "object",
       "properties": {
         "label": {
+          "title": "Option label",
+          "description": "The text displayed for the option.",
           "type": "string"
         },
         "value": {
+          "title": "Option value",
+          "description": "The value stored when the option is selected.",
           "anyOf": [
             {
               "type": "string"
@@ -9468,9 +9722,13 @@
           ]
         },
         "description": {
+          "title": "Option description",
+          "description": "Additional text displayed with the option.",
           "type": "string"
         },
         "helpText": {
+          "title": "Option help text",
+          "description": "Help text for the option.",
           "type": "string"
         }
       },
@@ -9688,7 +9946,8 @@
       "additionalProperties": false
     },
     "IVideo": {
-      "title": "IVideo",
+      "title": "Video settings",
+      "description": "Configures the video sources.",
       "type": "object",
       "properties": {
         "src": {
@@ -11598,7 +11857,8 @@
       }
     },
     "VideoSrc": {
-      "title": "VideoSrc",
+      "title": "Video sources",
+      "description": "Video sources for each supported language.",
       "examples": [
         {
           "nb": "https://example.com/video.mp4",

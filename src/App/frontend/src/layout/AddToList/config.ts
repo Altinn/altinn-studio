@@ -28,9 +28,10 @@ export const Config = new CG.component({
       new CG.prop(
         'data',
         new CG.dataModelBinding()
-          .setTitle('Data')
+          .setTitle('Data', 'Data')
           .setDescription(
             'Dot notation location for a repeating group structure (array of objects), where the data is stored',
+            'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
           ),
       ),
     ),

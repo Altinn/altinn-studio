@@ -83,11 +83,17 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
   }
 
   toComponentCatalog(): PropertyValueDefinition {
-    return getSourceForCommon(this.key, 'JsonSchema').toComponentCatalog();
+    return {
+      ...getSourceForCommon(this.key, 'JsonSchema').toComponentCatalog(),
+      ...this.componentCatalogMetadata(),
+    };
   }
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
-    return getSourceForCommon(this.key, 'JsonSchema').toComponentCatalogDefinition();
+    return {
+      ...getSourceForCommon(this.key, 'JsonSchema').toComponentCatalogDefinition(),
+      ...this.componentCatalogMetadata(),
+    };
   }
 
   getName(respectVariationDifferences = true): string {

@@ -28,18 +28,20 @@ export const Config = new CG.component({
       new CG.prop(
         'group',
         new CG.dataModelBinding()
-          .setTitle('group binding')
+          .setTitle('group binding', 'gruppebinding')
           .setDescription(
             'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
+            'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
           )
           .optional(),
       ),
       new CG.prop(
         'checked',
         new CG.dataModelBinding()
-          .setTitle('checked')
+          .setTitle('checked', 'valgt')
           .setDescription(
             'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
+            'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
           )
           .optional(),
       ),
@@ -54,10 +56,11 @@ export const Config = new CG.component({
       'tableHeaders',
       new CG.obj()
         .additionalProperties(new CG.str())
-        .setTitle('Table Headers')
+        .setTitle('Table Headers', 'Tabelloverskrifter')
         .setDescription(
           'An object where the fields in the datalist is mapped to headers. Must correspond to datalist ' +
             'representing a row. Can be added to the resource files to change between languages.',
+          'Kobler feltene i datalisten til kolonneoverskrifter.',
         )
         .addExample({
           productId: 'product.id',
@@ -70,10 +73,11 @@ export const Config = new CG.component({
       'sortableColumns',
       new CG.arr(new CG.str())
         .optional()
-        .setTitle('Sortable columns')
+        .setTitle('Sortable columns', 'Sorterbare kolonner')
         .setDescription(
           'An array of column keys that can be sorted (note that your API backend needs to support this as well). ' +
             'The column has to be represented by the the header name that is written in tableHeaders.',
+          'Liste over kolonnenøkler som kan sorteres. API-et i backend må også støtte sortering.',
         ),
     ),
   )
@@ -84,20 +88,26 @@ export const Config = new CG.component({
         new CG.prop(
           'alternatives',
           new CG.arr(new CG.num())
-            .setTitle('Alternatives')
+            .setTitle('Alternatives', 'Alternativer')
             .setDescription(
               'List of page sizes the user can choose from. Make sure to test the performance ' +
                 'of the largest number of items per page you are allowing.',
+              'Liste over sidestørrelsene brukeren kan velge. Test ytelsen med høyeste tillatte verdi.',
             ),
         ),
         new CG.prop(
           'default',
-          new CG.num().setTitle('Default').setDescription('The pagination size that is set to default.'),
+          new CG.num()
+            .setTitle('Default', 'Standard')
+            .setDescription('The pagination size that is set to default.', 'Sidestørrelsen som brukes som standard.'),
         ),
       )
         .optional()
-        .setTitle('Pagination')
-        .setDescription('Pagination settings. Set this to enable pagination (must be supported by backend).')
+        .setTitle('Pagination', 'Paginering')
+        .setDescription(
+          'Pagination settings. Set this to enable pagination (must be supported by backend).',
+          'Innstillinger for paginering. Egenskapen slår på paginering, som også må støttes av backend.',
+        )
         .exportAs('IPagination'),
     ),
   )
@@ -105,8 +115,11 @@ export const Config = new CG.component({
     new CG.prop(
       'dataListId',
       new CG.str()
-        .setTitle('Data list ID')
-        .setDescription('The ID of the data list to use (must be implemented in your backend).'),
+        .setTitle('Data list ID', 'Dataliste-ID')
+        .setDescription(
+          'The ID of the data list to use (must be implemented in your backend).',
+          'ID-en til datalisten som skal brukes. Datalisten må være implementert i backend.',
+        ),
     ),
   )
   .addProperty(
@@ -114,8 +127,11 @@ export const Config = new CG.component({
       'secure',
       new CG.bool()
         .optional({ default: false })
-        .setTitle('Secure')
-        .setDescription('Boolean value indicating if the options should be instance aware. Defaults to false.'),
+        .setTitle('Secure', 'Sikker')
+        .setDescription(
+          'Boolean value indicating if the options should be instance aware. Defaults to false.',
+          'Angir om alternativene skal tilpasses instansen.',
+        ),
     ),
   )
   .addProperty(
@@ -132,9 +148,10 @@ export const Config = new CG.component({
       'summaryBinding',
       new CG.str()
         .optional()
-        .setTitle('Data model binding to show in summary')
+        .setTitle('Data model binding to show in summary', 'Datamodellbinding som vises i oppsummeringen')
         .setDescription(
           'Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.',
+          'Angi en av nøklene i dataModelBindings-objektet som skal vises i oppsummeringen av listen.',
         ),
     ),
   )
@@ -143,11 +160,12 @@ export const Config = new CG.component({
       'bindingToShowInSummary',
       new CG.str()
         .optional()
-        .setTitle('Binding to show in summary')
+        .setTitle('Binding to show in summary', 'Binding som vises i oppsummeringen')
         .setDeprecated('This property will be removed in the next major version, use `summaryBinding` instead.')
         .setDescription(
           'The value of this binding will be shown in the summary component for the list. ' +
             'It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.',
+          'Verdien som vises i oppsummeringen av listen. Forventer en sti i datamodellen.',
         ),
     ),
   )
@@ -156,8 +174,11 @@ export const Config = new CG.component({
       'tableHeadersMobile',
       new CG.arr(new CG.str())
         .optional()
-        .setTitle('Table Headers Mobile')
-        .setDescription('An array of strings representing the columns that is chosen to be shown in the mobile view.'),
+        .setTitle('Table Headers Mobile', 'Tabelloverskrifter på mobil')
+        .setDescription(
+          'An array of strings representing the columns that is chosen to be shown in the mobile view.',
+          'En liste over kolonnene som skal vises i mobilvisningen.',
+        ),
     ),
   )
   .addSummaryOverrides();

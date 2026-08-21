@@ -33,8 +33,11 @@ export const Config = asOptionsComponent(
       'alertOnChange',
       new CG.expr(ExprVal.Boolean)
         .optional({ default: false })
-        .setTitle('Alert on change')
-        .setDescription('Boolean value indicating if the component should alert on change'),
+        .setTitle('Alert on change', 'Varsel ved endring')
+        .setDescription(
+          'Boolean value indicating if the component should alert on change',
+          'Angir om komponenten skal varsle ved endringer.',
+        ),
     ),
   )
   .addProperty(
@@ -42,8 +45,11 @@ export const Config = asOptionsComponent(
       'showLabelsInTable',
       new CG.bool()
         .optional({ default: false })
-        .setTitle('Show label when single option in table')
-        .setDescription('Boolean value indicating if the label should be visible when only one option exists in table'),
+        .setTitle('Show label when single option in table', 'Vis ledetekst ved ett alternativ i tabellen')
+        .setDescription(
+          'Boolean value indicating if the label should be visible when only one option exists in table',
+          'Angir om ledeteksten skal vises når tabellen bare har ett alternativ.',
+        ),
     ),
   )
   .addProperty(
@@ -51,8 +57,11 @@ export const Config = asOptionsComponent(
       'showAsCard',
       new CG.bool()
         .optional()
-        .setTitle('Show as card')
-        .setDescription('Boolean value indicating if the options should be displayed as cards. Defaults to false.'),
+        .setTitle('Show as card', 'Vis som kort')
+        .setDescription(
+          'Boolean value indicating if the options should be displayed as cards. Defaults to false.',
+          'Angir om alternativene skal vises som kort.',
+        ),
     ),
   )
   .addSummaryOverrides()

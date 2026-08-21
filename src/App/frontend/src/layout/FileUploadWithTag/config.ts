@@ -28,8 +28,11 @@ export const Config = asOptionsComponent(
   ).addTextResource(
     new CG.trb({
       name: 'tagTitle',
-      title: 'Tag title',
-      description: 'The title to show when selecting a tag for each uploaded file',
+      title: { en: 'Tag title', nb: 'Ledetekst for tagg' },
+      description: {
+        en: 'The title to show when selecting a tag for each uploaded file',
+        nb: 'Ledeteksten som vises når brukeren velger en tagg for hver opplastede fil.',
+      },
     }),
   ),
   { supportsPreselection: false },

@@ -25,21 +25,26 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The text to display in the heading',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The text to display in the heading', nb: 'Teksten som vises i overskriften.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'help',
-      title: 'Help text',
-      description: 'The text to display in the help tooltip/popup',
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'The text to display in the help tooltip/popup',
+        nb: 'Teksten som vises i hjelpetekstvinduet.',
+      },
     }),
   )
   .addProperty(
     new CG.prop(
       'size',
-      new CG.enum('L', 'M', 'S', 'h2', 'h3', 'h4').setTitle('Size').setDescription('The size of the heading'),
+      new CG.enum('L', 'M', 'S', 'h2', 'h3', 'h4')
+        .setTitle('Size', 'Størrelse')
+        .setDescription('The size of the heading', 'Overskriftens størrelse.'),
     ),
   )
   .addSummaryOverrides();

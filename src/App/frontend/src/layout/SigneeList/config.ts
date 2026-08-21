@@ -24,28 +24,28 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Header/title of the list',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Header/title of the list', nb: 'Overskriften eller ledeteksten til listen.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'description',
-      title: 'Description',
-      description: 'Description of the list',
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: { en: 'Description of the list', nb: 'Beskrivelse av listen.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'help',
-      title: 'Help',
-      description: 'Help text of the list',
+      title: { en: 'Help', nb: 'Hjelp' },
+      description: { en: 'Help text of the list', nb: 'Hjelpetekst for listen.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'summaryTitle',
-      title: 'SummaryTitle',
-      description: 'Title of the summary',
+      title: { en: 'SummaryTitle', nb: 'Tittel i oppsummering' },
+      description: { en: 'Title of the summary', nb: 'Ledeteksten til oppsummeringen.' },
     }),
   );

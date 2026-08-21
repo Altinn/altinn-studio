@@ -6,6 +6,7 @@ import { format, resolveConfig } from 'prettier';
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { generateAllCommonTypes, generateCommonTypeScript } from 'src/codegen/Common';
 import { generateComponentCatalog } from 'src/codegen/ComponentCatalog';
+import { type DocumentationLocale, generateComponentDocumentation } from 'src/codegen/ComponentDocumentation';
 import { LayoutSchemaV1 } from 'src/codegen/schemas/layout.schema.v1';
 import { LayoutSettingsSchemaV1 } from 'src/codegen/schemas/layoutSettings.schema.v1';
 import { getWrittenPaths, saveFile, saveTsFile } from 'src/codegen/tools';
@@ -21,6 +22,7 @@ const COMPONENT_CATALOG_OUTPUT = path.join(
   'src/common/ts/layout-contract/src/component-catalog.generated.ts',
 );
 const CONTRACT_SCHEMA_ROOT = path.join(REPOSITORY_ROOT, 'src/common/ts/layout-contract/schemas/json');
+const CONTRACT_DOCUMENTATION_ROOT = path.join(REPOSITORY_ROOT, 'src/common/ts/layout-contract/docs/components');
 const STATIC_CONTRACT_SCHEMAS = ['layout/expression.schema.v1.json', 'component/number-format.schema.v1.json'] as const;
 
 function toPosixPath(p: string): string {
@@ -137,17 +139,33 @@ async function getComponentList(): Promise<[ComponentList, string[]]> {
   }
 
   const schemaProps: SchemaFileProps = { configMap, componentList, sortedKeys };
+  const componentCatalog = generateComponentCatalog(schemaProps);
   const prettierConfig = await resolveConfig(COMPONENT_CATALOG_OUTPUT);
   promises.push(
     saveFile(
       COMPONENT_CATALOG_OUTPUT,
-      await format(generateComponentCatalog(schemaProps), {
+      await format(componentCatalog.source, {
         ...prettierConfig,
         parser: 'typescript',
         filepath: COMPONENT_CATALOG_OUTPUT,
       }),
     ),
   );
+  await fs.mkdir(CONTRACT_DOCUMENTATION_ROOT, { recursive: true });
+  for (const locale of ['nb', 'en'] satisfies DocumentationLocale[]) {
+    for (const [componentType, markdown] of generateComponentDocumentation(
+      componentCatalog.componentCatalog,
+      componentCatalog.commonProperties,
+      locale,
+    )) {
+      promises.push(
+        saveFile(
+          path.join(CONTRACT_DOCUMENTATION_ROOT, `${componentType}.properties.${locale}.generated.md`),
+          markdown,
+        ),
+      );
+    }
+  }
   const schemas = [new LayoutSchemaV1(schemaProps), new LayoutSettingsSchemaV1(schemaProps)];
 
   const schemaPathBase = 'schemas/json/';
@@ -180,5 +198,14 @@ async function getComponentList(): Promise<[ComponentList, string[]]> {
 
   const written = getWrittenPaths();
   const orphans = (await findGeneratedFiles('src/layout')).filter((file) => !written.has(file));
-  await deleteOrphans(orphans);
+  const documentationOrphans = (await findGeneratedDocumentation(CONTRACT_DOCUMENTATION_ROOT)).filter(
+    (file) => !written.has(file),
+  );
+  await deleteOrphans([...orphans, ...documentationOrphans]);
 })();
+
+async function findGeneratedDocumentation(root: string): Promise<string[]> {
+  return (await fs.readdir(root))
+    .filter((file) => file.endsWith('.generated.md'))
+    .map((file) => toPosixPath(path.join(root, file)));
+}

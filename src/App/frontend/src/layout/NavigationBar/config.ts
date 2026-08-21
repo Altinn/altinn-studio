@@ -26,8 +26,11 @@ export const Config = new CG.component({
       'compact',
       new CG.bool()
         .optional()
-        .setTitle('Compact')
-        .setDescription('Change appearance of navbar as compact in desktop view'),
+        .setTitle('Compact', 'Kompakt')
+        .setDescription(
+          'Change appearance of navbar as compact in desktop view',
+          'Viser navigasjonslinjen i kompakt format på store skjermer.',
+        ),
     ),
   )
   .addProperty(new CG.prop('validateOnForward', CG.common('PageValidation').optional()))

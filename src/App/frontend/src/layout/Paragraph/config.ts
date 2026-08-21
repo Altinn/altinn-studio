@@ -25,15 +25,18 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The title of the paragraph',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'help',
-      title: 'Help text',
-      description: 'Help text, optionally shown in a tooltip',
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'Help text, optionally shown in a tooltip',
+        nb: 'Valgfri hjelpetekst som vises i et hjelpetekstvindu.',
+      },
     }),
   )
   .addSummaryOverrides();

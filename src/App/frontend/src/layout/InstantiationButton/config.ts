@@ -24,8 +24,8 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'The title/text to display on the button',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'The title/text to display on the button', nb: 'Teksten som vises på knappen.' },
     }),
   )
   .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()));

@@ -28,15 +28,15 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Header/title of the panel',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Header/title of the panel', nb: 'Overskriften eller tittelen i panelet.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'body',
-      title: 'Body',
-      description: 'Body of the panel',
+      title: { en: 'Body', nb: 'Brødtekst' },
+      description: { en: 'Body of the panel', nb: 'Brødteksten i panelet.' },
     }),
   )
   .addProperty(
@@ -44,14 +44,17 @@ export const Config = new CG.component({
       'variant',
       new CG.enum(...PANEL_VARIANTS)
         .optional()
-        .setTitle('Panel variant')
-        .setDescription('Change the look of the panel')
+        .setTitle('Panel variant', 'Panelvariant')
+        .setDescription('Change the look of the panel', 'Endrer utseendet på panelet.')
         .exportAs('PanelVariant'),
     ),
   )
   .addProperty(
     new CG.prop(
       'showIcon',
-      new CG.bool().optional({ default: true }).setTitle('Show icon').setDescription('Show icon in the panel header'),
+      new CG.bool()
+        .optional({ default: true })
+        .setTitle('Show icon', 'Vis ikon')
+        .setDescription('Show icon in the panel header', 'Viser et ikon i paneloverskriften.'),
     ),
   );

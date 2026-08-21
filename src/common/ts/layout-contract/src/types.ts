@@ -15,8 +15,8 @@ export type ComponentMetadata = Readonly<{
 }>;
 
 export type PropertyMetadata = Readonly<{
-  title?: string;
-  description?: string;
+  title?: LocalizedText;
+  description?: LocalizedText;
   default?: unknown;
   examples?: readonly unknown[];
   deprecated?: boolean;

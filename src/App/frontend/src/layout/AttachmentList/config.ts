@@ -24,8 +24,8 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Title shown above the attachment list',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Title shown above the attachment list', nb: 'Ledeteksten som vises over vedleggslisten.' },
     }),
   )
   .addProperty(
@@ -33,8 +33,11 @@ export const Config = new CG.component({
       'dataTypeIds',
       new CG.arr(new CG.str())
         .optional()
-        .setTitle('Data type IDs')
-        .setDescription('List of data type IDs for the attachment list to show'),
+        .setTitle('Data type IDs', 'Datatype-ID-er')
+        .setDescription(
+          'List of data type IDs for the attachment list to show',
+          'Liste over datatype-ID-ene som vedleggslisten skal vise.',
+        ),
     ),
   )
   .addProperty(
@@ -42,14 +45,22 @@ export const Config = new CG.component({
       'links',
       new CG.bool()
         .optional({ default: true })
-        .setTitle('Link to each attachment')
-        .setDescription('Disable this to remove the link to each attachment'),
+        .setTitle('Link to each attachment', 'Lenke til hvert vedlegg')
+        .setDescription(
+          'Disable this to remove the link to each attachment',
+          'Slå av for å fjerne lenken til hvert vedlegg.',
+        ),
     ),
   )
   .addProperty(
     new CG.prop(
       'groupByDataTypeGrouping',
-      new CG.bool().optional({ default: false }).setDescription('Group attachments by their data type grouping'),
+      new CG.bool()
+        .optional({ default: false })
+        .setDescription(
+          'Group attachments by their data type grouping',
+          'Grupperer vedlegg etter datatypens gruppering.',
+        ),
     ),
   )
   .addProperty(
@@ -57,6 +68,9 @@ export const Config = new CG.component({
       'showDataTypeDescriptions',
       new CG.bool()
         .optional({ default: false })
-        .setDescription('Show the corresponding data type description for each attachment'),
+        .setDescription(
+          'Show the corresponding data type description for each attachment',
+          'Viser beskrivelsen av den tilhørende datatypen for hvert vedlegg.',
+        ),
     ),
   );

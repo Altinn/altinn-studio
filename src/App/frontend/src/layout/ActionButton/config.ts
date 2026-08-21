@@ -24,24 +24,27 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Button title/text',
-      description: 'The text to display on the button.',
+      title: { en: 'Button title/text', nb: 'Knappetekst' },
+      description: { en: 'The text to display on the button.', nb: 'Teksten som vises på knappen.' },
     }),
   )
   .addProperty(
     new CG.prop(
       'action',
       new CG.enum('instantiate', 'confirm', 'sign', 'reject')
-        .setTitle('Action')
-        .setDescription('The action to perform when the button is clicked.'),
+        .setTitle('Action', 'Handling')
+        .setDescription(
+          'The action to perform when the button is clicked.',
+          'Handlingen som utføres når brukeren velger knappen.',
+        ),
     ),
   )
   .addProperty(
     new CG.prop(
       'buttonStyle',
       new CG.enum('primary', 'secondary')
-        .setTitle('Button style')
-        .setDescription('The style/color scheme of the button.')
+        .setTitle('Button style', 'Knappestil')
+        .setDescription('The style/color scheme of the button.', 'Knappens stil eller fargepalett.')
         .exportAs('ActionButtonStyle'),
     ),
   );
