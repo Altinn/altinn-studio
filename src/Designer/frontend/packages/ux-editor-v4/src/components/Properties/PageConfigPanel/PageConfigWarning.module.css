@@ -14,7 +14,7 @@
   margin: var(--ds-size-2) var(--ds-size-4);
   padding: var(--ds-size-6) var(--ds-size-4);
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
-  border-radius: var(--fds-border_radius-large);
+  border-radius: var(--ds-border-radius-lg);
   background-color: var(--fds-semantic-surface-neutral-default);
 }
 

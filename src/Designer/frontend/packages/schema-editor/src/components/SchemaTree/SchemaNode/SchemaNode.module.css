@@ -26,7 +26,7 @@
 .schemaNodeLabel.isParent .nodeName svg {
   --background-colour: var(--fds-brand-alt1-800);
   background-color: var(--background-colour);
-  border-radius: var(--fds-border_radius-small);
+  border-radius: var(--ds-border-radius-sm);
   color: var(--fds-semantic-surface-on_inverted-default);
 }
 

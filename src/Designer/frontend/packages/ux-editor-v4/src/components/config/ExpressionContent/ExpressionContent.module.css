@@ -1,7 +1,7 @@
 .expressionContent {
   align-items: center;
   background-color: var(--fds-semantic-surface-neutral-default);
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--ds-border-radius-md);
   border: 0;
   box-shadow: var(--fds-shadow-small);
   display: grid;

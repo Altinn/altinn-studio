@@ -47,7 +47,7 @@
 .taskTypeCellContent svg {
   font-size: 1.3rem;
   border: 2px solid var(--fds-colors-grey-600);
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
 
   background-color: var(--fds-colors-grey-100);
   color: var(--fds-colors-grey-800);

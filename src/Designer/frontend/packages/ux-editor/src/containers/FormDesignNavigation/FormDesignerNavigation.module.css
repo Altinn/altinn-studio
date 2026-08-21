@@ -11,7 +11,7 @@
 
 .panel {
   background-color: white;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--ds-border-radius-md);
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
   padding: var(--ds-size-5);
   position: relative;
