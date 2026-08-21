@@ -13,7 +13,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const summary2Component: FormItem = {
   id: '0',
   type: ComponentType.Summary2,
-  itemType: 'COMPONENT',
   target: {},
 };
 

@@ -23,6 +23,7 @@ import {
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
+import { getTextResourceId } from '../../../../../utils/textResourceUtils';
 
 export type EditColumnElementProps = {
   tableColumn: TableColumn;
@@ -59,7 +60,7 @@ export const EditColumnElement = ({
 
     onChange({
       ...tableColumn,
-      headerContent: selectedComponent.textResourceBindings?.title,
+      headerContent: getTextResourceId(selectedComponent.textResourceBindings?.title),
       cellContent: { query: binding.field },
     });
   };

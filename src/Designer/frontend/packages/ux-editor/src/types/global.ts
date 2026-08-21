@@ -5,24 +5,24 @@ import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
 import type { BooleanExpression } from '@studio/components';
 import type React from 'react';
+import type {
+  IDataModelReference,
+  IRawDataModelBinding,
+} from '@app/layout-contract/generated/common.generated';
+import type { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface IOption {
   label: string;
   value?: any;
 }
 
-export type ITextResourceBindings = KeyValuePairs<string>;
+export type ITextResourceBindings = KeyValuePairs<ExprValToActualOrExpr<ExprVal.String>>;
 
-export type ImplicitDataModelBinding = string;
-export type ExplicitDataModelBinding = {
-  dataType: string;
-  field: string;
-};
+export type ExplicitDataModelBinding = IDataModelReference;
 
 export type IDataModelBindingsKeyValueExplicit = KeyValuePairs<ExplicitDataModelBinding>;
-export type IDataModelBindingsKeyValue =
-  KeyValuePairs<ImplicitDataModelBinding> | KeyValuePairs<ExplicitDataModelBinding>;
-export type IDataModelBindings = ImplicitDataModelBinding | ExplicitDataModelBinding;
+export type IDataModelBindingsKeyValue = KeyValuePairs<IRawDataModelBinding>;
+export type IDataModelBindings = IRawDataModelBinding;
 
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<FormContainer>;
@@ -32,6 +32,7 @@ export interface IInternalLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
+  pageIndexes?: KeyValuePairs<number>;
   hidden?: BooleanExpression;
   customRootProperties: KeyValuePairs;
   customDataProperties: KeyValuePairs;

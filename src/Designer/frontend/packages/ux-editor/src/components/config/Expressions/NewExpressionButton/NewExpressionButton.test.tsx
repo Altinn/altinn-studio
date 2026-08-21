@@ -16,18 +16,15 @@ describe('NewExpressionButton', () => {
   const testComponents: KeyValuePairs<FormItem> = {
     'a paragraph element': {
       id: 'test',
-      itemType: 'COMPONENT',
       type: ComponentType.Paragraph,
     },
     'an input element': {
       id: 'test',
-      itemType: 'COMPONENT',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     },
     'a repeating group': {
       id: 'test',
-      itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
       dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       edit: {},
@@ -53,7 +50,6 @@ describe('NewExpressionButton', () => {
       id: 'mockId',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      itemType: 'COMPONENT',
     };
     renderAddButton({ formItem, handleUpdate });
 
@@ -74,7 +70,6 @@ const renderAddButton = (formItemContext = {}) => {
     formItem: {
       id: 'mockId',
       type: ComponentType.Paragraph,
-      itemType: 'COMPONENT',
     },
     handleSave: jest.fn(),
     handleUpdate: jest.fn(),

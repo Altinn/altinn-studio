@@ -3,6 +3,7 @@ import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { TextResource } from '../../TextResource/TextResource';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../../hooks';
+import { getTextResourceId } from '../../../utils/textResourceUtils';
 
 const TITLE_TEXT_RESOURCE_KEY = 'title';
 
@@ -49,7 +50,7 @@ export const TextResourceMainConfig = ({
       handleIdChange={handleIdUpdate}
       handleRemoveTextResource={handleRemoveTextResource}
       label={t(`ux_editor.modal_properties_textResourceBindings_${TITLE_TEXT_RESOURCE_KEY}`)}
-      textResourceId={component?.textResourceBindings?.[TITLE_TEXT_RESOURCE_KEY]}
+      textResourceId={getTextResourceId(component?.textResourceBindings?.[TITLE_TEXT_RESOURCE_KEY])}
       generateIdOptions={{
         componentId: component.id,
         layoutId: selectedFormLayoutName,

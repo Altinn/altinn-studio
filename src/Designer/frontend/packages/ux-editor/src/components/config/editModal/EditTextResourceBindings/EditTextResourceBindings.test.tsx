@@ -23,7 +23,6 @@ describe('EditTextResourceBindings component', () => {
       help: 'test-help-text-id',
     },
     type: ComponentType.Input,
-    itemType: 'COMPONENT',
     dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   };
 

@@ -81,7 +81,6 @@ describe('FormComponentConfig', () => {
       component: {
         id: 'subform-unit-test-id',
         layoutSet: 'subform-unit-test-layout-set',
-        itemType: 'COMPONENT',
         type: ComponentType.Subform,
       },
       properties: {

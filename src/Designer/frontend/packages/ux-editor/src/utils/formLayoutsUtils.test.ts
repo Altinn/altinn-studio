@@ -40,7 +40,6 @@ describe('formLayoutsUtils', () => {
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
-        itemType: 'COMPONENT',
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
@@ -51,7 +50,6 @@ describe('formLayoutsUtils', () => {
           containers: {
             [BASE_CONTAINER_ID]: {
               id: BASE_CONTAINER_ID,
-              itemType: 'CONTAINER',
               type: undefined,
             },
           },

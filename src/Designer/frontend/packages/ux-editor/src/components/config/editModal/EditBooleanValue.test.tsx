@@ -25,7 +25,6 @@ const renderEditBooleanValue = ({
           title: 'ServiceName',
         },
         required: value,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         ...componentOverrides,
       }}
@@ -56,7 +55,6 @@ describe('EditBooleanValue', () => {
           title: 'ServiceName',
         },
         required: true,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       });
     });
@@ -97,7 +95,6 @@ describe('EditBooleanValue', () => {
           title: 'ServiceName',
         },
         required: true,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       });
     });

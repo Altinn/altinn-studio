@@ -10,7 +10,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from './generateId';
 import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { SerializedFormLayoutsResponse } from '../types/SerializedComponent';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 import type { FormLayoutPage } from '@altinn/ux-editor/types/FormLayoutPage';
 
@@ -63,7 +63,7 @@ export const addOrRemoveNavigationButtons = async (
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: FormLayoutsResponse,
+  layouts: SerializedFormLayoutsResponse,
   layoutDefaultDataType?: string,
 ): IFormLayouts => {
   const convertedLayouts: IFormLayouts = {};

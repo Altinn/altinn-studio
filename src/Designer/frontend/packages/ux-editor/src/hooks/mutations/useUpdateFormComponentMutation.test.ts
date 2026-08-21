@@ -17,13 +17,13 @@ import type {
   FormFileUploaderWithTagComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import type { IDataModelBindingsKeyValue } from '../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
+import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 // Test data:
@@ -31,12 +31,11 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
+const dataModelBindings: IDataModelBindingsKeyValueExplicit & DataModelBindingsSimple = {
   simpleBinding: { field: 'some-path', dataType: '' },
 };
-const updatedComponent: FormComponent = {
+const updatedComponent: FormComponent<ComponentType.TextArea> = {
   id,
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings,
 };

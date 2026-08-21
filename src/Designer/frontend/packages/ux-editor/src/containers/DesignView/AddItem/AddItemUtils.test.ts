@@ -15,7 +15,7 @@ import { customDataPropertiesMock, customRootPropertiesMock } from '../../../tes
 const buttonGroupId = 'button-group';
 
 const createContainer = (id: string, type: ComponentType): FormContainer =>
-  ({ id, itemType: 'CONTAINER', type }) as FormContainer;
+  ({ id, type }) as FormContainer;
 
 const layout: IInternalLayout = {
   components: {},

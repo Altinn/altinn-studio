@@ -1,17 +1,14 @@
-import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
+import type { SerializedContainerComponent } from '../../types/SerializedComponent';
 import type { FormContainer } from '../../types/FormContainer';
 
 export const externalContainerComponentToInternal = (
-  externalComponent: ExternalContainerComponent,
-  pageIndex: number | null,
+  externalComponent: SerializedContainerComponent,
 ): FormContainer => {
   const propertiesToKeep = { ...externalComponent };
   delete propertiesToKeep.children;
 
   return {
     ...propertiesToKeep,
-    itemType: 'CONTAINER',
     type: externalComponent.type,
-    pageIndex,
-  } as FormContainer;
+  } as unknown as FormContainer;
 };

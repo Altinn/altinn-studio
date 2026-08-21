@@ -15,7 +15,7 @@ describe('generateFormItem', () => {
     ),
   )('generates component %s with the given ID', (componentType) => {
     expect(generateFormItem(componentType, 'testId')).toEqual(
-      expect.objectContaining({ id: 'testId', type: componentType, itemType: 'COMPONENT' }),
+      expect.objectContaining({ id: 'testId', type: componentType }),
     );
   });
 
@@ -27,7 +27,6 @@ describe('generateFormItem', () => {
       expect.objectContaining({
         id: 'testId',
         type: ComponentType.CustomButton,
-        itemType: 'COMPONENT',
       }),
     );
   });
@@ -36,7 +35,7 @@ describe('generateFormItem', () => {
     'generates container %s with the given ID',
     (componentType: ContainerComponentType) => {
       expect(generateFormItem(componentType, 'testId')).toEqual(
-        expect.objectContaining({ id: 'testId', type: componentType, itemType: 'CONTAINER' }),
+        expect.objectContaining({ id: 'testId', type: componentType }),
       );
     },
   );
@@ -46,7 +45,6 @@ describe('setComponentProperty', () => {
   const component: FormComponent = {
     id: 'test',
     type: ComponentType.Input,
-    itemType: 'COMPONENT',
     dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   };
 

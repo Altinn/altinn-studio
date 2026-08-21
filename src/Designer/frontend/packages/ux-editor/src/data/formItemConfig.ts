@@ -40,6 +40,10 @@ import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FilterUtils } from './FilterUtils';
+import type { SerializedComponentDefaults } from '../types/SerializedComponent';
+
+type ConfiguredComponentType<T extends ComponentType | CustomComponentType> =
+  T extends CustomComponentType ? ComponentType.CustomButton : T;
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
   name: ComponentType | CustomComponentType;
@@ -48,7 +52,7 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   ) => ComponentType | CustomComponentType;
   componentRef?: ComponentType;
   itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
-  defaultProperties: ComponentSpecificConfig;
+  defaultProperties: SerializedComponentDefaults<ConfiguredComponentType<T>>;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
@@ -153,7 +157,6 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {
       tagName: 'tag',
-      framework: 'framework',
     },
     icon: ElementIcon,
   },
@@ -391,7 +394,11 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.OrganizationLookup]: {
     name: ComponentType.OrganizationLookup,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        organization_lookup_orgnr: '',
+      },
+    },
     icon: ShortTextIcon,
   },
   [ComponentType.Panel]: {
@@ -406,11 +413,7 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
     itemType: LayoutItemType.Component,
-    defaultProperties: {
-      id: '',
-      itemType: 'COMPONENT',
-      type: ComponentType.Paragraph,
-    },
+    defaultProperties: {},
     icon: TextIcon,
   },
   [ComponentType.Payment]: {
@@ -428,7 +431,11 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.PersonLookup]: {
     name: ComponentType.PersonLookup,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        person_lookup_ssn: '',
+      },
+    },
     icon: ShortTextIcon,
   },
   [ComponentType.PrintButton]: {
@@ -461,7 +468,10 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Subform]: {
     name: ComponentType.Subform,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      layoutSet: '',
+      tableColumns: [],
+    },
     icon: ClipboardIcon,
   },
   [ComponentType.Summary]: {
@@ -503,10 +513,7 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Divider]: {
     name: ComponentType.Divider,
     itemType: LayoutItemType.Component,
-    defaultProperties: {
-      id: '',
-      type: ComponentType.Divider,
-    },
+    defaultProperties: {},
     icon: MinusIcon,
   },
 };

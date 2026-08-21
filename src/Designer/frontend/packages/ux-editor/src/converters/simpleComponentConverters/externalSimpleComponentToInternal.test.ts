@@ -1,5 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
+import type { SerializedSimpleComponent } from '../../types/SerializedComponent';
 import { externalSimpleComponentToInternal } from './externalSimpleComponentToInternal';
 
 // Test data:
@@ -8,40 +8,33 @@ const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
 
 describe('externalSimpleComponentToInternal', () => {
-  it.each([null, 0, 1, 2])(
-    'Correctly converts an external simple component with page index set to %s',
-    (pageIndex) => {
-      const externalComponent: ExternalSimpleComponent = {
-        id,
-        type,
-        customProperty,
-        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      };
-      const result = externalSimpleComponentToInternal(externalComponent, pageIndex);
-      expect(result).toEqual({
-        id,
-        itemType: 'COMPONENT',
-        pageIndex,
-        type,
-        customProperty,
-        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      });
-    },
-  );
+  it('converts an external simple component', () => {
+    const externalComponent: SerializedSimpleComponent = {
+      id,
+      type,
+      customProperty,
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
+    };
+    const result = externalSimpleComponentToInternal(externalComponent);
+    expect(result).toEqual({
+      id,
+      type,
+      customProperty,
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
+    });
+  });
 
   it('should convert unknown components', () => {
     const externalComponent = {
       id: '2',
       type: 'UnknownComponent',
       customProperty: null,
-    } as unknown as ExternalSimpleComponent;
+    } as unknown as SerializedSimpleComponent;
 
-    const result = externalSimpleComponentToInternal(externalComponent, 1);
+    const result = externalSimpleComponentToInternal(externalComponent);
     expect(result).toEqual({
       customProperty: null,
       id: '2',
-      itemType: 'COMPONENT',
-      pageIndex: 1,
       type: 'UnknownComponent',
     });
   });

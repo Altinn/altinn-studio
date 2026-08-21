@@ -1,4 +1,4 @@
-import type { ViewSize } from './ViewSize';
-import type { GridSize } from '@studio/components-legacy';
+import type { IGridSize, IGridStyling } from '@app/layout-contract/generated/common.generated';
 
-export type GridSizes = { [key in ViewSize]?: GridSize };
+/** Grid values supported by Designer's current grid selector. */
+export type GridSizes = Partial<Record<keyof IGridStyling, Exclude<IGridSize, 'auto'>>>;

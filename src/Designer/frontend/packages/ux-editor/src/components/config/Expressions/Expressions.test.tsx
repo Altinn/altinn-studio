@@ -27,14 +27,12 @@ const componentWithExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
   hidden: parsableLogicalExpression,
 };
 const componentWithoutExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
 };
 
 const defaultFormItemContext: FormItemContext = {
@@ -67,7 +65,6 @@ describe('Expressions', () => {
       id: 'some-id',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      itemType: 'COMPONENT',
       hidden: parsableLogicalExpression,
       required: parsableLogicalExpression,
       readOnly: parsableLogicalExpression,
@@ -83,7 +80,6 @@ describe('Expressions', () => {
     const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer<ComponentType.RepeatingGroup> =
       {
         id: 'some-id',
-        itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
         hidden: parsableLogicalExpression,
@@ -154,7 +150,6 @@ describe('Expressions', () => {
   it('Renders successfully when the component is a multipage group', () => {
     const formItem: FormContainer = {
       id: 'some-id',
-      itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
       dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       edit: {

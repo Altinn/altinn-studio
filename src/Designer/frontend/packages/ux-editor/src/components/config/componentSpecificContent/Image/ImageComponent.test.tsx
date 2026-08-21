@@ -17,7 +17,6 @@ const componentData: FormImageComponent = {
   image: {
     src: {},
   },
-  itemType: 'COMPONENT',
   dataModelBindings: {},
 };
 

@@ -27,7 +27,7 @@ describe('useComponentTypeName', () => {
   const result = renderHookWithProviders(useComponentTitle, { queryClient }).result;
 
   it('returns the title for a container when item is of type "CONTAINER"', () => {
-    const container: FormContainer = { id: '1', itemType: 'CONTAINER', type: ComponentType.Group };
+    const container: FormContainer = { id: '1', type: ComponentType.Group };
 
     const expectedResult = textMock(`ux_editor.component_title.${container.type}`);
     expect(result.current(container)).toBe(expectedResult);
@@ -37,7 +37,6 @@ describe('useComponentTypeName', () => {
     const componentWithTextResourceTitle: FormComponent = {
       id: 'a',
       type: ComponentType.Paragraph,
-      itemType: 'COMPONENT',
       textResourceBindings: { title: titleKey },
     };
 
@@ -48,7 +47,6 @@ describe('useComponentTypeName', () => {
     const componentWithoutTextResourceTitle: FormComponent = {
       id: 'a',
       type: ComponentType.Paragraph,
-      itemType: 'COMPONENT',
     };
 
     const expectedResult = textMock(`ux_editor.component_title.${ComponentType.Paragraph}`);
@@ -59,7 +57,6 @@ describe('useComponentTypeName', () => {
     const componentWithEmptyTextResourceTitle: FormComponent = {
       id: 'a',
       type: ComponentType.Paragraph,
-      itemType: 'COMPONENT',
       textResourceBindings: { title: '' },
     };
 
@@ -71,7 +68,6 @@ describe('useComponentTypeName', () => {
     const componentWithCustomAction: FormComponent = {
       id: 'a',
       type: ComponentType.CustomButton,
-      itemType: 'COMPONENT',
       actions: [
         {
           type: 'ClientAction',
@@ -91,7 +87,6 @@ describe('useComponentTypeName', () => {
     const componentWithoutActionRequirements: FormComponent = {
       id: 'a',
       type: ComponentType.CustomButton,
-      itemType: 'COMPONENT',
       actions: [],
       buttonStyle: 'primary',
     };

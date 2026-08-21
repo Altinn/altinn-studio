@@ -10,7 +10,6 @@ import type { SelectionComponentType } from '@altinn/ux-editor/types/FormCompone
 const optionsComponent: FormItem = {
   id: '0',
   type: ComponentType.Checkboxes,
-  itemType: 'COMPONENT',
   target: {},
   dataModelBindings: {
     simpleBinding: { field: 'simpleBinding', dataType: '' },

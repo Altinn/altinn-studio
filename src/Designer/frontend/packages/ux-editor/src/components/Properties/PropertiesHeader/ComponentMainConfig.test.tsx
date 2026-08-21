@@ -14,7 +14,6 @@ const mainConfigComponentMock = (type: ComponentType) =>
   ({
     id: '0',
     type,
-    itemType: 'COMPONENT',
     target: {},
   }) as FormItem;
 

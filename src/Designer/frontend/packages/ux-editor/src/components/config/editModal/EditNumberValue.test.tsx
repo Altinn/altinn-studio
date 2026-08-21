@@ -25,7 +25,6 @@ const renderEditNumberValue = async ({
           title: 'ServiceName',
         },
         maxLength,
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         ...componentOverrides,
       }}
@@ -72,7 +71,6 @@ describe('EditNumberValue', () => {
         title: 'ServiceName',
       },
       maxLength: 2,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
@@ -94,7 +92,6 @@ describe('EditNumberValue', () => {
         title: 'ServiceName',
       },
       maxLength: 1,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
@@ -141,7 +138,6 @@ describe('EditNumberValue', () => {
         title: 'ServiceName',
       },
       maxLength: 2,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });

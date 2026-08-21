@@ -6,7 +6,6 @@ import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
 import {
   component1IdMock,
-  container1IdMock,
   componentWithOptionsMock,
   componentWithMultipleSelectMock,
   layout1NameMock,
@@ -146,52 +145,6 @@ describe('Summary2Override', () => {
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.objectContaining({
           overrides: [{ componentId: '1', hidden: true }],
-        }),
-      ),
-    );
-  });
-
-  it('"isCompact" switch should not be checked when isCompact is false', async () => {
-    const user = userEvent.setup();
-    const component = {
-      ...defaultProps.component,
-      overrides: [{ componentId: container1IdMock, isCompact: false }],
-    };
-    render({ component });
-    await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('switch', {
-      name: textMock('ux_editor.component_properties.summary.override.is_compact'),
-    });
-    expect(compactCheckbox).toBeInTheDocument();
-    expect(compactCheckbox).not.toBeChecked();
-    await user.click(compactCheckbox);
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          overrides: [{ componentId: container1IdMock, isCompact: true }],
-        }),
-      ),
-    );
-  });
-
-  it('"isCompact" switch should be checked when isCompact is true', async () => {
-    const user = userEvent.setup();
-    const component = {
-      ...defaultProps.component,
-      overrides: [{ componentId: container1IdMock, isCompact: true }],
-    };
-    render({ component });
-    await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('switch', {
-      name: textMock('ux_editor.component_properties.summary.override.is_compact'),
-    });
-    expect(compactCheckbox).toBeInTheDocument();
-    expect(compactCheckbox).toBeChecked();
-    await user.click(compactCheckbox);
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          overrides: [{ componentId: container1IdMock, isCompact: false }],
         }),
       ),
     );
@@ -395,7 +348,6 @@ const renderedTypeOptions = () => {
 const defaultProps: Summary2OverrideProps = {
   component: {
     id: '1',
-    itemType: 'COMPONENT',
     type: ComponentType.Summary2,
     overrides: [],
     target: {},

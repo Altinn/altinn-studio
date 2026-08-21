@@ -11,9 +11,7 @@ describe('internalGroupComponentToExternal', () => {
   it('Correctly converts an internal group component', () => {
     const internalGroupComponent: FormContainer = {
       id,
-      itemType: 'CONTAINER',
       type: ComponentType.Group,
-      pageIndex: null,
       customProperty,
     } as FormContainer<ComponentType.Group>;
     const result = internalContainerComponentToExternal(internalGroupComponent, children);

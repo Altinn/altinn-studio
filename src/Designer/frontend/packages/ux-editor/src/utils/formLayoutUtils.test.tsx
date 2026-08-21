@@ -46,7 +46,6 @@ import { containerComponentTypes } from '../data/containerComponentTypes';
 const baseContainer: FormContainer<ComponentType.Group> = {
   id: BASE_CONTAINER_ID,
   index: 0,
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
 };
 const customProperty = 'some-custom-property';
@@ -54,7 +53,6 @@ const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
 const headingComponent: FormComponent<ComponentType.Heading> = {
   id: headerId,
   type: ComponentType.Heading,
-  itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -65,7 +63,6 @@ const paragraphId = 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729';
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphId,
   type: ComponentType.Paragraph,
-  itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -76,14 +73,12 @@ const groupId = 'group-container';
 const groupContainer: FormContainer<ComponentType.Group> = {
   dataModelBindings: {},
   id: groupId,
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
 };
 const paragraphInGroupId = 'group-paragraph';
 const paragraphInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphInGroupId,
   type: ComponentType.Paragraph,
-  itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -93,21 +88,18 @@ const groupInGroupId = 'group-child-container';
 const groupInGroupContainer: FormContainer<ComponentType.Group> = {
   dataModelBindings: {},
   id: groupInGroupId,
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
 };
 const buttonGroupId = 'button-group-container';
 const buttonGroupContainer: FormContainer<ComponentType.ButtonGroup> = {
   dataModelBindings: {},
   id: buttonGroupId,
-  itemType: 'CONTAINER',
   type: ComponentType.ButtonGroup,
 };
 const paragraphInGroupInGroupId = 'group-child-paragraph';
 const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphInGroupInGroupId,
   type: ComponentType.Paragraph,
-  itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -142,7 +134,6 @@ describe('formLayoutUtils', () => {
       const navigationButtonsId = 'navigationButtons';
       const navigationButtonsComponent: FormComponent<ComponentType.NavigationButtons> = {
         id: navigationButtonsId,
-        itemType: 'COMPONENT',
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
@@ -190,7 +181,6 @@ describe('formLayoutUtils', () => {
     const newComponent: FormComponent<ComponentType.Paragraph> = {
       id: 'newComponent',
       type: ComponentType.Paragraph,
-      itemType: 'COMPONENT',
       dataModelBindings: {},
     };
 
@@ -213,7 +203,7 @@ describe('formLayoutUtils', () => {
 
     it('Sets pageIndex to null if the parent element is not multipage', () => {
       const layout = addComponent(mockInternal, newComponent, groupId);
-      expect(layout.components[newComponent.id].pageIndex).toBeNull();
+      expect(layout.pageIndexes[newComponent.id]).toBeUndefined();
     });
 
     it.each([
@@ -230,7 +220,7 @@ describe('formLayoutUtils', () => {
           component3_1Id,
           position,
         );
-        expect(layout.components[newComponent.id].pageIndex).toEqual(expectedPageIndex);
+        expect(layout.pageIndexes[newComponent.id]).toEqual(expectedPageIndex);
       },
     );
   });
@@ -239,7 +229,6 @@ describe('formLayoutUtils', () => {
     const id = 'testId';
     const newContainer: FormContainer<ComponentType.Group> = {
       id,
-      itemType: 'CONTAINER',
       type: ComponentType.Group,
     };
 
@@ -264,7 +253,7 @@ describe('formLayoutUtils', () => {
 
     it('Sets pageIndex to null if the parent element is not multipage', () => {
       const layout = addContainer(mockInternal, newContainer, id, groupId);
-      expect(layout.containers[id].pageIndex).toBeNull();
+      expect(layout.pageIndexes[id]).toBeUndefined();
     });
 
     it.each([
@@ -282,7 +271,7 @@ describe('formLayoutUtils', () => {
           component3_1Id,
           position,
         );
-        expect(layout.containers[id].pageIndex).toEqual(expectedPageIndex);
+        expect(layout.pageIndexes[id]).toEqual(expectedPageIndex);
       },
     );
   });
@@ -346,14 +335,7 @@ describe('formLayoutUtils', () => {
       const id = 'navigationButtons';
       const layout = addNavigationButtons(mockInternal, id);
       const navButtonsComponent = layout.components[id];
-      const expectedProperties = [
-        'id',
-        'itemType',
-        'onClickAction',
-        'textResourceBindings',
-        'type',
-        'pageIndex',
-      ];
+      const expectedProperties = ['id', 'onClickAction', 'textResourceBindings', 'type'];
 
       expect(Object.keys(navButtonsComponent)).toEqual(expectedProperties);
     });
@@ -376,7 +358,7 @@ describe('formLayoutUtils', () => {
         component3_1Id,
         1,
       );
-      expect(updatedLayout.components[component3_2Id].pageIndex).toEqual(0);
+      expect(updatedLayout.pageIndexes[component3_2Id]).toEqual(0);
     });
 
     it('Removes page index if the item is moved to a regular group', () => {
@@ -386,7 +368,7 @@ describe('formLayoutUtils', () => {
         component3Id,
         0,
       );
-      expect(updatedLayout.components[component3_1_1Id].pageIndex).toBeNull();
+      expect(updatedLayout.pageIndexes[component3_1_1Id]).toBeUndefined();
     });
   });
 
@@ -402,7 +384,6 @@ describe('formLayoutUtils', () => {
     )('Adds a new component to the layout when the given type is %s', (componentType) => {
       const id = 'newItemId';
       const layout = addItemOfType(mockInternal, componentType, id);
-      expect(layout.components[id].itemType).toEqual('COMPONENT');
       expect(layout.components[id].type).toEqual(componentType);
     });
 
@@ -411,7 +392,6 @@ describe('formLayoutUtils', () => {
       (componentType: ContainerComponentType) => {
         const id = 'newItemId';
         const layout = addItemOfType(mockInternal, componentType, id);
-        expect(layout.containers[id].itemType).toEqual('CONTAINER');
         expect(layout.containers[id].type).toEqual(componentType);
       },
     );
@@ -453,8 +433,6 @@ describe('formLayoutUtils', () => {
       const id = 'test';
       const container: FormContainer<ComponentType.Group> = {
         id,
-        itemType: 'CONTAINER',
-        pageIndex: null,
         type: ComponentType.Group,
       };
       const layout: IInternalLayout = addContainer(createEmptyLayout(), container, id);
@@ -465,13 +443,10 @@ describe('formLayoutUtils', () => {
       const id = 'test';
       const container: FormContainer<ComponentType.Group> = {
         id,
-        itemType: 'CONTAINER',
-        pageIndex: null,
         type: ComponentType.Group,
       };
       const containerId = 'sometestgroup';
       const component: FormComponent = {
-        itemType: 'COMPONENT',
         type: ComponentType.Paragraph,
         id: 'sometestcomponent',
       };
@@ -489,7 +464,6 @@ describe('formLayoutUtils', () => {
       let layout = ObjectUtils.deepCopy(mockInternal);
       const container: FormContainer<ComponentType.Group> = {
         id: groupInGroupId,
-        itemType: 'CONTAINER',
         type: ComponentType.Group,
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);

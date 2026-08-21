@@ -50,7 +50,6 @@ const defaultDataTypes: DataTypeElement[] = [
 const defaultComponent: FormAttachmentListComponent = {
   id: '1',
   type: ComponentType.AttachmentList,
-  itemType: 'COMPONENT',
 };
 
 const handleComponentChange = jest.fn();

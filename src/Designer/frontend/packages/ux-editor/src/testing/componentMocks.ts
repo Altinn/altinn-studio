@@ -5,9 +5,8 @@ import type { FormContainer } from '../types/FormContainer';
 
 const commonProps = <T extends ComponentType>(
   type: T,
-): Pick<FormComponentBase<T>, 'id' | 'itemType' | 'dataModelBindings' | 'type'> => ({
+): Pick<FormComponentBase<T>, 'id' | 'dataModelBindings' | 'type'> => ({
   id: type.toString(),
-  itemType: 'COMPONENT',
   dataModelBindings: {},
   type,
 });
@@ -122,7 +121,6 @@ const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag>
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
   optionsId: '',
-  pageIndex: null,
 };
 const buttonComponent: FormComponent<ComponentType.Button> = {
   ...commonProps(ComponentType.Button),
@@ -146,7 +144,6 @@ const attachmentListComponent: FormComponent<ComponentType.AttachmentList> = {
 const thirdPartyComponent: FormComponent<ComponentType.Custom> = {
   ...commonProps(ComponentType.Custom),
   tagName: 'test',
-  framework: 'test',
 };
 const panelComponent: FormComponent<ComponentType.Panel> = {
   ...commonProps(ComponentType.Panel),
@@ -164,23 +161,18 @@ const mapComponent: FormComponent<ComponentType.Map> = {
 };
 const accordionContainer: FormContainer<ComponentType.Accordion> = {
   ...commonProps(ComponentType.Accordion),
-  itemType: 'CONTAINER',
 };
 const accordionGroupContainer: FormContainer<ComponentType.AccordionGroup> = {
   ...commonProps(ComponentType.AccordionGroup),
-  itemType: 'CONTAINER',
 };
 const buttonGroupContainer: FormContainer<ComponentType.ButtonGroup> = {
   ...commonProps(ComponentType.ButtonGroup),
-  itemType: 'CONTAINER',
 };
 const groupContainer: FormContainer<ComponentType.Group> = {
   ...commonProps(ComponentType.Group),
-  itemType: 'CONTAINER',
 };
 const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   ...commonProps(ComponentType.RepeatingGroup),
-  itemType: 'CONTAINER',
   dataModelBindings: { group: { field: '', dataType: '' } },
 };
 

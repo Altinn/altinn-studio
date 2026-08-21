@@ -135,7 +135,6 @@ describe('EditComponentIdRow', () => {
       component: {
         type: ComponentType.FileUpload,
         id: '',
-        itemType: 'COMPONENT',
         description: 'test',
         displayMode: 'test',
         hasCustomFileEndings: false,

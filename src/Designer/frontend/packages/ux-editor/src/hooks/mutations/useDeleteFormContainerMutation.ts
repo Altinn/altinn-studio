@@ -41,6 +41,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
           delete updatedLayout.components[componentId];
           delete updatedLayout.containers[componentId];
           delete updatedLayout.order[componentId];
+          delete updatedLayout.pageIndexes?.[componentId];
           componentIdsChange.push({ oldComponentId: componentId, newComponentId: undefined });
           updatedLayout.order[id].splice(updatedLayout.order[id].indexOf(componentId), 1);
         }
@@ -57,6 +58,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       // Delete container:
       delete updatedLayout.containers[id];
       delete updatedLayout.order[id];
+      delete updatedLayout.pageIndexes?.[id];
       if (parentContainerId) {
         updatedLayout.order[parentContainerId].splice(
           updatedLayout.order[parentContainerId].indexOf(id),

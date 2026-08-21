@@ -8,7 +8,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { app, org } from '@studio/testing/testids';
 
@@ -54,7 +54,7 @@ describe('useAddLayoutMutation', () => {
 const renderAndWaitForData = async () => {
   const getFormLayouts = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<SerializedFormLayoutsResponse>(externalLayoutsMock));
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));

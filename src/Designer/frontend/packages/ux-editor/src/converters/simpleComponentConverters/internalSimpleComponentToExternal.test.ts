@@ -11,8 +11,6 @@ describe('internalGroupComponentToExternal', () => {
   it('Correctly converts an internal simple component', () => {
     const internalSimpleComponent: FormComponent = {
       id,
-      itemType: 'COMPONENT',
-      pageIndex: null,
       type,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       customProperty,

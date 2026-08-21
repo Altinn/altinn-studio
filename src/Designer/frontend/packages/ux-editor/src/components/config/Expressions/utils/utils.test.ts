@@ -45,8 +45,6 @@ describe('utils', () => {
     it('Adds an expression to a form item', () => {
       const inputComponent: FormComponent<ComponentType.Input> = {
         id: 'inputComponent',
-        itemType: 'COMPONENT',
-        pageIndex: null,
         type: ComponentType.Input,
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         required: false,
@@ -61,8 +59,6 @@ describe('utils', () => {
     it('Sets an expression on a simple item', () => {
       const inputComponent: FormComponent<ComponentType.Input> = {
         id: 'inputComponent',
-        itemType: 'COMPONENT',
-        pageIndex: null,
         type: ComponentType.Input,
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         required: false,
@@ -80,8 +76,6 @@ describe('utils', () => {
     it('Sets an expression on a subkey', () => {
       const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
-        itemType: 'CONTAINER',
-        pageIndex: null,
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       };
@@ -107,8 +101,6 @@ describe('utils', () => {
     it('Removes an expression from a simple form item', () => {
       const inputComponent: FormComponent<ComponentType.Input> = {
         id: 'inputComponent',
-        itemType: 'COMPONENT',
-        pageIndex: null,
         type: ComponentType.Input,
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         required: [GeneralRelationOperator.Equals, 1, 1],
@@ -121,8 +113,6 @@ describe('utils', () => {
     it('Removes an expression from a subkey', () => {
       const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
-        itemType: 'CONTAINER',
-        pageIndex: null,
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
         edit: {
@@ -146,7 +136,6 @@ describe('utils', () => {
     it('Returns all properties with defined expressions on the given component', () => {
       const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
-        itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
         hidden: true,
@@ -169,7 +158,6 @@ describe('utils', () => {
     it('Returns all properties with undefined expressions on the given component', () => {
       const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
-        itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
         edit: {
@@ -196,7 +184,6 @@ describe('utils', () => {
       const editButton: BooleanExpression = [GeneralRelationOperator.Equals, 1, 1];
       const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
-        itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
         hidden,
@@ -228,14 +215,11 @@ describe('utils', () => {
     it('Returns undefined when the property is not set', () => {
       const inputComponent: FormComponent<ComponentType.Input> = {
         id: 'inputComponent',
-        itemType: 'COMPONENT',
-        pageIndex: null,
         type: ComponentType.Input,
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       };
       const repeatingGroupWithoutEditProp: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
-        itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       };

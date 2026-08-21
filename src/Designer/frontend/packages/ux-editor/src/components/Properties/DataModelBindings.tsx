@@ -49,7 +49,6 @@ export const DataModelBindings = (): React.JSX.Element => {
     setMultipleAttachments(updatedValue);
     const updatedComponent = {
       ...formItem,
-      itemType: 'COMPONENT',
       dataModelBindings: {
         simpleBinding: updatedValue ? undefined : { field: '', dataType: '' },
         list: updatedValue ? { field: '', dataType: '' } : undefined,

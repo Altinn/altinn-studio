@@ -12,7 +12,6 @@ import { app, org } from '@studio/testing/testids';
 const imageComponent: FormItem<ComponentType.Image> = {
   id: '0',
   type: ComponentType.Image,
-  itemType: 'COMPONENT',
 };
 
 describe('ComponentMainConfig', () => {

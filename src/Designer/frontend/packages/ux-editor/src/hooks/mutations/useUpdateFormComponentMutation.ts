@@ -43,6 +43,10 @@ export const useUpdateFormComponentMutation = (
         componentIdsChange = [{ oldComponentId: currentId, newComponentId: newId }];
         components[newId] = updatedComponent;
         delete components[id];
+        if (updatedLayout.pageIndexes?.[id] !== undefined) {
+          updatedLayout.pageIndexes[newId] = updatedLayout.pageIndexes[id];
+          delete updatedLayout.pageIndexes[id];
+        }
 
         // Update ID in parent container order
         const parentContainerId = Object.keys(order).find(

@@ -20,22 +20,16 @@ const newLayout: IInternalLayout = {
     [componentId]: {
       id: componentId,
       type: componentType,
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
-      pageIndex: null,
     },
   },
   containers: {
     [baseContainerId]: {
       id: baseContainerId,
-      itemType: 'CONTAINER',
-      pageIndex: null,
       type: undefined,
     },
     [containerId]: {
       id: containerId,
-      itemType: 'CONTAINER',
-      pageIndex: null,
       type: ComponentType.Group,
     },
   },

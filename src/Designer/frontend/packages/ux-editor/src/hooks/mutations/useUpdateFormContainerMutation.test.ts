@@ -14,7 +14,7 @@ import {
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { app, org } from '@studio/testing/testids';
@@ -25,7 +25,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
   maxCount,
 };
@@ -69,7 +68,7 @@ describe('useUpdateFormContainerMutation', () => {
 const renderAndWaitForData = async () => {
   const getFormLayouts = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<SerializedFormLayoutsResponse>(externalLayoutsMock));
   const getRuleConfig = jest
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));

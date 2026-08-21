@@ -4,16 +4,18 @@ import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecific
 import type { Expression } from '@studio/components';
 import type { IDataModelBindingsKeyValue } from '@altinn/ux-editor-v4/types/global';
 
-export type FormLayoutsResponse = KeyValuePairs<ExternalFormLayout>;
+export type FormLayoutsResponse<TComponent = ExternalComponent> = KeyValuePairs<
+  ExternalFormLayout<TComponent>
+>;
 
-export interface ExternalFormLayout {
+export interface ExternalFormLayout<TComponent = ExternalComponent> {
   $schema: string;
-  data: ExternalData;
+  data: ExternalData<TComponent>;
   [key: string]: any;
 }
 
-export interface ExternalData {
-  layout: ExternalComponent[];
+export interface ExternalData<TComponent = ExternalComponent> {
+  layout: TComponent[];
   hidden?: Expression;
   [key: string]: any;
 }

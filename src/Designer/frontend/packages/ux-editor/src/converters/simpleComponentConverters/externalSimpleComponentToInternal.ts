@@ -1,15 +1,10 @@
 import type { FormComponent } from '../../types/FormComponent';
-import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
+import type { SerializedSimpleComponent } from '../../types/SerializedComponent';
 import { convertDataBindingToInternalFormat } from '../../utils/dataModelUtils';
-import type {
-  IDataModelBindings,
-  IDataModelBindingsKeyValue,
-  IDataModelBindingsKeyValueExplicit,
-} from '../../types/global';
+import type { IDataModelBindings, IDataModelBindingsKeyValueExplicit } from '../../types/global';
 
 export const externalSimpleComponentToInternal = (
-  externalComponent: ExternalSimpleComponent,
-  pageIndex: number | null,
+  externalComponent: SerializedSimpleComponent,
   layoutDefaultDataType?: string,
 ): FormComponent => {
   const explicitBindings =
@@ -19,14 +14,12 @@ export const externalSimpleComponentToInternal = (
   return {
     ...externalComponent,
     dataModelBindings: explicitBindings,
-    itemType: 'COMPONENT',
-    pageIndex,
   } as FormComponent;
 };
 
 function convertAllDatamodelBindings(
   layoutDefaultDataType: string,
-  bindings: IDataModelBindingsKeyValue,
+  bindings: object,
 ): IDataModelBindingsKeyValueExplicit {
   return Object.entries(bindings).reduce(
     (acc, [key, value]) => ({

@@ -15,7 +15,6 @@ describe('generateExportFormFormat', () => {
   };
   const component1: FormComponent<ComponentType.Input> = {
     id: 'component1',
-    itemType: 'COMPONENT',
     type: ComponentType.Input,
     dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
     textResourceBindings: {
@@ -27,7 +26,6 @@ describe('generateExportFormFormat', () => {
 
   const component2: FormComponent<ComponentType.RadioButtons> = {
     id: 'component2',
-    itemType: 'COMPONENT',
     type: ComponentType.RadioButtons,
     dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
     textResourceBindings: {
@@ -42,9 +40,7 @@ describe('generateExportFormFormat', () => {
   const baseContainerMock: FormContainer = {
     id: '__base__',
     index: 0,
-    itemType: 'CONTAINER',
     type: null,
-    pageIndex: null,
   };
 
   const generateMockInternalFormLayouts = (
@@ -286,7 +282,6 @@ describe('generateExportFormFormat', () => {
   it('should return empty array for text resource binding if no text resource bindings are set for component', () => {
     const componentWithoutTextResourceBindings: FormComponent<ComponentType.Input> = {
       id: 'component1',
-      itemType: 'COMPONENT',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
       textResourceBindings: {},
@@ -312,7 +307,6 @@ describe('generateExportFormFormat', () => {
   it('should not crash when optionsId is missing from optionListsData (e.g. dynamic option lists)', () => {
     const dropdownWithMissingOptions: FormComponent<ComponentType.Dropdown> = {
       id: 'dropdown1',
-      itemType: 'COMPONENT',
       type: ComponentType.Dropdown,
       dataModelBindings: { simpleBinding: { field: 'field1', dataType: '' } },
       textResourceBindings: { title: 'title1' },

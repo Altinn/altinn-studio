@@ -45,8 +45,6 @@ describe('useAddComponentHandler', () => {
     expect(handleEditMock).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: '' },
       id: 'new-id',
-      itemType: 'COMPONENT',
-      pageIndex: null,
       type: 'Input',
     });
 

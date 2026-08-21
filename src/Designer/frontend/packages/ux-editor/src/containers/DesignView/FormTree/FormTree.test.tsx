@@ -26,33 +26,27 @@ const onMove = jest.fn();
 
 const rootComponent: FormComponent = {
   id: 'rootComponent',
-  itemType: 'COMPONENT',
   type: ComponentType.Paragraph,
 };
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
-  itemType: 'CONTAINER',
   type: ComponentType.ButtonGroup,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
-  itemType: 'COMPONENT',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
-  itemType: 'CONTAINER',
   type: ComponentType.Accordion,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
 };

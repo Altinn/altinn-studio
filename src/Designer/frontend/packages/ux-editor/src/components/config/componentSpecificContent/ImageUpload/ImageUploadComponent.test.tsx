@@ -10,7 +10,6 @@ const defaultComponent = {
   id: 'imageUpload1',
   type: ComponentType.ImageUpload,
   label: 'Upload Image',
-  itemType: 'COMPONENT' as const,
   crop: { shape: ShapeOptions.Circle, diameter: 100 },
 };
 

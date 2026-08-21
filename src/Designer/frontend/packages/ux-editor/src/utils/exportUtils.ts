@@ -7,9 +7,9 @@ import type {
   ExportTextResource,
   ExportTextResourceValue,
 } from '../types/ExportForm';
-import type { IFormLayouts, IOption, ITextResourceBindings } from '../types/global';
+import type { IFormLayouts, IOption } from '../types/global';
 import { internalLayoutToExternal } from '../converters/formLayoutConverters';
-import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
+import type { SerializedComponent, SerializedFormLayout } from '../types/SerializedComponent';
 import type { OptionListData } from 'app-shared/types/OptionList';
 
 export class ExportUtils {
@@ -61,7 +61,7 @@ export class ExportUtils {
       sortOrder: index,
       components: [],
     };
-    const externalLayout: ExternalFormLayout = internalLayoutToExternal(layout);
+    const externalLayout: SerializedFormLayout = internalLayoutToExternal(layout);
     externalLayout.data.layout.forEach((component, i) => {
       exportFormPage.components.push(this.generateComponentExportFormat(component, i));
     });
@@ -70,7 +70,7 @@ export class ExportUtils {
   };
 
   private generateComponentExportFormat = (
-    component: ExternalComponent,
+    component: SerializedComponent,
     index: number,
   ): ExportFormComponent => {
     const { id, type, dataModelBindings, textResourceBindings, optionsId, ...rest } = component;
@@ -95,17 +95,15 @@ export class ExportUtils {
   };
 
   private mapTextResourceBindingsToExportFormat = (
-    textResourceBindings: ITextResourceBindings,
+    textResourceBindings: object | undefined,
   ): ExportTextResource[] => {
     const result = [];
     if (!textResourceBindings) return result;
-    Object.keys(textResourceBindings).map((textResourceBindingKey) => {
-      const textValues = this.getTextValues(
-        textResourceBindings[textResourceBindingKey],
-        (textResource) => textResource.id === textResourceBindings[textResourceBindingKey],
-      );
+    Object.entries(textResourceBindings).map(([textResourceBindingKey, binding]) => {
+      if (typeof binding !== 'string') return;
+      const textValues = this.getTextValues(binding, (textResource) => textResource.id === binding);
       const textObject: ExportTextResource = {
-        id: textResourceBindings[textResourceBindingKey],
+        id: binding,
         type: textResourceBindingKey,
         text: textValues,
       };
@@ -135,12 +133,12 @@ export class ExportUtils {
   };
 
   private getComponentOptionsOrUndefined = (
-    component: ExternalComponent,
+    component: SerializedComponent,
   ): IOption[] | undefined => {
-    if (component.options) {
+    if (Array.isArray(component.options)) {
       return component.options;
     }
-    if (component.optionsId) {
+    if (typeof component.optionsId === 'string') {
       const optionListData = this.optionListDataList.find(
         (optionListData) => optionListData.title === component.optionsId,
       );
