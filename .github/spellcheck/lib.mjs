@@ -575,15 +575,15 @@ export async function ensureOrdbank(lang, { offline = false } = {}) {
 
 /**
  * Validates suppression entries and compiles their globs. Each entry must
- * carry token, kind and reason, plus exactly one scope style:
+ * carry token and reason, plus exactly one scope style:
  * `identifiers` (optionally narrowed by paths), `identifierPart` (requires
  * paths), or bare `paths`.
  */
 export function compileSuppressions(entries) {
   return entries.map((e, i) => {
     const where = `suppression #${i} ('${e.token ?? '?'}')`;
-    if (!e.token || !e.kind || !e.reason) {
-      throw new HarnessError(`${where} needs token, kind and reason`);
+    if (!e.token || !e.reason) {
+      throw new HarnessError(`${where} needs token and reason`);
     }
     if (e.identifiers && e.identifierPart) {
       throw new HarnessError(`${where} cannot combine identifiers and identifierPart`);

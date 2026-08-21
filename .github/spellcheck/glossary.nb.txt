@@ -7,12 +7,14 @@
 # accepted term's other forms need their own lines — add them as the check
 # reports them.
 #
-# Keep this to genuine domain terms. A misspelling "fixed" by a glossary
-# entry stays wrong in the product, so prefer fixing the text. Reviewing
-# this file in a PR IS the native-speaker check: every line claims the word
-# is correct bokmål used deliberately — remove a line to re-flag it
-# everywhere. An entry that no longer rescues any flagged word is reported
-# as stale by the check itself.
+# Glossary or suppression? One rule: a CORRECT word the checker doesn't
+# know belongs here; a WRONG spelling that cannot change belongs in
+# suppressions.mjs, scoped. A misspelling "fixed" by a glossary entry stays
+# wrong in the product, so prefer fixing the text. Reviewing this file in a
+# PR IS the native-speaker check: every line claims the word is correct
+# bokmål used deliberately — remove a line to re-flag it everywhere. An
+# entry that no longer rescues any flagged word is reported as stale by the
+# check itself.
 
 
 # Domain compounds and derivations in UI text: standard Norwegian

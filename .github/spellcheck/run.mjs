@@ -902,9 +902,9 @@ function excludeLivenessFailures() {
 function suppressionFailures() {
   const failures = [];
   const entries = compileSuppressions([
-    { token: 'Suppressme', paths: ['docs/allowed/**'], kind: 'test-fixture', reason: 'planted' },
-    { token: 'Contracted', identifiers: ['ContractedField'], kind: 'contract', reason: 'planted' },
-    { token: 'Phantom', paths: ['**'], kind: 'test-fixture', reason: 'planted stale entry' },
+    { token: 'Suppressme', paths: ['docs/allowed/**'], reason: 'planted' },
+    { token: 'Contracted', identifiers: ['ContractedField'], reason: 'planted' },
+    { token: 'Phantom', paths: ['**'], reason: 'planted stale entry' },
   ]);
   const lines = {
     'docs/allowed/a.md': 'the Suppressme word',
