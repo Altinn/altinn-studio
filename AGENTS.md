@@ -116,7 +116,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   `typos.toml` is **engine configuration only** and holds no named exceptions, and its excludes
   cannot rot: a glob that matches no tracked file fails the coverage check unless declared
   precautionary (with a reason) in `registry.mjs`. Every accepted
-  spelling lives in `.github/spellcheck/suppressions.mjs`, scoped to the paths — and where
+  spelling lives in `.github/spellcheck/suppressions.txt`, scoped to the paths — and where
   possible the exact identifiers — where it is load-bearing, with a reason. The same token outside
   its scope is still reported, and an entry that matches nothing is reported as stale. For this
   reason never run bare `typos` (it reports accepted contract spellings) and never run
@@ -141,7 +141,7 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   identifiers, formats — go in `glossary.shared.txt`, which both languages accept. A glossary
   entry that no longer rescues any flagged word is reported as stale. If an English spelling
   genuinely cannot change
-  (a wire contract, someone else's API), add a scoped entry to `suppressions.mjs`. Note that
+  (a wire contract, someone else's API), add a scoped entry to `suppressions.txt`. Note that
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`

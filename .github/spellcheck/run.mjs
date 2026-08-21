@@ -59,8 +59,10 @@ import {
   globToRegExp,
   paramsOf,
   partitionFindings,
+  parseSuppressions,
   readGlossary,
   readGroup,
+  readSuppressions,
   runHunspell,
   runTypos,
   sourcePath,
@@ -71,7 +73,6 @@ import {
   typosTomlExcludes,
 } from './lib.mjs';
 import * as realRegistry from './registry.mjs';
-import { SUPPRESSIONS } from './suppressions.mjs';
 
 const HERE = import.meta.dirname;
 const EN_GB_CONFIG = join(HERE, 'typos.values.en-gb.toml');
@@ -95,7 +96,7 @@ function checkCode({ fix, root }) {
       `the code pass would only visit ${fileCount} files — typos.toml is broken, not the repo clean`,
     );
   }
-  const compiled = compileSuppressions(SUPPRESSIONS);
+  const compiled = compileSuppressions(readSuppressions(join(HERE, 'suppressions.txt')));
   const readLine = fileLineReader(root);
   // Context first (a Norwegian string is not English at all), policy second
   // (a suppression is an accepted English-context spelling).
@@ -116,7 +117,7 @@ function checkCode({ fix, root }) {
   // is a deliberate maintenance act guided by the count.
   const findings = stale.map((e) =>
     finding(
-      '.github/spellcheck/suppressions.mjs',
+      '.github/spellcheck/suppressions.txt',
       undefined,
       `suppression for '${e.token}' (${e.reason}) matched nothing — stale entry, remove it`,
     ),
@@ -604,7 +605,7 @@ async function checkQuick(ctx, fileArgs) {
 
   // The code pass, scoped. --force-exclude keeps typos.toml's excludes
   // authoritative even for explicitly named files.
-  const compiled = compileSuppressions(SUPPRESSIONS);
+  const compiled = compileSuppressions(readSuppressions(join(HERE, 'suppressions.txt')));
   const readLine = fileLineReader(root);
   const {
     kept: unclassified,
@@ -824,6 +825,14 @@ async function checkSelfTest({ ci }) {
   }
   assertions += CLASSIFIER_SCENARIOS.cases.length;
 
+  // The suppression text format, on synthetic documents: section grammar,
+  // scope reset between sections, and every parse error.
+  for (const failure of suppressionParserFailures()) {
+    failures.push(finding('(self-test)', undefined, `suppression parser: ${failure}`));
+    assertions += 1;
+  }
+  assertions += 6;
+
   // The suppression logic, on synthetic findings: path scoping, identifier
   // scoping (both directions), and stale detection.
   for (const failure of suppressionFailures()) {
@@ -890,6 +899,52 @@ function excludeLivenessFailures() {
     failures.push('a declaration without a reason was accepted');
   } catch (err) {
     if (!(err instanceof HarnessError)) throw err;
+  }
+  return failures;
+}
+
+/**
+ * The registry's text format must parse exactly: tokens inherit their
+ * section's directives and nothing from earlier sections, and every
+ * malformed document is rejected rather than silently narrowed.
+ */
+function suppressionParserFailures() {
+  const failures = [];
+  const doc = [
+    '# comment',
+    '@reason first section',
+    '@identifier-part',
+    '@paths a/** b/**',
+    'Tokena',
+    'tokenb  # trailing note',
+    '',
+    '@reason second section',
+    '@identifiers SomeName',
+    'Tokenc',
+  ].join('\n');
+  const entries = parseSuppressions(doc, '(synthetic)');
+  const want = [
+    { token: 'Tokena', reason: 'first section', identifierPart: true, paths: ['a/**', 'b/**'] },
+    { token: 'tokenb', reason: 'first section', identifierPart: true, paths: ['a/**', 'b/**'] },
+    { token: 'Tokenc', reason: 'second section', identifiers: ['SomeName'] },
+  ];
+  if (JSON.stringify(entries) !== JSON.stringify(want)) {
+    failures.push(`parsed ${JSON.stringify(entries)}`);
+  }
+  const rejects = [
+    ['orphan token', 'Tokena'],
+    ['unknown directive', '@nonsense x\nTokena'],
+    ['empty @paths', '@reason r\n@paths\nTokena'],
+    ['empty @reason', '@reason\n@paths a/**\nTokena'],
+    ['trailing directives', '@reason r\n@paths a/**\nTokena\n@reason dangling'],
+  ];
+  for (const [what, text] of rejects) {
+    try {
+      parseSuppressions(text, '(synthetic)');
+      failures.push(`accepted a document with ${what}`);
+    } catch (err) {
+      if (!(err instanceof HarnessError)) throw err;
+    }
   }
   return failures;
 }

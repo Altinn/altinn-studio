@@ -574,6 +574,70 @@ export async function ensureOrdbank(lang, { offline = false } = {}) {
 // ------------------------------------------------------------ suppressions ---
 
 /**
+ * Parses the suppression registry's text format: '#' comment and blank
+ * lines are free; a section is one or more @directive lines followed by one
+ * token per line, each token becoming an entry with the section's scope and
+ * reason. A directive after a token line starts a NEW section — nothing is
+ * inherited, every section states its own @reason and scope. Directives:
+ *
+ *   @reason <text>             why these spellings are load-bearing
+ *   @paths <glob> <glob> …     allowed anywhere in matching files
+ *   @identifiers <Name> …      allowed only as/inside these exact
+ *                              identifiers (narrow with @paths if needed)
+ *   @identifier-part           allowed inside any LONGER identifier within
+ *                              @paths; the bare word stays enforced
+ *
+ * Completeness (reason present, exactly one scope style) is enforced by
+ * compileSuppressions on the parsed entries.
+ */
+export function parseSuppressions(text, name) {
+  const entries = [];
+  let section = null;
+  let sealed = true; // no open section yet
+  text.split('\n').forEach((raw, i) => {
+    const where = `${name}:${i + 1}`;
+    const line = raw.trim();
+    if (line === '' || line.startsWith('#')) return;
+    if (line.startsWith('@')) {
+      if (sealed) {
+        section = {};
+        sealed = false;
+      }
+      const [directive, ...args] = line.split(/\s+/);
+      if (directive === '@reason') {
+        section.reason = line.slice('@reason'.length).trim();
+        if (!section.reason) throw new HarnessError(`${where}: @reason needs text`);
+      } else if (directive === '@paths') {
+        if (args.length === 0) throw new HarnessError(`${where}: @paths needs globs`);
+        section.paths = args;
+      } else if (directive === '@identifiers') {
+        if (args.length === 0) throw new HarnessError(`${where}: @identifiers needs names`);
+        section.identifiers = args;
+      } else if (directive === '@identifier-part') {
+        section.identifierPart = true;
+      } else {
+        throw new HarnessError(`${where}: unknown directive '${directive}'`);
+      }
+      return;
+    }
+    const token = line.replace(/#.*/, '').trim();
+    if (/\s/.test(token)) throw new HarnessError(`${where}: a token is a single word`);
+    if (section === null) throw new HarnessError(`${where}: token before any @directives`);
+    sealed = true;
+    entries.push({ token, ...section });
+  });
+  if (!sealed) throw new HarnessError(`${name}: trailing @directives with no tokens`);
+  if (entries.length === 0) throw new HarnessError(`${name}: no suppressions parsed`);
+  return entries;
+}
+
+/** Reads and parses the suppression registry file. */
+export function readSuppressions(path) {
+  if (!existsSync(path)) throw new HarnessError(`suppression registry ${path} is missing`);
+  return parseSuppressions(readFileSync(path, 'utf8'), path);
+}
+
+/**
  * Validates suppression entries and compiles their globs. Each entry must
  * carry token and reason, plus exactly one scope style:
  * `identifiers` (optionally narrowed by paths), `identifierPart` (requires
