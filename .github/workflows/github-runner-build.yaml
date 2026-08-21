@@ -1,0 +1,96 @@
+name: github-runner - Build coordinator
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rustfmt.toml'
+      - 'src/experimental/sandbox/**'
+      - 'src/experimental/sandbox-authorization/**'
+      - 'src/experimental/sandbox-microsandbox/**'
+      - 'src/github-runner/Dockerfile.coordinator'
+      - 'src/github-runner/coordinator/**'
+      - '.github/workflows/github-runner-build.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/github-runner/coordinator
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install native build dependencies
+        run: |
+          if ! pkg-config --exists libcap-ng; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends libcap-ng-dev
+          fi
+
+      - name: Install Rust toolchain
+        run: |
+          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          test -n "${RUST_VERSION}"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error https://sh.rustup.rs \
+            | sh -s -- -y --profile minimal --default-toolchain "${RUST_VERSION}" --component rustfmt,clippy
+          echo "${HOME}/.cargo/bin" >> "${GITHUB_PATH}"
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: github-runner
+          key: cargo-machete-0.9.2
+
+      - name: Install cargo-machete
+        run: |
+          if [ "$(cargo machete --version 2>/dev/null || true)" != "0.9.2" ]; then
+            cargo install cargo-machete --version 0.9.2 --locked
+          fi
+
+      - name: Check Microsandbox version pins
+        run: |
+          runtime_version="$(sed -n 's/^ARG MICROSANDBOX_RUNTIME_VERSION=//p' "${GITHUB_WORKSPACE}/src/github-runner/Dockerfile.coordinator")"
+          lock_version="$(awk '
+            $0 == "name = \"microsandbox\"" { found = 1; next }
+            found && /^version = / { gsub(/"/, "", $3); print $3; exit }
+          ' "${GITHUB_WORKSPACE}/Cargo.lock")"
+          if [ -z "${runtime_version}" ] || [ -z "${lock_version}" ] || [ "${runtime_version}" != "${lock_version}" ]; then
+            echo "::error title=Microsandbox pin skew::Dockerfile MICROSANDBOX_RUNTIME_VERSION (${runtime_version:-<missing>}) does not match Cargo.lock microsandbox version (${lock_version:-<missing>})."
+            exit 1
+          fi
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
+      - name: Build
+        run: make build
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests
+        run: make test
+
+      - name: Check dependencies
+        run: make deps-check

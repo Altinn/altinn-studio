@@ -1,13 +1,12 @@
 import React from 'react';
 import { useSearchParams } from 'react-router';
 
-import { Button } from '@app/form-component';
+import { NavigationButtons } from '@app/form-component';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
-import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
@@ -17,8 +16,6 @@ import {
   useIsAnyProcessing,
   useProcessingMutationWithKey,
 } from 'src/hooks/useProcessingMutation';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -96,11 +93,6 @@ function NavigationButtonsComponentInner({
   const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const isAnyProcessing = useIsAnyProcessing();
-
-  const nextTextKey = textResourceBindings?.next || 'navigation.next';
-  const backTextKey = textResourceBindings?.back || 'navigation.previous';
-
-  const backToPageTextKey = textResourceBindings?.backToPage || 'form_filler.back_to_page';
 
   const showBackToSummaryButton = returnToView !== undefined;
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
@@ -180,64 +172,33 @@ function NavigationButtonsComponentInner({
       await navigateToPage(backToPage, { skipAutoSave: true });
     });
 
-  /**
-   * The buttons are rendered in order BackToSummary -> Next -> Previous, but shown in the form as Previous -> Next -> BackToSummary.
-   * This is done with css and flex-direction: row-reverse. The reason for this is so that screen readers
-   * will read Next before Previous, as this is the primary Button for the user.
-   */
+  const loadingKey =
+    currentProcessKey === 'next' ||
+    currentProcessKey === 'previous' ||
+    currentProcessKey === 'backToSummary' ||
+    currentProcessKey === 'backToPage'
+      ? currentProcessKey
+      : undefined;
+
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <div
-        data-testid='NavigationButtons'
-        className={classes.container}
-      >
-        {showBackToPageButton && (
-          <Button
-            disabled={isAnyProcessing}
-            isLoading={currentProcessKey === 'backToPage'}
-            loadingLabel={langAsString('general.loading')}
-            onClick={onClickBackToPage}
-          >
-            <Lang
-              id={backToPageTextKey}
-              params={[smartLowerCaseFirst(langAsString(backToPage ?? ''))]}
-            />
-          </Button>
-        )}
-        {showBackToSummaryButton && (
-          <Button
-            disabled={isAnyProcessing}
-            isLoading={currentProcessKey === 'backToSummary'}
-            loadingLabel={langAsString('general.loading')}
-            onClick={onClickBackToSummary}
-          >
-            <Lang id={returnToViewText} />
-          </Button>
-        )}
-        {showNextButton && (
-          <Button
-            disabled={isAnyProcessing || attachmentsPending}
-            isLoading={currentProcessKey === 'next'}
-            loadingLabel={langAsString('general.loading')}
-            onClick={onClickNext}
-            // If we are showing a back to summary button, we want the "next" button to be secondary
-            variant={showBackToSummaryButton || showBackToPageButton ? 'secondary' : 'primary'}
-          >
-            <Lang id={nextTextKey} />
-          </Button>
-        )}
-        {hasPrevious && showBackButton !== false && (
-          <Button
-            disabled={isAnyProcessing}
-            isLoading={currentProcessKey === 'previous'}
-            loadingLabel={langAsString('general.loading')}
-            variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
-            onClick={onClickPrevious}
-          >
-            <Lang id={backTextKey} />
-          </Button>
-        )}
-      </div>
-    </ComponentStructureWrapper>
+    <NavigationButtons
+      componentId={id}
+      next={textResourceBindings?.next || undefined}
+      back={textResourceBindings?.back || undefined}
+      backToSummary={returnToViewText}
+      backToPage={textResourceBindings?.backToPage || undefined}
+      backToPageParams={[smartLowerCaseFirst(langAsString(backToPage ?? ''))]}
+      showNext={showNextButton}
+      showPrevious={hasPrevious && showBackButton !== false}
+      showBackToSummary={showBackToSummaryButton}
+      showBackToPage={showBackToPageButton}
+      disabled={isAnyProcessing}
+      nextDisabled={attachmentsPending}
+      loadingKey={loadingKey}
+      onClickNext={onClickNext}
+      onClickPrevious={onClickPrevious}
+      onClickBackToSummary={onClickBackToSummary}
+      onClickBackToPage={onClickBackToPage}
+    />
   );
 }

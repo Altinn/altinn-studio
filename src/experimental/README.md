@@ -25,6 +25,10 @@ Important considerations:
 - Agents should be able to use standard development tools, including Docker or Podman, `strace` and `perf` inside a
   Linux Sandbox
 
+## Development
+
+See the [`Makefile`](Makefile) for available development commands.
+
 ## High-level Architecture
 
 - Client-server-operator model
@@ -104,6 +108,8 @@ ownership model inside a Sandbox.
   versioned control-protocol endpoints
 - SDKs to manage sandboxes and agents
 - OCI images built from user-supplied Dockerfiles or resolved from registry references
+- Provider-neutral prepared-image operations for transporting pristine, pre-materialized derivatives of OCI
+  images; formats remain opaque, Provider-owned and usable only with compatible Sandbox Providers
 
 #### Initial deliverable
 

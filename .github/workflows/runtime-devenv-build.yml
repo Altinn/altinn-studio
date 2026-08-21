@@ -17,7 +17,7 @@ concurrency:
 jobs:
   lint:
     name: Check formatting and lint
-    runs-on: self-hosted-single
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 30
     defaults:
       run:
