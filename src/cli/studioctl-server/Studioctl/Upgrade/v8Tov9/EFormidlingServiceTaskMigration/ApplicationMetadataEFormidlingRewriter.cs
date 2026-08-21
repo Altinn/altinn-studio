@@ -76,7 +76,7 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
         if (unknownProperties.Count > 0)
         {
             _warnings.Add(
-                $"The eFormidling block contains unrecognized propert{(unknownProperties.Count == 1 ? "y" : "ies")} "
+                $"The eFormidling block contains unrecognized property{(unknownProperties.Count == 1 ? "y" : "ies")} "
                     + $"[{string.Join(", ", unknownProperties)}] that will not be migrated."
             );
         }
@@ -145,7 +145,7 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
     /// Removes the whole <c>eFormidling</c> property (including a multi-line object value) from the
     /// file, preserving the surrounding formatting byte-for-byte. The property's exact span is
     /// located with <see cref="Utf8JsonReader"/> (so string content elsewhere can never be
-    /// mis-matched), and is only removed when it occupies whole lines by itself; otherwise the file
+    /// mismatched), and is only removed when it occupies whole lines by itself; otherwise the file
     /// is left unchanged with a warning. Verifies the result still parses.
     /// </summary>
     public async Task StripEFormidlingBlock()

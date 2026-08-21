@@ -37,7 +37,7 @@ describe('SelectAllowedPartyTypes', () => {
       getCheckbox(textMock('app_settings.access_control_tab_option_bankruptcy_estate')),
     ).toBeInTheDocument();
     expect(
-      getCheckbox(textMock('app_settings.access_control_tab_option_organisation')),
+      getCheckbox(textMock('app_settings.access_control_tab_option_organization')),
     ).toBeInTheDocument();
     expect(
       getCheckbox(textMock('app_settings.access_control_tab_option_person')),
@@ -53,7 +53,7 @@ describe('SelectAllowedPartyTypes', () => {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: false,
-        organisation: false,
+        organization: false,
         subUnit: false,
         bankruptcyEstate: true,
       },
@@ -100,7 +100,7 @@ describe('SelectAllowedPartyTypes', () => {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: true,
-        organisation: true,
+        organization: true,
         subUnit: true,
         bankruptcyEstate: true,
       },
@@ -179,7 +179,7 @@ describe('SelectAllowedPartyTypes', () => {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: true,
-        organisation: true,
+        organization: true,
         subUnit: true,
         bankruptcyEstate: true,
       },

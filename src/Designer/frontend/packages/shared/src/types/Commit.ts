@@ -1,7 +1,7 @@
 export interface Commit {
   message: string;
   author: CommitAuthor;
-  comitter: CommitAuthor;
+  committer: CommitAuthor;
   sha: string;
   messageShort: string;
   encoding: string;

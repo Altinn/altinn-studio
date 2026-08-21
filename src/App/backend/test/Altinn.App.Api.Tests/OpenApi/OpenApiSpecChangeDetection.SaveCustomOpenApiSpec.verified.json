@@ -47,7 +47,7 @@
           }
         ],
         "requestBody": {
-          "description": "Instance document, formData and attachments\n\nAny mime type that is not ``\"application/json\"`` or ``\"multipart/form-data\"`` with an instance document\nwill require the ``instanceOwnerPartyId`` parameter. Otherwise you must use the simplified instance document to specify instance owner.\nEither using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organisationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).",
+          "description": "Instance document, formData and attachments\n\nAny mime type that is not ``\"application/json\"`` or ``\"multipart/form-data\"`` with an instance document\nwill require the ``instanceOwnerPartyId`` parameter. Otherwise you must use the simplified instance document to specify instance owner.\nEither using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organizationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).",
           "content": {
             "empty": {
               "schema": {}
@@ -2753,7 +2753,7 @@
                 "type": "string",
                 "nullable": true
               },
-              "organisationNumber": {
+              "organizationNumber": {
                 "pattern": "^\\d{9}$",
                 "type": "string",
                 "nullable": true
@@ -3974,7 +3974,7 @@
       "instanceOwnerPartyId": {
         "name": "instanceOwnerPartyId",
         "in": "path",
-        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
+        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organization, person or self registered user. Might be the current user, or a party the user has rights to represent.",
         "required": true,
         "schema": {
           "type": "integer"

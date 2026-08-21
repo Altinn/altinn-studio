@@ -9,7 +9,7 @@ const packagesToTransform = [
   'bpmn-moddle',
   'decode-.*',
   'diagram-js',
-  'didi',
+  'did',
   'dnd-core',
   'domhandler',
   'domelementtype',

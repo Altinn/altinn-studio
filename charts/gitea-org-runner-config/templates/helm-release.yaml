@@ -39,7 +39,7 @@ spec:
     shareWorkspace:
       enabled: {{ .Values.shareWorkspace.enabled }}
 
-    # Chart-level Gitea config: the workload chart synthesises each runner
+    # Chart-level Gitea config: the workload chart synthesizes each runner
     # pod's GITEA_INSTANCE_URL / RUNNER_LABELS env vars from here. The KEDA
     # metrics-api scaler constructs a per-org jobs URL from instanceUrl.
     gitea:
@@ -49,7 +49,7 @@ spec:
       runnerLabels: "ubuntu-latest:host"
 
     # KEDA wiring: name of the TriggerAuthentication ScaledJobs reference.
-    # The CR is materialised by runner-org-sync's deploy in the same namespace
+    # The CR is materialized by runner-org-sync's deploy in the same namespace
     # (infra/kustomize/base/triggerauthentication-bearer.yaml in that service).
     keda:
       authenticationRef:

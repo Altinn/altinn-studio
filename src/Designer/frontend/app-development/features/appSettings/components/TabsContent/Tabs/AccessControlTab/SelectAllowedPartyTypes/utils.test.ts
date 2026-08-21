@@ -10,7 +10,7 @@ describe('accessControlTabUtils', () => {
   describe('initialPartyTypes', () => {
     it('should have all values set to false', () => {
       expect(initialPartyTypes.bankruptcyEstate).toBe(false);
-      expect(initialPartyTypes.organisation).toBe(false);
+      expect(initialPartyTypes.organization).toBe(false);
       expect(initialPartyTypes.person).toBe(false);
       expect(initialPartyTypes.subUnit).toBe(false);
     });
@@ -21,8 +21,8 @@ describe('accessControlTabUtils', () => {
       expect(partyTypesAllowedMap.bankruptcyEstate).toBe(
         'app_settings.access_control_tab_option_bankruptcy_estate',
       );
-      expect(partyTypesAllowedMap.organisation).toBe(
-        'app_settings.access_control_tab_option_organisation',
+      expect(partyTypesAllowedMap.organization).toBe(
+        'app_settings.access_control_tab_option_organization',
       );
       expect(partyTypesAllowedMap.person).toBe('app_settings.access_control_tab_option_person');
       expect(partyTypesAllowedMap.subUnit).toBe('app_settings.access_control_tab_option_sub_unit');
@@ -51,7 +51,7 @@ describe('accessControlTabUtils', () => {
     it('should return an empty array when no party types are allowed', () => {
       const partyTypesAllowed = {
         person: false,
-        organisation: false,
+        organization: false,
         subUnit: false,
         bankruptcyEstate: false,
       };
@@ -62,7 +62,7 @@ describe('accessControlTabUtils', () => {
     it('should return an array with allowed party types', () => {
       const partyTypesAllowed = {
         person: true,
-        organisation: false,
+        organization: false,
         subUnit: true,
         bankruptcyEstate: false,
       };
@@ -73,12 +73,12 @@ describe('accessControlTabUtils', () => {
     it('should return all party types when all are allowed', () => {
       const partyTypesAllowed = {
         person: true,
-        organisation: true,
+        organization: true,
         subUnit: true,
         bankruptcyEstate: true,
       };
       const result = getSelectedPartyTypes(partyTypesAllowed);
-      expect(result).toEqual(['person', 'organisation', 'subUnit', 'bankruptcyEstate']);
+      expect(result).toEqual(['person', 'organization', 'subUnit', 'bankruptcyEstate']);
     });
 
     it('should return an empty array when partyTypesAllowed is empty', () => {
@@ -94,7 +94,7 @@ describe('accessControlTabUtils', () => {
       const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
       expect(result).toEqual({
         person: false,
-        organisation: false,
+        organization: false,
         subUnit: false,
         bankruptcyEstate: false,
       });
@@ -105,18 +105,18 @@ describe('accessControlTabUtils', () => {
       const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
       expect(result).toEqual({
         person: true,
-        organisation: false,
+        organization: false,
         subUnit: true,
         bankruptcyEstate: false,
       });
     });
 
     it('should return all values set to true when all values are selected', () => {
-      const selectedValues: string[] = ['person', 'organisation', 'subUnit', 'bankruptcyEstate'];
+      const selectedValues: string[] = ['person', 'organization', 'subUnit', 'bankruptcyEstate'];
       const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
       expect(result).toEqual({
         person: true,
-        organisation: true,
+        organization: true,
         subUnit: true,
         bankruptcyEstate: true,
       });
@@ -127,7 +127,7 @@ describe('accessControlTabUtils', () => {
       const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
       expect(result).toEqual({
         person: false,
-        organisation: false,
+        organization: false,
         subUnit: false,
         bankruptcyEstate: false,
       });
@@ -138,7 +138,7 @@ describe('accessControlTabUtils', () => {
       const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
       expect(result).toEqual({
         person: true,
-        organisation: false,
+        organization: false,
         subUnit: true,
         bankruptcyEstate: false,
       });

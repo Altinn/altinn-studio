@@ -40,14 +40,14 @@ const orgLookupQueries = {
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
 
-export type Organisation = {
+export type Organization = {
   orgNr: string;
   name: string;
 };
 export type OrganizationLookupResponse =
-  { success: false; organisationDetails: null } | { success: true; organisationDetails: Organisation };
+  { success: false; organisationDetails: null } | { success: true; organisationDetails: Organization };
 
-async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null } | { org: null; error: string }> {
+async function fetchOrg(orgNr: string): Promise<{ org: Organization; error: null } | { org: null; error: string }> {
   if (!orgNr) {
     throw new Error('orgNr is required');
   }
@@ -278,7 +278,7 @@ export function OrganizationLookupComponent({
           ref={statusRef}
           tabIndex={-1}
           lang={currentLanguage}
-          data-testid='organisation-lookup-status'
+          data-testid='organization-lookup-status'
           className={utilClasses.visuallyHidden}
         >
           {statusMessage}

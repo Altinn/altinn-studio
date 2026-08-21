@@ -16,7 +16,7 @@ public interface IEFormidlingMetadata
     /// The metadata file should be parsed to XML before assigning it to the stream.
     /// </remarks>
     /// <param name="dataAccessor">The active instance data accessor for the instance being shipped.</param>
-    /// <returns>A touple containing the metadata file name and the metadata in a stream.</returns>
+    /// <returns>A tuple containing the metadata file name and the metadata in a stream.</returns>
     public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(
         IInstanceDataAccessor dataAccessor
     );

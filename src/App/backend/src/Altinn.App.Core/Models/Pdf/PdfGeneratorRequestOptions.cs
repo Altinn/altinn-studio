@@ -26,7 +26,7 @@ internal class PdfGeneratorRequestOptions
     public string FooterTemplate { get; set; } = string.Empty;
 
     /// <summary>
-    /// Indicate wheter the background should be included.
+    /// Indicate whether the background should be included.
     /// </summary>
     public bool PrintBackground { get; set; } = true;
 

@@ -6,9 +6,9 @@ namespace Altinn.App.Core.Features.Payment.Models;
 public class PaymentReceiver
 {
     /// <summary>
-    /// The organisation number of the receiver.
+    /// The organization number of the receiver.
     /// </summary>
-    public string? OrganisationNumber { get; set; }
+    public string? OrganizationNumber { get; set; }
 
     /// <summary>
     /// The name of the receiver.

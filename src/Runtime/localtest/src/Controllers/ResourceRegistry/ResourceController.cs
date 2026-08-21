@@ -219,8 +219,8 @@ namespace ResourceRegistry.Controllers
         /// <summary>
         /// Allows for searching for resources in the resource registry
         /// </summary>
-        /// <param name="search">The search model defining the search filter criterias</param>
-        /// <returns>A list of service resources found to match the search criterias</returns>
+        /// <param name="search">The search model defining the search filter criteria</param>
+        /// <returns>A list of service resources found to match the search criteria</returns>
         [HttpGet("Search")]
         [Produces("application/json")]
         public async Task<List<ServiceResource>> Search([FromQuery] ResourceSearch search)

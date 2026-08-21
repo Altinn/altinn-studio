@@ -2,14 +2,14 @@ import type { AllowedPartyTypes, PartyTypesAllowed } from 'app-shared/types/Appl
 
 export const initialPartyTypes: PartyTypesAllowed = {
   bankruptcyEstate: false,
-  organisation: false,
+  organization: false,
   person: false,
   subUnit: false,
 };
 
 export const partyTypesAllowedMap: Record<AllowedPartyTypes, string> = {
   person: 'app_settings.access_control_tab_option_person',
-  organisation: 'app_settings.access_control_tab_option_organisation',
+  organisation: 'app_settings.access_control_tab_option_organization',
   subUnit: 'app_settings.access_control_tab_option_sub_unit',
   bankruptcyEstate: 'app_settings.access_control_tab_option_bankruptcy_estate',
 };

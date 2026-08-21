@@ -5,7 +5,7 @@ device as the Kubernetes extended resource `devices.altinn.studio/kvm`. It exist
 sandbox coordinators can share a large node and create microVMs without running as privileged
 containers.
 
-## Behaviour
+## Behavior
 
 - Refuses to register unless `/dev/kvm` exists and is a character device.
 - Registers eight healthy `devices.altinn.studio/kvm` slots (`kvm-0` through `kvm-7`) with kubelet.

@@ -25,7 +25,7 @@ export const Preview: Story = {
 
 export const WithHtml: Story = {
   args: {
-    title: `<h3>Dette er innhold satt med props som html, men kan være html eller markdown</h3>
+    title: `<h3>Dette er innhold satt med props some html, men kan være html eller markdown</h3>
       <p>Og dette er et <strong>avsnitt</strong></p>
       <ul>
         <li>Og dette er et listeelement</li>
@@ -36,7 +36,7 @@ export const WithHtml: Story = {
 
 export const WithMarkdown: Story = {
   args: {
-    title: `### Dette er innhold satt med props som tekst, men kan være **html** eller **markdown**
+    title: `### Dette er innhold satt med props some tekst, men kan være **html** eller **markdown**
 
 Og dette er et **avsnitt**
 

@@ -30,7 +30,7 @@ public interface IProcessExclusiveGateway
         ProcessGatewayInformation processGatewayInformation
     )
     {
-        // TODO: Remmove default implemntation that calls the legacy in v9
+        // TODO: Remove default implementation that calls the legacy in v9
 #pragma warning disable CS0618 // Type or member is obsolete
         return await FilterAsync(outgoingFlows, instance, processGatewayInformation);
 #pragma warning restore CS0618 // Type or member is obsolete

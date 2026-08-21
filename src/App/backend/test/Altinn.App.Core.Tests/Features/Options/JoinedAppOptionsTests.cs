@@ -155,7 +155,7 @@ public class JoinedAppOptionsTests
 
         var action = new Func<Task>(async () => await appOptionsService.GetOptionsAsync("country", _language, new()));
         var exception = await action.Should().ThrowAsync<KeyNotFoundException>();
-        exception.WithMessage("missing is not registrered as an app option");
+        exception.WithMessage("missing is not registered as an app option");
 
         _neverUsedOptionsProviderMock.VerifyAll();
         _countryAppOptionsMock.VerifyAll();

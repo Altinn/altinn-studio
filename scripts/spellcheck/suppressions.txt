@@ -40,7 +40,6 @@ organisation
 @identifier-part
 @paths src/App/backend/** src/Designer/backend/** src/Runtime/localtest/**
 Organisations
-organisations
 
 # Altinn.Platform.Storage.Interface ProcessElementInfo.Occured wire property
 @identifiers Occured
@@ -175,9 +174,72 @@ Noen
 appen
 
 # Norwegian JSX text nodes
-@paths **/AddItem/ToggleAddComponentPoc.tsx **/DownloadXMLButton/DownloadXMLButton.tsx
+@paths **/AddItem/ToggleAddComponentPoc.tsx **/DownloadXMLButton/DownloadXMLButton.tsx **/MergeConflictWarning/MergeConflictWarning.tsx
 ned
 
 # Norwegian JSX text node
 @paths **/AddItem/ToggleAddComponentPoc.tsx
 designet
+
+# --------------------- Altinn.App public API kept with its shipped names ---
+# Renaming public types, members and OpenAPI schema names is a versioned
+# product decision, not a spelling fix. Each family below is part of the
+# app-facing surface (PublicApi snapshots) or mirrors a platform contract.
+
+# The OrganisationOrPersonIdentifier nested record `Organisation`, the
+# SystemUser/MaskinportenTokenRequest `Organisation` properties and their
+# pattern-match locals, the platform Register/Storage members
+# PartyType.Organisation / PartyTypesAllowed.Organisation, the
+# organisation.* telemetry attribute keys, and Designer's Organisation
+# namespace segment (which cannot become Organization: it would shadow the
+# Gitea Organization model type). Prose in these files stays enforced
+# through the exact-identifier scope.
+@identifiers Organisation organisation
+@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/**
+Organisation
+organisation
+
+# FileAnalysis.Analyse is the shipped telemetry span name.
+@paths src/App/backend/src/Altinn.App.Core/Features/Telemetry/Telemetry.FileAnalysis.cs
+Analyse
+
+# Designer serializes AutoSaveBehaviour into layout-settings JSON that
+# deployed apps read (the app side accepts it as a legacy alias). Renaming
+# the property changes the wire key — a product fix, not a spelling fix.
+@identifiers AutoSaveBehaviour AutoSaveBehaviourType
+@paths src/Designer/backend/**
+Behaviour
+
+# NIN = national identity number, a domain abbreviation (like SSN).
+@paths src/App/backend/src/Altinn.App.Core/Features/Signing/** src/Runtime/localtest/src/Notifications/**
+nin
+Nin
+
+# The mis- prefix (misCased = wrongly cased) is deliberate English.
+@identifiers MisCasedProperty misCasedProperty isMisCased
+Mis
+mis
+
+# Norwegian devtools messages in multi-line template literals, which the
+# string classifier cannot see (it is scoped to one line).
+@paths src/App/frontend/src/features/devtools/utils/layoutSchemaValidation.ts
+lik
+
+# Norwegian working notes for the augmenter agent.
+@paths src/AI/augmenter-agent/TODO-coderabbit.md
+foldes
+prosess
+
+# The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
+# so the old spellings are its working data: the rename map, the rewrite
+# reporting, the orchestration step, and the user-facing changelog entry
+# all must name the misspellings they remove.
+@paths src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/CSharpApiMigration/MisspelledApiMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs src/cli/CHANGELOG.md
+Analyse
+Analyser
+Analysers
+Analyzis
+Extentions
+Indicies
+Instansiation
+Organisation

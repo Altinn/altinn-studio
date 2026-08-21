@@ -14,7 +14,7 @@ public class ProcessNext
     public string? Action { get; set; }
 
     /// <summary>
-    /// The organisation number of the party the user is acting on behalf of
+    /// The organization number of the party the user is acting on behalf of
     /// </summary>
     [JsonPropertyName("actionOnBehalfOf")]
     public string? ActionOnBehalfOf { get; set; }

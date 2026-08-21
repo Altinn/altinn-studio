@@ -85,7 +85,7 @@ public class AppScopesController(
             cancellationToken
         );
 
-        var reponse = new AppScopesResponse()
+        var response = new AppScopesResponse()
         {
             Scopes =
                 appScopes
@@ -94,7 +94,7 @@ public class AppScopesController(
                 ?? [],
         };
 
-        return Ok(reponse);
+        return Ok(response);
     }
 
     private static ProblemDetails CreateAppScopesNotSupportedProblemDetails(string org) =>

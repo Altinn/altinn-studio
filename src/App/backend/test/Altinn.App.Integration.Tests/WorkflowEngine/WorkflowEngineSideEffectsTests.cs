@@ -46,7 +46,7 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
         // only arrive promptly because they run in the non-gating side-effects workflows.
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiation = await instantiationResponse.Read<Instance>();
         Assert.Equal(HttpStatusCode.Created, readInstantiation.Response.StatusCode);

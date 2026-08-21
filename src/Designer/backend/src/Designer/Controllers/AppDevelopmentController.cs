@@ -68,8 +68,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Get all form layouts
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set to get layouts for</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -107,8 +107,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Save form layout as JSON
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
     /// <param name="layoutName">The name of the form layout to be saved.</param>
     /// <param name="formLayoutPayload">A json object with, layout, the content to be saved, and the componentIdsChange: If componentIDs have been changed, this event includes info to perform the change across the app</param>
@@ -203,8 +203,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Delete a form layout
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">The name of the layout set the specific layout belongs to</param>
     /// <param name="layoutName">The form layout to be deleted</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -248,8 +248,8 @@ public class AppDevelopmentController : Controller
     /// Update a form layout name
     /// </summary>
     /// <param name="newName">The new name of the form layout.</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific layout belongs to</param>
     /// <param name="layoutName">The current name of the form layout</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -293,8 +293,8 @@ public class AppDevelopmentController : Controller
     /// </summary>
     /// <param name="layoutSetName">Name of the layout set the layout settings belong to</param>
     /// <param name="layoutSettings">The data to be saved</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A success message if the save was successful</returns>
     [HttpPost]
@@ -329,8 +329,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets the layout settings for an app without layoutSets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific layout settings belong to</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The content of the settings file</returns>
@@ -368,8 +368,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Updates validation on navigation settings for multiple layout sets based on grouped configurations
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="settings">List of grouped validation navigation settings to apply</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The updated list of grouped validation navigation settings</returns>
@@ -489,8 +489,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets validation on navigation settings grouped by shared show/page values across all layout sets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of grouped validation navigation settings</returns>
     [HttpGet("layout-settings/validation-on-navigation")]
@@ -559,8 +559,8 @@ public class AppDevelopmentController : Controller
     /// Each page's validationOnNavigation is read from the top-level property of its layout file.
     /// Only pages that have validationOnNavigation configured are included.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of page groups per layout set, each sharing the same validationOnNavigation settings</returns>
     [HttpGet("layout-settings/validation-on-navigation/pages")]
@@ -638,8 +638,8 @@ public class AppDevelopmentController : Controller
     /// Updates validationOnNavigation settings for individual pages by writing to each page's layout file.
     /// Pages included in a group get their data.validationOnNavigation set; pages not in any group have it removed.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="pageSettings">List of page validation groups to update.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost("layout-settings/validation-on-navigation/pages")]
@@ -738,8 +738,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Get all names of layouts across layoutSets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A string array of all layout names without file extension in all sets</returns>
     [HttpGet]
@@ -756,8 +756,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets a list of all data model IDs present in application metadata
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="onlyUnReferenced">If true only model IDs without task_id ref in app metadata is returned</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns></returns>
@@ -783,8 +783,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Return JSON presentation of the model
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
     /// <param name="dataModelName">Name of data model to fetch</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -899,8 +899,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Get rule handler in JSON structure
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -937,8 +937,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Save rule handler in JSON structure
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -973,8 +973,8 @@ public class AppDevelopmentController : Controller
     /// Save rule configuration
     /// </summary>
     /// <param name="ruleConfig">The code list data to save</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A success message if the save was successful</returns>
@@ -1005,8 +1005,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Get rule configuration
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -1044,8 +1044,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets widget settings for app
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The widget settings for the app.</returns>
     [HttpGet]
     [Route("widget-settings")]

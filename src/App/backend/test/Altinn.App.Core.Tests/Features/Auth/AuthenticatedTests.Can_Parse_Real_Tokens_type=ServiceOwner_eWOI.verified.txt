@@ -32,7 +32,7 @@
   Details: {
     Party: {
       PartyId: 1234,
-      PartyTypeName: Organisation,
+      PartyTypeName: Organization,
       OrgNumber: 991825827,
       Name: Test AS,
       IsDeleted: false,

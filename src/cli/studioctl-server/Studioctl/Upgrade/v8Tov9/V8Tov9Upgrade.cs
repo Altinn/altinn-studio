@@ -136,6 +136,12 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateMisspelledApis(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileAnalysisNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -472,7 +478,54 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// Renames the misspelled public C# API names that v9 corrected to US English (the
+    /// OrganisationNumber and IFileAnalyser families, InstansiationInstance, and friends). Compile-time
+    /// names only; the wire spellings are pinned in the SDK and no string literal is touched.
+    /// </summary>
+    static async Task<int> MigrateMisspelledApis(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Misspelled APIs");
+        try
+        {
+            var result = new MisspelledApiMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No renamed SDK API spellings in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating misspelled APIs", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites usings of the misspelled v8 <c>Features.FileAnalyzis</c> namespace. Runs after
+    /// <see cref="MigrateMisspelledApis"/>, which leaves those using directives alone precisely so this
+    /// step can merge them with an existing using of the correctly spelled sibling namespace.
+    /// </summary>
+    static async Task<int> MigrateFileAnalysisNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("FileAnalysis namespace");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            migration.Migrate(
+                "Altinn.App.Core.Features.FileAnalyzis",
+                "Altinn.App.Core.Features.FileAnalysis",
+                _allCSharpFilesMatcher
+            );
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileAnalysis namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
     /// </summary>

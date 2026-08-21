@@ -54,7 +54,7 @@ public interface IGiteaClient
     /// <summary>
     /// Create repository for the org.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="options">the options for creating repository.</param>
     /// <returns>The newly created repository object.</returns>
     Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
@@ -68,21 +68,21 @@ public interface IGiteaClient
     /// <summary>
     /// Fetch the repository information of a given org and repository.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">the repository</param>
     /// <returns>Information about the repository of the given org.</returns>
     Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository);
 
     /// <summary>
-    /// Returns organisation that user has access to
+    /// Returns organization that user has access to
     /// </summary>
-    /// <returns>A list over organisations</returns>
+    /// <returns>A list over organizations</returns>
     Task<List<Organization>> GetUserOrganizations();
 
     /// <summary>
     /// Returns information about a given branch
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branch">Name of branch</param>
     /// <returns>The branch info</returns>
@@ -91,7 +91,7 @@ public interface IGiteaClient
     /// <summary>
     /// Returns a list of branches in the repository
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <returns>The list of branches</returns>
     Task<List<Branch>> GetBranches(string org, string repository);
@@ -99,7 +99,7 @@ public interface IGiteaClient
     /// <summary>
     /// Creates a new branch in the given repository.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the repository.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branchName">Name of branch</param>
     /// <returns>Information about the created branch</returns>
@@ -108,7 +108,7 @@ public interface IGiteaClient
     /// <summary>
     /// Gets a file from a filepath at a specific reference (commit/branch/tag).
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">The name of repository</param>
     /// <param name="filePath">Path to a file, may start with full commit sha</param>
     /// <param name="reference">The short hash of a commit id</param>
@@ -139,7 +139,7 @@ public interface IGiteaClient
     /// <summary>
     /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">The name of repository</param>
     /// <param name="directoryPath">Path to a directory, may start with full commit sha</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
@@ -157,7 +157,7 @@ public interface IGiteaClient
     /// Gets the files in the CodeLists directory of a given repository.
     /// If the directory is missing, returns an empty list.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the repository.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -173,7 +173,7 @@ public interface IGiteaClient
     /// Gets a file from a filepath at a specific reference (commit/branch/tag) along
     /// with any error that might occur during the fetch.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">The name of repository</param>
     /// <param name="filePath">Path to a file, may start with full commit sha</param>
     /// <param name="reference">The short hash of a commit id</param>
@@ -195,7 +195,7 @@ public interface IGiteaClient
     /// <summary>
     /// Creates a pull request for the repository based on the provided create pull request option.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the repository.</param>
     /// <param name="repository">The name of repository.</param>
     /// <param name="createPullRequestOption">The createPullRequestOption.</param>
     /// <returns></returns>
@@ -204,7 +204,7 @@ public interface IGiteaClient
     /// <summary>
     /// Deletes the repository.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the repository.</param>
     /// <param name="repository">The name of repository.</param>
     Task<bool> DeleteRepository(string org, string repository);
 

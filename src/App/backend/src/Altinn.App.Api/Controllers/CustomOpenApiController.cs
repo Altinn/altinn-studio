@@ -334,7 +334,7 @@ public class CustomOpenApiController : Controller
 
                             Any mime type that is not ``"application/json"`` or ``"multipart/form-data"`` with an instance document
                             will require the ``instanceOwnerPartyId`` parameter. Otherwise you must use the simplified instance document to specify instance owner.
-                            Either using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organisationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).
+                            Either using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organizationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).
                             """,
                             Content = new Dictionary<string, OpenApiMediaType>
                             {
@@ -1354,7 +1354,7 @@ file static class Snippets
                             Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Pattern = @"^\d{11}$",
                         },
-                        ["organisationNumber"] = new OpenApiSchema()
+                        ["organizationNumber"] = new OpenApiSchema()
                         {
                             Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Pattern = @"^\d{9}$",
@@ -1480,7 +1480,7 @@ file static class Snippets
             {
                 Name = "instanceOwnerPartyId",
                 Description =
-                    "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
+                    "PartyId for the owner of the instance, this is Altinn's internal id for the organization, person or self registered user. Might be the current user, or a party the user has rights to represent.",
                 In = ParameterLocation.Path,
                 Required = true,
                 Schema = new OpenApiSchema() { Type = JsonSchemaType.Integer },
@@ -1647,7 +1647,7 @@ file class SchemaPostVisitor : OpenApiVisitorBase
             concrete.Required.Add("id");
         }
 
-        // Don't allow additional properties on objects, when the type of the addional properties is not specified
+        // Don't allow additional properties on objects, when the type of the additional properties is not specified
         if (concrete.Type == JsonSchemaType.Object && concrete.AdditionalProperties is null)
         {
             concrete.AdditionalPropertiesAllowed = false;

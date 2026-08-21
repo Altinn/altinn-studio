@@ -24,7 +24,7 @@ export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instance
   return http.get(endpoint, params);
 }
 
-//Api call to App Api:Instances to create an app instance based on user ssn or organisation number and returns response
+//Api call to App Api:Instances to create an app instance based on user ssn or organization number and returns response
 export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userType, value, appOwner, appName) {
   var requestBody = '{"instanceOwner":{}}';
   requestBody = JSON.parse(requestBody);
@@ -33,7 +33,7 @@ export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userTy
   if (userType == 'ssn') {
     requestBody.instanceOwner.personNumber = value;
   } else if (userType == 'org') {
-    requestBody.instanceOwner.organisationNumber = value;
+    requestBody.instanceOwner.organizationNumber = value;
   }
   requestBody = JSON.stringify(requestBody);
   return http.post(endpoint, requestBody, params);

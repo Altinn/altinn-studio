@@ -712,7 +712,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         content
             .Should()
             .Be(
-                $$"""{"processHistory":[{"eventType":null,"elementId":"Task_1","occured":null,"started":"{{start}}","ended":null,"performedBy":null}]}"""
+                $$"""{"processHistory":[{"eventType":null,"elementId":"Task_1","occurred":null,"started":"{{start}}","ended":null,"performedBy":null}]}"""
             );
     }
 

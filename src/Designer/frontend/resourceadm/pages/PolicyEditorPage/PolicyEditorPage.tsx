@@ -7,7 +7,7 @@ import {
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { StudioSpinner, StudioHeading } from '@studio/components';
-import { useResourcePolicyQuery, useSinlgeResourceQuery } from '../../hooks/queries';
+import { useResourcePolicyQuery, useSingleResourceQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import {
@@ -47,7 +47,7 @@ export const PolicyEditorPage = ({
     app,
     resourceId,
   );
-  const { data: resourceData, isPending: isLoadingResource } = useSinlgeResourceQuery(
+  const { data: resourceData, isPending: isLoadingResource } = useSingleResourceQuery(
     org,
     app,
     resourceId,

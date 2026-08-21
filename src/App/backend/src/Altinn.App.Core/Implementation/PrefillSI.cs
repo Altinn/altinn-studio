@@ -70,7 +70,7 @@ public class PrefillSI : IPrefill
     )
     {
         using var activity = _telemetry?.StartPrefillDataModelActivity(partyId);
-        // Prefill from external input. Only available during instansiation
+        // Prefill from external input. Only available during instantiation
         if (externalPrefill != null && externalPrefill.Count > 0)
         {
             PrefillDataModel(dataModel, externalPrefill, true);
@@ -174,7 +174,7 @@ public class PrefillSI : IPrefill
                 }
                 else
                 {
-                    string errorMessage = $"Could not  prefill from {_erKey}, organisation is not defined.";
+                    string errorMessage = $"Could not  prefill from {_erKey}, organization is not defined.";
                     _logger.LogError(errorMessage);
                 }
             }
@@ -211,7 +211,7 @@ public class PrefillSI : IPrefill
     }
 
     /// <summary>
-    /// Recursivly navigates through the datamodel, initiating objects if needed, and assigns the value to the target field
+    /// Recursively navigates through the datamodel, initiating objects if needed, and assigns the value to the target field
     /// </summary>
     private void AssignValueToDataModel(
         string[] keys,
@@ -263,7 +263,7 @@ public class PrefillSI : IPrefill
             {
                 if (propertyValue == null)
                 {
-                    // the object does not exsist, create a new one with the property type
+                    // the object does not exist, create a new one with the property type
                     propertyValue =
                         Activator.CreateInstance(property.PropertyType)
                         ?? throw new Exception(

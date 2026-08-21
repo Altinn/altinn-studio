@@ -132,5 +132,5 @@ export interface InstanceSelection {
   defaultSelectedOption?: number;
 }
 
-export type AllowedPartyTypes = 'bankruptcyEstate' | 'organisation' | 'person' | 'subUnit';
+export type AllowedPartyTypes = 'bankruptcyEstate' | 'organization' | 'person' | 'subUnit';
 export type PartyTypesAllowed = Record<AllowedPartyTypes, boolean>;

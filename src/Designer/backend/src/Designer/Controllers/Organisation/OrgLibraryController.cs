@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
-/// Controller containing actions related to the organisation library.
+/// Controller containing actions related to the organization library.
 /// </summary>
 /// <remarks>
 /// Initializes a new instance of the <see cref="OrgLibraryController"/> class.
@@ -36,7 +36,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     /// <summary>
     /// Gets the latest commit sha for a given branch.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="branchName">The branch name. Fallback to default branch.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The latest commit sha.</returns>
@@ -71,9 +71,9 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     }
 
     /// <summary>
-    /// Fetches the shared resources belonging to the organisation.
+    /// Fetches the shared resources belonging to the organization.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="path">Directory path where resources are located.</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -111,7 +111,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     /// <summary>
     /// Creates or overwrites the shared resources.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="requestBody">The body of the request <see cref="UpdateSharedResourceRequest"/></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPut]
@@ -189,7 +189,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     }
 
     /// <summary>Fetches a list of published resources.</summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="path">Directory path in which to search.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
@@ -215,7 +215,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         {
             logger.LogWarning(
                 ex,
-                "A request error occured in the shared content client when fetching resources for {Org}.",
+                "A request error occurred in the shared content client when fetching resources for {Org}.",
                 org.WithoutLineBreaks()
             );
             return BadRequest(

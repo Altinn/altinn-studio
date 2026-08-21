@@ -13,7 +13,7 @@ export enum ExprVal {
   Boolean = '__boolean__',
   String = '__string__',
   Number = '__number__',
-  Date = '__date__', // Actually just a string, but must be parsable as a date (ane lets us work with Date internally)
+  Date = '__date__', // Actually just a string, but must be parsable as a date (this lets us work with Date internally)
   List = '__list__',
   Object = '__object__',
   Any = '__any__',

@@ -65,7 +65,7 @@ describe('Party selection', () => {
         person: true,
         subUnit: false,
         bankruptcyEstate: false,
-        organisation: false,
+        organization: false,
       },
     });
 
@@ -87,7 +87,7 @@ describe('Party selection', () => {
         person: false,
         subUnit: false,
         bankruptcyEstate: false,
-        organisation: true,
+        organization: true,
       },
     });
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
@@ -189,7 +189,7 @@ describe('Party selection', () => {
 
     cy.intercept('**/active', []).as('activeInstances');
 
-    // Select the organisation. This is not allowed to instantiate in this app, so it will throw an error.
+    // Select the organization. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();

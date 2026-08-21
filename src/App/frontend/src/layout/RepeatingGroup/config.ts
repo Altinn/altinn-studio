@@ -307,7 +307,7 @@ export const Config = new CG.component({
                 .setTitle('Show in expanded edit')
                 .setDescription(
                   'If set to true, the component will be shown in the expanded edit view. This is also the default ' +
-                    'behaviour, but can be turned off for components that are only to be edited in the table view.',
+                    'behavior, but can be turned off for components that are only to be edited in the table view.',
                 ),
             ),
           )

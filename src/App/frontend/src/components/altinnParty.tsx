@@ -23,7 +23,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
   const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
-  const isOrg = party.partyTypeName === PartyType.Organisation;
+  const isOrg = party.partyTypeName === PartyType.Organization;
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();

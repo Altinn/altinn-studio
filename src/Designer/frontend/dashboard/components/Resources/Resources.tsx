@@ -22,8 +22,8 @@ const resources: Resource[] = [
     icon: <DocsResourceIcon width='60' height='60' />,
   },
   {
-    label: 'dashboard.resource_organisations_label',
-    description: 'dashboard.resource_organisations_description',
+    label: 'dashboard.resource_organizations_label',
+    description: 'dashboard.resource_organizations_description',
     url: `${window.location.origin}/repos/explore/organizations`,
     icon: <OrgResourceIcon width='60' height='60' />,
   },
