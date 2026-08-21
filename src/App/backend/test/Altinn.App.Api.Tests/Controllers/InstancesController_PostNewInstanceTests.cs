@@ -91,7 +91,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         OverrideServicesForThisTest = services =>
         {
-            services.AddTransient<IFileAnalyser, FilenameAnalyzerStub>();
+            services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
 
@@ -140,7 +140,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         OverrideServicesForThisTest = services =>
         {
-            services.AddTransient<IFileAnalyser, FilenameAnalyzerStub>();
+            services.AddTransient<IFileAnalyzer, FilenameAnalyzerStub>();
             services.AddTransient<IFileValidator, FilenameValidatorStub>();
         };
 
@@ -1082,7 +1082,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 }
 
-public class FilenameAnalyzerStub : IFileAnalyser
+public class FilenameAnalyzerStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 

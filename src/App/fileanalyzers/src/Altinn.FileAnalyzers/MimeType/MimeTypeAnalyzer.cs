@@ -8,7 +8,7 @@ namespace Altinn.FileAnalyzers.MimeType;
 internal sealed class MimeTypeAnalyzer(
     IHttpContextAccessor _httpContextAccessor,
     IContentInspector _inspector
-) : IFileAnalyser
+) : IFileAnalyzer
 {
     /// <inheritDoc/>
     public string Id { get; private set; } = "mimeTypeAnalyser";

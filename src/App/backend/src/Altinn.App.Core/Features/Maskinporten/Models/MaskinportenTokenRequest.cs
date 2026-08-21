@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 /// var request = new MaskinportenTokenRequest
 /// {
 ///     Scopes = ["altinn:serviceowner/instances.read"],
-///     ConsumerOrg = OrganisationNumber.Parse("991825827"),
+///     ConsumerOrg = OrganizationNumber.Parse("991825827"),
 /// };
 /// </code>
 /// </example>
@@ -23,7 +23,7 @@ public sealed record MaskinportenTokenRequest
 {
     private readonly ReadOnlyCollection<string> _scopes = ReadOnlyCollection<string>.Empty;
     private readonly string _formattedScopes = string.Empty;
-    private readonly OrganisationNumber? _consumerOrg;
+    private readonly OrganizationNumber? _consumerOrg;
     private readonly string? _resource;
 
     /// <summary>
@@ -64,10 +64,10 @@ public sealed record MaskinportenTokenRequest
     /// <p>Required when acting as a supplier for an external consumer that has delegated the scope via Altinn.
     /// See <a href="https://docs.digdir.no/docs/Maskinporten/maskinporten_guide_apikonsument">the docs</a>.</p>
     /// </summary>
-    public OrganisationNumber? ConsumerOrg
+    public OrganizationNumber? ConsumerOrg
     {
         get => _consumerOrg;
-        init => _consumerOrg = value is { } org ? OrganisationNumberGuard.Require(org, nameof(ConsumerOrg)) : null;
+        init => _consumerOrg = value is { } org ? OrganizationNumberGuard.Require(org, nameof(ConsumerOrg)) : null;
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ public sealed record MaskinportenTokenRequest
         var claims = new Dictionary<string, object> { [JwtClaimTypes.Scope] = _formattedScopes };
 
         if (_consumerOrg is { } consumerOrg)
-            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganisationNumberFormat.Local);
+            claims[JwtClaimTypes.Maskinporten.ConsumerOrg] = consumerOrg.Get(OrganizationNumberFormat.Local);
 
         if (_resource is { } resource)
             claims[JwtClaimTypes.Maskinporten.Resource] = resource;
@@ -171,16 +171,16 @@ public sealed record MaskinportenTokenRequest
 /// </summary>
 public sealed partial record MaskinportenSystemUser
 {
-    private readonly OrganisationNumber _organisation;
+    private readonly OrganizationNumber _organization;
     private readonly string? _externalRef;
 
     /// <summary>
     /// The organization (customer) that owns the system user. Sent in ISO 6523 format, e.g. <c>0192:991825827</c>.
     /// </summary>
-    public required OrganisationNumber Organisation
+    public required OrganizationNumber Organization
     {
-        get => _organisation;
-        init => _organisation = OrganisationNumberGuard.Require(value, nameof(Organisation));
+        get => _organization;
+        init => _organization = OrganizationNumberGuard.Require(value, nameof(Organization));
     }
 
     /// <summary>
@@ -226,7 +226,7 @@ public sealed partial record MaskinportenSystemUser
             ["systemuser_org"] = new Dictionary<string, object>
             {
                 ["authority"] = "iso6523-actorid-upis",
-                ["ID"] = _organisation.Get(OrganisationNumberFormat.International),
+                ["ID"] = _organization.Get(OrganizationNumberFormat.International),
             },
         };
 
@@ -242,14 +242,14 @@ public sealed partial record MaskinportenSystemUser
 }
 
 /// <summary>
-/// <see cref="OrganisationNumber"/> is a struct, so <c>default</c> slips past both <c>required</c> and
+/// <see cref="OrganizationNumber"/> is a struct, so <c>default</c> slips past both <c>required</c> and
 /// nullability checks while holding no value at all. Fail loudly rather than emit an empty claim.
 /// </summary>
-file static class OrganisationNumberGuard
+file static class OrganizationNumberGuard
 {
-    internal static OrganisationNumber Require(OrganisationNumber value, string paramName)
+    internal static OrganizationNumber Require(OrganizationNumber value, string paramName)
     {
-        if (string.IsNullOrEmpty(value.Get(OrganisationNumberFormat.Local)))
+        if (string.IsNullOrEmpty(value.Get(OrganizationNumberFormat.Local)))
             throw new ArgumentException("A valid organization number is required.", paramName);
 
         return value;

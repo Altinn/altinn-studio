@@ -7,7 +7,7 @@
       "isDeleted": false,
       "onlyHierarchyElementWithNoAccess": false,
       "person": null,
-      "organisation": null,
+      "organization": null,
       "childParties": null
     },
     {
@@ -19,7 +19,7 @@
       "isDeleted": false,
       "onlyHierarchyElementWithNoAccess": false,
       "person": null,
-      "organisation": null,
+      "organization": null,
       "childParties": null
     }
   ]

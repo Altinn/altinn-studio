@@ -801,7 +801,7 @@ internal class ProcessEngine : IProcessEngine
                 return new PlatformUser
                 {
                     SystemUserId = auth.SystemUserId[0],
-                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganisationNumberFormat.Local),
+                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganizationNumberFormat.Local),
                     SystemUserName = null, // TODO: will get this name later when a lookup API is implemented or the name is passed in token
                     AuthenticationLevel = auth.AuthenticationLevel,
                 };

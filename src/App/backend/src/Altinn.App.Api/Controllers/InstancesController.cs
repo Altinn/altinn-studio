@@ -615,7 +615,7 @@ public class InstancesController : ControllerBase
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromBody] InstansiationInstance instantiationInstance,
+        [FromBody] InstantiationInstance instantiationInstance,
         [FromQuery] string? language = null
     )
     {
@@ -1669,8 +1669,8 @@ public class InstancesController : ControllerBase
         }
         else
         {
-            string lookupNumber = "personNumber or organisationNumber";
-            string personOrOrganisationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
+            string lookupNumber = "personNumber or organizationNumber";
+            string personOrOrganizationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
             try
             {
                 if (!string.IsNullOrEmpty(instanceOwner.ExternalIdentifier))
@@ -1695,7 +1695,7 @@ public class InstancesController : ControllerBase
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                 {
-                    lookupNumber = "organisationNumber";
+                    lookupNumber = "organizationNumber";
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
                     );
@@ -1723,7 +1723,7 @@ public class InstancesController : ControllerBase
                 {
                     throw new ServiceException(
                         HttpStatusCode.BadRequest,
-                        "Neither personNumber or organisationNumber has value in instanceOwner"
+                        "Neither personNumber or organizationNumber has value in instanceOwner"
                     );
                 }
             }
@@ -1731,13 +1731,13 @@ public class InstancesController : ControllerBase
             {
                 _logger.LogWarning(
                     e,
-                    "Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}",
+                    "Failed to lookup party by {lookupNumber}: {personOrOrganizationNumber}",
                     lookupNumber,
-                    personOrOrganisationNumber
+                    personOrOrganizationNumber
                 );
                 throw new ServiceException(
                     HttpStatusCode.BadRequest,
-                    $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}",
+                    $"Failed to lookup party by {lookupNumber}: {personOrOrganizationNumber}. The exception was: {e.Message}",
                     e
                 );
             }

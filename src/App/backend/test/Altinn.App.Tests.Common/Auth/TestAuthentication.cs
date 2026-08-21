@@ -362,7 +362,7 @@ public static class TestAuthentication
         var consumer = JsonSerializer.Serialize(
             new OrgClaim(
                 "iso6523-actorid-upis",
-                OrganisationNumber.Parse(orgNumber).Get(OrganisationNumberFormat.International)
+                OrganizationNumber.Parse(orgNumber).Get(OrganizationNumberFormat.International)
             )
         );
         Claim[] claims =
@@ -443,7 +443,7 @@ public static class TestAuthentication
         var consumer = JsonSerializer.Serialize(
             new OrgClaim(
                 "iso6523-actorid-upis",
-                OrganisationNumber.Parse(orgNumber).Get(OrganisationNumberFormat.International)
+                OrganizationNumber.Parse(orgNumber).Get(OrganizationNumberFormat.International)
             )
         );
         Claim[] claims =
@@ -543,13 +543,13 @@ public static class TestAuthentication
             systemId,
             new OrgClaim(
                 "iso6523-actorid-upis",
-                OrganisationNumber.Parse(systemUserOrgNumber).Get(OrganisationNumberFormat.International)
+                OrganizationNumber.Parse(systemUserOrgNumber).Get(OrganizationNumberFormat.International)
             )
         );
 
         var consumer = new OrgClaim(
             "iso6523-actorid-upis",
-            OrganisationNumber.Parse(supplierOrgNumber).Get(OrganisationNumberFormat.International)
+            OrganizationNumber.Parse(supplierOrgNumber).Get(OrganizationNumberFormat.International)
         );
         payload.Add("authorization_details", JsonSerializer.SerializeToElement(authorizationDetails));
         payload.Add("consumer", JsonSerializer.SerializeToElement(consumer));

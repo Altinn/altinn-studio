@@ -32,7 +32,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
 
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         var scrubbers = new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(readInstantiationResponse));
@@ -224,7 +224,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
     {
         using var instantiationResponse = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         Assert.Equal(HttpStatusCode.Created, readInstantiationResponse.Response.StatusCode);

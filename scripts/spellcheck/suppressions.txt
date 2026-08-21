@@ -199,20 +199,6 @@ designet
 Organisation
 organisation
 
-# InstansiationInstance is the POST /instances request model (public API +
-# OpenAPI schema name); InstansiationNotification and the notification
-# plumbing derive from it.
-@identifier-part
-@paths src/App/backend/**
-Instansiation
-
-# The IFileAnalyser interface family: apps implement custom analyzers
-# against these names.
-@identifier-part
-@paths src/App/backend/** src/App/fileanalyzers/**
-Analyser
-Analysers
-
 # FileAnalysis.Analyse is the shipped telemetry span name.
 @paths src/App/backend/src/Altinn.App.Core/Features/Telemetry/Telemetry.FileAnalysis.cs
 Analyse
@@ -223,10 +209,6 @@ Analyse
 @identifiers AutoSaveBehaviour AutoSaveBehaviourType
 @paths src/Designer/backend/**
 Behaviour
-
-# AppOptionsServiceExtentions is public API (PublicApi snapshot).
-@identifiers AppOptionsServiceExtentions
-Extentions
 
 # NIN = national identity number, a domain abbreviation (like SSN).
 @paths src/App/backend/src/Altinn.App.Core/Features/Signing/** src/Runtime/localtest/src/Notifications/**

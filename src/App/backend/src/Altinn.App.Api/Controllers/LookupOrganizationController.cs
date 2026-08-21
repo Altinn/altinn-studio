@@ -16,22 +16,22 @@ namespace Altinn.App.Api.Controllers;
 [Produces(MediaTypeNames.Application.Json)]
 [Consumes(MediaTypeNames.Application.Json)]
 [Route("{org}/{app}/api/v1/lookup/organisation")]
-public class LookupOrganisationController : ControllerBase
+public class LookupOrganizationController : ControllerBase
 {
-    private readonly IOrganizationClient _organisationClient;
-    private readonly ILogger<LookupOrganisationController> _logger;
+    private readonly IOrganizationClient _organizationClient;
+    private readonly ILogger<LookupOrganizationController> _logger;
 
     /// <summary>
-    /// Initialize a new instance of <see cref="LookupOrganisationController"/> with the given services.
+    /// Initialize a new instance of <see cref="LookupOrganizationController"/> with the given services.
     /// </summary>
-    /// <param name="organisationClient">A client for an organization lookup in ER.</param>
+    /// <param name="organizationClient">A client for an organization lookup in ER.</param>
     /// <param name="logger">A logger for logging.</param>
-    public LookupOrganisationController(
-        IOrganizationClient organisationClient,
-        ILogger<LookupOrganisationController> logger
+    public LookupOrganizationController(
+        IOrganizationClient organizationClient,
+        ILogger<LookupOrganizationController> logger
     )
     {
-        _organisationClient = organisationClient;
+        _organizationClient = organizationClient;
         _logger = logger;
     }
 
@@ -39,29 +39,29 @@ public class LookupOrganisationController : ControllerBase
     /// Allows an organization lookup by orgNr in ER
     /// </summary>
     /// <param name="orgNr">Route param that contains the orgNr to look up in ER.</param>
-    /// <returns>A <see cref="LookupOrganisationResponse"/> object.</returns>
+    /// <returns>A <see cref="LookupOrganizationResponse"/> object.</returns>
     [HttpGet]
     [Route("{orgNr}")]
-    [ProducesResponseType(typeof(LookupOrganisationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LookupOrganizationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<LookupOrganisationResponse>> LookUpOrganisation([FromRoute] string orgNr)
+    public async Task<ActionResult<LookupOrganizationResponse>> LookUpOrganization([FromRoute] string orgNr)
     {
-        var organisationResult = await GetOrganisationDataOrError(orgNr);
-        if (!organisationResult.Success)
+        var organizationResult = await GetOrganizationDataOrError(orgNr);
+        if (!organizationResult.Success)
         {
-            ProblemDetails problemDetails = organisationResult.Error;
+            ProblemDetails problemDetails = organizationResult.Error;
             return StatusCode(problemDetails.Status ?? 500, problemDetails);
         }
 
-        return Ok(LookupOrganisationResponse.CreateFromOrganisation(organisationResult.Ok));
+        return Ok(LookupOrganizationResponse.CreateFromOrganization(organizationResult.Ok));
     }
 
-    private async Task<ServiceResult<Organization?, ProblemDetails>> GetOrganisationDataOrError(string orgNr)
+    private async Task<ServiceResult<Organization?, ProblemDetails>> GetOrganizationDataOrError(string orgNr)
     {
         try
         {
-            return await _organisationClient.GetOrganization(orgNr);
+            return await _organizationClient.GetOrganization(orgNr);
         }
         catch (Exception e)
         {

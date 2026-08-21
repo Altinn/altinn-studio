@@ -5,18 +5,18 @@ namespace Altinn.App.Api.Models;
 /// <summary>
 /// Contains the result of an organization lookup.
 /// </summary>
-public class LookupOrganisationResponse
+public class LookupOrganizationResponse
 {
     /// <summary>
-    /// Creates a new instance of <see cref="LookupOrganisationResponse"/> from a person and sets the <see cref="Success"/> and <see cref="PersonDetails"/> properties accordingly.
+    /// Creates a new instance of <see cref="LookupOrganizationResponse"/> from a person and sets the <see cref="Success"/> and <see cref="PersonDetails"/> properties accordingly.
     /// </summary>
-    public static LookupOrganisationResponse CreateFromOrganisation(Organization? organization)
+    public static LookupOrganizationResponse CreateFromOrganization(Organization? organization)
     {
-        return new LookupOrganisationResponse
+        return new LookupOrganizationResponse
         {
             Success = organization is not null,
-            OrganisationDetails = organization is not null
-                ? OrganisationDetails.MapFromOrganisation(organization)
+            OrganizationDetails = organization is not null
+                ? OrganizationDetails.MapFromOrganization(organization)
                 : null,
         };
     }
@@ -29,13 +29,14 @@ public class LookupOrganisationResponse
     /// <summary>
     /// Contains details about the person found by the lookup. Null if no person was found.
     /// </summary>
-    public OrganisationDetails? OrganisationDetails { get; init; }
+    [System.Text.Json.Serialization.JsonPropertyName("organisationDetails")]
+    public OrganizationDetails? OrganizationDetails { get; init; }
 }
 
 /// <summary>
 /// Contains details about an organization
 /// </summary>
-public class OrganisationDetails
+public class OrganizationDetails
 {
     /// <summary>
     /// The organization number
@@ -50,8 +51,8 @@ public class OrganisationDetails
     /// <summary>
     /// Maps a person to person details
     /// </summary>
-    public static OrganisationDetails MapFromOrganisation(Organization organization)
+    public static OrganizationDetails MapFromOrganization(Organization organization)
     {
-        return new OrganisationDetails { OrgNr = organization.OrgNumber, Name = organization.Name };
+        return new OrganizationDetails { OrgNr = organization.OrgNumber, Name = organization.Name };
     }
 }

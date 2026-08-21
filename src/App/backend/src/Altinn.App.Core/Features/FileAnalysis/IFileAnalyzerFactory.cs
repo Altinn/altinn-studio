@@ -5,10 +5,10 @@ namespace Altinn.App.Core.Features.FileAnalysis;
 /// <summary>
 /// Interface responsible for resolving the correct file analyzers to run on against a <see cref="DataType"/>.
 /// </summary>
-public interface IFileAnalyserFactory
+public interface IFileAnalyzerFactory
 {
     /// <summary>
     /// Finds analyzer implementations based on the specified id's provided.
     /// </summary>
-    IEnumerable<IFileAnalyser> GetFileAnalysers(IEnumerable<string> analyzerIds);
+    IEnumerable<IFileAnalyzer> GetFileAnalyzers(IEnumerable<string> analyzerIds);
 }

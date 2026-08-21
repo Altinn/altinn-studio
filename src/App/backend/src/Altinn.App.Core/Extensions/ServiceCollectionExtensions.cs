@@ -398,7 +398,7 @@ public static class ServiceCollectionExtensions
     private static void AddFileAnalyzerServices(IServiceCollection services)
     {
         services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
-        services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        services.TryAddTransient<IFileAnalyzerFactory, FileAnalyzerFactory>();
     }
 
     private static void AddFileValidatorServices(IServiceCollection services)

@@ -116,7 +116,7 @@ public sealed class EnrichedInstanceResponse
             {
                 PartyId = instance.InstanceOwner.PartyId,
                 PersonNumber = instance.InstanceOwner.PersonNumber,
-                OrganisationNumber = instance.InstanceOwner.OrganisationNumber,
+                OrganizationNumber = instance.InstanceOwner.OrganisationNumber,
                 Username = instance.InstanceOwner.Username,
                 ExternalIdentifier = instance.InstanceOwner.ExternalIdentifier,
                 Party = PartyResponse.From(instanceOwnerParty),

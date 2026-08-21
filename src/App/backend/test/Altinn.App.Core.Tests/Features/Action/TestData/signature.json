@@ -5,7 +5,7 @@
   "signeeInfo": {
     "userId": "1337",
     "personNumber": "01039012345",
-    "organisationNumber": null
+    "organizationNumber": null
   },
   "dataElementSignatures": [
     {

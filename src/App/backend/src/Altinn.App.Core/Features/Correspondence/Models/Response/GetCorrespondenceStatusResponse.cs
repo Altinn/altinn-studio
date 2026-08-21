@@ -78,8 +78,8 @@ public sealed record GetCorrespondenceStatusResponse
     /// The sending organization of the correspondence.
     /// </summary>
     [JsonPropertyName("sender")]
-    [OrganisationNumberJsonConverter(OrganisationNumberFormat.International)]
-    public OrganisationNumber Sender { get; init; }
+    [OrganizationNumberJsonConverter(OrganizationNumberFormat.International)]
+    public OrganizationNumber Sender { get; init; }
 
     /// <summary>
     /// A reference value given to the message by the creator.

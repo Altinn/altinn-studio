@@ -271,7 +271,7 @@ internal sealed class NotificationService : INotificationService
         }
 
         throw new InvalidOperationException(
-            "InstanceOwner must have at least one of OrganisationNumber, PersonNumber, or ExternalIdentifier set."
+            "InstanceOwner must have at least one of OrganizationNumber, PersonNumber, or ExternalIdentifier set."
         );
     }
 
@@ -444,7 +444,7 @@ internal sealed class NotificationService : INotificationService
         }
 
         throw new InvalidOperationException(
-            "InstanceOwner must have at least one of OrganisationNumber, PersonNumber, or ExternalIdentifier set."
+            "InstanceOwner must have at least one of OrganizationNumber, PersonNumber, or ExternalIdentifier set."
         );
     }
 }

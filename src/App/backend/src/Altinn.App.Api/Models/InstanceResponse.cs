@@ -111,7 +111,7 @@ public sealed class InstanceResponse
             {
                 PartyId = instance.InstanceOwner.PartyId,
                 PersonNumber = instance.InstanceOwner.PersonNumber,
-                OrganisationNumber = instance.InstanceOwner.OrganisationNumber,
+                OrganizationNumber = instance.InstanceOwner.OrganisationNumber,
                 Username = instance.InstanceOwner.Username,
                 ExternalIdentifier = instance.InstanceOwner.ExternalIdentifier,
                 Party = PartyResponse.From(instanceOwnerParty),
@@ -153,7 +153,8 @@ public sealed class InstanceOwnerResponse
     /// <summary>
     /// The organization number of the party. Null if the party is not an organization.
     /// </summary>
-    public required string OrganisationNumber { get; init; }
+    [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
+    public required string OrganizationNumber { get; init; }
 
     /// <summary>
     /// The username of the party. Null if the party is not self identified.

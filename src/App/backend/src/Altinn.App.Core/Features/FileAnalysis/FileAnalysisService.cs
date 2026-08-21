@@ -7,15 +7,15 @@ namespace Altinn.App.Core.Features.FileAnalysis;
 /// </summary>
 public class FileAnalysisService : IFileAnalysisService
 {
-    private readonly IFileAnalyserFactory _fileAnalyserFactory;
+    private readonly IFileAnalyzerFactory _fileAnalyzerFactory;
     private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileAnalysisService"/> class.
     /// </summary>
-    public FileAnalysisService(IFileAnalyserFactory fileAnalyserFactory, Telemetry? telemetry = null)
+    public FileAnalysisService(IFileAnalyzerFactory fileAnalyzerFactory, Telemetry? telemetry = null)
     {
-        _fileAnalyserFactory = fileAnalyserFactory;
+        _fileAnalyzerFactory = fileAnalyzerFactory;
         _telemetry = telemetry;
     }
 
@@ -29,8 +29,8 @@ public class FileAnalysisService : IFileAnalysisService
     )
     {
         using var activity = _telemetry?.StartAnalyzeActivity();
-        List<IFileAnalyser> fileAnalyzers = _fileAnalyserFactory
-            .GetFileAnalysers(dataType.EnabledFileAnalysers)
+        List<IFileAnalyzer> fileAnalyzers = _fileAnalyzerFactory
+            .GetFileAnalyzers(dataType.EnabledFileAnalysers)
             .ToList();
 
         List<FileAnalysisResult> fileAnalysisResults = new();

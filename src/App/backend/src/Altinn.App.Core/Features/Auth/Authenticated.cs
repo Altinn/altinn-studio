@@ -426,7 +426,7 @@ public abstract class Authenticated
     public sealed class ServiceOwner : Authenticated
     {
         /// <summary>
-        /// Organisation/service owner name
+        /// Organization/service owner name
         /// </summary>
         public string Name { get; }
 
@@ -483,7 +483,7 @@ public abstract class Authenticated
     /// <summary>
     /// The logged in client is a system user.
     /// System users authenticate through Maskinporten.
-    /// The caller is the system, which impersonates the system user (which represents the organisation/owner of the user).
+    /// The caller is the system, which impersonates the system user (which represents the organization/owner of the user).
     /// </summary>
     public sealed class SystemUser : Authenticated
     {
@@ -495,12 +495,12 @@ public abstract class Authenticated
         /// <summary>
         /// Organization number of the system user
         /// </summary>
-        public OrganisationNumber SystemUserOrgNr { get; }
+        public OrganizationNumber SystemUserOrgNr { get; }
 
         /// <summary>
         /// Organization number of the supplier system
         /// </summary>
-        public OrganisationNumber SupplierOrgNr { get; }
+        public OrganizationNumber SupplierOrgNr { get; }
 
         /// <summary>
         /// System ID
@@ -522,8 +522,8 @@ public abstract class Authenticated
 
         internal SystemUser(
             IReadOnlyList<Guid> systemUserId,
-            OrganisationNumber systemUserOrgNr,
-            OrganisationNumber supplierOrgNr,
+            OrganizationNumber systemUserOrgNr,
+            OrganizationNumber supplierOrgNr,
             string systemId,
             int? authenticationLevel,
             string? authenticationMethod,
@@ -556,7 +556,7 @@ public abstract class Authenticated
         /// <returns>Details</returns>
         public async Task<Details> LoadDetails()
         {
-            var party = await _lookupParty(SystemUserOrgNr.Get(OrganisationNumberFormat.Local));
+            var party = await _lookupParty(SystemUserOrgNr.Get(OrganizationNumberFormat.Local));
 
             var canInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(party, _appMetadata.PartyTypesAllowed);
 
@@ -1061,11 +1061,11 @@ public abstract class Authenticated
             throw new AuthenticationContextException(
                 $"Unsupported organization authority in systemuser token: {systemUser.SystemUserOrg.Authority}"
             );
-        if (!OrganisationNumber.TryParse(systemUser.SystemUserOrg.Id, out var orgNr))
+        if (!OrganizationNumber.TryParse(systemUser.SystemUserOrg.Id, out var orgNr))
             throw new AuthenticationContextException(
                 $"Invalid system user organization number in system user token: {systemUser.SystemUserOrg.Id}"
             );
-        if (!OrganisationNumber.TryParse(context.ConsumerClaimValue?.Id, out var supplierOrgNr))
+        if (!OrganizationNumber.TryParse(context.ConsumerClaimValue?.Id, out var supplierOrgNr))
             throw new AuthenticationContextException(
                 $"Invalid organization number in supplier organization number claim for system user token: {context.ConsumerClaimValue?.Id}"
             );

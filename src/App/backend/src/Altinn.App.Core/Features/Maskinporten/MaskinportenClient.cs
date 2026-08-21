@@ -425,9 +425,9 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
 
         // `Uri.EscapeDataString` never emits `|`, so the field boundaries stay unambiguous for arbitrary input.
         // `#` cannot occur in the salt, so an extended key can never collide with a scopes-only one either.
-        var consumerOrg = Escape(request.ConsumerOrg?.Get(OrganisationNumberFormat.Local));
+        var consumerOrg = Escape(request.ConsumerOrg?.Get(OrganizationNumberFormat.Local));
         var resource = Escape(request.Resource);
-        var systemUserOrg = Escape(request.SystemUser?.Organisation.Get(OrganisationNumberFormat.International));
+        var systemUserOrg = Escape(request.SystemUser?.Organization.Get(OrganizationNumberFormat.International));
         var systemUserRef = Escape(request.SystemUser?.ExternalRef);
 
         return $"{salt}#{consumerOrg}|{resource}|{systemUserOrg}|{systemUserRef}|{request.FormattedScopes}";

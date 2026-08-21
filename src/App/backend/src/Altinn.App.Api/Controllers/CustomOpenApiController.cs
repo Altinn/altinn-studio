@@ -334,7 +334,7 @@ public class CustomOpenApiController : Controller
 
                             Any mime type that is not ``"application/json"`` or ``"multipart/form-data"`` with an instance document
                             will require the ``instanceOwnerPartyId`` parameter. Otherwise you must use the simplified instance document to specify instance owner.
-                            Either using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organisationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).
+                            Either using ``instanceOwner.partyId`` or ``instanceOwner.personNumber`` or ``instanceOwner.organizationNumber`` (or ``instanceOwner.username`` see [app-lib-dotnet/#652](https://github.com/Altinn/app-lib-dotnet/issues/652)).
                             """,
                             Content = new Dictionary<string, OpenApiMediaType>
                             {
@@ -1354,7 +1354,7 @@ file static class Snippets
                             Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Pattern = @"^\d{11}$",
                         },
-                        ["organisationNumber"] = new OpenApiSchema()
+                        ["organizationNumber"] = new OpenApiSchema()
                         {
                             Type = JsonSchemaType.String | JsonSchemaType.Null,
                             Pattern = @"^\d{9}$",

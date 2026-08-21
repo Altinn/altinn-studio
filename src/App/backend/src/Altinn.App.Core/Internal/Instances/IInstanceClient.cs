@@ -94,7 +94,7 @@ public interface IInstanceClient
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organization.</param>
-    /// <param name="instanceTemplate">the instance template to create (must have instanceOwner with partyId, personNumber or organisationNumber set)</param>
+    /// <param name="instanceTemplate">the instance template to create (must have instanceOwner with partyId, personNumber or organizationNumber set)</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
     /// <param name="ct">CancellationToken</param>
     /// <returns>The created instance</returns>
@@ -111,7 +111,7 @@ public interface IInstanceClient
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organization.</param>
-    /// <param name="instanceTemplate">the instance template to create (must have instanceOwner with partyId, personNumber or organisationNumber set)</param>
+    /// <param name="instanceTemplate">the instance template to create (must have instanceOwner with partyId, personNumber or organizationNumber set)</param>
     /// <returns>The created instance</returns>
     Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate) =>
         CreateInstance(org, app, instanceTemplate, null, default);

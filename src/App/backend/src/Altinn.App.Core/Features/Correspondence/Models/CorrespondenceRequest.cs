@@ -38,7 +38,7 @@ public sealed record CorrespondenceRequest
     /// <summary>
     /// The recipients of the correspondence. Either Norwegian organization numbers or national identity numbers.
     /// </summary>
-    public required IReadOnlyList<OrganisationOrPersonIdentifier> Recipients { get; init; }
+    public required IReadOnlyList<OrganizationOrPersonIdentifier> Recipients { get; init; }
 
     /// <summary>
     /// An alternative name for the sender of the correspondence. The name will be displayed instead of the organization name.

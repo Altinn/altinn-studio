@@ -3560,17 +3560,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/InstansiationInstance"
+                "$ref": "#/components/schemas/InstantiationInstance"
               }
             }
           }
@@ -3829,7 +3829,7 @@
     "/{org}/{app}/api/v1/lookup/organisation/{orgNr}": {
       "get": {
         "tags": [
-          "LookupOrganisation"
+          "LookupOrganization"
         ],
         "summary": "Allows an organization lookup by orgNr in ER",
         "parameters": [
@@ -3865,7 +3865,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LookupOrganisationResponse"
+                  "$ref": "#/components/schemas/LookupOrganizationResponse"
                 }
               }
             }
@@ -9916,7 +9916,7 @@
         },
         "additionalProperties": false
       },
-      "InstansiationInstance": {
+      "InstantiationInstance": {
         "type": "object",
         "properties": {
           "instanceOwner": {
@@ -10145,7 +10145,7 @@
         },
         "additionalProperties": false
       },
-      "LookupOrganisationResponse": {
+      "LookupOrganizationResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -10153,7 +10153,7 @@
             "description": "Indicates whether a person was found or not."
           },
           "organisationDetails": {
-            "$ref": "#/components/schemas/OrganisationDetails"
+            "$ref": "#/components/schemas/OrganizationDetails"
           }
         },
         "additionalProperties": false,
@@ -10320,27 +10320,6 @@
         },
         "additionalProperties": false
       },
-      "OrganisationDetails": {
-        "required": [
-          "name",
-          "orgNr"
-        ],
-        "type": "object",
-        "properties": {
-          "orgNr": {
-            "type": "string",
-            "description": "The organization number",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "description": "The full name",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Contains details about an organization"
-      },
       "Organization": {
         "type": "object",
         "properties": {
@@ -10406,6 +10385,27 @@
           }
         },
         "additionalProperties": false
+      },
+      "OrganizationDetails": {
+        "required": [
+          "name",
+          "orgNr"
+        ],
+        "type": "object",
+        "properties": {
+          "orgNr": {
+            "type": "string",
+            "description": "The organization number",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Contains details about an organization"
       },
       "Party": {
         "type": "object",
@@ -10598,7 +10598,7 @@
       "PayerCompany": {
         "type": "object",
         "properties": {
-          "organisationNumber": {
+          "organizationNumber": {
             "type": "string",
             "nullable": true
           },
@@ -10749,7 +10749,7 @@
       "PaymentReceiver": {
         "type": "object",
         "properties": {
-          "organisationNumber": {
+          "organizationNumber": {
             "type": "string",
             "nullable": true
           },
@@ -12057,7 +12057,7 @@
       "name": "Instances"
     },
     {
-      "name": "LookupOrganisation"
+      "name": "LookupOrganization"
     },
     {
       "name": "LookupPerson"
