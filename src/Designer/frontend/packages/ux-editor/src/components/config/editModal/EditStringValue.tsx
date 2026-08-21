@@ -48,7 +48,7 @@ export const EditStringValue = ({
   return (
     <FormField
       id={component.id}
-      label={componentPropertyLabel(propertyKey)}
+      label={componentPropertyLabel(propertyKey, definition)}
       value={component[propertyKey]}
       onChange={handleValueChange}
       customRequired={definition?.required}

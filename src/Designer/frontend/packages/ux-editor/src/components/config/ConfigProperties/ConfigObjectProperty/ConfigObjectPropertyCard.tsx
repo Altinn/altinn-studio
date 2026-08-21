@@ -54,15 +54,17 @@ export const ConfigObjectPropertyCard = ({
   return (
     <StudioConfigCard>
       <StudioConfigCard.Header
-        cardLabel={componentPropertyLabel(objectPropertyKey)}
+        cardLabel={componentPropertyLabel(objectPropertyKey, properties[objectPropertyKey])}
         deleteAriaLabel={t('general.delete')}
         onDelete={() => handleDeleteProperty(objectPropertyKey)}
         confirmDeleteMessage={t('general.confirm.delete')}
         isDeleteDisabled={!hasObjectValues}
       />
       <StudioConfigCard.Body>
-        {componentPropertyDescription(objectPropertyKey) && (
-          <StudioParagraph>{componentPropertyDescription(objectPropertyKey)}</StudioParagraph>
+        {componentPropertyDescription(objectPropertyKey, properties[objectPropertyKey]) && (
+          <StudioParagraph>
+            {componentPropertyDescription(objectPropertyKey, properties[objectPropertyKey])}
+          </StudioParagraph>
         )}
         <FormComponentConfig
           properties={

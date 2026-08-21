@@ -30,7 +30,7 @@ export const ConfigObjectProperty = ({
         className={className}
         icon={!component[objectPropertyKey] && <PlusCircleIcon />}
         onClick={() => setOpenObjectCard(true)}
-        property={componentPropertyLabel(objectPropertyKey)}
+        property={componentPropertyLabel(objectPropertyKey, properties[objectPropertyKey])}
         value={translatedKeyValue}
       />
     );

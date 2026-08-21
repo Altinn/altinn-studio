@@ -5,6 +5,7 @@ import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import {
   AccordionIcon,
   CalendarIcon,
+  CardIcon,
   CheckboxIcon,
   ChevronDownDoubleIcon,
   ClipboardIcon,
@@ -29,10 +30,12 @@ import {
   RepeatingGroupIcon,
   SelectIcon,
   ShortTextIcon,
+  SpeakerIcon,
   TableIcon,
   TasklistIcon,
   TextIcon,
   TitleIcon,
+  VideoIcon,
   WalletIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
@@ -446,13 +449,13 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Audio]: {
     name: ComponentType.Audio,
-    defaultProperties: {},
-    icon: PresentationIcon,
+    defaultProperties: { audio: { src: {} } },
+    icon: SpeakerIcon,
   },
   [ComponentType.Cards]: {
     name: ComponentType.Cards,
     defaultProperties: { color: 'neutral', cards: [] },
-    icon: PresentationIcon,
+    icon: CardIcon,
   },
   [ComponentType.Date]: {
     name: ComponentType.Date,
@@ -506,8 +509,8 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Video]: {
     name: ComponentType.Video,
-    defaultProperties: {},
-    icon: PresentationIcon,
+    defaultProperties: { video: { src: {} } },
+    icon: VideoIcon,
   },
   [ComponentType.Divider]: {
     name: ComponentType.Divider,
@@ -555,6 +558,9 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.SigneeList],
   formItemConfigs[ComponentType.SigningActions],
   formItemConfigs[ComponentType.SigningDocumentList],
+  formItemConfigs[ComponentType.Audio],
+  formItemConfigs[ComponentType.Video],
+  formItemConfigs[ComponentType.Cards],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -596,9 +602,6 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Date],
   formItemConfigs[ComponentType.Number],
   formItemConfigs[ComponentType.Option],
-  formItemConfigs[ComponentType.Audio],
-  formItemConfigs[ComponentType.Video],
-  formItemConfigs[ComponentType.Cards],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [

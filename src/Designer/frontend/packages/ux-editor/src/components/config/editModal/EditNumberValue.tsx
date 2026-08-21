@@ -48,7 +48,7 @@ export const EditNumberValue = <T extends ComponentType>({
   return (
     <FormField
       id={component.id}
-      label={componentPropertyLabel(String(propertyKey))}
+      label={componentPropertyLabel(String(propertyKey), definition)}
       value={component[propertyKey as keyof FormItem<T>] as number | undefined}
       onChange={handleValueChange}
       customRequired={definition?.required}

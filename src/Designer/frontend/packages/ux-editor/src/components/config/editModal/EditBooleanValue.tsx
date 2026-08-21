@@ -56,7 +56,7 @@ export const EditBooleanValue = ({
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             id={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(fieldProps.value)}
-            label={componentPropertyLabel(propertyKey)}
+            label={componentPropertyLabel(propertyKey, definition)}
           />
         );
       }}

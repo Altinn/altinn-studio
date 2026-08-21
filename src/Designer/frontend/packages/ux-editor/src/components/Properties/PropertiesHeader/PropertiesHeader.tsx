@@ -1,7 +1,10 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { getComponentHelperTextByComponentType } from '../../../utils/language';
+import {
+  getComponentHelperTextByComponentType,
+  getTitleByComponentType,
+} from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
@@ -46,7 +49,7 @@ export const PropertiesHeader = ({
     <>
       <ConfigPanelHeader
         icon={<Icon />}
-        title={t(`ux_editor.component_title.${formItem.type}`)}
+        title={getTitleByComponentType(formItem.type, t)}
         helpText={{
           text: getComponentHelperTextByComponentType(formItem.type, t),
           title: t('ux_editor.component_help_text_general_title'),
