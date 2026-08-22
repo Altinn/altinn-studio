@@ -118,7 +118,12 @@ def _load_attachments(item: dict, assets_dir: Path) -> list[dict]:
 
 
 def _start_agent(
-    base_url: str, session_id: str, goal: str, attachments: list[dict], branch: str | None = None
+    base_url: str,
+    session_id: str,
+    goal: str,
+    attachments: list[dict],
+    branch: str | None = None,
+    experiment: dict | None = None,
 ) -> None:
     repo_url = _bench_repo_url()
     payload = {
@@ -129,6 +134,8 @@ def _start_agent(
         "allow_app_changes": True,
         "attachments": attachments,
     }
+    if experiment:
+        payload["experiment"] = experiment
     if branch:
         payload["branch"] = branch
     response = httpx.post(
@@ -256,6 +263,22 @@ def _after_fix_scores(
 
 
 
+def _experiment_context(args, dataset_id: str, item_id: str) -> dict:
+    """The agent stamps this on its trace, so it is passed at start."""
+    return {
+        "experimentId": _experiment_id(args.run_name, dataset_id),
+        "experimentName": args.run_name,
+        "datasetId": dataset_id,
+        "itemId": item_id,
+        "description": args.run_description or None,
+    }
+
+
+def _experiment_id(run_name: str, dataset_id: str) -> str:
+    """Stable across the items of one run, distinct between runs."""
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"langfuse-experiment/{dataset_id}/{run_name}"))
+
+
 def cmd_ensure_configs(_: argparse.Namespace) -> None:
     lf = LangfuseApi()
     existing = lf.score_configs_by_name()
@@ -308,7 +331,13 @@ def cmd_run(args: argparse.Namespace) -> None:
         started_at = datetime.now(timezone.utc).isoformat()
         print(f"item {item['id']}: session {session_id}")
 
-        _start_agent(agent_base, session_id, goal, _load_attachments(item, assets_dir))
+        _start_agent(
+            agent_base,
+            session_id,
+            goal,
+            _load_attachments(item, assets_dir),
+            experiment=_experiment_context(args, item["datasetId"], item["id"]),
+        )
         status = _await_workflow(agent_base, session_id)
         completed = status.get("status") == "done" and bool(status.get("success", False))
         print(f"  workflow finished: {status.get('status')} success={status.get('success')}")
@@ -361,13 +390,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             )
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
 
-        lf.create_dataset_run_item(
-            run_name=args.run_name,
-            dataset_item_id=item["id"],
-            trace_id=trace_id,
-            run_description=args.run_description,
-        )
-        print(f"  linked trace {trace_id} into run {args.run_name!r}")
+        print(f"  trace {trace_id} is item {item['id']} of run {args.run_name!r}")
 
 
 def main() -> None:
