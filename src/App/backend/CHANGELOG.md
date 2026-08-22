@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- New build-time check `ALTINNAPP0800`: your app's `config/authorization/policy.xml` must permit the app owner (your org) the rights the app uses on its own behalf. The app persists process transitions and instance data to Storage as the service owner, so a policy that only grants the end user leaves the process unable to advance — which used to surface as an unexplained authorization failure the first time someone submitted. The build now fails instead, naming the missing action(s) and why they are needed: `read` and `write` always, `complete` for apps with an eFormidling or fiks arkiv task, `delete` when `autoDeleteOnProcessEnd` is set, `confirm` for confirmation tasks, `reject` for tasks that can be rejected, and the task type's own name for custom task types. Payment and signing tasks need nothing beyond `write`. Running `studioctl app upgrade` adds the missing rule for you. Where the policy cannot be evaluated with certainty — it contains `Deny` rules or conditions, or grants a right only for a single task — you get the warning `ALTINNAPP0801` asking you to check by hand rather than a failed build.
+
 ### Changed
 
 - Breaking: `IDataClient.GetBinaryData` now throws `PlatformHttpException` when the data element does not exist, instead of returning `null` from a method whose signature says it never does. Its sibling `GetBinaryDataStream` already behaved this way. If your app relied on the `null` to detect a missing data element, catch `PlatformHttpException` and check for `HttpStatusCode.NotFound` instead. Code that did not check for `null` — the common case — now gets a clear error naming the failed request rather than a `NullReferenceException` further along.
