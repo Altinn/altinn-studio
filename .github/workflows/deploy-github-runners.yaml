@@ -123,6 +123,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --build-arg "GO_VERSION=${GO_VERSION}" \
             --build-arg "RUST_VERSION=${RUST_VERSION}" \
             --build-arg "CYPRESS_VERSION=${CYPRESS_VERSION}" \
@@ -153,6 +154,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --cache-from "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache" \
             --cache-to "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file src/ci/github-runner/Dockerfile.coordinator \
@@ -239,6 +241,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-prepared-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --build-arg "COORDINATOR_IMAGE=${COORDINATOR_REPOSITORY}@${COORDINATOR_DIGEST}" \
             --file Dockerfile.prepared-image \
             --metadata-file "${METADATA_FILE}" \

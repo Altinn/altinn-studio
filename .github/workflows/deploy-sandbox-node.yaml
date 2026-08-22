@@ -86,6 +86,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/sandbox-node-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
             --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file Dockerfile \
@@ -110,6 +111,7 @@ jobs:
         run: |
           METADATA_FILE="${RUNNER_TEMP}/sandbox-node-init-build.json"
           docker buildx build \
+            --provenance=false --sbom=false \
             --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
             --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file Dockerfile.init \
