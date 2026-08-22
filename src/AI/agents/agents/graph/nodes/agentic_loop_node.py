@@ -576,7 +576,7 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
     Without these two, the frontend renders empty bubbles and never
     triggers its post-workflow logic (e.g. checkout the session branch).
     """
-    summary = _final_summary_text(result)
+    summary, security_notice = _extract_security_notice(_final_summary_text(result))
     message_data = {
         "author": "assistant",
         "content": summary,
@@ -586,6 +586,15 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
         # self-reported by the model.
         "sources": ctx.extras.get("sources", []),
     }
+    if security_notice:
+        # Only the flag crosses into Designer; attacker-influenced prose is
+        # never rendered to the user.
+        message_data["hasSecurityNotice"] = True
+        log.warning(
+            "Prompt injection reported by the model for session %s: %s",
+            state.session_id,
+            security_notice,
+        )
     if not state.allow_app_changes:
         # Read-only run: the frontend must not reset the repo or check out
         # a session branch — nothing was (or could have been) committed.
@@ -600,7 +609,12 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
     # Also store in conversation history so follow-up turns have context;
     # without it the chat assistant loses the thread between workflow runs.
     try:
-        sink.add_to_conversation_history(state.session_id, "assistant", summary)
+        # A fixed marker, never the notice itself: replaying attacker text as
+        # assistant history would reintroduce it undelimited on the next turn.
+        history_text = (
+            f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_MARKER}]" if security_notice else summary
+        )
+        sink.add_to_conversation_history(state.session_id, "assistant", history_text)
     except Exception:
         log.exception("Failed to store assistant message in conversation history")
 
@@ -617,6 +631,30 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
 
 
 _SOURCES_LINE_RE = re.compile(r"\n+SOURCES:[^\n]*\s*$", re.IGNORECASE)
+
+_SECURITY_NOTICE_RE = re.compile(
+    r"^[ \t]*(?:[*_`>\-]*\s*)?SECURITY_NOTICE[*_`]*\s*:\s*(.+?)[ \t]*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+MAX_SECURITY_NOTICE_LENGTH = 500
+SECURITY_NOTICE_HISTORY_MARKER = (
+    "Et vedlegg forsøkte å gi instruksjoner til assistenten. Instruksjonene ble ikke fulgt."
+)
+
+
+def _extract_security_notice(text: str) -> tuple[str, str | None]:
+    """Split a SECURITY_NOTICE line off the summary; it renders as an alert.
+
+    Only the first is kept: repeats are more likely quoted from the document
+    than a second report.
+    """
+    matches = _SECURITY_NOTICE_RE.findall(text)
+    if not matches:
+        return text, None
+    notice = " ".join(matches[0].split())[:MAX_SECURITY_NOTICE_LENGTH]
+    cleaned = _SECURITY_NOTICE_RE.sub("", text)
+    return cleaned.strip(), notice or None
 
 
 def _strip_sources_line(text: str) -> str:

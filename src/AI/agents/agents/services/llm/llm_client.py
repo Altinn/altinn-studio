@@ -14,6 +14,12 @@ from openai import AzureOpenAI as AzureResponsesClient, OpenAI as OpenAIResponse
 from langchain_core.messages import SystemMessage, HumanMessage
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
+from shared.utils.spotlight import (
+    ATTACHMENT_TAG,
+    close_delimiter,
+    defang_delimiter,
+    open_delimiter,
+)
 from shared.models import AgentAttachment
 from agents.prompts import get_prompt_content, get_prompt_with_langfuse
 
@@ -45,6 +51,17 @@ def _is_reasoning_model(model_name: Optional[str]) -> bool:
         or m.startswith("gpt-5")
     )
 
+def _defang_text_blocks(blocks: List[dict]) -> List[dict]:
+    """Attachment blocks that fall back to text carry the filename, which the
+    uploader chose. Stop it closing the block it sits inside."""
+    return [
+        {**block, "text": defang_delimiter(block["text"], ATTACHMENT_TAG)}
+        if block.get("type") == "text" and isinstance(block.get("text"), str)
+        else block
+        for block in blocks
+    ]
+
+
 def _build_anthropic_user_content(
     user_prompt: str,
     attachments: Optional[List[AgentAttachment]],
@@ -55,14 +72,17 @@ def _build_anthropic_user_content(
     accepts both shapes, and the string form keeps the trace input
     readable.  When attachments are present, returns a list of content
     blocks: text first, then each attachment converted via
-    `to_anthropic_blocks` (image/document/text fallback).
+    `to_anthropic_blocks` (image/document/text fallback), spotlighted as
+    untrusted data.
     """
     stripped = user_prompt.strip() if user_prompt else ""
     if not attachments:
         return stripped
     blocks: List[dict] = [{"type": "text", "text": stripped}] if stripped else []
+    blocks.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
     for attachment in attachments:
-        blocks.extend(attachment.to_anthropic_blocks())
+        blocks.extend(_defang_text_blocks(attachment.to_anthropic_blocks()))
+    blocks.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
     return blocks
 
 
@@ -347,9 +367,10 @@ class LLMClient:
             )
         if attachments:
             content = [{"type": "text", "text": user_prompt}]
+            content.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
             for attachment in attachments:
-                blocks = attachment.to_content_blocks()
-                content.extend(blocks)
+                content.extend(_defang_text_blocks(attachment.to_content_blocks()))
+            content.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
             return HumanMessage(content=content)
         return HumanMessage(content=user_prompt)
 
@@ -584,6 +605,11 @@ class LLMClient:
                     )
                     log.info(f"   Model: {self.model}, Max tokens: {self.max_tokens}")
                     log.info("   Client timeout: 600s (10 min)")
+                    if isinstance(user_content, list):
+                        log.info(
+                            "   Content blocks: %s",
+                            ", ".join(block["type"] for block in user_content),
+                        )
 
                     call_start = time.time()
                     try:

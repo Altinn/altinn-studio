@@ -50,4 +50,9 @@ public class ChatMessageDbModel
     /// Sources referenced by the assistant, serialized as JSON.
     /// </summary>
     public string? Sources { get; set; }
+
+    /// <summary>
+    /// Set when the assistant reported that an uploaded document tried to instruct it.
+    /// </summary>
+    public bool? HasSecurityNotice { get; set; }
 }

@@ -58,6 +58,10 @@ export const useAssistantTexts = (): AssistantTexts => {
       heading: t('ai_assistant.critical_file_alert_heading'),
       description: t('ai_assistant.critical_file_alert_description'),
     },
+    securityNoticeAlert: {
+      heading: t('ai_assistant.security_notice_alert_heading'),
+      description: t('ai_assistant.security_notice_alert_description'),
+    },
     permissionPrompt: {
       heading: t('ai_assistant.permission_prompt_heading'),
       allow: t('ai_assistant.permission_prompt_allow'),

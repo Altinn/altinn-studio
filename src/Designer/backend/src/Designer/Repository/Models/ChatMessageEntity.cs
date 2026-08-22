@@ -50,4 +50,9 @@ public class ChatMessageEntity
     /// Sources referenced by the assistant.
     /// </summary>
     public List<ChatSourceEntity>? Sources { get; set; }
+
+    /// <summary>
+    /// Set when the assistant reported that an uploaded document tried to instruct it.
+    /// </summary>
+    public bool? HasSecurityNotice { get; set; }
 }

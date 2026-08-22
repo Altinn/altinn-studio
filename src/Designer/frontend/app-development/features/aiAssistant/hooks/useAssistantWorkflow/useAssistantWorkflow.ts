@@ -203,6 +203,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         createdAt: messageTimestamp.toISOString(),
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
+        hasSecurityNotice: assistantMessage.hasSecurityNotice,
       };
       const persisted = await createMessage(threadId, finalAssistantMessage);
 

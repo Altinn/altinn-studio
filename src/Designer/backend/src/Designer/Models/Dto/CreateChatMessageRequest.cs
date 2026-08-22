@@ -10,5 +10,6 @@ public record CreateChatMessageRequest(
     bool? AllowAppChanges,
     List<string>? AttachmentFileNames,
     List<string>? FilesChanged,
-    List<ChatSourceEntity>? Sources
+    List<ChatSourceEntity>? Sources,
+    bool? HasSecurityNotice = null
 );
