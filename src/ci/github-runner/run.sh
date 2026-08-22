@@ -170,7 +170,7 @@ fi
 dockerd_args=(
   --host="${DOCKER_HOST}"
   --ip6tables=false
-  --storage-driver=overlay2
+  --feature containerd-snapshotter=true
 )
 if [[ -n "${DOCKER_REGISTRY_MIRROR}" ]]; then
   dockerd_args+=(--registry-mirror="${DOCKER_REGISTRY_MIRROR}")
@@ -180,12 +180,14 @@ dockerd "${dockerd_args[@]}" &
 dockerd_pid="$!"
 wait_for_docker
 
+# With the containerd-snapshotter feature enabled, `docker info` reports the
+# snapshotter name (overlayfs) rather than the classic overlay2 graph driver.
 docker_driver="$(docker info --format '{{.Driver}}')"
-if [[ "${docker_driver}" != "overlay2" ]]; then
-  log "Docker storage driver is ${docker_driver}, expected overlay2"
+if [[ "${docker_driver}" != "overlayfs" ]]; then
+  log "Docker storage driver is ${docker_driver}, expected overlayfs"
   exit 1
 fi
-log "Docker is ready with overlay2"
+log "Docker is ready with overlayfs (containerd snapshotter)"
 
 export ACTIONS_RUNNER_INPUT_TOKEN="${RUNNER_REGISTRATION_TOKEN}"
 unset RUNNER_REGISTRATION_TOKEN
