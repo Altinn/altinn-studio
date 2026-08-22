@@ -77,6 +77,9 @@ jobs:
         # warmed where its consumers run (releaser runs in both).
         include:
           - { module: src/cli, runner: self-hosted-ubuntu }
+          # Fork PRs fall back to ubuntu-latest (e.g. cypress build-studioctl)
+          # and can restore main-scoped caches.
+          - { module: src/cli, runner: ubuntu-latest }
           - { module: src/cli, runner: macos-latest }
           - { module: src/cli, runner: windows-latest }
           - { module: src/tools/releaser, runner: self-hosted-ubuntu }
