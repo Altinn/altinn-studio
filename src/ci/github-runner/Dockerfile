@@ -127,7 +127,7 @@ RUN apt-get update \
     && echo "${RUSTUP_INIT_SHA256}  /tmp/rustup-init" | sha256sum -c - \
     && chmod +x /tmp/rustup-init \
     && CARGO_HOME=/home/runner/.cargo RUSTUP_HOME=/home/runner/.rustup \
-      /tmp/rustup-init --yes --no-modify-path --profile minimal \
+      /tmp/rustup-init -y --no-modify-path --profile minimal \
         --default-toolchain "${RUST_VERSION}" --component clippy,rustfmt \
     && rm -f /tmp/rustup-init \
     && curl -fsSL "https://raw.githubusercontent.com/dotnet/install-scripts/${DOTNET_INSTALL_SCRIPT_COMMIT}/src/dotnet-install.sh" -o /tmp/dotnet-install.sh \

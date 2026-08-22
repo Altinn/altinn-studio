@@ -18,10 +18,6 @@ permissions:
   id-token: write
   contents: read
 
-concurrency:
-  group: deploy-github-runners
-  cancel-in-progress: false
-
 jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
