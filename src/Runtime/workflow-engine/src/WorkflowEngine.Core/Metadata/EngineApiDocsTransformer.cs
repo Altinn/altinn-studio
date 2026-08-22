@@ -40,6 +40,10 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["NudgeWorkflow"] = "nudge",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
+        ["MintMailbox"] = "mint-mailbox",
+        ["GetMailbox"] = "get-mailbox",
+        ["CloseMailbox"] = "close-mailbox",
+        ["DeliverToMailbox"] = "deliver-to-mailbox",
     };
 
     private static readonly Dictionary<string, string> _listWorkflowParamDescriptions = new()

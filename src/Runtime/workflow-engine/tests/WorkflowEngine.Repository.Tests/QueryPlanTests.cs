@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
@@ -211,6 +212,115 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await VerifyJson(plan.GetRawText());
     }
 
+    [Fact]
+    public async Task SelectOverdueMailboxCandidates_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectOverdueMailboxCandidatesSql,
+            [new NpgsqlParameter<DateTimeOffset>("now", _now), new NpgsqlParameter<int>("batch_size", 100)],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_deadline_open");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task SelectExpiredMailboxCandidates_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            DbMaintenanceService.Sql.SelectExpiredMailboxCandidatesCommand,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddDays(-60)),
+                new NpgsqlParameter<int>("batchSize", 1000),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailboxes");
+        QueryPlanHelper.AssertUsesIndexScan(plan, "mailboxes", "ix_mailboxes_disposed_at");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task SelectMailboxesForCollections_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.SelectMailboxesForCollectionsSql,
+            [
+                new NpgsqlParameter<string[]>("collection_keys", ["seed-collection-3", "seed-collection-7"]),
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<int>("per_collection", 11),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_deliveries");
+        QueryPlanHelper.AssertNoSeqScan(plan, "mailbox_receivers");
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task MintMailbox_CountsACollectionsOpenMailboxesThroughTheSharedIndex()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.MintMailboxSql,
+            [
+                new NpgsqlParameter<Guid>("id", Guid.CreateVersion7()),
+                new NpgsqlParameter<string>("ns", "test-ns"),
+                new NpgsqlParameter<string>("key", "plan-probe"),
+                new NpgsqlParameter<string>("collection_key", "seed-collection-3"),
+                new NpgsqlParameter<TimeSpan>("timeout", TimeSpan.FromHours(1)),
+                new NpgsqlParameter<DateTimeOffset>("deadline", _now.AddHours(1)),
+                new NpgsqlParameter<DateTimeOffset>("now", _now),
+                new NpgsqlParameter<int>("cap", 100),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_namespace_collection_key");
+        QueryPlanHelper.AssertHasScanType(plan, "mailboxes", "Index Only Scan");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task CountOverdueOpenMailboxes_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            EngineRepository.CountOverdueOpenMailboxesSql,
+            [
+                new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddMinutes(-5)),
+                new NpgsqlParameter<int>("limit", 10_000),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertUsesIndex(plan, "mailboxes", "ix_mailboxes_deadline_open");
+        await VerifyJson(plan.GetRawText());
+    }
+
     // --- Seed data ---
 
     /// <summary>
@@ -349,9 +459,81 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
+        // Seeded past the size where the planner stops caring, in the sweep's own regime (far more qualifying
+        // rows than one LIMIT takes):
+        //   g % 4 == 0 → open     (of those, g % 8 == 0 → deadline already passed)
+        //   g odd      → disposed, disposed_at well past the retention cutoff
+        //   g % 4 == 2 → disposed, disposed_at recent
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailboxes
+                    (id, namespace, idempotency_key, collection_key, timeout, deadline,
+                     next_idx, next_seq, status, disposed_reason, created_at, disposed_at)
+                SELECT
+                    gen_random_uuid(),
+                    'test-ns',
+                    'seed-mailbox-' || g,
+                    'seed-collection-' || (g % 50),
+                    INTERVAL '1 hour',
+                    CASE WHEN g % 8 = 0
+                         THEN @baseTime - (INTERVAL '1 minute' * ((g % 4000) + 1))
+                         ELSE @baseTime + (INTERVAL '1 hour' * ((g % 24) + 1))
+                    END,
+                    0,
+                    0,
+                    CASE WHEN g % 4 = 0 THEN 'open' ELSE 'disposed' END,
+                    CASE WHEN g % 4 = 0 THEN NULL ELSE 'request' END,
+                    @baseTime - (INTERVAL '1 minute' * g),
+                    CASE
+                        WHEN g % 4 = 0 THEN NULL
+                        WHEN g % 2 = 1 THEN @baseTime - INTERVAL '90 days' - (INTERVAL '1 minute' * g)
+                        ELSE @baseTime - (INTERVAL '1 hour' * (g % 24))
+                    END
+                FROM generate_series(0, @mailboxes - 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("mailboxes", 40000);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        // Child tables populated in the design's own proportion: empty or tiny tables tip the planner into
+        // plans production never runs.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                SELECT m.id, g, 'seed-msg-' || m.id || '-' || g, '{}', @baseTime
+                FROM engine.mailboxes m, generate_series(0, 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at, claimed_at)
+                SELECT m.id, g, gen_random_uuid(), @baseTime, @baseTime, @baseTime
+                FROM engine.mailboxes m, generate_series(0, 1) AS g
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
         // Refresh planner statistics
         await using var analyzeCmd = dataSource.CreateCommand(
-            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
+            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys, "
+                + "engine.mailboxes, engine.mailbox_deliveries, engine.mailbox_receivers"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
     }

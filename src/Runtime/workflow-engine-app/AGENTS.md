@@ -33,6 +33,7 @@ The Altinn-specific command that calls back into Altinn apps via HTTP POST.
 - **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid, callbackToken }`. `callbackToken` is opaque to the engine and replayed on every callback in the `Authorization: Bearer` header for authentication.
 - **Endpoint**: Templated URL expanded from context, e.g. `http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks`
 - **State passing**: Reads `{ "state": "..." }` from response body, passes forward to next step
+- **Mailbox rendezvous**: On a receive workflow's first step the callback carries a `mailbox` block — `{ id, seq, delivery?, disposedReason? }` — projected verbatim from what the engine's executor read. `delivery` and `disposedReason` are exclusive: exactly one is present, and an absent `delivery` means the mailbox is closed and no message will ever reach this step. `null` on every other callback.
 - **Validation**: All context fields validated at enqueue time — invalid requests never enter the queue
 - **Error classification**: 4xx (except 408/418/429) → critical, 5xx/408/418/429 → retryable
 

@@ -77,6 +77,12 @@ internal sealed class ProcessNextRequestFactory
     /// </summary>
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 
+    /// <summary>
+    /// OperationId prefix for a receive workflow — a naming convention for ops and logs; nothing identifies a
+    /// receiver by it.
+    /// </summary>
+    internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
+
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
@@ -198,6 +204,29 @@ internal sealed class ProcessNextRequestFactory
         }
         mainSteps.AddRange(commands.CriticalPostCommit);
 
+        // A message-answered task concludes on its receive workflows, so Main ends by enqueueing the first
+        // receiver — appended after every critical post-commit step so the receiver joins the frontier while
+        // Main is still unsettled.
+        if (commands.MailboxReceive is { } receiveStep)
+        {
+            var receiveEnqueueRequest = new WorkflowEnqueueRequest
+            {
+                Labels = labels,
+                Workflows =
+                [
+                    new WorkflowRequest
+                    {
+                        OperationId = $"{MailboxReceiveOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                        Steps = [receiveStep],
+                        // A head that depends on no head: visible to the frontier, gated by nothing but the rendezvous.
+                        IsHead = true,
+                        DependsOnHeads = false,
+                    },
+                ],
+            };
+            mainSteps.Add(CreateEnqueueReceiveWorkflowCommand(receiveEnqueueRequest));
+        }
+
         var request = new WorkflowEnqueueRequest
         {
             Labels = labels,
@@ -252,14 +281,16 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// The assembled step lists for one transition: the Main workflow's sequence through the
-    /// SaveProcessStateToStorage commit, the critical post-commit commands that follow it, and the
+    /// SaveProcessStateToStorage commit, the critical post-commit commands that follow it, the
     /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued at
-    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>).
+    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>), and — when the transition
+    /// enters a service task that opens a mailbox — the step its receive workflows run.
     /// </summary>
     private readonly record struct AssembledCommands(
         List<StepRequest> ThroughCommit,
         List<StepRequest> CriticalPostCommit,
-        List<StepRequest> SideEffects
+        List<StepRequest> SideEffects,
+        StepRequest? MailboxReceive
     );
 
     private async Task<AssembledCommands> AssembleCommandSequence(
@@ -273,6 +304,7 @@ internal sealed class ProcessNextRequestFactory
         var taskStartSteps = new List<StepRequest>();
         var criticalPostCommitSteps = new List<StepRequest>();
         var sideEffectSteps = new List<StepRequest>();
+        StepRequest? mailboxReceiveStep = null;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
 
@@ -329,6 +361,17 @@ internal sealed class ProcessNextRequestFactory
                         serviceTaskType
                     )
                 );
+
+                if (workflowCommands.MailboxReceiveStep is { } receiveStep)
+                {
+                    // The receive step is the pipeline's conclusion and resolves its options as a concluding Main step
+                    // would.
+                    mailboxReceiveStep = receiveStep.ApplyStepOptions(
+                        _stepOptionsResolver,
+                        eventTaskId,
+                        serviceTaskType
+                    );
+                }
             }
         }
 
@@ -341,7 +384,7 @@ internal sealed class ProcessNextRequestFactory
         commands.AddRange(taskStartSteps);
         commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
 
-        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps);
+        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, mailboxReceiveStep);
     }
 
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
@@ -360,11 +403,13 @@ internal sealed class ProcessNextRequestFactory
             case InstanceEventType.process_StartTask:
             {
                 string? serviceTaskType = GetServiceTaskType(altinnTaskType);
+                ServiceTaskPipeline? pipeline = ResolveServiceTaskPipeline(serviceTaskType);
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
                         ServiceTaskType = serviceTaskType,
-                        ServiceTaskStageNames = GetServiceTaskStageNames(serviceTaskType),
+                        ServiceTaskStageNames = pipeline?.Stages.Select(s => s.Name).ToList(),
+                        ServiceTaskMailbox = pipeline?.Mailbox,
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -405,22 +450,13 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The ordered names of the service task's pipeline stages — empty for most tasks, whose
-    /// pipeline is just the conclusion. Enumerated at enqueue time: this is the moment the
-    /// pipeline's shape is fixed for the workflow's lifetime (callback dispatch is by these
-    /// names).
+    /// The service task's composed pipeline, or null when this is not a service task (or names a type
+    /// no implementation is registered for). Read at enqueue time: this is the moment the pipeline's
+    /// shape is fixed for the workflow's lifetime — callback dispatch is by stage name, and whether the
+    /// transition ends with a concluding step or with a receive workflow is decided here.
     /// </summary>
-    private IReadOnlyList<string>? GetServiceTaskStageNames(string? serviceTaskType)
-    {
-        if (serviceTaskType is null)
-            return null;
-
-        return _appImplementationFactory
-            .FindServiceTask(serviceTaskType)
-            ?.ResolvePipeline()
-            .Stages.Select(s => s.Name)
-            .ToList();
-    }
+    private ServiceTaskPipeline? ResolveServiceTaskPipeline(string? serviceTaskType) =>
+        serviceTaskType is null ? null : _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline();
 
     private async Task<Actor> ExtractActor()
     {
@@ -490,6 +526,21 @@ internal sealed class ProcessNextRequestFactory
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
+            ),
+        };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
+    }
+
+    private StepRequest CreateEnqueueReceiveWorkflowCommand(WorkflowEnqueueRequest receiveEnqueueRequest)
+    {
+        var payload = new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest);
+        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
+        var step = new StepRequest
+        {
+            OperationId = EnqueueReceiveWorkflow.Key,
+            Command = CommandDefinition.Create(
+                "app",
+                new AppCommandData { CommandKey = EnqueueReceiveWorkflow.Key, Payload = serializedPayload }
             ),
         };
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);

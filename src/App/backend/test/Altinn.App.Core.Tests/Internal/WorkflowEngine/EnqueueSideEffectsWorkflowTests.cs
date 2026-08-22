@@ -43,6 +43,7 @@ public class EnqueueSideEffectsWorkflowTests
     private static ProcessEngineCommandContext CreateContext() =>
         new()
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = _instanceId,
             InstanceDataMutator = null!,

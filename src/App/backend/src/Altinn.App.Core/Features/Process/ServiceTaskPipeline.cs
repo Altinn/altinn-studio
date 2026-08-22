@@ -1,22 +1,29 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// A service task's composed pipeline: the ordered durable stages and the concluding step. Built
-/// via <see cref="ServiceTaskPipelineBuilder"/> and returned from
+/// A service task's composed pipeline: the ordered durable stages, the concluding step, and — when
+/// one is declared — the mailbox a stage opens to be answered on. Built via
+/// <see cref="ServiceTaskPipelineBuilder"/> and returned from
 /// <see cref="IPipelineServiceTask.Define"/>; the runtime reads it to expand, dispatch and
 /// validate the task — apps only compose and return it.
 /// </summary>
 public sealed class ServiceTaskPipeline
 {
+    private readonly ServiceTaskPipelineBuilder _origin;
+
     internal ServiceTaskPipeline(
         IReadOnlyList<ServiceTaskStage> stages,
         Func<ServiceTaskContext, Task<ServiceTaskResult>> final,
-        ProcessStepOptions? finalStepOptions
+        ProcessStepOptions? finalStepOptions,
+        ServiceTaskMailboxDeclaration? mailbox,
+        ServiceTaskPipelineBuilder origin
     )
     {
         Stages = stages;
         Final = final;
         FinalStepOptions = finalStepOptions;
+        Mailbox = mailbox;
+        _origin = origin;
     }
 
     /// <summary>The durable stages, in execution order. Empty for a simple service task.</summary>
@@ -33,6 +40,66 @@ public sealed class ServiceTaskPipeline
     internal ProcessStepOptions? FinalStepOptions { get; }
 
     /// <summary>
+    /// The mailbox declared by <see cref="WithReplyFrom"/>, or <c>null</c> for a pipeline that opens none.
+    /// </summary>
+    internal ServiceTaskMailboxDeclaration? Mailbox { get; }
+
+    /// <summary>
+    /// Declares that the named stage opens a <strong>mailbox</strong>: a durable inbox whose id the stage reads
+    /// from <see cref="ServiceTaskContext.Mailbox"/> and publishes as its reply address. Every message that
+    /// comes back is handed to the pipeline's conclusion, one per execution, until
+    /// <see cref="MailboxOptions.Timeout"/> runs out. At most one mailbox per pipeline.
+    /// </summary>
+    /// <remarks>
+    /// <strong>Use the value this returns</strong> — the declaration is not recorded on the pipeline it is
+    /// called on, so <c>return pipeline.Stage(…).Finally(…).WithReplyFrom(…);</c> is the shape that works.
+    /// Discarding the result is caught at resolution rather than silently dropping the mailbox.
+    /// </remarks>
+    /// <param name="stageName">The stage that opens the mailbox — the stage that sends.</param>
+    /// <param name="options">How long the mailbox accepts messages.</param>
+    /// <returns>A pipeline that is this one plus the declaration.</returns>
+    /// <exception cref="ArgumentException">No stage of this pipeline has that name.</exception>
+    /// <exception cref="InvalidOperationException">This pipeline already declares a mailbox.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <see cref="MailboxOptions.Timeout"/> is not positive.
+    /// </exception>
+    public ServiceTaskPipeline WithReplyFrom(string stageName, MailboxOptions options)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(stageName);
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+
+        if (Mailbox is { } declared)
+        {
+            throw new InvalidOperationException(
+                $"This pipeline already opens a mailbox from stage '{declared.StageName}'. A task declares at "
+                    + "most one mailbox — one exchange, one address, one conclusion."
+            );
+        }
+
+        if (FindStage(stageName) is null)
+        {
+            string composed = Stages.Count == 0 ? "none" : string.Join(", ", Stages.Select(s => $"'{s.Name}'"));
+            throw new ArgumentException(
+                $"No stage named '{stageName}' is composed in this pipeline, so it cannot open the mailbox. Only a "
+                    + $"stage can: it is what sends the message the answer replies to. Stages composed: {composed}.",
+                nameof(stageName)
+            );
+        }
+
+        // Recorded on the per-call builder, not this pipeline: a mark on a shared or cached pipeline could
+        // latch a base and fail an innocent task.
+        _origin.NoteMailboxDeclaration();
+        return new ServiceTaskPipeline(
+            Stages,
+            Final,
+            FinalStepOptions,
+            new ServiceTaskMailboxDeclaration(stageName, options),
+            _origin
+        );
+    }
+
+    /// <summary>
     /// The stage with the given name (exact match — stage names are our own wire values), or
     /// <c>null</c>.
     /// </summary>
@@ -46,3 +113,6 @@ internal sealed record ServiceTaskStage(
     Func<ServiceTaskContext, Task<ServiceTaskStageResult>> Work,
     ProcessStepOptions? StepOptions
 );
+
+/// <summary>One declared mailbox: the stage that opens it and the terms it is opened on.</summary>
+internal sealed record ServiceTaskMailboxDeclaration(string StageName, MailboxOptions Options);

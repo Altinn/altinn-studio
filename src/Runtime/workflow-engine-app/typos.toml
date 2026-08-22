@@ -1,7 +1,7 @@
 [files]
+# Hidden directories are scanned; see the note in the engine's typos.toml.
+ignore-hidden = false
 extend-exclude = [
-    "**/wwwroot/**",
-    "**/.k6/**",
     "**/bin/**",
     "**/obj/**",
     "*.svg",

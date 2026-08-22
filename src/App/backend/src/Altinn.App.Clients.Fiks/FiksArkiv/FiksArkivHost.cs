@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
@@ -7,12 +8,10 @@ using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmeldingkvittering;
-using KS.Fiks.Arkiv.Models.V1.Feilmelding;
-using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,25 +23,20 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     private readonly ILogger<FiksArkivHost> _logger;
     private readonly IFiksIOClient _fiksIOClient;
     private readonly Telemetry? _telemetry;
-    private readonly IFiksArkivInstanceClient _fiksArkivInstanceClient;
     private readonly IHostEnvironment _env;
     private readonly TimeProvider _timeProvider;
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly IFiksArkivConfigResolver _fiksArkivConfigResolver;
     private readonly AppImplementationFactory _appImplementationFactory;
-
-    private static readonly TimeSpan _raceConditionDeferralInterval = TimeSpan.FromSeconds(1);
-
-    private IFiksArkivResponseHandler _fiksArkivResponseHandler =>
-        _appImplementationFactory.GetRequired<IFiksArkivResponseHandler>();
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public FiksArkivHost(
         IFiksIOClient fiksIOClient,
         IOptions<FiksArkivSettings> fiksArkivSettings,
         ILogger<FiksArkivHost> logger,
         IFiksArkivConfigResolver fiksArkivConfigResolver,
-        IFiksArkivInstanceClient fiksArkivInstanceClient,
         AppImplementationFactory appImplementationFactory,
+        IServiceScopeFactory serviceScopeFactory,
         IHostEnvironment env,
         TimeProvider? timeProvider = null,
         Telemetry? telemetry = null
@@ -54,7 +48,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         _fiksArkivSettings = fiksArkivSettings.Value;
         _fiksArkivConfigResolver = fiksArkivConfigResolver;
         _appImplementationFactory = appImplementationFactory;
-        _fiksArkivInstanceClient = fiksArkivInstanceClient;
+        _serviceScopeFactory = serviceScopeFactory;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _env = env;
     }
@@ -103,13 +97,52 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     }
 
     /// <inheritdoc />
-    public async Task<FiksIOMessageResponse> GenerateAndSendMessage(
+    public Task<FiksIOMessageResponse> GenerateAndSendMessage(
         string taskId,
         string messageType,
         Guid sendersReference,
         DateTimeOffset executionReferenceTime,
         IInstanceDataMutator dataMutator,
         CancellationToken cancellationToken = default
+    ) =>
+        GenerateAndSendMessage(
+            taskId,
+            messageType,
+            sendersReference,
+            replyAddress: null,
+            executionReferenceTime,
+            dataMutator,
+            cancellationToken
+        );
+
+    /// <inheritdoc />
+    public Task<FiksIOMessageResponse> GenerateAndSendMessage(
+        string taskId,
+        string messageType,
+        Guid sendersReference,
+        Guid replyAddress,
+        DateTimeOffset executionReferenceTime,
+        IInstanceDataMutator dataMutator,
+        CancellationToken cancellationToken = default
+    ) =>
+        GenerateAndSendMessage(
+            taskId,
+            messageType,
+            sendersReference,
+            (Guid?)replyAddress,
+            executionReferenceTime,
+            dataMutator,
+            cancellationToken
+        );
+
+    private async Task<FiksIOMessageResponse> GenerateAndSendMessage(
+        string taskId,
+        string messageType,
+        Guid sendersReference,
+        Guid? replyAddress,
+        DateTimeOffset executionReferenceTime,
+        IInstanceDataMutator dataMutator,
+        CancellationToken cancellationToken
     )
     {
         using Activity? mainActivity = _telemetry?.StartGenerateAndSendFiksActivity(
@@ -122,6 +155,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             taskId,
             messageType,
             sendersReference,
+            replyAddress,
             executionReferenceTime,
             dataMutator,
             cancellationToken
@@ -135,6 +169,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         string taskId,
         string messageType,
         Guid sendersReference,
+        Guid? replyAddress,
         DateTimeOffset executionReferenceTime,
         IInstanceDataAccessor dataAccessor,
         CancellationToken cancellationToken
@@ -171,7 +206,10 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
                 SendersReference: sendersReference,
                 MessageLifetime: TimeSpan.FromDays(2),
                 Payload: messagePayloads,
-                CorrelationId: _fiksArkivConfigResolver.GetCorrelationId(dataAccessor.Instance)
+                // klientKorrelasjonsId is the one field Fiks IO echoes on every reply, so the reply address rides
+                // here. A caller that supplied none gets the instance reference it always carried.
+                CorrelationId: replyAddress?.ToString()
+                    ?? _fiksArkivConfigResolver.GetCorrelationId(dataAccessor.Instance)
             ),
             archiveRecordData
         );
@@ -191,101 +229,107 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         return response;
     }
 
-    internal async Task HandleReceivedMessage(Instance instance, FiksIOReceivedMessage message)
-    {
-        _logger.LogInformation(
-            "Handling received Fiks Arkiv message {MessageType}:{MessageId}",
-            message.Message.MessageType,
-            message.Message.MessageId
-        );
-
-        IReadOnlyList<FiksArkivReceivedMessagePayload>? payloads = await DecryptAndDeserializePayloads(message);
-        bool isError =
-            message.IsErrorResponse || payloads?.OfType<FiksArkivReceivedMessagePayload.Error>().Any() is true;
-
-        _logger.LogInformation(
-            "Message contains {PayloadCount} payload(s): {Payloads}",
-            payloads?.Count ?? 0,
-            payloads?.Select(x => x.Filename)
-        );
-
-        _telemetry?.RecordFiksMessageReceived(
-            isError ? Telemetry.Fiks.FiksResult.Error : Telemetry.Fiks.FiksResult.Success
-        );
-
-        await (
-            isError
-                ? _fiksArkivResponseHandler.HandleError(instance, message, payloads)
-                : _fiksArkivResponseHandler.HandleSuccess(instance, message, payloads)
-        );
-
-        // Persist receipt on the instance
-        if (message.IsReceiptResponse)
-        {
-            if (payloads?.FirstOrDefault() is not FiksArkivReceivedMessagePayload.Receipt receipt)
-            {
-                _logger.LogWarning(
-                    "No receipt payload found in Fiks message of type {ReceiptMessageType}. This is unexpected. Payloads were: {Payloads}",
-                    FiksArkivConstants.MessageTypes.ArchiveRecordCreationReceipt,
-                    payloads
-                );
-                return;
-            }
-
-            await SaveArchiveReceipt(instance, receipt);
-        }
-    }
-
+    /// <summary>
+    /// Hands a received message to the waiting service task, and does nothing else with it: the subscriber
+    /// decrypts (only possible here, on the live connection) and forwards.
+    /// </summary>
+    /// <remarks>
+    /// The one decision left here is whether Fiks IO should redeliver, following the forwarder's verdict; a
+    /// message with no usable reply address, or a settled outcome, is acknowledged and logged as an error.
+    /// Every read of the message happens inside the try — it came from outside, and a throw above the try
+    /// would escape the listener with no log and no acknowledgement.
+    /// </remarks>
     internal async Task IncomingMessageListener(FiksIOReceivedMessage message)
     {
-        using Activity? mainActivity = _telemetry?.StartReceiveFiksActivity(
-            message.Message.Sender,
-            message.Message.MessageId,
-            message.Message.MessageType,
-            message.Message.SendersReference,
-            message.Message.InReplyToMessage,
-            message.Message.CorrelationId
-        );
-
-        Instance? instance = null;
+        Activity? mainActivity = null;
 
         try
         {
+            string? correlationId = ReadCorrelationId(message);
+
+            mainActivity = _telemetry?.StartReceiveFiksActivity(
+                message.Message.Sender,
+                message.Message.MessageId,
+                message.Message.MessageType,
+                message.Message.SendersReference,
+                message.Message.InReplyToMessage,
+                correlationId
+            );
+
             _logger.LogInformation(
-                "Received message {MessageType}:{MessageId} from {MessageSender}, in reply to {MessageReplyFor} with senders-reference {SendersReference} and correlation-id {CorrelationId}",
+                "Received message {MessageType}:{MessageId} from {MessageSender}, in reply to {MessageReplyFor} with "
+                    + "senders-reference {SendersReference} and correlation-id {CorrelationId}",
                 message.Message.MessageType,
                 message.Message.MessageId,
                 message.Message.Sender,
                 message.Message.InReplyToMessage,
                 message.Message.SendersReference,
-                message.Message.CorrelationId
+                correlationId
             );
 
-            instance = await RetrieveInstance(message);
+            _telemetry?.RecordFiksMessageReceived(
+                message.IsErrorResponse ? Telemetry.Fiks.FiksResult.Error : Telemetry.Fiks.FiksResult.Success
+            );
 
-            if (CurrentTaskIsFiksArkiv(instance))
+            // The echoed correlation id is the id of the mailbox the waiting task opened.
+            if (!Guid.TryParse(correlationId, out Guid mailboxId) || mailboxId == Guid.Empty)
             {
-                _logger.LogWarning(
-                    "Current task is the Fiks Arkiv service task. This most likely means we are experiencing an order of operation issue with process/next. Deferring processing of message {MessageId} by {DeferralInterval} to give the situation time to resolve itself.",
+                _logger.LogError(
+                    "Fiks Arkiv message {MessageId} carries no usable correlation id ({CorrelationId}), so there is "
+                        + "no way to tell which service task is waiting for it. Acknowledging without forwarding.",
                     message.Message.MessageId,
-                    _raceConditionDeferralInterval
+                    correlationId
                 );
-
-                await Task.Delay(_raceConditionDeferralInterval);
-                await message.Responder.NackWithRequeue();
-
+                await message.Responder.Ack();
                 return;
             }
 
-            using Activity? innerActivity = _telemetry?.StartFiksMessageHandlerActivity(instance, GetType());
+            // Turned into a verdict inside this try so the responder call stays covered: a throw from Ack in a
+            // sibling catch would escape the listener.
+            bool forwarded = false;
+            bool requestRedelivery = false;
+            try
+            {
+                await ForwardReply(message, mailboxId);
+                forwarded = true;
+            }
+            catch (ServiceTaskReplyForwardException e)
+            {
+                mainActivity?.Errored(e);
+                requestRedelivery = ShouldRequestRedelivery(e);
 
-            await HandleReceivedMessage(instance, message);
+                if (requestRedelivery)
+                {
+                    _logger.LogWarning(
+                        e,
+                        "Could not forward Fiks Arkiv message {MessageId} ({Outcome}). Requesting redelivery.",
+                        message.Message.MessageId,
+                        e.Outcome
+                    );
+                }
+                else
+                {
+                    // Settled: redelivery places this nowhere. Acknowledged and logged as an error.
+                    _logger.LogError(
+                        e,
+                        "Fiks Arkiv message {MessageId} could not be delivered to a waiting service task ({Outcome}) and will not be retried: {Error}",
+                        message.Message.MessageId,
+                        e.Outcome,
+                        e.Message
+                    );
+                }
+            }
+
+            if (requestRedelivery)
+            {
+                await message.Responder.NackWithRequeue();
+                return;
+            }
+
             await message.Responder.Ack();
 
-            _logger.LogInformation(
-                "Processing completed successfully for message {MessageId}",
-                message.Message.MessageId
-            );
+            if (forwarded)
+                _logger.LogInformation("Message {MessageId} forwarded successfully", message.Message.MessageId);
         }
         catch (Exception e)
         {
@@ -299,24 +343,102 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
             // Don't ack messages we failed to process in PROD. Let Fiks IO redeliver and/or trigger alarms.
             if (!_env.IsProduction())
                 await message.Responder.Ack();
-
-            // Attempt to move the process forward on error, unless we're still stuck in the service task
-            if (!CurrentTaskIsFiksArkiv(instance))
-                await TryMoveProcessOnError(instance);
+        }
+        finally
+        {
+            mainActivity?.Dispose();
         }
     }
 
     /// <summary>
-    /// Checks if the current task on the instance is the Fiks Arkiv service task.
-    /// If so, that means we're experiencing an order of operation issue and should attempt to wait for
-    /// the process/next sequence to finish before proceeding.
+    /// Whether Fiks IO should redeliver, decided per <see cref="ServiceTaskReplyForwardException.Outcome"/>
+    /// so no verdict is a drifted default. Easy to misread: a full mailbox never frees a slot, <c>Late</c>
+    /// never means early, and a rejected submission is wrong rather than badly timed.
     /// </summary>
-    private static bool CurrentTaskIsFiksArkiv(Instance? instance) =>
-        instance?.Process?.CurrentTask?.AltinnTaskType?.Equals(
+    private static bool ShouldRequestRedelivery(ServiceTaskReplyForwardException exception) =>
+        exception.Outcome switch
+        {
+            // Nothing left the app, and the callback code is re-read on every call.
+            ServiceTaskReplyForwardOutcome.EngineUnavailable => true,
+            ServiceTaskReplyForwardOutcome.SigningUnavailable => true,
+
+            ServiceTaskReplyForwardOutcome.Unroutable => false,
+            ServiceTaskReplyForwardOutcome.Late => false,
+            ServiceTaskReplyForwardOutcome.PayloadTooLarge => false,
+            ServiceTaskReplyForwardOutcome.MailboxFull => false,
+            ServiceTaskReplyForwardOutcome.Rejected => false,
+
+            _ => exception.IsTransient,
+        };
+
+    /// <summary>Decrypts the message and delivers it into the mailbox the archive echoed back.</summary>
+    private async Task ForwardReply(FiksIOReceivedMessage message, Guid mailboxId)
+    {
+        var payloads = await message.Message.GetDecryptedPayloads();
+        var storedMessage = new StoredFiksArkivMessage
+        {
+            MessageId = message.Message.MessageId,
+            MessageType = message.Message.MessageType,
+            SendersReference = message.Message.SendersReference,
+            InReplyToMessage = message.Message.InReplyToMessage,
+            CorrelationId = mailboxId.ToString(),
+            Sender = message.Message.Sender,
+            Recipient = message.Message.Recipient,
+            MessageLifetime = message.Message.MessageLifetime,
+            IsReSent = message.Message.IsReSent,
+            Headers = message.Message.Headers,
+            Payloads =
+            [
+                .. payloads?.Select(x => new StoredFiksArkivPayload { Filename = x.Filename, Content = x.Content })
+                    ?? [],
+            ],
+        };
+
+        // Per message from a scope: this is a singleton BackgroundService, and holding the transient forwarder
+        // would pin its HttpClient for the process lifetime.
+        await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
+        var forwarder = scope.ServiceProvider.GetRequiredService<IServiceTaskReplyForwarder>();
+
+        _logger.LogInformation(
+            "Forwarding Fiks Arkiv message {MessageType}:{MessageId} with {PayloadCount} payload(s) to mailbox {MailboxId}",
+            storedMessage.MessageType,
+            storedMessage.MessageId,
+            storedMessage.Payloads?.Count ?? 0,
+            mailboxId
+        );
+
+        // The Fiks IO message id is the idempotency key, making at-least-once delivery and retries safe. The
+        // task type is named, not derived, so an envelope can never be sealed against the wrong handler.
+        await forwarder.ForwardReply(
+            mailboxId,
             AltinnTaskTypes.FiksArkiv,
-            StringComparison.OrdinalIgnoreCase
-        )
-            is true;
+            JsonSerializer.Serialize(storedMessage),
+            idempotencyKey: storedMessage.MessageId.ToString()
+        );
+    }
+
+    /// <summary>
+    /// The correlation id, or <c>null</c> when unreadable. The property base64-decodes and throws on anything
+    /// else — which other integrations on a shared Fiks IO account routinely send — and since this field routes
+    /// the reply, an undecodable one must be an ordinary "none" rather than a fault.
+    /// </summary>
+    private string? ReadCorrelationId(FiksIOReceivedMessage message)
+    {
+        try
+        {
+            return message.Message.CorrelationId;
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(
+                e,
+                "Fiks Arkiv message {MessageId} has a correlation id that could not be decoded: {Error}",
+                message.Message.MessageId,
+                e.Message
+            );
+            return null;
+        }
+    }
 
     private void SaveArchiveRecord(
         IInstanceDataMutator dataMutator,
@@ -328,7 +450,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         _logger.LogInformation("Staging archive record for Fiks Arkiv request: {Request}", request);
         ArgumentNullException.ThrowIfNull(_fiksArkivSettings.Receipt);
 
-        DeleteExistingDataElements(dataMutator, _fiksArkivSettings.Receipt.ArchiveRecord);
+        RemoveExistingDataElements(dataMutator, _fiksArkivSettings.Receipt.ArchiveRecord);
 
         dataMutator.AddBinaryDataElement(
             _fiksArkivSettings.Receipt.ArchiveRecord.DataType,
@@ -339,76 +461,19 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         );
     }
 
-    private async Task<DataElement> SaveArchiveReceipt(
-        Instance instance,
-        FiksArkivReceivedMessagePayload.Receipt receipt
-    )
-    {
-        _logger.LogInformation("Saving archive receipt: {Receipt}", receipt);
-        ArgumentNullException.ThrowIfNull(_fiksArkivSettings.Receipt);
-
-        await DeleteExistingDataElements(instance, _fiksArkivSettings.Receipt.ConfirmationRecord);
-
-        DataElement result = await _fiksArkivInstanceClient.InsertBinaryData(
-            new InstanceIdentifier(instance),
-            _fiksArkivSettings.Receipt.ConfirmationRecord.DataType,
-            "application/xml",
-            _fiksArkivSettings.Receipt.ConfirmationRecord.GetFilenameOrDefault(),
-            receipt.Details.SerializeXml()
-        );
-
-        _logger.LogInformation(
-            "Saved {Filename} with ID {DataElementId} to instance {InstanceId}",
-            result.Filename,
-            result.Id,
-            instance.Id
-        );
-
-        return result;
-    }
-
-    private async Task DeleteExistingDataElements(Instance instance, FiksArkivDataTypeSettings dataTypeSettings)
-    {
-        var dataElements = instance
-            .GetOptionalDataElements(dataTypeSettings.DataType)
-            .Where(x => x.Filename == dataTypeSettings.GetFilenameOrDefault())
-            .ToList();
-
-        if (dataElements.Count == 0)
-            return;
-
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        foreach (var dataElement in dataElements)
-        {
-            _logger.LogInformation(
-                "Deleting existing {DataType} data: {Filename} -> {DataElementId}",
-                dataTypeSettings.DataType,
-                dataTypeSettings.Filename,
-                dataElement.Id
-            );
-            await _fiksArkivInstanceClient.DeleteBinaryData(instanceIdentifier, Guid.Parse(dataElement.Id));
-        }
-    }
-
-    private void DeleteExistingDataElements(
+    private void RemoveExistingDataElements(
         IInstanceDataMutator dataMutator,
         FiksArkivDataTypeSettings dataTypeSettings
     )
     {
-        var dataElements = dataMutator
-            .Instance.GetOptionalDataElements(dataTypeSettings.DataType)
-            .Where(x => x.Filename == dataTypeSettings.GetFilenameOrDefault())
-            .ToList();
-
-        foreach (var dataElement in dataElements)
+        foreach (DataElement dataElement in dataMutator.RemoveDataElementsFor(dataTypeSettings))
         {
             _logger.LogInformation(
                 "Removing existing {DataType} data from unit of work: {Filename} -> {DataElementId}",
                 dataTypeSettings.DataType,
-                dataTypeSettings.Filename,
+                dataTypeSettings.GetFilenameOrDefault(),
                 dataElement.Id
             );
-            dataMutator.RemoveDataElement(dataElement);
         }
     }
 
@@ -431,96 +496,6 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
         }
 
         return memoryStream.ToArray();
-    }
-
-    private async Task TryMoveProcessOnError(Instance? instance)
-    {
-        if (instance is null)
-        {
-            _logger.LogError("Unable to move the process forward, because the `instance` object has not been resolved");
-            return;
-        }
-
-        if (_fiksArkivSettings.ErrorHandling?.MoveToNextTask is not true)
-        {
-            _logger.LogWarning(
-                "Unable to move the process forward, because the `FiksArkivSettings.AutoSend.ErrorHandling.MoveToNextTask` configuration property has been disabled or not been set"
-            );
-            return;
-        }
-
-        await _fiksArkivInstanceClient.ProcessMoveNext(
-            new InstanceIdentifier(instance),
-            _fiksArkivSettings.ErrorHandling?.Action
-        );
-    }
-
-    private async Task<Instance> RetrieveInstance(FiksIOReceivedMessage receivedMessage)
-    {
-        InstanceIdentifier instanceIdentifier = ParseCorrelationId(receivedMessage.Message.CorrelationId);
-
-        try
-        {
-            return await _fiksArkivInstanceClient.GetInstance(instanceIdentifier);
-        }
-        catch (Exception e)
-        {
-            throw new FiksArkivException($"Error fetching Instance object for {instanceIdentifier}: {e.Message}", e);
-        }
-    }
-
-    private static InstanceIdentifier ParseCorrelationId(string? correlationId)
-    {
-        try
-        {
-            ArgumentNullException.ThrowIfNull(correlationId);
-            return InstanceIdentifier.CreateFromUrl(correlationId);
-        }
-        catch (Exception e)
-        {
-            throw new FiksArkivException($"Error parsing Correlation ID for received message: {correlationId}", e);
-        }
-    }
-
-    private async Task<IReadOnlyList<FiksArkivReceivedMessagePayload>?> DecryptAndDeserializePayloads(
-        FiksIOReceivedMessage receivedMessage
-    )
-    {
-        var payloads = await receivedMessage.Message.GetDecryptedPayloads();
-        return payloads
-            ?.Select(x => ParseMessagePayload(x.Filename, x.Content, receivedMessage.Message.MessageType))
-            .ToList();
-    }
-
-    private FiksArkivReceivedMessagePayload ParseMessagePayload(string filename, string payload, string messageType)
-    {
-        try
-        {
-            object? deserializedPayload = messageType switch
-            {
-                FiksArkivMeldingtype.ArkivmeldingOpprettKvittering => payload.DeserializeXml<ArkivmeldingKvittering>()
-                    ?? throw new FiksArkivException($"Error deserializing {nameof(ArkivmeldingKvittering)} data"),
-                FiksArkivMeldingtype.Ikkefunnet => payload.DeserializeXml<Ikkefunnet>()
-                    ?? throw new FiksArkivException($"Error deserializing {nameof(Ikkefunnet)} data"),
-                FiksArkivMeldingtype.Serverfeil => payload.DeserializeXml<Serverfeil>()
-                    ?? throw new FiksArkivException($"Error deserializing {nameof(Serverfeil)} data"),
-                FiksArkivMeldingtype.Ugyldigforespørsel => payload.DeserializeXml<Ugyldigforespoersel>()
-                    ?? throw new FiksArkivException($"Error deserializing {nameof(Ugyldigforespoersel)} data"),
-                _ => null,
-            };
-
-            return FiksArkivReceivedMessagePayload.Create(filename, payload, deserializedPayload);
-        }
-        catch (FiksArkivException e)
-        {
-            _logger.LogError(e, "{Exception}: {Content}", e.Message, payload);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error deserializing XML data: {Exception}", e.Message);
-        }
-
-        return new FiksArkivReceivedMessagePayload.Unknown(filename, payload);
     }
 
     /// <inheritdoc />

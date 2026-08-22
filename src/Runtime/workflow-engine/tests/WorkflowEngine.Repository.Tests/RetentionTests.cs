@@ -174,6 +174,46 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Retention_PreservesWorkflows_ReferencedByAHeldReceiver()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var depTargetId = Guid.NewGuid();
+        var linkTargetId = Guid.NewGuid();
+        foreach (var targetId in new[] { depTargetId, linkTargetId })
+        {
+            await InsertWorkflow(
+                dataSource,
+                targetId,
+                status: PersistentItemStatus.Completed,
+                updatedAt: _now.AddDays(-31),
+                ct: ct
+            );
+        }
+
+        // Aged well past the cutoff, so nothing but its status keeps it — or its targets — alive.
+        var receiverId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            receiverId,
+            status: PersistentItemStatus.Held,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+        await InsertDependency(dataSource, workflowId: receiverId, dependsOnId: depTargetId, ct: ct);
+        await InsertLink(dataSource, workflowId: receiverId, linkedWorkflowId: linkTargetId, ct: ct);
+
+        await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
+
+        await using var ctx = fixture.CreateDbContext();
+        var remaining = await ctx.Workflows.Select(w => w.Id).ToListAsync(ct);
+        Assert.Contains(receiverId, remaining);
+        Assert.Contains(depTargetId, remaining);
+        Assert.Contains(linkTargetId, remaining);
+    }
+
+    [Fact]
     public async Task Retention_DrainsAllEligibleRows_InBatches()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -193,6 +233,37 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
 
         await using var ctx = fixture.CreateDbContext();
         Assert.Equal(0, await ctx.Workflows.CountAsync(ct));
+    }
+
+    [Fact]
+    public async Task Retention_WithAZeroBatchSize_EndsTheSweepInsteadOfSpinningForever()
+    {
+        // A zero batch selects nothing, so a loop bounded by "came back short" never ends — and zero is what
+        // EngineSettings.Retention defaults to, and what PostgresFixture builds.
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        var ct = cts.Token;
+
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        await InsertWorkflow(
+            dataSource,
+            Guid.NewGuid(),
+            status: PersistentItemStatus.Completed,
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+
+        try
+        {
+            await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), batchSize: 0, ct: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Assert.Fail("PurgeExpiredWorkflows was still running ten seconds in at BatchSize == 0.");
+        }
+
+        await using var ctx = fixture.CreateDbContext();
+        Assert.Equal(1, await ctx.Workflows.CountAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

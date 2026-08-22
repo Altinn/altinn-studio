@@ -3,7 +3,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -14,6 +13,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -70,7 +70,13 @@ public class ProcessNextRequestFactoryTests
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
         var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory)],
+            [
+                new ExecuteServiceTask(
+                    appImplFactory,
+                    Mock.Of<IWorkflowEngineClient>(),
+                    TestMailboxDeliveryEnvelope.Create()
+                ),
+            ],
             appImplFactory
         );
 
@@ -642,6 +648,99 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
         Assert.Equal(TimeSpan.FromMinutes(30), conclusion.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), conclusion.Command.WaitBudget);
+    }
+
+    /// <summary>
+    /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
+    /// shown to resolve the <c>Finally</c>'s options.
+    /// </summary>
+    private sealed class ArchivingTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Finally(
+                    _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+                )
+                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+    }
+
+    private static EnqueueReceiveWorkflowPayload ExtractReceiveEnqueuePayload(WorkflowEnqueueEnvelope bundle)
+    {
+        StepRequest step = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == EnqueueReceiveWorkflow.Key);
+        var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
+        return CommandPayloadSerializer.Deserialize<EnqueueReceiveWorkflowPayload>(appData.Payload)!;
+    }
+
+    [Fact]
+    public async Task Create_MailboxPipeline_EndsMainWithTheReceiveEnqueueAndEmitsNoConclusion()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
+        Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", sendStep.OperationId);
+        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageName is null);
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
+        Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
+        Assert.True(keys.IndexOf(EnqueueReceiveWorkflow.Key) > keys.IndexOf(ExecuteServiceTask.Key));
+    }
+
+    [Fact]
+    public async Task Create_PipelineWithoutMailbox_EnqueuesNoReceiveWorkflow()
+    {
+        var factory = CreateFactory(serviceTasks: new SigningTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.DoesNotContain(EnqueueReceiveWorkflow.Key, keys);
+        Assert.Contains(ExtractServiceTaskSteps(bundle), s => s.Payload.StageName is null);
+    }
+
+    [Fact]
+    public async Task Create_MailboxPipeline_PreAssemblesTheReceiveWorkflowAsAnIndependentHead()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        EnqueueReceiveWorkflowPayload payload = ExtractReceiveEnqueuePayload(bundle);
+        WorkflowRequest receiver = Assert.Single(payload.EnqueueRequest.Workflows);
+
+        Assert.True(receiver.IsHead);
+        Assert.False(receiver.DependsOnHeads);
+        Assert.StartsWith(
+            ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix,
+            receiver.OperationId,
+            StringComparison.Ordinal
+        );
+
+        Assert.Null(receiver.Mailbox);
+        Assert.Null(receiver.State);
+        Assert.Null(payload.EnqueueRequest.Context);
+
+        StepRequest receiveStep = Assert.Single(receiver.Steps);
+        var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
+        Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
+        var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
+        Assert.Equal("archiving", receivePayload.ServiceTaskType);
+        Assert.Null(receivePayload.StageName);
+        Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
+
+        Assert.Equal(bundle.Request.Labels, payload.EnqueueRequest.Labels);
     }
 
     [Fact]

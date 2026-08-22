@@ -286,4 +286,90 @@ internal interface IEngineRepository
         string ns,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Mints a mailbox, stamping its deadline as <paramref name="now"/> + <paramref name="timeout"/>.
+    /// Idempotent on <c>(namespace, idempotencyKey)</c>, with a replay answered even at the collection cap; a
+    /// genuinely new mailbox is refused at <paramref name="maxOpenPerCollection"/> open ones.
+    /// </summary>
+    Task<MailboxMintResult> MintMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string? collectionKey,
+        TimeSpan timeout,
+        DateTimeOffset now,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The dashboard's read: mailboxes per collection key, newest first, at most
+    /// <paramref name="limitPerCollection"/> <em>per key</em> so a busy collection cannot starve the rest.
+    /// Takes no locks; the page names the keys whose window was full. A null <paramref name="ns"/> reads every
+    /// namespace.
+    /// </summary>
+    Task<MailboxCollectionPage> GetMailboxesForCollections(
+        string? ns,
+        IReadOnlyList<string> collectionKeys,
+        int limitPerCollection,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Counts open mailboxes with deadlines at or before <paramref name="cutoff"/>, saturating at
+    /// <paramref name="limit"/> — the gauge's input. The caller sets the cutoff back by the sweep's cadence,
+    /// so a healthy engine counts zero.
+    /// </summary>
+    Task<long> CountOverdueOpenMailboxes(
+        DateTimeOffset cutoff,
+        int limit,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Reads what the rendezvous produced for a receive workflow. No lock, no write: delivery existence at the
+    /// position is frozen before the receiver can first run, so every attempt re-derives the same answer.
+    /// </summary>
+    Task<MailboxReceiptResult> ReadMailboxReceipt(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Closes a mailbox for deliveries. Idempotent: an already-closed mailbox is returned as it stands.
+    /// </summary>
+    Task<MailboxCloseResult> CloseMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDisposedReason reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Appends one message at the next gapless position. Idempotent on <c>(mailboxId, idempotencyKey)</c>,
+    /// and the lookup runs <em>before</em> the refusals: a kept message answers
+    /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox is closed or full. Refusals write
+    /// nothing and repeat identically.
+    /// </summary>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string payload,
+        DateTimeOffset now,
+        int maxLogLength,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Closes up to <paramref name="batchSize"/> overdue mailboxes, one <c>FOR UPDATE SKIP LOCKED</c>-claimed
+    /// transaction each, running exactly the routine <see cref="CloseMailbox"/> runs. A close that throws is
+    /// contained to its own mailbox rather than abandoning the deadline-ordered batch.
+    /// </summary>
+    Task<MailboxSweepResult> SweepOverdueMailboxes(
+        DateTimeOffset now,
+        int batchSize,
+        CancellationToken cancellationToken = default
+    );
 }

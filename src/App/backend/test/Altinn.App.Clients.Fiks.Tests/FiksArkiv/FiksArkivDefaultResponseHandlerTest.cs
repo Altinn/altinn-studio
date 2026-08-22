@@ -2,7 +2,6 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Meldingstyper;
 using KS.Fiks.IO.Client.Models;
@@ -15,226 +14,145 @@ namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 
 public class FiksArkivDefaultResponseHandlerTest
 {
-    [Fact]
-    public async Task HandleSuccess_IgnoresNonReceiptMessages()
+    [Theory]
+    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt)]
+    [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering)]
+    public async Task HandleSuccess_RecordsTheMessage(string messageType)
     {
-        // Arrange
         var instance = InstanceFactory();
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt);
+        var message = ReceivedMessageFactory(messageType);
         var loggerMock = new Mock<ILogger<FiksArkivDefaultResponseHandler>>();
+        await using var fixture = CreateFixture(loggerMock);
+
+        await fixture.FiksArkivResponseHandler.HandleSuccess(instance, message, null);
+
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Information, "is a successful response", loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleSuccess_WarnsWhenAMessageCarriesMoreThanOneResponse()
+    {
+        var instance = InstanceFactory();
+        var message = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
+        var loggerMock = new Mock<ILogger<FiksArkivDefaultResponseHandler>>();
+        await using var fixture = CreateFixture(loggerMock);
+
+        await fixture.FiksArkivResponseHandler.HandleSuccess(
+            instance,
+            message,
+            [
+                new FiksArkivReceivedMessagePayload.Unknown("first.xml", "<first />"),
+                new FiksArkivReceivedMessagePayload.Unknown("second.xml", "<second />"),
+            ]
+        );
+
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Warning, "contains multiple responses", loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleError_RecordsTheError()
+    {
+        var instance = InstanceFactory();
+        var message = ReceivedMessageFactory(FiksArkivMeldingtype.Ugyldigforespørsel);
+        var loggerMock = new Mock<ILogger<FiksArkivDefaultResponseHandler>>();
+        await using var fixture = CreateFixture(loggerMock);
+
+        await fixture.FiksArkivResponseHandler.HandleError(instance, message, null);
+
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Error, "is an error response", loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task TheBuiltInHandler_NeverTouchesTheInstanceOrTheProcess()
+    {
+        // The strict client mock is the guard: any process move or write from the handler fails this test
+        // rather than shipping a double advance.
+        var instance = InstanceFactory();
+        var instanceClientMock = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         await using var fixture = TestFixture.Create(services =>
+        {
+            services.AddFiksArkiv();
+            services.AddSingleton(instanceClientMock.Object);
+        });
+
+        await fixture.FiksArkivResponseHandler.HandleSuccess(
+            instance,
+            ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering),
+            null
+        );
+        await fixture.FiksArkivResponseHandler.HandleError(
+            instance,
+            ReceivedMessageFactory(FiksArkivMeldingtype.Serverfeil),
+            null
+        );
+
+        instanceClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TheBuiltInHandler_ReadsAReplayedMessageWithoutTouchingTheConnection()
+    {
+        var instance = InstanceFactory();
+        Guid messageId = Guid.Parse("6a6d1f1e-9f0f-4d2d-9a6a-2b4ea1ff1b6f");
+        FiksIOReceivedMessage replayed = FiksIOReceivedMessage.Replay(
+            new FiksIOReplayedMessage
+            {
+                MessageId = messageId,
+                MessageType = FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+                Payloads = [("arkivmelding-kvittering.xml", "<kvittering />")],
+            }
+        );
+        var loggerMock = new Mock<ILogger<FiksArkivDefaultResponseHandler>>();
+        await using var fixture = CreateFixture(loggerMock);
+
+        await fixture.FiksArkivResponseHandler.HandleSuccess(instance, replayed, null);
+
+        loggerMock.Verify(
+            TestHelpers.MatchLogEntry(LogLevel.Information, messageId.ToString(), loggerMock.Object),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task AReceivedMessage_SaysWhetherItIsLiveOrReplayed()
+    {
+        // Pinned in both directions: the live message can respond, the replayed one says so before it throws.
+        FiksIOReceivedMessage live = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
+        FiksIOReceivedMessage replayed = FiksIOReceivedMessage.Replay(
+            new FiksIOReplayedMessage
+            {
+                MessageId = Guid.Parse("6a6d1f1e-9f0f-4d2d-9a6a-2b4ea1ff1b6f"),
+                MessageType = FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
+            }
+        );
+
+        Assert.False(live.IsReplayed);
+        Assert.False(live.Message.IsReplayed);
+        Assert.True(replayed.IsReplayed);
+        Assert.True(replayed.Message.IsReplayed);
+
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = replayed.Message.GetEncryptedStream();
+        });
+        await Assert.ThrowsAsync<InvalidOperationException>(() => replayed.Responder.Ack());
+    }
+
+    private static TestFixture CreateFixture(Mock<ILogger<FiksArkivDefaultResponseHandler>> loggerMock) =>
+        TestFixture.Create(services =>
         {
             services.AddFiksArkiv();
             services.AddSingleton(loggerMock.Object);
         });
-
-        // Act
-        await fixture.FiksArkivResponseHandler.HandleSuccess(instance, message, null);
-
-        // Assert
-        loggerMock.Verify(
-            TestHelpers.MatchLogEntry(
-                LogLevel.Information,
-                "Skipping further processing for message of type",
-                loggerMock.Object
-            ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task HandleSuccess_SkipsProcessingIfDisabledByConfig()
-    {
-        // Arrange
-        var instance = InstanceFactory();
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
-        var loggerMock = new Mock<ILogger<FiksArkivDefaultResponseHandler>>();
-        var fiksArkivSettingsOverride = new FiksArkivSettings { SuccessHandling = null };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(loggerMock.Object);
-            },
-            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        // Act
-        await fixture.FiksArkivResponseHandler.HandleSuccess(instance, message, null);
-
-        // Assert
-        loggerMock.Verify(
-            TestHelpers.MatchLogEntry(LogLevel.Information, "Success handling is disabled", loggerMock.Object),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task HandleSuccess_ThrowsIfInstanceIsNull()
-    {
-        // Arrange
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
-        var fiksArkivSettingsOverride = new FiksArkivSettings
-        {
-            SuccessHandling = new FiksArkivSuccessHandlingSettings { MoveToNextTask = true },
-        };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-            },
-            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        // Act
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            fixture.FiksArkivResponseHandler.HandleSuccess(null!, message, null)
-        );
-    }
-
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public async Task HandleSuccess_TakesActionAsConfigured(bool moveToNextTask, bool markInstanceComplete)
-    {
-        // Arrange
-        var instance = InstanceFactory();
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering);
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>();
-        var fiksArkivSettingsOverride = new FiksArkivSettings
-        {
-            SuccessHandling = new FiksArkivSuccessHandlingSettings
-            {
-                MoveToNextTask = moveToNextTask,
-                MarkInstanceComplete = markInstanceComplete,
-                Action = "the-action",
-            },
-        };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(fiksArkivInstanceClientMock.Object);
-            },
-            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        fiksArkivInstanceClientMock
-            .Setup(x => x.ProcessMoveNext(It.IsAny<InstanceIdentifier>(), "the-action", It.IsAny<CancellationToken>()))
-            .Verifiable(moveToNextTask ? Times.Once : Times.Never);
-        fiksArkivInstanceClientMock
-            .Setup(x => x.MarkInstanceComplete(It.IsAny<InstanceIdentifier>(), It.IsAny<CancellationToken>()))
-            .Verifiable(markInstanceComplete ? Times.Once : Times.Never);
-
-        // Act
-        await fixture.FiksArkivResponseHandler.HandleSuccess(instance, message, null);
-
-        // Assert
-        fiksArkivInstanceClientMock.Verify();
-        fiksArkivInstanceClientMock.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task HandleError_SkipsProcessingIfDisabledByConfig()
-    {
-        // Arrange
-        var instance = InstanceFactory();
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.Ugyldigforespørsel);
-        var loggerMock = new Mock<ILogger<FiksArkivDefaultResponseHandler>>();
-        var fiksArkivSettingsOverride = new FiksArkivSettings { ErrorHandling = null };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(loggerMock.Object);
-            },
-            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        // Act
-        await fixture.FiksArkivResponseHandler.HandleError(instance, message, null);
-
-        // Assert
-        loggerMock.Verify(
-            TestHelpers.MatchLogEntry(LogLevel.Information, "Error handling is disabled", loggerMock.Object),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task HandleError_ThrowsIfInstanceIsNull()
-    {
-        // Arrange
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.Ugyldigforespørsel);
-        var fiksArkivSettingsOverride = new FiksArkivSettings
-        {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true },
-        };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-            },
-            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        // Act
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            fixture.FiksArkivResponseHandler.HandleError(null!, message, null)
-        );
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HandleError_TakesActionAsConfigured(bool moveToNextTask)
-    {
-        // Arrange
-        var instance = InstanceFactory();
-        var message = ReceivedMessageFactory(FiksArkivMeldingtype.Ugyldigforespørsel);
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>();
-        var fiksArkivSettingsOverride = new FiksArkivSettings
-        {
-            ErrorHandling = new FiksArkivErrorHandlingSettings
-            {
-                MoveToNextTask = moveToNextTask,
-                Action = "the-action",
-            },
-        };
-
-        await using var fixture = TestFixture.Create(
-            services =>
-            {
-                services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
-                services.AddSingleton(fiksArkivInstanceClientMock.Object);
-            },
-            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
-            useDefaultFiksArkivSettings: false
-        );
-
-        fiksArkivInstanceClientMock
-            .Setup(x => x.ProcessMoveNext(It.IsAny<InstanceIdentifier>(), "the-action", It.IsAny<CancellationToken>()))
-            .Verifiable(moveToNextTask ? Times.Once : Times.Never);
-
-        // Act
-        await fixture.FiksArkivResponseHandler.HandleError(instance, message, null);
-
-        // Assert
-        fiksArkivInstanceClientMock.Verify();
-        fiksArkivInstanceClientMock.VerifyNoOtherCalls();
-    }
 
     private static Instance InstanceFactory() => new() { Id = $"12345/{Guid.NewGuid()}" };
 

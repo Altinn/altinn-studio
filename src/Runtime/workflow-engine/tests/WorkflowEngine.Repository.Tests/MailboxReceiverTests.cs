@@ -1,0 +1,961 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Npgsql;
+using WorkflowEngine.Data;
+using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Models;
+using WorkflowEngine.Repository.Tests.Fixtures;
+using WorkflowEngine.Resilience.Models;
+
+namespace WorkflowEngine.Repository.Tests;
+
+/// <summary>
+/// Covers receive-workflow birth against a real database: positions, birth states, and the two
+/// interleavings of a delivery and its receiver's enqueue.
+/// </summary>
+[Collection(PostgresCollection.Name)]
+public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifetime
+{
+    private const string Ns = "receiver-ns";
+
+    public async ValueTask InitializeAsync() => await fixture.Reset();
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private static async Task<MailboxResponse> MintMailbox(EngineRepository repository, string key = "mailbox-key") =>
+        Assert
+            .IsType<MailboxMintResult.Minted>(
+                await repository.MintMailbox(
+                    Guid.CreateVersion7(),
+                    Ns,
+                    key,
+                    collectionKey: null,
+                    TimeSpan.FromHours(1),
+                    DateTimeOffset.UtcNow,
+                    maxOpenPerCollection: 100,
+                    TestContext.Current.CancellationToken
+                )
+            )
+            .Mailbox;
+
+    private static async Task<long> Deliver(EngineRepository repository, Guid mailboxId, string key) =>
+        Assert
+            .IsType<MailboxDeliveryResult.Accepted>(
+                await repository.DeliverToMailbox(
+                    mailboxId,
+                    Ns,
+                    key,
+                    payload: "{}",
+                    DateTimeOffset.UtcNow,
+                    maxLogLength: 100,
+                    TestContext.Current.CancellationToken
+                )
+            )
+            .Delivery.Idx;
+
+    private static WorkflowRequest Receiver(Guid mailboxId, string? @ref = null) =>
+        new()
+        {
+            Ref = @ref,
+            OperationId = "receive",
+            Mailbox = new MailboxReference { Id = mailboxId },
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "handle-reply",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+    private static WorkflowRequest Ordinary(string? @ref = null) =>
+        new()
+        {
+            Ref = @ref,
+            OperationId = "ordinary",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "do-something",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+    private static Task<BatchEnqueueResult[]> Enqueue(
+        EngineRepository repository,
+        IReadOnlyList<WorkflowRequest> workflows,
+        string? idempotencyKey = null,
+        string ns = Ns
+    )
+    {
+        var key = idempotencyKey ?? Guid.NewGuid().ToString("N");
+        var metadata = new WorkflowRequestMetadata(ns, key, null, DateTimeOffset.UtcNow, null);
+        return repository.BatchEnqueueWorkflows([Buffered(metadata, workflows)], TestContext.Current.CancellationToken);
+    }
+
+    private async Task<PersistentItemStatus> StatusOf(Guid workflowId)
+    {
+        await using var context = fixture.CreateDbContext();
+        return await context
+            .Workflows.Where(w => w.Id == workflowId)
+            .Select(w => w.Status)
+            .SingleAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// The registry row's system transaction id: two equal reads prove the row was not written in between,
+    /// which a column-equality check cannot (an UPDATE writing the same values still bumps the version).
+    /// </summary>
+    private async Task<uint> RegistrationVersion(Guid workflowId)
+    {
+        await using var conn = new NpgsqlConnection(fixture.ConnectionString);
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
+        await using var cmd = new NpgsqlCommand(
+            "SELECT xmin::text::bigint FROM engine.mailbox_receivers WHERE workflow_id = @id",
+            conn
+        );
+        cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+        return (uint)(long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
+    }
+
+    #region The registry holds every receiver
+
+    [Fact]
+    public async Task Enqueue_MixedBirthsInOneFlush_LeaveOneRegistrationEachAndAgreeWithTheCounter()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+        await Deliver(repository, mailbox.Id, "msg-2");
+
+        var result = Assert.Single(
+            await Enqueue(
+                repository,
+                [Receiver(mailbox.Id, "first"), Receiver(mailbox.Id, "second"), Receiver(mailbox.Id, "third")]
+            )
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        var workflowIds = result.WorkflowIds!;
+        Assert.Equal(3, workflowIds.Length);
+
+        await using var context = fixture.CreateDbContext();
+        var registry = await context
+            .MailboxReceivers.Where(r => r.MailboxId == mailbox.Id)
+            .OrderBy(r => r.Seq)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(3, registry.Count);
+        Assert.Equal([0L, 1L, 2L], registry.Select(r => r.Seq));
+        Assert.Equal(workflowIds, registry.Select(r => r.WorkflowId));
+
+        Assert.Null(registry[0].HeldAt);
+        Assert.Null(registry[1].HeldAt);
+        Assert.NotNull(registry[2].HeldAt);
+        Assert.NotNull(registry[0].ReleasedAt);
+        Assert.NotNull(registry[1].ReleasedAt);
+        Assert.Null(registry[2].ReleasedAt);
+
+        Assert.Equal(
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Enqueued, PersistentItemStatus.Held],
+            await Task.WhenAll(workflowIds.Select(StatusOf))
+        );
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.Equal(registry.Count, afterwards!.NextSeq);
+    }
+
+    [Fact]
+    public async Task AReceiverBornRunnable_IsUntouchedByTheWakeAndByTheClosureRelease()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+
+        var runnable = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0")).WorkflowIds!
+        );
+        var parked = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1")).WorkflowIds!
+        );
+        Assert.Equal(PersistentItemStatus.Held, await StatusOf(parked));
+
+        var versionAtBirth = await RegistrationVersion(runnable);
+
+        await Deliver(repository, mailbox.Id, "msg-2");
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(parked));
+        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Request,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+    }
+
+    [Fact]
+    public async Task TheClosureRelease_PassesOverARunnableRegistrationToReachAParkedOne()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+
+        var runnable = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0")).WorkflowIds!
+        );
+        var parked = Assert.Single(
+            Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1")).WorkflowIds!
+        );
+
+        var versionAtBirth = await RegistrationVersion(runnable);
+
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Deadline,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(parked));
+
+        await using var context = fixture.CreateDbContext();
+        var released = await context.MailboxReceivers.SingleAsync(
+            r => r.WorkflowId == parked,
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(released.ReleasedAt);
+
+        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+    }
+
+    #endregion
+
+    #region The three births
+
+    [Fact]
+    public async Task Enqueue_WhenADeliveryAlreadySitsAtItsPosition_IsBornRunnableAndAlreadyReleased()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        var workflowId = Assert.Single(result.WorkflowIds!);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
+
+        await using var context = fixture.CreateDbContext();
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(mailbox.Id, registration.MailboxId);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
+        Assert.Null(registration.ClaimedAt);
+
+        Assert.Equal(1L, (await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken))!.NextSeq);
+    }
+
+    [Fact]
+    public async Task Enqueue_AgainstAClosedMailboxWithNoDelivery_IsBornRunnableWithTheClosingSignal()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Request,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        var workflowId = Assert.Single(result.WorkflowIds!);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
+
+        await using var context = fixture.CreateDbContext();
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
+    }
+
+    [Fact]
+    public async Task Enqueue_AgainstAClosedMailboxWithADeliveryAtItsPosition_StillGetsTheDelivery()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Deliver(repository, mailbox.Id, "msg-1");
+        await repository.CloseMailbox(
+            mailbox.Id,
+            Ns,
+            MailboxDisposedReason.Deadline,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(Assert.Single(result.WorkflowIds!)));
+
+        await using var context = fixture.CreateDbContext();
+        Assert.True(
+            await context.MailboxDeliveries.AnyAsync(
+                d => d.MailboxId == mailbox.Id && d.Idx == 0,
+                TestContext.Current.CancellationToken
+            )
+        );
+    }
+
+    [Fact]
+    public async Task Enqueue_AgainstAnOpenMailboxWithNoDelivery_IsBornHeldAndRegistersUnreleased()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+
+        var workflowId = Assert.Single(result.WorkflowIds!);
+        Assert.Equal(PersistentItemStatus.Held, await StatusOf(workflowId));
+
+        await using var context = fixture.CreateDbContext();
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(mailbox.Id, registration.MailboxId);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+
+        Assert.NotNull(registration.HeldAt);
+        Assert.Null(registration.ReleasedAt);
+
+        var row = await context.Workflows.SingleAsync(w => w.Id == workflowId, TestContext.Current.CancellationToken);
+        Assert.Null(row.BackoffUntil);
+        Assert.Null(row.StartAt);
+        Assert.Null(row.LeaseToken);
+        Assert.Null(row.HeartbeatAt);
+        Assert.Equal(mailbox.Id, row.MailboxId);
+    }
+
+    [Fact]
+    public async Task Enqueue_OrdinaryWorkflow_TouchesNoMailboxState()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var result = Assert.Single(await Enqueue(repository, [Ordinary()]));
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(Assert.Single(result.WorkflowIds!)));
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.Equal(0L, afterwards!.NextSeq);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.MailboxReceivers.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Null(
+            await context.Workflows.Select(w => w.MailboxId).SingleAsync(TestContext.Current.CancellationToken)
+        );
+    }
+
+    #endregion
+
+    #region Gapless positions
+
+    [Fact]
+    public async Task Enqueue_TwoReceiversInOneBatch_TakeConsecutivePositions()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var result = Assert.Single(
+            await Enqueue(repository, [Receiver(mailbox.Id, "first"), Receiver(mailbox.Id, "second")])
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+
+        await using var context = fixture.CreateDbContext();
+        var seqs = await context
+            .MailboxReceivers.OrderBy(w => w.Seq)
+            .Select(w => w.Seq)
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal([0L, 1L], seqs);
+        Assert.Equal(2L, (await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken))!.NextSeq);
+    }
+
+    [Fact]
+    public async Task Enqueue_ConcurrentReceivers_TakeAGaplessRunOfPositions()
+    {
+        const int Receivers = 12;
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var results = await Task.WhenAll(
+            Enumerable
+                .Range(0, Receivers)
+                .Select(i => Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: $"receiver-{i}"))
+        );
+
+        Assert.All(results, r => Assert.Equal(BatchEnqueueResultStatus.Created, Assert.Single(r).Status));
+
+        await using var context = fixture.CreateDbContext();
+        var seqs = await context
+            .MailboxReceivers.OrderBy(w => w.Seq)
+            .Select(w => w.Seq)
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(Enumerable.Range(0, Receivers).Select(i => (long)i), seqs);
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.Equal(Receivers, afterwards!.NextSeq);
+    }
+
+    [Fact]
+    public async Task Enqueue_ReceiversForDifferentMailboxes_CountFromTheirOwnMailbox()
+    {
+        var repository = fixture.CreateRepository();
+        var first = await MintMailbox(repository, "mailbox-a");
+        var second = await MintMailbox(repository, "mailbox-b");
+
+        await Enqueue(repository, [Receiver(first.Id, "a1"), Receiver(second.Id, "b1"), Receiver(first.Id, "a2")]);
+
+        await using var context = fixture.CreateDbContext();
+        var byMailbox = await context.MailboxReceivers.ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal([0L, 1L], byMailbox.Where(w => w.MailboxId == first.Id).Select(w => w.Seq).Order());
+        Assert.Equal([0L], byMailbox.Where(w => w.MailboxId == second.Id).Select(w => w.Seq));
+    }
+
+    #endregion
+
+    #region Refusals
+
+    [Fact]
+    public async Task Enqueue_AgainstAnUnknownMailbox_IsRefusedAndLeavesNoIdempotencyKey()
+    {
+        var repository = fixture.CreateRepository();
+
+        var result = Assert.Single(
+            await Enqueue(repository, [Receiver(Guid.CreateVersion7())], idempotencyKey: "receiver-1")
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.MailboxNotFound, result.Status);
+        Assert.Null(result.WorkflowIds);
+        Assert.NotNull(result.ErrorMessage);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(0, await context.IdempotencyKeys.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Enqueue_AgainstAMailboxInAnotherNamespace_IsRefused()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], ns: "some-other-ns"));
+
+        Assert.Equal(BatchEnqueueResultStatus.MailboxNotFound, result.Status);
+    }
+
+    [Fact]
+    public async Task Enqueue_MailboxIsReachableUnderAnyCasingOfItsNamespace()
+    {
+        var repository = fixture.CreateRepository();
+        var minted = Assert
+            .IsType<MailboxMintResult.Minted>(
+                await repository.MintMailbox(
+                    Guid.CreateVersion7(),
+                    "Receiver-NS",
+                    "mailbox-key",
+                    collectionKey: null,
+                    TimeSpan.FromHours(1),
+                    DateTimeOffset.UtcNow,
+                    maxOpenPerCollection: 100,
+                    TestContext.Current.CancellationToken
+                )
+            )
+            .Mailbox;
+
+        Assert.Equal(Ns, minted.Namespace);
+        Assert.NotNull(await repository.GetMailbox(minted.Id, "RECEIVER-ns", TestContext.Current.CancellationToken));
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(minted.Id)], ns: "reCeiVer-nS"));
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        Assert.Equal(PersistentItemStatus.Held, await StatusOf(Assert.Single(result.WorkflowIds!)));
+    }
+
+    [Fact]
+    public async Task Enqueue_WhenASecondReceiverInOneRequestCrossesTheCap_ConsumesNoPositionsAtAll()
+    {
+        var repository = fixture.CreateRepository(SettingsWithLogLength(1));
+        var mailbox = await MintMailbox(repository);
+
+        var result = Assert.Single(
+            await repository.BatchEnqueueWorkflows(
+                [
+                    Buffered(
+                        new WorkflowRequestMetadata(Ns, "pair", null, DateTimeOffset.UtcNow, null),
+                        [Receiver(mailbox.Id, "fits"), Receiver(mailbox.Id, "does-not")]
+                    ),
+                ],
+                TestContext.Current.CancellationToken
+            )
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.MailboxLogFull, result.Status);
+
+        var afterwards = await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken);
+        Assert.Equal(0L, afterwards!.NextSeq);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.MailboxReceivers.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(0, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(0, await context.IdempotencyKeys.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Enqueue_RefusalRefusesTheWholeRequest_IncludingItsOrdinaryWorkflows()
+    {
+        var repository = fixture.CreateRepository();
+
+        var result = Assert.Single(
+            await Enqueue(repository, [Ordinary("plain"), Receiver(Guid.CreateVersion7(), "doomed")])
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.MailboxNotFound, result.Status);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(0, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Enqueue_RefusedRequest_DoesNotTakeTheRestOfTheBatchDownWithIt()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var metadata = new WorkflowRequestMetadata(Ns, string.Empty, null, DateTimeOffset.UtcNow, null);
+        var doomed = Buffered(metadata with { IdempotencyKey = "doomed" }, [Receiver(Guid.CreateVersion7())]);
+        var ordinary = Buffered(metadata with { IdempotencyKey = "ordinary" }, [Ordinary()]);
+        var receiver = Buffered(metadata with { IdempotencyKey = "receiver" }, [Receiver(mailbox.Id)]);
+
+        var results = await repository.BatchEnqueueWorkflows(
+            [doomed, ordinary, receiver],
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.MailboxNotFound, results[0].Status);
+        Assert.Equal(BatchEnqueueResultStatus.Created, results[1].Status);
+        Assert.Equal(BatchEnqueueResultStatus.Created, results[2].Status);
+
+        await using var context = fixture.CreateDbContext();
+        Assert.Equal(2, await context.Workflows.CountAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(2, await context.IdempotencyKeys.CountAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Enqueue_WhenTheReceiversLogIsFull_IsRefused()
+    {
+        var repository = fixture.CreateRepository(SettingsWithLogLength(2));
+        var mailbox = await MintMailbox(repository);
+
+        await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0");
+        await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1");
+
+        var refused = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r2"));
+
+        Assert.Equal(BatchEnqueueResultStatus.MailboxLogFull, refused.Status);
+        Assert.Equal(2L, (await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken))!.NextSeq);
+    }
+
+    [Fact]
+    public async Task Enqueue_ReplayedKeyOnAFullReceiversLog_StillReplaysTheReceiver()
+    {
+        var repository = fixture.CreateRepository(SettingsWithLogLength(1));
+        var mailbox = await MintMailbox(repository);
+
+        var created = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0"));
+        Assert.Equal(BatchEnqueueResultStatus.Created, created.Status);
+
+        var replay = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0"));
+
+        Assert.Equal(BatchEnqueueResultStatus.Duplicate, replay.Status);
+        Assert.Equal(created.WorkflowIds, replay.WorkflowIds);
+        Assert.Equal(1L, (await repository.GetMailbox(mailbox.Id, Ns, TestContext.Current.CancellationToken))!.NextSeq);
+    }
+
+    [Fact]
+    public async Task Enqueue_IntraBatchDuplicateOfARefusedRequest_InheritsItsVerdict()
+    {
+        var repository = fixture.CreateRepository();
+        var metadata = new WorkflowRequestMetadata(Ns, "same-key", null, DateTimeOffset.UtcNow, null);
+        var missing = Guid.CreateVersion7();
+
+        var results = await repository.BatchEnqueueWorkflows(
+            [Buffered(metadata, [Receiver(missing)]), Buffered(metadata, [Receiver(missing)])],
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.All(results, r => Assert.Equal(BatchEnqueueResultStatus.MailboxNotFound, r.Status));
+    }
+
+    #endregion
+
+    #region The mailbox row is the serialization point
+
+    [Fact]
+    public async Task Enqueue_LocksOnlyForRequestsThatCanConsumeAPosition()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var created = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0"));
+
+        await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
+        await blocker.OpenAsync(TestContext.Current.CancellationToken);
+        await using var blockingTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
+        await using (
+            var lockCmd = new NpgsqlCommand(
+                "SELECT id FROM engine.mailboxes WHERE id = @id FOR UPDATE",
+                blocker,
+                blockingTx
+            )
+        )
+        {
+            lockCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await lockCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var replay = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r0"));
+        Assert.Equal(BatchEnqueueResultStatus.Duplicate, replay.Status);
+        Assert.Equal(created.WorkflowIds, replay.WorkflowIds);
+
+        var fresh = Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1");
+        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        Assert.False(
+            fresh.IsCompleted,
+            "A new receiver's birth was decided while the mailbox row lock was held elsewhere."
+        );
+
+        await blockingTx.RollbackAsync(TestContext.Current.CancellationToken);
+
+        var result = Assert.Single(await fresh);
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        Assert.Equal(PersistentItemStatus.Held, await StatusOf(Assert.Single(result.WorkflowIds!)));
+    }
+
+    [Fact]
+    public async Task Enqueue_OfOrdinaryWorkflows_IsUnaffectedByALockedMailbox()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
+        await blocker.OpenAsync(TestContext.Current.CancellationToken);
+        await using var blockingTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
+        await using (
+            var lockCmd = new NpgsqlCommand(
+                "SELECT id FROM engine.mailboxes WHERE id = @id FOR UPDATE",
+                blocker,
+                blockingTx
+            )
+        )
+        {
+            lockCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await lockCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var result = Assert.Single(await Enqueue(repository, [Ordinary()]));
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+
+        await blockingTx.RollbackAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Enqueue_DeliveryFirst_BornRunnableWithTheDelivery()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
+        await blocker.OpenAsync(TestContext.Current.CancellationToken);
+        await using var deliveryTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
+
+        await using (
+            var deliveryCmd = new NpgsqlCommand(
+                """
+                WITH locked AS (
+                    SELECT id FROM engine.mailboxes WHERE id = @id FOR UPDATE
+                ),
+                bumped AS (
+                    UPDATE engine.mailboxes SET next_idx = next_idx + 1
+                    WHERE id = (SELECT id FROM locked)
+                    RETURNING next_idx - 1 AS idx
+                )
+                INSERT INTO engine.mailbox_deliveries (mailbox_id, idx, idempotency_key, payload, accepted_at)
+                SELECT @id, bumped.idx, 'msg-1', '{}', now() FROM bumped
+                """,
+                blocker,
+                deliveryTx
+            )
+        )
+        {
+            deliveryCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await deliveryCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var enqueue = Enqueue(repository, [Receiver(mailbox.Id)]);
+        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        Assert.False(enqueue.IsCompleted, "The enqueue decided a receiver's birth while the delivery held the lock.");
+
+        await deliveryTx.CommitAsync(TestContext.Current.CancellationToken);
+
+        var workflowId = Assert.Single(Assert.Single(await enqueue).WorkflowIds!);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
+
+        await using var context = fixture.CreateDbContext();
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
+    }
+
+    [Fact]
+    public async Task Enqueue_EnqueueFirst_LeavesAHeldRegistrationForTheDeliveryToFind()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+        var workflowId = Assert.Single(result.WorkflowIds!);
+
+        await Deliver(repository, mailbox.Id, "msg-1");
+
+        await using var context = fixture.CreateDbContext();
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0L, registration.Seq);
+        Assert.Equal(workflowId, registration.WorkflowId);
+        Assert.NotNull(registration.HeldAt);
+
+        Assert.NotNull(registration.ReleasedAt);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
+    }
+
+    [Fact]
+    public async Task Enqueue_RacingAClose_IsSerializedByTheMailboxRowLock()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+
+        await using var blocker = new NpgsqlConnection(fixture.ConnectionString);
+        await blocker.OpenAsync(TestContext.Current.CancellationToken);
+        await using var closingTx = await blocker.BeginTransactionAsync(TestContext.Current.CancellationToken);
+        await using (
+            var closeCmd = new NpgsqlCommand(
+                """
+                UPDATE engine.mailboxes
+                SET status = 'disposed', disposed_reason = 'request', disposed_at = now()
+                WHERE id = @id
+                """,
+                blocker,
+                closingTx
+            )
+        )
+        {
+            closeCmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await closeCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
+        var enqueue = Enqueue(repository, [Receiver(mailbox.Id)]);
+        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        Assert.False(enqueue.IsCompleted, "The enqueue decided a receiver's birth while the close held the lock.");
+
+        await closingTx.CommitAsync(TestContext.Current.CancellationToken);
+
+        var workflowId = Assert.Single(Assert.Single(await enqueue).WorkflowIds!);
+        Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(workflowId));
+
+        await using var context = fixture.CreateDbContext();
+        var registration = await context.MailboxReceivers.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Null(registration.HeldAt);
+        Assert.NotNull(registration.ReleasedAt);
+    }
+
+    #endregion
+
+    #region Held is unfetchable
+
+    [Fact]
+    public async Task FetchAndLock_NeverClaimsAHeldReceiver()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Enqueue(repository, [Receiver(mailbox.Id), Ordinary()]);
+
+        var fetched = await repository.FetchAndLockWorkflows(count: 10, TestContext.Current.CancellationToken);
+
+        var operationId = Assert.Single(fetched).OperationId;
+        Assert.Equal("ordinary", operationId);
+    }
+
+    [Fact]
+    public async Task CountRunnableWorkflows_ExcludesHeldReceivers()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Enqueue(repository, [Receiver(mailbox.Id)]);
+
+        Assert.Equal(0, await repository.CountRunnableWorkflows(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task RequestCancellation_OnAHeldReceiver_IsAcceptedAndTakesEffectWhenItIsReleased()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+        var workflowId = Assert.Single(result.WorkflowIds!);
+
+        var accepted = await repository.RequestCancellation(
+            workflowId,
+            Ns,
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.True(accepted);
+
+        await using var context = fixture.CreateDbContext();
+        var row = await context.Workflows.SingleAsync(w => w.Id == workflowId, TestContext.Current.CancellationToken);
+        Assert.NotNull(row.CancellationRequestedAt);
+
+        Assert.Equal(PersistentItemStatus.Held, row.Status);
+        Assert.Empty(await repository.FetchAndLockWorkflows(count: 10, TestContext.Current.CancellationToken));
+    }
+
+    #endregion
+
+    #region Schema
+
+    [Fact]
+    public async Task RegistryPositions_AreUniquePerMailbox()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Enqueue(repository, [Receiver(mailbox.Id)]);
+
+        var duplicate = await Assert.ThrowsAsync<PostgresException>(async () =>
+        {
+            await using var conn = new NpgsqlConnection(fixture.ConnectionString);
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
+            await using var cmd = new NpgsqlCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at)
+                VALUES (@id, 0, gen_random_uuid(), now(), NULL)
+                """,
+                conn
+            );
+            cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        });
+
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, duplicate.SqlState);
+    }
+
+    [Fact]
+    public async Task AWorkflowCanWaitAtOnlyOnePosition()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        var result = Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)]));
+        var workflowId = Assert.Single(result.WorkflowIds!);
+
+        var duplicate = await Assert.ThrowsAsync<PostgresException>(async () =>
+        {
+            await using var conn = new NpgsqlConnection(fixture.ConnectionString);
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
+            await using var cmd = new NpgsqlCommand(
+                """
+                INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at)
+                VALUES (@id, 99, @workflowId, now(), NULL)
+                """,
+                conn
+            );
+            cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            cmd.Parameters.Add(new NpgsqlParameter<Guid>("workflowId", workflowId));
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        });
+
+        Assert.Equal(PostgresErrorCodes.UniqueViolation, duplicate.SqlState);
+    }
+
+    [Fact]
+    public async Task AMailboxWithRegistrationsCannotBeDeleted()
+    {
+        var repository = fixture.CreateRepository();
+        var mailbox = await MintMailbox(repository);
+        await Enqueue(repository, [Receiver(mailbox.Id)]);
+
+        var violation = await Assert.ThrowsAsync<PostgresException>(async () =>
+        {
+            await using var conn = new NpgsqlConnection(fixture.ConnectionString);
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
+            await using var cmd = new NpgsqlCommand("DELETE FROM engine.mailboxes WHERE id = @id", conn);
+            cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", mailbox.Id));
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        });
+
+        Assert.Equal(PostgresErrorCodes.RestrictViolation, violation.SqlState);
+    }
+
+    #endregion
+
+    /// <summary>Built here rather than mutated on the fixture's shared settings instance.</summary>
+    private static IOptions<EngineSettings> SettingsWithLogLength(int maxMailboxLogLength) =>
+        Options.Create(
+            new EngineSettings
+            {
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                MaxStepCommandTimeout = TimeSpan.FromHours(2),
+                DefaultStepRetryStrategy = RetryStrategy.None(),
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
+                DatabaseRetryStrategy = RetryStrategy.None(),
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                MaxMailboxLogLength = maxMailboxLogLength,
+            }
+        );
+
+    /// <summary>
+    /// The body hash derives from the idempotency key: a random hash would make every replay a body conflict.
+    /// </summary>
+    private static BufferedEnqueueRequest Buffered(
+        WorkflowRequestMetadata metadata,
+        IReadOnlyList<WorkflowRequest> workflows
+    ) =>
+        new(
+            new WorkflowEnqueueRequest { Workflows = workflows },
+            metadata,
+            SHA256.HashData(Encoding.UTF8.GetBytes(metadata.IdempotencyKey)),
+            new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+}

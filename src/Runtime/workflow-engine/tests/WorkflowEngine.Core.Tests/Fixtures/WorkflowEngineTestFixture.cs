@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
@@ -26,6 +27,7 @@ internal sealed record WorkflowEngineTestFixture(
     ServiceProvider ServiceProvider,
     MockHttpHandler HttpHandler,
     Mock<IHttpClientFactory> HttpClientFactoryMock,
+    Mock<IEngineRepository> RepositoryMock,
     EngineSettings EngineSettings
 ) : IDisposable
 {
@@ -40,6 +42,7 @@ internal sealed record WorkflowEngineTestFixture(
     )
     {
         var handler = new MockHttpHandler();
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient(handler));
 
@@ -67,6 +70,7 @@ internal sealed record WorkflowEngineTestFixture(
 
         var services = new ServiceCollection();
         services.AddSingleton(httpClientFactoryMock.Object);
+        services.AddSingleton(repositoryMock.Object);
         services.AddSingleton(Options.Create(engineSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
@@ -88,6 +92,7 @@ internal sealed record WorkflowEngineTestFixture(
             services.BuildServiceProvider(),
             handler,
             httpClientFactoryMock,
+            repositoryMock,
             engineSettings
         );
     }

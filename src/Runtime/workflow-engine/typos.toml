@@ -1,7 +1,9 @@
 [files]
+# Hidden directories are scanned: without this, `typos` skips every dot-directory before any exclude is
+# consulted, so .k6 and .claude were never checked. Put a false positive in extend-words below rather
+# than a directory back in extend-exclude.
+ignore-hidden = false
 extend-exclude = [
-    "**/wwwroot/**",
-    "**/.k6/**",
     "**/bin/**",
     "**/obj/**",
     "*.svg",

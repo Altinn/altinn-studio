@@ -160,6 +160,28 @@ internal static class QueryPlanHelper
         }
     }
 
+    /// <summary>
+    /// Bitmap-tolerant sibling of <see cref="AssertUsesIndexScan"/>: a query with no matching <c>ORDER BY</c>
+    /// is answered with a Bitmap Index Scan, whose nodes carry the index name but no relation name — so the
+    /// index and the table's scan nodes are checked separately.
+    /// </summary>
+    public static void AssertUsesIndex(JsonElement plan, string tableName, string indexName)
+    {
+        AssertNoSeqScan(plan, tableName);
+
+        var nodes = GetAllNodes(plan);
+        if (!nodes.Any(n => n.IndexName == indexName))
+        {
+            var actual = string.Join(
+                ", ",
+                nodes.Where(n => n.IndexName is not null).Select(n => $"{n.NodeType}({n.IndexName})")
+            );
+            throw new Xunit.Sdk.XunitException(
+                $"Expected the plan to read \"{indexName}\" but it does not. Indexes read: [{actual}]"
+            );
+        }
+    }
+
     private static void CollectNodes(JsonElement node, List<PlanNode> nodes)
     {
         var nodeType = node.GetProperty("Node Type").GetString()!;

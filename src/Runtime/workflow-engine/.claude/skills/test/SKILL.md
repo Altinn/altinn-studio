@@ -27,7 +27,7 @@ When writing or running tests, follow these guidelines.
 
 - **Arrange-Act-Assert** with explicit `// Arrange`, `// Act`, `// Assert` comment markers.
 - Prefer `[Theory]` with `[InlineData]` or `[MemberData]` (returning `TheoryData<>`) when inputs vary but logic is the same.
-- Use `[Fact]` only for single meaningful scenarios with no parameterisation.
+- Use `[Fact]` only for single meaningful scenarios with no parameterization.
 - Test naming: `MethodName_Scenario_ExpectedResult`.
 - **Cancellation tokens:** Always pass `TestContext.Current.CancellationToken` to async calls that accept a `CancellationToken`. This includes `Task.Delay`, `HttpClient` methods, EF queries, polling loops, etc. xUnit v3 analyzer rule `xUnit1051` enforces this.
 

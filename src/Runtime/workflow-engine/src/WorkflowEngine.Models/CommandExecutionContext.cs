@@ -65,6 +65,13 @@ public sealed record CommandExecutionContext
     public DateTimeOffset? WaitDeadline { get; init; }
 
     /// <summary>
+    /// What the rendezvous produced for this step; <c>null</c> for a step that receives from no mailbox. Read
+    /// per attempt rather than carried on the step — safe because delivery existence at the position is frozen
+    /// before the receiver becomes runnable.
+    /// </summary>
+    public MailboxReceipt? MailboxReceipt { get; init; }
+
+    /// <summary>
     /// Parent trace context for distributed tracing.
     /// </summary>
     public ActivityContext? ParentTraceContext { get; init; }

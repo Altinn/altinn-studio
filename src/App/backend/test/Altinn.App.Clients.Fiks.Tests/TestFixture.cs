@@ -88,8 +88,11 @@ internal sealed record TestFixture(
         App.Services.GetRequiredService<IFiksArkivConfigResolver>();
     public IFiksArkivInstanceClient FiksArkivInstanceClient =>
         App.Services.GetRequiredService<IFiksArkivInstanceClient>();
-    public IServiceTask FiksArkivServiceTask =>
-        AppImplementationFactory.GetAll<IServiceTask>().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
+    public IPipelineServiceTask FiksArkivServiceTask =>
+        AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
+
+    /// <summary>The Fiks Arkiv task's composed pipeline — the send stage plus its reply handler.</summary>
+    public ServiceTaskPipeline FiksArkivPipeline => FiksArkivServiceTask.ResolvePipeline();
     public ResiliencePipeline<FiksIOMessageResponse> FiksIOResiliencePipeline =>
         App.Services.ResolveResiliencePipeline();
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();

@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
@@ -181,6 +183,36 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var result = Assert.Single(results);
         Assert.Equal(BatchEnqueueResultStatus.InvalidReference, result.Status);
         Assert.Null(result.WorkflowIds);
+    }
+
+    [Fact]
+    public async Task EnqueueBatch_WithThreeRequestsSharingOneIdempotencyKey_AnswersEachOfThem()
+    {
+        // Three same-key requests leave two intra-batch duplicates classifying against one stored row, which
+        // the classification join then returns once per repeat.
+        var repo = fixture.CreateRepository();
+        var (request, metadata, ns, _) = WorkflowTestHelper.CreateRequest();
+        var shared = metadata with { Namespace = ns, IdempotencyKey = "one-key-three-requests" };
+
+        // One hash for all three, so the repeats are duplicates rather than conflicts.
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(shared.IdempotencyKey));
+        BufferedEnqueueRequest Buffered() =>
+            new(
+                new WorkflowEnqueueRequest { Workflows = [request] },
+                shared,
+                hash,
+                new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
+            );
+
+        var results = await repo.BatchEnqueueWorkflows(
+            [Buffered(), Buffered(), Buffered()],
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(BatchEnqueueResultStatus.Created, results[0].Status);
+        Assert.Equal(BatchEnqueueResultStatus.Duplicate, results[1].Status);
+        Assert.Equal(BatchEnqueueResultStatus.Duplicate, results[2].Status);
+        Assert.All(results, r => Assert.Equal(results[0].WorkflowIds, r.WorkflowIds));
     }
 
     [Fact]

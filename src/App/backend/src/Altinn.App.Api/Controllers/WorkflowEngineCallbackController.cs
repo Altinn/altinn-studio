@@ -6,8 +6,10 @@ using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -99,10 +101,13 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        // The blob restores into two halves: instance data, and the non-data carry threaded through the command
+        // and back out below.
         InstanceDataUnitOfWork instanceDataUnitOfWork;
+        WorkflowCallbackStateCarry stateCarry;
         try
         {
-            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
+            (instanceDataUnitOfWork, stateCarry) = await _workflowCallbackStateService.RestoreState(
                 instanceId,
                 payload.State,
                 payload.Actor.Language
@@ -140,6 +145,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 InstanceDataMutator = instanceDataUnitOfWork,
                 CancellationToken = ct,
                 Payload = payload,
+                StateCarry = stateCarry,
             }
         );
 
@@ -170,8 +176,31 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.UpdateInstanceData(changes);
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
-                // Capture updated state (includes Storage-assigned IDs for newly created data elements)
-                string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
+                string updatedState = await _workflowCallbackStateService.CaptureState(
+                    instanceDataUnitOfWork,
+                    stateCarry
+                );
+
+                // The relay runs here, not in the command: whatever it starts must begin on the state the handler
+                // *published* — saved, re-captured, re-signed above. On a relay throw the engine retries the whole
+                // step; the relay's keyed calls deduplicate, the save does not (the ordinary at-least-once contract).
+                if (success.MailboxContinuation is { } continuation)
+                {
+                    await RunMailboxRelay(
+                        continuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork.Instance,
+                        updatedState,
+                        success.AutoAdvanceProcess,
+                        success.AutoAdvanceAction,
+                        ct
+                    );
+
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    return Ok(new AppCallbackResponse { State = updatedState });
+                }
 
                 // If the command signals auto-advance, enqueue a dependent process-next workflow.
                 // This happens AFTER save so the state blob includes Storage-assigned IDs.
@@ -205,7 +234,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         collectionKey,
                         updatedState,
                         success.AutoAdvanceAction,
-                        ct
+                        ct: ct
                     );
                 }
 
@@ -260,6 +289,23 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedProcessEngineCommandResult failed:
+                // A permanent failure still concludes the exchange — the mailbox must stop accepting messages. Before
+                // the response, so a retried step repeats it.
+                if (failed.MailboxContinuation is { } failedContinuation)
+                {
+                    await RunMailboxRelay(
+                        failedContinuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork.Instance,
+                        state: null,
+                        autoAdvanceProcess: false,
+                        autoAdvanceAction: null,
+                        ct
+                    );
+                }
+
                 _logger.LogError(
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
                     commandKey,
@@ -294,6 +340,36 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
                 throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
         }
+    }
+
+    /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
+    private Task RunMailboxRelay(
+        MailboxContinuation continuation,
+        AppIdentifier appId,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        Instance instance,
+        string? state,
+        bool autoAdvanceProcess,
+        string? autoAdvanceAction,
+        CancellationToken ct
+    )
+    {
+        var relay = _serviceProvider.GetRequiredService<MailboxRelay>();
+        return relay.Continue(
+            continuation,
+            new MailboxRelayRequest
+            {
+                AppId = appId,
+                InstanceId = instanceId,
+                Payload = payload,
+                Instance = instance,
+                State = state,
+                AutoAdvanceProcess = autoAdvanceProcess,
+                AutoAdvanceAction = autoAdvanceAction,
+            },
+            ct
+        );
     }
 
     private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)

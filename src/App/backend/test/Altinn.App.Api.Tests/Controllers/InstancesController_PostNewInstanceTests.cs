@@ -973,6 +973,22 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxMintResult> MintMailbox(
+            string ns,
+            MailboxCreateRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 
     private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
@@ -1079,6 +1095,22 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
             throw new NotSupportedException();
+
+        public Task<MailboxMintResult> MintMailbox(
+            string ns,
+            MailboxCreateRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
+        public Task<MailboxDeliveryResult> DeliverToMailbox(
+            string ns,
+            Guid mailboxId,
+            MailboxDeliveryRequest request,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 }
 

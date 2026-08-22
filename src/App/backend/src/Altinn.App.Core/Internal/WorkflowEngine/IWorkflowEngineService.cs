@@ -49,6 +49,11 @@ internal interface IWorkflowEngineService
         CancellationToken ct = default
     );
 
+    /// <summary>
+    /// Enqueues a process-next workflow that depends on another. <c>idempotencyKey</c> defaults to
+    /// one derived from <c>dependsOnWorkflowId</c>; a caller that must key on something narrower —
+    /// the mailbox relay keys on the step that concluded the exchange — supplies its own.
+    /// </summary>
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
@@ -57,6 +62,7 @@ internal interface IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     );
 }

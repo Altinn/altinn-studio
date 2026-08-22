@@ -1,12 +1,20 @@
 /* Card rendering — shared by live, recent, and query views */
 
 import { stepSubLabel, state, workflowData, parseTransition } from '../core/state.js';
-import { esc, escJsArg, formatElapsed, fmtTime, fmtNamespace, abbrevGuids } from '../core/helpers.js';
+import {
+    esc,
+    escAttr,
+    escJsArg,
+    formatElapsed,
+    fmtTime,
+    fmtNamespace,
+    abbrevGuids,
+} from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
 export const copyIconHTML = (text, title) =>
-    `<a class="open-btn" onclick="copyText(event,'${esc(text)}')" title="${esc(title || 'Copy')}">\u29C9</a>`;
+    `<a class="open-btn" onclick="copyText(event,'${escJsArg(text)}')" title="${escAttr(title || 'Copy')}">\u29C9</a>`;
 
 /** @param {string} traceId @param {string} [title] @param {string} [extraClass] @returns {string} */
 export const traceLink = (traceId, title, extraClass) => {
@@ -38,7 +46,7 @@ export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Gr
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
 export const stateIconHTML = (wf) =>
-    `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="View state trail">&#123;&#125;</a>`;
+    `<a class="open-btn state-btn" onclick="openStateModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="View state trail">&#123;&#125;</a>`;
 
 /** Tree icon for the chain modal (dependency-ordered view of the connected graph). */
 const CHAIN_ICON =
@@ -71,21 +79,21 @@ const buildTimestampsHTML = (wf, isStatic) => {
     let html = '';
     const startTs = fmtTime(wf.createdAt);
     if (startTs) {
-        html += `<span class="timestamp" data-iso="${esc(wf.createdAt)}">${esc(startTs)}</span>`;
+        html += `<span class="timestamp" data-iso="${escAttr(wf.createdAt)}">${esc(startTs)}</span>`;
     }
     const endIso = wf.removedAt || wf.steps.at(-1)?.updatedAt;
     if (endIso && (isStatic || wf.removedAt)) {
         const endTs = fmtTime(endIso);
         if (endTs) {
             html += `<span class="ts-arrow">\u2192</span>`;
-            html += `<span class="timestamp" data-iso="${esc(endIso)}">${esc(endTs)}</span>`;
+            html += `<span class="timestamp" data-iso="${escAttr(endIso)}">${esc(endTs)}</span>`;
         }
     } else if (startTs) {
         html += `<span class="ts-arrow ts-placeholder">\u2192</span>`;
         html += `<span class="timestamp ts-placeholder">&nbsp;</span>`;
     }
     if (!isStatic) {
-        html += `<span class="elapsed" data-timer="${esc(wf.databaseId)}">0.0s</span>`;
+        html += `<span class="elapsed" data-timer="${escAttr(wf.databaseId)}">0.0s</span>`;
     } else {
         const durStart = wf.executionStartedAt || wf.createdAt;
         const durEnd = wf.removedAt || wf.steps.at(-1)?.updatedAt;
@@ -130,7 +138,7 @@ const wfDisplayName = (wf) => {
 /** @param {import('../core/state.js').Workflow} wf @param {string} cls @returns {string} */
 const nameSpanHTML = (wf, cls) => {
     const n = wfDisplayName(wf);
-    return `<span class="${cls}" title="${esc(n.title)}">${esc(n.text)}</span>`;
+    return `<span class="${cls}" title="${escAttr(n.title)}">${esc(n.text)}</span>`;
 };
 
 /** Filter-funnel icon shown on the collection chip to signal it filters connected workflows. */
@@ -151,8 +159,8 @@ export const buildLabelsHTML = (wf, interactive) => {
      */
     const seg = (key, value, display, cls) =>
         interactive
-            ? `<span class="${cls}" onclick="toggleLabelFilter('${esc(key)}','${esc(value)}')" title="Filter by ${esc(key)}=${esc(display)}">${esc(display)}</span>`
-            : `<span class="${cls}" title="${esc(key)}">${esc(display)}</span>`;
+            ? `<span class="${cls}" onclick="toggleLabelFilter('${escJsArg(key)}','${escJsArg(value)}')" title="Filter by ${escAttr(key)}=${escAttr(display)}">${esc(display)}</span>`
+            : `<span class="${cls}" title="${escAttr(key)}">${esc(display)}</span>`;
     const sep = `<span class="seg-sep">/</span>`;
 
     let html = seg('namespace', wf.namespace, fmtNamespace(wf.namespace), 'seg key');
@@ -195,10 +203,10 @@ const primaryCopyHTML = (wf) =>
 export const collectionButtonHTML = (wf, interactive) => {
     if (!wf.collectionKey) return '';
     if (!interactive) {
-        return `<span class="seg collection" title="${esc(wf.collectionKey)}">collection</span>`;
+        return `<span class="seg collection" title="${escAttr(wf.collectionKey)}">collection</span>`;
     }
-    const title = esc(`Filter by collection (${abbrevGuids(wf.collectionKey)})`);
-    return `<span class="seg collection" onclick="toggleLabelFilter('collectionKey','${esc(wf.collectionKey)}')" title="${title}">${COLLECTION_ICON}collection</span>`;
+    const title = escAttr(`Filter by collection (${abbrevGuids(wf.collectionKey)})`);
+    return `<span class="seg collection" onclick="toggleLabelFilter('collectionKey','${escJsArg(wf.collectionKey)}')" title="${title}">${COLLECTION_ICON}collection</span>`;
 };
 
 /* ── Relation chips (dependsOn / dependents / links) ──────── */
@@ -226,7 +234,7 @@ const REL_GROUPS = /** @type {['dependsOn'|'dependents'|'links', string, string]
 const buildRelationsHTML = (wf, showUnknown) => {
     if (wf.dependsOn === undefined && wf.dependents === undefined && wf.links === undefined) {
         return showUnknown
-            ? `<span class="seg rel-chip rel-unknown" onclick="loadRelations(event,'${esc(wf.databaseId)}')" title="Load related workflows (dependencies and links)">rel?</span>`
+            ? `<span class="seg rel-chip rel-unknown" onclick="loadRelations(event,'${escJsArg(wf.databaseId)}')" title="Load related workflows (dependencies and links)">rel?</span>`
             : '';
     }
     let html = '';
@@ -236,10 +244,10 @@ const buildRelationsHTML = (wf, showUnknown) => {
         const title = `${label}: ${rels.map((r) => `${r.operationId} (${r.status})`).join(', ')}`;
         let dots = rels
             .slice(0, 5)
-            .map((r) => `<span class="compact-dot rel-dot ${esc(r.status)}"></span>`)
+            .map((r) => `<span class="compact-dot rel-dot ${escAttr(r.status)}"></span>`)
             .join('');
         if (rels.length > 5) dots += `<span class="rel-more">+${rels.length - 5}</span>`;
-        html += `<span class="seg rel-chip" onclick="relChipClick(event,'${esc(wf.databaseId)}','${group}')" title="${esc(title)}">${glyph}${dots}</span>`;
+        html += `<span class="seg rel-chip" onclick="relChipClick(event,'${escJsArg(wf.databaseId)}','${group}')" title="${escAttr(title)}">${glyph}${dots}</span>`;
     }
     return html;
 };
@@ -255,24 +263,33 @@ const sideChainBadgeHTML = (wf) =>
         ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
         : '';
 
+const FLASH_MS = 1600;
+
+/**
+ * Scroll to and flash the first visible match — relation chips and mailbox position chips share it.
+ * @param {string} selector
+ * @returns {boolean} true when something was revealed
+ */
+export const revealFirstVisible = (selector) => {
+    for (const el of document.querySelectorAll(selector)) {
+        const target = /** @type {HTMLElement} */ (el);
+        if (target.offsetParent === null) continue;
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.remove('rel-flash');
+        void target.offsetWidth; // restart the animation when flashing the same element twice
+        target.classList.add('rel-flash');
+        setTimeout(() => target.classList.remove('rel-flash'), FLASH_MS);
+        return true;
+    }
+    return false;
+};
+
 /**
  * Scroll to and flash a workflow's card if one is rendered and visible in any section.
  * @param {string} wfId
  * @returns {boolean} true when a card was revealed
  */
-export const revealCard = (wfId) => {
-    for (const el of document.querySelectorAll(`[data-wfkey="${wfId}"]`)) {
-        const card = /** @type {HTMLElement} */ (el);
-        if (card.offsetParent === null) continue;
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.remove('rel-flash');
-        void card.offsetWidth; // restart the animation when flashing the same card twice
-        card.classList.add('rel-flash');
-        setTimeout(() => card.classList.remove('rel-flash'), 1600);
-        return true;
-    }
-    return false;
-};
+export const revealCard = (wfId) => revealFirstVisible(`[data-wfkey="${CSS.escape(wfId)}"]`);
 
 /**
  * Re-render every card showing this workflow (a workflow can appear in multiple sections),
@@ -283,7 +300,7 @@ export const revealCard = (wfId) => {
 const rerenderCards = (wfKey) => {
     const wf = workflowData[wfKey];
     if (!wf) return;
-    for (const el of document.querySelectorAll(`[data-wfkey="${wfKey}"]`)) {
+    for (const el of document.querySelectorAll(`[data-wfkey="${CSS.escape(wfKey)}"]`)) {
         const card = /** @type {HTMLElement} */ (el);
         if (card.closest('#scheduled-workflows')) continue;
         const isStatic = !card.closest('#live-workflows');
@@ -377,7 +394,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
         const dotTitle = sub
             ? `${step.commandDetail} [${sub}] (${step.status})`
             : `${step.commandDetail} (${step.status})`;
-        html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')" title="${esc(dotTitle)}"></span>`;
+        html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}','${escJsArg(step.idempotencyKey)}','${escJsArg(step.commandDetail)}')" title="${escAttr(dotTitle)}"></span>`;
     }
     html += `</div>`;
 
@@ -407,7 +424,7 @@ export const buildScheduledCardHTML = (wf) => {
     html += nameSpanHTML(wf, 'wf-name');
     html += `<span class="header-spacer"></span>`;
     if (wf.startAt) {
-        html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
+        html += `<span class="elapsed" data-starts-at="${escAttr(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
     html += primaryCopyHTML(wf);
@@ -429,11 +446,11 @@ export const buildCompactScheduledCardHTML = (wf) => {
     html += nameSpanHTML(wf, 'compact-name');
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
-        html += `<span class="compact-dot ${step.status}" title="${esc(step.commandDetail)} (${step.status})"></span>`;
+        html += `<span class="compact-dot ${escAttr(step.status)}" title="${escAttr(step.commandDetail)} (${escAttr(step.status)})"></span>`;
     }
     html += `</div>`;
     if (wf.startAt) {
-        html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
+        html += `<span class="elapsed" data-starts-at="${escAttr(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled compact-pill" style="animation:none">Scheduled</span>`;
     html += primaryCopyHTML(wf);

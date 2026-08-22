@@ -75,6 +75,57 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
+
+        // Mailboxes
+        Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
+        Assert.Equal(100, settings.MaxOpenMailboxesPerCollection);
+        Assert.Equal(256 * 1024, settings.MaxMailboxPayloadSize);
+        Assert.Equal(100, settings.MaxMailboxLogLength);
+        Assert.Equal(TimeSpan.FromMinutes(5), settings.MailboxSweepInterval);
+    }
+
+    [Fact]
+    public void MailboxSettings_BindFromJson_AndZeroesGetDefaulted()
+    {
+        var configured = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "maxMailboxTimeout": "3.00:00:00",
+                "maxOpenMailboxesPerCollection": 7,
+                "maxMailboxPayloadSize": 4096,
+                "maxMailboxLogLength": 5,
+                "mailboxSweepInterval": "00:02:00"
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(3), configured.MaxMailboxTimeout);
+        Assert.Equal(7, configured.MaxOpenMailboxesPerCollection);
+        Assert.Equal(4096, configured.MaxMailboxPayloadSize);
+        Assert.Equal(5, configured.MaxMailboxLogLength);
+        Assert.Equal(TimeSpan.FromMinutes(2), configured.MailboxSweepInterval);
+
+        var zeroed = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "maxMailboxTimeout": "00:00:00",
+                "maxOpenMailboxesPerCollection": 0,
+                "maxMailboxPayloadSize": 0,
+                "maxMailboxLogLength": 0,
+                "mailboxSweepInterval": "00:00:00"
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(21), zeroed.MaxMailboxTimeout);
+        Assert.Equal(100, zeroed.MaxOpenMailboxesPerCollection);
+        Assert.Equal(256 * 1024, zeroed.MaxMailboxPayloadSize);
+        Assert.Equal(100, zeroed.MaxMailboxLogLength);
+        Assert.Equal(TimeSpan.FromMinutes(5), zeroed.MailboxSweepInterval);
     }
 
     [Fact]

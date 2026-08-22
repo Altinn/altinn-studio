@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models.Notifications.Future;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
@@ -20,6 +21,14 @@ internal sealed record TaskStartContext
     /// this is not a service task at all.
     /// </summary>
     public IReadOnlyList<string>? ServiceTaskStageNames { get; init; }
+
+    /// <summary>
+    /// The mailbox the service task's pipeline declared with <c>WithReplyFrom</c>, read at enqueue time alongside
+    /// the stage names. Null for every other task. Its presence changes the expansion: the conclusion stops being a
+    /// Main step (it runs on each receive workflow instead), and Main gains a final step that enqueues the first
+    /// receiver.
+    /// </summary>
+    public ServiceTaskMailboxDeclaration? ServiceTaskMailbox { get; init; }
 
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.

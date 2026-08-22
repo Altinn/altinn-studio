@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -23,7 +24,13 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<ProcessStepOptionsResolver>();
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
+        services.AddTransient<MailboxDeliveryEnvelope>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
+        services.AddTransient<MailboxRelay>();
+
+        // The inbound half of a mailbox exchange: whatever channel receives an external system's answer
+        // hands it here, and it reaches the waiting service task's reply handler through the engine.
+        services.AddTransient<IServiceTaskReplyForwarder, ServiceTaskReplyForwarder>();
 
         services
             .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()
@@ -73,6 +80,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, SaveProcessStateToStorage>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
+        services.AddTransient<IWorkflowEngineCommand, EnqueueReceiveWorkflow>();
 
         // Process engine callback handlers - Altinn Events
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();

@@ -36,6 +36,13 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
+    /// For a mailbox-opening service task: the one step its receive workflows run — the pipeline's conclusion.
+    /// Null for every other event. A step of the enqueued receiver, never of Main, with options resolved by
+    /// the caller like any other step's.
+    /// </summary>
+    public StepRequest? MailboxReceiveStep { get; private set; }
+
+    /// <summary>
     /// Creates command group for task start events.
     /// </summary>
     public static WorkflowCommandSet GetTaskStartSteps(TaskStartContext context)
@@ -70,13 +77,20 @@ internal sealed class WorkflowCommandSet
                 );
             }
 
-            // The concluding engine step — the pipeline's Finally (a simple task's Execute),
-            // identified by a null stage name. Every service task has it; for most it is the
-            // whole pipeline.
-            group.AddCriticalPostCommitCommand(
-                ExecuteServiceTask.Key,
-                new ExecuteServiceTaskPayload(context.ServiceTaskType)
-            );
+            if (context.ServiceTaskMailbox is not null)
+            {
+                // A mailbox-opening task expands to no concluding Main step — the conclusion runs on the receive
+                // workflows, once per message. Main gains the step that enqueues the first receiver instead.
+                group.MailboxReceiveStep = CreateReceiveHandlerStep(context.ServiceTaskType);
+            }
+            else
+            {
+                // The concluding engine step — the pipeline's Finally, identified by a null stage name.
+                group.AddCriticalPostCommitCommand(
+                    ExecuteServiceTask.Key,
+                    new ExecuteServiceTaskPayload(context.ServiceTaskType)
+                );
+            }
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -187,6 +201,13 @@ internal sealed class WorkflowCommandSet
         _sideEffectCommands.Add(CreateCommand(commandKey, payload));
         return this;
     }
+
+    /// <summary>
+    /// The one step a receive workflow runs: the same <c>ExecuteServiceTask</c> conclusion step a non-mailbox
+    /// task ends with, identified by a null stage name.
+    /// </summary>
+    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType) =>
+        CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType));
 
     private static StepRequest CreateCommand(
         string commandKey,

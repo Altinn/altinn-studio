@@ -38,7 +38,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     },
     {
       "ref": "wf-side",
@@ -65,7 +66,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     },
     {
       "ref": "wf-mid",
@@ -98,7 +100,8 @@ Content-Type: application/json; charset=utf-8
         "Guid_2"
       ],
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     },
     {
       "ref": "wf-down",
@@ -127,7 +130,8 @@ Content-Type: application/json; charset=utf-8
       ],
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     }
   ]
 }
@@ -249,15 +253,15 @@ Content-Type: application/json; charset=utf-8
       },
       "overallStatus": "Completed",
       "dependencies": {
-        "Guid_3": "Completed",
-        "Guid_2": "Completed"
+        "Guid_2": "Completed",
+        "Guid_3": "Completed"
       },
       "dependents": {
         "Guid_6": "Completed"
       },
       "links": {
-        "Guid_4": "Completed",
-        "Guid_2": "Completed"
+        "Guid_2": "Completed",
+        "Guid_4": "Completed"
       },
       "steps": [
         {

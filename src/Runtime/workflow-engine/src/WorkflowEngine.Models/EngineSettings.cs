@@ -119,6 +119,45 @@ public sealed record EngineSettings
     [JsonPropertyName("minStepDeferDelay")]
     public TimeSpan MinStepDeferDelay { get; set; } = TimeSpan.FromSeconds(1);
 
+    /// <summary>The largest timeout a mint may request — the longest a single exchange can stay open.</summary>
+    /// <remarks>
+    /// A term in the callback-token lifetime bound: the token minted at a receiver's enqueue must outlive the
+    /// park, the sweep's coarseness, the wait budgets, retention and the retry ladder.
+    /// <c>CallbackTokenLifetimeInvariantTests</c> pins that arithmetic, so raising this fails loudly.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxTimeout")]
+    public TimeSpan MaxMailboxTimeout { get; set; } = TimeSpan.FromDays(21);
+
+    /// <summary>
+    /// Best-effort cap on simultaneously open mailboxes per collection; an exceeding mint is refused with
+    /// <c>429</c> rather than something being closed.
+    /// </summary>
+    /// <remarks>
+    /// Not exact: the count reads the mint statement's own snapshot, so concurrent mints can overshoot by at
+    /// most one each. A mailbox minted without a <c>collectionKey</c> is not capped.
+    /// </remarks>
+    [JsonPropertyName("maxOpenMailboxesPerCollection")]
+    public int MaxOpenMailboxesPerCollection { get; set; } = 100;
+
+    /// <summary>
+    /// The largest delivery payload in UTF-8 bytes; larger is refused with <c>413</c> and nothing is stored.
+    /// </summary>
+    /// <remarks>
+    /// Large content belongs in storage with the delivery carrying a reference: the payload is read back on
+    /// every attempt and kept until retention.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxPayloadSize")]
+    public int MaxMailboxPayloadSize { get; set; } = 256 * 1024;
+
+    /// <summary>The most positions a mailbox's logs may hold; a delivery past it is refused with <c>429</c>.</summary>
+    /// <remarks>
+    /// The only bound on one mailbox's cost — deliveries skip the ordinary admission check, so without it one
+    /// counterparty could fill a mailbox without limit. Applied to both logs: they are two views of one
+    /// exchange.
+    /// </remarks>
+    [JsonPropertyName("maxMailboxLogLength")]
+    public int MaxMailboxLogLength { get; set; } = 100;
+
     /// <summary>
     /// The default retry strategy for steps.
     /// </summary>
@@ -170,6 +209,19 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("maintenanceInterval")]
     public TimeSpan MaintenanceInterval { get; set; }
+
+    /// <summary>
+    /// Interval of the mailbox closure sweep, deliberately coarser than <see cref="MaintenanceInterval"/>:
+    /// a deadline is a day-scale promise, and a quiet tick is one indexed scan.
+    /// </summary>
+    /// <remarks>
+    /// A term in the token-lifetime bound (a receiver parks until deadline plus at most one interval), pinned
+    /// by <c>CallbackTokenLifetimeInvariantTests</c>. Deliberately no initializer: the default lives in
+    /// <c>Defaults.EngineSettings</c> alone, and an initializer here would win over it and leave the tripwire
+    /// guarding a number nothing uses.
+    /// </remarks>
+    [JsonPropertyName("mailboxSweepInterval")]
+    public TimeSpan MailboxSweepInterval { get; set; }
 
     /// <summary>
     /// Concurrency settings.

@@ -334,6 +334,7 @@ const queryStatusIds = [
     'processing',
     'requeued',
     'waiting',
+    'held',
     'completed',
     'failed',
     'canceled',

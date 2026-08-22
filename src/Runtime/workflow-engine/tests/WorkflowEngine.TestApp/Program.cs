@@ -15,6 +15,7 @@ builder.AddWorkflowEngine(connectionString);
 // Test-only commands live in the shared host so integration tests exercising them can use the shared
 // fixture instead of booting a second PostgreSQL container. They are inert unless a step names them.
 builder.Services.AddCommand<DeferringCommand>();
+builder.Services.AddCommand<ReceivingCommand>();
 
 var app = builder.Build();
 await app.UseWorkflowEngine();

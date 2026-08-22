@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.Extensions.Logging;
@@ -190,6 +191,174 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         response.EnsureSuccessStatusCode();
         return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = JsonContent.Create(request);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+
+        // A 400 cannot change on retry, so it is a value the caller fails permanently on rather than an
+        // exception the retry ladder chews on.
+        if (response.StatusCode == HttpStatusCode.BadRequest)
+        {
+            string detail = await ReadProblemDetail(response, ct);
+            _logger.LogError(
+                "Workflow engine refused the mailbox mint as invalid. URL: {Url}. Detail: {Detail}",
+                url,
+                detail
+            );
+            return new MailboxMintResult.Rejected(detail);
+        }
+
+        // A 429 (collection cap) stays retryable, but carries the engine's detail so the first failure names
+        // the runaway.
+        if (response.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            string detail = await ReadProblemDetail(response, ct);
+            _logger.LogError(
+                "Workflow engine mailbox mint hit the open-mailbox cap. URL: {Url}. Detail: {Detail}",
+                url,
+                detail
+            );
+            return new MailboxMintResult.AtCapacity(detail);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string body = await response.Content.ReadAsStringAsync(ct);
+            _logger.LogError(
+                "Workflow engine mailbox mint failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
+                response.StatusCode,
+                url,
+                body
+            );
+        }
+        response.EnsureSuccessStatusCode();
+
+        MailboxResponse mailbox =
+            await response.Content.ReadFromJsonAsync<MailboxResponse>(ct)
+            ?? throw new InvalidOperationException("The expected mailbox was not found in the mint response content.");
+
+        return new MailboxMintResult.Minted(mailbox);
+    }
+
+    /// <inheritdoc />
+    public async Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, url);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+
+        // A 404 is modeled: the caller's only sensible answer is "nothing left to close".
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogWarning(
+                "Workflow engine reported no mailbox to close. URL: {Url}. The mailbox was purged, or it was never "
+                    + "minted in this namespace.",
+                url
+            );
+            return null;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string body = await response.Content.ReadAsStringAsync(ct);
+            _logger.LogError(
+                "Workflow engine mailbox close failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
+                response.StatusCode,
+                url,
+                body
+            );
+        }
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<MailboxResponse>(ct)
+            ?? throw new InvalidOperationException("The expected mailbox was not found in the close response content.");
+    }
+
+    /// <summary>
+    /// How much of a refused delivery's body travels back for diagnostics; the useful part of ProblemDetails
+    /// is at the front.
+    /// </summary>
+    private const int MaxErrorDetailLength = 512;
+
+    /// <inheritdoc />
+    public async Task<MailboxDeliveryResult> DeliverToMailbox(
+        string ns,
+        Guid mailboxId,
+        MailboxDeliveryRequest request,
+        CancellationToken ct = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}/deliveries";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = JsonContent.Create(request);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+
+        if (response.StatusCode is HttpStatusCode.Accepted or HttpStatusCode.OK)
+        {
+            // The status is the outcome; an unreadable body must not turn an accepted message into a reported
+            // failure the caller would forward again.
+            MailboxDeliveryResponse? body = null;
+            try
+            {
+                body = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(ct);
+            }
+            catch (Exception ex) when (ex is JsonException or NotSupportedException)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Workflow engine accepted the delivery into mailbox {MailboxId} with {StatusCode}, but its "
+                        + "response body could not be read. The message is delivered; only its position is unknown.",
+                    mailboxId,
+                    (int)response.StatusCode
+                );
+            }
+
+            return new MailboxDeliveryResult(response.StatusCode, body, ErrorDetail: null);
+        }
+
+        string errorBody = await response.Content.ReadAsStringAsync(ct);
+        return new MailboxDeliveryResult(
+            response.StatusCode,
+            Body: null,
+            ErrorDetail: errorBody.Length > MaxErrorDetailLength ? errorBody[..MaxErrorDetailLength] : errorBody
+        );
+    }
+
+    /// <summary>The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one.</summary>
+    private static async Task<string> ReadProblemDetail(HttpResponseMessage response, CancellationToken ct)
+    {
+        string body = await response.Content.ReadAsStringAsync(ct);
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(body);
+            if (
+                document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty("detail", out JsonElement detail)
+                && detail.ValueKind == JsonValueKind.String
+            )
+            {
+                return detail.GetString() ?? body;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not JSON at all (a proxy's HTML error page, say) — the raw body is the best we have.
+        }
+
+        return body;
     }
 
     private string BuildListWorkflowsUrl(

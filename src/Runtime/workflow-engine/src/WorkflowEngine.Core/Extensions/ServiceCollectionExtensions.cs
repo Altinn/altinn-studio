@@ -181,6 +181,18 @@ public static class OptionsBuilderExtensions
                 if (config.MinStepDeferDelay <= TimeSpan.Zero)
                     config.MinStepDeferDelay = Defaults.EngineSettings.MinStepDeferDelay;
 
+                if (config.MaxMailboxTimeout <= TimeSpan.Zero)
+                    config.MaxMailboxTimeout = Defaults.EngineSettings.MaxMailboxTimeout;
+
+                if (config.MaxOpenMailboxesPerCollection <= 0)
+                    config.MaxOpenMailboxesPerCollection = Defaults.EngineSettings.MaxOpenMailboxesPerCollection;
+
+                if (config.MaxMailboxPayloadSize <= 0)
+                    config.MaxMailboxPayloadSize = Defaults.EngineSettings.MaxMailboxPayloadSize;
+
+                if (config.MaxMailboxLogLength <= 0)
+                    config.MaxMailboxLogLength = Defaults.EngineSettings.MaxMailboxLogLength;
+
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
@@ -198,6 +210,9 @@ public static class OptionsBuilderExtensions
 
                 if (config.MaintenanceInterval <= TimeSpan.Zero)
                     config.MaintenanceInterval = Defaults.EngineSettings.MaintenanceInterval;
+
+                if (config.MailboxSweepInterval <= TimeSpan.Zero)
+                    config.MailboxSweepInterval = Defaults.EngineSettings.MailboxSweepInterval;
 
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
@@ -286,6 +301,31 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.MinStepDeferDelay <= config.DefaultStepWaitBudget,
                 $"{ns}.{nameof(EngineSettings.MinStepDeferDelay)} must be less than or equal to {ns}.{nameof(EngineSettings.DefaultStepWaitBudget)}."
+            );
+
+            builder.Validate(
+                config => config.MaxMailboxTimeout > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.MaxMailboxTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxOpenMailboxesPerCollection > 0,
+                $"{ns}.{nameof(EngineSettings.MaxOpenMailboxesPerCollection)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxMailboxPayloadSize > 0,
+                $"{ns}.{nameof(EngineSettings.MaxMailboxPayloadSize)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MaxMailboxLogLength > 0,
+                $"{ns}.{nameof(EngineSettings.MaxMailboxLogLength)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.MailboxSweepInterval > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.MailboxSweepInterval)} must be greater than zero."
             );
 
             builder.Validate(

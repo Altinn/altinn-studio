@@ -13,6 +13,10 @@ public abstract record ServiceTaskResult
     /// Optional action to use when advancing (e.g. "reject").
     /// When null, the default BPMN transition is used.
     /// </param>
+    /// <remarks>
+    /// From a declaring pipeline's conclusion this also <strong>ends the exchange</strong>: the mailbox closes
+    /// before anything downstream starts.
+    /// </remarks>
     public static ServiceTaskSuccessResult Success(string? action = null) => new() { Action = action };
 
     /// <summary>
@@ -30,6 +34,9 @@ public abstract record ServiceTaskResult
     /// <remarks>
     /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
     /// failure are discarded, and the retry starts from exactly the state this attempt received.
+    /// From a declaring pipeline's conclusion it retries <em>this message</em>, leaving the exchange open. A
+    /// handler that will answer the same every time holds the exchange to its deadline; conclude with
+    /// <see cref="FailedPermanent"/> instead.
     /// </remarks>
     public static ServiceTaskFailedResult FailedRetryable(string errorMessage)
     {
@@ -44,9 +51,16 @@ public abstract record ServiceTaskResult
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
     /// <remarks>
+    /// <para>
     /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
     /// failure are discarded, and a retry or operational resume starts from exactly the state
     /// this attempt received.
+    /// </para>
+    /// <para>
+    /// From a declaring pipeline's conclusion it <strong>ends the exchange as failed</strong>: the mailbox is
+    /// closed first, and whatever waited is not started. Data changes are still discarded — a conclusion that
+    /// must <em>record</em> something records it and answers <see cref="Success"/>.
+    /// </para>
     /// </remarks>
     public static ServiceTaskFailedResult FailedPermanent(string errorMessage)
     {
@@ -92,6 +106,29 @@ public abstract record ServiceTaskResult
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
         return new ServiceTaskDeferredResult { Delay = delay, Reason = reason };
     }
+
+    /// <summary>
+    /// This message is handled; the exchange is not over. Only a declaring pipeline's conclusion may return it,
+    /// for exchanges of more than one message.
+    /// </summary>
+    /// <remarks>
+    /// An ordinary successful completion: data changes are saved, and the state travels on — publish what the
+    /// next message should see. The task stays unconcluded until a later message answers with
+    /// <see cref="Success"/>/<see cref="FailedPermanent"/> or the mailbox's timeout runs out. Returning it from
+    /// the closing signal, or outside an exchange, is rejected non-retryably.
+    /// </remarks>
+    public static ServiceTaskAwaitNextReplyResult AwaitNextReply() => ServiceTaskAwaitNextReplyResult.Instance;
+}
+
+/// <summary>
+/// A conclusion handler finished its message while the exchange stays open. Created via
+/// <see cref="ServiceTaskResult.AwaitNextReply"/>; carries nothing.
+/// </summary>
+public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskResult
+{
+    internal static readonly ServiceTaskAwaitNextReplyResult Instance = new();
+
+    internal ServiceTaskAwaitNextReplyResult() { }
 }
 
 /// <summary>

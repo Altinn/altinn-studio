@@ -45,6 +45,11 @@ internal interface IProcessEngine
     /// until that workflow completes.
     /// Does not mutate the <paramref name="instance"/>.
     /// </summary>
+    /// <remarks>
+    /// <c>idempotencyKey</c> defaults to one derived from <c>dependsOnWorkflowId</c>; the mailbox
+    /// relay passes its own, derived from the step that concluded the exchange, so every call it
+    /// makes from inside one callback keys off the same executing step.
+    /// </remarks>
     Task EnqueueProcessNext(
         Instance instance,
         Actor actor,
@@ -53,6 +58,7 @@ internal interface IProcessEngine
         string collectionKey,
         string state,
         string? action = null,
+        string? idempotencyKey = null,
         CancellationToken ct = default
     );
 }

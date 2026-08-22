@@ -16,6 +16,17 @@ public sealed class ServiceTaskPipelineBuilder
     private readonly List<ServiceTaskStage> _stages = [];
 
     /// <summary>
+    /// Whether a <see cref="ServiceTaskPipeline.WithReplyFrom"/> declaration was made on any pipeline that
+    /// originated from this builder. The builder is created fresh for each
+    /// <see cref="ServiceTaskLookupExtensions.ResolvePipeline"/> call, so this records "did <em>this</em> Define
+    /// declare a mailbox" without state that could leak to another task — which is why the mark lives here rather
+    /// than on the immutable pipeline.
+    /// </summary>
+    internal bool MailboxDeclared { get; private set; }
+
+    internal void NoteMailboxDeclaration() => MailboxDeclared = true;
+
+    /// <summary>
     /// Adds a durable stage, executed in composition order before the pipeline's conclusion. The
     /// stage runs as its own workflow-engine step and never runs again once it reports
     /// <see cref="ServiceTaskStageResult.Completed"/>; a retry or resume re-enters the pipeline at
@@ -95,6 +106,6 @@ public sealed class ServiceTaskPipelineBuilder
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
-        return new ServiceTaskPipeline([.. _stages], work, options);
+        return new ServiceTaskPipeline([.. _stages], work, options, mailbox: null, origin: this);
     }
 }

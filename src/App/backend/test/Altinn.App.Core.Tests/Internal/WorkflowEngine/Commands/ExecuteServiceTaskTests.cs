@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
@@ -58,6 +59,7 @@ public class ExecuteServiceTaskTests
 
         return new ProcessEngineCommandContext
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
@@ -103,7 +105,13 @@ public class ExecuteServiceTaskTests
         }
         var sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>());
+        return new ExecuteServiceTask(
+            sp.GetRequiredService<AppImplementationFactory>(),
+            Mock.Of<IWorkflowEngineClient>(),
+            // Never consulted: these pipelines declare no mailbox, so the delivery envelope is never
+            // reached.
+            TestMailboxDeliveryEnvelope.Create()
+        );
     }
 
     [Fact]

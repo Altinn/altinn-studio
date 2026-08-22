@@ -57,6 +57,10 @@ public sealed record FiksArkivReceiptSettings
     /// <summary>
     /// Settings for the storage of the confirmation record (arkivkvittering).
     /// </summary>
+    /// <remarks>
+    /// Written when the receipt arrives, in the transition that sent the record. An unreadable receipt fails
+    /// the task instead of advancing without evidence. See <see cref="FiksArkivServiceTask"/>.
+    /// </remarks>
     [JsonPropertyName("confirmationRecord")]
     public required FiksArkivDataTypeSettings ConfirmationRecord { get; set; }
 
@@ -186,12 +190,17 @@ public sealed record FiksArkivDocumentSettings
 /// <summary>
 /// Represents the settings for success handling.
 /// </summary>
+/// <remarks>
+/// Applies once <strong>the archive has confirmed the record</strong> — not when the message was handed to
+/// Fiks IO. Applied by <see cref="FiksArkivServiceTask"/>.
+/// </remarks>
 public sealed record FiksArkivSuccessHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task after successfully sending the message?
+    /// Should we automatically progress to the next task once the archive has confirmed the record?
     /// Default to <c>true</c>.
     /// </summary>
+    /// <remarks><c>false</c> leaves the instance on the Fiks Arkiv task, to be advanced manually.</remarks>
     [JsonPropertyName("moveToNextTask")]
     public bool MoveToNextTask { get; set; } = true;
 
@@ -203,9 +212,13 @@ public sealed record FiksArkivSuccessHandlingSettings
     public string? Action { get; set; }
 
     /// <summary>
-    /// Should we mark the instance as `completed` after successfully sending the message?
+    /// Should we mark the instance as `completed` once the archive has confirmed the record?
     /// Defaults to <c>false</c>.
     /// </summary>
+    /// <remarks>
+    /// The confirmation is sent before the process advances, because advancing can end the process and
+    /// an ended process can take the instance with it.
+    /// </remarks>
     [JsonPropertyName("markInstanceComplete")]
     public bool MarkInstanceComplete { get; set; }
 
@@ -219,12 +232,21 @@ public sealed record FiksArkivSuccessHandlingSettings
 /// <summary>
 /// Represents the settings for error handling.
 /// </summary>
+/// <remarks>
+/// Applies when <strong>the archive reports it could not create the record</strong> — not when the message
+/// cannot be sent at all, which is retried and then fails the task. Applied by
+/// <see cref="FiksArkivServiceTask"/>.
+/// </remarks>
 public sealed record FiksArkivErrorHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task after failing to send the message?
-    /// Defaults to <c>true</c>.
+    /// Should we automatically progress to the next task when the archive reports that it could not
+    /// create the record? Defaults to <c>true</c>.
     /// </summary>
+    /// <remarks>
+    /// <c>false</c> fails the task so the rejection reaches monitoring. Omitting the whole block is not the
+    /// same as these defaults: with no block at all, an archive error fails the task.
+    /// </remarks>
     [JsonPropertyName("moveToNextTask")]
     public bool MoveToNextTask { get; set; } = true;
 
