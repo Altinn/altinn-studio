@@ -57,8 +57,12 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
-          shared-key: github-runner
-          key: cargo-machete-0.9.2
+          # One shared cache for the whole root Cargo workspace, seeded by
+          # cache-warm.yml. Restore only: this workflow never runs on main,
+          # and saves from PR merge refs cannot be shared with other PRs and
+          # evict main-scoped caches.
+          shared-key: rust
+          save-if: false
 
       - name: Install cargo-machete
         run: |
