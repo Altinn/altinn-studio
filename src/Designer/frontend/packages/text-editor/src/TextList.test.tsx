@@ -154,32 +154,17 @@ describe('TextList', () => {
   });
 
   describe('pagination', () => {
-    const renderManyRows = () => {
-      const resourceRows: TextTableRow[] = Array.from(
-        { length: textRowsPerPage * 2 },
-        (_, index) => ({
-          textKey: `key-${index}`,
-          translations: [{ lang: 'nb', translation: `value-${index}` }],
-        }),
-      );
-      queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
-      rtlRender(
-        <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-          <TextList
-            resourceRows={resourceRows}
-            searchQuery={undefined}
-            updateEntryId={(_arg) => undefined}
-            removeEntry={(_arg) => undefined}
-            upsertTextResource={(_entry) => undefined}
-            selectedLanguages={['nb']}
-          />
-        </ServicesContextProvider>,
-      );
-    };
+    const manyResourceRows: TextTableRow[] = Array.from(
+      { length: textRowsPerPage * 2 },
+      (_, index) => ({
+        textKey: `key-${index}`,
+        translations: [{ lang: 'nb', translation: `value-${index}` }],
+      }),
+    );
 
     it('renders one page of rows at a time and moves to the page the user selects', async () => {
       const user = userEvent.setup();
-      renderManyRows();
+      renderTextList({ resourceRows: manyResourceRows, selectedLanguages: ['nb'] });
 
       expect(screen.getAllByRole('row')).toHaveLength(textRowsPerPage + 1);
       expect(screen.getByText('key-0')).toBeInTheDocument();
