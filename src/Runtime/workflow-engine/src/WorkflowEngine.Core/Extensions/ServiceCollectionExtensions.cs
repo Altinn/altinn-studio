@@ -70,8 +70,6 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IWorkflowUpdateBuffer>(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
 
-            // Registered here so they are stopped after everything below it (reverse registration order): the
-            // shutdown drain that answers their queued callers has to outlive request handling.
             services.AddSingleton<MailboxMintBuffer>();
             services.AddHostedService(sp => sp.GetRequiredService<MailboxMintBuffer>());
 

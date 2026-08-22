@@ -60,21 +60,18 @@ internal static class Defaults
             {
                 MaxBatchSize = 100,
                 MaxQueueSize = 5_000,
-                FlushConcurrency = 2,
+                FlushConcurrency = 1,
             },
             Close = new BatchBufferSettings
             {
                 MaxBatchSize = 100,
                 MaxQueueSize = 5_000,
-                // Serial: concurrent flushes would only wait on each other's mailbox and workflow row locks
                 FlushConcurrency = 1,
             },
             Delivery = new BatchBufferSettings
             {
                 MaxBatchSize = 100,
                 MaxQueueSize = 10_000,
-                // Low despite being the busiest path: a storm at one mailbox convoys on its row lock, so more
-                // flushes in flight would only hold more connections
                 FlushConcurrency = 2,
             },
         },
