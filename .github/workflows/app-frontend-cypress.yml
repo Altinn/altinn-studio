@@ -277,12 +277,13 @@ jobs:
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
+          E2E_SHARD_TOTAL: 6
+          E2E_SHARD_NUMBER: ${{ matrix.containers }}
         run: |
           cypress_args=(
             run
             --record
-            --parallel
-            --group altinn-app-frontend
+            --group "altinn-app-frontend-shard-${{ matrix.containers }}"
             --tag altinn-app-frontend
             --browser "${CHROME_PATH:-chrome}"
             --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}"
@@ -299,7 +300,7 @@ jobs:
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: failure()
         with:
-          name: app-frontend-logs
+          name: app-frontend-logs-${{ matrix.containers }}
           path: |
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/**
