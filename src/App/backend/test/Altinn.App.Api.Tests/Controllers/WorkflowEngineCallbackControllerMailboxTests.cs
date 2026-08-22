@@ -37,6 +37,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     private const string ServiceTaskType = "archiving-relay-probe";
 
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private const string SendStage = "SendToArchive";
 
     public WorkflowEngineCallbackControllerMailboxTests(
         WebApplicationFactory<Program> factory,
@@ -51,9 +52,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(SendStage, _ => Task.FromResult(ServiceTaskStageResult.Completed()))
                 .Finally(context => Task.FromResult(verdict(context)))
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .WithReplyFrom(SendStage, new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
     }
 
     /// <summary>Every engine call the callback makes, in the order it made them.</summary>
@@ -205,7 +206,14 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         {
             Instance = CreateInstance(instanceGuid),
             FormData = [],
-            MailboxId = _mailboxId,
+            Mailboxes = new Dictionary<string, CarriedMailbox>
+            {
+                [SendStage] = new CarriedMailbox
+                {
+                    Id = _mailboxId,
+                    Deadline = new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero),
+                },
+            },
         };
         var payload = new AppCallbackPayload
         {
@@ -316,14 +324,14 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         CallbackOutcome outcome = await RunReceiveCallback(_ => ServiceTaskResult.Success(), Delivered());
 
         Assert.NotNull(outcome.Returned);
-        Assert.Null(outcome.Returned.MailboxId);
+        Assert.Null(outcome.Returned.Mailboxes);
 
         string afterWorkflowState = Assert.Single(outcome.Recorder.AfterWorkflowState);
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
         var carried = JsonSerializer.Deserialize<WorkflowCallbackState>(
             signer.Verify(afterWorkflowState, SigningDomain.CallbackState)
         );
-        Assert.Null(carried!.MailboxId);
+        Assert.Null(carried!.Mailboxes);
     }
 
     [Fact]
@@ -338,7 +346,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             EnqueueReceiveWorkflow.CreateIdempotencyKey(outcome.StepId),
             Assert.Single(outcome.Recorder.EnqueueKeys)
         );
-        Assert.Equal(_mailboxId, outcome.Returned!.MailboxId);
+        Assert.NotNull(outcome.Returned!.Mailboxes);
+        Assert.Equal(_mailboxId, Assert.Contains(SendStage, outcome.Returned.Mailboxes).Id);
     }
 
     [Fact]

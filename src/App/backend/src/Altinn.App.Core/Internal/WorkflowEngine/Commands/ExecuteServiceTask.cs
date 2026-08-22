@@ -112,9 +112,20 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskResult conclusion = await pipeline.Final(serviceTaskContext);
 
-            return context.Payload.Mailbox is { } receipt
-                ? MailboxRelay.Decide(conclusion, serviceTaskType, context.Payload.StepId, receipt, context.StateCarry)
-                : MapServiceTaskResult(conclusion, serviceTask);
+            // ResolveReply refused both mismatched pairs already, so a receipt and a declaration are present
+            // together or absent together; the declaration names the exchange the relay concludes.
+            return (context.Payload.Mailbox, pipeline.Mailbox) switch
+            {
+                ({ } receipt, { } declaration) => MailboxRelay.Decide(
+                    conclusion,
+                    serviceTaskType,
+                    context.Payload.StepId,
+                    receipt,
+                    context.StateCarry,
+                    declaration.StageName
+                ),
+                _ => MapServiceTaskResult(conclusion, serviceTask),
+            };
         }
         catch (Exception ex)
         {
@@ -181,8 +192,8 @@ internal sealed class ExecuteServiceTask(
         if (result is MailboxMintResult.Minted minted)
         {
             // The address must outlive this callback: the enqueue step runs later in Main and cannot re-derive the
-            // mint's key, so the carry puts it in the published state blob.
-            context.StateCarry.RecordMailbox(minted.Mailbox.Id);
+            // mint's key, so the carry puts it in the published state blob, under the declaring stage's name.
+            context.StateCarry.RecordMailbox(declaration.StageName, minted.Mailbox.Id, minted.Mailbox.Deadline);
         }
 
         return result switch

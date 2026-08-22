@@ -59,9 +59,9 @@ internal sealed class WorkflowCallbackStateService
         {
             Instance = unitOfWork.Instance,
             FormData = formData,
-            // A concluded exchange stops traveling: the workflow this blob starts may itself open a mailbox, and a blob
-            // still naming the finished one would make that mint refuse.
-            MailboxId = carry is { MailboxConcluded: false } ? carry.MailboxId : null,
+            // A concluded exchange stops traveling: the workflow this blob starts may itself open a mailbox, and a
+            // blob still naming the finished one would make that mint refuse. The carry has already dropped it.
+            Mailboxes = carry?.Mailboxes,
         };
         string payload = JsonSerializer.Serialize(callbackState);
         return _stateSigner.Sign(payload, SigningDomain.CallbackState);

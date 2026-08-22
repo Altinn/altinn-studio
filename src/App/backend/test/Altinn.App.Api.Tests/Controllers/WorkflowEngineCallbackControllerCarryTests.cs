@@ -31,6 +31,8 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
 
     private static readonly Guid _carriedMailboxId = new("018f4e00-0000-7000-8000-0000000000bb");
     private static readonly Guid _mintedMailboxId = new("018f4e00-0000-7000-8000-0000000000cc");
+    private static readonly DateTimeOffset _deadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
+    private const string SendStage = "SendToArchive";
 
     public WorkflowEngineCallbackControllerCarryTests(
         WebApplicationFactory<Program> factory,
@@ -46,7 +48,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     {
         public static string Key => "CarryProbe";
 
-        public Guid? SeenMailboxId { get; private set; }
+        public CarriedMailbox? SeenMailbox { get; private set; }
 
         public bool Mints { get; set; }
 
@@ -54,10 +56,10 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
 
         public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
         {
-            SeenMailboxId = context.StateCarry.MailboxId;
+            SeenMailbox = context.StateCarry.FindMailbox(SendStage);
             if (Mints)
             {
-                context.StateCarry.RecordMailbox(_mintedMailboxId);
+                context.StateCarry.RecordMailbox(SendStage, _mintedMailboxId, _deadline);
             }
 
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
@@ -98,7 +100,12 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
         {
             Instance = CreateInstance(instanceGuid),
             FormData = [],
-            MailboxId = incomingMailboxId,
+            Mailboxes = incomingMailboxId is { } carried
+                ? new Dictionary<string, CarriedMailbox>
+                {
+                    [SendStage] = new CarriedMailbox { Id = carried, Deadline = _deadline },
+                }
+                : null,
         };
         var payload = new AppCallbackPayload
         {
@@ -135,8 +142,9 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     {
         (WorkflowCallbackState returned, CarryProbeCommand probe) = await RunCallback(_carriedMailboxId, mints: false);
 
-        Assert.Equal(_carriedMailboxId, probe.SeenMailboxId);
-        Assert.Equal(_carriedMailboxId, returned.MailboxId);
+        Assert.Equal(_carriedMailboxId, probe.SeenMailbox?.Id);
+        Assert.Equal(_deadline, probe.SeenMailbox?.Deadline);
+        AssertPublishes(returned, _carriedMailboxId);
     }
 
     [Fact]
@@ -147,8 +155,8 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
             mints: true
         );
 
-        Assert.Null(probe.SeenMailboxId);
-        Assert.Equal(_mintedMailboxId, returned.MailboxId);
+        Assert.Null(probe.SeenMailbox);
+        AssertPublishes(returned, _mintedMailboxId);
     }
 
     [Fact]
@@ -159,7 +167,15 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
             mints: false
         );
 
-        Assert.Null(probe.SeenMailboxId);
-        Assert.Null(returned.MailboxId);
+        Assert.Null(probe.SeenMailbox);
+        Assert.Null(returned.Mailboxes);
+    }
+
+    private static void AssertPublishes(WorkflowCallbackState returned, Guid mailboxId)
+    {
+        Assert.NotNull(returned.Mailboxes);
+        CarriedMailbox published = Assert.Contains(SendStage, returned.Mailboxes);
+        Assert.Equal(mailboxId, published.Id);
+        Assert.Equal(_deadline, published.Deadline);
     }
 }

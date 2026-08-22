@@ -526,7 +526,7 @@ public class ExecuteServiceTaskReplyTests
     public async Task Conclusion_ThatSucceeds_CarriesTheConclusionAndDropsTheMailboxFromTheBlob()
     {
         var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(_mailboxId);
+        carry.RecordMailbox("SendToArchive", _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
         var task = new ArchivingTask { Verdict = ServiceTaskResult.Success("confirm") };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
@@ -536,7 +536,7 @@ public class ExecuteServiceTaskReplyTests
         Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("confirm", success.AutoAdvanceAction);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
-        Assert.True(carry.MailboxConcluded);
+        Assert.Null(carry.Mailboxes);
     }
 
     [Fact]

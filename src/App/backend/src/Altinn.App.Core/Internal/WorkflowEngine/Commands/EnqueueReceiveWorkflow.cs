@@ -46,8 +46,11 @@ internal sealed class EnqueueReceiveWorkflow(
         }
 
         // Carried in the state blob because the mint's key is the declaring stage's step id, which nothing later
-        // can re-derive. Missing means a broken carry, which retrying only repeats.
-        if (context.StateCarry.MailboxId is not { } mailboxId)
+        // can re-derive. The carry keys mailboxes by the stage that opened each; this step reads the sole entry
+        // because a pipeline declares at most one mailbox and nothing tells this step which stage that was —
+        // interim, until the payload names the opening stage. Either failure below is a broken carry, which
+        // retrying only repeats.
+        if (context.StateCarry.Mailboxes is not { Count: > 0 } carriedMailboxes)
         {
             return FailedProcessEngineCommandResult.Permanent(
                 "This service task opens a mailbox, but no mailbox id reached this step in the workflow state. "
@@ -56,6 +59,26 @@ internal sealed class EnqueueReceiveWorkflow(
                 "MailboxIdMissingFromState"
             );
         }
+
+        // Redeploy drift: two stages of this one transition each minted a mailbox, which happens when the
+        // declaration moved to a later stage while the workflow was in flight. Nothing here can tell which
+        // exchange the receiver belongs to, and guessing would park it on the wrong address.
+        if (carriedMailboxes.Count > 1)
+        {
+            string openedBy = string.Join(
+                ", ",
+                carriedMailboxes.Keys.Order(StringComparer.Ordinal).Select(stage => $"'{stage}'")
+            );
+            return FailedProcessEngineCommandResult.Permanent(
+                $"This service task carries mailboxes opened by more than one stage ({openedBy}), so this step "
+                    + "cannot tell which exchange the receive workflow answers. The mailbox declaration moved to "
+                    + "another stage while this workflow was in flight: redeploy with it back on the stage that "
+                    + "opened the exchange, and resume the workflow.",
+                "MailboxAmbiguousInState"
+            );
+        }
+
+        Guid mailboxId = carriedMailboxes.Values.Single().Id;
 
         // Saga rule: keyed off the executing step, so a crashed attempt's replay deduplicates. An empty step id
         // is a constant that would collapse every receive enqueue in the namespace onto one workflow.

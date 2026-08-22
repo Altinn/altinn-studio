@@ -48,12 +48,22 @@ internal sealed class MailboxRelay
     /// The continuation returned alongside the outcome is run by <see cref="Continue"/> once the handler's data
     /// changes are saved.
     /// </summary>
+    /// <param name="result">The handler's verdict on this message, or on the closure.</param>
+    /// <param name="serviceTaskType">The task whose exchange this is, for the failure wording.</param>
+    /// <param name="stepId">The executing step, which every keyed engine call is keyed off.</param>
+    /// <param name="mailbox">The rendezvous the engine handed this execution.</param>
+    /// <param name="carry">The blob's bookkeeping, which a conclusion stops carrying the mailbox in.</param>
+    /// <param name="openingStageName">
+    /// The stage that opened the exchange — the carry's key for it. Resolved from the pipeline by the executing
+    /// command, which reads the declaration anyway.
+    /// </param>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskResult result,
         string serviceTaskType,
         Guid stepId,
         AppCallbackMailbox mailbox,
-        WorkflowCallbackStateCarry carry
+        WorkflowCallbackStateCarry carry,
+        string openingStageName
     )
     {
         switch (result)
@@ -111,7 +121,7 @@ internal sealed class MailboxRelay
                 return noAfterKey;
 
             case ServiceTaskSuccessResult success:
-                carry.RecordMailboxConcluded();
+                carry.RecordMailboxConcluded(openingStageName);
                 return new SuccessfulProcessEngineCommandResult
                 {
                     AutoAdvanceProcess = success.AutoAdvanceProcess,

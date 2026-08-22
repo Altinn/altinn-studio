@@ -415,7 +415,10 @@ public class ExecuteServiceTaskMailboxTests
 
         await CreateCommand(task, minter).Execute(CreateContext(carry: carry), Payload("SendToArchive"));
 
-        Assert.Equal(task.Seen["SendToArchive"].Mailbox.Id, carry.MailboxId);
+        CarriedMailbox? recorded = carry.FindMailbox("SendToArchive");
+        Assert.NotNull(recorded);
+        Assert.Equal(task.Seen["SendToArchive"].Mailbox.Id, recorded.Id);
+        Assert.Equal(task.Seen["SendToArchive"].Mailbox.Deadline, recorded.Deadline);
     }
 
     [Theory]
@@ -429,7 +432,7 @@ public class ExecuteServiceTaskMailboxTests
 
         await CreateCommand(task, minter).Execute(CreateContext(carry: carry), Payload(stageName));
 
-        Assert.Null(carry.MailboxId);
+        Assert.Null(carry.Mailboxes);
     }
 
     [Fact]

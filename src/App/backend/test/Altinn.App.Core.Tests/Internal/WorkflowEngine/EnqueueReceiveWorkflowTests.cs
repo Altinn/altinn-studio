@@ -59,14 +59,18 @@ public class EnqueueReceiveWorkflowTests
             ],
         };
 
-    private static ProcessEngineCommandContext CreateContext(Guid? mailboxId = null, Guid? stepId = null) =>
+    private static ProcessEngineCommandContext CreateContext(
+        Guid? mailboxId = null,
+        Guid? stepId = null,
+        WorkflowCallbackStateCarry? carry = null
+    ) =>
         new()
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = _instanceId,
             InstanceDataMutator = null!,
             CancellationToken = CancellationToken.None,
-            StateCarry = CreateCarry(mailboxId),
+            StateCarry = carry ?? CreateCarry(mailboxId),
             Payload = new AppCallbackPayload
             {
                 CommandKey = EnqueueReceiveWorkflow.Key,
@@ -84,7 +88,7 @@ public class EnqueueReceiveWorkflowTests
         var carry = new WorkflowCallbackStateCarry();
         if (mailboxId is { } id)
         {
-            carry.RecordMailbox(id);
+            carry.RecordMailbox("SendToArchive", id, new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero));
         }
         return carry;
     }
@@ -218,6 +222,42 @@ public class EnqueueReceiveWorkflowTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
+        client.Verify(
+            c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// Redeploy drift: the declaration moved to a later stage mid-flight, so two stages of this transition each
+    /// minted. Reading either one would park the receiver on an address that may not be the exchange's.
+    /// </summary>
+    [Fact]
+    public async Task Execute_WithMailboxesFromTwoStages_FailsPermanentlyNamingBoth()
+    {
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
+        var carry = new WorkflowCallbackStateCarry();
+        var deadline = new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
+        carry.RecordMailbox("SendToArchive", _mailboxId, deadline);
+        carry.RecordMailbox("SendReceipt", Guid.NewGuid(), deadline);
+
+        ProcessEngineCommandResult result = await command.Execute(
+            CreateContext(carry: carry),
+            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest())
+        );
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxAmbiguousInState", failed.ExceptionType);
+        Assert.Contains("'SendReceipt', 'SendToArchive'", failed.ErrorMessage, StringComparison.Ordinal);
         client.Verify(
             c =>
                 c.EnqueueWorkflows(

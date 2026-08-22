@@ -20,18 +20,33 @@ internal sealed record WorkflowCallbackState
     public required List<FormDataEntry> FormData { get; init; }
 
     /// <summary>
-    /// The mailbox a service task's declaring stage opened, once it has opened one — the app's own bookkeeping
-    /// riding the blob rather than anything the engine reads. <c>null</c> for every workflow that has not opened a
-    /// mailbox.
+    /// The mailboxes a service task's declaring stages have opened, keyed by the stage that opened each — the
+    /// app's own bookkeeping riding the blob rather than anything the engine reads. <c>null</c> for every
+    /// workflow that has not opened a mailbox.
     /// </summary>
     /// <remarks>
-    /// The mailbox is minted under the declaring stage's engine-assigned step id, and no later step can re-derive
-    /// that key. The blob is the only channel between steps of one workflow, so the id travels here: written when
-    /// the stage mints, carried unchanged by every step in between, and read by the step that enqueues the first
-    /// receive workflow. Absent from blobs written before mailboxes existed, which deserialize to <c>null</c>.
+    /// A mailbox is minted under its declaring stage's engine-assigned step id, and no later step can re-derive
+    /// that key. The blob is the only channel between steps of one workflow, so the mailbox travels here:
+    /// written when it is minted, carried unchanged by every step in between, and read by the step that
+    /// enqueues the first receive workflow. Keyed by stage name rather than held as a single value so a task
+    /// that opens more than one exchange needs no blob-format change against in-flight workflows. Absent from
+    /// blobs written before mailboxes existed, which deserialize to <c>null</c>.
     /// </remarks>
-    [JsonPropertyName("mailboxId")]
-    public Guid? MailboxId { get; init; }
+    [JsonPropertyName("mailboxes")]
+    public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes { get; init; }
+}
+
+/// <summary>
+/// One mailbox as it travels between the steps of a workflow: the id later steps address it by, and the
+/// deadline the declaring stage publishes alongside it.
+/// </summary>
+internal sealed record CarriedMailbox
+{
+    [JsonPropertyName("id")]
+    public required Guid Id { get; init; }
+
+    [JsonPropertyName("deadline")]
+    public required DateTimeOffset Deadline { get; init; }
 }
 
 /// <summary>

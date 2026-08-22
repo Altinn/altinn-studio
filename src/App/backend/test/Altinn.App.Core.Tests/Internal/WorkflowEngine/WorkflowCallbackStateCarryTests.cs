@@ -24,6 +24,9 @@ public class WorkflowCallbackStateCarryTests
     private static readonly Guid _instanceGuid = new("aabbccdd-1234-5678-9012-aabbccddeeff");
     private static readonly InstanceIdentifier _instanceId = new(1337, _instanceGuid);
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private static readonly DateTimeOffset _deadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
+    private static readonly Guid _secondMailboxId = new("018f4e00-0000-7000-8000-0000000000ab");
+    private const string SendStage = "SendToArchive";
 
     private static Instance CreateInstance() =>
         new()
@@ -36,10 +39,8 @@ public class WorkflowCallbackStateCarryTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
 
-    private static WorkflowCallbackStateService CreateService()
+    private static WorkflowStateSigner CreateSigner()
     {
-        IAppMetadata appMetadata = CreateAppMetadata();
-
         var code = new AppCode
         {
             Id = "code-1",
@@ -50,13 +51,19 @@ public class WorkflowCallbackStateCarryTests
         var secrets = new Mock<IWorkflowCallbackSecretProvider>();
         secrets.Setup(x => x.GetSigningSecret()).Returns(code);
         secrets.Setup(x => x.GetValidationSecrets()).Returns([code]);
+        return new WorkflowStateSigner(secrets.Object);
+    }
+
+    private static WorkflowCallbackStateService CreateService(WorkflowStateSigner? signer = null)
+    {
+        IAppMetadata appMetadata = CreateAppMetadata();
 
         return new WorkflowCallbackStateService(
             CreateInitializer(appMetadata),
             null!,
             appMetadata,
             Mock.Of<IAppModel>(),
-            new WorkflowStateSigner(secrets.Object)
+            signer ?? CreateSigner()
         );
     }
 
@@ -66,7 +73,7 @@ public class WorkflowCallbackStateCarryTests
         WorkflowCallbackStateService service = CreateService();
 
         var minting = new WorkflowCallbackStateCarry();
-        minting.RecordMailbox(_mailboxId);
+        minting.RecordMailbox(SendStage, _mailboxId, _deadline);
         InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
         string afterMint = await service.CaptureState(unitOfWork, minting);
 
@@ -75,11 +82,57 @@ public class WorkflowCallbackStateCarryTests
             afterMint,
             "nb"
         );
-        Assert.Equal(_mailboxId, forwarded.MailboxId);
+        AssertCarries(forwarded, SendStage);
         string afterOrdinaryStep = await service.CaptureState(nextUnitOfWork, forwarded);
 
         (_, WorkflowCallbackStateCarry atTheEnqueue) = await service.RestoreState(_instanceId, afterOrdinaryStep, "nb");
-        Assert.Equal(_mailboxId, atTheEnqueue.MailboxId);
+        AssertCarries(atTheEnqueue, SendStage);
+    }
+
+    [Fact]
+    public async Task Capture_ThenRestore_KeepsEveryExchangeApartByItsOpeningStage()
+    {
+        // Phase 1 opens one mailbox per task, but the blob is a map from day one so a second exchange needs no
+        // format migration against workflows already in flight.
+        WorkflowCallbackStateService service = CreateService();
+        var minting = new WorkflowCallbackStateCarry();
+        minting.RecordMailbox(SendStage, _mailboxId, _deadline);
+        minting.RecordMailbox("SendReceipt", _secondMailboxId, _deadline.AddDays(1));
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        string captured = await service.CaptureState(unitOfWork, minting);
+
+        (_, WorkflowCallbackStateCarry carry) = await service.RestoreState(_instanceId, captured, "nb");
+        AssertCarries(carry, SendStage);
+        CarriedMailbox? second = carry.FindMailbox("SendReceipt");
+        Assert.NotNull(second);
+        Assert.Equal(_secondMailboxId, second.Id);
+        Assert.Equal(_deadline.AddDays(1), second.Deadline);
+        Assert.Equal(2, carry.Mailboxes!.Count);
+    }
+
+    /// <summary>
+    /// The field names are a wire-compatibility surface — an in-flight workflow's next callback carries a blob
+    /// written by the code that enqueued it — and the round-trip tests above cannot see a rename, because they
+    /// serialize and deserialize with the same code. This pins the literal shape the phase-2 map key depends on.
+    /// </summary>
+    [Fact]
+    public async Task Capture_NamesTheMailboxMapAndItsFieldsOnTheWire()
+    {
+        WorkflowStateSigner signer = CreateSigner();
+        WorkflowCallbackStateService service = CreateService(signer);
+        var minting = new WorkflowCallbackStateCarry();
+        minting.RecordMailbox(SendStage, _mailboxId, _deadline);
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        string captured = await service.CaptureState(unitOfWork, minting);
+
+        string payload = signer.Verify(captured, SigningDomain.CallbackState);
+        Assert.Contains(
+            $"\"mailboxes\":{{\"{SendStage}\":{{\"id\":\"{_mailboxId}\",\"deadline\":",
+            payload,
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
@@ -89,13 +142,13 @@ public class WorkflowCallbackStateCarryTests
         // which is why it fails permanently rather than guessing.
         WorkflowCallbackStateService service = CreateService();
         var minting = new WorkflowCallbackStateCarry();
-        minting.RecordMailbox(_mailboxId);
+        minting.RecordMailbox(SendStage, _mailboxId, _deadline);
         InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
 
         string captured = await service.CaptureState(unitOfWork);
 
         (_, WorkflowCallbackStateCarry carry) = await service.RestoreState(_instanceId, captured, "nb");
-        Assert.Null(carry.MailboxId);
+        Assert.Null(carry.Mailboxes);
     }
 
     [Fact]
@@ -103,18 +156,38 @@ public class WorkflowCallbackStateCarryTests
     {
         WorkflowCallbackStateService service = CreateService();
         var concluding = new WorkflowCallbackStateCarry();
-        concluding.RecordMailbox(_mailboxId);
+        concluding.RecordMailbox(SendStage, _mailboxId, _deadline);
         InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
 
         string whileOpen = await service.CaptureState(unitOfWork, concluding);
         (_, WorkflowCallbackStateCarry open) = await service.RestoreState(_instanceId, whileOpen, "nb");
-        Assert.Equal(_mailboxId, open.MailboxId);
+        AssertCarries(open, SendStage);
 
-        concluding.RecordMailboxConcluded();
+        concluding.RecordMailboxConcluded(SendStage);
         string afterConclusion = await service.CaptureState(unitOfWork, concluding);
 
         (_, WorkflowCallbackStateCarry carried) = await service.RestoreState(_instanceId, afterConclusion, "nb");
-        Assert.Null(carried.MailboxId);
+        Assert.Null(carried.Mailboxes);
+        Assert.Null(carried.FindMailbox(SendStage));
+    }
+
+    [Fact]
+    public async Task Capture_AfterOneOfTwoExchangesConcluded_KeepsTheOtherTraveling()
+    {
+        WorkflowCallbackStateService service = CreateService();
+        var concluding = new WorkflowCallbackStateCarry();
+        concluding.RecordMailbox(SendStage, _mailboxId, _deadline);
+        concluding.RecordMailbox("SendReceipt", _secondMailboxId, _deadline);
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        concluding.RecordMailboxConcluded(SendStage);
+        string captured = await service.CaptureState(unitOfWork, concluding);
+
+        (_, WorkflowCallbackStateCarry carry) = await service.RestoreState(_instanceId, captured, "nb");
+        Assert.Null(carry.FindMailbox(SendStage));
+        CarriedMailbox? stillOpen = carry.FindMailbox("SendReceipt");
+        Assert.NotNull(stillOpen);
+        Assert.Equal(_secondMailboxId, stillOpen.Id);
     }
 
     [Fact]
@@ -127,19 +200,48 @@ public class WorkflowCallbackStateCarryTests
 
         (_, WorkflowCallbackStateCarry carry) = await service.RestoreState(_instanceId, blobWithNoMailbox, "nb");
 
-        Assert.Null(carry.MailboxId);
+        Assert.Null(carry.Mailboxes);
     }
 
     [Fact]
     public void RecordMailbox_Twice_WithDifferentMailboxes_Throws()
     {
         var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(_mailboxId);
+        carry.RecordMailbox(SendStage, _mailboxId, _deadline);
 
-        carry.RecordMailbox(_mailboxId);
-        Assert.Equal(_mailboxId, carry.MailboxId);
+        carry.RecordMailbox(SendStage, _mailboxId, _deadline);
+        AssertCarries(carry, SendStage);
 
-        Assert.Throws<InvalidOperationException>(() => carry.RecordMailbox(Guid.NewGuid()));
+        Assert.Throws<InvalidOperationException>(() => carry.RecordMailbox(SendStage, Guid.NewGuid(), _deadline));
+    }
+
+    [Fact]
+    public void RecordMailbox_ForAnotherStage_IsNotAConflict()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(SendStage, _mailboxId, _deadline);
+
+        carry.RecordMailbox("SendReceipt", _secondMailboxId, _deadline);
+
+        Assert.Equal(2, carry.Mailboxes!.Count);
+    }
+
+    /// <summary>Stage names are matched ordinally, like every other stage-name comparison.</summary>
+    [Fact]
+    public void FindMailbox_MatchesTheStageNameOrdinally()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(SendStage, _mailboxId, _deadline);
+
+        Assert.Null(carry.FindMailbox("sendtoarchive"));
+    }
+
+    private static void AssertCarries(WorkflowCallbackStateCarry carry, string stageName)
+    {
+        CarriedMailbox? mailbox = carry.FindMailbox(stageName);
+        Assert.NotNull(mailbox);
+        Assert.Equal(_mailboxId, mailbox.Id);
+        Assert.Equal(_deadline, mailbox.Deadline);
     }
 
     private static Task<InstanceDataUnitOfWork> CreateUnitOfWork() =>
