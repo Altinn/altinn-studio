@@ -10,6 +10,10 @@ ARG DOTNET_CHANNEL=10.0
 ARG CHROME_FOR_TESTING_CHANNEL=Stable
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
+# Kept in sync with src/App/frontend/package.json by deploy-github-runners.yaml;
+# jobs fall back to `npx cypress install` when the versions drift.
+ARG CYPRESS_VERSION=15.20.0
+ARG CARGO_MACHETE_VERSION=0.9.2
 
 USER root
 
@@ -137,6 +141,14 @@ RUN apt-get update \
     && rm -f /tmp/dotnet-install.sh \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack enable \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${YARN_CHANNEL}" --activate \
+    && PATH="/opt/tools/node/current/bin:${PATH}" npm_config_cache=/tmp/npm-cache \
+      CYPRESS_CACHE_FOLDER=/home/runner/.cache/Cypress \
+      npx --yes "cypress@${CYPRESS_VERSION}" install \
+    && rm -rf /tmp/npm-cache \
+    && CARGO_HOME=/home/runner/.cargo RUSTUP_HOME=/home/runner/.rustup \
+      PATH="/home/runner/.cargo/bin:${PATH}" \
+      cargo install cargo-machete --version "${CARGO_MACHETE_VERSION}" --locked \
+    && rm -rf /home/runner/.cargo/registry /home/runner/.cargo/git \
     && git config --system checkout.workers 4 \
     && git config --system checkout.thresholdForParallelism 100 \
     && usermod -aG docker runner \
@@ -161,6 +173,7 @@ ENV COREPACK_HOME=/opt/corepack
 ENV RUNNER_TOOL_CACHE=/opt/tools
 ENV CHROME_PATH=/opt/chrome-for-testing/chrome-linux64/chrome
 ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome-for-testing/chrome-linux64/chrome
+ENV CYPRESS_CACHE_FOLDER=/home/runner/.cache/Cypress
 ENV TMPDIR=/tmp
 ENV TMP=/tmp
 ENV TEMP=/tmp

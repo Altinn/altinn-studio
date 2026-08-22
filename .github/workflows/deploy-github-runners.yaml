@@ -93,6 +93,12 @@ jobs:
           test -n "${RUST_VERSION}"
           echo "version=${RUST_VERSION}" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Cypress version
+        id: cypress-version
+        run: |
+          CYPRESS_VERSION="$(jq -er '.devDependencies.cypress' "${GITHUB_WORKSPACE}/src/App/frontend/package.json")"
+          echo "version=${CYPRESS_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Build and publish runner image
         id: runner-image
         env:
@@ -100,11 +106,13 @@ jobs:
           LATEST: ${{ steps.vars.outputs.runner-latest }}
           GO_VERSION: ${{ steps.go-version.outputs.version }}
           RUST_VERSION: ${{ steps.rust-version.outputs.version }}
+          CYPRESS_VERSION: ${{ steps.cypress-version.outputs.version }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-build.json"
           docker buildx build \
             --build-arg "GO_VERSION=${GO_VERSION}" \
             --build-arg "RUST_VERSION=${RUST_VERSION}" \
+            --build-arg "CYPRESS_VERSION=${CYPRESS_VERSION}" \
             --file Dockerfile \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \

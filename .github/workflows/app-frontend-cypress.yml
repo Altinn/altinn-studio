@@ -259,16 +259,15 @@ jobs:
             echo "ENABLE_PERCY=true" >> "$GITHUB_ENV"
           fi
 
+      # The runner image bakes the Cypress binary at CYPRESS_CACHE_FOLDER;
+      # this is a no-op on version match and a fallback download on drift.
       - name: Install Cypress binary
         shell: bash
-        env:
-          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
         run: npx cypress install
 
       - name: Cypress run
         shell: bash
         env:
-          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
           CYPRESS_PROJECT_ID: o7mikf
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -356,14 +355,10 @@ jobs:
 
       - name: Install Cypress binary
         shell: bash
-        env:
-          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
         run: npx cypress install
 
       - name: Cypress run
         shell: bash
-        env:
-          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
         run: npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
