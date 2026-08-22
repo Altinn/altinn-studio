@@ -251,7 +251,7 @@ internal interface IEngineRepository
     /// states; any other status (including non-terminal after a concurrent resume) is a no-op
     /// returning <c>false</c>.
     /// Atomically with the transition, releases the idempotency key that created the workflow:
-    /// re-enqueueing with the same fingerprint creates a fresh workflow instead of deduplicating
+    /// re-enqueuing with the same fingerprint creates a fresh workflow instead of deduplicating
     /// onto the write-off. For batch enqueues the key covers the whole batch, so abandoning any
     /// member releases the fingerprint for all of them.
     /// </summary>

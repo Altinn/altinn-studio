@@ -13,7 +13,7 @@ internal interface IBufferedRequest<TResult>
     TaskCompletionSource<TResult> Completion { get; }
 
     /// <summary>
-    /// The enqueueing activity's id, linked from the flush's own activity so a request keeps its trace across the
+    /// The enqueuing activity's id, linked from the flush's own activity so a request keeps its trace across the
     /// hand-off.
     /// </summary>
     string? TraceContext { get; }

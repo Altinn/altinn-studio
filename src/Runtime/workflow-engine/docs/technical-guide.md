@@ -1067,7 +1067,7 @@ Reading them:
   **a coarse sample of a fast queue**, and only a sustained reading means anything. `MetricsCollector`
   reads the queues once per `MetricsCollectionInterval` (5 s) and the exporter ships whatever it last
   wrote every 10 s, while a queue fills and drains between flushes. A storm at 3 000 deliveries/s that
-  was plainly queueing — a mean of 3.86 messages accepted per flush can only come from requests that
+  was plainly queuing — a mean of 3.86 messages accepted per flush can only come from requests that
   waited — held the gauge at **0** throughout. So a zero is not evidence that the queue never filled,
   and the gauge cannot tell you whether batching is happening — `flushed ÷ batches` is what does.
 - **`pg_stat_statements` answers a finer question, and is worth keeping as the cross-check.** On the

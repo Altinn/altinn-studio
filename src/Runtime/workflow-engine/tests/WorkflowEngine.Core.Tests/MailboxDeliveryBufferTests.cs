@@ -508,7 +508,7 @@ public class MailboxDeliveryBufferTests
     }
 
     [Fact]
-    public async Task Enqueue_AlreadyCanceledToken_ThrowsWithoutQueueing()
+    public async Task Enqueue_AlreadyCanceledToken_ThrowsWithoutQueuing()
     {
         var (buffer, repo) = CreateBuffer();
         SetupMockAccepted(repo);
