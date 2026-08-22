@@ -142,12 +142,11 @@ spec:
                     key: appPrivateKey
             resources:
               requests:
-                cpu: "4"
+                cpu: "5"
                 memory: 14Gi
                 ephemeral-storage: 2Gi
                 devices.altinn.studio/kvm: "1"
               limits:
-                cpu: "4"
                 memory: 14Gi
                 ephemeral-storage: 4Gi
                 devices.altinn.studio/kvm: "1"

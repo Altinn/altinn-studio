@@ -4,7 +4,9 @@ ARG GO_VERSION=1.26.4
 ARG KUBECTL_VERSION=1.35.7
 ARG NODE_CHANNEL=22
 ARG YARN_CHANNEL=stable
-ARG DOTNET_CHANNELS="8.0 9.0 10.0"
+ARG RUST_VERSION=1.97.1
+ARG RUSTUP_VERSION=1.29.0
+ARG DOTNET_CHANNEL=10.0
 ARG CHROME_FOR_TESTING_CHANNEL=Stable
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
@@ -85,7 +87,9 @@ RUN apt-get update \
       /home/runner/.cache/go-build \
       /home/runner/.npm \
       /home/runner/.cache/yarn \
+      /home/runner/.cargo \
       /home/runner/.nuget/packages \
+      /home/runner/.rustup \
       /home/runner/go/pkg/mod \
       /home/runner/_work/_temp \
       /usr/share/dotnet \
@@ -116,19 +120,27 @@ RUN apt-get update \
     && rm -f /tmp/node.tar.xz /tmp/node-shasums.txt \
     && touch "/opt/tools/node/${NODE_VERSION}/x64.complete" \
     && ln -s "/opt/tools/node/${NODE_VERSION}/x64" /opt/tools/node/current \
+    && RUSTUP_INIT_URL="https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/x86_64-unknown-linux-gnu/rustup-init" \
+    && curl -fsSL "${RUSTUP_INIT_URL}" -o /tmp/rustup-init \
+    && RUSTUP_INIT_SHA256="$(curl -fsSL "${RUSTUP_INIT_URL}.sha256" | awk '{ print $1 }')" \
+    && test -n "${RUSTUP_INIT_SHA256}" \
+    && echo "${RUSTUP_INIT_SHA256}  /tmp/rustup-init" | sha256sum -c - \
+    && chmod +x /tmp/rustup-init \
+    && CARGO_HOME=/home/runner/.cargo RUSTUP_HOME=/home/runner/.rustup \
+      /tmp/rustup-init --yes --no-modify-path --profile minimal \
+        --default-toolchain "${RUST_VERSION}" --component clippy,rustfmt \
+    && rm -f /tmp/rustup-init \
     && curl -fsSL "https://raw.githubusercontent.com/dotnet/install-scripts/${DOTNET_INSTALL_SCRIPT_COMMIT}/src/dotnet-install.sh" -o /tmp/dotnet-install.sh \
     && echo "${DOTNET_INSTALL_SCRIPT_SHA256}  /tmp/dotnet-install.sh" | sha256sum -c - \
     && chmod +x /tmp/dotnet-install.sh \
-    && for channel in ${DOTNET_CHANNELS}; do \
-      /tmp/dotnet-install.sh --install-dir /usr/share/dotnet --channel "${channel}" --quality GA; \
-    done \
+    && /tmp/dotnet-install.sh --install-dir /usr/share/dotnet --channel "${DOTNET_CHANNEL}" --quality GA \
     && rm -f /tmp/dotnet-install.sh \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack enable \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${YARN_CHANNEL}" --activate \
     && git config --system checkout.workers 4 \
     && git config --system checkout.thresholdForParallelism 100 \
     && usermod -aG docker runner \
-    && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack /usr/share/dotnet
+    && chown -R runner:runner /home/runner/.cache /home/runner/.cargo /home/runner/.npm /home/runner/.nuget /home/runner/.rustup /home/runner/go /home/runner/_work /opt/tools /opt/corepack /usr/share/dotnet
 
 RUN KUBECTL_SHA256="$(curl -fsSL \
       "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256")" \
@@ -141,6 +153,8 @@ RUN KUBECTL_SHA256="$(curl -fsSL \
     && chmod 0755 /usr/local/bin/altinn-github-runner
 
 ENV CGO_ENABLED=1
+ENV CARGO_HOME=/home/runner/.cargo
+ENV RUSTUP_HOME=/home/runner/.rustup
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV DOTNET_INSTALL_DIR=/usr/share/dotnet
 ENV COREPACK_HOME=/opt/corepack
@@ -150,7 +164,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome-for-testing/chrome-linux64/chrome
 ENV TMPDIR=/tmp
 ENV TMP=/tmp
 ENV TEMP=/tmp
-ENV PATH=/opt/tools/go/current/bin:/opt/tools/node/current/bin:/usr/share/dotnet:${PATH}
+ENV PATH=/opt/tools/go/current/bin:/opt/tools/node/current/bin:/home/runner/.cargo/bin:/usr/share/dotnet:${PATH}
 
 USER runner
 WORKDIR /home/runner
