@@ -266,6 +266,7 @@ jobs:
         run: npx cypress install
 
       - name: Cypress run
+        id: cypress
         shell: bash
         env:
           CYPRESS_PROJECT_ID: o7mikf
@@ -297,18 +298,23 @@ jobs:
             npx cypress "${cypress_args[@]}"
           fi
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: failure()
-        with:
-          name: app-frontend-logs-${{ matrix.containers }}
-          path: |
-            src/App/frontend/test/logs/*
-            src/App/frontend/test/screenshots/**
-            ${{ env.STUDIOCTL_HOME }}/logs/**
-
       - name: Stop localtest
         if: always()
         uses: ./.github/actions/app-stop-local-env
+        with:
+          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        with:
+          name: app-frontend-logs-${{ matrix.containers }}
+          path: |
+            src/App/frontend/frontend-server.log
+            src/App/frontend/local-env-diagnostics.log
+            src/App/frontend/localtest-container.log
+            src/App/frontend/test/logs/*
+            src/App/frontend/test/screenshots/**
+            ${{ env.STUDIOCTL_HOME }}/logs/**
 
   cypress-run-external:
     name: Cypress Run External
@@ -359,19 +365,25 @@ jobs:
         run: npx cypress install
 
       - name: Cypress run
+        id: cypress
         shell: bash
         run: npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
-
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: failure()
-        with:
-          name: app-frontend-external-logs
-          path: |
-            src/App/frontend/test/logs/*
-            src/App/frontend/test/screenshots/*
-            src/App/frontend/test/videos/*
-            ${{ env.STUDIOCTL_HOME }}/logs/**
 
       - name: Stop localtest
         if: always()
         uses: ./.github/actions/app-stop-local-env
+        with:
+          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        with:
+          name: app-frontend-external-logs
+          path: |
+            src/App/frontend/frontend-server.log
+            src/App/frontend/local-env-diagnostics.log
+            src/App/frontend/localtest-container.log
+            src/App/frontend/test/logs/*
+            src/App/frontend/test/screenshots/*
+            src/App/frontend/test/videos/*
+            ${{ env.STUDIOCTL_HOME }}/logs/**

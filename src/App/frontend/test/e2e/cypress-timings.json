@@ -1,5 +1,5 @@
 {
-  "source": "GitHub Actions run 29900669595 on 2026-07-22",
+  "source": "GitHub Actions run 29900669595 on 2026-07-22; summary and workflow-status averaged from run 32588244974 attempts 1-2 on 2026-08-22",
   "unit": "milliseconds",
   "durations": [
     { "spec": "test/e2e/integration/anonymous-stateless-app/anonymous.ts", "duration": 10000 },
@@ -69,7 +69,7 @@
     { "spec": "test/e2e/integration/frontend-test/rules.ts", "duration": 16000 },
     { "spec": "test/e2e/integration/frontend-test/self-identified-user.ts", "duration": 1000 },
     { "spec": "test/e2e/integration/frontend-test/sort-order.ts", "duration": 15000 },
-    { "spec": "test/e2e/integration/frontend-test/summary.ts", "duration": 199000 },
+    { "spec": "test/e2e/integration/frontend-test/summary.ts", "duration": 153000 },
     { "spec": "test/e2e/integration/frontend-test/tabbing.ts", "duration": 7000 },
     { "spec": "test/e2e/integration/frontend-test/tabs.ts", "duration": 10000 },
     { "spec": "test/e2e/integration/frontend-test/texts.ts", "duration": 8000 },
@@ -81,7 +81,7 @@
     { "spec": "test/e2e/integration/multiple-datamodels-test/validation.ts", "duration": 25000 },
     { "spec": "test/e2e/integration/navigation-test-subform/navigation.ts", "duration": 169000 },
     { "spec": "test/e2e/integration/payment-test/payment.ts", "duration": 37000 },
-    { "spec": "test/e2e/integration/process-transition-test/workflow-status.ts", "duration": 104000 },
+    { "spec": "test/e2e/integration/process-transition-test/workflow-status.ts", "duration": 282000 },
     { "spec": "test/e2e/integration/service-task/service-task.ts", "duration": 61000 },
     { "spec": "test/e2e/integration/signering-brukerstyrt/signing.ts", "duration": 31000 },
     { "spec": "test/e2e/integration/signing-test/double-signing.ts", "duration": 27000 },
