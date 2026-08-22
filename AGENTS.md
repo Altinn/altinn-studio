@@ -90,7 +90,9 @@ Small build/ops images and configs, documented here rather than individually:
 - `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
 
 Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
-`scripts/`, and root Docker/compose files for the Designer dev stack (see `README.md`).
+`scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
+architecture and its cross-repo couplings), and root Docker/compose files for the Designer dev
+stack (see `README.md`).
 
 ## Conventions across the repo
 
