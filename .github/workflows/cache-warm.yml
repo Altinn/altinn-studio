@@ -146,3 +146,37 @@ jobs:
         run: |
           make -C src/experimental build
           make -C src/ci/github-runner/coordinator build
+
+  localtest-image-registry-cache:
+    name: Warm LocalTest image registry cache
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    env:
+      # studioctl reads BuildKit layer cache from the ghcr localtest-*-cache
+      # refs on every CI build; this job is the only writer, so the refs
+      # always reflect main and PR jobs never need a packages:write token.
+      STUDIOCTL_REGISTRY_CACHE_WRITE: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set up studioctl dev install
+        uses: ./.github/actions/setup-studioctl
+
+      # Build unconditionally (no image-tar short-circuit) so the layer
+      # cache refreshes even when the GH-cache image tar is warm; with warm
+      # layers a no-change rebuild is cheap.
+      - name: Build LocalTest images and push registry cache
+        run: studioctl env up --detach
+
+      - name: Stop environment
+        if: always()
+        run: studioctl env down || true
