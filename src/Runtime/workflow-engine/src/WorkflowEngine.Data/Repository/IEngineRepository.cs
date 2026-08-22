@@ -310,9 +310,11 @@ internal interface IEngineRepository
     /// the repeat answered <see cref="MailboxMintResult.Existing"/> with the row the first occurrence created.
     /// The collection cap counts the batch's own fresh mints against itself, so a flush cannot overshoot
     /// <paramref name="maxOpenPerCollection"/>; replays are answered even at the cap and consume none of it.
-    /// Takes no database slot and no retry, as <see cref="BatchEnqueueWorkflows"/> takes neither: flush
-    /// concurrency is what bounds connections, and a retry inside would hold one for a whole failing batch. A
-    /// failure faults every request in the batch, and callers converge by replaying their idempotency key.
+    /// Takes no database slot — flush concurrency bounds the connections — and no retry: a failure faults every
+    /// request in the batch, and callers converge by replaying their idempotency key. The other buffer flush,
+    /// <see cref="BatchUpdateWorkflowsAndSteps"/>, retries because its only fallback is lease expiry and a
+    /// re-executed workflow; here a retry would hold one of the few flush permits for the whole command budget
+    /// while queued callers waited behind it.
     /// </summary>
     Task<MailboxMintResult[]> BatchMintMailboxes(
         IReadOnlyList<BufferedMailboxMintRequest> requests,
@@ -369,9 +371,11 @@ internal interface IEngineRepository
     /// close flush cannot deadlock against a concurrent enqueue or delivery flush. A mailbox named twice in one
     /// batch is closed once, the repeat answered <see cref="MailboxCloseResult.AlreadyClosed"/> with the row the
     /// first occurrence wrote.
-    /// Takes no database slot and no retry, as <see cref="BatchEnqueueWorkflows"/> takes neither: flush
-    /// concurrency is what bounds connections, and a retry inside would hold one for a whole failing batch. A
-    /// failure faults every request in the batch, and callers converge by replaying the close.
+    /// Takes no database slot — flush concurrency bounds the connections — and no retry: a failure faults every
+    /// request in the batch, and callers converge by replaying the close. The other buffer flush,
+    /// <see cref="BatchUpdateWorkflowsAndSteps"/>, retries because its only fallback is lease expiry and a
+    /// re-executed workflow; here a retry would hold the single close permit for the whole command budget while
+    /// queued callers waited behind it.
     /// </summary>
     Task<MailboxCloseResult[]> BatchCloseMailboxes(
         IReadOnlyList<BufferedMailboxCloseRequest> requests,
@@ -404,9 +408,11 @@ internal interface IEngineRepository
     /// named twice for one mailbox is appended once, the repeat answered at the first occurrence's position.
     /// Positions stay gapless and consecutive in batch-arrival order, and refusals write nothing, so a refused
     /// key stays free.
-    /// Takes no database slot and no retry, as <see cref="BatchEnqueueWorkflows"/> takes neither: flush
-    /// concurrency is what bounds connections, and a retry inside would hold one for a whole failing batch. A
-    /// failure faults every request in the batch, and callers converge by replaying their idempotency key.
+    /// Takes no database slot — flush concurrency bounds the connections — and no retry: a failure faults every
+    /// request in the batch, and callers converge by replaying their idempotency key. The other buffer flush,
+    /// <see cref="BatchUpdateWorkflowsAndSteps"/>, retries because its only fallback is lease expiry and a
+    /// re-executed workflow; here a retry would hold one of the two delivery permits for the whole command
+    /// budget while queued callers waited behind it.
     /// </summary>
     Task<MailboxDeliveryResult[]> BatchDeliverToMailboxes(
         IReadOnlyList<BufferedMailboxDeliveryRequest> requests,

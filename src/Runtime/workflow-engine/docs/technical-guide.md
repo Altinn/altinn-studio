@@ -871,12 +871,14 @@ namespace the row carries and the other is a `404`.
 
 Two properties of a per-request write do not survive batching:
 
-- **A flush is not retried inside the engine.** A per-request write was wrapped in the database
-  retry strategy; a flush is not, since it cannot replay a hundred callers' work on behalf of one
-  caller's transient fault. A flush that fails answers **every** request in it `500`, and convergence
-  is the caller's own retry under the same idempotency key — which is what the key is for: the replay
-  reads back either the row the failed attempt committed or a fresh verdict. This is the workflow
-  enqueue flush's existing bargain, applied to mailboxes.
+- **A mailbox flush is not retried inside the engine.** A per-request write was wrapped in the
+  database retry strategy; these flushes are not. A flush that fails answers **every** request in it
+  `500`, and convergence is the caller's own retry under the same idempotency key — which is what the
+  key is for: the replay reads back either the row the failed attempt committed or a fresh verdict.
+  The workflow update buffer's flush _does_ retry, so the discriminator is not who is waiting but what
+  the fallback costs: a dropped write-back is recovered only by the 30 s lease expiry and a re-executed
+  workflow, where a dropped mailbox flush is recovered by a replay — and a retry here would hold one of
+  the few flush permits for the whole 30 s command budget with every queued request behind it.
 - **A flush holds no DB slot.** These three endpoint write paths no longer pass through
   `MaxDbOperations` — the deadline sweep and the mailbox reads still do — and the flush concurrencies
   bound them instead (see [Concurrency Model](#concurrency-model)).
