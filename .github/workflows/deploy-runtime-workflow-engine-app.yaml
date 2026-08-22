@@ -101,7 +101,10 @@ jobs:
           if [ "${{ inputs.tag-latest }}" = "true" ]; then
             TAGS="$TAGS -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest"
           fi
-          docker build --platform linux/amd64,linux/arm64 --build-arg BUILD_VERSION=${{ steps.vars.outputs.short-sha }} $TAGS -f Runtime/workflow-engine-app/Dockerfile .
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache,mode=max \
+            --build-arg BUILD_VERSION=${{ steps.vars.outputs.short-sha }} $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}

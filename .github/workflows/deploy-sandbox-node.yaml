@@ -40,6 +40,18 @@ jobs:
         with:
           persist-credentials: false
 
+      # The containerd image store lets the default builder export registry
+      # cache (--cache-to type=registry), matching the runtime deploys.
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
       - name: Set vars
         id: vars
         run: |
@@ -70,9 +82,12 @@ jobs:
         id: image
         env:
           IMAGE_TAG: ${{ steps.vars.outputs.image-tag }}
+          IMAGE_REPOSITORY: ${{ steps.vars.outputs.image-repository }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/sandbox-node-build.json"
           docker buildx build \
+            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file Dockerfile \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
@@ -91,9 +106,12 @@ jobs:
         id: init-image
         env:
           IMAGE_TAG: ${{ steps.vars.outputs.init-image-tag }}
+          IMAGE_REPOSITORY: ${{ steps.vars.outputs.init-image-repository }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/sandbox-node-init-build.json"
           docker buildx build \
+            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file Dockerfile.init \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \

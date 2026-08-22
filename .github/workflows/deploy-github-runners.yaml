@@ -51,6 +51,18 @@ jobs:
         with:
           persist-credentials: false
 
+      # The containerd image store lets the default builder export registry
+      # cache (--cache-to type=registry), matching the runtime deploys.
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
       - name: Set vars
         id: vars
         run: |
@@ -104,6 +116,7 @@ jobs:
         env:
           IMAGE: ${{ steps.vars.outputs.runner-image }}
           LATEST: ${{ steps.vars.outputs.runner-latest }}
+          RUNNER_REPOSITORY: ${{ steps.vars.outputs.runner-repository }}
           GO_VERSION: ${{ steps.go-version.outputs.version }}
           RUST_VERSION: ${{ steps.rust-version.outputs.version }}
           CYPRESS_VERSION: ${{ steps.cypress-version.outputs.version }}
@@ -113,6 +126,8 @@ jobs:
             --build-arg "GO_VERSION=${GO_VERSION}" \
             --build-arg "RUST_VERSION=${RUST_VERSION}" \
             --build-arg "CYPRESS_VERSION=${CYPRESS_VERSION}" \
+            --cache-from "type=registry,ref=${RUNNER_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${RUNNER_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file Dockerfile \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
@@ -134,9 +149,12 @@ jobs:
         env:
           IMAGE: ${{ steps.vars.outputs.coordinator-image }}
           LATEST: ${{ steps.vars.outputs.coordinator-latest }}
+          COORDINATOR_REPOSITORY: ${{ steps.vars.outputs.coordinator-repository }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-coordinator-build.json"
           docker buildx build \
+            --cache-from "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache" \
+            --cache-to "type=registry,ref=${COORDINATOR_REPOSITORY}:buildcache,mode=max,image-manifest=true" \
             --file src/ci/github-runner/Dockerfile.coordinator \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
