@@ -88,16 +88,25 @@ jobs:
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Rust version
+        id: rust-version
+        run: |
+          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          test -n "${RUST_VERSION}"
+          echo "version=${RUST_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Build and publish runner image
         id: runner-image
         env:
           IMAGE: ${{ steps.vars.outputs.runner-image }}
           LATEST: ${{ steps.vars.outputs.runner-latest }}
           GO_VERSION: ${{ steps.go-version.outputs.version }}
+          RUST_VERSION: ${{ steps.rust-version.outputs.version }}
         run: |
           METADATA_FILE="${RUNNER_TEMP}/github-runner-build.json"
           docker buildx build \
             --build-arg "GO_VERSION=${GO_VERSION}" \
+            --build-arg "RUST_VERSION=${RUST_VERSION}" \
             --file Dockerfile \
             --metadata-file "${METADATA_FILE}" \
             --platform linux/amd64 \
