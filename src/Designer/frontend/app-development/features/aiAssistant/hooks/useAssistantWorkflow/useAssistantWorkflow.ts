@@ -32,6 +32,9 @@ const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
   'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
+// Status events this soon after a terminal event are stragglers from the finished run.
+const ADOPTION_GRACE_AFTER_TERMINAL_MS = 10_000;
+const MAX_HANDLED_ASSISTANT_EVENTS = 200;
 
 export interface UseAssistantWorkflowResult {
   connectionStatus: ConnectionStatus;
@@ -63,10 +66,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
-  // Monotonic clock anchor per workflow thread. Each trail step records
-  // its offset from this value so timestamps don't drift if the wall clock
-  // changes mid-flight.
+  // Trail-clock anchor per thread; each step records its offset from this.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
+  const handledAssistantEventsRef = useRef<Set<string>>(new Set());
+  // When each thread's run last ended.
+  const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
+  // Threads whose messages are already fetched for the current run.
+  const runMessagesRefreshedThreadsRef = useRef<Set<string>>(new Set());
 
   const {
     selectedThreadId,
@@ -74,6 +80,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     createThread,
     deleteMessage,
     createMessage,
+    refreshMessages,
     chatMessages,
   } = threads;
 
@@ -81,8 +88,36 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     setWorkflowStatusByThread((prev) => ({ ...prev, [threadId]: status }));
   }, []);
 
+  const markThreadTerminated = useCallback((threadId: string) => {
+    terminatedAtMsByThreadRef.current[threadId] = performance.now();
+    runMessagesRefreshedThreadsRef.current.delete(threadId);
+    // The next run must anchor its own trail clock.
+    delete workflowStartedAtMsByThreadRef.current[threadId];
+  }, []);
+
+  const markThreadStillRunning = useCallback(
+    (threadId: string, previousStatus: WorkflowStatus | undefined) => {
+      delete terminatedAtMsByThreadRef.current[threadId];
+      setWorkflowStatus(threadId, {
+        ...previousStatus,
+        isActive: true,
+        sessionId: previousStatus?.sessionId ?? threadId,
+      });
+    },
+    [setWorkflowStatus],
+  );
+
+  const isRecentlyTerminated = useCallback((threadId: string): boolean => {
+    const terminatedAtMs = terminatedAtMsByThreadRef.current[threadId];
+    return (
+      terminatedAtMs !== undefined &&
+      performance.now() - terminatedAtMs < ADOPTION_GRACE_AFTER_TERMINAL_MS
+    );
+  }, []);
+
   const markWorkflowCompleted = useCallback(
     (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+      markThreadTerminated(threadId);
       setWorkflowStatus(threadId, {
         isActive: false,
         sessionId: threadId,
@@ -92,14 +127,37 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         filesChanged: assistantMessage.filesChanged || [],
       });
     },
-    [setWorkflowStatus],
+    [setWorkflowStatus, markThreadTerminated],
+  );
+
+  // Fetches the initiating tab's user message when adopting a run this tab didn't start.
+  const refreshMessagesForAdoptedRun = useCallback(
+    (threadId: string) => {
+      if (isRecentlyTerminated(threadId)) return;
+      if (runMessagesRefreshedThreadsRef.current.has(threadId)) return;
+      runMessagesRefreshedThreadsRef.current.add(threadId);
+      refreshMessages(threadId);
+    },
+    [isRecentlyTerminated, refreshMessages],
   );
 
   const applyStatusMessage = useCallback(
-    (threadId: string, statusMessage: string, toolUseId?: string) => {
+    (threadId: string, statusMessage: string, toolUseId?: string, elapsedMs?: number) => {
+      // elapsed_ms (time since run start, set by the agents service) is
+      // authoritative for the trail clock.
+      if (elapsedMs !== undefined) {
+        workflowStartedAtMsByThreadRef.current[threadId] = performance.now() - elapsedMs;
+      } else {
+        workflowStartedAtMsByThreadRef.current[threadId] ??= performance.now();
+      }
       setWorkflowStatusByThread((prev) => {
-        const prevStatus = prev[threadId];
-        if (!prevStatus?.isActive) return prev;
+        const existing = prev[threadId];
+        // No active workflow here means another tab started the run — adopt
+        // it, unless the status is a straggler from a run that just ended.
+        if (!existing?.isActive && isRecentlyTerminated(threadId)) return prev;
+        const prevStatus: WorkflowStatus = existing?.isActive
+          ? existing
+          : { isActive: true, sessionId: threadId };
         const steps = prevStatus.steps ?? [];
         const lastStep = steps.at(-1);
 
@@ -138,7 +196,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         };
       });
     },
-    [],
+    [isRecentlyTerminated],
   );
 
   const applyPermissionRequest = useCallback(
@@ -166,13 +224,28 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       const threadId = findThreadIdByPermissionRequestId(workflowStatusByThread, requestId);
       if (!threadId) return;
       try {
+        // The hub rejects commands for sessions not registered on this connection.
+        await registerSession(org, app, threadId);
         await sendPermissionResponse(threadId, requestId, granted);
         clearPermissionRequest(threadId);
       } catch (error) {
         console.error('Permission response failed:', error);
       }
     },
-    [workflowStatusByThread, clearPermissionRequest, sendPermissionResponse],
+    [
+      workflowStatusByThread,
+      clearPermissionRequest,
+      sendPermissionResponse,
+      registerSession,
+      org,
+      app,
+    ],
+  );
+
+  // Agent events reach every tab, including tabs open on other apps.
+  const ownsThread = useCallback(
+    (threadId: string) => threads.chatThreads.some((thread) => thread.id === threadId),
+    [threads.chatThreads],
   );
 
   const resetRepoForSession = useCallback(
@@ -193,42 +266,73 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (!threadId) return;
 
       const assistantMessage = event.data;
+      // eventId is stamped on every answer; traceId only exists when Langfuse is on.
+      const dedupeId = assistantMessage.eventId ?? assistantMessage.traceId;
+      const dedupeKey = dedupeId ? `${threadId}:${dedupeId}` : null;
+      if (dedupeKey) {
+        const handledEvents = handledAssistantEventsRef.current;
+        if (handledEvents.has(dedupeKey)) return;
+        handledEvents.add(dedupeKey);
+        if (handledEvents.size > MAX_HANDLED_ASSISTANT_EVENTS) {
+          handledEvents.delete(handledEvents.values().next().value);
+        }
+      }
+
       const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
-      const finalAssistantMessage: AssistantMessage = {
-        role: MessageAuthor.Assistant,
-        content: messageContent,
-        createdAt: messageTimestamp.toISOString(),
-        filesChanged: assistantMessage.filesChanged || [],
-        sources: assistantMessage.sources || [],
-      };
-      const persisted = await createMessage(threadId, finalAssistantMessage);
+      if (assistantMessage.persistedMessageId) {
+        // Already persisted server-side — refetch instead of writing a client copy.
+        refreshMessages(threadId);
+        if (assistantMessage.traceId) {
+          setTraceIdsByMessageId((prev) => ({
+            ...prev,
+            [assistantMessage.persistedMessageId]: assistantMessage.traceId,
+          }));
+        }
+      } else {
+        // Server-side persist failed or was skipped — persist client-side instead.
+        const finalAssistantMessage: AssistantMessage = {
+          role: MessageAuthor.Assistant,
+          content: messageContent,
+          createdAt: messageTimestamp.toISOString(),
+          filesChanged: assistantMessage.filesChanged || [],
+          sources: assistantMessage.sources || [],
+          traceId: assistantMessage.traceId,
+        };
+        try {
+          const persisted = await createMessage(threadId, finalAssistantMessage);
 
-      if (assistantMessage.traceId && persisted?.id) {
-        setTraceIdsByMessageId((prev) => ({
-          ...prev,
-          [persisted.id]: assistantMessage.traceId,
-        }));
+          if (assistantMessage.traceId && persisted?.id) {
+            setTraceIdsByMessageId((prev) => ({
+              ...prev,
+              [persisted.id]: assistantMessage.traceId,
+            }));
+          }
+        } catch (error) {
+          // Release the dedupe key, or a redelivery of this answer is dropped for good.
+          if (dedupeKey) handledAssistantEventsRef.current.delete(dedupeKey);
+          console.error('Failed to persist assistant message:', error);
+        }
       }
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, createMessage],
+    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
+      const threadId = event.session_id;
+      if (!threadId || !ownsThread(threadId)) return;
+
       if (event.type === 'assistant_message') {
         handleAssistantMessage(event);
         return;
       }
-
-      const threadId = event.session_id;
-      if (!threadId) return;
 
       if (event.type === 'status') {
         const isTerminal =
@@ -236,31 +340,44 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
           event.data?.status === 'failed' ||
           event.data?.done === true;
         if (isTerminal) {
+          markThreadTerminated(threadId);
           setWorkflowStatus(threadId, { isActive: false });
         } else {
+          refreshMessagesForAdoptedRun(threadId);
           applyStatusMessage(
             threadId,
             event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
             event.data?.tool_use_id,
+            event.data?.elapsed_ms,
           );
         }
       } else if (event.type === 'workflow_status') {
+        refreshMessagesForAdoptedRun(threadId);
         applyStatusMessage(
           threadId,
           event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
           event.data?.tool_use_id,
+          event.data?.elapsed_ms,
         );
       } else if (event.type === 'permission_request') {
-        applyPermissionRequest(threadId, {
-          requestId: event.data.request_id,
-          message: event.data.message,
-        });
+        if (event.data.resolved) {
+          // Answered in another tab or timed out.
+          clearPermissionRequest(threadId);
+        } else {
+          applyPermissionRequest(threadId, {
+            requestId: event.data.request_id,
+            message: event.data.message ?? '',
+          });
+        }
       } else if (event.type === 'error') {
+        markThreadTerminated(threadId);
         setWorkflowStatus(threadId, { isActive: false });
-        if (event.data?.status === 'cancelled') return;
-        // A rejection carries the actual reason (and often suggestions) —
-        // show it instead of the generic failure text so the user knows
-        // what to change.
+        if (event.data?.status === 'cancelled') {
+          // Drop the message the cancelling tab deleted.
+          refreshMessages(threadId);
+          return;
+        }
+        // Rejections carry the actual reason — show it instead of the generic text.
         const content =
           event.data?.status === 'rejected'
             ? formatRejectedEventMessage(event.data)
@@ -276,9 +393,14 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [
       applyStatusMessage,
       applyPermissionRequest,
+      clearPermissionRequest,
       handleAssistantMessage,
+      ownsThread,
       createMessage,
       setWorkflowStatus,
+      markThreadTerminated,
+      refreshMessagesForAdoptedRun,
+      refreshMessages,
     ],
   );
 
@@ -297,6 +419,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     ): Promise<AgentResponse> => {
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
+      delete terminatedAtMsByThreadRef.current[threadId];
+      // No adoption refetch needed — this tab wrote the user message itself.
+      runMessagesRefreshedThreadsRef.current.add(threadId);
       workflowStartedAtMsByThreadRef.current[threadId] = performance.now();
       const initialStep: TrailStep = {
         id: 'initial',
@@ -402,21 +527,45 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     const threadId = selectedThreadId;
     if (!selectedThreadId) return;
 
+    const statusBeforeCancel = workflowStatusByThread[threadId];
+    markThreadTerminated(threadId);
     setWorkflowStatus(threadId, { isActive: false });
 
     const latestPersistedMessage = chatMessages.at(-1);
     const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
     if (noAssistantResponseReceived) {
-      deleteMessage(threadId, latestPersistedMessage.id);
-      setCancelledMessageContent(latestPersistedMessage.content);
+      try {
+        // Delete before the cancel round-trip — the refetch it triggers in
+        // every tab must not resurrect this message.
+        await deleteMessage(threadId, latestPersistedMessage.id);
+        setCancelledMessageContent(latestPersistedMessage.content);
+      } catch (error) {
+        console.error('Failed to delete the cancelled message:', error);
+      }
     }
 
     try {
+      // The hub rejects commands for sessions not registered on this connection.
+      await registerSession(org, app, threadId);
       await cancelWorkflow(threadId);
     } catch (error) {
+      // The run is still going, so stop showing it as stopped.
+      markThreadStillRunning(threadId, statusBeforeCancel);
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, selectedThreadId, deleteMessage, chatMessages, setWorkflowStatus]);
+  }, [
+    cancelWorkflow,
+    registerSession,
+    org,
+    app,
+    selectedThreadId,
+    deleteMessage,
+    chatMessages,
+    setWorkflowStatus,
+    markThreadStillRunning,
+    workflowStatusByThread,
+    markThreadTerminated,
+  ]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
