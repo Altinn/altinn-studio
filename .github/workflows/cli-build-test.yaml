@@ -34,10 +34,9 @@ jobs:
           global-json-file: src/cli/global.json
 
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: src/tools/releaser/go.mod
-          cache-dependency-path: src/tools/releaser/go.mod
+          module: src/tools/releaser
 
       - name: Build release artifacts via releaser dry-run
         working-directory: src/tools/releaser
@@ -84,10 +83,9 @@ jobs:
           global-json-file: src/cli/global.json
 
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: 'src/cli/go.mod'
-          cache-dependency-path: src/cli/go.sum
+          module: src/cli
 
       - name: Build
         working-directory: src/cli

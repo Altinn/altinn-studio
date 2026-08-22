@@ -71,17 +71,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Mirror the (module, runner, dependency-path) combinations the PR
-        # workflows' setup-go steps use, so the warm entries land on the
-        # exact keys those workflows compute. cli-build-test also runs on
-        # macOS and Windows, whose OS-scoped keys need warming from matching
-        # GitHub-hosted runners. releaser has no external dependencies and
-        # thus no go.sum; it and its consumer workflows key on go.mod.
+        # Mirror the (module, runner) combinations the PR workflows'
+        # setup-go-cached steps use, so the warm entries land on the exact
+        # keys those workflows compute. cli-build-test also runs on macOS
+        # and Windows, whose OS-scoped keys need warming from matching
+        # GitHub-hosted runners.
         include:
           - { module: src/cli, runner: self-hosted-ubuntu }
           - { module: src/cli, runner: macos-latest }
           - { module: src/cli, runner: windows-latest }
-          - { module: src/tools/releaser, runner: self-hosted-ubuntu, dep: src/tools/releaser/go.mod }
+          - { module: src/tools/releaser, runner: self-hosted-ubuntu }
           - { module: src/tools/health, runner: self-hosted-ubuntu }
           - { module: src/Runtime/devenv, runner: self-hosted-ubuntu }
           - { module: src/Runtime/gateway, runner: self-hosted-ubuntu }
@@ -98,18 +97,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      - name: Warm Go caches
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: ${{ matrix.module }}/go.mod
-          cache-dependency-path: ${{ matrix.dep || format('{0}/go.sum', matrix.module) }}
-
-      - name: Download modules and warm build cache
-        working-directory: ${{ matrix.module }}
-        shell: bash
-        run: |
-          go mod download
-          go build ./...
+          module: ${{ matrix.module }}
+          populate-cache: 'true'
 
   rust:
     name: Warm Rust cache
