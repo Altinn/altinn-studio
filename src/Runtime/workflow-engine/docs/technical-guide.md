@@ -384,7 +384,7 @@ Three independent semaphore pools via `IConcurrencyLimiter`:
 
 When `ActiveWorkflowCount` ≥ `BackpressureThreshold` (default: 500,000), the engine returns HTTP 429 on enqueue requests.
 
-The three buffered mailbox endpoint writes are outside the DB pool. The [mailbox buffers](#the-three-write-paths-are-batched) hold one connection per in-flight flush and take no DB slot, so what bounds them is the sum of their `FlushConcurrency` settings — 2 mint + 1 close + 2 delivery = 5 connections — rather than `MaxDbOperations`, and the `engine.slots.db.*` gauges do not account for them. The rest of the mailbox work still takes a slot each: the deadline sweep's scan and its closes, and every mailbox read.
+Five buffered write paths are outside the DB pool: the workflow enqueue buffer, the workflow status write-back buffer, and the three [mailbox](#the-three-write-paths-are-batched) endpoint writes. Each holds one connection per in-flight flush and takes no DB slot, so what bounds them is their own flush concurrency rather than `MaxDbOperations` — 10 enqueue + 1 write-back (its drain awaits each flush, so one at a time) + 2 mint + 1 close + 2 delivery = 16 connections, none of which the `engine.slots.db.*` gauges account for. Size the Postgres pool for `MaxDbOperations` + 16. Everything else takes a slot each, mailbox work included: the deadline sweep's scan and its closes, and every mailbox read.
 
 ## Heartbeat & Stale Recovery
 
@@ -1082,11 +1082,12 @@ Reading them:
 - **The slot gauges do not see the buffered mailbox writes.** A
   [flush](#the-three-write-paths-are-batched) holds a connection without taking a slot from the
   `MaxDbOperations` pool, so `engine.slots.db.used` under-reports by up to the five flushes the three
-  buffers may have in flight between them. The deadline sweep and the mailbox reads — including the
-  receipt read every receive workflow makes — still take slots, so mailbox activity has not left the
-  gauges entirely; only the three endpoint write paths have. `engine.db.operations.success` counts
-  **once per flush** on those three paths rather than once per request, so their traffic moves it far
-  less than it used to.
+  buffers may have in flight between them — on top of the eleven the enqueue and write-back buffers
+  may hold (see [Concurrency Model](#concurrency-model)). The deadline sweep and the mailbox reads —
+  including the receipt read every receive workflow makes — still take slots, so mailbox activity has
+  not left the gauges entirely; only the three endpoint write paths have.
+  `engine.db.operations.success` counts **once per flush** on those three paths rather than once per
+  request, so their traffic moves it far less than it used to.
 
 ### Traces
 
@@ -1565,20 +1566,20 @@ All via `EngineSettings` (bound from `appsettings.json`):
 
 ### Concurrency
 
-| Setting                             | Default | Description                                                      |
-| ----------------------------------- | ------- | ---------------------------------------------------------------- |
-| `Concurrency.MaxWorkers`            | 400     | Concurrent workflow processing tasks                             |
-| `Concurrency.MaxDbOperations`       | 90      | DB connection pool limit — mailbox buffer flushes are outside it |
-| `Concurrency.MaxHttpCalls`          | 400     | Outbound HTTP request limit                                      |
-| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429                                 |
+| Setting                             | Default | Description                                                                                                         |
+| ----------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Concurrency.MaxWorkers`            | 400     | Concurrent workflow processing tasks                                                                                |
+| `Concurrency.MaxDbOperations`       | 90      | DB connection pool limit — the five buffer flush paths are outside it (see [Concurrency Model](#concurrency-model)) |
+| `Concurrency.MaxHttpCalls`          | 400     | Outbound HTTP request limit                                                                                         |
+| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429                                                                                    |
 
 ### Write Buffer
 
-| Setting                        | Default | Description                |
-| ------------------------------ | ------- | -------------------------- |
-| `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert |
-| `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size        |
-| `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers  |
+| Setting                        | Default | Description                                                               |
+| ------------------------------ | ------- | ------------------------------------------------------------------------- |
+| `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert                                                |
+| `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size                                                       |
+| `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers, one connection each, outside `MaxDbOperations` |
 
 ### Mailbox Buffers
 
