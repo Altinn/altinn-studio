@@ -1,0 +1,153 @@
+# Shared glossary: language-NEUTRAL tokens the Norwegian checks accept in
+# both bokmål and nynorsk — names, quoted identifiers, formats and literals.
+# Norwegian *words* never belong here; they go in glossary.nb.txt /
+# glossary.nn.txt so a native reviewer of one language never has to rule on
+# the other. One word per line; '#' starts a comment; matching is
+# case-insensitive.
+#
+# Entries must earn their keep: the check reports an entry that no longer
+# rescues any flagged word as stale, in either language. Reviewing this file
+# in a PR is a name-spotting exercise, not a language ruling.
+
+# Product and organisation names in UI text
+altinn
+ansattporten
+bankid
+buypass
+commfides
+digdir
+entraid
+figma
+gitea
+github
+grafana
+maskinporten
+minid
+studioctl
+
+# Products and registries named by the Gitea UI translation
+codebasehq
+codecommit
+conda
+dingtalk
+feishu
+gitbucket
+gitlab
+gogs
+haveibeenpwned
+mariadb
+notabug
+npm
+nuget
+onedev
+packagist
+pacman
+postgresql
+redhat
+rubygem
+sendmail
+tidb
+wechat
+wecom
+
+# Technical terms, protocols, formats and file names quoted in UI text
+addr        # "SMTP Addr" config label in the Gitea UI
+agit        # Gitea's AGit workflow
+api
+backend
+bpmn
+condarc
+config
+devtool
+ecdsa
+fsck
+gitignore
+iframe
+iframes
+ini         # app.ini
+io          # code.gitea.io
+com         # slack.com
+json
+likert      # the Likert scale component
+md          # README.md
+nistp       # ecdsa-sha2-nistp256
+noreply
+npmrc
+oauth
+oids
+openid
+png
+pom         # pom.xml
+regex
+rprofile    # Rprofile.site
+rsa
+sha
+srcdoc
+ui          # the App/ui/ folder
+url
+uris
+webauthn
+webhook
+webhooks
+xml
+yml
+
+# Identifiers and placeholders quoted verbatim in UI text
+allof
+anyof
+oneof
+applicationmetadata
+componentref
+deletionstrategy
+disallowusercreate
+folderid
+funksjonforsubuttrykk
+inntektsaar
+labelsettings
+layoutsets
+maskinportenscope
+metadatanavn
+pagebreak
+pageref
+showaddbutton
+
+# Abbreviations and literals
+dd          # yyyy-mm-dd
+yyyy
+ifm         # i forbindelse med
+orgnr
+param
+personnr
+æøå         # quoted as literal letters in a validation message
+
+# Language names, from the ISO 639 language picker in Designer
+# (language.* keys). The Norwegian exonyms are identical in both languages.
+aragonsk
+avestisk
+belarusisk
+bislama
+chamorro
+dhivehi
+dzongkha
+fulfulde
+herero
+hiri        # Hiri Motu
+motu
+interlingue
+kanuri
+katanga     # Luba-Katanga
+kikongo
+kinyarwanda
+kirundi
+kwanyama
+limburgsk
+lingala
+ndebele
+ndonga
+sango
+sardisk
+swati
+tigrinya
+twi
+wolof
+yi          # Sichuan Yi
