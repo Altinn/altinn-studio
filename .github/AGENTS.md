@@ -35,7 +35,7 @@ Couplings to keep in sync:
 
 | When changing… | Also update… |
 | --- | --- |
-| Go modules (add/remove) | The `go-modules` matrix in cache-warm **and** the workflow's `setup-go-cached` step — the matrix must cover every (module, runner OS) pair the PR workflows use. |
+| Go modules (add/remove) | The `go-modules` matrix in cache-warm **and** the workflow's `setup-go-cached` step — the matrix must cover every (module, runner environment) combination the PR workflows use — keys are scoped per runner environment and image. |
 | Yarn caching | Single scheme: `setup-node` with `cache: 'yarn'` + `cache-dependency-path: yarn.lock` (the root lockfile), seeded by cache-warm's `yarn` job. |
 | ghcr `localtest-*-cache` refs | Hardcoded in [`core.go`](../src/cli/internal/cmd/env/localtest/components/core.go) and [`pdf.go`](../src/cli/internal/cmd/env/localtest/components/pdf.go); written only by cache-warm. |
 | Cypress (`src/App/frontend/package.json`) or Rust (root `Cargo.toml`) versions | Nothing by hand — `deploy-github-runners.yaml` bakes them into the runner image; workflows fall back (`npx cypress install` / rustup) on drift until it rebuilds. |

@@ -22,14 +22,21 @@ runs:
       id: config
       shell: bash
       env:
-        # go.sum is hashed together with go.mod; a module without external
-        # dependencies has no go.sum, and a hashFiles pattern that matches
-        # nothing simply contributes nothing to the hash.
-        CACHE_KEY: go-cache-v1-${{ runner.os }}-${{ runner.arch }}-go${{ steps.setup.outputs.go-version }}-${{ inputs.module }}-${{ hashFiles(format('{0}/go.sum', inputs.module), format('{0}/go.mod', inputs.module)) }}
+        # runner.environment + ImageOS separate the independently maintained
+        # runner images (self-hosted vs GitHub-hosted, and image versions
+        # within each lineage): Go build-cache entries hash the C toolchain
+        # for cgo packages, so entries built on one image can silently never
+        # hit on another. go.sum is hashed together with go.mod; a module
+        # without external dependencies has no go.sum, and a hashFiles
+        # pattern that matches nothing simply contributes nothing.
+        KEY_PREFIX: go-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ runner.environment }}
+        KEY_SUFFIX: go${{ steps.setup.outputs.go-version }}-${{ inputs.module }}
+        SOURCE_HASH: ${{ hashFiles(format('{0}/go.sum', inputs.module), format('{0}/go.mod', inputs.module)) }}
       run: |
         echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
         echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
-        echo "key=${CACHE_KEY}" >> "$GITHUB_OUTPUT"
+        echo "restore-prefix=${KEY_PREFIX}-${ImageOS:-none}-${KEY_SUFFIX}-" >> "$GITHUB_OUTPUT"
+        echo "key=${KEY_PREFIX}-${ImageOS:-none}-${KEY_SUFFIX}-${SOURCE_HASH}" >> "$GITHUB_OUTPUT"
 
     # Restore only: the shared entries are saved from main by cache-warm.yml.
     # PR-ref saves cannot be restored by other PRs or main and just evict the
@@ -45,7 +52,7 @@ runs:
           ${{ steps.config.outputs.gocache }}
         key: ${{ steps.config.outputs.key }}
         restore-keys: |
-          go-cache-v1-${{ runner.os }}-${{ runner.arch }}-go${{ steps.setup.outputs.go-version }}-${{ inputs.module }}-
+          ${{ steps.config.outputs.restore-prefix }}
 
     - name: Warm Go module and build caches
       if: ${{ inputs.populate-cache == 'true' && steps.restore.outputs.cache-hit != 'true' }}

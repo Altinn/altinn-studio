@@ -71,22 +71,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Mirror the (module, runner) combinations the PR workflows'
-        # setup-go-cached steps use, so the warm entries land on the exact
-        # keys those workflows compute. cli-build-test also runs on macOS
-        # and Windows, whose OS-scoped keys need warming from matching
-        # GitHub-hosted runners.
+        # Mirror the (module, runner environment) combinations the PR
+        # workflows' setup-go-cached steps actually run on — cache keys are
+        # scoped per runner environment and image, so each module must be
+        # warmed where its consumers run (releaser runs in both).
         include:
           - { module: src/cli, runner: self-hosted-ubuntu }
           - { module: src/cli, runner: macos-latest }
           - { module: src/cli, runner: windows-latest }
           - { module: src/tools/releaser, runner: self-hosted-ubuntu }
+          - { module: src/tools/releaser, runner: ubuntu-latest }
           - { module: src/tools/health, runner: self-hosted-ubuntu }
           - { module: src/Runtime/devenv, runner: self-hosted-ubuntu }
-          - { module: src/Runtime/gateway, runner: self-hosted-ubuntu }
-          - { module: src/Runtime/operator, runner: self-hosted-ubuntu }
-          - { module: src/Runtime/pdf3, runner: self-hosted-ubuntu }
-          - { module: src/ci/sandbox-node, runner: self-hosted-ubuntu }
+          - { module: src/Runtime/gateway, runner: ubuntu-latest }
+          - { module: src/Runtime/operator, runner: ubuntu-latest }
+          - { module: src/Runtime/pdf3, runner: ubuntu-latest }
+          - { module: src/ci/sandbox-node, runner: ubuntu-latest }
     steps:
       - name: Enable long paths for git on Windows
         if: matrix.runner == 'windows-latest'
@@ -124,7 +124,9 @@ jobs:
         run: |
           RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
           test -n "${RUST_VERSION}"
-          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ]; then
+          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
+            || ! rustfmt --version >/dev/null 2>&1 \
+            || ! cargo clippy --version >/dev/null 2>&1; then
             rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
             rustup default "${RUST_VERSION}"
           fi
