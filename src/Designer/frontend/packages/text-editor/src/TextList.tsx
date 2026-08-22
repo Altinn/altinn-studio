@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { TextRow } from './TextRow';
 import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
@@ -18,12 +18,7 @@ export type TextListProps = {
   removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
   updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };
-export const TextList = ({
-  resourceRows,
-  searchQuery,
-  selectedLanguages,
-  ...rest
-}: TextListProps) => {
+const TextListImpl = ({ resourceRows, searchQuery, selectedLanguages, ...rest }: TextListProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
@@ -81,3 +76,5 @@ export const TextList = ({
     </StudioTable>
   );
 };
+
+export const TextList = memo(TextListImpl);

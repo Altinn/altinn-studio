@@ -10,7 +10,10 @@ type DebounceOptions = {
 
 export const useDebounce = ({
   debounceTimeInMs,
-}: UseDebounceOptions): { debounce: (callback: Function, options?: DebounceOptions) => void } => {
+}: UseDebounceOptions): {
+  debounce: (callback: Function, options?: DebounceOptions) => void;
+  cancelDebounce: () => void;
+} => {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const debounce = useCallback(
@@ -26,9 +29,14 @@ export const useDebounce = ({
     [debounceTimeInMs],
   );
 
+  const cancelDebounce = useCallback((): void => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = undefined;
+  }, []);
+
   useEffect(() => {
     return () => clearTimeout(debounceRef.current);
   }, []);
 
-  return { debounce };
+  return { debounce, cancelDebounce };
 };

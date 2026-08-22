@@ -43,4 +43,34 @@ describe('useDebounce', () => {
     jest.advanceTimersByTime(debounceTimeInMs);
     expect(callback).not.toHaveBeenCalled();
   });
+  it('should not call the callback if the debounce is cancelled', () => {
+    const debounceTimeInMs = 1000;
+    const callback = jest.fn();
+    const { result } = renderHook(() => useDebounce({ debounceTimeInMs }));
+
+    result.current.debounce(callback);
+    jest.advanceTimersByTime(debounceTimeInMs / 2);
+    result.current.cancelDebounce();
+
+    jest.advanceTimersByTime(debounceTimeInMs);
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should allow debouncing again after a cancellation', () => {
+    const debounceTimeInMs = 1000;
+    const callback = jest.fn();
+    const { result } = renderHook(() => useDebounce({ debounceTimeInMs }));
+
+    result.current.debounce(callback);
+    result.current.cancelDebounce();
+    result.current.debounce(callback);
+
+    jest.advanceTimersByTime(debounceTimeInMs);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should be safe to cancel when nothing is pending', () => {
+    const { result } = renderHook(() => useDebounce({ debounceTimeInMs: 1000 }));
+    expect(() => result.current.cancelDebounce()).not.toThrow();
+  });
 });

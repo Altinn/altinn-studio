@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import classes from './TextEditor.module.css';
 import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
@@ -6,11 +7,12 @@ import { ArrowsUpDownIcon } from '@studio/icons';
 import { StudioButton, StudioChip, StudioSearch } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
-import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
 import type { ITextResources } from 'app-shared/types/global';
 import { useTranslation } from 'react-i18next';
+import { useDebounce } from '@studio/hooks';
+import { searchDebounceTimeInMs, defaultLangCode } from './constants';
 
 export interface TextEditorProps {
   addLanguage: (language: LangCode) => void;
@@ -39,13 +41,25 @@ export const TextEditor = ({
 }: TextEditorProps) => {
   const { t } = useTranslation();
   const [sortTextsAlphabetically, setSortTextsAlphabetically] = useState<boolean>(false);
-  const resourceRows = mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically);
+  const [searchInputValue, setSearchInputValue] = useState<string>(searchQuery ?? '');
+  const { debounce, cancelDebounce } = useDebounce({
+    debounceTimeInMs: searchDebounceTimeInMs,
+  });
+  const resourceRows = useMemo(
+    () => mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically),
+    [textResourceFiles, sortTextsAlphabetically],
+  );
   const previousSelectedLanguages = useRef<string[]>([]);
 
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages],
   );
+
+  useEffect(() => {
+    cancelDebounce();
+    setSearchInputValue(searchQuery ?? '');
+  }, [searchQuery, cancelDebounce]);
 
   useEffect(() => {
     const addedLanguage = selectedLangCodes.find(
@@ -66,25 +80,41 @@ export const TextEditor = ({
     availableLangCodesFiltered.forEach((language) =>
       upsertTextResource({ language, textId, translation: '' }),
     );
+    clearSearch();
+  };
+
+  const clearSearch = (): void => {
+    cancelDebounce();
+    setSearchInputValue('');
     setSearchQuery('');
   };
 
-  const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
-    try {
-      updateTextId({ oldId: textId });
-    } catch (e: unknown) {
-      console.error('Deleting text failed:\n', e);
-    }
-  };
+  const removeEntry = useCallback(
+    ({ textId }: TextResourceEntryDeletion) => {
+      try {
+        updateTextId({ oldId: textId });
+      } catch (e: unknown) {
+        console.error('Deleting text failed:\n', e);
+      }
+    },
+    [updateTextId],
+  );
 
-  const updateEntryId = ({ oldId, newId }: TextResourceIdMutation) => {
-    try {
-      updateTextId({ oldId, newId });
-    } catch (e: unknown) {
-      console.error('Renaming text-id failed:\n', e);
-    }
+  const updateEntryId = useCallback(
+    ({ oldId, newId }: TextResourceIdMutation) => {
+      try {
+        updateTextId({ oldId, newId });
+      } catch (e: unknown) {
+        console.error('Renaming text-id failed:\n', e);
+      }
+    },
+    [updateTextId],
+  );
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const { value } = event.target;
+    setSearchInputValue(value);
+    debounce(() => setSearchQuery(value));
   };
-  const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
 
   return (
     <div className={classes.textEditor}>
@@ -108,7 +138,7 @@ export const TextEditor = ({
             <StudioSearch
               className={classes.search}
               label={t('text_editor.search_for_text')}
-              value={searchQuery}
+              value={searchInputValue}
               onChange={handleSearchChange}
               clearButtonLabel={t('general.search_clear_button_title')}
             />
