@@ -49,7 +49,9 @@ jobs:
         run: |
           RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
           test -n "${RUST_VERSION}"
-          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ]; then
+          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
+            || ! rustfmt --version >/dev/null 2>&1 \
+            || ! cargo clippy --version >/dev/null 2>&1; then
             rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
             rustup default "${RUST_VERSION}"
           fi
