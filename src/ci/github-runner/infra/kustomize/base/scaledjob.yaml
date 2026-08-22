@@ -68,7 +68,6 @@ spec:
                 cpu: "4"
                 memory: 2Gi
               limits:
-                cpu: "4"
                 memory: 2Gi
             volumeMounts:
               - name: provider-cache
@@ -104,7 +103,7 @@ spec:
               - name: SANDBOX_CPUS
                 value: "4"
               - name: SANDBOX_MEMORY
-                value: 12Gi
+                value: 16Gi
               - name: SANDBOX_ROOT_FILESYSTEM
                 value: 100Gi
               - name: GITHUB_API_URL
@@ -143,11 +142,11 @@ spec:
             resources:
               requests:
                 cpu: "5"
-                memory: 14Gi
+                memory: 17Gi
                 ephemeral-storage: 2Gi
                 devices.altinn.studio/kvm: "1"
               limits:
-                memory: 14Gi
+                memory: 18Gi
                 ephemeral-storage: 4Gi
                 devices.altinn.studio/kvm: "1"
             volumeMounts:
