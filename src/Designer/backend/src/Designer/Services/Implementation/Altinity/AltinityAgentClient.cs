@@ -47,6 +47,22 @@ public class AltinityAgentClient : IAltinityAgentClient
         }
     }
 
+    public async Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken)
+    {
+        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TracesPath}/{traceId}/feedback");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+        httpRequest.Headers.Add(DeveloperHeader, developer);
+
+        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException(
+                $"Altinity clear feedback returned {response.StatusCode}: {responseContent}"
+            );
+        }
+    }
+
     public async Task TriggerTraceCleanupAsync(CancellationToken cancellationToken)
     {
         var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TraceCleanupPath}");

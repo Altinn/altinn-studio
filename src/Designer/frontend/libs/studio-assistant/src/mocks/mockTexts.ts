@@ -36,6 +36,7 @@ export const messageFeedbackTexts: MessageFeedbackTexts = {
   detailsLabel: 'feedbackDetailsLabel',
   detailsOptionalTag: 'feedbackDetailsOptionalTag',
   submit: 'feedbackSubmit',
+  clear: 'feedbackClear',
   cancel: 'feedbackCancel',
 };
 

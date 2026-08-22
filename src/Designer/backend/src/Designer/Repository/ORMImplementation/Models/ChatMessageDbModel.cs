@@ -60,4 +60,9 @@ public class ChatMessageDbModel
     /// Id of the agent event this message was persisted from. Unique per thread.
     /// </summary>
     public string? EventId { get; set; }
+
+    /// <summary>
+    /// The user's thumbs up/down on this answer.
+    /// </summary>
+    public bool? FeedbackThumbsUp { get; set; }
 }
