@@ -51,7 +51,11 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build image
-        run: docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.image }} -f Runtime/localtest/Dockerfile .
+        run: |
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-localtest:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-localtest:buildcache,mode=max \
+            -t ${{ steps.vars.outputs.image }} -f Runtime/localtest/Dockerfile .
 
       - name: Push image
         run: docker push ${{ steps.vars.outputs.image }}

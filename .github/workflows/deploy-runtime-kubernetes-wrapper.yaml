@@ -56,6 +56,8 @@ jobs:
           SHA="${GITHUB_SHA::10}"
           IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
           docker build --platform linux/amd64,linux/arm64 src \
+            --cache-from "type=registry,ref=${IMAGE_BASE}:buildcache" \
+            --cache-to "type=registry,ref=${IMAGE_BASE}:buildcache,mode=max" \
             -f src/Runtime/kubernetes-wrapper/src/Dockerfile \
             -t "${IMAGE_BASE}:${SHA}"
 
