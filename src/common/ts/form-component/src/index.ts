@@ -18,6 +18,7 @@ export * from './layout-components';
 export * from './layout-components/common/ComponentStructure';
 export * from './layout-components/common/HelpTextContainer';
 export * from './layout-components/common/LabelComponent';
+export * from './layout-components/common/LabelContent';
 export * from './layout-components/common/LabelAsSpan';
 export * from './layout-components/common/Description';
 export * from './layout-components/common/OptionalIndicator';
