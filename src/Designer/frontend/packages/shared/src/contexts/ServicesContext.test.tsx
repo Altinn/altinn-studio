@@ -134,6 +134,24 @@ describe('ServicesContext', () => {
     expect(window.location.assign).not.toHaveBeenCalled();
   });
 
+  it('displays a toast message for "GT_BranchNotFound" error code', async () => {
+    const errorCode = 'GT_BranchNotFound';
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () =>
+            Promise.reject(createApiErrorMock(404, errorCode, { branchName: 'my-branch' })),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.GT_BranchNotFound'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
   it('Displays a toast message for "GT_01" error code', async () => {
     const errorCode = 'GT_01';
     const { result } = renderHook(
