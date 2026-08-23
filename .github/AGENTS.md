@@ -8,7 +8,7 @@ Guidance is organized by topic.
 Three mechanisms, by content type:
 
 1. **GitHub Actions cache** (10GB/repo, LRU-evicted). Shared entries are seeded
-   on main by [`workflows/cache-warm.yml`](workflows/cache-warm.yml) (daily
+   on main by [`workflows/cache-warm.yml`](workflows/cache-warm.yml) (weekdays
    06:00 UTC + dispatch) and restored-only by PR jobs — PR-ref saves are
    invisible to other PRs and evict the shared entries (letting PR jobs save
    freely is what blew the quota; see #20121). Two bounded exceptions save
