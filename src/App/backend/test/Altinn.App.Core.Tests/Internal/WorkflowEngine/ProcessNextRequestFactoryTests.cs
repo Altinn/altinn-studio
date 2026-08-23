@@ -70,13 +70,7 @@ public class ProcessNextRequestFactoryTests
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
         var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [
-                new ExecuteServiceTask(
-                    appImplFactory,
-                    Mock.Of<IWorkflowEngineClient>(),
-                    TestMailboxDeliveryEnvelope.Create()
-                ),
-            ],
+            [new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create())],
             appImplFactory
         );
 
@@ -670,6 +664,38 @@ public class ProcessNextRequestFactoryTests
                 .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
     }
 
+    /// <summary>
+    /// A declaring pipeline with a stage on <em>each</em> side of the one that sends, so "immediately before
+    /// the declaring stage" is distinguishable from both "first" and "last" — the
+    /// <c>send → unrelated stage → reply terminal</c> shape the design supports.
+    /// </summary>
+    private sealed class SurroundedSendArchivingTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("PrepareDocuments", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(
+                    "SendToArchive",
+                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
+                )
+                .Stage("RecordDispatch", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
+                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+    }
+
+    private static MintMailboxPayload ExtractMintPayload(WorkflowEnqueueEnvelope bundle)
+    {
+        StepRequest step = bundle
+            .Request.Workflows[0]
+            .Steps.Single(s => s.OperationId.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
+        var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
+        Assert.Equal(MintMailbox.Key, appData.CommandKey);
+        return CommandPayloadSerializer.Deserialize<MintMailboxPayload>(appData.Payload)!;
+    }
+
     private static EnqueueReceiveWorkflowPayload ExtractReceiveEnqueuePayload(WorkflowEnqueueEnvelope bundle)
     {
         StepRequest step = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == EnqueueReceiveWorkflow.Key);
@@ -694,6 +720,79 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
         Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
         Assert.True(keys.IndexOf(EnqueueReceiveWorkflow.Key) > keys.IndexOf(ExecuteServiceTask.Key));
+    }
+
+    /// <summary>
+    /// The mint is its own step and hugs the stage that sends: never at the transition's start (the deadline
+    /// clock would start before the stages that precede the send) and never after it.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_EmitsTheMintStepImmediatelyBeforeTheDeclaringStage()
+    {
+        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
+        int mint = operationIds.IndexOf($"{MintMailbox.Key}: SendToArchive");
+        Assert.NotEqual(-1, mint);
+        Assert.Equal($"{ExecuteServiceTask.Key}: PrepareDocuments", operationIds[mint - 1]);
+        Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", operationIds[mint + 1]);
+        // The declaring stage need not be last: an unrelated stage may follow the send, and only the send gets
+        // a mint.
+        Assert.Equal($"{ExecuteServiceTask.Key}: RecordDispatch", operationIds[mint + 2]);
+        Assert.Single(operationIds, id => id.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
+
+        MintMailboxPayload payload = ExtractMintPayload(bundle);
+        Assert.Equal("archiving", payload.ServiceTaskType);
+        Assert.Equal("SendToArchive", payload.StageName);
+    }
+
+    /// <summary>
+    /// One HTTP call, so the mint takes the engine's own defaults — not the declaring stage's options, which
+    /// belong to the work that sends.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_LeavesTheMintStepOnTheEngineDefaults()
+    {
+        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        StepRequest mintStep = bundle
+            .Request.Workflows[0]
+            .Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: SendToArchive");
+        Assert.Null(mintStep.Command.MaxExecutionTime);
+        Assert.Null(mintStep.Command.WaitBudget);
+        Assert.Null(mintStep.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task Create_PipelineWithoutMailbox_EmitsNoMintStep()
+    {
+        var factory = CreateFactory(serviceTasks: new SigningTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        Assert.DoesNotContain(MintMailbox.Key, ExtractCommandKeys(bundle));
+    }
+
+    /// <summary>
+    /// Fixed at assembly time, per the rule that a stage name is never re-derived at a later hop: the step
+    /// that enqueues the receiver is told which exchange it answers.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_NamesTheOpeningStageOnTheReceiveEnqueuePayload()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        Assert.Equal("SendToArchive", ExtractReceiveEnqueuePayload(bundle).OpeningStageName);
     }
 
     [Fact]

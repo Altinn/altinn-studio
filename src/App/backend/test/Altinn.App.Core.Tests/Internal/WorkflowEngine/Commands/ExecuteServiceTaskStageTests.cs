@@ -46,7 +46,6 @@ public class ExecuteServiceTaskStageTests
 
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
-            Mock.Of<IWorkflowEngineClient>(),
             // Never consulted: these pipelines declare no mailbox, so the delivery envelope is never
             // reached.
             TestMailboxDeliveryEnvelope.Create()

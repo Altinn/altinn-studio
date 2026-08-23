@@ -32,6 +32,15 @@ internal sealed record StepRequest
     public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
+    /// The registered key of the app command this step runs, carried so the per-command options
+    /// resolution (see <c>ProcessStepOptionsResolver</c>) can find the command's own defaults even when
+    /// <see cref="OperationId"/> is a display identity rather than the key. Internal and never serialized
+    /// — the engine reads the key from the command payload. Null on a step assembled without one, whose
+    /// <see cref="OperationId"/> is then the key.
+    /// </summary>
+    internal string? CommandKey { get; init; }
+
+    /// <summary>
     /// For a service-task pipeline stage: the stage's name, carried so the per-stage options
     /// resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching stage. Internal
     /// and never serialized — the engine sees the stage name only inside the command payload.

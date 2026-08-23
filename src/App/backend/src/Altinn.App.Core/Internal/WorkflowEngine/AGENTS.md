@@ -64,7 +64,7 @@ WorkflowEngine/
 │                          AltinnEvents/, plus root-level ExecuteServiceTask,
 │                          NotifyInstanceOwnerOnInstantiation, MutateProcessState,
 │                          SaveProcessStateToStorage, EnqueueSideEffectsWorkflow,
-│                          EnqueueReceiveWorkflow
+│                          EnqueueReceiveWorkflow, MintMailbox
 ├── DependencyInjection/ - AddWorkflowEngineIntegration() + startup check that every key in
 │                          WorkflowCommandSet is registered
 ├── Http/                - IWorkflowEngineClient + typed-HttpClient impl (paginates ListWorkflows,

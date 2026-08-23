@@ -1,10 +1,8 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
-using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,112 +12,16 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The mailbox half of <see cref="ExecuteServiceTask"/>: which execution mints, what keys the mint, and
-/// what everything else sees.
+/// The mailbox half of <see cref="ExecuteServiceTask"/>: which execution can read the address the
+/// <see cref="MintMailbox"/> step published, and what everything else sees. The mint itself is
+/// <see cref="MintMailboxTests"/>'s subject — nothing here opens a mailbox.
 /// </summary>
 public class ExecuteServiceTaskMailboxTests
 {
     private static readonly Guid InstanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
-
-    /// <summary>Answers mints idempotently on the key, so a test can tell "minted twice" from "replayed".</summary>
-    private sealed class RecordingMailboxMinter : IWorkflowEngineClient
-    {
-        private readonly Dictionary<string, MailboxResponse> _byKey = new(StringComparer.Ordinal);
-
-        public List<(string Namespace, MailboxCreateRequest Request)> Mints { get; } = [];
-
-        public MailboxMintResult? Answer { get; init; }
-
-        public Exception? Throws { get; init; }
-
-        public Task<MailboxMintResult> MintMailbox(
-            string ns,
-            MailboxCreateRequest request,
-            CancellationToken ct = default
-        )
-        {
-            Mints.Add((ns, request));
-
-            if (Throws is { } exception)
-            {
-                throw exception;
-            }
-
-            if (Answer is { } scripted)
-            {
-                return Task.FromResult(scripted);
-            }
-
-            if (!_byKey.TryGetValue(request.IdempotencyKey, out MailboxResponse? mailbox))
-            {
-                DateTimeOffset createdAt = new(2026, 8, 19, 10, 0, 0, TimeSpan.Zero);
-                mailbox = new MailboxResponse
-                {
-                    Id = Guid.NewGuid(),
-                    Namespace = ns,
-                    IdempotencyKey = request.IdempotencyKey,
-                    CollectionKey = request.CollectionKey,
-                    Timeout = request.Timeout,
-                    Deadline = createdAt + request.Timeout,
-                    Status = MailboxStatus.Open,
-                    NextIdx = 0,
-                    NextSeq = 0,
-                    CreatedAt = createdAt,
-                };
-                _byKey[request.IdempotencyKey] = mailbox;
-            }
-
-            return Task.FromResult<MailboxMintResult>(new MailboxMintResult.Minted(mailbox));
-        }
-
-        public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
-            string ns,
-            string idempotencyKey,
-            string? collectionKey,
-            WorkflowEnqueueRequest request,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<WorkflowCollectionDetailResponse?> GetCollection(
-            string ns,
-            string key,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
-            string ns,
-            string? collectionKey = null,
-            Dictionary<string, string>? labels = null,
-            IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<CancelWorkflowResponse> CancelWorkflow(
-            string ns,
-            Guid workflowId,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<ResumeWorkflowResponse> ResumeWorkflow(
-            string ns,
-            Guid workflowId,
-            bool cascade = false,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
-        public Task<MailboxDeliveryResult> DeliverToMailbox(
-            string ns,
-            Guid mailboxId,
-            MailboxDeliveryRequest request,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-    }
+    private static readonly Guid CarriedMailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private static readonly DateTimeOffset CarriedDeadline = new(2026, 8, 22, 10, 0, 0, TimeSpan.Zero);
+    private const string SendStage = "SendToArchive";
 
     private sealed class ArchivingTask : IPipelineServiceTask
     {
@@ -129,16 +31,13 @@ public class ExecuteServiceTaskMailboxTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(
-                    "SendToArchive",
-                    Record<ServiceTaskStageResult>("SendToArchive", ServiceTaskStageResult.Completed())
-                )
+                .Stage(SendStage, Record<ServiceTaskStageResult>(SendStage, ServiceTaskStageResult.Completed()))
                 .Stage(
                     "RecordDispatch",
                     Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed())
                 )
                 .Finally(Record<ServiceTaskResult>("Finally", ServiceTaskResult.Success()))
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .WithReplyFrom(SendStage, new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
 
         private Func<ServiceTaskContext, Task<T>> Record<T>(string step, T result) =>
             context =>
@@ -158,10 +57,10 @@ public class ExecuteServiceTaskMailboxTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    "SendToArchive",
+                    SendStage,
                     context =>
                     {
-                        Seen["SendToArchive"] = context;
+                        Seen[SendStage] = context;
                         return Task.FromResult(ServiceTaskStageResult.Completed());
                     }
                 )
@@ -172,22 +71,28 @@ public class ExecuteServiceTaskMailboxTests
                 });
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
+    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
         services.AddSingleton(serviceTask);
-        var sp = services.BuildServiceProvider();
+        ServiceProvider sp = services.BuildServiceProvider();
 
         return new ExecuteServiceTask(
             sp.GetRequiredService<AppImplementationFactory>(),
-            client,
             TestMailboxDeliveryEnvelope.Create()
         );
     }
 
+    /// <summary>The carry as the mint step leaves it for the stage that sends.</summary>
+    private static WorkflowCallbackStateCarry MintedCarry(string stageName = SendStage)
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(stageName, CarriedMailboxId, CarriedDeadline);
+        return carry;
+    }
+
     private static ProcessEngineCommandContext CreateContext(
-        Guid? stepId = null,
         WorkflowCallbackStateCarry? carry = null,
         AppCallbackMailbox? mailbox = null
     )
@@ -218,7 +123,7 @@ public class ExecuteServiceTaskMailboxTests
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),
-                StepId = stepId ?? Guid.NewGuid(),
+                StepId = Guid.NewGuid(),
                 Mailbox = mailbox,
             },
         };
@@ -246,63 +151,74 @@ public class ExecuteServiceTaskMailboxTests
     private static ExecuteServiceTaskPayload Payload(string? stageName) => new("archiving", stageName);
 
     [Fact]
-    public async Task DeclaringStage_MintsTheMailboxAndReadsIt()
+    public async Task DeclaringStage_ReadsTheMailboxTheMintStepCarried()
     {
         var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
-        Guid stepId = Guid.NewGuid();
 
-        ProcessEngineCommandResult result = await CreateCommand(task, minter)
-            .Execute(CreateContext(stepId), Payload("SendToArchive"));
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStage));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
 
-        (string ns, MailboxCreateRequest request) = Assert.Single(minter.Mints);
-        Assert.Equal("ttd/test-app", ns);
-        Assert.Equal(stepId.ToString(), request.IdempotencyKey);
-        Assert.Equal(TimeSpan.FromDays(3), request.Timeout);
-        Assert.Equal(InstanceGuid.ToString(), request.CollectionKey);
-
-        ServiceTaskMailbox mailbox = task.Seen["SendToArchive"].Mailbox;
-        Assert.Equal(new DateTimeOffset(2026, 8, 22, 10, 0, 0, TimeSpan.Zero), mailbox.Deadline);
-        Assert.NotEqual(Guid.Empty, mailbox.Id);
+        ServiceTaskMailbox mailbox = task.Seen[SendStage].Mailbox;
+        Assert.Equal(CarriedMailboxId, mailbox.Id);
+        Assert.Equal(CarriedDeadline, mailbox.Deadline);
     }
 
+    /// <summary>
+    /// The stage may not send without an address, and it has no way to obtain one: the mint step records it
+    /// immediately before this stage runs, so an empty carry means a step between the two dropped it.
+    /// </summary>
     [Fact]
-    public async Task RetryOfTheDeclaringStage_ReplaysOntoTheSameMailbox()
+    public async Task DeclaringStage_WithoutACarriedMailbox_FailsPermanentlyAndNeverRuns()
     {
         var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
-        Guid stepId = Guid.NewGuid();
 
-        await CreateCommand(task, minter).Execute(CreateContext(stepId), Payload("SendToArchive"));
-        Guid first = task.Seen["SendToArchive"].Mailbox.Id;
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(SendStage));
 
-        await CreateCommand(task, minter).Execute(CreateContext(stepId), Payload("SendToArchive"));
-        Guid second = task.Seen["SendToArchive"].Mailbox.Id;
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
+        Assert.Contains($"Stage '{SendStage}' opens a mailbox", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("mint step records it", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Empty(task.Seen);
+    }
 
-        Assert.Equal(first, second);
-        Assert.Equal(2, minter.Mints.Count);
-        Assert.All(minter.Mints, mint => Assert.Equal(stepId.ToString(), mint.Request.IdempotencyKey));
+    /// <summary>
+    /// A mailbox carried under another stage's name is not this stage's: the lookup is by name, never by
+    /// "the one entry there happens to be".
+    /// </summary>
+    [Fact]
+    public async Task DeclaringStage_WithAMailboxCarriedForAnotherStage_FailsPermanently()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry("SomeOtherStage")), Payload(SendStage));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
+        Assert.Empty(task.Seen);
     }
 
     [Theory]
     [InlineData("RecordDispatch")]
     [InlineData(null)]
-    public async Task StepThatIsNotTheDeclaringStage_MintsNothingAndReadingTheMailboxThrows(string? stageName)
+    public async Task StepThatIsNotTheDeclaringStage_ReadingTheMailboxThrows(string? stageName)
     {
         var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
 
-        await CreateCommand(task, minter)
-            .Execute(CreateContext(mailbox: stageName is null ? Delivered(Guid.NewGuid()) : null), Payload(stageName));
-
-        Assert.Empty(minter.Mints);
+        await CreateCommand(task)
+            .Execute(
+                CreateContext(MintedCarry(), stageName is null ? Delivered(CarriedMailboxId) : null),
+                Payload(stageName)
+            );
 
         ServiceTaskContext seen = task.Seen[stageName ?? "Finally"];
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => seen.Mailbox);
         Assert.Contains(
-            "mailbox is opened by stage 'SendToArchive' and is readable only there",
+            $"mailbox is opened by stage '{SendStage}' and is readable only there",
             exception.Message,
             StringComparison.Ordinal
         );
@@ -314,16 +230,13 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     [Theory]
-    [InlineData("SendToArchive")]
+    [InlineData(SendStage)]
     [InlineData(null)]
-    public async Task TaskThatDeclaresNoMailbox_MintsNothingAndReadingTheMailboxThrows(string? stageName)
+    public async Task TaskThatDeclaresNoMailbox_ReadingTheMailboxThrows(string? stageName)
     {
         var task = new PlainTask();
-        var minter = new RecordingMailboxMinter();
 
-        await CreateCommand(task, minter).Execute(CreateContext(), Payload(stageName));
-
-        Assert.Empty(minter.Mints);
+        await CreateCommand(task).Execute(CreateContext(), Payload(stageName));
 
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
             task.Seen[stageName ?? "Finally"].Mailbox
@@ -332,122 +245,37 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Contains(nameof(ServiceTaskPipeline.WithReplyFrom), exception.Message, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task MissingStepId_FailsPermanentlyRatherThanMintingASharedMailbox()
-    {
-        var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
-
-        ProcessEngineCommandResult result = await CreateCommand(task, minter)
-            .Execute(CreateContext(Guid.Empty), Payload("SendToArchive"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
-        Assert.Empty(minter.Mints);
-        Assert.Empty(task.Seen);
-    }
-
-    [Fact]
-    public async Task RejectedMint_FailsPermanentlyWithTheEngineDetailAndNeverRunsTheStage()
-    {
-        var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter
-        {
-            Answer = new MailboxMintResult.Rejected(
-                "Timeout 30.00:00:00 exceeds the maximum mailbox timeout of 21.00:00:00."
-            ),
-        };
-
-        ProcessEngineCommandResult result = await CreateCommand(task, minter)
-            .Execute(CreateContext(), Payload("SendToArchive"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxRejected", failed.ExceptionType);
-        Assert.Contains("SendToArchive", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("exceeds the maximum mailbox timeout", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Empty(task.Seen);
-    }
-
-    [Fact]
-    public async Task AtCapacityMint_FailsRetryablyWithTheEngineDetailAndNeverRunsTheStage()
-    {
-        var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter
-        {
-            Answer = new MailboxMintResult.AtCapacity(
-                "Collection 'inst-1' already holds the maximum of 100 open mailboxes."
-            ),
-        };
-
-        ProcessEngineCommandResult result = await CreateCommand(task, minter)
-            .Execute(CreateContext(), Payload("SendToArchive"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.False(failed.NonRetryable);
-        Assert.Equal("MailboxAtCapacity", failed.ExceptionType);
-        Assert.Contains("SendToArchive", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("maximum of 100 open mailboxes", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Empty(task.Seen);
-    }
-
-    [Fact]
-    public async Task UnreachableEngine_FailsRetryablyAndNeverRunsTheStage()
-    {
-        var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter { Throws = new HttpRequestException("engine unreachable") };
-
-        ProcessEngineCommandResult result = await CreateCommand(task, minter)
-            .Execute(CreateContext(), Payload("SendToArchive"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.False(failed.NonRetryable);
-        Assert.Empty(task.Seen);
-    }
-
-    [Fact]
-    public async Task DeclaringStage_RecordsTheMailboxOnTheStateCarry()
-    {
-        var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
-        var carry = new WorkflowCallbackStateCarry();
-
-        await CreateCommand(task, minter).Execute(CreateContext(carry: carry), Payload("SendToArchive"));
-
-        CarriedMailbox? recorded = carry.FindMailbox("SendToArchive");
-        Assert.NotNull(recorded);
-        Assert.Equal(task.Seen["SendToArchive"].Mailbox.Id, recorded.Id);
-        Assert.Equal(task.Seen["SendToArchive"].Mailbox.Deadline, recorded.Deadline);
-    }
-
+    /// <summary>
+    /// The command reads the carry and never writes it: the mint owns the one entry, and a stage that ran
+    /// forwards the blob exactly as it received it.
+    /// </summary>
     [Theory]
+    [InlineData(SendStage)]
     [InlineData("RecordDispatch")]
-    [InlineData(null)]
-    public async Task StepThatIsNotTheDeclaringStage_RecordsNothingOnTheCarry(string? stageName)
+    public async Task AnyStage_LeavesTheCarriedMailboxesUntouched(string stageName)
     {
         var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
-        var carry = new WorkflowCallbackStateCarry();
+        WorkflowCallbackStateCarry carry = MintedCarry();
 
-        await CreateCommand(task, minter).Execute(CreateContext(carry: carry), Payload(stageName));
+        await CreateCommand(task).Execute(CreateContext(carry), Payload(stageName));
 
-        Assert.Null(carry.Mailboxes);
+        Assert.NotNull(carry.Mailboxes);
+        KeyValuePair<string, CarriedMailbox> only = Assert.Single(carry.Mailboxes);
+        Assert.Equal(SendStage, only.Key);
+        Assert.Equal(CarriedMailboxId, only.Value.Id);
     }
 
     [Fact]
     public async Task ConclusionOfADeclaringPipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
     {
         var task = new ArchivingTask();
-        var minter = new RecordingMailboxMinter();
 
-        ProcessEngineCommandResult result = await CreateCommand(task, minter)
-            .Execute(CreateContext(), Payload(stageName: null));
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(stageName: null));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
-        Assert.Empty(minter.Mints);
         Assert.Empty(task.Seen);
     }
 }

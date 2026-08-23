@@ -9,6 +9,8 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -28,11 +30,7 @@ public class ProcessStepOptionsResolverTests
         return new ProcessStepOptionsResolver(
             [
                 // Only its DefaultStepOptions are read here; nothing executes.
-                new ExecuteServiceTask(
-                    appImplFactory,
-                    Mock.Of<IWorkflowEngineClient>(),
-                    TestMailboxDeliveryEnvelope.Create()
-                ),
+                new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
             ],
             appImplFactory
         );
@@ -243,19 +241,19 @@ public class ProcessStepOptionsResolverTests
         new() { OnTaskStartingHook.Key, OnTaskEndingHook.Key, OnTaskAbandonHook.Key };
 
     private static Action<IServiceCollection> RegisterTaskHook(
-        string operationId,
+        string commandKey,
         Func<string, bool> shouldRun,
         ProcessStepOptions stepOptions
     ) =>
-        operationId switch
+        commandKey switch
         {
-            _ when operationId == OnTaskStartingHook.Key => s =>
+            _ when commandKey == OnTaskStartingHook.Key => s =>
                 s.AddSingleton<IOnTaskStartingHandler>(StartingHook(shouldRun, stepOptions).Object),
-            _ when operationId == OnTaskEndingHook.Key => s =>
+            _ when commandKey == OnTaskEndingHook.Key => s =>
                 s.AddSingleton<IOnTaskEndingHandler>(EndingTaskHook(shouldRun, stepOptions).Object),
-            _ when operationId == OnTaskAbandonHook.Key => s =>
+            _ when commandKey == OnTaskAbandonHook.Key => s =>
                 s.AddSingleton<IOnTaskAbandonHandler>(AbandonHook(shouldRun, stepOptions).Object),
-            _ => throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "Not a task hook key"),
+            _ => throw new ArgumentOutOfRangeException(nameof(commandKey), commandKey, "Not a task hook key"),
         };
 
     [Fact]
@@ -289,12 +287,12 @@ public class ProcessStepOptionsResolverTests
 
     [Theory]
     [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_MatchingTask_ResolvesImplementationOptions(string operationId)
+    public void Resolve_TaskHook_MatchingTask_ResolvesImplementationOptions(string commandKey)
     {
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var resolver = CreateResolver(RegisterTaskHook(operationId, t => t == "Task_1", options));
+        var resolver = CreateResolver(RegisterTaskHook(commandKey, t => t == "Task_1", options));
 
-        var result = resolver.Resolve(operationId, taskId: "Task_1", serviceTaskType: null);
+        var result = resolver.Resolve(commandKey, taskId: "Task_1", serviceTaskType: null);
 
         Assert.NotNull(result);
         Assert.Equal(options.MaxExecutionTime, result.MaxExecutionTime);
@@ -302,26 +300,26 @@ public class ProcessStepOptionsResolverTests
 
     [Theory]
     [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_NoHandlerMatchesTask_ReturnsNull(string operationId)
+    public void Resolve_TaskHook_NoHandlerMatchesTask_ReturnsNull(string commandKey)
     {
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var resolver = CreateResolver(RegisterTaskHook(operationId, t => t == "Task_2", options));
+        var resolver = CreateResolver(RegisterTaskHook(commandKey, t => t == "Task_2", options));
 
-        var result = resolver.Resolve(operationId, taskId: "Task_1", serviceTaskType: null);
+        var result = resolver.Resolve(commandKey, taskId: "Task_1", serviceTaskType: null);
 
         Assert.Null(result);
     }
 
     [Theory]
     [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_TaskIdNull_ReturnsNull(string operationId)
+    public void Resolve_TaskHook_TaskIdNull_ReturnsNull(string commandKey)
     {
         // Task hooks (unlike the process-ending hook) require a task to match against, so a null taskId
         // short-circuits to null even when a handler is registered.
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var resolver = CreateResolver(RegisterTaskHook(operationId, _ => true, options));
+        var resolver = CreateResolver(RegisterTaskHook(commandKey, _ => true, options));
 
-        var result = resolver.Resolve(operationId, taskId: null, serviceTaskType: null);
+        var result = resolver.Resolve(commandKey, taskId: null, serviceTaskType: null);
 
         Assert.Null(result);
     }
@@ -466,5 +464,57 @@ public class ProcessStepOptionsResolverTests
             pipeline
                 .Stage("Stage", _ => Task.FromResult(ServiceTaskStageResult.Completed()), options)
                 .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()), options);
+    }
+
+    // ── The key resolution keys off ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// A step whose OperationId is a display identity (a pipeline stage, or the mailbox mint, both of which
+    /// append a stage name) must still resolve its command's own tier-2 default. Keying off the OperationId
+    /// instead would miss <c>_commandDefaults</c> silently: the miss looks exactly like "this command
+    /// declares no default", so a command that does declare one would have it dropped without a sound.
+    /// </summary>
+    [Theory]
+    [InlineData("Stage")]
+    [InlineData(null)]
+    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(
+        string? serviceTaskStageName
+    )
+    {
+        ProcessStepOptionsResolver resolver = CreateResolver(_ => { });
+
+        StepRequest resolved = new StepRequest
+        {
+            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskStageName ?? "Anything"}",
+            Command = CommandDefinition.Create(
+                "app",
+                new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
+            ),
+            CommandKey = ExecuteServiceTask.Key,
+            ServiceTaskStageName = serviceTaskStageName,
+        }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
+
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);
+    }
+
+    /// <summary>
+    /// The four steps the factory inserts carry no <see cref="StepRequest.CommandKey"/>, so the fallback to
+    /// OperationId — which is their command key — has to keep resolving them.
+    /// </summary>
+    [Fact]
+    public void ApplyStepOptions_StepWithoutACommandKey_FallsBackToTheOperationId()
+    {
+        ProcessStepOptionsResolver resolver = CreateResolver(_ => { });
+
+        StepRequest resolved = new StepRequest
+        {
+            OperationId = ExecuteServiceTask.Key,
+            Command = CommandDefinition.Create(
+                "app",
+                new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
+            ),
+        }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
+
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);
     }
 }

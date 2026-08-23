@@ -86,63 +86,6 @@ public class ExecuteServiceTaskReplyTests
                 });
     }
 
-    private sealed class UnusedEngineClient : IWorkflowEngineClient
-    {
-        public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
-            string ns,
-            string idempotencyKey,
-            string? collectionKey,
-            WorkflowEnqueueRequest request,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<WorkflowCollectionDetailResponse?> GetCollection(
-            string ns,
-            string key,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
-            string ns,
-            string? collectionKey = null,
-            Dictionary<string, string>? labels = null,
-            IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<CancelWorkflowResponse> CancelWorkflow(
-            string ns,
-            Guid workflowId,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<ResumeWorkflowResponse> ResumeWorkflow(
-            string ns,
-            Guid workflowId,
-            bool cascade = false,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
-        public Task<MailboxMintResult> MintMailbox(
-            string ns,
-            MailboxCreateRequest request,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
-
-        public Task<MailboxDeliveryResult> DeliverToMailbox(
-            string ns,
-            Guid mailboxId,
-            MailboxDeliveryRequest request,
-            CancellationToken ct = default
-        ) => throw new NotSupportedException();
-    }
-
     private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
     {
         var services = new ServiceCollection();
@@ -150,11 +93,7 @@ public class ExecuteServiceTaskReplyTests
         services.AddSingleton(serviceTask);
         ServiceProvider sp = services.BuildServiceProvider();
 
-        return new ExecuteServiceTask(
-            sp.GetRequiredService<AppImplementationFactory>(),
-            new UnusedEngineClient(),
-            _envelope
-        );
+        return new ExecuteServiceTask(sp.GetRequiredService<AppImplementationFactory>(), _envelope);
     }
 
     private static ProcessEngineCommandContext CreateContext(

@@ -19,6 +19,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 )]
 [JsonDerivedType(typeof(EnqueueSideEffectsWorkflowPayload), typeDiscriminator: "enqueueSideEffectsWorkflow")]
 [JsonDerivedType(typeof(EnqueueReceiveWorkflowPayload), typeDiscriminator: "enqueueReceiveWorkflow")]
+[JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
 internal abstract record CommandRequestPayload;
 
 /// <summary>
@@ -33,6 +34,7 @@ internal abstract record CommandRequestPayload;
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(EnqueueReceiveWorkflowPayload))]
+[JsonSerializable(typeof(MintMailboxPayload))]
 [JsonSerializable(typeof(InstantiationNotification))]
 [JsonSerializable(typeof(InstantiationNotificationReminder))]
 [JsonSerializable(typeof(CustomSms))]

@@ -207,7 +207,7 @@ internal sealed class ProcessNextRequestFactory
         // A message-answered task concludes on its receive workflows, so Main ends by enqueueing the first
         // receiver — appended after every critical post-commit step so the receiver joins the frontier while
         // Main is still unsettled.
-        if (commands.MailboxReceive is { } receiveStep)
+        if (commands.MailboxReceive is { } receive)
         {
             var receiveEnqueueRequest = new WorkflowEnqueueRequest
             {
@@ -217,14 +217,14 @@ internal sealed class ProcessNextRequestFactory
                     new WorkflowRequest
                     {
                         OperationId = $"{MailboxReceiveOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                        Steps = [receiveStep],
+                        Steps = [receive.Step],
                         // A head that depends on no head: visible to the frontier, gated by nothing but the rendezvous.
                         IsHead = true,
                         DependsOnHeads = false,
                     },
                 ],
             };
-            mainSteps.Add(CreateEnqueueReceiveWorkflowCommand(receiveEnqueueRequest));
+            mainSteps.Add(CreateEnqueueReceiveWorkflowCommand(receiveEnqueueRequest, receive.OpeningStageName));
         }
 
         var request = new WorkflowEnqueueRequest
@@ -290,7 +290,7 @@ internal sealed class ProcessNextRequestFactory
         List<StepRequest> ThroughCommit,
         List<StepRequest> CriticalPostCommit,
         List<StepRequest> SideEffects,
-        StepRequest? MailboxReceive
+        MailboxReceivePlan? MailboxReceive
     );
 
     private async Task<AssembledCommands> AssembleCommandSequence(
@@ -304,7 +304,7 @@ internal sealed class ProcessNextRequestFactory
         var taskStartSteps = new List<StepRequest>();
         var criticalPostCommitSteps = new List<StepRequest>();
         var sideEffectSteps = new List<StepRequest>();
-        StepRequest? mailboxReceiveStep = null;
+        MailboxReceivePlan? mailboxReceive = null;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
 
@@ -362,15 +362,14 @@ internal sealed class ProcessNextRequestFactory
                     )
                 );
 
-                if (workflowCommands.MailboxReceiveStep is { } receiveStep)
+                if (workflowCommands.MailboxReceive is { } receive)
                 {
                     // The receive step is the pipeline's conclusion and resolves its options as a concluding Main step
                     // would.
-                    mailboxReceiveStep = receiveStep.ApplyStepOptions(
-                        _stepOptionsResolver,
-                        eventTaskId,
-                        serviceTaskType
-                    );
+                    mailboxReceive = receive with
+                    {
+                        Step = receive.Step.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType),
+                    };
                 }
             }
         }
@@ -384,7 +383,7 @@ internal sealed class ProcessNextRequestFactory
         commands.AddRange(taskStartSteps);
         commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
 
-        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, mailboxReceiveStep);
+        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, mailboxReceive);
     }
 
     private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
@@ -531,9 +530,12 @@ internal sealed class ProcessNextRequestFactory
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private StepRequest CreateEnqueueReceiveWorkflowCommand(WorkflowEnqueueRequest receiveEnqueueRequest)
+    private StepRequest CreateEnqueueReceiveWorkflowCommand(
+        WorkflowEnqueueRequest receiveEnqueueRequest,
+        string openingStageName
+    )
     {
-        var payload = new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest);
+        var payload = new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest, openingStageName);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         var step = new StepRequest
         {

@@ -19,6 +19,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class EnqueueReceiveWorkflowTests
 {
     private const string SignedTestState = "signed-state-blob-carrying-the-mailbox-id";
+    private const string SendStage = "SendToArchive";
 
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-000000000001");
     private static readonly Guid _mainWorkflowId = Guid.NewGuid();
@@ -88,10 +89,19 @@ public class EnqueueReceiveWorkflowTests
         var carry = new WorkflowCallbackStateCarry();
         if (mailboxId is { } id)
         {
-            carry.RecordMailbox("SendToArchive", id, new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero));
+            carry.RecordMailbox(SendStage, id, new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero));
         }
         return carry;
     }
+
+    /// <summary>
+    /// The payload as the expansion assembles it: the pre-built receive workflow plus the stage that opens
+    /// the exchange it answers, fixed at Main-enqueue time.
+    /// </summary>
+    private static EnqueueReceiveWorkflowPayload CreatePayload(
+        WorkflowEnqueueRequest? request = null,
+        string openingStageName = SendStage
+    ) => new(request ?? CreateEmbeddedRequest(), openingStageName);
 
     private static (Mock<IWorkflowEngineClient> Client, Captured Captured) CreateClient()
     {
@@ -140,10 +150,7 @@ public class EnqueueReceiveWorkflowTests
         var tokens = new CountingTokenGenerator();
         var command = new EnqueueReceiveWorkflow(client.Object, tokens);
 
-        ProcessEngineCommandResult result = await command.Execute(
-            CreateContext(_mailboxId),
-            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest())
-        );
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(_mailboxId), CreatePayload());
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Equal("ttd/test-app", captured.Namespace);
@@ -168,7 +175,7 @@ public class EnqueueReceiveWorkflowTests
         var tokens = new CountingTokenGenerator();
         var command = new EnqueueReceiveWorkflow(client.Object, tokens);
 
-        await command.Execute(CreateContext(_mailboxId), new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest()));
+        await command.Execute(CreateContext(_mailboxId), CreatePayload());
 
         Assert.Equal(1, tokens.Calls);
         Assert.NotNull(captured.Request?.Context);
@@ -199,10 +206,7 @@ public class EnqueueReceiveWorkflowTests
             .ThrowsAsync(new HttpRequestException("engine unreachable"));
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
 
-        ProcessEngineCommandResult result = await command.Execute(
-            CreateContext(_mailboxId),
-            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest())
-        );
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(_mailboxId), CreatePayload());
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
@@ -214,10 +218,7 @@ public class EnqueueReceiveWorkflowTests
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
 
-        ProcessEngineCommandResult result = await command.Execute(
-            CreateContext(mailboxId: null),
-            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest())
-        );
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(mailboxId: null), CreatePayload());
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -236,28 +237,45 @@ public class EnqueueReceiveWorkflowTests
     }
 
     /// <summary>
-    /// Redeploy drift: the declaration moved to a later stage mid-flight, so two stages of this transition each
-    /// minted. Reading either one would park the receiver on an address that may not be the exchange's.
+    /// The name on the payload is what resolves the exchange, so a second carried mailbox is no obstacle: the
+    /// receiver is enqueued against the one its own stage opened, never against "the one entry there is".
     /// </summary>
     [Fact]
-    public async Task Execute_WithMailboxesFromTwoStages_FailsPermanentlyNamingBoth()
+    public async Task Execute_WithMailboxesFromTwoStages_EnqueuesAgainstTheNamedOne()
     {
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        (Mock<IWorkflowEngineClient> client, Captured captured) = CreateClient();
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
         var carry = new WorkflowCallbackStateCarry();
         var deadline = new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
-        carry.RecordMailbox("SendToArchive", _mailboxId, deadline);
+        carry.RecordMailbox(SendStage, _mailboxId, deadline);
         carry.RecordMailbox("SendReceipt", Guid.NewGuid(), deadline);
 
+        ProcessEngineCommandResult result = await command.Execute(CreateContext(carry: carry), CreatePayload());
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        WorkflowRequest receiver = Assert.Single(captured.Request!.Workflows);
+        Assert.Equal(_mailboxId, receiver.Mailbox?.Id);
+    }
+
+    /// <summary>
+    /// A broken carry: the mint step for this exchange's stage recorded nothing that reached here. Naming the
+    /// stage is what makes the failure diagnosable.
+    /// </summary>
+    [Fact]
+    public async Task Execute_WithAMailboxCarriedOnlyForAnotherStage_FailsPermanentlyNamingTheStage()
+    {
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
+
         ProcessEngineCommandResult result = await command.Execute(
-            CreateContext(carry: carry),
-            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest())
+            CreateContext(_mailboxId),
+            CreatePayload(openingStageName: "SendReceipt")
         );
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxAmbiguousInState", failed.ExceptionType);
-        Assert.Contains("'SendReceipt', 'SendToArchive'", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
+        Assert.Contains("stage 'SendReceipt'", failed.ErrorMessage, StringComparison.Ordinal);
         client.Verify(
             c =>
                 c.EnqueueWorkflows(
@@ -279,7 +297,7 @@ public class EnqueueReceiveWorkflowTests
 
         ProcessEngineCommandResult result = await command.Execute(
             CreateContext(_mailboxId, stepId: Guid.Empty),
-            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest())
+            CreatePayload()
         );
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -295,7 +313,7 @@ public class EnqueueReceiveWorkflowTests
 
         ProcessEngineCommandResult result = await command.Execute(
             CreateContext(_mailboxId),
-            new EnqueueReceiveWorkflowPayload(CreateEmbeddedRequest() with { Workflows = [] })
+            CreatePayload(CreateEmbeddedRequest() with { Workflows = [] })
         );
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);

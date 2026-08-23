@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -80,6 +81,24 @@ internal static class WorkflowEngineCommandValidator
                 new TaskStartContext
                 {
                     ServiceTaskType = "DummyServiceTask",
+                    IsInitialTaskStart = false,
+                    RegisterEvents = true,
+                }
+            ),
+            keys
+        );
+        // A mailbox-opening pipeline is the one expansion that emits MintMailbox, so the required-key set has
+        // to be collected from one.
+        CollectCommandKeys(
+            WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    ServiceTaskType = "DummyMailboxServiceTask",
+                    ServiceTaskStageNames = ["DummySendStage"],
+                    ServiceTaskMailbox = new ServiceTaskMailboxDeclaration(
+                        "DummySendStage",
+                        new MailboxOptions { Timeout = TimeSpan.FromDays(1) }
+                    ),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }

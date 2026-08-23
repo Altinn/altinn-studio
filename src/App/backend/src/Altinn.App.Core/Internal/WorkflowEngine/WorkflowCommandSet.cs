@@ -10,6 +10,20 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
+/// A mailbox-opening service task's receive half: the one step its receive workflows run — the pipeline's
+/// conclusion — and the stage that opens the exchange that step answers.
+/// </summary>
+/// <remarks>
+/// The step belongs to the enqueued receiver, never to Main, and has its options resolved by the caller like
+/// any other step's. The stage name is the exchange's identity, fixed at assembly time and never re-derived
+/// later, so a mid-flight rename cannot silently address a different mailbox. One type rather than two
+/// nullable fields because neither half means anything without the other.
+/// </remarks>
+/// <param name="Step">The receive workflow's single step.</param>
+/// <param name="OpeningStageName">The stage whose mint the receiver is enqueued against.</param>
+internal sealed record MailboxReceivePlan(StepRequest Step, string OpeningStageName);
+
+/// <summary>
 /// Defines a group of commands that should be executed for a process event.
 /// </summary>
 internal sealed class WorkflowCommandSet
@@ -36,11 +50,10 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
-    /// For a mailbox-opening service task: the one step its receive workflows run — the pipeline's conclusion.
-    /// Null for every other event. A step of the enqueued receiver, never of Main, with options resolved by
-    /// the caller like any other step's.
+    /// For a mailbox-opening service task: the one step its receive workflows run, and the exchange it
+    /// answers. Null for every other event.
     /// </summary>
-    public StepRequest? MailboxReceiveStep { get; private set; }
+    public MailboxReceivePlan? MailboxReceive { get; private set; }
 
     /// <summary>
     /// Creates command group for task start events.
@@ -69,6 +82,23 @@ internal sealed class WorkflowCommandSet
             // what callback dispatch keys on.
             foreach (string stageName in context.ServiceTaskStageNames ?? [])
             {
+                if (
+                    context.ServiceTaskMailbox is { } declaration
+                    && string.Equals(declaration.StageName, stageName, StringComparison.Ordinal)
+                )
+                {
+                    // The mint hugs the stage that sends, on both sides: the deadline clock starts here, so no
+                    // earlier stage may erode it, and the stage must never send without an address, so the mint
+                    // cannot come later. No serviceTaskStageName: it is not the stage, and must not inherit the
+                    // stage's options — its own key resolves to whatever MintMailbox declares, today nothing,
+                    // so the engine's defaults apply to what is one HTTP call.
+                    group.AddCriticalPostCommitCommand(
+                        MintMailbox.Key,
+                        new MintMailboxPayload(context.ServiceTaskType, stageName),
+                        operationId: $"{MintMailbox.Key}: {stageName}"
+                    );
+                }
+
                 group.AddCriticalPostCommitCommand(
                     ExecuteServiceTask.Key,
                     new ExecuteServiceTaskPayload(context.ServiceTaskType, stageName),
@@ -77,11 +107,14 @@ internal sealed class WorkflowCommandSet
                 );
             }
 
-            if (context.ServiceTaskMailbox is not null)
+            if (context.ServiceTaskMailbox is { } mailbox)
             {
                 // A mailbox-opening task expands to no concluding Main step — the conclusion runs on the receive
                 // workflows, once per message. Main gains the step that enqueues the first receiver instead.
-                group.MailboxReceiveStep = CreateReceiveHandlerStep(context.ServiceTaskType);
+                group.MailboxReceive = new MailboxReceivePlan(
+                    CreateReceiveHandlerStep(context.ServiceTaskType),
+                    mailbox.StageName
+                );
             }
             else
             {
@@ -224,6 +257,7 @@ internal sealed class WorkflowCommandSet
                 "app",
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
+            CommandKey = commandKey,
             ServiceTaskStageName = serviceTaskStageName,
         };
     }

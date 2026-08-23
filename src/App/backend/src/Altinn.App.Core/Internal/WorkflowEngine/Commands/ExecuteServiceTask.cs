@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
@@ -20,7 +19,6 @@ internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, string?
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
-    IWorkflowEngineClient workflowEngineClient,
     MailboxDeliveryEnvelope deliveryEnvelope,
     Telemetry? telemetry = null
 ) : WorkflowEngineCommandBase<ExecuteServiceTaskPayload>
@@ -67,11 +65,12 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            // Before the declaring stage runs: the stage must never send without an address.
-            MailboxResolution mailbox = await ResolveMailbox(context, pipeline, payload.StageName);
-            if (mailbox.Failure is { } mintFailure)
+            // The mailbox the declaring stage sends as its reply address, minted by the MintMailbox step
+            // that ran immediately before it and read back out of the carry here.
+            MailboxResolution mailbox = ResolveMailbox(context, pipeline, payload.StageName);
+            if (mailbox.Failure is { } mailboxFailure)
             {
-                return mintFailure;
+                return mailboxFailure;
             }
 
             ReplyResolution reply = ResolveReply(context, pipeline, payload.StageName, serviceTaskType);
@@ -140,7 +139,11 @@ internal sealed class ExecuteServiceTask(
         FailedProcessEngineCommandResult? Failure
     );
 
-    private async Task<MailboxResolution> ResolveMailbox(
+    /// <summary>
+    /// The mailbox for this execution: the declaring stage reads the one <see cref="MintMailbox"/> published
+    /// immediately before it; every other execution gets the reason reading it is unavailable.
+    /// </summary>
+    private static MailboxResolution ResolveMailbox(
         ProcessEngineCommandContext context,
         ServiceTaskPipeline pipeline,
         string? stageName
@@ -164,71 +167,26 @@ internal sealed class ExecuteServiceTask(
             );
         }
 
-        if (context.Payload.StepId == Guid.Empty)
+        // A broken carry, which retrying only repeats: the stage cannot publish an address it was not handed.
+        if (context.StateCarry.FindMailbox(declaration.StageName) is not { } carried)
         {
             return new MailboxResolution(
                 null,
                 null,
                 FailedProcessEngineCommandResult.Permanent(
-                    $"Stage '{declaration.StageName}' opens a mailbox, but the workflow engine supplied no step id to "
-                        + "key it on. A mailbox keyed on an empty id would be shared by every task in this "
-                        + "application. Upgrade the workflow engine to a version that sends stepId.",
-                    "MailboxStepIdMissing"
+                    $"Stage '{declaration.StageName}' opens a mailbox, but no mailbox id for it reached this step in "
+                        + "the workflow state. The mint step records it immediately before this stage runs; a step "
+                        + "between the two must have dropped it.",
+                    "MailboxIdMissingFromState"
                 )
             );
         }
 
-        MailboxMintResult result = await workflowEngineClient.MintMailbox(
-            $"{context.AppId.Org}/{context.AppId.App}",
-            new MailboxCreateRequest
-            {
-                IdempotencyKey = context.Payload.StepId.ToString(),
-                Timeout = declaration.Options.Timeout,
-                CollectionKey = ProcessNextRequestFactory.CreateCollectionKey(context.InstanceId),
-            },
-            context.CancellationToken
+        return new MailboxResolution(
+            new ServiceTaskMailbox { Id = carried.Id, Deadline = carried.Deadline },
+            null,
+            null
         );
-
-        if (result is MailboxMintResult.Minted minted)
-        {
-            // The address must outlive this callback: the enqueue step runs later in Main and cannot re-derive the
-            // mint's key, so the carry puts it in the published state blob, under the declaring stage's name.
-            context.StateCarry.RecordMailbox(declaration.StageName, minted.Mailbox.Id, minted.Mailbox.Deadline);
-        }
-
-        return result switch
-        {
-            MailboxMintResult.Minted m => new MailboxResolution(
-                new ServiceTaskMailbox { Id = m.Mailbox.Id, Deadline = m.Mailbox.Deadline },
-                null,
-                null
-            ),
-
-            // The engine found the declaration impossible (usually a Timeout past its maximum, uncheckable at app
-            // startup). Retrying replays the same rejection.
-            MailboxMintResult.Rejected rejected => new MailboxResolution(
-                null,
-                null,
-                FailedProcessEngineCommandResult.Permanent(
-                    $"The workflow engine refused the mailbox opened by stage '{declaration.StageName}': "
-                        + $"{rejected.Detail}",
-                    "MailboxRejected"
-                )
-            ),
-
-            // Named on the first failure rather than retried silently: a cap hit is a runaway.
-            MailboxMintResult.AtCapacity atCapacity => new MailboxResolution(
-                null,
-                null,
-                FailedProcessEngineCommandResult.Retryable(
-                    $"The workflow engine could not open the mailbox for stage '{declaration.StageName}' yet: "
-                        + $"{atCapacity.Detail}",
-                    "MailboxAtCapacity"
-                )
-            ),
-
-            _ => throw new UnreachableException($"Unknown mailbox mint result type: {result.GetType().Name}"),
-        };
     }
 
     private readonly record struct ReplyResolution(
