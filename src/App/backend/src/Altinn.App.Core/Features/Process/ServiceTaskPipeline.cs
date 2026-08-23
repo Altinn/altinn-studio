@@ -148,9 +148,9 @@ internal abstract class PipelineConclusion
     /// delivered message, <see cref="OnClosed"/> once if the mailbox closes with the task still unconcluded.
     /// </summary>
     /// <remarks>
-    /// Single-message and multi-message exchanges are the same shape here: the compile-time split did its
-    /// work at the API boundary, and a single-message handler wraps to <see cref="OnMessage"/>'s signature
-    /// without loss, its results being a subtype. The runtime treats every exchange uniformly.
+    /// One shape however many messages an exchange carries: nothing here records whether the app expects one
+    /// answer or several — that is its expectation of the counterparty, not something the runtime acts on —
+    /// so every exchange is executed uniformly.
     /// </remarks>
     internal sealed class ReplyExchange : PipelineConclusion
     {

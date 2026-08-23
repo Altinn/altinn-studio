@@ -47,7 +47,7 @@ internal sealed class ProcessStepOptionsResolver
     /// For a service-task pipeline stage: the stage's name. Null for the pipeline's conclusion.
     /// Either way tier 3 is that one step's own options over the task's, field-wise — a stage's from
     /// the builder's <c>Stage</c>, the conclusion's from whichever terminal ended the chain
-    /// (<c>Finally</c>, <c>ConcludeOnReply</c> or <c>ConcludeOnReplies</c>).
+    /// (<c>Finally</c> or <c>ConcludeOnReplies</c>).
     /// </param>
     public ProcessStepOptions? Resolve(
         string commandKey,

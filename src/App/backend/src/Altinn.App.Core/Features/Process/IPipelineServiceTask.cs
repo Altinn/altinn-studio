@@ -30,9 +30,9 @@ public interface IPipelineServiceTask : IProcessTask, IProcessStepConfigurable
 {
     /// <summary>
     /// Defines the task's pipeline: zero or more <c>Stage</c> calls, ended by exactly one terminal —
-    /// <c>Finally</c>, or <c>ConcludeOnReply</c>/<c>ConcludeOnReplies</c> when a stage opened a
-    /// mailbox. The builder's types make any other shape uncompilable, and a terminal is the only
-    /// source of the <see cref="ServiceTaskPipeline"/> this method returns.
+    /// <c>Finally</c>, or <c>ConcludeOnReplies</c> when a stage opened a mailbox. The builder's types
+    /// make any other shape uncompilable, and a terminal is the only source of the
+    /// <see cref="ServiceTaskPipeline"/> this method returns.
     /// </summary>
     /// <remarks>
     /// Called when a transition is enqueued (fixing the pipeline's shape for that workflow's

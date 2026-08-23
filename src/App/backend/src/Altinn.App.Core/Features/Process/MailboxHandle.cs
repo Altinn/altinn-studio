@@ -9,7 +9,6 @@ namespace Altinn.App.Core.Features.Process;
 /// <para>
 /// There is nothing to read on one and nothing to build one from. Its whole job is to be passed along: take
 /// the <c>out</c> parameter the mailbox-opening <c>Stage</c> call gives you and hand it to
-/// <see cref="ServiceTaskPipelineBuilder.ConcludeOnReply"/> or
 /// <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/> in the same expression.
 /// </para>
 /// <para>

@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Tests.Features.Process;
 
 /// <summary>
 /// Composition of a mailbox exchange: what the mailbox-opening <c>Stage</c> overload records, what the reply
-/// terminals record, and the four mistakes the builder refuses eagerly — a second mailbox, a handle from
+/// terminal records, and the four mistakes the builder refuses eagerly — a second mailbox, a handle from
 /// another pipeline, a handle answered twice, and a mailbox nothing answers.
 /// </summary>
 public class ServiceTaskPipelineMailboxTests
@@ -14,9 +14,6 @@ public class ServiceTaskPipelineMailboxTests
 
     private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
         Task.FromResult(ServiceTaskStageResult.Completed());
-
-    private static Task<ServiceTaskResult> Conclude(ServiceTaskContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     private static Task<ServiceTaskExchangeResult> Handle(ServiceTaskContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskExchangeResult.AwaitNextReply());
@@ -67,53 +64,15 @@ public class ServiceTaskPipelineMailboxTests
     }
 
     [Fact]
-    public void ConcludeOnReply_RecordsTheSameExchangeShapeWithTheHandlerWrapped()
+    public void ConcludeOnReplies_RecordsTheStepOptionsItWasGiven()
     {
-        // Single and multi are the same model: the compile-time split already happened at the API boundary.
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
 
         ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
-            .ConcludeOnReply(handle, Conclude, Closed, options);
+            .ConcludeOnReplies(handle, Handle, Closed, options);
 
         var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
-        Assert.Equal("SendToArchive", exchange.OpeningStageName);
         Assert.Same(options, exchange.StepOptions);
-    }
-
-    [Fact]
-    public async Task ConcludeOnReply_WrappedHandler_ForwardsArgumentsAndResult()
-    {
-        ServiceTaskContext? seenContext = null;
-        ServiceTaskReply? seenReply = null;
-        ServiceTaskResult answer = ServiceTaskResult.Success("reject");
-
-        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
-            .ConcludeOnReply(
-                handle,
-                (context, reply) =>
-                {
-                    seenContext = context;
-                    seenReply = reply;
-                    return Task.FromResult(answer);
-                },
-                Closed
-            );
-
-        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
-        ServiceTaskContext context = TestContext();
-        var reply = new ServiceTaskReply
-        {
-            Payload = "<receipt/>",
-            IdempotencyKey = "source-message-7",
-            AcceptedAt = DateTimeOffset.UtcNow,
-            Position = 2,
-        };
-
-        ServiceTaskExchangeResult result = await exchange.OnMessage(context, reply);
-
-        Assert.Same(context, seenContext);
-        Assert.Same(reply, seenReply);
-        Assert.Same(answer, result);
     }
 
     [Fact]
@@ -179,7 +138,7 @@ public class ServiceTaskPipelineMailboxTests
         builder.ConcludeOnReplies(handle, Handle, Closed);
 
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            builder.ConcludeOnReply(handle, Conclude, Closed)
+            builder.ConcludeOnReplies(handle, Handle, Closed)
         );
 
         Assert.Contains("is already answered by a reply terminal", exception.Message, StringComparison.Ordinal);

@@ -17,8 +17,9 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailbox;
 /// A task answered by messages: "SendToArchive" opens the mailbox and publishes its address, and the
 /// exchange is concluded by <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/> — two
 /// messages, the first answered with <see cref="ServiceTaskExchangeResult.AwaitNextReply"/> and the
-/// second concluding the task. The multi-message terminal is deliberate: it is the only shape that
-/// exercises the relay's continuation path (enqueue a successor receiver) as well as its conclusion.
+/// second concluding the task. Two messages rather than one is deliberate: only an exchange that
+/// continues past its first message exercises the relay's successor path (enqueue a successor
+/// receiver) as well as its conclusion.
 ///
 /// The declaring stage is deliberately <strong>surrounded</strong> by plain stages —
 /// "PrepareDocuments" before it and "RecordDispatch" after — so that the test's claim about where the

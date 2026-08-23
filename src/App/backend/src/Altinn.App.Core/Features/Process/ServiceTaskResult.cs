@@ -2,8 +2,8 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// Base type for the result of executing a service task: how the task concludes. A subtype of
-/// <see cref="ServiceTaskExchangeResult"/>, so every one of these answers is also a valid answer from a
-/// multi-message exchange's reply handler — the reverse does not hold.
+/// <see cref="ServiceTaskExchangeResult"/>, so every one of these answers is also a valid answer from a reply
+/// handler — the reverse does not hold.
 /// </summary>
 public abstract record ServiceTaskResult : ServiceTaskExchangeResult
 {
