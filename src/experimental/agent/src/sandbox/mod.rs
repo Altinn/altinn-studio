@@ -7,8 +7,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Error, control_plane::AgentRecord};
 
+mod execution;
 pub mod microsandbox;
 pub mod platform;
+
+pub use execution::{ExecutionService, ExecutionTarget, start_execution};
 
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

@@ -16,13 +16,15 @@ agentctl apply -f agent.yaml --name agent-test
 agentctl get agent agent-test
 agentctl describe agent/agent-test
 agentctl wait --for=condition=Ready agent/agent-test --timeout=10m
+agentctl exec agent/agent-test -- pwd
+agentctl exec -it agent/agent-test -- bash
 agentctl attach session/s1 --agent agent-test
 agentctl get sessions --agent agent-test
 ```
 
-When the current directory is inside the source directory of exactly one applied Agent, Session commands infer
-`--agent`; for example, `agentctl attach session/s1` works from this directory after applying without another Agent
-name from the same source.
+When the current directory is inside the source directory of exactly one applied Agent, `agentctl exec -- pwd` and
+Session commands infer the Agent; for example, `agentctl attach session/s1` works from this directory after applying
+without another Agent name from the same source.
 
 Run these commands from this directory so paths in the manifest resolve against the intended example inputs.
 The image seeds Claude's mutable `.claude.json` once for first-run prompts. Configuration intentionally placed in the

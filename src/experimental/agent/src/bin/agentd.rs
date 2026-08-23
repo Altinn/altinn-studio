@@ -95,6 +95,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         }),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
+    let executions = Rc::new(agent::sandbox::ExecutionService::new(store.clone(), wakeup.clone()));
     let sessions = Rc::new(agent::sessions::Service::new(
         session_store,
         store,
@@ -105,6 +106,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),
+        executions,
         sessions,
         Rc::new(|error| eprintln!("agentd local API connection: {error}")),
     ));

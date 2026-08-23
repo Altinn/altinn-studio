@@ -6,7 +6,7 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, Server, SessionApi},
+    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
 };
@@ -20,6 +20,7 @@ use support::agent;
 struct IgnoreNotifications;
 
 struct FakeAuthentication;
+struct FakeExecutions;
 struct FakeSessions;
 
 impl Notifier for IgnoreNotifications {
@@ -63,6 +64,25 @@ impl SessionApi for FakeSessions {
     }
 }
 
+impl ExecutionApi for FakeExecutions {
+    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+        Box::pin(async move {
+            if name != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(agent::sandbox::ExecutionTarget {
+                sandbox: agent::sandbox::Assignment::Materialized {
+                    provider: agent::sandbox::ProviderId::new("memory")?,
+                    id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
+                        .parse()
+                        .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
+                },
+                operating_system: "linux".into(),
+            })
+        })
+    }
+}
+
 struct InProcessConnector {
     server: Rc<Server>,
 }
@@ -90,6 +110,7 @@ fn api() -> (Rc<Server>, Client, Rc<RefCell<Vec<String>>>) {
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
+        Rc::new(FakeExecutions),
         Rc::new(FakeSessions),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
@@ -136,6 +157,9 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             .expect("resolve source"),
         applied
     );
+    let execution = client.ensure_execution("worker").await.expect("execution target");
+    assert_eq!(execution.operating_system, "linux");
+    assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
     let session_error = client
         .get_session("worker", agent::sessions::SessionName::new("s1").expect("Session name"))

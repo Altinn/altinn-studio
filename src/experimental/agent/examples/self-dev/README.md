@@ -22,13 +22,15 @@ agentctl apply -f agent.yaml --name studiodev-0
 agentctl get agent studiodev-0
 agentctl describe agent/studiodev-0
 agentctl wait --for=condition=Ready agent/studiodev-0 --timeout=10m
+agentctl exec agent/studiodev-0 -- git -C altinn-studio status --short
+agentctl exec -it agent/studiodev-0 -- bash
 agentctl attach session/s1 --agent studiodev-0
 agentctl attach session/s2 --agent studiodev-0
 agentctl get sessions --agent studiodev-0
 ```
 
-When exactly one Agent was applied from the current source directory, Session commands may omit `--agent` and infer
-the owner. Multiple Agent names from the same directory are intentionally ambiguous.
+When exactly one Agent was applied from the current source directory, `exec` may omit its Agent and Session commands
+may omit `--agent`; both infer the owner. Multiple Agent names from the same directory are intentionally ambiguous.
 
 The first apply includes the image build and can take several minutes. Image init starts one repository clone attempt,
 which may still be running when the Agent becomes Ready. Later boots reuse a successful persistent checkout. Sessions

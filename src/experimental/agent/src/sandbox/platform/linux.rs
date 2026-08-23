@@ -12,9 +12,27 @@ use super::super::PlatformAdapter;
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
 const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
+const UTF8_LOCALE: &str = "C.UTF-8";
+const PORTABLE_TERMINAL: &str = "xterm-256color";
 
 /// Agent setup for Linux Sandboxes.
 pub struct Linux;
+
+pub(super) fn execution_spec(command: &[String], terminal: bool) -> Result<ExecutionSpec, Error> {
+    let (executable, arguments) = command
+        .split_first()
+        .ok_or_else(|| Error::Invalid("command is required".into()))?;
+    let mut environment = vec![("HOME".into(), HOME.into()), ("LANG".into(), UTF8_LOCALE.into())];
+    if terminal {
+        // Host-specific TERM names are not necessarily installed in the guest.
+        environment.push(("TERM".into(), PORTABLE_TERMINAL.into()));
+    }
+    Ok(
+        ExecutionSpec::command(SandboxPath::new(executable), arguments.iter().cloned())
+            .with_working_directory(SandboxPath::new(WORKING_DIRECTORY))
+            .with_environment(environment),
+    )
+}
 
 impl PlatformAdapter for Linux {
     fn supports(&self, platform: &Platform) -> bool {
@@ -138,4 +156,32 @@ fn resolve_source(manifest_directory: &Path, source: &Path) -> Result<std::path:
         return Err(Error::Invalid("spec.home.source must identify a directory".into()));
     }
     Ok(source)
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use ::sandbox::execution::Program;
+
+    #[test]
+    fn transient_execution_uses_agent_home_and_portable_terminal() {
+        let command = ["bash".to_owned(), "-l".to_owned()];
+        let spec = super::execution_spec(&command, true).expect("Linux Execution spec");
+        assert_eq!(
+            spec.working_directory().map(::sandbox::SandboxPath::as_str),
+            Some("/home/agent/code")
+        );
+        assert_eq!(spec.environment().get("HOME").map(String::as_str), Some("/home/agent"));
+        assert_eq!(spec.environment().get("LANG").map(String::as_str), Some("C.UTF-8"));
+        assert_eq!(
+            spec.environment().get("TERM").map(String::as_str),
+            Some("xterm-256color")
+        );
+        assert!(matches!(
+            spec.program(),
+            Program::Command { executable, args }
+                if executable.as_str() == "bash" && args == &["-l"]
+        ));
+    }
 }

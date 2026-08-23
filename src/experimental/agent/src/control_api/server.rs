@@ -10,9 +10,9 @@ use crate::{Agent, Error, control_plane, harness, sessions};
 use super::protocol::{
     CODE_AGENT_NOT_FOUND, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST,
     CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
-    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, PROTOCOL_VERSION, ReadMessage, Request,
-    Response, SessionListParams, SessionParams, error_response, read_message,
+    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams,
+    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionListParams, SessionParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -117,6 +117,18 @@ impl SessionApi for sessions::Service {
     }
 }
 
+/// Transient Agent Execution target resolution exposed through the local control API.
+pub trait ExecutionApi {
+    /// Converges an Agent and returns its exact ready Sandbox assignment.
+    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
+}
+
+impl ExecutionApi for crate::sandbox::ExecutionService {
+    fn ensure<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
+        Box::pin(async move { Self::ensure(self, name).await })
+    }
+}
+
 /// Observes an isolated connection error without terminating the daemon.
 pub type ErrorHandler = Rc<dyn Fn(&Error)>;
 
@@ -124,6 +136,7 @@ pub type ErrorHandler = Rc<dyn Fn(&Error)>;
 pub struct Server {
     agents: Rc<dyn AgentApi>,
     authentication: Rc<dyn AuthenticationApi>,
+    executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     on_error: ErrorHandler,
 }
@@ -134,12 +147,14 @@ impl Server {
     pub fn new(
         agents: Rc<dyn AgentApi>,
         authentication: Rc<dyn AuthenticationApi>,
+        executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         on_error: ErrorHandler,
     ) -> Self {
         Self {
             agents,
             authentication,
+            executions,
             sessions,
             on_error,
         }
@@ -213,6 +228,7 @@ impl Server {
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
+            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
@@ -253,6 +269,14 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
+    }
+
+    async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.executions.ensure(&params.name).await)
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {

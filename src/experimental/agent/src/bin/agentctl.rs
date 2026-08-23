@@ -1,4 +1,5 @@
 use std::{
+    io::IsTerminal as _,
     path::{Path, PathBuf},
     process::{Child, Command as ProcessCommand, ExitCode, Stdio},
     time::Duration,
@@ -13,6 +14,9 @@ use agent::{
     sessions::{Session, SessionName},
 };
 use clap::{Parser, Subcommand};
+use futures_util::StreamExt as _;
+use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
+use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
 
 #[derive(Parser)]
@@ -85,6 +89,23 @@ enum Command {
         #[arg(long)]
         agent: Option<String>,
     },
+    /// Execute a command in an Agent sandbox.
+    Exec {
+        /// Pass stdin to an allocated terminal.
+        #[arg(short = 'i', long, requires = "tty")]
+        stdin: bool,
+        /// Allocate a terminal; currently used together with --stdin.
+        #[arg(short = 't', long, requires = "stdin")]
+        tty: bool,
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with = "resource")]
+        agent: Option<String>,
+        /// Command and arguments to execute after `--`.
+        #[arg(last = true, required = true, num_args = 1..)]
+        command: Vec<String>,
+    },
     /// Wait for a resource condition.
     Wait {
         /// Condition expression. Only `condition=Ready` is currently supported.
@@ -124,7 +145,7 @@ enum ClaudeCommand {
 
 fn main() -> ExitCode {
     match run() {
-        Ok(()) => ExitCode::SUCCESS,
+        Ok(code) => code,
         Err(error) => {
             eprintln!("agentctl: {error}");
             ExitCode::FAILURE
@@ -132,7 +153,7 @@ fn main() -> ExitCode {
     }
 }
 
-fn run() -> CommandResult<()> {
+fn run() -> CommandResult<ExitCode> {
     let arguments = Arguments::parse();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
@@ -142,7 +163,7 @@ fn run() -> CommandResult<()> {
     })
 }
 
-async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<()> {
+async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
         Command::Claude {
             command: ClaudeCommand::Login,
@@ -176,6 +197,13 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             println!("agent/{name} deleted");
         }
         Command::Attach { resource, name, agent } => attach(home, client, &resource, name, agent).await?,
+        Command::Exec {
+            stdin,
+            tty,
+            resource,
+            agent,
+            command,
+        } => return exec_command(home, client, resource, agent, &command, stdin, tty).await,
         Command::Wait {
             condition,
             timeout,
@@ -183,7 +211,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             name,
         } => wait(client, &condition, timeout, &resource, name).await?,
     }
-    Ok(())
+    Ok(ExitCode::SUCCESS)
 }
 
 async fn get_resources(
@@ -245,6 +273,103 @@ async fn attach(
     let target = client.ensure_session(&agent, session).await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
+}
+
+async fn exec_command(
+    home: &ControlPlaneHome,
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    command: &[String],
+    stdin: bool,
+    tty: bool,
+) -> CommandResult<ExitCode> {
+    let agent = resolve_execution_agent(client, resource, agent).await?;
+    if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
+        return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
+    }
+    let current = client.get(&agent).await?;
+    if !current
+        .status
+        .conditions
+        .iter()
+        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True)
+    {
+        eprintln!("Ensuring Agent {agent:?}; initial provisioning can take several minutes...");
+    }
+    let target = client.ensure_execution(&agent).await?;
+    let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
+    let status = if stdin && tty {
+        match agent::sandbox::attach_terminal(
+            home.path(),
+            &target.sandbox,
+            ::sandbox::terminal::AttachTerminalRequest::new(spec),
+        )
+        .await?
+        {
+            TerminalAttachOutcome::Exited(status) => status,
+            TerminalAttachOutcome::Detached => return Ok(ExitCode::SUCCESS),
+            _ => return Err(Error::Session("terminal execution returned an unsupported outcome".into()).into()),
+        }
+    } else {
+        let execution = agent::sandbox::start_execution(home.path(), &target, spec).await?;
+        stream_execution(execution).await?
+    };
+    Ok(exit_code(status.code))
+}
+
+async fn resolve_execution_agent(
+    client: &Client,
+    resource: Option<String>,
+    explicit: Option<String>,
+) -> CommandResult<String> {
+    if let Some(explicit) = explicit {
+        return Ok(explicit);
+    }
+    let Some(resource) = resource else {
+        return resolve_agent_name(client, None).await;
+    };
+    if !resource.contains('/') {
+        return Ok(resource);
+    }
+    let (kind, name) = resource_reference(&resource, None)?;
+    if kind != Resource::Agent {
+        return Err(Error::Invalid("exec requires an Agent resource".into()).into());
+    }
+    require_name(name, "Agent").map_err(CommandError::from)
+}
+
+async fn stream_execution(
+    mut execution: ::sandbox::execution::StartedExecution,
+) -> Result<::sandbox::execution::ExitStatus, Error> {
+    let id = execution.id.clone();
+    let mut stdout = tokio::io::stdout();
+    let mut stderr = tokio::io::stderr();
+    while let Some(event) = execution.events.next().await {
+        match event? {
+            ExecutionEvent::Started { .. } => {}
+            ExecutionEvent::Stdout(bytes) => stdout.write_all(&bytes).await?,
+            ExecutionEvent::Stderr(bytes) => stderr.write_all(&bytes).await?,
+            ExecutionEvent::Exited(status) => {
+                stdout.flush().await?;
+                stderr.flush().await?;
+                return Ok(status);
+            }
+            ExecutionEvent::Failed { message } => {
+                return Err(::sandbox::Error::ExecutionFailed { id, message }.into());
+            }
+            _ => {
+                return Err(Error::Sandbox(::sandbox::Error::Backend(
+                    "unsupported Execution event".into(),
+                )));
+            }
+        }
+    }
+    Err(::sandbox::Error::ExecutionStreamEnded { id }.into())
+}
+
+fn exit_code(code: i32) -> ExitCode {
+    u8::try_from(code).map_or(ExitCode::FAILURE, ExitCode::from)
 }
 
 async fn describe(client: &Client, resource: &str, name: Option<String>) -> CommandResult<()> {
@@ -644,6 +769,34 @@ mod tests {
         );
         assert!(resource_reference("agent/worker", Some("other".into())).is_err());
         assert!(resource_reference("pods", None).is_err());
+    }
+
+    #[test]
+    fn exec_accepts_kubectl_style_interactive_and_inferred_shapes() {
+        let explicit = Arguments::try_parse_from(["agentctl", "exec", "-it", "agent/worker", "--", "bash", "-l"])
+            .expect("interactive exec arguments");
+        let Command::Exec {
+            stdin,
+            tty,
+            resource,
+            agent,
+            command,
+        } = explicit.command
+        else {
+            panic!("expected exec command");
+        };
+        assert!(stdin);
+        assert!(tty);
+        assert_eq!(resource.as_deref(), Some("agent/worker"));
+        assert!(agent.is_none());
+        assert_eq!(command, ["bash", "-l"]);
+
+        let inferred = Arguments::try_parse_from(["agentctl", "exec", "--", "pwd"]).expect("inferred exec arguments");
+        let Command::Exec { resource, command, .. } = inferred.command else {
+            panic!("expected exec command");
+        };
+        assert!(resource.is_none());
+        assert_eq!(command, ["pwd"]);
     }
 
     #[test]

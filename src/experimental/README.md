@@ -25,7 +25,7 @@ changes require stopping `agentd` and removing the configured Agent home rather 
 
 ```text
 Host
-├── agentctl             local CLI and terminal attachment
+├── agentctl             local CLI, transient execution and Session attachment
 └── agentd               control plane, reconciliation, policy and SecretStore
     └── Agent            declarative durable resource
         └── Sandbox      isolated execution environment
@@ -53,6 +53,8 @@ The Sandbox crates do not depend on Agent automation.
 `agentd` owns the durable desired state and all lifecycle effects. `agentctl` starts the adjacent daemon on demand and
 communicates through the versioned local control API. Its resource-oriented commands follow `verb resource [name]`;
 Session scope is explicit through `--agent` or inferred from the closest unique persisted Agent source directory.
+Transient `exec` commands similarly converge the Agent first, then target its exact materialized Sandbox without
+creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
 
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized

@@ -7,7 +7,7 @@ use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
 use agent::{
     AgentId, ConditionStatus, Error, SecretSpec, Status,
     control_plane::{AgentRecord, AgentStore, ControlPlane, Controller, Notifier, Reconciler, memory},
-    sandbox::{PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
+    sandbox::{ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
 };
 use sandbox::{
     EnsureSandboxRequest, LocalFuture, Platform, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxName,
@@ -653,6 +653,31 @@ async fn controller_reconciles_after_a_wakeup() {
     })
     .await
     .expect("controller should reconcile");
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn execution_target_waits_for_agent_convergence() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let reconciler = Rc::new(reconciler(store.clone(), provider));
+    let (controller, wakeup) = Controller::new(store.clone(), reconciler, Duration::from_mins(1), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, wakeup);
+    let task = tokio::task::spawn_local(controller.run());
+
+    let target = tokio::time::timeout(Duration::from_secs(1), execution.ensure("worker"))
+        .await
+        .expect("execution target should not wait for the periodic scan")
+        .expect("ready execution target");
+
+    assert_eq!(target.operating_system, "linux");
+    assert_eq!(target.sandbox.provider().as_str(), "memory");
+    assert!(target.sandbox.id().is_some());
+    assert_eq!(backend.count(), 1);
     task.abort();
 }
 
