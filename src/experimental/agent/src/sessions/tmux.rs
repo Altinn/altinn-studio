@@ -15,6 +15,9 @@ use crate::{Error, control_plane::AgentRecord, harness};
 
 use super::{AttachTarget, LaunchToken, Session, State};
 
+const UTF8_LOCALE: &str = "C.UTF-8";
+const PORTABLE_TERMINAL: &str = "xterm-256color";
+
 /// Guest-observed tmux state. The idle age is calculated against the guest's
 /// clock so host/microVM clock skew cannot make an active Session look idle.
 pub(super) enum Observation {
@@ -138,7 +141,10 @@ pub(super) async fn create(
         .run_execution(
             ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), arguments)
                 .with_working_directory(SandboxPath::new(crate::sandbox::platform::WORKING_DIRECTORY))
-                .with_environment(std::iter::once(("HOME".into(), crate::sandbox::platform::HOME.into()))),
+                .with_environment([
+                    ("HOME".into(), crate::sandbox::platform::HOME.into()),
+                    ("LANG".into(), UTF8_LOCALE.into()),
+                ]),
         )
         .await?;
     if created.status.success() {
@@ -168,10 +174,7 @@ pub(super) async fn attach(home: &std::path::Path, target: &AttachTarget) -> Res
     if target.session.status.state != State::Running {
         return Err(Error::Invalid(format!("Session {} is not ready", target.session.id)));
     }
-    let spec = ExecutionSpec::command(
-        SandboxPath::new("/usr/bin/tmux"),
-        ["attach-session".into(), "-t".into(), exact_target(&target.session)],
-    );
+    let spec = attach_spec(&target.session);
     match crate::sandbox::attach_terminal(home, &target.sandbox, AttachTerminalRequest::new(spec)).await? {
         TerminalAttachOutcome::Exited(status) if status.success() => Ok(()),
         TerminalAttachOutcome::Detached => Ok(()),
@@ -185,11 +188,27 @@ pub(super) async fn attach(home: &std::path::Path, target: &AttachTarget) -> Res
     }
 }
 
+fn attach_spec(session: &Session) -> ExecutionSpec {
+    ExecutionSpec::command(
+        SandboxPath::new("/usr/bin/tmux"),
+        ["attach-session".into(), "-t".into(), exact_target(session)],
+    )
+    // Host-specific TERM names are not necessarily installed in the guest.
+    // Use the broadly available baseline while tmux mediates the terminal.
+    .with_environment([
+        ("LANG".into(), UTF8_LOCALE.into()),
+        ("TERM".into(), PORTABLE_TERMINAL.into()),
+    ])
+}
+
 #[cfg(test)]
 mod tests {
     use sandbox::execution::ExitStatus;
+    use time::OffsetDateTime;
 
-    use super::Observation;
+    use crate::sessions::Status;
+
+    use super::{Observation, Session, State};
 
     #[test]
     fn parses_guest_calculated_idle_age() {
@@ -213,5 +232,30 @@ mod tests {
             panic!("tmux failure must not look like a missing Session");
         };
         assert!(error.to_string().contains("exit code 2"));
+    }
+
+    #[test]
+    fn attachment_uses_portable_utf8_terminal_environment() {
+        let session = Session {
+            id: "dd4cdbaf-9ea0-477e-96dd-bbd6b1e4f7dc".parse().expect("Session ID"),
+            agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+            agent: "worker".into(),
+            name: "s1".to_string().try_into().expect("Session name"),
+            created_at: OffsetDateTime::UNIX_EPOCH,
+            status: Status {
+                state: State::Running,
+                ..Status::default()
+            },
+            activation_generation: 0,
+            observed_activation_generation: 0,
+        };
+
+        let spec = super::attach_spec(&session);
+
+        assert_eq!(spec.environment().get("LANG").map(String::as_str), Some("C.UTF-8"));
+        assert_eq!(
+            spec.environment().get("TERM").map(String::as_str),
+            Some("xterm-256color")
+        );
     }
 }
