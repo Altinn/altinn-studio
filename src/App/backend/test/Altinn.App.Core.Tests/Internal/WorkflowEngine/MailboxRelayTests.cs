@@ -73,7 +73,10 @@ public class MailboxRelayTests
             CancellationToken ct = default
         )
         {
-            recorder.Calls.Add("enqueue-workflow");
+            // The key suffix, not a bare "enqueue": a successor receiver and a continuation are two
+            // different moves through this one client method, and an ordering assertion that could not
+            // tell them apart would pass on the wrong one.
+            recorder.Calls.Add($"enqueue:{idempotencyKey[(idempotencyKey.LastIndexOf(':') + 1)..]}");
             recorder.Enqueues.Add((ns, idempotencyKey, collectionKey, request));
             return Task.FromResult(
                 new WorkflowEnqueueResponse.Accepted
@@ -429,7 +432,7 @@ public class MailboxRelayTests
                 CancellationToken.None
             );
 
-        Assert.Equal(["enqueue-workflow"], recorder.Calls);
+        Assert.Equal(["enqueue:mailbox-receive"], recorder.Calls);
         Assert.Empty(recorder.Closes);
         Assert.Empty(recorder.AfterWorkflows);
     }
@@ -1107,7 +1110,7 @@ public class MailboxRelayTests
             .Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None);
 
         // The reverse order compiles, and would let a message land in an exchange the pipeline has moved past.
-        Assert.Equal(["close-mailbox", "enqueue-workflow"], recorder.Calls);
+        Assert.Equal(["close-mailbox", "enqueue:mailbox-continue"], recorder.Calls);
         Assert.Equal(_mailboxId, Assert.Single(recorder.Closes));
         Assert.Empty(recorder.AfterWorkflows);
     }
@@ -1284,6 +1287,9 @@ public class MailboxRelayTests
 
         Assert.Equal(2, recorder.Enqueues.Count);
         Assert.Equal(recorder.Enqueues[0].IdempotencyKey, recorder.Enqueues[1].IdempotencyKey);
-        Assert.Equal(["close-mailbox", "enqueue-workflow", "close-mailbox", "enqueue-workflow"], recorder.Calls);
+        Assert.Equal(
+            ["close-mailbox", "enqueue:mailbox-continue", "close-mailbox", "enqueue:mailbox-continue"],
+            recorder.Calls
+        );
     }
 }

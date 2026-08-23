@@ -518,16 +518,23 @@ internal sealed class ExecuteServiceTask(
     }
 
     /// <summary>
-    /// The pipeline's concluding step, for a task that answers no message — Main's last step.
+    /// The step that concludes the pipeline — the last step of its <em>final segment</em>, and the only step
+    /// that carries neither a stage name nor an exchange name. That is Main's last step for a pipeline with no
+    /// exchange, and the last continuation's for one whose exchanges are all answered by mid-pipeline
+    /// handlers; either way this step answers no message.
     /// </summary>
     /// <remarks>
     /// One drift guard, <c>MailboxReceiptWithoutDeclaration</c>: the engine handed a rendezvous to a step that
-    /// names no exchange, on a pipeline that answers none. Reached by a receiver enqueued before receive steps
-    /// carried their exchange's name, whose pipeline has since stopped answering messages — the exchange the
-    /// receiver was born for is gone, and the bare step it carries lands here — and by a workflow this
-    /// app-lib's expansion did not build, one carrying a mailbox declaration on a step that names no exchange.
-    /// A receive step that <em>does</em> name its exchange never reaches this method: its name is dispatched
-    /// on, and a name nothing answers is <c>MailboxHandlerNotFound</c>.
+    /// names no exchange. What that proves is only that a <em>concluding</em> step was handed one, and the
+    /// wording must claim no more — a <c>HandleReplies</c> pipeline ending in <c>Finally</c> opens a mailbox,
+    /// answers it, and still reaches this arm for a name-less receiver, so "its pipeline opens no mailbox"
+    /// would send an operator looking in the wrong place. The two routes are a receiver enqueued before
+    /// receive steps carried their exchange's name, back when the task <em>concluded on</em> that exchange,
+    /// whose pipeline has since been redeployed to conclude with a final step instead — the bare step such a
+    /// receiver carries has no name to dispatch on and lands here — and a workflow this app-lib's expansion
+    /// did not build, one carrying a mailbox declaration on a step that names no exchange. A receive step that
+    /// <em>does</em> name its exchange never reaches this method: its name is dispatched on, and a name
+    /// nothing answers is <c>MailboxHandlerNotFound</c>.
     /// </remarks>
     private static async Task<ProcessEngineCommandResult> ExecuteConclusion(
         ProcessEngineCommandContext context,
@@ -540,9 +547,13 @@ internal sealed class ExecuteServiceTask(
         if (context.Payload.Mailbox is not null)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"Service task '{serviceTaskType}' was handed a mailbox message, but its pipeline opens no "
-                    + "mailbox. The declaration was removed while an exchange was in flight, or this workflow "
-                    + "belongs to a different task.",
+                $"Service task '{serviceTaskType}' was handed a mailbox message on the step that concludes "
+                    + "its pipeline, and a concluding step answers no exchange — a message is answered by the "
+                    + "handler the receive step names. Either this receiver was enqueued before receive steps "
+                    + "carried that name, back when the task concluded on the exchange, and the pipeline has "
+                    + "since been redeployed to conclude with a final step instead; or this workflow was not "
+                    + "built by this app-lib's expansion. Restore the terminal that answered the exchange and "
+                    + "resume the workflow, or close the mailbox if the exchange is no longer wanted.",
                 "MailboxReceiptWithoutDeclaration"
             );
         }
@@ -764,15 +775,37 @@ internal sealed class ExecuteServiceTask(
             "ServiceTaskResultUnknown"
         );
 
+    /// <summary>
+    /// <c>ServiceTaskFailedException</c>: the reason code every failure a service task's <em>own code</em>
+    /// reported carries, whichever part of the pipeline reported it — a stage, the conclusion, or a reply
+    /// handler by way of <see cref="MailboxRelay"/>.
+    /// </summary>
+    /// <remarks>
+    /// One definition in one place, and deliberately shared across the two classes that report it: the code is
+    /// operator-visible and reaches in-flight workflows, so two independent literals would let a reword show
+    /// apps two different codes — or two different sentences — for one condition.
+    /// </remarks>
+    internal const string FailedReasonCode = "ServiceTaskFailedException";
+
+    /// <summary>
+    /// The sentence such a failure is reported as, shared with <see cref="MailboxRelay"/>'s handler-failure
+    /// arms for the reason <see cref="FailedReasonCode"/> gives. Only the sentence: which failure kind an arm
+    /// returns, and what it closes or starts, stays each arm's own decision, written out at the arm.
+    /// </summary>
+    /// <param name="serviceTaskType">The task that reported the failure.</param>
+    /// <param name="errorMessage">What the task said went wrong.</param>
+    internal static string FailedMessage(string serviceTaskType, string errorMessage) =>
+        $"Service task '{serviceTaskType}' failed: {errorMessage}";
+
     private static FailedProcessEngineCommandResult MapFailure(
         IPipelineServiceTask task,
         string errorMessage,
         bool permanent
     )
     {
-        string message = $"Service task '{task.Type}' failed: {errorMessage}";
+        string message = FailedMessage(task.Type, errorMessage);
         return permanent
-            ? FailedProcessEngineCommandResult.Permanent(message, "ServiceTaskFailedException")
-            : FailedProcessEngineCommandResult.Retryable(message, "ServiceTaskFailedException");
+            ? FailedProcessEngineCommandResult.Permanent(message, FailedReasonCode)
+            : FailedProcessEngineCommandResult.Retryable(message, FailedReasonCode);
     }
 }

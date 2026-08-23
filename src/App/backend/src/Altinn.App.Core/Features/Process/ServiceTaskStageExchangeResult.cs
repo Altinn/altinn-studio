@@ -56,10 +56,12 @@ public abstract record ServiceTaskStageExchangeResult
         ServiceTaskStageAwaitNextReplyResult.Instance;
 }
 
-/// <summary>A reply handler finished its message while the exchange stays open.</summary>
+/// <summary>
+/// A reply handler the pipeline carries on past finished its message while the exchange stays open.
+/// </summary>
 /// <remarks>
 /// <strong>Two types of identical shape exist on purpose</strong>, the same way
-/// <c>Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason</c> and
+/// <see cref="Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason"/> and
 /// <see cref="MailboxClosedReason"/> do: this one closes <see cref="ServiceTaskStageExchangeResult"/> and
 /// <see cref="ServiceTaskAwaitNextReplyResult"/> closes <see cref="ServiceTaskExchangeResult"/>. The two
 /// roots are different contracts — one can conclude the task, the other cannot — and a type has one base, so

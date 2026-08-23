@@ -6,10 +6,17 @@ namespace Altinn.App.Core.Features.Process;
 /// for the next message.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The split is what makes "await the next message" unrepresentable where there is no next message to await:
-/// only <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>'s <c>onMessage</c> returns this type —
-/// every other handler returns <see cref="ServiceTaskResult"/>, so the compiler rejects
-/// <see cref="AwaitNextReply"/> there.
+/// only <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>'s <c>onMessage</c> returns this type — its
+/// <c>onClosed</c>, and <see cref="ServiceTaskPipelineBuilder.Finally"/>, return
+/// <see cref="ServiceTaskResult"/>, so the compiler rejects <see cref="AwaitNextReply"/> there.
+/// </para>
+/// <para>
+/// This root is the <em>terminal's</em> vocabulary. A reply handler the pipeline carries on past answers
+/// <see cref="ServiceTaskStageExchangeResult"/> instead — a separate root, on purpose, so that concluding the
+/// task is not among its moves.
+/// </para>
 /// </remarks>
 public abstract record ServiceTaskExchangeResult
 {
@@ -42,7 +49,9 @@ public abstract record ServiceTaskExchangeResult
     private protected ServiceTaskExchangeResult() { }
 
     /// <summary>
-    /// This message is handled; the exchange is not over. Returnable only from a reply terminal's <c>onMessage</c>.
+    /// This message is handled; the exchange is not over. Returnable only from a reply terminal's
+    /// <c>onMessage</c> — a handler the pipeline carries on past has
+    /// <see cref="ServiceTaskStageExchangeResult.AwaitNextReply"/> for the same purpose.
     /// </summary>
     /// <remarks>
     /// An ordinary successful completion: data changes are saved, and the state travels on — publish what the
@@ -53,7 +62,15 @@ public abstract record ServiceTaskExchangeResult
     public static ServiceTaskAwaitNextReplyResult AwaitNextReply() => ServiceTaskAwaitNextReplyResult.Instance;
 }
 
-/// <summary>A reply handler finished its message while the exchange stays open.</summary>
+/// <summary>A reply terminal finished its message while the exchange stays open.</summary>
+/// <remarks>
+/// <strong>Its twin, <see cref="ServiceTaskStageAwaitNextReplyResult"/>, has the identical shape on
+/// purpose</strong> — that type's remarks carry the reasoning; this note exists so the duplication cannot be
+/// mistaken for an oversight from <em>this</em> side either. In short: the two roots are different contracts
+/// (one can conclude the task, the other cannot) and a type has one base, so merging them behind a shared
+/// base, an interface or a generic would put "await the next message" back within reach of the handlers each
+/// root exists to keep it away from. Do not deduplicate.
+/// </remarks>
 public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskExchangeResult
 {
     internal static readonly ServiceTaskAwaitNextReplyResult Instance = new();

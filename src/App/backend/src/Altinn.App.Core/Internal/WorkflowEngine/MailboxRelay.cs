@@ -102,16 +102,16 @@ internal sealed class MailboxRelay
             case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
-                    HandlerFailedMessage(serviceTaskType, failed.ErrorMessage),
-                    HandlerFailedReasonCode,
+                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
+                    ExecuteServiceTask.FailedReasonCode,
                     new MailboxContinuation.Conclude(mailbox.Id)
                 );
 
             case ServiceTaskFailedResult failed:
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
-                    HandlerFailedMessage(serviceTaskType, failed.ErrorMessage),
-                    HandlerFailedReasonCode
+                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
+                    ExecuteServiceTask.FailedReasonCode
                 );
 
             case ServiceTaskDeferredResult deferred:
@@ -171,7 +171,9 @@ internal sealed class MailboxRelay
     /// sits under neither <see cref="ServiceTaskExchangeResult"/> nor anything it shares. Merging them behind
     /// a common supertype would put <c>Success(action)</c> back within reach of a handler that must not have
     /// it. What the two do share, and share as helpers here, is the wording their failures report
-    /// (<see cref="HandlerFailedMessage"/> plus <see cref="HandlerFailedReasonCode"/>) and the
+    /// (<see cref="ExecuteServiceTask.FailedMessage"/> plus
+    /// <see cref="ExecuteServiceTask.FailedReasonCode"/>, one definition shared with the command that maps a
+    /// stage's failure) and the
     /// <see cref="StepIdMissing"/> guard. Nothing else: which failure kind an arm returns, and which
     /// continuation rides it, are each arm's own decision and stay written out at the arm.
     /// </remarks>
@@ -243,16 +245,16 @@ internal sealed class MailboxRelay
                 // them would sabotage a resume, which replays this handler and may then carry the chain on. A
                 // failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
-                    HandlerFailedMessage(serviceTaskType, failed.ErrorMessage),
-                    HandlerFailedReasonCode,
+                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
+                    ExecuteServiceTask.FailedReasonCode,
                     new MailboxContinuation.Conclude(mailbox.Id)
                 );
 
             case FailedServiceTaskStageResult failed:
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
-                    HandlerFailedMessage(serviceTaskType, failed.ErrorMessage),
-                    HandlerFailedReasonCode
+                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
+                    ExecuteServiceTask.FailedReasonCode
                 );
 
             case DeferredServiceTaskStageResult deferred:
@@ -277,24 +279,6 @@ internal sealed class MailboxRelay
                 );
         }
     }
-
-    /// <summary>
-    /// The reason code every handler failure carries, whichever vocabulary answered — one constant, because
-    /// an in-flight-visible code that differed by handler shape would be a distinction without a cause.
-    /// </summary>
-    private const string HandlerFailedReasonCode = "ServiceTaskFailedException";
-
-    /// <summary>
-    /// The sentence a handler's failure is reported as, shared by this class's four failure arms so the two
-    /// vocabularies cannot drift into describing the same thing differently.
-    /// </summary>
-    /// <remarks>
-    /// Only the sentence. Folding the failure kind and the continuation in as well would put a
-    /// <see cref="MailboxContinuation"/> parameter on a call the retryable arms must never pass one to — the
-    /// saga is unstarted there — and hide, behind a parameter, the one thing those arms differ in.
-    /// </remarks>
-    private static string HandlerFailedMessage(string serviceTaskType, string errorMessage) =>
-        $"Service task '{serviceTaskType}' failed: {errorMessage}";
 
     /// <summary>
     /// <c>MailboxStepIdMissing</c>. Engine drift: an engine version that does not send <c>stepId</c> on the

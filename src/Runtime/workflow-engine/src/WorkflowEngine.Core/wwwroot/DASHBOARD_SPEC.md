@@ -748,6 +748,11 @@ interface Workflow {
     collectionKey: string | null;
     // Present only on a receive workflow — the mailbox its first step reads from, and what matches
     // a card to the mailbox block under its collection. Omitted on every ordinary workflow.
+    // NOT dashboard-only any more: this projection is the only surface exposing the
+    // receive-workflow marker (the public workflow read omits it), so an app-lib integration test
+    // reads it to assert that a mailbox continuation is *not* a receiver
+    // (Altinn.App.Integration.Tests/WorkflowEngine/WorkflowEngineMailboxMultiExchangeTests). Renaming
+    // or dropping the field breaks that test, in another tree, not just a dashboard card.
     mailboxId: string | undefined;
     labels: Record<string, string> | null;
     backoffUntil: string | null;

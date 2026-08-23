@@ -92,8 +92,9 @@ public class WorkflowCallbackStateCarryTests
     [Fact]
     public async Task Capture_ThenRestore_KeepsEveryExchangeApartByItsOpeningStage()
     {
-        // Phase 1 opens one mailbox per task, but the blob is a map from day one so a second exchange needs no
-        // format migration against workflows already in flight.
+        // A task may open several mailboxes, and the blob was a map from day one — so this held before any
+        // pipeline could compose a second exchange, and adding that needed no format migration against
+        // workflows already in flight.
         WorkflowCallbackStateService service = CreateService();
         var minting = new WorkflowCallbackStateCarry();
         minting.RecordMailbox(SendStage, _mailboxId, _deadline);

@@ -155,8 +155,9 @@ public class WorkflowCommandSetTests
 
     /// <summary>
     /// The regression floor for the whole expansion: a pipeline with no mid-pipeline handler has exactly one
-    /// segment, and it is what the factory has always built. (The byte-level version of this is the factory's
-    /// own snapshots, which must not move.)
+    /// segment, and it is what the factory has always built. (The assembled version of this is
+    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheReceiveEnqueueAndEmitsNoConclusion</c>,
+    /// which must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
     /// </summary>
     [Fact]
     public void PlanSegment_SingleExchangePipeline_IsOneSegmentEndingOnTheTerminalsExchange()
