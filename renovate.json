@@ -210,5 +210,8 @@
       "enabled": false
     }
   ],
-  "schedule": []
+  "schedule": ["* 7-15 * * 1-5"],
+  "updateNotScheduled": false,
+  "automergeSchedule": ["* 7-15 * * 1-5"],
+  "platformAutomerge": false
 }

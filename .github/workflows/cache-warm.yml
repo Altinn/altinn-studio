@@ -7,15 +7,18 @@ name: Cache warm
 # workflow keeps those main-scoped entries warm so PR jobs restore instead
 # of rebuilding and re-saving.
 #
-# Runs once a day: dependency bumps merged during the day stay cold until
-# the next morning run (or a manual dispatch). Every job is idempotent and
-# cheap when the caches are already warm: exact cache hits skip both the
+# Runs each weekday morning: dependency bumps merged during the day stay
+# cold until the next morning run (or a manual dispatch). Weekends are
+# skipped so the self-hosted runners' AKS nodes can stay scaled down — no
+# PRs consume the caches then, and GH cache entries live 7 days so the
+# Friday entries survive to Monday. Every job is idempotent and cheap when
+# the caches are already warm: exact cache hits skip both the
 # install/build work and the save.
 
 on:
   schedule:
-    # 08:00 Oslo in summer / 07:00 in winter (GitHub cron is UTC-only).
-    - cron: '0 6 * * *'
+    # Weekdays 08:00 Oslo in summer / 07:00 in winter (GitHub cron is UTC-only).
+    - cron: '0 6 * * 1-5'
   workflow_dispatch:
 
 concurrency:
