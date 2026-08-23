@@ -46,7 +46,10 @@ public class ServiceTaskPipelineMailboxTests
         ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);
 
-        Assert.Equal(["SendToArchive", "RecordDispatch"], pipeline.Stages.Select(s => s.Name));
+        Assert.Equal(
+            ["SendToArchive", "RecordDispatch"],
+            pipeline.Items.OfType<ServiceTaskStage>().Select(s => s.Name)
+        );
         var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.FindStage("SendToArchive"));
         Assert.Equal(TimeSpan.FromDays(3), opening.Declaration.Timeout);
         Assert.IsType<ServiceTaskStage.Plain>(pipeline.FindStage("RecordDispatch"));

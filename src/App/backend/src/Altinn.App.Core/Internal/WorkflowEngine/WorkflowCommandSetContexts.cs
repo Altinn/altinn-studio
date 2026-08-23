@@ -1,6 +1,19 @@
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models.Notifications.Future;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
+
+/// <summary>
+/// A service task the transition enters, together with the pipeline its <c>Define</c> composed — read at
+/// enqueue time, which is the moment the pipeline's shape is fixed for the workflow's lifetime.
+/// </summary>
+/// <remarks>
+/// One type rather than two nullable fields because neither half means anything without the other: the type
+/// is what the steps dispatch back to, and the pipeline is what decides which steps there are.
+/// </remarks>
+/// <param name="Type">The service task type identifier, as the BPMN task declares it.</param>
+/// <param name="Pipeline">The task's composed pipeline.</param>
+internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipeline);
 
 /// <summary>
 /// Context for building the task start command sequence.
@@ -9,25 +22,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record TaskStartContext
 {
     /// <summary>
-    /// If this is a service task, the task type identifier. Otherwise null.
+    /// If this is a service task, the task and its pipeline. Otherwise null.
     /// </summary>
-    public required string? ServiceTaskType { get; init; }
-
-    /// <summary>
-    /// The ordered names of the service task's pipeline stages, read at enqueue time — each
-    /// expands to its own ExecuteServiceTask engine step, before the pipeline's concluding
-    /// unnamed one. Null or empty when the pipeline is just the conclusion (most tasks), or when
-    /// this is not a service task at all.
-    /// </summary>
-    public IReadOnlyList<string>? ServiceTaskStageNames { get; init; }
-
-    /// <summary>
-    /// The stage that opens the pipeline's mailbox, read at enqueue time from the exchange the pipeline concludes
-    /// with. Null for every other task. Its presence changes the expansion twice over: the naming stage is
-    /// preceded by a mint step, and the conclusion stops being a Main step (it runs on each receive workflow
-    /// instead) while Main gains a final step that enqueues the first receiver.
-    /// </summary>
-    public string? MailboxOpeningStageName { get; init; }
+    public required ResolvedServiceTask? ServiceTask { get; init; }
 
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
@@ -22,6 +24,23 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <param name="Step">The receive workflow's single step.</param>
 /// <param name="OpeningStageName">The stage whose mint the receiver is enqueued against.</param>
 internal sealed record MailboxReceivePlan(StepRequest Step, string OpeningStageName);
+
+/// <summary>
+/// One planned pipeline segment: the engine steps the workflow that runs the segment carries, and — when the
+/// segment ends on an exchange — the receive half its last step enqueues instead of concluding.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The two halves are one type because a segment is one shape: <see cref="Receive"/> null means
+/// <see cref="Steps"/> already ends with the concluding step, and non-null means the enqueuing hop must end
+/// the segment with an <c>EnqueueReceiveWorkflow</c> step of its own. That last step is deliberately not
+/// planned here — its labels, operation id and callback context belong to the hop doing the enqueueing, and
+/// no two hops assemble them the same way.
+/// </para>
+/// </remarks>
+/// <param name="Steps">The segment's steps, in execution order, with options unresolved.</param>
+/// <param name="Receive">The exchange the segment ends on, or null when it ends with the conclusion.</param>
+internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<StepRequest> Steps, MailboxReceivePlan? Receive);
 
 /// <summary>
 /// Defines a group of commands that should be executed for a process event.
@@ -75,53 +94,13 @@ internal sealed class WorkflowCommandSet
             group.AddSideEffectCommand(MovedToAltinnEvent.Key);
         }
 
-        if (context.ServiceTaskType is not null)
+        if (context.ServiceTask is { } serviceTask)
         {
-            // One engine step per pipeline stage, in composition order. Each gets a distinct
-            // OperationId for the engine's records and dashboards; the payload's stage name is
-            // what callback dispatch keys on.
-            foreach (string stageName in context.ServiceTaskStageNames ?? [])
-            {
-                if (string.Equals(context.MailboxOpeningStageName, stageName, StringComparison.Ordinal))
-                {
-                    // The mint hugs the stage that sends, on both sides: the deadline clock starts here, so no
-                    // earlier stage may erode it, and the stage must never send without an address, so the mint
-                    // cannot come later. No serviceTaskStageName: it is not the stage, and must not inherit the
-                    // stage's options — its own key resolves to whatever MintMailbox declares, today nothing,
-                    // so the engine's defaults apply to what is one HTTP call.
-                    group.AddCriticalPostCommitCommand(
-                        MintMailbox.Key,
-                        new MintMailboxPayload(context.ServiceTaskType, stageName),
-                        operationId: $"{MintMailbox.Key}: {stageName}"
-                    );
-                }
-
-                group.AddCriticalPostCommitCommand(
-                    ExecuteServiceTask.Key,
-                    new ExecuteServiceTaskPayload(context.ServiceTaskType, stageName),
-                    operationId: $"{ExecuteServiceTask.Key}: {stageName}",
-                    serviceTaskStageName: stageName
-                );
-            }
-
-            if (context.MailboxOpeningStageName is { } openingStageName)
-            {
-                // A mailbox-opening task expands to no concluding Main step — the reply handler runs on the
-                // receive workflows, once per message. Main gains the step that enqueues the first receiver
-                // instead.
-                group.MailboxReceive = new MailboxReceivePlan(
-                    CreateReceiveHandlerStep(context.ServiceTaskType),
-                    openingStageName
-                );
-            }
-            else
-            {
-                // The concluding engine step — the pipeline's Finally, identified by a null stage name.
-                group.AddCriticalPostCommitCommand(
-                    ExecuteServiceTask.Key,
-                    new ExecuteServiceTaskPayload(context.ServiceTaskType)
-                );
-            }
+            // The pipeline's own steps are planned in one place, shared with every other hop that runs a
+            // segment, and spliced in here: they are critical, so the next transition waits on them.
+            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+            group.AddCriticalPostCommitSteps(segment.Steps);
+            group.MailboxReceive = segment.Receive;
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -205,22 +184,19 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     /// <param name="commandKey">The command's registered key.</param>
     /// <param name="payload">Optional command payload.</param>
-    /// <param name="operationId">
-    /// Optional display identity for the engine step when it must differ from the command key —
-    /// service-task pipeline stages carry the stage name here so the engine's records tell them apart.
-    /// </param>
-    /// <param name="serviceTaskStageName">
-    /// For a service-task pipeline stage: the stage's name, so per-stage options can be resolved
-    /// when the step request is finalized.
-    /// </param>
-    private WorkflowCommandSet AddCriticalPostCommitCommand(
-        string commandKey,
-        CommandRequestPayload? payload = null,
-        string? operationId = null,
-        string? serviceTaskStageName = null
-    )
+    private WorkflowCommandSet AddCriticalPostCommitCommand(string commandKey, CommandRequestPayload? payload = null)
     {
-        _criticalPostCommitCommands.Add(CreateCommand(commandKey, payload, operationId, serviceTaskStageName));
+        _criticalPostCommitCommands.Add(CreateCommand(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds already-built critical post-commit steps, in order — the same door as
+    /// <see cref="AddCriticalPostCommitCommand"/> for steps a planner assembled rather than this class.
+    /// </summary>
+    private WorkflowCommandSet AddCriticalPostCommitSteps(IEnumerable<StepRequest> steps)
+    {
+        _criticalPostCommitCommands.AddRange(steps);
         return this;
     }
 
@@ -231,6 +207,93 @@ internal sealed class WorkflowCommandSet
     {
         _sideEffectCommands.Add(CreateCommand(commandKey, payload));
         return this;
+    }
+
+    /// <summary>
+    /// Plans the pipeline's segment: one <c>ExecuteServiceTask</c> step per stage in composition order, each
+    /// preceded by a <c>MintMailbox</c> step where the stage opens a mailbox, ended by the conclusion — the
+    /// concluding step for a <see cref="PipelineConclusion.FinalStep"/>, or the receive half for a
+    /// <see cref="PipelineConclusion.ReplyExchange"/>, whose enqueue step the caller appends.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Options are left unresolved, as <see cref="CreateReceiveHandlerStep"/> leaves them: the task the steps
+    /// run under is the enqueueing hop's to know, so the hop resolves them.
+    /// </para>
+    /// <para>
+    /// A segment is planned from the pipeline as resolved at that hop, never from a projection of it carried
+    /// along — the identity travelling in payloads is the stage name, and the shape around it is re-derived.
+    /// The expansion fixes that shape for the workflow's lifetime, so a stage name is a compatibility surface
+    /// for in-flight workflows even though the plan is rebuilt.
+    /// </para>
+    /// </remarks>
+    /// <param name="serviceTaskType">The service task the steps dispatch back to.</param>
+    /// <param name="pipeline">The task's pipeline, resolved at this hop.</param>
+    internal static ServiceTaskSegmentPlan PlanSegment(string serviceTaskType, ServiceTaskPipeline pipeline)
+    {
+        var steps = new List<StepRequest>();
+
+        foreach (PipelineItem item in pipeline.Items)
+        {
+            switch (item)
+            {
+                case ServiceTaskStage stage:
+                    if (stage is ServiceTaskStage.MailboxOpening)
+                    {
+                        // The mint hugs the stage that sends, on both sides: the deadline clock starts here, so
+                        // no earlier stage may erode it, and the stage must never send without an address, so
+                        // the mint cannot come later. No serviceTaskStageName: it is not the stage, and must not
+                        // inherit the stage's options — its own key resolves to whatever MintMailbox declares,
+                        // today nothing, so the engine's defaults apply to what is one HTTP call.
+                        steps.Add(
+                            CreateCommand(
+                                MintMailbox.Key,
+                                new MintMailboxPayload(serviceTaskType, stage.Name),
+                                operationId: $"{MintMailbox.Key}: {stage.Name}"
+                            )
+                        );
+                    }
+
+                    // One engine step per pipeline stage. Each gets a distinct OperationId for the engine's
+                    // records and dashboards; the payload's stage name is what callback dispatch keys on.
+                    steps.Add(
+                        CreateCommand(
+                            ExecuteServiceTask.Key,
+                            new ExecuteServiceTaskPayload(serviceTaskType, stage.Name),
+                            operationId: $"{ExecuteServiceTask.Key}: {stage.Name}",
+                            serviceTaskStageName: stage.Name
+                        )
+                    );
+                    break;
+
+                // Drift guard for this assembly's own model: PipelineItem is a closed set, so the only way
+                // here is a shape added without a plan for the steps it expands to.
+                default:
+                    throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}");
+            }
+        }
+
+        switch (pipeline.Conclusion)
+        {
+            case PipelineConclusion.ReplyExchange exchange:
+                // A mailbox-opening task expands to no concluding step here — the reply handler runs on the
+                // receive workflows, once per message. The enqueuing hop ends the segment with the step that
+                // enqueues the first receiver instead.
+                return new ServiceTaskSegmentPlan(
+                    steps,
+                    new MailboxReceivePlan(CreateReceiveHandlerStep(serviceTaskType), exchange.OpeningStageName)
+                );
+
+            case PipelineConclusion.FinalStep:
+                // The concluding engine step — the pipeline's Finally, identified by a null stage name.
+                steps.Add(CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType)));
+                return new ServiceTaskSegmentPlan(steps, Receive: null);
+
+            default:
+                throw new UnreachableException(
+                    $"Unknown pipeline conclusion type: {pipeline.Conclusion.GetType().Name}"
+                );
+        }
     }
 
     /// <summary>

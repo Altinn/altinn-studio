@@ -86,7 +86,7 @@ internal sealed class MintMailbox(
             if (pipeline.FindStage(payload.StageName) is not ServiceTaskStage.MailboxOpening declaring)
             {
                 // Where the mailbox went is the actionable half, so it comes before the remediation.
-                string opensNow = pipeline.Stages.OfType<ServiceTaskStage.MailboxOpening>().FirstOrDefault()
+                string opensNow = pipeline.Items.OfType<ServiceTaskStage.MailboxOpening>().FirstOrDefault()
                     is { } relocated
                     ? $"its mailbox is now opened by stage '{relocated.Name}'"
                     : "its pipeline now opens no mailbox at all";

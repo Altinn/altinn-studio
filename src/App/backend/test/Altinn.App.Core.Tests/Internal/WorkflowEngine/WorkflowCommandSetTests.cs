@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
@@ -17,13 +18,17 @@ public class WorkflowCommandSetTests
     private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
         steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();
 
+    /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
+    private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
+        new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
     [Fact]
     public void GetTaskStartSteps_ServiceTaskInstantiation_RoutesCommandsToTheCorrectBuckets()
     {
         var commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                ServiceTaskType = "pdf",
+                ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
                 Notification = new InstantiationNotification(),
@@ -58,7 +63,7 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                ServiceTaskType = null,
+                ServiceTask = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
             }

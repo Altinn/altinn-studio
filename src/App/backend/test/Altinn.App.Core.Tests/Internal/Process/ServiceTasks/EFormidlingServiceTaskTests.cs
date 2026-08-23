@@ -102,14 +102,14 @@ public class EFormidlingServiceTaskTests
         // The stage name is a compatibility surface for in-flight workflows, so it is pinned here.
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
-        Assert.Equal(new[] { "SendShipment" }, pipeline.Stages.Select(stage => stage.Name));
+        Assert.Equal(new[] { "SendShipment" }, pipeline.Items.OfType<ServiceTaskStage>().Select(stage => stage.Name));
         // The wait budget belongs to the conclusion, not the task — the send stage must not be
         // handed a budget it can never use. Deliberately longer than the two-hour lifetime the
         // shipment carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the
         // instance before our wait gives up.
         Assert.Equal(TimeSpan.FromHours(2.5), pipeline.Conclusion.StepOptions?.WaitBudget);
         Assert.Null(((IPipelineServiceTask)_serviceTask).StepOptions);
-        Assert.Null(pipeline.Stages.Single().StepOptions);
+        Assert.Null(Assert.Single(pipeline.Items).StepOptions);
     }
 
     // ===== SEND STAGE =====

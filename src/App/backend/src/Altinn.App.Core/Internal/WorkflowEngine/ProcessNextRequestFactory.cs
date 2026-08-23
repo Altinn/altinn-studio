@@ -402,17 +402,10 @@ internal sealed class ProcessNextRequestFactory
             case InstanceEventType.process_StartTask:
             {
                 string? serviceTaskType = GetServiceTaskType(altinnTaskType);
-                ServiceTaskPipeline? pipeline = ResolveServiceTaskPipeline(serviceTaskType);
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
-                        ServiceTaskType = serviceTaskType,
-                        ServiceTaskStageNames = pipeline?.Stages.Select(s => s.Name).ToList(),
-                        // The one place the pipeline is projected onto the expansion: the exchange's opening
-                        // stage is what both the mint step and the receive workflow are keyed on.
-                        MailboxOpeningStageName = (
-                            pipeline?.Conclusion as PipelineConclusion.ReplyExchange
-                        )?.OpeningStageName,
+                        ServiceTask = ResolveServiceTask(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -453,13 +446,16 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The service task's composed pipeline, or null when this is not a service task (or names a type
-    /// no implementation is registered for). Read at enqueue time: this is the moment the pipeline's
+    /// The service task and its composed pipeline, or null when this is not a service task (or names a
+    /// type no implementation is registered for). Read at enqueue time: this is the moment the pipeline's
     /// shape is fixed for the workflow's lifetime — callback dispatch is by stage name, and whether the
     /// transition ends with a concluding step or with a receive workflow is decided here.
     /// </summary>
-    private ServiceTaskPipeline? ResolveServiceTaskPipeline(string? serviceTaskType) =>
-        serviceTaskType is null ? null : _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline();
+    private ResolvedServiceTask? ResolveServiceTask(string? serviceTaskType) =>
+        serviceTaskType is not null
+        && _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline() is { } pipeline
+            ? new ResolvedServiceTask(serviceTaskType, pipeline)
+            : null;
 
     private async Task<Actor> ExtractActor()
     {

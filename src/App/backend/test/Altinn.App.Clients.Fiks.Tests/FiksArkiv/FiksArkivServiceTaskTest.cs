@@ -36,7 +36,7 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskPipeline pipeline = fixture.FiksArkivPipeline;
 
-        var stage = Assert.IsType<ServiceTaskStage.MailboxOpening>(Assert.Single(pipeline.Stages));
+        var stage = Assert.IsType<ServiceTaskStage.MailboxOpening>(Assert.Single(pipeline.Items));
         Assert.Equal("SendToArchive", stage.Name);
 
         Assert.Equal(TimeSpan.FromDays(7), stage.Declaration.Timeout);

@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// A service task's composed pipeline: the ordered durable stages and the one conclusion — a concluding
+/// A service task's composed pipeline: the ordered durable items and the one conclusion — a concluding
 /// step, or the handlers that answer the mailbox a stage opened. Built via
 /// <see cref="ServiceTaskPipelineBuilder"/> and returned from
 /// <see cref="IPipelineServiceTask.Define"/>; the runtime reads it to expand, dispatch and
@@ -9,24 +9,58 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 public sealed class ServiceTaskPipeline
 {
-    internal ServiceTaskPipeline(IReadOnlyList<ServiceTaskStage> stages, PipelineConclusion conclusion)
+    internal ServiceTaskPipeline(IReadOnlyList<PipelineItem> items, PipelineConclusion conclusion)
     {
-        Stages = stages;
+        Items = items;
         Conclusion = conclusion;
     }
 
-    /// <summary>The durable stages, in execution order. Empty for a simple service task.</summary>
-    internal IReadOnlyList<ServiceTaskStage> Stages { get; }
+    /// <summary>
+    /// Everything the pipeline composes before its conclusion, in composition order — one list, read by
+    /// shape. Empty for a simple service task.
+    /// </summary>
+    internal IReadOnlyList<PipelineItem> Items { get; }
 
     /// <summary>How the task concludes: a final step, or an exchange's reply handlers.</summary>
     internal PipelineConclusion Conclusion { get; }
 
     /// <summary>
     /// The stage with the given name (exact match — stage names are our own wire values), or
-    /// <c>null</c>.
+    /// <c>null</c>. Filters <see cref="Items"/> down to stages, since a name is a stage's identity and
+    /// nothing else's.
     /// </summary>
     internal ServiceTaskStage? FindStage(string stageName) =>
-        Stages.FirstOrDefault(s => string.Equals(s.Name, stageName, StringComparison.Ordinal));
+        Items
+            .OfType<ServiceTaskStage>()
+            .FirstOrDefault(s => string.Equals(s.Name, stageName, StringComparison.Ordinal));
+}
+
+/// <summary>
+/// One entry in <see cref="ServiceTaskPipeline.Items"/>: something the pipeline does, in composition
+/// order, before its conclusion. Callers dispatch on the shape rather than on flags, so a reader that
+/// only cares about stages says so (<see cref="ServiceTaskPipeline.FindStage"/>) and everything else in
+/// the list stays invisible to it.
+/// </summary>
+/// <remarks>
+/// Not a record, for the reason <see cref="ServiceTaskStage"/> gives: an item holds delegates, so
+/// synthesized value equality would compare references while claiming to compare values.
+/// </remarks>
+internal abstract class PipelineItem
+{
+    /// <summary>
+    /// Non-public, so the set of item shapes stays this assembly's to close — the runtime has nothing to
+    /// do with an item it does not recognise.
+    /// </summary>
+    private protected PipelineItem(ProcessStepOptions? stepOptions)
+    {
+        StepOptions = stepOptions;
+    }
+
+    /// <summary>
+    /// Options for the engine step this item becomes and for nothing else, winning field-wise over the
+    /// task's own.
+    /// </summary>
+    internal ProcessStepOptions? StepOptions { get; }
 }
 
 /// <summary>
@@ -40,12 +74,12 @@ public sealed class ServiceTaskPipeline
 /// Not a record: the only thing that would distinguish two stages is a delegate reference, so value
 /// equality would compare identity while claiming to compare value, and nothing needs either.
 /// </remarks>
-internal abstract class ServiceTaskStage
+internal abstract class ServiceTaskStage : PipelineItem
 {
     private ServiceTaskStage(string name, ProcessStepOptions? stepOptions)
+        : base(stepOptions)
     {
         Name = name;
-        StepOptions = stepOptions;
     }
 
     /// <summary>
@@ -53,9 +87,6 @@ internal abstract class ServiceTaskStage
     /// declaring stage — the exchange's identity everywhere downstream.
     /// </summary>
     internal string Name { get; }
-
-    /// <summary>Options for this stage's engine step alone.</summary>
-    internal ProcessStepOptions? StepOptions { get; }
 
     /// <summary>A stage with no part in any exchange: work in, stage result out.</summary>
     internal sealed class Plain : ServiceTaskStage
