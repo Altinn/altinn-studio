@@ -46,12 +46,26 @@ impl Service {
         self.store.session_attach_target(session.id).await
     }
 
-    /// Lists durable Sessions for the active Agent incarnation.
+    /// Gets one durable Session from the active Agent incarnation.
     ///
     /// # Errors
     ///
-    /// Returns an error when persistent state cannot be read.
-    pub async fn list(&self, agent: &str) -> Result<Vec<Session>, Error> {
-        self.store.list_agent_sessions(agent).await
+    /// Returns an error when either resource is missing or persistent state cannot be read.
+    pub async fn get(&self, agent: &str, name: &SessionName) -> Result<Session, Error> {
+        self.store.get_agent_session(agent, name).await
+    }
+
+    /// Lists durable Sessions, optionally scoped to one active Agent incarnation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the scoped Agent is missing or persistent state cannot be read.
+    pub async fn list(&self, agent: Option<&str>) -> Result<Vec<Session>, Error> {
+        if let Some(agent) = agent {
+            self.agents.get_by_name(agent).await?;
+            self.store.list_agent_sessions(agent).await
+        } else {
+            self.store.list_all_sessions().await
+        }
     }
 }

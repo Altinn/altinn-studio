@@ -13,10 +13,16 @@ Agent declares a suitable mediated secret. It is not intended for running Docker
 ```sh
 agentctl claude login
 agentctl apply -f agent.yaml --name agent-test
-agentctl get agent-test
-agentctl attach agent-test s1
-agentctl sessions agent-test
+agentctl get agent agent-test
+agentctl describe agent/agent-test
+agentctl wait --for=condition=Ready agent/agent-test --timeout=10m
+agentctl attach session/s1 --agent agent-test
+agentctl get sessions --agent agent-test
 ```
+
+When the current directory is inside the source directory of exactly one applied Agent, Session commands infer
+`--agent`; for example, `agentctl attach session/s1` works from this directory after applying without another Agent
+name from the same source.
 
 Run these commands from this directory so paths in the manifest resolve against the intended example inputs.
 The image seeds Claude's mutable `.claude.json` once for first-run prompts. Configuration intentionally placed in the

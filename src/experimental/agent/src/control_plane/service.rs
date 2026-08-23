@@ -119,6 +119,51 @@ impl ControlPlane {
         self.store.get_by_name(name).await.map(|record| record.agent)
     }
 
+    /// Lists every active Agent ordered by name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when storage cannot be read.
+    pub async fn list(&self) -> Result<Vec<Agent>, Error> {
+        self.store
+            .list()
+            .await
+            .map(|records| records.into_iter().map(|record| record.agent).collect())
+    }
+
+    /// Resolves the closest Agent source directory containing `directory`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no Agent matches, multiple Agents share the closest
+    /// source directory, or storage cannot be read.
+    pub async fn resolve_directory(&self, directory: &std::path::Path) -> Result<Agent, Error> {
+        if !directory.is_absolute() {
+            return Err(Error::Invalid("directory must be absolute".into()));
+        }
+        let mut matches = self
+            .store
+            .list()
+            .await?
+            .into_iter()
+            .filter(|record| directory.starts_with(&record.source_directory))
+            .collect::<Vec<_>>();
+        let Some(depth) = matches
+            .iter()
+            .map(|record| record.source_directory.components().count())
+            .max()
+        else {
+            return Err(Error::NotFound);
+        };
+        matches.retain(|record| record.source_directory.components().count() == depth);
+        if matches.len() != 1 {
+            return Err(Error::Invalid(
+                "multiple Agents were applied from this directory; specify --agent".into(),
+            ));
+        }
+        matches.pop().map(|record| record.agent).ok_or(Error::NotFound)
+    }
+
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
     ///
     /// # Errors

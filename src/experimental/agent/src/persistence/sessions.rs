@@ -64,6 +64,11 @@ pub(super) fn get(connection: &Connection, id: SessionId) -> Result<Session, Err
         .ok_or(Error::NotFound)
 }
 
+pub(super) fn get_by_name(connection: &Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
+    let owner = agents::get_by_name(connection, agent)?;
+    query_named(connection, owner.id, name)?.ok_or(Error::NotFound)
+}
+
 pub(super) fn list_all(connection: &Connection) -> Result<Vec<Session>, Error> {
     query_many(
         connection,

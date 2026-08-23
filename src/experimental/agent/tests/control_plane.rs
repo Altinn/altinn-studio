@@ -257,6 +257,55 @@ async fn apply_stores_desired_state_without_running_inline() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-sources");
+    let mut outer = apply_request("outer");
+    outer.source_directory = root.clone();
+    fixture.control_plane.apply(outer).await.expect("outer Agent");
+    let mut inner = apply_request("inner");
+    inner.source_directory = root.join("nested");
+    fixture.control_plane.apply(inner).await.expect("inner Agent");
+
+    let listed = fixture.control_plane.list().await.expect("list Agents");
+    assert_eq!(
+        listed
+            .iter()
+            .map(|agent| agent.metadata.name.as_str())
+            .collect::<Vec<_>>(),
+        vec!["inner", "outer"]
+    );
+    let resolved = fixture
+        .control_plane
+        .resolve_directory(&root.join("nested/worktree"))
+        .await
+        .expect("nearest Agent source");
+    assert_eq!(resolved.metadata.name, "inner");
+}
+
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_rejects_shared_sources_instead_of_guessing() {
+    let fixture = fixture();
+    fixture
+        .control_plane
+        .apply(apply_request("first"))
+        .await
+        .expect("first Agent");
+    fixture
+        .control_plane
+        .apply(apply_request("second"))
+        .await
+        .expect("second Agent");
+
+    let error = fixture
+        .control_plane
+        .resolve_directory(&std::env::temp_dir().join("agent-platform-source/worktree"))
+        .await
+        .expect_err("shared source must be ambiguous");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("multiple Agents")));
+}
+
+#[tokio::test(flavor = "local")]
 async fn reconcile_resolves_an_omitted_architecture_without_changing_desired_state() {
     let fixture = fixture();
     let mut request = apply_request("worker");

@@ -9,9 +9,10 @@ use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
     CODE_AGENT_NOT_FOUND, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST,
-    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
-    METHOD_DELETE, METHOD_GET, METHOD_HEALTH, METHOD_SESSION_ENSURE, METHOD_SESSION_LIST, NameParams, PROTOCOL_VERSION,
-    ReadMessage, Request, Response, SessionParams, error_response, read_message,
+    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
+    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, PROTOCOL_VERSION, ReadMessage, Request,
+    Response, SessionListParams, SessionParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -21,6 +22,12 @@ pub trait AgentApi {
 
     /// Gets an Agent by name.
     fn get<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>>;
+
+    /// Lists every active Agent.
+    fn list(&self) -> LocalFuture<'_, Result<Vec<Agent>, Error>>;
+
+    /// Resolves an Agent from its persisted source directory.
+    fn resolve_directory<'a>(&'a self, directory: &'a std::path::Path) -> LocalFuture<'a, Result<Agent, Error>>;
 
     /// Requests asynchronous deletion.
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
@@ -33,6 +40,14 @@ impl AgentApi for control_plane::ControlPlane {
 
     fn get<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>> {
         Box::pin(async move { Self::get(self, name).await })
+    }
+
+    fn list(&self) -> LocalFuture<'_, Result<Vec<Agent>, Error>> {
+        Box::pin(async move { Self::list(self).await })
+    }
+
+    fn resolve_directory<'a>(&'a self, directory: &'a std::path::Path) -> LocalFuture<'a, Result<Agent, Error>> {
+        Box::pin(async move { Self::resolve_directory(self, directory).await })
     }
 
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
@@ -69,8 +84,15 @@ pub trait SessionApi {
         name: &'a sessions::SessionName,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
 
-    /// Lists tracked sessions for one Agent.
-    fn list<'a>(&'a self, agent: &'a str) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
+    /// Gets one named Session scoped to an Agent.
+    fn get<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>>;
+
+    /// Lists tracked Sessions, optionally scoped to one Agent.
+    fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
 }
 
 impl SessionApi for sessions::Service {
@@ -82,7 +104,15 @@ impl SessionApi for sessions::Service {
         Box::pin(async move { Self::ensure(self, agent, name).await })
     }
 
-    fn list<'a>(&'a self, agent: &'a str) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>> {
+    fn get<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>> {
+        Box::pin(async move { Self::get(self, agent, name).await })
+    }
+
+    fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>> {
         Box::pin(async move { Self::list(self, agent).await })
     }
 }
@@ -181,9 +211,12 @@ impl Server {
                 })),
             ),
             METHOD_GET => self.handle_get(request.id, request.params).await,
+            METHOD_LIST => result_response(request.id, self.agents.list().await),
+            METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
+            METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
             METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
@@ -202,6 +235,13 @@ impl Server {
             Err(response) => return response_with_id(id, response),
         };
         result_response(id, self.agents.get(&params.name).await)
+    }
+
+    async fn handle_resolve_directory(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<DirectoryParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "directory is required");
+        };
+        result_response(id, self.agents.resolve_directory(&params.directory).await)
     }
 
     async fn handle_delete(&self, id: u64, value: Value) -> Response {
@@ -229,12 +269,18 @@ impl Server {
         result_response(id, self.sessions.ensure(&params.agent, &params.name).await)
     }
 
-    async fn handle_session_list(&self, id: u64, value: Value) -> Response {
-        let params = match name_params(value) {
-            Ok(params) => params,
-            Err(response) => return response_with_id(id, response),
+    async fn handle_session_get(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
         };
-        result_response(id, self.sessions.list(&params.name).await)
+        result_response(id, self.sessions.get(&params.agent, &params.name).await)
+    }
+
+    async fn handle_session_list(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionListParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "invalid Session list parameters");
+        };
+        result_response(id, self.sessions.list(params.agent.as_deref()).await)
     }
 }
 

@@ -5,8 +5,12 @@ use std::{
 };
 
 use agent::{
-    Error, control_api::Client, control_plane::ApplyRequest, local::home::ControlPlaneHome, manifest,
-    sessions::SessionName,
+    Agent, ConditionStatus, Error,
+    control_api::Client,
+    control_plane::ApplyRequest,
+    local::home::ControlPlaneHome,
+    manifest,
+    sessions::{Session, SessionName},
 };
 use clap::{Parser, Subcommand};
 use tokio::runtime::LocalRuntime;
@@ -44,29 +48,73 @@ enum Command {
         #[arg(long)]
         name: Option<String>,
     },
-    /// Print one Agent as JSON.
+    /// Display one or more resources.
     Get {
-        /// Agent name.
-        name: String,
+        /// Resource kind, optionally combined with a name (for example `agent/worker`).
+        resource: String,
+        /// Optional resource name when it is not part of `resource`.
+        name: Option<String>,
+        /// Owning Agent for Session resources; inferred from the current directory when omitted.
+        #[arg(long)]
+        agent: Option<String>,
+        /// List Sessions across every Agent instead of resolving one owner.
+        #[arg(short = 'A', long, conflicts_with = "agent")]
+        all_agents: bool,
     },
-    /// Request deletion of one Agent.
+    /// Show detailed state and conditions for one resource.
+    Describe {
+        /// Agent resource, optionally combined with its name (for example `agent/worker`).
+        resource: String,
+        /// Optional Agent name when it is not part of `resource`.
+        name: Option<String>,
+    },
+    /// Request deletion of a resource.
     Delete {
-        /// Agent name.
-        name: String,
+        /// Resource kind, optionally combined with a name (for example `agent/worker`).
+        resource: String,
+        /// Optional resource name when it is not part of `resource`.
+        name: Option<String>,
     },
     /// Create or attach to a named Session in an Agent sandbox.
     Attach {
-        /// Agent name.
-        agent: String,
-        /// Stable Session name.
-        session: String,
+        /// Session resource, optionally combined with its name (for example `session/s1`).
+        resource: String,
+        /// Optional Session name when it is not part of `resource`.
+        name: Option<String>,
+        /// Owning Agent; inferred from the current directory when omitted.
+        #[arg(long)]
+        agent: Option<String>,
     },
-    /// List host-tracked sessions for one Agent.
-    Sessions {
-        /// Agent name.
-        agent: String,
+    /// Wait for a resource condition.
+    Wait {
+        /// Condition expression. Only `condition=Ready` is currently supported.
+        #[arg(long = "for", default_value = "condition=Ready")]
+        condition: String,
+        /// Maximum wait, written as seconds, minutes, or hours (for example `30s` or `10m`).
+        #[arg(long, default_value = "10m", value_parser = parse_duration)]
+        timeout: Duration,
+        /// Agent resource, optionally combined with its name (for example `agent/worker`).
+        resource: String,
+        /// Optional Agent name when it is not part of `resource`.
+        name: Option<String>,
     },
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Resource {
+    Agent,
+    Session,
+}
+
+#[derive(Debug, thiserror::Error)]
+enum CommandError {
+    #[error(transparent)]
+    Agent(#[from] Error),
+    #[error("{0}")]
+    Message(String),
+}
+
+type CommandResult<T> = Result<T, CommandError>;
 
 #[derive(Subcommand)]
 enum ClaudeCommand {
@@ -84,52 +132,428 @@ fn main() -> ExitCode {
     }
 }
 
-fn run() -> Result<(), Error> {
+fn run() -> CommandResult<()> {
     let arguments = Arguments::parse();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
-    LocalRuntime::new()?.block_on(async move {
+    LocalRuntime::new().map_err(Error::from)?.block_on(async move {
         ensure_daemon(&home, &client).await?;
-        match arguments.command {
-            Command::Claude {
-                command: ClaudeCommand::Login,
-            } => {
-                let token = agent::harness::acquire_host_token(agent::Harness::ClaudeCode)?;
-                let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
-                println!("{} authentication stored", imported.provider);
-            }
-            Command::Apply { filename, name } => {
-                let mut request = read_apply_request(filename).await?;
-                if let Some(name) = name {
-                    request.agent.metadata.name = name;
-                }
-                let applied = client.apply(request).await?;
-                println!("{}", serde_json::to_string_pretty(&applied)?);
-            }
-            Command::Get { name } => {
-                let agent = client.get(&name).await?;
-                println!("{}", serde_json::to_string_pretty(&agent)?);
-            }
-            Command::Delete { name } => {
-                client.delete(&name).await?;
-                println!("Agent {name:?} deleted");
-            }
-            Command::Attach { agent, session } => {
-                let session = SessionName::new(session)?;
-                eprintln!(
-                    "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
-                    session = session.as_str()
-                );
-                let target = client.ensure_session(&agent, session).await?;
-                agent::sessions::attach(home.path(), &target).await?;
-            }
-            Command::Sessions { agent } => {
-                let sessions = client.list_sessions(&agent).await?;
-                println!("{}", serde_json::to_string_pretty(&sessions)?);
-            }
-        }
-        Ok(())
+        execute(arguments.command, &home, &client).await
     })
+}
+
+async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<()> {
+    match command {
+        Command::Claude {
+            command: ClaudeCommand::Login,
+        } => {
+            let token = agent::harness::acquire_host_token(agent::Harness::ClaudeCode)?;
+            let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
+            println!("{} authentication stored", imported.provider);
+        }
+        Command::Apply { filename, name } => {
+            let mut request = read_apply_request(filename).await?;
+            if let Some(name) = name {
+                request.agent.metadata.name = name;
+            }
+            let applied = client.apply(request).await?;
+            println!("agent/{} applied", applied.metadata.name);
+        }
+        Command::Get {
+            resource,
+            name,
+            agent,
+            all_agents,
+        } => get_resources(client, &resource, name, agent, all_agents).await?,
+        Command::Describe { resource, name } => describe(client, &resource, name).await?,
+        Command::Delete { resource, name } => {
+            let (resource, name) = resource_reference(&resource, name)?;
+            if resource != Resource::Agent {
+                return Err(Error::Invalid("Session deletion is not supported".into()).into());
+            }
+            let name = require_name(name, "Agent")?;
+            client.delete(&name).await?;
+            println!("agent/{name} deleted");
+        }
+        Command::Attach { resource, name, agent } => attach(home, client, &resource, name, agent).await?,
+        Command::Wait {
+            condition,
+            timeout,
+            resource,
+            name,
+        } => wait(client, &condition, timeout, &resource, name).await?,
+    }
+    Ok(())
+}
+
+async fn get_resources(
+    client: &Client,
+    resource: &str,
+    name: Option<String>,
+    agent: Option<String>,
+    all_agents: bool,
+) -> CommandResult<()> {
+    let (resource, name) = resource_reference(resource, name)?;
+    match resource {
+        Resource::Agent => {
+            reject_session_scope(agent.as_deref(), all_agents)?;
+            let agents = if let Some(name) = name {
+                vec![client.get(&name).await?]
+            } else {
+                client.list_agents().await?
+            };
+            print_agents(&agents);
+        }
+        Resource::Session if name.is_some() => {
+            if all_agents {
+                return Err(
+                    Error::Invalid("a named Session requires --agent or current-directory inference".into()).into(),
+                );
+            }
+            let agent = resolve_agent_name(client, agent).await?;
+            let session = client
+                .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
+                .await?;
+            print_sessions(&[session], false);
+        }
+        Resource::Session if all_agents => print_sessions(&client.list_sessions(None).await?, true),
+        Resource::Session => {
+            let agent = resolve_agent_name(client, agent).await?;
+            print_sessions(&client.list_sessions(Some(&agent)).await?, false);
+        }
+    }
+    Ok(())
+}
+
+async fn attach(
+    home: &ControlPlaneHome,
+    client: &Client,
+    resource: &str,
+    name: Option<String>,
+    agent: Option<String>,
+) -> CommandResult<()> {
+    let (resource, name) = resource_reference(resource, name)?;
+    if resource != Resource::Session {
+        return Err(Error::Invalid("attach requires a Session resource".into()).into());
+    }
+    let session = SessionName::new(require_name(name, "Session")?)?;
+    let agent = resolve_agent_name(client, agent).await?;
+    eprintln!(
+        "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
+        session = session.as_str()
+    );
+    let target = client.ensure_session(&agent, session).await?;
+    agent::sessions::attach(home.path(), &target).await?;
+    Ok(())
+}
+
+async fn describe(client: &Client, resource: &str, name: Option<String>) -> CommandResult<()> {
+    let (resource, name) = resource_reference(resource, name)?;
+    if resource != Resource::Agent {
+        return Err(Error::Invalid("describe currently supports only Agent resources".into()).into());
+    }
+    print_agent_description(&client.get(&require_name(name, "Agent")?).await?);
+    Ok(())
+}
+
+async fn wait(
+    client: &Client,
+    condition: &str,
+    timeout: Duration,
+    resource: &str,
+    name: Option<String>,
+) -> CommandResult<()> {
+    let (resource, name) = resource_reference(resource, name)?;
+    if resource != Resource::Agent {
+        return Err(Error::Invalid("wait currently supports only Agent resources".into()).into());
+    }
+    if condition != "condition=Ready" {
+        return Err(Error::Invalid("only --for=condition=Ready is supported".into()).into());
+    }
+    let name = require_name(name, "Agent")?;
+    wait_for_ready(client, &name, timeout).await?;
+    println!("agent/{name} condition met");
+    Ok(())
+}
+
+fn resource_reference(resource: &str, name: Option<String>) -> Result<(Resource, Option<String>), Error> {
+    let (kind, embedded_name) = resource.split_once('/').map_or((resource, None), |(kind, name)| {
+        (kind, (!name.is_empty()).then(|| name.to_owned()))
+    });
+    if resource.matches('/').count() > 1 || (resource.contains('/') && embedded_name.is_none()) {
+        return Err(Error::Invalid("resource references must use TYPE/NAME".into()));
+    }
+    if embedded_name.is_some() && name.is_some() {
+        return Err(Error::Invalid("resource name was supplied twice".into()));
+    }
+    let resource = match kind.to_ascii_lowercase().as_str() {
+        "agent" | "agents" | "ag" => Resource::Agent,
+        "session" | "sessions" => Resource::Session,
+        _ => return Err(Error::Invalid(format!("unknown resource type {kind:?}"))),
+    };
+    Ok((resource, embedded_name.or(name)))
+}
+
+fn require_name(name: Option<String>, resource: &str) -> Result<String, Error> {
+    name.ok_or_else(|| Error::Invalid(format!("{resource} name is required")))
+}
+
+fn reject_session_scope(agent: Option<&str>, all_agents: bool) -> Result<(), Error> {
+    if agent.is_some() || all_agents {
+        Err(Error::Invalid(
+            "--agent and --all-agents apply only to Session resources".into(),
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+async fn resolve_agent_name(client: &Client, explicit: Option<String>) -> CommandResult<String> {
+    if let Some(agent) = explicit {
+        return Ok(agent);
+    }
+    let directory = std::env::current_dir().map_err(Error::from)?;
+    match client.resolve_agent(directory).await {
+        Ok(agent) => Ok(agent.metadata.name),
+        Err(error) => Err(inference_error(error)),
+    }
+}
+
+fn inference_error(error: Error) -> CommandError {
+    match error {
+        Error::Rpc(error) if error.code == -32004 => {
+            CommandError::Message("no Agent was applied from the current directory; specify --agent".into())
+        }
+        Error::Rpc(error) => CommandError::Message(error.message),
+        error => error.into(),
+    }
+}
+
+async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Result<(), Error> {
+    const POLL_INTERVAL: Duration = Duration::from_secs(2);
+
+    let deadline = tokio::time::Instant::now() + timeout;
+    let mut last_ready = None;
+    loop {
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            return Err(Error::Invalid(wait_timeout_message(name, last_ready.as_ref())));
+        }
+        let agent = match tokio::time::timeout(remaining, client.get(name)).await {
+            Ok(result) => result?,
+            Err(_) => return Err(Error::Invalid(wait_timeout_message(name, last_ready.as_ref()))),
+        };
+        let ready = agent
+            .status
+            .conditions
+            .iter()
+            .find(|condition| condition.kind == "Ready");
+        if ready.is_some_and(|condition| condition.status == ConditionStatus::True) {
+            return Ok(());
+        }
+        last_ready = ready.cloned();
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        tokio::time::sleep(remaining.min(POLL_INTERVAL)).await;
+    }
+}
+
+fn wait_timeout_message(name: &str, ready: Option<&agent::Condition>) -> String {
+    let Some(ready) = ready else {
+        return format!("timed out waiting for Agent {name:?} to become Ready; no Ready condition was reported");
+    };
+    let reason = if ready.reason.is_empty() {
+        "Unknown"
+    } else {
+        ready.reason.as_str()
+    };
+    if ready.message.is_empty() {
+        format!("timed out waiting for Agent {name:?} to become Ready: {reason}")
+    } else {
+        format!(
+            "timed out waiting for Agent {name:?} to become Ready: {reason}: {}",
+            ready.message
+        )
+    }
+}
+
+fn parse_duration(value: &str) -> Result<Duration, String> {
+    let (number, multiplier) = match value.as_bytes().last() {
+        Some(b's') => (&value[..value.len() - 1], 1),
+        Some(b'm') => (&value[..value.len() - 1], 60),
+        Some(b'h') => (&value[..value.len() - 1], 60 * 60),
+        _ => return Err("duration must end in s, m, or h".into()),
+    };
+    let number = number
+        .parse::<u64>()
+        .map_err(|_| "duration must contain a positive whole number".to_string())?;
+    if number == 0 {
+        return Err("duration must be greater than zero".into());
+    }
+    Ok(Duration::from_secs(number.saturating_mul(multiplier)))
+}
+
+fn print_agents(agents: &[Agent]) {
+    let rows = agents
+        .iter()
+        .map(|agent| {
+            let ready = agent
+                .status
+                .conditions
+                .iter()
+                .find(|condition| condition.kind == "Ready");
+            let ready_value = ready.map_or("Unknown", |condition| condition_status(condition.status));
+            let status = if agent.metadata.deletion_timestamp.is_some() {
+                "Terminating"
+            } else {
+                ready.map_or("Pending", |condition| condition.reason.as_str())
+            };
+            let harness = match agent.spec.harness.kind {
+                agent::Harness::ClaudeCode => "claudeCode",
+            };
+            let provider = agent
+                .status
+                .sandbox
+                .as_ref()
+                .map_or("-", |assignment| assignment.provider().as_str());
+            vec![
+                agent.metadata.name.clone(),
+                ready_value.into(),
+                status.into(),
+                harness.into(),
+                provider.into(),
+            ]
+        })
+        .collect::<Vec<_>>();
+    print_table(&["NAME", "READY", "STATUS", "HARNESS", "PROVIDER"], &rows);
+}
+
+fn print_agent_description(agent: &Agent) {
+    let harness = match agent.spec.harness.kind {
+        agent::Harness::ClaudeCode => "claudeCode",
+    };
+    let provider = agent
+        .status
+        .sandbox
+        .as_ref()
+        .map_or("-", |assignment| assignment.provider().as_str());
+    let sandbox = agent
+        .status
+        .sandbox
+        .as_ref()
+        .and_then(agent::sandbox::Assignment::id)
+        .map_or_else(|| "-".into(), ToString::to_string);
+
+    println!("Name:       {}", agent.metadata.name);
+    println!("Generation: {}", agent.metadata.generation);
+    println!("Harness:    {harness} {}", agent.spec.harness.version);
+    println!("Provider:   {provider}");
+    println!("Sandbox:    {sandbox}");
+    println!("Conditions:");
+    if agent.status.conditions.is_empty() {
+        println!("  None");
+        return;
+    }
+    let rows = agent
+        .status
+        .conditions
+        .iter()
+        .map(|condition| {
+            vec![
+                condition.kind.clone(),
+                condition_status(condition.status).into(),
+                condition.reason.clone(),
+                condition.message.clone(),
+            ]
+        })
+        .collect::<Vec<_>>();
+    print_table(&["TYPE", "STATUS", "REASON", "MESSAGE"], &rows);
+}
+
+const fn condition_status(status: ConditionStatus) -> &'static str {
+    match status {
+        ConditionStatus::True => "True",
+        ConditionStatus::False => "False",
+        ConditionStatus::Unknown => "Unknown",
+    }
+}
+
+fn print_sessions(sessions: &[Session], show_agent: bool) {
+    let rows = sessions
+        .iter()
+        .map(|session| {
+            let mut row = Vec::new();
+            if show_agent {
+                row.push(session.agent.clone());
+            }
+            row.extend([
+                session.name.as_str().to_owned(),
+                session_state(session.status.state).into(),
+                format_age(session.created_at),
+            ]);
+            row
+        })
+        .collect::<Vec<_>>();
+    let headers = if show_agent {
+        vec!["AGENT", "NAME", "STATE", "AGE"]
+    } else {
+        vec!["NAME", "STATE", "AGE"]
+    };
+    print_table(&headers, &rows);
+}
+
+const fn session_state(state: agent::sessions::State) -> &'static str {
+    match state {
+        agent::sessions::State::Starting => "Starting",
+        agent::sessions::State::Running => "Running",
+        agent::sessions::State::Idle => "Idle",
+        agent::sessions::State::Failed => "Failed",
+    }
+}
+
+fn format_age(created_at: time::OffsetDateTime) -> String {
+    let seconds = (time::OffsetDateTime::now_utc() - created_at).whole_seconds().max(0);
+    match seconds {
+        0..60 => format!("{seconds}s"),
+        60..3600 => format!("{}m", seconds / 60),
+        3600..86_400 => format!("{}h", seconds / 3600),
+        _ => format!("{}d", seconds / 86_400),
+    }
+}
+
+fn print_table(headers: &[&str], rows: &[Vec<String>]) {
+    if rows.is_empty() {
+        eprintln!("No resources found.");
+        return;
+    }
+    let widths = headers
+        .iter()
+        .enumerate()
+        .map(|(index, header)| {
+            rows.iter()
+                .filter_map(|row| row.get(index))
+                .map(String::len)
+                .max()
+                .unwrap_or_default()
+                .max(header.len())
+        })
+        .collect::<Vec<_>>();
+    print_row(
+        &headers.iter().map(|value| (*value).to_owned()).collect::<Vec<_>>(),
+        &widths,
+    );
+    for row in rows {
+        print_row(row, &widths);
+    }
+}
+
+fn print_row(values: &[String], widths: &[usize]) {
+    for (index, value) in values.iter().enumerate() {
+        if index + 1 == values.len() {
+            println!("{value}");
+        } else {
+            print!("{value:<width$}  ", width = widths[index]);
+        }
+    }
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
@@ -203,6 +627,77 @@ mod tests {
     use std::time::SystemTime;
 
     use super::*;
+
+    #[test]
+    fn resource_references_follow_kubectl_shapes_and_aliases() {
+        assert_eq!(
+            resource_reference("agents", None).expect("Agent collection"),
+            (Resource::Agent, None)
+        );
+        assert_eq!(
+            resource_reference("ag/worker", None).expect("Agent reference"),
+            (Resource::Agent, Some("worker".into()))
+        );
+        assert_eq!(
+            resource_reference("session", Some("s1".into())).expect("Session reference"),
+            (Resource::Session, Some("s1".into()))
+        );
+        assert!(resource_reference("agent/worker", Some("other".into())).is_err());
+        assert!(resource_reference("pods", None).is_err());
+    }
+
+    #[test]
+    fn wait_durations_are_bounded_and_explicit() {
+        assert_eq!(parse_duration("30s").expect("seconds"), Duration::from_secs(30));
+        assert_eq!(parse_duration("10m").expect("minutes"), Duration::from_mins(10));
+        assert_eq!(parse_duration("2h").expect("hours"), Duration::from_hours(2));
+        assert!(parse_duration("0s").is_err());
+        assert!(parse_duration("forever").is_err());
+    }
+
+    #[test]
+    fn wait_timeout_reports_the_last_ready_diagnostic() {
+        let condition = agent::Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::False,
+            reason: "SecretMissing".into(),
+            message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        };
+
+        assert_eq!(
+            wait_timeout_message("worker", Some(&condition)),
+            "timed out waiting for Agent \"worker\" to become Ready: SecretMissing: .env does not define required variable \"GITHUB_TOKEN\""
+        );
+    }
+
+    #[test]
+    fn inference_errors_have_one_actionable_message() {
+        let ambiguous = inference_error(Error::Rpc(agent::control_api::ResponseError {
+            code: -32602,
+            message: "multiple Agents were applied from this directory; specify --agent".into(),
+        }));
+        assert_eq!(
+            ambiguous.to_string(),
+            "multiple Agents were applied from this directory; specify --agent"
+        );
+
+        let missing = inference_error(Error::Rpc(agent::control_api::ResponseError {
+            code: -32004,
+            message: "Agent not found".into(),
+        }));
+        assert_eq!(
+            missing.to_string(),
+            "no Agent was applied from the current directory; specify --agent"
+        );
+    }
+
+    #[test]
+    fn session_state_output_does_not_depend_on_debug_names() {
+        assert_eq!(session_state(agent::sessions::State::Starting), "Starting");
+        assert_eq!(session_state(agent::sessions::State::Running), "Running");
+        assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
+        assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
+    }
 
     #[test]
     fn apply_source_is_resolved_in_the_client_working_directory() {

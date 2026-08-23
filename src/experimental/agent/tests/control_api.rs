@@ -50,7 +50,15 @@ impl SessionApi for FakeSessions {
         Box::pin(async { Err(Error::NotFound) })
     }
 
-    fn list<'a>(&'a self, _agent: &'a str) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
+    fn get<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<agent::sessions::Session, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+
+    fn list<'a>(&'a self, _agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
         Box::pin(async { Ok(Vec::new()) })
     }
 }
@@ -120,6 +128,20 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     let applied = client.apply(request("worker")).await.expect("apply");
     let fetched = client.get("worker").await.expect("get");
     assert_eq!(applied, fetched);
+    assert_eq!(client.list_agents().await.expect("list"), vec![applied.clone()]);
+    assert_eq!(
+        client
+            .resolve_agent(request("worker").source_directory.join("nested"))
+            .await
+            .expect("resolve source"),
+        applied
+    );
+    assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
+    let session_error = client
+        .get_session("worker", agent::sessions::SessionName::new("s1").expect("Session name"))
+        .await
+        .expect_err("missing Session");
+    assert!(matches!(session_error, Error::Rpc(error) if error.code == -32004));
 
     client.delete("worker").await.expect("delete request");
     let deleting = client.get("worker").await.expect("marked resource");

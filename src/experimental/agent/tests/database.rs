@@ -85,6 +85,13 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         assert_eq!(sessions.len(), 1);
         assert_eq!(sessions[0].name.as_str(), "s1");
         assert_eq!(sessions[0].status.state, agent::sessions::State::Running);
+        assert_eq!(
+            second
+                .get_agent_session("worker", &SessionName::new("s1").expect("Session name"))
+                .await
+                .expect("named Session"),
+            sessions[0]
+        );
     });
 }
 

@@ -51,7 +51,8 @@ The Sandbox crates do not depend on Agent automation.
 ### Agent layer
 
 `agentd` owns the durable desired state and all lifecycle effects. `agentctl` starts the adjacent daemon on demand and
-communicates through the versioned local control API.
+communicates through the versioned local control API. Its resource-oriented commands follow `verb resource [name]`;
+Session scope is explicit through `--agent` or inferred from the closest unique persisted Agent source directory.
 
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized

@@ -228,6 +228,13 @@ pub trait SessionStore {
     /// Gets one Session by immutable identity.
     fn get_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<Session, Error>>;
 
+    /// Gets one named Session from the active incarnation of an Agent.
+    fn get_agent_session<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
     /// Lists every persistent Session.
     fn list_all_sessions(&self) -> ::sandbox::LocalFuture<'_, Result<Vec<Session>, Error>>;
 

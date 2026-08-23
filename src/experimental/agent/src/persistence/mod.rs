@@ -115,6 +115,21 @@ impl crate::sessions::SessionStore for Database {
         Box::pin(async move { self.request(|response| Command::GetSession { id, response }).await })
     }
 
+    fn get_agent_session<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a crate::sessions::SessionName,
+    ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::GetSessionByName {
+                agent: agent.into(),
+                name: name.clone(),
+                response,
+            })
+            .await
+        })
+    }
+
     fn list_all_sessions(&self) -> sandbox::LocalFuture<'_, Result<Vec<crate::sessions::Session>, Error>> {
         Box::pin(async move { self.request(|response| Command::ListAllSessions { response }).await })
     }
@@ -396,6 +411,11 @@ enum Command {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
+    GetSessionByName {
+        agent: String,
+        name: crate::sessions::SessionName,
+        response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
+    },
     ListAllSessions {
         response: oneshot::Sender<Result<Vec<crate::sessions::Session>, Error>>,
     },
@@ -540,6 +560,9 @@ fn execute_session(connection: &mut Connection, command: Command) {
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));
+        }
+        Command::GetSessionByName { agent, name, response } => {
+            let _ = response.send(sessions::get_by_name(connection, &agent, &name));
         }
         Command::ListAllSessions { response } => {
             let _ = response.send(sessions::list_all(connection));

@@ -19,11 +19,16 @@ agentctl claude login
 cp .env.sample .env
 # Add a GitHub PAT and Studio bot token to .env without committing it.
 agentctl apply -f agent.yaml --name studiodev-0
-agentctl get studiodev-0
-agentctl attach studiodev-0 s1
-agentctl attach studiodev-0 s2
-agentctl sessions studiodev-0
+agentctl get agent studiodev-0
+agentctl describe agent/studiodev-0
+agentctl wait --for=condition=Ready agent/studiodev-0 --timeout=10m
+agentctl attach session/s1 --agent studiodev-0
+agentctl attach session/s2 --agent studiodev-0
+agentctl get sessions --agent studiodev-0
 ```
+
+When exactly one Agent was applied from the current source directory, Session commands may omit `--agent` and infer
+the owner. Multiple Agent names from the same directory are intentionally ambiguous.
 
 The first apply includes the image build and can take several minutes. Image init starts one repository clone attempt,
 which may still be running when the Agent becomes Ready. Later boots reuse a successful persistent checkout. Sessions

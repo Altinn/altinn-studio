@@ -7,9 +7,9 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
-    JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_GET, METHOD_HEALTH,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_LIST, NameParams, ReadMessage, Request, Response, SessionParams,
-    read_message,
+    DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_GET,
+    METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, NameParams, ReadMessage, Request, Response, SessionListParams, SessionParams, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -73,6 +73,24 @@ impl Client {
         self.call(METHOD_GET, NameParams { name: name.into() }).await
     }
 
+    /// Lists every active Agent.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or storage fails.
+    pub async fn list_agents(&self) -> Result<Vec<Agent>, Error> {
+        self.call(METHOD_LIST, serde_json::json!({})).await
+    }
+
+    /// Resolves the closest persisted Agent source directory containing `directory`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no unique Agent matches or the API call fails.
+    pub async fn resolve_agent(&self, directory: std::path::PathBuf) -> Result<Agent, Error> {
+        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }).await
+    }
+
     /// Requests deletion of an Agent and its owned sandbox.
     ///
     /// # Errors
@@ -116,13 +134,35 @@ impl Client {
         .await
     }
 
-    /// Lists tracked sessions for one Agent.
+    /// Gets one named Session scoped to an Agent.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing or the registry cannot read the sessions.
-    pub async fn list_sessions(&self, agent: &str) -> Result<Vec<sessions::Session>, Error> {
-        self.call(METHOD_SESSION_LIST, NameParams { name: agent.into() }).await
+    /// Returns an error when either resource is missing or the registry cannot be read.
+    pub async fn get_session(&self, agent: &str, name: sessions::SessionName) -> Result<sessions::Session, Error> {
+        self.call(
+            METHOD_SESSION_GET,
+            SessionParams {
+                agent: agent.into(),
+                name,
+            },
+        )
+        .await
+    }
+
+    /// Lists tracked Sessions, optionally scoped to one Agent.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the scoped Agent is missing or the registry cannot be read.
+    pub async fn list_sessions(&self, agent: Option<&str>) -> Result<Vec<sessions::Session>, Error> {
+        self.call(
+            METHOD_SESSION_LIST,
+            SessionListParams {
+                agent: agent.map(str::to_owned),
+            },
+        )
+        .await
     }
 
     async fn call<P: Serialize, R: DeserializeOwned>(&self, method: &str, params: P) -> Result<R, Error> {

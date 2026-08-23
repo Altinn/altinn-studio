@@ -8,9 +8,12 @@ pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
 pub(crate) const METHOD_HEALTH: &str = "control.v1.health";
 pub(crate) const METHOD_GET: &str = "agents.v1.get";
+pub(crate) const METHOD_LIST: &str = "agents.v1.list";
+pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
 pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
+pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
@@ -70,6 +73,19 @@ pub(crate) struct NameParams {
 pub(crate) struct SessionParams {
     pub agent: String,
     pub name: crate::sessions::SessionName,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct DirectoryParams {
+    pub directory: std::path::PathBuf,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionListParams {
+    #[serde(default)]
+    pub agent: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
