@@ -281,11 +281,15 @@ internal sealed class WorkflowCommandSet
                 // enqueues the first receiver instead.
                 return new ServiceTaskSegmentPlan(
                     steps,
-                    new MailboxReceivePlan(CreateReceiveHandlerStep(serviceTaskType), exchange.OpeningStageName)
+                    new MailboxReceivePlan(
+                        CreateReceiveHandlerStep(serviceTaskType, exchange.OpeningStageName),
+                        exchange.OpeningStageName
+                    )
                 );
 
             case PipelineConclusion.FinalStep:
-                // The concluding engine step — the pipeline's Finally, identified by a null stage name.
+                // The concluding engine step — the pipeline's Finally, identified by naming neither a stage nor
+                // an exchange.
                 steps.Add(CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType)));
                 return new ServiceTaskSegmentPlan(steps, Receive: null);
 
@@ -297,11 +301,22 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// The one step a receive workflow runs: the same <c>ExecuteServiceTask</c> conclusion step a non-mailbox
-    /// task ends with — a null stage name is the conclusion, whichever shape it has.
+    /// The one step a receive workflow runs: an <c>ExecuteServiceTask</c> step that names the exchange it
+    /// answers rather than a stage it runs.
     /// </summary>
-    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType) =>
-        CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType));
+    /// <remarks>
+    /// The name is fixed here, at the receiver's enqueue, and never re-derived at the hop that runs the step —
+    /// a stage renamed mid-flight would otherwise address a different exchange, or silently none. The step
+    /// itself carries no <c>ServiceTaskStageName</c>: options for a receive step are the conclusion's, and
+    /// that is what a null one resolves to.
+    /// </remarks>
+    /// <param name="serviceTaskType">The service task whose pipeline answers the exchange.</param>
+    /// <param name="openingStageName">The stage that opened the exchange this receiver answers.</param>
+    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, string openingStageName) =>
+        CreateCommand(
+            ExecuteServiceTask.Key,
+            new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageName)
+        );
 
     private static StepRequest CreateCommand(
         string commandKey,

@@ -17,15 +17,24 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, long position)
+        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, string openingStageName, long position)
             : base(mailboxId)
         {
             ServiceTaskType = serviceTaskType;
+            OpeningStageName = openingStageName;
             Position = position;
         }
 
         /// <summary>The service task whose pipeline conclusion is the reply handler.</summary>
         public string ServiceTaskType { get; }
+
+        /// <summary>
+        /// The stage that opened this exchange — the identity the successor names as the exchange it answers.
+        /// Sourced from the executing step's own payload rather than from the pipeline as resolved at that
+        /// hop (falling back to the pipeline's opening stage only for a step that carries no name), so a
+        /// stage renamed mid-flight cannot make the successor address a different exchange or none at all.
+        /// </summary>
+        public string OpeningStageName { get; }
 
         /// <summary>
         /// The position the handler just answered — names the successor for operators; the successor's own

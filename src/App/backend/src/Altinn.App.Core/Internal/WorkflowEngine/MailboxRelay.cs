@@ -57,8 +57,11 @@ internal sealed class MailboxRelay
     /// <param name="mailbox">The rendezvous the engine handed this execution.</param>
     /// <param name="carry">The blob's bookkeeping, which a conclusion stops carrying the mailbox in.</param>
     /// <param name="openingStageName">
-    /// The stage that opened the exchange — the carry's key for it. Resolved from the pipeline by the executing
-    /// command, which reads the declaration anyway.
+    /// The stage that opened the exchange — the carry's key for it, and the identity a successor is enqueued
+    /// against. Sourced by the executing command from the step's own payload (falling back to the pipeline's
+    /// opening stage only for a step that carries no name), never re-derived here: a mid-flight rename would
+    /// otherwise point the successor at another exchange and make <see cref="WorkflowCallbackStateCarry"/>'s
+    /// concluding removal a silent no-op, leaving the concluded mailbox in the published blob.
     /// </param>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskExchangeResult result,
@@ -84,6 +87,7 @@ internal sealed class MailboxRelay
                     MailboxContinuation = new MailboxContinuation.AwaitNextMessage(
                         mailbox.Id,
                         serviceTaskType,
+                        openingStageName,
                         mailbox.Seq
                     ),
                 };
@@ -209,9 +213,11 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
 
-        // Resolved as the factory resolves them for the first receiver; a null stage name is the conclusion.
+        // Resolved as the factory resolves them for the first receiver, and naming the same exchange: the
+        // continuation carries the identity its predecessor's step carried, so the whole chain answers the
+        // exchange the first receiver was enqueued against.
         StepRequest receiveStep = WorkflowCommandSet
-            .CreateReceiveHandlerStep(continuation.ServiceTaskType)
+            .CreateReceiveHandlerStep(continuation.ServiceTaskType, continuation.OpeningStageName)
             .ApplyStepOptions(_stepOptionsResolver, taskId, continuation.ServiceTaskType);
 
         // Minted at this hop: with the re-signed blob below, this binds each hop to current app code. The lock

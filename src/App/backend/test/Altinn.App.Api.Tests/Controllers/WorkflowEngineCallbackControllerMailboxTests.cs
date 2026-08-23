@@ -246,7 +246,10 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             WorkflowId = Guid.NewGuid(),
             StepId = stepId,
             Mailbox = mailbox,
-            Payload = CommandPayloadSerializer.Serialize(new ExecuteServiceTaskPayload(ServiceTaskType)),
+            // A receive step as the runtime enqueues one: it names the exchange it answers.
+            Payload = CommandPayloadSerializer.Serialize(
+                new ExecuteServiceTaskPayload(ServiceTaskType, RepliesTo: SendStage)
+            ),
             State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
 

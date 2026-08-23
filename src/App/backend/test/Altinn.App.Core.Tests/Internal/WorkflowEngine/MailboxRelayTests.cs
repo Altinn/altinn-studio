@@ -351,7 +351,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, position: 0),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, position: 0),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -373,7 +373,7 @@ public class MailboxRelayTests
         var awaiting = new RelayRecorder();
         await CreateRelay(awaiting)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, position: 1),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, position: 1),
                 CreateRequest(stepId),
                 CancellationToken.None
             );
@@ -394,7 +394,7 @@ public class MailboxRelayTests
         var otherStep = new RelayRecorder();
         await CreateRelay(otherStep)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, position: 1),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, position: 1),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -411,7 +411,12 @@ public class MailboxRelayTests
         var recorder = new RelayRecorder();
         MailboxRelay relay = CreateRelay(recorder);
 
-        var continuation = new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, position: 0);
+        var continuation = new MailboxContinuation.AwaitNextMessage(
+            _mailboxId,
+            ServiceTaskType,
+            OpeningStage,
+            position: 0
+        );
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
 
@@ -505,7 +510,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, position: 2),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, position: 2),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -535,6 +540,37 @@ public class MailboxRelayTests
         Assert.Contains(ServiceTaskType, step.Command.Data.ToString(), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// A successor is a receive step like the first one: it names the exchange it answers and no stage, and
+    /// the name it names is whatever the continuation carried. That the continuation's name is itself the
+    /// executing step's rather than one re-derived from the pipeline is pinned a layer up, in
+    /// <c>ExecuteServiceTaskReplyTests</c>, where the two can differ.
+    /// </summary>
+    [Fact]
+    public async Task SuccessorReceiver_NamesTheExchangeItAnswersAndNoStage()
+    {
+        var recorder = new RelayRecorder();
+
+        await CreateRelay(recorder)
+            .Continue(
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, position: 4),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
+        Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
+
+        var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
+        Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
+        Assert.Equal(OpeningStage, payload.RepliesTo);
+        Assert.Null(payload.StageName);
+        // The step itself stays stage-free: a receive step's options are the conclusion's, which is what a
+        // null ServiceTaskStageName resolves to.
+        Assert.Null(step.ServiceTaskStageName);
+    }
+
     [Fact]
     public async Task SuccessorReceiver_CarriesAFreshCallbackTokenAndTheTransitionsLockToken()
     {
@@ -542,7 +578,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, position: 0),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, position: 0),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );

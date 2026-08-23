@@ -35,6 +35,7 @@ public class MailboxRelayFrontierTests
     private const string App = "test-app";
     private const string Namespace = "ttd/test-app";
     private const string ServiceTaskType = "archiving";
+    private const string OpeningStage = "SendToArchive";
     private const string TaskId = "Task_2";
 
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
@@ -346,7 +347,7 @@ public class MailboxRelayFrontierTests
             // The relay's enqueue happens inside the callback — the receiver is still unsettled.
             int headsBefore = collection.EnqueuedByTheRelay.Count;
             await relay.Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, hop),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, hop),
                 CreateRequest(receiver, Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -389,7 +390,7 @@ public class MailboxRelayFrontierTests
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         await relay.Continue(
-            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, 0),
+            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, 0),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );

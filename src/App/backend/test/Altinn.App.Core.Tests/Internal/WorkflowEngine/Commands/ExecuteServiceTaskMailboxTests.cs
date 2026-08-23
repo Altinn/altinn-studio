@@ -176,6 +176,9 @@ public class ExecuteServiceTaskMailboxTests
 
     private static ExecuteServiceTaskPayload Payload(string? stageName) => new("archiving", stageName);
 
+    /// <summary>A receive step as the runtime enqueues one: it names the exchange it answers.</summary>
+    private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", RepliesTo: SendStage);
+
     [Fact]
     public async Task DeclaringStage_IsHandedTheMailboxTheMintStepCarried()
     {
@@ -284,6 +287,11 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Equal(CarriedMailboxId, only.Value.Id);
     }
 
+    /// <summary>
+    /// A concluding step reaching a pipeline that answers messages: the redeploy that turned a
+    /// <c>Finally</c> into a reply terminal while this workflow was in flight, so its Main still carries a
+    /// bare concluding step and it arrives with nothing to answer.
+    /// </summary>
     [Fact]
     public async Task ReplyHandlerOfAnExchangePipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
     {
@@ -296,5 +304,42 @@ public class ExecuteServiceTaskMailboxTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
         Assert.Empty(task.Seen);
+    }
+
+    /// <summary>
+    /// The same guard through the arm a receive step takes: naming the exchange decides <em>which</em>
+    /// handler runs, and the rendezvous guards still run before it does.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), ReceivePayload());
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
+        Assert.Empty(task.Seen);
+    }
+
+    /// <summary>
+    /// A receive step reaches the reply handler and no stage, even though the exchange it names is the one
+    /// its own sending stage opened — the stage's name and the exchange's are the same string in different
+    /// fields, and only one of them dispatches to the stage.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_NamingTheSendingStagesExchange_RunsTheHandlerAndNotTheStage()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry(), Delivered(CarriedMailboxId)), ReceivePayload());
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Contains("OnMessage", task.Seen);
+        Assert.DoesNotContain(SendStage, task.Seen);
+        Assert.Null(task.SentTo);
     }
 }

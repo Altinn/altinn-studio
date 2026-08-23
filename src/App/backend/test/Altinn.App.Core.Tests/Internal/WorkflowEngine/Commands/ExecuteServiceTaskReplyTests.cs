@@ -29,6 +29,7 @@ public class ExecuteServiceTaskReplyTests
 {
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private const string OpeningStage = "SendToArchive";
 
     /// <summary>
     /// The real envelope, not a stub: a delivered message only reaches a handler if it opens against this mailbox,
@@ -179,13 +180,28 @@ public class ExecuteServiceTaskReplyTests
             DisposedReason = reason,
         };
 
+    /// <summary>
+    /// A receive step the way the runtime enqueues one: it names the exchange it answers rather than a stage
+    /// it runs. Dispatch reads the name's <em>presence</em> to pick this branch and the handler by the
+    /// pipeline's shape; the name itself is the exchange's identity, and travels on to the successor and the
+    /// carry.
+    /// </summary>
+    private static ExecuteServiceTaskPayload ReceiveStep(string repliesTo = OpeningStage) =>
+        new("archiving", RepliesTo: repliesTo);
+
+    /// <summary>Main's concluding step: it names neither a stage nor an exchange.</summary>
+    private static ExecuteServiceTaskPayload ConcludingStep() => new("archiving");
+
+    /// <summary>A step that runs one of the pipeline's stages.</summary>
+    private static ExecuteServiceTaskPayload StageStep(string stageName) => new("archiving", stageName);
+
     [Fact]
     public async Task OnMessage_WithADeliveredMessage_ReadsItVerbatim()
     {
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered(seq: 3)), new ExecuteServiceTaskPayload("archiving"));
+            .Execute(CreateContext(Delivered(seq: 3)), ReceiveStep());
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         ServiceTaskReply reply = Assert.IsType<ServiceTaskReply>(task.Message);
@@ -202,7 +218,7 @@ public class ExecuteServiceTaskReplyTests
         var task = new ArchivingTask();
         AppCallbackMailbox empty = Delivered(body: "");
 
-        await CreateCommand(task).Execute(CreateContext(empty), new ExecuteServiceTaskPayload("archiving"));
+        await CreateCommand(task).Execute(CreateContext(empty), ReceiveStep());
 
         Assert.NotNull(task.Message);
         Assert.Equal("", task.Message.Payload);
@@ -219,8 +235,7 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new ArchivingTask();
 
-        await CreateCommand(task)
-            .Execute(CreateContext(Closed(engineReason)), new ExecuteServiceTaskPayload("archiving"));
+        await CreateCommand(task).Execute(CreateContext(Closed(engineReason)), ReceiveStep());
 
         Assert.Null(task.Message);
         Assert.NotNull(task.ClosedContext);
@@ -233,7 +248,7 @@ public class ExecuteServiceTaskReplyTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(), new ExecuteServiceTaskPayload("archiving", "RecordDispatch"));
+            .Execute(CreateContext(), StageStep("RecordDispatch"));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Stage);
@@ -246,8 +261,7 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new PlainTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(), new ExecuteServiceTaskPayload("archiving"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), ConcludingStep());
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Conclusion);
@@ -259,11 +273,13 @@ public class ExecuteServiceTaskReplyTests
         var task = new PlainTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered()), new ExecuteServiceTaskPayload("archiving"));
+            .Execute(CreateContext(Delivered()), ConcludingStep());
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
+        // One reason code, two routes, and each names what it actually observed: this route saw a rendezvous.
+        Assert.Contains("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Conclusion);
     }
 
@@ -328,8 +344,7 @@ public class ExecuteServiceTaskReplyTests
             },
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(receipt), new ExecuteServiceTaskPayload("archiving"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(receipt), ReceiveStep());
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Equal(forwardedBody, task.Message!.Payload);
@@ -345,8 +360,7 @@ public class ExecuteServiceTaskReplyTests
             Delivery = Delivered().Delivery! with { Payload = "<receipt>ok</receipt>" },
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(unsealed), new ExecuteServiceTaskPayload("archiving"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(unsealed), ReceiveStep());
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -382,8 +396,7 @@ public class ExecuteServiceTaskReplyTests
             },
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(foreign), new ExecuteServiceTaskPayload("archiving"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(foreign), ReceiveStep());
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -397,7 +410,7 @@ public class ExecuteServiceTaskReplyTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), new ExecuteServiceTaskPayload("archiving"));
+            .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), ReceiveStep());
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.ClosedContext);
@@ -410,7 +423,7 @@ public class ExecuteServiceTaskReplyTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered()), new ExecuteServiceTaskPayload("archiving", "RecordDispatch"));
+            .Execute(CreateContext(Delivered()), StageStep("RecordDispatch"));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -432,8 +445,7 @@ public class ExecuteServiceTaskReplyTests
             }
             : new AppCallbackMailbox { Id = _mailboxId, Seq = 0 };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(ambiguous), new ExecuteServiceTaskPayload("archiving"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(ambiguous), ReceiveStep());
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -448,7 +460,7 @@ public class ExecuteServiceTaskReplyTests
         var task = new ArchivingTask { MessageVerdict = ServiceTaskExchangeResult.AwaitNextReply() };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered(seq: 1)), new ExecuteServiceTaskPayload("archiving"));
+            .Execute(CreateContext(Delivered(seq: 1)), ReceiveStep());
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
@@ -457,6 +469,8 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal("archiving", awaiting.ServiceTaskType);
+        // The successor answers the exchange this receiver did, by the name carried since it opened.
+        Assert.Equal(OpeningStage, awaiting.OpeningStageName);
     }
 
     [Fact]
@@ -467,7 +481,7 @@ public class ExecuteServiceTaskReplyTests
         var task = new ArchivingTask { MessageVerdict = ServiceTaskResult.Success("confirm") };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered(), carry), new ExecuteServiceTaskPayload("archiving"));
+            .Execute(CreateContext(Delivered(), carry), ReceiveStep());
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
@@ -485,10 +499,151 @@ public class ExecuteServiceTaskReplyTests
         };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), new ExecuteServiceTaskPayload("archiving"));
+            .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), ReceiveStep());
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
+    }
+
+    /// <summary>
+    /// A receive step is dispatched by the exchange it names, so a pipeline that has stopped answering
+    /// messages fails it permanently instead of running the <c>Finally</c> that replaced the terminal. The
+    /// route is a redeploy that withdrew the reply terminal while the exchange was in flight.
+    /// </summary>
+    /// <param name="withRendezvous">
+    /// Both cells of the arm. <c>true</c> is what phase 1 already failed this way; <c>false</c> is this
+    /// step's new behavior — the step names an exchange, which is enough on its own, where phase 1 ran the
+    /// <c>Finally</c> and concluded the task on nothing. The arm requires no rendezvous, so its wording must
+    /// not claim one: it reports what it actually saw.
+    /// </param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReceiveStep_OnAPipelineThatNoLongerAnswersMessages_FailsPermanently(bool withRendezvous)
+    {
+        var task = new PlainTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(withRendezvous ? CreateContext(Delivered()) : CreateContext(), ReceiveStep());
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
+        Assert.Null(task.Conclusion);
+
+        // The arm reports what it saw — a step naming an exchange — in both cells, because that is all it
+        // checked. Claiming a rendezvous would be false in the second cell and is not what selected the arm
+        // in the first.
+        Assert.Contains("has a step naming an exchange to answer", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.DoesNotContain("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Finding of the step's own review, pinned: the exchange's identity travels with the step and is not
+    /// re-derived from the pipeline at the hop that runs it. Writable only because dispatch picks the handler
+    /// by shape, so a receiver can legitimately carry a name the pipeline no longer uses — which is exactly
+    /// the mid-flight rename this rule exists for.
+    /// </summary>
+    [Fact]
+    public async Task AwaitNextReply_EnqueuesTheSuccessorAgainstTheNameTheReceiverCarried()
+    {
+        const string carriedName = "SendToArchive_v1";
+        var task = new ArchivingTask { MessageVerdict = ServiceTaskExchangeResult.AwaitNextReply() };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), ReceiveStep(carriedName));
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(carriedName, awaiting.OpeningStageName);
+        Assert.NotEqual(OpeningStage, awaiting.OpeningStageName);
+    }
+
+    /// <summary>
+    /// The same rule on the concluding write. <c>RecordMailboxConcluded</c> is a silent removal, so a
+    /// re-derived name would leave the concluded exchange in the published blob — and the next transition
+    /// opening a mailbox from a same-named stage would then be refused by <c>RecordMailbox</c>.
+    /// </summary>
+    [Fact]
+    public async Task OnMessage_ThatSucceeds_DropsTheMailboxKeyedByTheNameTheReceiverCarried()
+    {
+        const string carriedName = "SendToArchive_v1";
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(carriedName, _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
+        var task = new ArchivingTask { MessageVerdict = ServiceTaskResult.Success() };
+
+        await CreateCommand(task).Execute(CreateContext(Delivered(), carry), ReceiveStep(carriedName));
+
+        Assert.Null(carry.Mailboxes);
+    }
+
+    /// <summary>
+    /// The compatibility arm: a receiver enqueued before receive steps named their exchange carries neither
+    /// name, and must still be answered — with the pipeline's own opening stage standing in for the identity
+    /// it never carried. Narrowing that arm to a non-null <c>RepliesTo</c> would strand every such receiver
+    /// in flight, so it stays pinned even though nothing enqueues this shape any more.
+    /// </summary>
+    [Fact]
+    public async Task ANameLessReceiver_IsStillAnswered_AndFallsBackToThePipelinesOpeningStage()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStage, _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
+        var task = new ArchivingTask { MessageVerdict = ServiceTaskResult.Success() };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered(seq: 5), carry), ConcludingStep());
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(task.Message);
+        Assert.Equal(5, task.Message.Position);
+        // The fallback reached the carry under the pipeline's own name, so the conclusion still drops it.
+        Assert.Null(carry.Mailboxes);
+    }
+
+    /// <summary>
+    /// The payload's one invariant, guarded where it is read: a step names a stage or an exchange, never
+    /// both. Only a version of this app-lib that identified steps differently could have written one, and
+    /// honouring either name would run the wrong part of the pipeline — so it fails permanently and runs
+    /// nothing, on both pipeline shapes.
+    /// </summary>
+    [Fact]
+    public async Task AStepNamingBothAStageAndAnExchange_FailsPermanentlyWithoutRunningAnything()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(
+                CreateContext(),
+                new ExecuteServiceTaskPayload("archiving", StageName: "RecordDispatch", RepliesTo: OpeningStage)
+            );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
+        Assert.Contains("RecordDispatch", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains(OpeningStage, failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(task.Stage);
+        Assert.Null(task.MessageContext);
+        Assert.Null(task.ClosedContext);
+    }
+
+    [Fact]
+    public async Task AStepNamingBothNames_OnAPipelineWithNoExchange_AlsoFailsPermanently()
+    {
+        var task = new PlainTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(
+                CreateContext(),
+                new ExecuteServiceTaskPayload("archiving", StageName: "SendToArchive", RepliesTo: OpeningStage)
+            );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
+        Assert.Null(task.Conclusion);
     }
 }

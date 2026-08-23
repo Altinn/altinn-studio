@@ -820,7 +820,26 @@ public class ProcessNextRequestFactoryTests
 
         var keys = ExtractCommandKeys(bundle);
         Assert.DoesNotContain(EnqueueReceiveWorkflow.Key, keys);
-        Assert.Contains(ExtractServiceTaskSteps(bundle), s => s.Payload.StageName is null);
+        Assert.Contains(
+            ExtractServiceTaskSteps(bundle),
+            s => s.Payload.StageName is null && s.Payload.RepliesTo is null
+        );
+    }
+
+    /// <summary>
+    /// Main runs stages, never an exchange's handler: the reply terminal runs on the receive workflows, and
+    /// naming the exchange is the receive step's job alone.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipeline_NamesNoExchangeOnAnyOfMainsSteps()
+    {
+        var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.Null(s.Payload.RepliesTo));
+        Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.NotNull(s.Payload.StageName));
     }
 
     [Fact]
@@ -851,7 +870,9 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
         var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal("archiving", receivePayload.ServiceTaskType);
+        // A receive step runs no stage; it names the exchange it answers, fixed here at the receiver's enqueue.
         Assert.Null(receivePayload.StageName);
+        Assert.Equal("SendToArchive", receivePayload.RepliesTo);
         Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
 
         Assert.Equal(bundle.Request.Labels, payload.EnqueueRequest.Labels);
