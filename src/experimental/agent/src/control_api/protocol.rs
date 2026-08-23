@@ -2,12 +2,16 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v1alpha1";
+pub const PROTOCOL_VERSION: &str = "v1";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
-pub(crate) const METHOD_APPLY: &str = "agents.v1alpha1.apply";
-pub(crate) const METHOD_GET: &str = "agents.v1alpha1.get";
-pub(crate) const METHOD_DELETE: &str = "agents.v1alpha1.delete";
+pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
+pub(crate) const METHOD_HEALTH: &str = "control.v1.health";
+pub(crate) const METHOD_GET: &str = "agents.v1.get";
+pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
+pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
+pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
+pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
@@ -59,6 +63,20 @@ pub struct ResponseError {
 #[serde(deny_unknown_fields)]
 pub(crate) struct NameParams {
     pub name: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LoginParams {
+    pub harness: crate::harness::Harness,
+    pub token: String,
 }
 
 pub(crate) fn error_response(id: u64, code: i32, message: impl Into<String>) -> Response {

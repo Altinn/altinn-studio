@@ -821,6 +821,28 @@ impl SandboxService {
             .map_err(|error| Error::component("find Sandbox", error))
     }
 
+    /// Opens an effect-free Handle for an already materialized Sandbox.
+    ///
+    /// This never creates, starts, updates, or reconnects the Sandbox. Callers
+    /// that own only in-Sandbox effects use it after a lifecycle owner has
+    /// persisted the exact Sandbox identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Sandbox does not exist or cannot be inspected.
+    pub async fn open(&self, id: &crate::SandboxId, retention_policy: RetentionPolicy) -> Result<SandboxHandle, Error> {
+        let sandbox = self
+            .backend()
+            .inspect(id)
+            .await
+            .map_err(|error| Error::component("inspect Sandbox", error))?;
+        Ok(SandboxHandle {
+            service: self.clone(),
+            sandbox,
+            retention_policy,
+        })
+    }
+
     /// Stops and deletes a named Sandbox if it exists.
     ///
     /// # Errors

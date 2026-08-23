@@ -6,8 +6,9 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use agent::{
     Error,
-    control_api::{Client, Connection, Connector, Server},
+    control_api::{AuthenticationApi, Client, Connection, Connector, Server, SessionApi},
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
+    harness::ImportedAuthentication,
 };
 use sandbox::LocalFuture;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -18,8 +19,40 @@ use support::agent;
 
 struct IgnoreNotifications;
 
+struct FakeAuthentication;
+struct FakeSessions;
+
 impl Notifier for IgnoreNotifications {
-    fn notify(&self) {}
+    fn notify(&self, _id: agent::AgentId) {}
+}
+
+impl AuthenticationApi for FakeAuthentication {
+    fn login<'a>(
+        &'a self,
+        _harness: agent::Harness,
+        _token: &'a str,
+    ) -> LocalFuture<'a, Result<ImportedAuthentication, Error>> {
+        Box::pin(async {
+            Ok(ImportedAuthentication {
+                provider: "claude".into(),
+                ready: true,
+            })
+        })
+    }
+}
+
+impl SessionApi for FakeSessions {
+    fn ensure<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+
+    fn list<'a>(&'a self, _agent: &'a str) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
+        Box::pin(async { Ok(Vec::new()) })
+    }
 }
 
 struct InProcessConnector {
@@ -48,10 +81,30 @@ fn api() -> (Rc<Server>, Client, Rc<RefCell<Vec<String>>>) {
     let observed_errors = errors.clone();
     let server = Rc::new(Server::new(
         control_plane,
+        Rc::new(FakeAuthentication),
+        Rc::new(FakeSessions),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
     (server, client, errors)
+}
+
+#[tokio::test(flavor = "local")]
+async fn login_returns_only_non_secret_readiness() {
+    let (_server, client, _errors) = api();
+    let imported = client
+        .auth_login(agent::Harness::ClaudeCode, "sk-ant-oat01-canary".into())
+        .await
+        .expect("login");
+    assert_eq!(imported.provider, "claude");
+    assert!(imported.ready);
+}
+
+#[tokio::test(flavor = "local")]
+async fn health_reports_a_compatible_daemon() {
+    let (_server, client, _errors) = api();
+    client.health().await.expect("health check");
+    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v1");
 }
 
 fn request(name: &str) -> ApplyRequest {

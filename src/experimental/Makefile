@@ -1,15 +1,21 @@
-.PHONY: help build clean fmt lint lint-fix test test-e2e check check-platforms deps deps-check
+.PHONY: help build user-install clean fmt lint lint-fix test test-e2e check check-platforms deps deps-check
 .DEFAULT_GOAL := help
 
+USER_INSTALL_VERSION := v0.0.0
+USER_INSTALL_ARCHIVE := $(abspath build/user-install/agent-$(USER_INSTALL_VERSION).tar.gz)
+RELEASE_BIN_DIR := $(abspath ../../target/release)
+
 EXPERIMENTAL_PACKAGES := \
-	-p agent-runtime \
-	-p agent-runtime-protocol \
 	-p agent \
 	-p sandbox-authorization \
 	-p sandbox \
 	-p sandbox-self-dev \
 	-p sandbox-microsandbox
-PORTABLE_PACKAGES := -p sandbox -p sandbox-authorization -p agent-runtime-protocol -p agent-runtime -p agent
+PORTABLE_PACKAGES := \
+	-p sandbox \
+	-p sandbox-authorization \
+	-p agent \
+	-p sandbox-microsandbox
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -21,6 +27,16 @@ build: ## Build all experimental Rust crates
 	@echo "Building experimental Rust crates..."
 	@cargo build $(EXPERIMENTAL_PACKAGES) --all-targets --locked
 	@echo "✓ Build successful"
+
+user-install: ## Build, package and install agentctl and agentd for the current user
+	@echo "Building experimental Agent $(USER_INSTALL_VERSION)..."
+	@AGENT_VERSION=$(USER_INSTALL_VERSION) cargo build --release --locked -p agent --bins
+	@./agent/package.sh "$(USER_INSTALL_ARCHIVE)" "$(RELEASE_BIN_DIR)"
+ifeq ($(OS),Windows_NT)
+	@AGENT_VERSION=$(USER_INSTALL_VERSION) AGENT_LOCAL_ARCHIVE="$(USER_INSTALL_ARCHIVE)" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(abspath agent/install.ps1)"
+else
+	@AGENT_VERSION=$(USER_INSTALL_VERSION) AGENT_LOCAL_ARCHIVE="$(USER_INSTALL_ARCHIVE)" ./agent/install.sh
+endif
 
 clean: ## Clean experimental build artifacts
 	@echo "Cleaning experimental build artifacts..."
@@ -62,7 +78,5 @@ deps-check: ## Check for unused direct dependencies
 check: fmt lint build test test-e2e deps-check ## Run all local checks
 	@echo "✓ All checks passed"
 
-check-platforms: ## Cross-check portable Windows and macOS code (requires rustup targets)
-	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked --target x86_64-pc-windows-gnu
-	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked --target aarch64-apple-darwin
-	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked --target x86_64-apple-darwin
+check-platforms: ## Check portable code on the current native host (CI covers every supported host)
+	@cargo clippy $(PORTABLE_PACKAGES) --all-targets --all-features --locked

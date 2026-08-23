@@ -52,6 +52,12 @@ struct Driver {
     task: JoinHandle<()>,
 }
 
+#[derive(Clone, Copy)]
+struct SandboxSubject<'a> {
+    id: &'a SandboxId,
+    name: &'a SandboxName,
+}
+
 enum DriverCommand {
     RevokeAll,
 }
@@ -77,18 +83,20 @@ impl MicrosandboxNetworkBackend {
 
     /// Replaces the secret bindings applied when this named Sandbox's Network starts.
     ///
-    /// Existing connections keep their handshake configuration until the
-    /// Network is restarted. Secret material itself is resolved from the store
-    /// for every authorized use, so rotation does not require a restart.
+    /// Returns whether the binding definition changed. Existing connections
+    /// keep their handshake configuration until the caller restarts the Network.
+    /// Secret material itself is resolved from the store for every authorized
+    /// use, so rotating a value behind an unchanged binding needs no restart.
     ///
     /// # Errors
     ///
     /// Returns an error when a binding is empty, duplicated, ambiguous, or
     /// unsafe for the Microsandbox control protocol.
-    pub fn set_secret_bindings(&self, sandbox_name: SandboxName, bindings: Vec<SecretBinding>) -> Result<(), Error> {
+    pub fn set_secret_bindings(&self, sandbox_name: SandboxName, bindings: Vec<SecretBinding>) -> Result<bool, Error> {
         validate_secret_bindings(&bindings)?;
+        let changed = self.secret_bindings.borrow().get(&sandbox_name) != Some(&bindings);
         self.secret_bindings.borrow_mut().insert(sandbox_name, bindings);
-        Ok(())
+        Ok(changed)
     }
 
     /// Removes the configured bindings for a named Sandbox.
@@ -176,6 +184,7 @@ impl NetworkBackend for MicrosandboxNetworkBackend {
             let task = tokio::task::spawn_local(async move {
                 if let Err(error) = drive(
                     sandbox_id,
+                    request.sandbox_name,
                     endpoint.into_parts(),
                     policy,
                     secret_store,
@@ -246,6 +255,7 @@ impl SecretBinding {
 
 async fn drive(
     sandbox_id: SandboxId,
+    sandbox_name: SandboxName,
     mut endpoint: NetworkControlEndpointParts,
     policy: Rc<dyn PolicyEngine>,
     secret_store: Option<Rc<dyn SecretStore>>,
@@ -266,7 +276,10 @@ async fn drive(
                         while let Some(message) = received.pop_front() {
                             let runtime_message = serde_json::from_slice(message.as_bytes()).map_err(protocol_error)?;
                             let response = handle_runtime_message(
-                                &sandbox_id,
+                                SandboxSubject {
+                                    id: &sandbox_id,
+                                    name: &sandbox_name,
+                                },
                                 runtime_message,
                                 policy.as_ref(),
                                 secret_store.as_deref(),
@@ -295,7 +308,7 @@ async fn drive(
 }
 
 async fn handle_runtime_message(
-    sandbox_id: &SandboxId,
+    subject: SandboxSubject<'_>,
     message: RuntimeMessage,
     policy: &dyn PolicyEngine,
     secret_store: Option<&dyn SecretStore>,
@@ -321,8 +334,7 @@ async fn handle_runtime_message(
             flow_id,
             operation,
         } if *handshake_complete => {
-            let authorization =
-                authorize_operation(sandbox_id, &operation, policy, secret_store, secret_bindings).await;
+            let authorization = authorize_operation(subject, &operation, policy, secret_store, secret_bindings).await;
             let (decision, secret_material) = authorization.map_or_else(
                 || (RuntimeDecision::Deny, None),
                 |secret_material| {
@@ -347,7 +359,7 @@ async fn handle_runtime_message(
 }
 
 async fn authorize_operation(
-    sandbox_id: &SandboxId,
+    subject: SandboxSubject<'_>,
     operation: &NetworkOperation,
     policy: &dyn PolicyEngine,
     secret_store: Option<&dyn SecretStore>,
@@ -361,7 +373,7 @@ async fn authorize_operation(
         return None;
     }
     if !matches!(
-        policy.evaluate(authorization_request(sandbox_id, operation)).await,
+        policy.evaluate(authorization_request(subject, operation)).await,
         Ok(AuthorizationDecision::Allow)
     ) {
         return None;
@@ -379,17 +391,19 @@ async fn authorize_operation(
     Some(Some(RuntimeSecretMaterial::new(value.to_owned())))
 }
 
-fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -> AuthorizationRequest {
-    let principal = Principal::new(principal_kind::SANDBOX, sandbox_id.to_string());
+fn authorization_request(subject: SandboxSubject<'_>, operation: &NetworkOperation) -> AuthorizationRequest {
+    let principal = Principal::new(principal_kind::SANDBOX, subject.id.to_string());
     match operation {
         NetworkOperation::Connect {
             source,
             destination,
             transport,
             hostname,
+            destination_is_host,
         } => {
-            let mut authorization_context = AuthorizationContext::new()
+            let mut authorization_context = sandbox_context(subject.name)
                 .with_attribute(context::NETWORK_DESTINATION_ADDRESS, destination.to_string())
+                .with_attribute(context::NETWORK_DESTINATION_IS_HOST, *destination_is_host)
                 .with_attribute(context::NETWORK_TRANSPORT, transport_name(*transport));
             if let Some(source) = source {
                 authorization_context.insert(context::NETWORK_SOURCE_ADDRESS, source.to_string());
@@ -414,7 +428,7 @@ fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -
             resolver,
             transport,
         } => {
-            let mut authorization_context = AuthorizationContext::new()
+            let mut authorization_context = sandbox_context(subject.name)
                 .with_attribute(context::DNS_RECORD_TYPE, record_type.clone())
                 .with_attribute(context::NETWORK_TRANSPORT, transport_name(*transport));
             if let Some(resolver) = resolver {
@@ -439,7 +453,8 @@ fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -
             principal,
             action: Action::new(action::HTTP_REQUEST),
             resource: Resource::new(resource_kind::EXTERNAL_SERVICE, authority.clone()),
-            context: http_context(*destination, *scheme, authority, method, path, *version, *stream_id),
+            context: http_context(*destination, *scheme, authority, method, path, *version, *stream_id)
+                .with_attribute(context::SANDBOX_NAME, subject.name.as_str()),
         },
         NetworkOperation::SecretUse {
             destination,
@@ -453,7 +468,8 @@ fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -
             locations,
         } => {
             let mut authorization_context =
-                http_context(*destination, *scheme, authority, method, path, *version, *stream_id);
+                http_context(*destination, *scheme, authority, method, path, *version, *stream_id)
+                    .with_attribute(context::SANDBOX_NAME, subject.name.as_str());
             authorization_context.insert(
                 context::SECRET_LOCATIONS,
                 locations
@@ -492,6 +508,10 @@ fn http_context(
         authorization_context.insert(context::HTTP_STREAM_ID, stream_id);
     }
     authorization_context
+}
+
+fn sandbox_context(sandbox_name: &SandboxName) -> AuthorizationContext {
+    AuthorizationContext::new().with_attribute(context::SANDBOX_NAME, sandbox_name.as_str())
 }
 
 fn validate_secret_bindings(bindings: &[SecretBinding]) -> Result<(), Error> {
@@ -690,6 +710,7 @@ mod tests {
             destination: "198.51.100.10:443".parse().expect("valid test destination"),
             transport: TransportProtocol::Tcp,
             hostname: Some("example.com".to_string()),
+            destination_is_host: false,
         }
     }
 
@@ -730,7 +751,15 @@ mod tests {
 
     #[test]
     fn maps_http_request_to_authorization_contract() {
-        let request = super::authorization_request(&sandbox_id(), &http_operation());
+        let sandbox_id = sandbox_id();
+        let sandbox_name = sandbox_name();
+        let request = super::authorization_request(
+            super::SandboxSubject {
+                id: &sandbox_id,
+                name: &sandbox_name,
+            },
+            &http_operation(),
+        );
 
         assert_eq!(request.action.as_str(), "http.request");
         assert_eq!(request.resource.kind, "externalService");
@@ -773,6 +802,30 @@ mod tests {
         let bindings = backend.secret_bindings.borrow();
         assert_eq!(bindings[&first][0].id, "first-token");
         assert_eq!(bindings[&second][0].id, "second-token");
+    }
+
+    #[test]
+    fn replacing_secret_bindings_reports_definition_changes() {
+        let backend = MicrosandboxNetworkBackend::new(Rc::new(StaticPolicy::allow_all()));
+        let sandbox = sandbox_name();
+        let binding =
+            || SecretBinding::new("token", "$TOKEN", SecretReference::from_opaque("token")).expect("valid binding");
+
+        assert!(
+            backend
+                .set_secret_bindings(sandbox.clone(), vec![binding()])
+                .expect("initial binding")
+        );
+        assert!(
+            !backend
+                .set_secret_bindings(sandbox.clone(), vec![binding()])
+                .expect("unchanged binding")
+        );
+        assert!(
+            backend
+                .set_secret_bindings(sandbox, Vec::new())
+                .expect("removed binding")
+        );
     }
 
     #[tokio::test(flavor = "local")]
@@ -962,12 +1015,18 @@ mod tests {
     async fn unknown_bindings_and_secret_store_failures_are_denied() {
         let policy = StaticPolicy::allow_all();
         let store = MemorySecretStore::default();
+        let sandbox_id = sandbox_id();
+        let sandbox_name = sandbox_name();
+        let subject = super::SandboxSubject {
+            id: &sandbox_id,
+            name: &sandbox_name,
+        };
         let missing = SecretBinding::new("provider-token", "$TOKEN", SecretReference::from_opaque("missing"))
             .expect("valid binding");
 
         assert!(
             super::authorize_operation(
-                &sandbox_id(),
+                subject,
                 &secret_use_operation(),
                 &policy,
                 Some(&store),
@@ -977,7 +1036,7 @@ mod tests {
             .is_none()
         );
         assert!(
-            super::authorize_operation(&sandbox_id(), &secret_use_operation(), &policy, Some(&store), &[],)
+            super::authorize_operation(subject, &secret_use_operation(), &policy, Some(&store), &[],)
                 .await
                 .is_none()
         );

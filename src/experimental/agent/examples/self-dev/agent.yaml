@@ -1,0 +1,41 @@
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: studiodev
+spec:
+  sandbox:
+    image:
+      type: build
+      context: .
+      dockerfile: Dockerfile
+    platform:
+      os: linux
+    resources:
+      cpu: "4"
+      memory: "8Gi"
+      rootFilesystem:
+        capacity: "64Gi"
+        mode: direct
+    initSystem: image
+  home:
+    source: home
+  harness:
+    type: claudeCode
+    version: "2.1.239"
+    auth: mediated
+  secrets:
+    - name: github-token
+      placeholder: agent-github-token-placeholder
+      allowedHosts:
+        - github.com
+      source: GITHUB_TOKEN
+    - name: studio-token
+      placeholder: agent-studio-token-placeholder
+      allowedHosts:
+        - dev.altinn.studio
+      source: STUDIO_DEV_API_KEY
+  network:
+    mode: mediated
+    allow: all
+    deny:
+      - metadata.google.internal

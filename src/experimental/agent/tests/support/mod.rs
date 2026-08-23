@@ -2,11 +2,11 @@
 
 use std::{path::PathBuf, time::SystemTime};
 
-use agent::{API_VERSION, Agent, KIND, Metadata, Spec, Status};
-use sandbox::{
-    ByteQuantity, CpuQuantity, Platform, RetentionPolicy, RootFilesystem, SandboxResources, SandboxSpec,
-    image::ImageSource,
+use agent::{
+    API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, KIND, Metadata, NetworkAllow, NetworkMode,
+    NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, Spec, Status,
 };
+use sandbox::{ByteQuantity, CpuQuantity, RetentionPolicy, RootFilesystem, SandboxResources, image::ImageSource};
 pub(crate) fn agent(name: &str) -> Agent {
     Agent {
         api_version: API_VERSION.into(),
@@ -17,12 +17,18 @@ pub(crate) fn agent(name: &str) -> Agent {
             deletion_timestamp: None,
         },
         spec: Spec {
-            sandbox: SandboxSpec {
+            sandbox: SandboxManifestSpec {
                 image: ImageSource::Build {
                     context: PathBuf::from("image"),
                     dockerfile: PathBuf::from("Dockerfile"),
                 },
-                platform: Platform::new("linux", "amd64"),
+                platform: PlatformManifestSpec {
+                    os: "linux".into(),
+                    architecture: Some("amd64".into()),
+                    variant: None,
+                    os_version: None,
+                    os_features: std::collections::BTreeSet::new(),
+                },
                 resources: SandboxResources::new(
                     "2".parse::<CpuQuantity>().expect("test CPU should be valid"),
                     "1Gi".parse::<ByteQuantity>().expect("test memory should be valid"),
@@ -33,7 +39,21 @@ pub(crate) fn agent(name: &str) -> Agent {
                     ),
                 ),
                 init_system: sandbox::init::InitSystem::Backend,
-                retention_policy: RetentionPolicy::Retain,
+                retention_policy: Some(RetentionPolicy::Retain),
+            },
+            home: HomeSpec {
+                source: PathBuf::from("home"),
+            },
+            harness: HarnessSpec {
+                kind: Harness::ClaudeCode,
+                version: "2.1.239".into(),
+                auth: HarnessAuthMode::Mediated,
+            },
+            secrets: Vec::new(),
+            network: NetworkSpec {
+                mode: NetworkMode::Mediated,
+                allow: NetworkAllow::All,
+                deny: Vec::new(),
             },
         },
         status: Status::default(),

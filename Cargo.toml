@@ -1,7 +1,5 @@
 [workspace]
 members = [
-  "src/experimental/agent-runtime",
-  "src/experimental/agent-runtime-protocol",
   "src/experimental/agent",
   "src/experimental/sandbox-authorization",
   "src/experimental/sandbox",
@@ -26,15 +24,16 @@ futures-util = "0.3.34"
 ignore = "0.4.33"
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 # Microsandbox fork commit from `main-digdir`; update all four revisions together.
-microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "2e98dc56ceed8bc8b5bd1704f73267fdae5279d9", default-features = false, features = ["net"] }
-microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "2e98dc56ceed8bc8b5bd1704f73267fdae5279d9", package = "microsandbox-image" }
-microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "2e98dc56ceed8bc8b5bd1704f73267fdae5279d9", package = "microsandbox-network" }
+microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["net"] }
+microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", package = "microsandbox-image" }
+microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", package = "microsandbox-network" }
 # Microsandbox does not ship its embedded sandbox agent in the crate.
 # Enabling this transitive feature downloads only that build artifact into
 # Cargo's output directory; the host runtime is installed automatically on
 # first use into the control-plane home.
-microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "2e98dc56ceed8bc8b5bd1704f73267fdae5279d9", default-features = false, features = ["prebuilt"] }
+microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["prebuilt"] }
 reqwest = { version = "0.13.4", features = ["json"] }
+rusqlite = "0.39.0"
 sandbox = { path = "src/experimental/sandbox" }
 sandbox-microsandbox = { path = "src/experimental/sandbox-microsandbox" }
 serde = { version = "1.0.229", features = ["derive"] }

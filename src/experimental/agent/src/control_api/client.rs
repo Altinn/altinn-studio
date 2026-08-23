@@ -4,10 +4,12 @@ use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane};
+use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
-    JSON_RPC_VERSION, METHOD_APPLY, METHOD_DELETE, METHOD_GET, NameParams, ReadMessage, Request, Response, read_message,
+    JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_GET, METHOD_HEALTH,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_LIST, NameParams, ReadMessage, Request, Response, SessionParams,
+    read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -43,6 +45,16 @@ impl Client {
         Self::new(Rc::new(super::socket::PathConnector::new(path)))
     }
 
+    /// Checks whether the local daemon speaks the expected Control API.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the daemon is unavailable or protocol-incompatible.
+    pub async fn health(&self) -> Result<(), Error> {
+        let _result: serde_json::Value = self.call(METHOD_HEALTH, serde_json::json!({})).await?;
+        Ok(())
+    }
+
     /// Creates or updates an Agent resource.
     ///
     /// # Errors
@@ -69,6 +81,48 @@ impl Client {
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
         let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }).await?;
         Ok(())
+    }
+
+    /// Stores a host-minted long-lived harness token in the daemon.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the token is invalid, rejected, or cannot be persisted.
+    pub async fn auth_login(
+        &self,
+        harness: harness::Harness,
+        token: String,
+    ) -> Result<harness::ImportedAuthentication, Error> {
+        self.call(METHOD_AUTH_LOGIN, LoginParams { harness, token }).await
+    }
+
+    /// Creates or resolves one named session attach target.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is not ready or the registry cannot persist the session.
+    pub async fn ensure_session(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+    ) -> Result<sessions::AttachTarget, Error> {
+        self.call(
+            METHOD_SESSION_ENSURE,
+            SessionParams {
+                agent: agent.into(),
+                name,
+            },
+        )
+        .await
+    }
+
+    /// Lists tracked sessions for one Agent.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing or the registry cannot read the sessions.
+    pub async fn list_sessions(&self, agent: &str) -> Result<Vec<sessions::Session>, Error> {
+        self.call(METHOD_SESSION_LIST, NameParams { name: agent.into() }).await
     }
 
     async fn call<P: Serialize, R: DeserializeOwned>(&self, method: &str, params: P) -> Result<R, Error> {

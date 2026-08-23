@@ -1,8 +1,8 @@
 use std::{path::PathBuf, rc::Rc};
 
-use crate::{Agent, Error};
+use crate::{Agent, AgentId, Error};
 
-use super::{AgentRecord, SharedAgentStore};
+use super::{AgentRecord, SharedAgentStore, Wakeup};
 
 /// Desired state supplied by a local API client.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
@@ -17,7 +17,13 @@ pub struct ApplyRequest {
 /// Wakes reconciliation after desired state changes.
 pub trait Notifier {
     /// Schedules reconciliation without blocking the API request.
-    fn notify(&self);
+    fn notify(&self, id: crate::AgentId);
+}
+
+impl Notifier for Wakeup {
+    fn notify(&self, id: crate::AgentId) {
+        self.notify(id);
+    }
 }
 
 /// Agent Control Plane facade for desired-state operations.
@@ -49,13 +55,14 @@ impl ControlPlane {
         desired.validate()?;
 
         loop {
-            let result = match self.store.get(&desired.metadata.name).await {
+            let result = match self.store.get_by_name(&desired.metadata.name).await {
                 Ok(current) => {
                     if current.agent.metadata.deletion_timestamp.is_some() {
                         return Err(Error::Conflict);
                     }
                     validate_immutable_fields(&current, &desired, &request.source_directory)?;
                     if current.agent.spec == desired.spec && current.source_directory == request.source_directory {
+                        self.notifier.notify(current.id);
                         return Ok(current.agent);
                     }
 
@@ -65,24 +72,29 @@ impl ControlPlane {
                     self.store
                         .put(
                             AgentRecord {
+                                id: current.id,
                                 source_directory: request.source_directory.clone(),
                                 agent: desired.clone(),
                             },
                             expected_generation,
                         )
                         .await
+                        .map(|()| current.id)
                 }
                 Err(Error::NotFound) => {
+                    let id = AgentId::generate();
                     desired.metadata.generation = 1;
                     self.store
                         .put(
                             AgentRecord {
+                                id,
                                 source_directory: request.source_directory.clone(),
                                 agent: desired.clone(),
                             },
                             0,
                         )
                         .await
+                        .map(|()| id)
                 }
                 Err(error) => return Err(error),
             };
@@ -90,8 +102,8 @@ impl ControlPlane {
             match result {
                 Err(Error::Conflict) => {}
                 Err(error) => return Err(error),
-                Ok(()) => {
-                    self.notifier.notify();
+                Ok(id) => {
+                    self.notifier.notify(id);
                     return Ok(desired);
                 }
             }
@@ -104,7 +116,7 @@ impl ControlPlane {
     ///
     /// Returns an error when the Agent does not exist or storage fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.store.get(name).await.map(|record| record.agent)
+        self.store.get_by_name(name).await.map(|record| record.agent)
     }
 
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
@@ -114,8 +126,8 @@ impl ControlPlane {
     /// Returns an error when the deletion marker cannot be stored.
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
         match self.store.mark_deleting(name).await {
-            Ok(_) => {
-                self.notifier.notify();
+            Ok(record) => {
+                self.notifier.notify(record.id);
                 Ok(())
             }
             Err(Error::NotFound) => Ok(()),
@@ -134,6 +146,23 @@ fn validate_immutable_fields(
     }
     if current.agent.spec.sandbox.platform != desired.spec.sandbox.platform {
         return Err(Error::Immutable("spec.sandbox.platform"));
+    }
+    if current.agent.spec.sandbox.init_system != desired.spec.sandbox.init_system {
+        return Err(Error::Immutable("spec.sandbox.initSystem"));
+    }
+    if current.agent.spec.sandbox.resources.root_filesystem().mode()
+        != desired.spec.sandbox.resources.root_filesystem().mode()
+    {
+        return Err(Error::Immutable("spec.sandbox.resources.rootFilesystem.mode"));
+    }
+    if current.agent.spec.home != desired.spec.home {
+        return Err(Error::Immutable("spec.home"));
+    }
+    if current.agent.spec.harness.kind != desired.spec.harness.kind {
+        return Err(Error::Immutable("spec.harness.type"));
+    }
+    if current.agent.spec.harness.auth != desired.spec.harness.auth {
+        return Err(Error::Immutable("spec.harness.auth"));
     }
     Ok(())
 }

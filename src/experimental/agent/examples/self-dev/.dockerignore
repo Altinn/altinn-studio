@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!claude-state.json
+!image-ready.sh
+!tmpfiles.conf
+!workspace-init.service
+!workspace-init.sh

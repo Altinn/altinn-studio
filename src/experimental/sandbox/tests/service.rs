@@ -534,6 +534,14 @@ async fn service_and_handle_expose_execution_and_volume_operations() {
     assert!(!output.status.success());
     assert_eq!(output.stdout, Bytes::from_static(b"output"));
     assert_eq!(output.stderr, Bytes::from_static(b"warning"));
+    assert_eq!(backend.execution_specs().len(), 1);
+    assert_eq!(
+        backend.execution_specs()[0].program(),
+        &sandbox::execution::Program::Command {
+            executable: SandboxPath::new("/usr/bin/example"),
+            args: vec!["--check".into()],
+        }
+    );
 
     let execution = sandbox
         .start_execution(StartExecutionRequest::new(ExecutionSpec::image_entrypoint()))
@@ -572,6 +580,45 @@ async fn service_and_handle_expose_execution_and_volume_operations() {
         poll_fn(|context| terminal.events.as_mut().poll_next(context)).await,
         Some(Ok(TerminalEvent::Started { process_id: Some(43) }))
     ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn memory_provider_matches_execution_responses_without_fifo_coupling() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend.clone());
+    let sandbox = service.ensure(&request()).await.expect("ensure");
+    backend.queue_execution_events_matching(
+        |spec| {
+            matches!(
+                spec.program(),
+                sandbox::execution::Program::Command { executable, .. }
+                    if executable.as_str() == "/usr/bin/matched"
+            )
+        },
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Exited(ExitStatus { code: 23 }),
+        ],
+    );
+
+    let unrelated = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/unrelated"),
+            Vec::<String>::new(),
+        ))
+        .await
+        .expect("unrelated Execution");
+    let matched = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/matched"),
+            Vec::<String>::new(),
+        ))
+        .await
+        .expect("matched Execution");
+
+    assert!(unrelated.status.success());
+    assert_eq!(matched.status.code, 23);
+    assert_eq!(backend.execution_specs().len(), 2);
 }
 
 #[tokio::test(flavor = "local")]

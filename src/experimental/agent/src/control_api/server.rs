@@ -5,12 +5,13 @@ use serde::Serialize;
 use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane};
+use crate::{Agent, Error, control_plane, harness, sessions};
 
 use super::protocol::{
     CODE_AGENT_NOT_FOUND, CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST,
-    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, JSON_RPC_VERSION, METHOD_APPLY, METHOD_DELETE, METHOD_GET, NameParams,
-    ReadMessage, Request, Response, error_response, read_message,
+    CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
+    METHOD_DELETE, METHOD_GET, METHOD_HEALTH, METHOD_SESSION_ENSURE, METHOD_SESSION_LIST, NameParams, PROTOCOL_VERSION,
+    ReadMessage, Request, Response, SessionParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -39,20 +40,79 @@ impl AgentApi for control_plane::ControlPlane {
     }
 }
 
+/// Host-side authentication operations exposed through the local control API.
+pub trait AuthenticationApi {
+    /// Stores a host-minted long-lived token for one harness.
+    fn login<'a>(
+        &'a self,
+        harness: harness::Harness,
+        token: &'a str,
+    ) -> LocalFuture<'a, Result<harness::ImportedAuthentication, Error>>;
+}
+
+impl AuthenticationApi for harness::AuthenticationManager {
+    fn login<'a>(
+        &'a self,
+        harness: harness::Harness,
+        token: &'a str,
+    ) -> LocalFuture<'a, Result<harness::ImportedAuthentication, Error>> {
+        Box::pin(async move { self.login(harness, zeroize::Zeroizing::new(token.to_owned())).await })
+    }
+}
+
+/// Host-tracked session operations exposed through the local control API.
+pub trait SessionApi {
+    /// Creates or resolves one named session attach target.
+    fn ensure<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
+
+    /// Lists tracked sessions for one Agent.
+    fn list<'a>(&'a self, agent: &'a str) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
+}
+
+impl SessionApi for sessions::Service {
+    fn ensure<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
+        Box::pin(async move { Self::ensure(self, agent, name).await })
+    }
+
+    fn list<'a>(&'a self, agent: &'a str) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>> {
+        Box::pin(async move { Self::list(self, agent).await })
+    }
+}
+
 /// Observes an isolated connection error without terminating the daemon.
 pub type ErrorHandler = Rc<dyn Fn(&Error)>;
 
 /// Serves the Agent Control API.
 pub struct Server {
     agents: Rc<dyn AgentApi>,
+    authentication: Rc<dyn AuthenticationApi>,
+    sessions: Rc<dyn SessionApi>,
     on_error: ErrorHandler,
 }
 
 impl Server {
     /// Creates an Agent Control API server.
     #[must_use]
-    pub fn new(agents: Rc<dyn AgentApi>, on_error: ErrorHandler) -> Self {
-        Self { agents, on_error }
+    pub fn new(
+        agents: Rc<dyn AgentApi>,
+        authentication: Rc<dyn AuthenticationApi>,
+        sessions: Rc<dyn SessionApi>,
+        on_error: ErrorHandler,
+    ) -> Self {
+        Self {
+            agents,
+            authentication,
+            sessions,
+            on_error,
+        }
     }
 
     /// Listens on the platform's local socket implementation.
@@ -114,8 +174,17 @@ impl Server {
         }
         match request.method.as_str() {
             METHOD_APPLY => self.handle_apply(request.id, request.params).await,
+            METHOD_HEALTH => result_response(
+                request.id,
+                Ok(serde_json::json!({
+                    "protocolVersion": PROTOCOL_VERSION
+                })),
+            ),
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
+            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
+            METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
     }
@@ -144,6 +213,28 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
+    }
+
+    async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<LoginParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "harness and token are required");
+        };
+        result_response(id, self.authentication.login(params.harness, &params.token).await)
+    }
+
+    async fn handle_session_ensure(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(id, self.sessions.ensure(&params.agent, &params.name).await)
+    }
+
+    async fn handle_session_list(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.sessions.list(&params.name).await)
     }
 }
 
