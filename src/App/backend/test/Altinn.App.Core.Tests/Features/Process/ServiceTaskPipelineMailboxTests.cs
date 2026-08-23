@@ -4,9 +4,10 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Features.Process;
 
 /// <summary>
-/// Composition of a mailbox exchange: what the mailbox-opening <c>Stage</c> overload records, what the reply
-/// terminal records, and the four mistakes the builder refuses eagerly — a second mailbox, a handle from
-/// another pipeline, a handle answered twice, and a mailbox nothing answers.
+/// Composition of mailbox exchanges: what the mailbox-opening <c>Stage</c> overload records, what the two
+/// handler positions record, that several exchanges compose in whatever order their handlers are written, and
+/// the mistakes the builder refuses eagerly — a handle from another pipeline, a handle answered twice, and a
+/// mailbox left unanswered when a terminal ends the composition.
 /// </summary>
 public class ServiceTaskPipelineMailboxTests
 {
@@ -20,6 +21,14 @@ public class ServiceTaskPipelineMailboxTests
 
     private static Task<ServiceTaskResult> Closed(ServiceTaskContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedPermanent("no answer"));
+
+    private static Task<ServiceTaskStageExchangeResult> HandleSegment(
+        ServiceTaskContext context,
+        ServiceTaskReply reply
+    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageExchangeResult.AwaitNextReply());
+
+    private static Task<ServiceTaskStageResult> ClosedSegment(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
 
     /// <summary>The running shape: a send that opens the mailbox, then an unrelated stage, then the terminal.</summary>
     private static ServiceTaskPipelineBuilder ComposeStages(
@@ -103,19 +112,103 @@ public class ServiceTaskPipelineMailboxTests
     }
 
     [Fact]
-    public void SecondMailbox_Throws()
+    public void TwoExchanges_ComposeAsItemsInCompositionOrder()
     {
+        // The archive-then-journal shape: the first exchange is answered mid-pipeline and the pipeline carries
+        // on to open, and end on, the second.
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage("SendToArchive", Send, ThreeDays, out MailboxHandle archive)
+            .HandleReplies(archive, HandleSegment, ClosedSegment)
+            .Stage("SendToJournal", Send, ThreeDays, out MailboxHandle journal)
+            .ConcludeOnReplies(journal, Handle, Closed);
+
+        Assert.Collection(
+            pipeline.Items,
+            item => Assert.Equal("SendToArchive", Assert.IsType<ServiceTaskStage.MailboxOpening>(item).Name),
+            item => Assert.Equal("SendToArchive", Assert.IsType<ReplySegment>(item).OpeningStageName),
+            item => Assert.Equal("SendToJournal", Assert.IsType<ServiceTaskStage.MailboxOpening>(item).Name)
+        );
+        Assert.Equal(
+            "SendToJournal",
+            Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion).OpeningStageName
+        );
+    }
+
+    [Fact]
+    public void HandleReplies_RecordsTheHandlersAgainstTheExchangeTheyAnswer()
+    {
+        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage = HandleSegment;
+        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed = ClosedSegment;
+        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
+
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage("SendToArchive", Send, ThreeDays, out MailboxHandle archive)
+            .HandleReplies(archive, onMessage, onClosed, options)
+            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        ReplySegment segment = Assert.Single(pipeline.Items.OfType<ReplySegment>());
+        Assert.Equal("SendToArchive", segment.OpeningStageName);
+        Assert.Same(onMessage, segment.OnMessage);
+        Assert.Same(onClosed, segment.OnClosed);
+        Assert.Same(options, segment.StepOptions);
+    }
+
+    [Fact]
+    public void HandlersComposeInWhicheverOrderTheAuthorChose()
+    {
+        // Both sends up front, and the exchanges answered in the opposite order. Legal by design: handler
+        // order is exchange order, and it is the author's call — nothing here validates it against the sends.
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle archive);
+        builder.Stage("SendToJournal", Send, ThreeDays, out MailboxHandle journal);
+
+        ServiceTaskPipeline pipeline = builder
+            .HandleReplies(journal, HandleSegment, ClosedSegment)
+            .ConcludeOnReplies(archive, Handle, Closed);
+
+        Assert.Equal("SendToJournal", Assert.Single(pipeline.Items.OfType<ReplySegment>()).OpeningStageName);
+        Assert.Equal(
+            "SendToArchive",
+            Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion).OpeningStageName
+        );
+    }
+
+    [Fact]
+    public void AnsweredExchangeFollowedByStagesAndFinally_Composes()
+    {
+        // A reply handled mid-pipeline, with ordinary work after it and a final step to conclude: the shape a
+        // mailbox pipeline could not have while the exchange had to be the conclusion.
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage("SendToArchive", Send, ThreeDays, out MailboxHandle archive)
+            .HandleReplies(archive, HandleSegment, ClosedSegment)
+            .Stage("RecordReceipt", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Conclusion);
+        Assert.Equal(["SendToArchive", "RecordReceipt"], pipeline.Items.OfType<ServiceTaskStage>().Select(s => s.Name));
+    }
+
+    [Fact]
+    public void TerminalLeavingAnotherMailboxUnanswered_ThrowsNamingTheFirstStage()
+    {
+        // Two mailboxes go unanswered, so the message has a choice: it names the first one composed.
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle _);
+        builder.Stage("SendToRegistry", Send, ThreeDays, out MailboxHandle _);
+        builder.Stage("SendToJournal", Send, ThreeDays, out MailboxHandle journal);
+
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            new ServiceTaskPipelineBuilder()
-                .Stage("SendToArchive", Send, ThreeDays, out MailboxHandle _)
-                .Stage("SendToRegistry", Send, ThreeDays, out MailboxHandle _)
+            builder.ConcludeOnReplies(journal, Handle, Closed)
         );
 
+        Assert.Contains("Stage 'SendToArchive' opens a mailbox", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("SendToRegistry", exception.Message, StringComparison.Ordinal);
         Assert.Contains(
-            "already opens a mailbox from stage 'SendToArchive'",
+            nameof(ServiceTaskPipelineBuilder.ConcludeOnReplies),
             exception.Message,
             StringComparison.Ordinal
         );
+        Assert.Contains(nameof(ServiceTaskPipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -144,7 +237,59 @@ public class ServiceTaskPipelineMailboxTests
             builder.ConcludeOnReplies(handle, Handle, Closed)
         );
 
-        Assert.Contains("is already answered by a reply terminal", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            "The mailbox opened by stage 'SendToArchive' is already answered",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public void HandleAnsweredTwiceByHandleReplies_Throws()
+    {
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle handle);
+        builder.HandleReplies(handle, HandleSegment, ClosedSegment);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            builder.HandleReplies(handle, HandleSegment, ClosedSegment)
+        );
+
+        Assert.Contains("is already answered", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HandleAnsweredByBothPositions_Throws()
+    {
+        // Interleaving — the same exchange read by a segment and then by the terminal — stays out: the handle
+        // is consumed once, whichever position consumes it.
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle handle);
+        builder.HandleReplies(handle, HandleSegment, ClosedSegment);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            builder.ConcludeOnReplies(handle, Handle, Closed)
+        );
+
+        Assert.Contains(
+            "The mailbox opened by stage 'SendToArchive' is already answered",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public void HandleRepliesWithAHandleFromAnotherPipeline_Throws()
+    {
+        new ServiceTaskPipelineBuilder().Stage("SendToArchive", Send, ThreeDays, out MailboxHandle foreign);
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle _);
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+            builder.HandleReplies(foreign, HandleSegment, ClosedSegment)
+        );
+
+        Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -166,17 +311,28 @@ public class ServiceTaskPipelineMailboxTests
     }
 
     [Fact]
-    public void FinallyAfterAReplyTerminal_StillThrows()
+    public void FinallyAfterAReplyTerminal_StillThrowsBecauseThatAnswerLeftWithItsOwnPipeline()
     {
-        // A pipeline with a mailbox-opening stage has no valid final step, whether or not a terminal already
-        // answered the handle: the stage would send an address nothing reads.
+        // The one test that pins the difference between "answered by a handler in this pipeline" and "answered
+        // by a terminal, in the pipeline that terminal returned". Collapse the builder's mark to a plain bool
+        // and this composition starts succeeding, handing back a pipeline that opens a mailbox and answers it
+        // nowhere — every other test here passes either way.
         var builder = new ServiceTaskPipelineBuilder();
         builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle handle);
         builder.ConcludeOnReplies(handle, Handle, Closed);
 
-        Assert.Throws<InvalidOperationException>(() =>
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
             builder.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
         );
+
+        // And it says what actually went wrong — two pipelines from one builder — rather than telling the author
+        // to answer a mailbox they just answered.
+        Assert.Contains(
+            "The mailbox opened by stage 'SendToArchive' is answered by an earlier ConcludeOnReplies",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("returns a different pipeline", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -220,6 +376,10 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(null!, Handle, Closed));
         Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(handle, null!, Closed));
         Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(handle, Handle, null!));
+
+        Assert.Throws<ArgumentNullException>(() => builder.HandleReplies(null!, HandleSegment, ClosedSegment));
+        Assert.Throws<ArgumentNullException>(() => builder.HandleReplies(handle, null!, ClosedSegment));
+        Assert.Throws<ArgumentNullException>(() => builder.HandleReplies(handle, HandleSegment, null!));
     }
 
     [Fact]

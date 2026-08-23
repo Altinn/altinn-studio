@@ -136,6 +136,47 @@ internal abstract class ServiceTaskStage : PipelineItem
 }
 
 /// <summary>
+/// A reply handler that answers an exchange <strong>without concluding the task</strong>: the mailbox it
+/// answers, and the two delegates that answer it. An item rather than a conclusion because the pipeline
+/// carries on afterwards — everything composed after it runs once this exchange is over, and only a
+/// terminal concludes the task.
+/// </summary>
+/// <remarks>
+/// Deliberately the same shape as <see cref="PipelineConclusion.ReplyExchange"/> and deliberately not the
+/// same type: this <see cref="OnMessage"/> answers <see cref="ServiceTaskStageExchangeResult"/> rather than
+/// <see cref="ServiceTaskExchangeResult"/>, so concluding the task is not in its vocabulary at all, and
+/// where the handler sits in the model — an item, or the conclusion — is what tells the runtime whether
+/// answering the exchange ends the task or starts the pipeline's next leg.
+/// </remarks>
+internal sealed class ReplySegment : PipelineItem
+{
+    internal ReplySegment(
+        string openingStageName,
+        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage,
+        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed,
+        ProcessStepOptions? stepOptions
+    )
+        : base(stepOptions)
+    {
+        OpeningStageName = openingStageName;
+        OnMessage = onMessage;
+        OnClosed = onClosed;
+    }
+
+    /// <summary>
+    /// The stage that opened the mailbox this handler answers — the exchange's identity in the carry, in the
+    /// receive workflow's payload and in the mint step's engine identity, exactly as for a terminal.
+    /// </summary>
+    internal string OpeningStageName { get; }
+
+    /// <summary>Answers one delivered message, with no way to conclude the task.</summary>
+    internal Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> OnMessage { get; }
+
+    /// <summary>Answers the mailbox closing with no message left to handle.</summary>
+    internal Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> OnClosed { get; }
+}
+
+/// <summary>
 /// How a pipeline concludes — a closed set of exactly two shapes, so no execution has to interrogate
 /// nullable fields to discover whether a conclusion is secretly also a reply handler. The private
 /// constructor keeps the set closed.

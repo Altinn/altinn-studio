@@ -215,11 +215,13 @@ public class ServiceTaskRegistrationValidatorTests
 
         Assert.NotNull(exception);
         Assert.Contains("Stage 'Send' opens a mailbox", exception.Message, StringComparison.Ordinal);
+        // The startup surface points at both handler positions, as the builder's own guidance does.
         Assert.Contains(
             nameof(ServiceTaskPipelineBuilder.ConcludeOnReplies),
             exception.Message,
             StringComparison.Ordinal
         );
+        Assert.Contains(nameof(ServiceTaskPipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
     }
 
     private sealed class ForeignMailboxHandleTask : IPipelineServiceTask

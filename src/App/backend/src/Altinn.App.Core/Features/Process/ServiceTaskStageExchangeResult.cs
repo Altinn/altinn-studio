@@ -1,7 +1,8 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// What a reply handler that leaves the task unconcluded may answer: anything a pipeline stage answers
+/// What a reply handler that leaves the task unconcluded may answer — the <c>onMessage</c> of
+/// <see cref="ServiceTaskPipelineBuilder.HandleReplies"/>: anything a pipeline stage answers
 /// (<see cref="ServiceTaskStageResult"/>, the whole vocabulary below this type) plus
 /// <see cref="AwaitNextReply"/>, which concludes nothing and waits for the next message.
 /// </summary>
@@ -19,6 +20,15 @@ namespace Altinn.App.Core.Features.Process;
 /// only a reply handler's <c>onMessage</c> answers this type. A stage, and every <c>onClosed</c>, answers
 /// <see cref="ServiceTaskStageResult"/> — so the compiler rejects <see cref="AwaitNextReply"/> there.
 /// </para>
+/// <para>
+/// It rejects it a step later than one would like, and that is accepted rather than fixed: statics are
+/// inherited, so <c>ServiceTaskStageResult.AwaitNextReply()</c> resolves from app code and the refusal lands
+/// on the <em>return</em> as a conversion failure — <c>CS0029</c>, or <c>CS1503</c> where the task's type
+/// argument is spelled out — rather than at the call that looks wrong. Nothing unrepresentable becomes
+/// representable: the value simply cannot be returned from anywhere that would misuse it, and
+/// <see cref="ServiceTaskResult"/> has carried the identical wart since the first reply terminal shipped, so
+/// it is precedented and not worth reshaping the vocabulary over.
+/// </para>
 /// </remarks>
 public abstract record ServiceTaskStageExchangeResult
 {
@@ -32,8 +42,9 @@ public abstract record ServiceTaskStageExchangeResult
     private protected ServiceTaskStageExchangeResult() { }
 
     /// <summary>
-    /// This message is handled; the exchange is not over. Returnable only from a reply handler's
-    /// <c>onMessage</c>.
+    /// This message is handled; the exchange is not over. Returnable only from the <c>onMessage</c> of
+    /// <see cref="ServiceTaskPipelineBuilder.HandleReplies"/> — the reply terminal's own <c>onMessage</c> has
+    /// <see cref="ServiceTaskExchangeResult.AwaitNextReply"/> for the same purpose.
     /// </summary>
     /// <remarks>
     /// An ordinary successful completion: data changes are saved, and the state travels on — publish what the
