@@ -104,6 +104,8 @@ material into the Sandbox. A custom placeholder is optional for clients that val
 Policy is evaluated for live Sandbox-originated operations and fails closed when the destination, authorization,
 secret resolution or trusted mediation path is unavailable. Host-destined traffic is restricted to the registered
 Platform API endpoint. This authorization is separate from authorization of users calling the host Agent API.
+When an Agent image includes Podman, the platform makes the guest's mediated CA bundle available to containers and
+build steps through standard trust paths. Docker and dockerd are not covered by this convenience wiring.
 
 SQLite `secure_delete` and owner-only filesystem permissions provide local hygiene. They are not a cryptographic
 erasure guarantee across WAL history, filesystem snapshots or backups.

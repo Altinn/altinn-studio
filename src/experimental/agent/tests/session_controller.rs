@@ -426,6 +426,8 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
             .working_directory()
             .is_some_and(|path| path.as_str() == "/home/agent/code")
             && spec.environment().get("LANG").map(String::as_str) == Some("C.UTF-8")
+            && matches!(spec.program(), Program::Command { args, .. }
+                if args.iter().any(|argument| argument == "CONTAINER_HOST=unix:///run/podman/podman.sock"))
     }));
 }
 

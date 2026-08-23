@@ -44,6 +44,10 @@ fn self_development_image_leaves_harness_startup_to_sessions() {
     let dockerfile = include_str!("../examples/self-dev/Dockerfile");
 
     assert!(!dockerfile.lines().any(|line| line.trim_start().starts_with("CMD ")));
+    assert!(dockerfile.contains("podman"));
+    assert!(dockerfile.contains("podman-docker"));
+    assert!(dockerfile.contains("podman-compose"));
+    assert!(dockerfile.contains("nftables"));
 }
 
 #[test]

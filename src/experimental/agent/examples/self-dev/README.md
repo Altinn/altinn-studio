@@ -4,7 +4,7 @@ Prerequisites are Docker, hardware virtualization, and an authenticated Claude C
 the host. Linux requires `/dev/kvm`; macOS requires Apple Silicon; Windows requires the distinct
 `HypervisorPlatform` optional feature and Docker Desktop in Linux-container mode.
 The example owns its Ubuntu 26.04 LTS multi-platform development-toolchain Dockerfile and uses a direct ext4 root
-filesystem so Docker can run inside the Agent without nesting its `overlay2` storage on the Sandbox root OverlayFS.
+filesystem so Podman's overlay storage does not nest on the Sandbox root OverlayFS.
 Its systemd boot unit clones Altinn Studio over mediated HTTPS into `/home/agent/code/altinn-studio`, and the image
 declares `/home/agent/code` as the stable Session workspace root so other repositories can live beside that checkout.
 The unit skips an existing `.git` checkout and otherwise makes one straightforward clone attempt per boot; it never
@@ -43,3 +43,9 @@ Microsandbox network mediator substitutes them only at their configured hosts. T
 state or Codex `config.toml` through `spec.home`; files supplied through `spec.home` are desired state and therefore
 reapplied on every Agent reconciliation pass. The builder-wide `instructions.md` payload is declared separately through
 `spec.instructions`; the Claude adapter installs it as `~/.claude/CLAUDE.md`.
+
+Container tooling inside the Agent is Podman. The `podman-docker` package makes the `docker` CLI and
+`/run/docker.sock` compatibility surfaces Podman-backed, `podman buildx build` is the buildx-compatible alias, and
+`podman-compose` is the Compose provider. Agent commands transparently use the rootful system socket; access to that
+socket is root-equivalent inside the Sandbox. Kind remains installed, but `KIND_EXPERIMENTAL_PROVIDER=podman` has not been
+verified for this example and its nested-container CA path is out of scope.

@@ -8,14 +8,13 @@ ENV DOTNET_ROOT=/usr/local/share/dotnet
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV PATH=/usr/local/cargo/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# Podman's netavark backend invokes nft for rootful bridge networking.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         build-essential \
         ca-certificates \
         clang \
         curl \
-        docker.io \
-        docker-buildx \
         git \
         libicu-dev \
         iproute2 \
@@ -24,7 +23,11 @@ RUN apt-get update \
         lldb \
         libssl-dev \
         linux-perf \
+        nftables \
         pkg-config \
+        podman \
+        podman-compose \
+        podman-docker \
         procps \
         qemu-system \
         ripgrep \
@@ -140,15 +143,13 @@ RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
 
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 
-RUN { getent group docker >/dev/null || groupadd --system docker; } \
-    && { getent group kvm >/dev/null || groupadd --system kvm; } \
+RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --login agent --home /home/agent --move-home ubuntu \
     && groupmod --new-name agent ubuntu \
-    && usermod --append --groups docker,kvm agent \
+    && usermod --append --groups kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
     && install -d -m 0755 -o agent -g agent /home/agent/.claude /home/agent/code \
-    && systemctl enable docker.service \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
 

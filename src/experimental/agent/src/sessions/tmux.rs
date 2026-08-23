@@ -128,6 +128,7 @@ pub(super) async fn create(
     let launch = harness::launch_linux(agent.agent.spec.harness.kind, crate::sandbox::platform::HOME, resume);
     let mut arguments = vec!["new-session".into(), "-d".into(), "-s".into(), session_name(session)];
     let session_environment = launch.environment.iter().cloned().chain([
+        ("CONTAINER_HOST".into(), crate::sandbox::platform::CONTAINER_HOST.into()),
         ("AGENT_SESSION_ID".into(), session.id.to_string()),
         ("AGENT_SESSION_TOKEN".into(), token.expose()),
         ("AGENT_SESSION_HOOK_URL".into(), session_hook_url.into()),

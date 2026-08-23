@@ -11,9 +11,41 @@ use super::super::PlatformAdapter;
 
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
+pub(crate) const CONTAINER_HOST: &str = "unix:///run/podman/podman.sock";
 const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
 const UTF8_LOCALE: &str = "C.UTF-8";
 const PORTABLE_TERMINAL: &str = "xterm-256color";
+const PODMAN: &str = "/usr/bin/podman";
+// Podman reads these files when it creates containers. The default mounts also
+// reach Buildah RUN containers and shadow common distro trust paths with the
+// guest's superset bundle. This is fail-open convenience; mediated networking
+// remains the enforcement boundary if a workload bypasses the configuration.
+const PODMAN_CONTAINERS_CONF: &str = "/etc/containers/containers.conf.d/50-agent-ca.conf";
+const PODMAN_RUNTIME_CONF: &str = "/etc/containers/containers.conf.d/51-agent-runtime.conf";
+const PODMAN_MOUNTS_CONF: &str = "/etc/containers/mounts.conf";
+const PODMAN_SOCKET_DROP_IN: &str = "/etc/systemd/system/podman.socket.d/50-agent-access.conf";
+const PODMAN_CONTAINERS_CONF_CONTENTS: &[u8] = br#"[containers]
+env = [
+  "SSL_CERT_FILE=/run/agent/tls/ca-bundle.pem",
+  "CURL_CA_BUNDLE=/run/agent/tls/ca-bundle.pem",
+  "REQUESTS_CA_BUNDLE=/run/agent/tls/ca-bundle.pem",
+  "NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem",
+  "GIT_SSL_CAINFO=/run/agent/tls/ca-bundle.pem",
+  "NPM_CONFIG_CAFILE=/run/agent/tls/ca-bundle.pem",
+]
+"#;
+// The minimal systemd guest has no D-Bus system bus. Podman's default systemd
+// cgroup manager therefore made crun fail with `cannot open sd-bus`; cgroupfs
+// keeps ownership inside Podman instead of relying on unavailable systemd APIs.
+// Sandbox teardown owns final cleanup, rather than systemd tracking these
+// container cgroups as units.
+const PODMAN_RUNTIME_CONF_CONTENTS: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\n";
+const PODMAN_MOUNTS_CONF_CONTENTS: &[u8] = br"/etc/ssl/certs/ca-certificates.crt:/run/agent/tls/ca-bundle.pem
+/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+/etc/ssl/certs/ca-certificates.crt:/etc/pki/tls/certs/ca-bundle.crt
+/etc/ssl/certs/ca-certificates.crt:/etc/ssl/cert.pem
+";
+const PODMAN_SOCKET_DROP_IN_CONTENTS: &[u8] = b"[Socket]\nDirectoryMode=0755\nSocketGroup=agent\nSocketMode=0660\n";
 
 /// Agent setup for Linux Sandboxes.
 pub struct Linux;
@@ -22,7 +54,11 @@ pub(super) fn execution_spec(command: &[String], terminal: bool) -> Result<Execu
     let (executable, arguments) = command
         .split_first()
         .ok_or_else(|| Error::Invalid("command is required".into()))?;
-    let mut environment = vec![("HOME".into(), HOME.into()), ("LANG".into(), UTF8_LOCALE.into())];
+    let mut environment = vec![
+        ("HOME".into(), HOME.into()),
+        ("LANG".into(), UTF8_LOCALE.into()),
+        ("CONTAINER_HOST".into(), CONTAINER_HOST.into()),
+    ];
     if terminal {
         // Host-specific TERM names are not necessarily installed in the guest.
         environment.push(("TERM".into(), PORTABLE_TERMINAL.into()));
@@ -57,11 +93,71 @@ impl Linux {
         )
         .await?;
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
+        configure_podman(sandbox).await?;
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
         let instructions = read_instructions(record).await?;
         harness::bootstrap_linux(record.agent.spec.harness.kind, sandbox, HOME, instructions.as_deref()).await
     }
+}
+
+async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
+    let present = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/test"),
+            ["-x".into(), PODMAN.into()],
+        ))
+        .await?;
+    match present.status.code {
+        1 => return Ok(()),
+        0 => {}
+        code => {
+            return Err(Error::SandboxSetup(format!(
+                "Podman presence check exited with code {code}"
+            )));
+        }
+    }
+
+    run_checked(
+        sandbox,
+        "/usr/bin/sudo",
+        [
+            "-n",
+            "/usr/bin/install",
+            "-d",
+            "-m",
+            "0755",
+            "/etc/containers/containers.conf.d",
+            "/etc/systemd/system/podman.socket.d",
+        ],
+    )
+    .await?;
+    write_file(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
+    write_file(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
+    write_file(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
+    write_file(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
+    run_checked(
+        sandbox,
+        "/usr/bin/sudo",
+        ["-n", "/usr/bin/install", "-d", "-m", "0755", "/run/podman"],
+    )
+    .await?;
+    run_checked(sandbox, "/usr/bin/sudo", ["-n", "/usr/bin/systemctl", "daemon-reload"]).await?;
+    // An already-listening socket retains its old mode until the next Sandbox
+    // boot; the compile-time drop-in is not changed independently at runtime.
+    run_checked(
+        sandbox,
+        "/usr/bin/sudo",
+        ["-n", "/usr/bin/systemctl", "enable", "--now", "podman.socket"],
+    )
+    .await
+}
+
+async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Result<(), Error> {
+    sandbox
+        .write_file(&SandboxPath::new(path), Box::pin(Cursor::new(contents.to_vec())))
+        .await
+        .map_err(Error::from)
 }
 
 async fn read_instructions(record: &control_plane::AgentRecord) -> Result<Option<Vec<u8>>, Error> {
@@ -174,6 +270,10 @@ mod tests {
         );
         assert_eq!(spec.environment().get("HOME").map(String::as_str), Some("/home/agent"));
         assert_eq!(spec.environment().get("LANG").map(String::as_str), Some("C.UTF-8"));
+        assert_eq!(
+            spec.environment().get("CONTAINER_HOST").map(String::as_str),
+            Some("unix:///run/podman/podman.sock")
+        );
         assert_eq!(
             spec.environment().get("TERM").map(String::as_str),
             Some("xterm-256color")

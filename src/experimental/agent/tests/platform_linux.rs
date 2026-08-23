@@ -25,6 +25,39 @@ fn is_claude_version(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_podman_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/test" && args == &["-x", "/usr/bin/podman"]
+    )
+}
+
+fn completed(code: i32) -> Vec<ExecutionEvent> {
+    vec![
+        ExecutionEvent::Started { process_id: None },
+        ExecutionEvent::Exited(ExitStatus { code }),
+    ]
+}
+
+const PODMAN_CONTAINERS_CONF: &[u8] = br#"[containers]
+env = [
+  "SSL_CERT_FILE=/run/agent/tls/ca-bundle.pem",
+  "CURL_CA_BUNDLE=/run/agent/tls/ca-bundle.pem",
+  "REQUESTS_CA_BUNDLE=/run/agent/tls/ca-bundle.pem",
+  "NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem",
+  "GIT_SSL_CAINFO=/run/agent/tls/ca-bundle.pem",
+  "NPM_CONFIG_CAFILE=/run/agent/tls/ca-bundle.pem",
+]
+"#;
+const PODMAN_RUNTIME_CONF: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\n";
+const PODMAN_MOUNTS_CONF: &[u8] = br"/etc/ssl/certs/ca-certificates.crt:/run/agent/tls/ca-bundle.pem
+/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+/etc/ssl/certs/ca-certificates.crt:/etc/pki/tls/certs/ca-bundle.crt
+/etc/ssl/certs/ca-certificates.crt:/etc/ssl/cert.pem
+";
+const PODMAN_SOCKET_DROP_IN: &[u8] = b"[Socket]\nDirectoryMode=0755\nSocketGroup=agent\nSocketMode=0660\n";
+
 async fn read_file(sandbox: &sandbox::SandboxHandle, path: &str) -> Vec<u8> {
     let mut bytes = Vec::new();
     sandbox
@@ -35,6 +68,35 @@ async fn read_file(sandbox: &sandbox::SandboxHandle, path: &str) -> Vec<u8> {
         .await
         .expect("read file bytes");
     bytes
+}
+
+fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]) {
+    let count = |expected: &[&str]| {
+        executions
+            .iter()
+            .filter(|spec| match spec.program() {
+                Program::Command { executable, args } => {
+                    executable.as_str() == "/usr/bin/sudo"
+                        && args.iter().map(String::as_str).eq(expected.iter().copied())
+                }
+                Program::ImageEntrypoint => false,
+            })
+            .count()
+    };
+    assert_eq!(count(&["-n", "/usr/bin/systemctl", "daemon-reload"]), 2);
+    assert_eq!(
+        count(&["-n", "/usr/bin/systemctl", "enable", "--now", "podman.socket"]),
+        2
+    );
+    assert_eq!(count(&["-n", "/usr/bin/install", "-d", "-m", "0755", "/run/podman"]), 2);
+    assert!(!executions.iter().any(|spec| {
+        match spec.program() {
+            Program::Command { args, .. } => args
+                .iter()
+                .any(|argument| matches!(argument.as_str(), "agent-containers" | "/dev/net/tun")),
+            Program::ImageEntrypoint => false,
+        }
+    }));
 }
 
 #[tokio::test(flavor = "local")]
@@ -63,6 +125,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
         );
+        backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
     }
     let service = SandboxService::new(backend.clone());
     let spec = record
@@ -127,9 +190,85 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         2
     );
     assert!(!commands.iter().any(|(executable, _)| *executable == "/usr/bin/git"));
+    assert!(
+        !commands.iter().any(|(executable, args)| {
+            *executable == "/usr/bin/sudo" && args.iter().any(|arg| arg == "podman.socket")
+        })
+    );
     assert!(!commands.iter().any(|(executable, args)| {
         *executable == "/usr/bin/touch" || (*executable == "/usr/bin/sudo" && args.iter().any(|arg| arg == "-R"))
     }));
+}
+
+#[tokio::test(flavor = "local")]
+async fn linux_setup_convergently_configures_podman_container_trust() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    let record = AgentRecord {
+        id: agent_id,
+        source_directory: directory.path().to_path_buf(),
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    for _ in 0..2 {
+        backend.queue_execution_events_matching(
+            is_claude_version,
+            vec![
+                ExecutionEvent::Started { process_id: None },
+                ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+                ExecutionEvent::Exited(ExitStatus { code: 0 }),
+            ],
+        );
+        backend.queue_execution_events_matching(is_podman_presence_check, completed(0));
+    }
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("Sandbox");
+
+    Linux.setup(&record, &sandbox).await.expect("first setup");
+    sandbox
+        .write_file(
+            &SandboxPath::new("/etc/containers/containers.conf.d/50-agent-ca.conf"),
+            Box::pin(Cursor::new(b"stale\n".to_vec())),
+        )
+        .await
+        .expect("replace managed configuration");
+    Linux.setup(&record, &sandbox).await.expect("second setup");
+
+    assert_eq!(
+        read_file(&sandbox, "/etc/containers/containers.conf.d/50-agent-ca.conf").await,
+        PODMAN_CONTAINERS_CONF
+    );
+    assert_eq!(
+        read_file(&sandbox, "/etc/containers/containers.conf.d/51-agent-runtime.conf").await,
+        PODMAN_RUNTIME_CONF
+    );
+    assert_eq!(
+        read_file(&sandbox, "/etc/containers/mounts.conf").await,
+        PODMAN_MOUNTS_CONF
+    );
+    assert_eq!(
+        read_file(&sandbox, "/etc/systemd/system/podman.socket.d/50-agent-access.conf").await,
+        PODMAN_SOCKET_DROP_IN
+    );
+
+    assert_podman_setup_commands(&backend.execution_specs());
 }
 
 #[tokio::test(flavor = "local")]
