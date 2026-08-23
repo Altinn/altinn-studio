@@ -10,7 +10,8 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
     /// <summary>
     /// Declares no constructor an app can call, for the reason given on
     /// <see cref="ServiceTaskExchangeResult"/>: the answers below are the whole vocabulary the runtime can
-    /// act on.
+    /// act on. Read that constructor's remarks before changing this one's accessibility — what holds the
+    /// property is one committed approval file, and only in CI.
     /// </summary>
     private protected ServiceTaskResult() { }
 

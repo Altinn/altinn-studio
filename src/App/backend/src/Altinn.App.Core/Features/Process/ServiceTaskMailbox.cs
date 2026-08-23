@@ -3,8 +3,9 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// The mailbox opened for the stage that declared it, handed to that stage's work as its second argument.
 /// <see cref="Id"/> is the reply address the stage publishes in its outbound message;
-/// <see cref="Deadline"/> is when the mailbox stops accepting answers. Minted before the declaring stage's work
-/// runs, keyed on the stage's own step id, so a retried attempt is handed the same mailbox.
+/// <see cref="Deadline"/> is when the mailbox stops accepting answers. Minted by its own step immediately before
+/// the declaring stage, keyed on that step's id; a retried or deferred attempt of the stage is handed this same
+/// mailbox, because the mint has already completed and its record travels in the workflow state.
 /// </summary>
 public sealed record ServiceTaskMailbox
 {

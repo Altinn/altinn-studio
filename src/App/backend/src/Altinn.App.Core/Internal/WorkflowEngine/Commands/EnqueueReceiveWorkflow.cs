@@ -79,9 +79,9 @@ internal sealed class EnqueueReceiveWorkflow(
             );
         }
 
-        // Carried in the state blob because the mint's key is the declaring stage's step id, which nothing later
-        // can re-derive. Looked up by the stage the payload names rather than by scanning the map, so a second
-        // carried mailbox is no obstacle.
+        // Carried in the state blob because the mint's key is the mint step's own step id, which nothing later can
+        // re-derive. Looked up by the stage the payload names rather than by scanning the map, so a second carried
+        // mailbox is no obstacle.
         if (context.StateCarry.FindMailbox(payload.OpeningStageName) is not { } carried)
         {
             return FailedProcessEngineCommandResult.Permanent(

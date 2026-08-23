@@ -19,6 +19,26 @@ public abstract record ServiceTaskExchangeResult
     /// to a workflow-engine outcome by its type; it has nothing to give a subtype it does not know. Should one
     /// reach it anyway, the task fails permanently naming the type rather than being concluded on a guess.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>No test holds this property, and one artifact does.</strong> <c>Altinn.App.Core.Tests</c> is an
+    /// <c>InternalsVisibleTo</c> friend, so a probe written there derives from this root perfectly legally and
+    /// proves nothing about what an app can do. The only thing that would notice this constructor being widened
+    /// is the committed public-API approval file
+    /// (<c>PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt</c>) — <em>and only in CI</em>,
+    /// because that project's module initializer calls Verify's <c>AutoVerify(includeBuildServer: false)</c>, so
+    /// a local run silently rewrites the file and still reports green. If you touch the accessibility of this
+    /// constructor, or of <see cref="ServiceTaskResult"/>'s or <see cref="ServiceTaskStageResult"/>'s, read that
+    /// file's diff by hand.
+    /// </para>
+    /// <para>
+    /// What does fail loudly is the hole this does not close: a record's synthesized <em>copy</em> constructor
+    /// is <c>protected</c> and C# forbids narrowing it on an unsealed record, so an app can still chain it.
+    /// Three tests derive that way — one per root — to pin that the runtime converges on such a value instead of
+    /// throwing into a retry ladder. They are self-cleaning: close the hole properly (which means moving these
+    /// roots off records) and <c>base(original)</c> stops compiling, taking those tests with it.
+    /// </para>
+    /// </remarks>
     private protected ServiceTaskExchangeResult() { }
 
     /// <summary>

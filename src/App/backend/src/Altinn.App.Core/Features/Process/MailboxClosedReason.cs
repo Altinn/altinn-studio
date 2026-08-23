@@ -14,8 +14,8 @@ public enum MailboxClosedReason
     Request = 0,
 
     /// <summary>
-    /// The exchange's deadline passed — <see cref="MailboxOptions.Timeout"/> measured from the moment
-    /// the declaring stage opened the mailbox. The answer never came in time.
+    /// The exchange's deadline passed — <see cref="MailboxOptions.Timeout"/> measured from the mint that
+    /// immediately precedes the declaring stage. The answer never came in time.
     /// </summary>
     Deadline = 1,
 }

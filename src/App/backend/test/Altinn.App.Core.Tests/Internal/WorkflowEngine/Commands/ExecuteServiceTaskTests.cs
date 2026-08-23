@@ -170,6 +170,11 @@ public class ExecuteServiceTaskTests
     /// success; a throw would ride the outer catch's retry ladder forever. It must converge: permanent, and
     /// naming the type.
     /// </summary>
+    /// <remarks>
+    /// Self-cleaning, like its two siblings (<c>ExecuteServiceTaskStageTests.RogueStageResult</c>,
+    /// <c>MailboxRelayTests.RogueVerdict</c>): should the roots ever move off records and close this route,
+    /// <c>base(original)</c> stops compiling and this test goes with the arm it pins.
+    /// </remarks>
     private sealed record RogueResult : ServiceTaskResult
     {
         public RogueResult(ServiceTaskResult original)

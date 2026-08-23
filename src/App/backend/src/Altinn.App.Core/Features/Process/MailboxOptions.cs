@@ -2,8 +2,8 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The mailbox a service task's stage opens: a durable inbox whose id that stage publishes as its reply
-/// address. Minted when the stage runs, carrying the exchange's one absolute deadline
-/// (<em>now + <see cref="Timeout"/></em>); nothing re-arms it.
+/// address. Minted by the step immediately before that stage, carrying the exchange's one absolute deadline
+/// (<em>mint time + <see cref="Timeout"/></em>); nothing re-arms it.
 /// </summary>
 public sealed record MailboxOptions
 {

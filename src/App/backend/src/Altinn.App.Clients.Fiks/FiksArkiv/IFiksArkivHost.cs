@@ -44,8 +44,8 @@ public interface IFiksArkivHost
     /// <param name="sendersReference">The caller-provided sender reference used to identify retries of the same message.</param>
     /// <param name="replyAddress">
     /// The address the recipient's answers must be routed back to — for
-    /// <see cref="FiksArkivServiceTask"/>, the id of the mailbox its send stage opened
-    /// (<c>ServiceTaskContext.Mailbox</c>). It travels as the Fiks IO <c>klientKorrelasjonsId</c>, the
+    /// <see cref="FiksArkivServiceTask"/>, the <c>ServiceTaskMailbox.Id</c> handed to its send stage.
+    /// It travels as the Fiks IO <c>klientKorrelasjonsId</c>, the
     /// one field Fiks IO echoes back on every reply, so an answer can be delivered into the mailbox the
     /// task is waiting on.
     /// </param>

@@ -92,6 +92,10 @@ public class ExecuteServiceTaskStageTests
     /// mapper does not know must fail permanently and name itself, never be concluded as a silent success and
     /// never ride the outer catch's retry ladder.
     /// </summary>
+    /// <remarks>
+    /// Self-cleaning: closing the copy-constructor route properly stops <c>base(original)</c> compiling, and
+    /// this test disappears with the arm it pins.
+    /// </remarks>
     private sealed record RogueStageResult : ServiceTaskStageResult
     {
         public RogueStageResult(ServiceTaskStageResult original)

@@ -3,11 +3,17 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Note what is
 /// deliberately missing compared to <see cref="ServiceTaskResult"/>: a stage cannot conclude the
-/// task or advance the process — that is reserved for the pipeline's <c>Finally</c>, which always
-/// runs last.
+/// task or advance the process — that is reserved for the pipeline's conclusion, which always runs
+/// last (its <c>Finally</c>, or the reply terminal answering the mailbox a stage opened).
 /// </summary>
 public abstract record ServiceTaskStageResult
 {
+    /// <summary>
+    /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own
+    /// constructor gives: a stage result the runtime cannot map is an author error it has no move for. Read
+    /// that constructor's remarks before changing this one's accessibility — what holds the property is one
+    /// committed approval file, and only in CI.
+    /// </summary>
     private protected ServiceTaskStageResult() { }
 
     /// <summary>

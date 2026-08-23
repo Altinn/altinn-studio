@@ -584,6 +584,10 @@ public class MailboxRelayTests
     /// verdict is no conclusion. Closing would pick one of the three readings it could have meant and lose
     /// the answer even after the author fixes the bug.
     /// </summary>
+    /// <remarks>
+    /// Self-cleaning: closing the copy-constructor route properly stops <c>base(original)</c> compiling, and
+    /// this test disappears with the arm it pins.
+    /// </remarks>
     private sealed record RogueVerdict : ServiceTaskExchangeResult
     {
         public RogueVerdict(ServiceTaskExchangeResult original)
