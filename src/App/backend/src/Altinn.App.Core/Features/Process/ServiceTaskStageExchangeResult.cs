@@ -1,0 +1,64 @@
+namespace Altinn.App.Core.Features.Process;
+
+/// <summary>
+/// What a reply handler that leaves the task unconcluded may answer: anything a pipeline stage answers
+/// (<see cref="ServiceTaskStageResult"/>, the whole vocabulary below this type) plus
+/// <see cref="AwaitNextReply"/>, which concludes nothing and waits for the next message.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The same move as <see cref="ServiceTaskExchangeResult"/>, one rung down: that root widens the answers a
+/// service task <em>concludes</em> with, this one widens the answers a <em>stage</em> gives. Which of the two
+/// a handler answers to is therefore what decides whether it can conclude the task at all — concluding and
+/// advancing the process live on <see cref="ServiceTaskResult"/>, which is not below this root, so a handler
+/// answering here can say "this exchange is done, the pipeline moves on"
+/// (<see cref="ServiceTaskStageResult.Completed"/>) and has no way to say more.
+/// </para>
+/// <para>
+/// The split is what makes "await the next message" unrepresentable where there is no next message to await:
+/// only a reply handler's <c>onMessage</c> answers this type. A stage, and every <c>onClosed</c>, answers
+/// <see cref="ServiceTaskStageResult"/> — so the compiler rejects <see cref="AwaitNextReply"/> there.
+/// </para>
+/// </remarks>
+public abstract record ServiceTaskStageExchangeResult
+{
+    /// <summary>
+    /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own
+    /// constructor gives: the answers below are the whole vocabulary the runtime can act on, and it has
+    /// nothing to give a subtype it does not know. Read that constructor's remarks before changing this one's
+    /// accessibility — what holds the property is one committed approval file, and only in CI — and note that
+    /// the record copy-constructor route it describes is open on this root too.
+    /// </summary>
+    private protected ServiceTaskStageExchangeResult() { }
+
+    /// <summary>
+    /// This message is handled; the exchange is not over. Returnable only from a reply handler's
+    /// <c>onMessage</c>.
+    /// </summary>
+    /// <remarks>
+    /// An ordinary successful completion: data changes are saved, and the state travels on — publish what the
+    /// next message should see. The exchange stays open until a later message is answered with
+    /// <see cref="ServiceTaskStageResult.Completed"/> or
+    /// <see cref="ServiceTaskStageResult.FailedPermanent"/>, or the mailbox's timeout runs out.
+    /// </remarks>
+    public static ServiceTaskStageAwaitNextReplyResult AwaitNextReply() =>
+        ServiceTaskStageAwaitNextReplyResult.Instance;
+}
+
+/// <summary>A reply handler finished its message while the exchange stays open.</summary>
+/// <remarks>
+/// <strong>Two types of identical shape exist on purpose</strong>, the same way
+/// <c>Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason</c> and
+/// <see cref="MailboxClosedReason"/> do: this one closes <see cref="ServiceTaskStageExchangeResult"/> and
+/// <see cref="ServiceTaskAwaitNextReplyResult"/> closes <see cref="ServiceTaskExchangeResult"/>. The two
+/// roots are different contracts — one can conclude the task, the other cannot — and a type has one base, so
+/// the duplication is what keeps both roots closed. Do not merge them behind a shared base, an interface or a
+/// generic: that would put "await the next message" back within reach of the handlers each root exists to
+/// keep it away from. App authors only ever name the factories, so the pair is invisible at use sites.
+/// </remarks>
+public sealed record ServiceTaskStageAwaitNextReplyResult : ServiceTaskStageExchangeResult
+{
+    internal static readonly ServiceTaskStageAwaitNextReplyResult Instance = new();
+
+    internal ServiceTaskStageAwaitNextReplyResult() { }
+}

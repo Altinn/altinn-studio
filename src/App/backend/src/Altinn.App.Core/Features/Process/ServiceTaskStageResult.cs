@@ -4,9 +4,11 @@ namespace Altinn.App.Core.Features.Process;
 /// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Note what is
 /// deliberately missing compared to <see cref="ServiceTaskResult"/>: a stage cannot conclude the
 /// task or advance the process — that is reserved for the pipeline's conclusion, which always runs
-/// last (its <c>Finally</c>, or the reply terminal answering the mailbox a stage opened).
+/// last (its <c>Finally</c>, or the reply terminal answering the mailbox a stage opened). A subtype
+/// of <see cref="ServiceTaskStageExchangeResult"/>, so every one of these answers is also a valid
+/// answer from a reply handler that leaves the task unconcluded — the reverse does not hold.
 /// </summary>
-public abstract record ServiceTaskStageResult
+public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
 {
     /// <summary>
     /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own

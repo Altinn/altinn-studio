@@ -28,15 +28,15 @@ public abstract record ServiceTaskExchangeResult
     /// (<c>PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt</c>) — <em>and only in CI</em>,
     /// because that project's module initializer calls Verify's <c>AutoVerify(includeBuildServer: false)</c>, so
     /// a local run silently rewrites the file and still reports green. If you touch the accessibility of this
-    /// constructor, or of <see cref="ServiceTaskResult"/>'s or <see cref="ServiceTaskStageResult"/>'s, read that
-    /// file's diff by hand.
+    /// constructor, or of <see cref="ServiceTaskResult"/>'s, <see cref="ServiceTaskStageResult"/>'s or
+    /// <see cref="ServiceTaskStageExchangeResult"/>'s, read that file's diff by hand.
     /// </para>
     /// <para>
     /// What does fail loudly is the hole this does not close: a record's synthesized <em>copy</em> constructor
     /// is <c>protected</c> and C# forbids narrowing it on an unsealed record, so an app can still chain it.
-    /// Three tests derive that way — one per root — to pin that the runtime converges on such a value instead of
-    /// throwing into a retry ladder. They are self-cleaning: close the hole properly (which means moving these
-    /// roots off records) and <c>base(original)</c> stops compiling, taking those tests with it.
+    /// Three tests derive that way — one per root the runtime maps — to pin that it converges on such a value
+    /// instead of throwing into a retry ladder. They are self-cleaning: close the hole properly (which means
+    /// moving these roots off records) and <c>base(original)</c> stops compiling, taking those tests with it.
     /// </para>
     /// </remarks>
     private protected ServiceTaskExchangeResult() { }

@@ -2151,7 +2151,12 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult SuccessWithoutAutoAdvance() { }
     }
-    public abstract class ServiceTaskStageResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageResult>
+    public sealed class ServiceTaskStageAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult> { }
+    public abstract class ServiceTaskStageExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>
+    {
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult AwaitNextReply() { }
+    }
+    public abstract class ServiceTaskStageResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageResult>
     {
         public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Completed() { }
         public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Defer(System.TimeSpan delay, string? reason = null) { }
