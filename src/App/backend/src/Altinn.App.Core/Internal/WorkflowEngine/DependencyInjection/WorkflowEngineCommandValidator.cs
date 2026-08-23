@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -95,10 +94,7 @@ internal static class WorkflowEngineCommandValidator
                 {
                     ServiceTaskType = "DummyMailboxServiceTask",
                     ServiceTaskStageNames = ["DummySendStage"],
-                    ServiceTaskMailbox = new ServiceTaskMailboxDeclaration(
-                        "DummySendStage",
-                        new MailboxOptions { Timeout = TimeSpan.FromDays(1) }
-                    ),
+                    MailboxOpeningStageName = "DummySendStage",
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }

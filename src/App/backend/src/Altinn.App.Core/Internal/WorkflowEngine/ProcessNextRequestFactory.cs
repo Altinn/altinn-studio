@@ -408,7 +408,11 @@ internal sealed class ProcessNextRequestFactory
                     {
                         ServiceTaskType = serviceTaskType,
                         ServiceTaskStageNames = pipeline?.Stages.Select(s => s.Name).ToList(),
-                        ServiceTaskMailbox = pipeline?.Mailbox,
+                        // The one place the pipeline is projected onto the expansion: the exchange's opening
+                        // stage is what both the mint step and the receive workflow are keyed on.
+                        MailboxOpeningStageName = (
+                            pipeline?.Conclusion as PipelineConclusion.ReplyExchange
+                        )?.OpeningStageName,
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,

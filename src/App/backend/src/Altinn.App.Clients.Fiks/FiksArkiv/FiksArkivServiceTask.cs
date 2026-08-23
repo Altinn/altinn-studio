@@ -61,16 +61,21 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// <inheritdoc />
     /// <remarks>
     /// The send is its own durable stage so the record is handed to Fiks IO once per pass, however many
-    /// messages come back, and <see cref="ServiceTaskPipeline.WithReplyFrom"/> names it because the send is what
-    /// publishes the address.
+    /// messages come back, and it is the stage that opens the mailbox because the send is what publishes the
+    /// address. The archive answers more than once — an acknowledgement, then a receipt — so the exchange is a
+    /// multi-message one.
     /// </remarks>
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage(SendStageName, SendToArchive)
-            .Finally(HandleArchiveReply)
-            .WithReplyFrom(SendStageName, new MailboxOptions { Timeout = ArchiveReplyTimeout });
+            .Stage(
+                SendStageName,
+                SendToArchive,
+                new MailboxOptions { Timeout = ArchiveReplyTimeout },
+                out MailboxHandle archive
+            )
+            .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
-    private async Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context)
+    private async Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
         // Two identities: klientMeldingId is the idempotency key (StepId, stable across retries);
         // klientKorrelasjonsId is echoed on every reply, so it must be the mailbox. Swapping them fails
@@ -84,15 +89,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             return ServiceTaskStageResult.FailedPermanent(errorMessage);
         }
 
-        Guid replyAddress = context.Mailbox.Id;
-        if (replyAddress == Guid.Empty)
-        {
-            const string errorMessage =
-                "The mailbox opened for this shipment has no address, so the archive message cannot be addressed "
-                + "for its answer — and without it the receipt would never reach the task waiting for it.";
-            _logger.LogError("FiksArkivServiceTask cannot send to the archive: {ErrorMessage}", errorMessage);
-            return ServiceTaskStageResult.FailedPermanent(errorMessage);
-        }
+        Guid replyAddress = mailbox.Id;
 
         try
         {
@@ -140,22 +137,31 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
         }
     }
 
-    private async Task<ServiceTaskResult> HandleArchiveReply(ServiceTaskContext context)
+    /// <summary>
+    /// The exchange ended without the archive confirming the record. Both closure reasons are the same
+    /// outcome for this task; only the wording differs.
+    /// </summary>
+    private Task<ServiceTaskResult> HandleArchiveClosed(ServiceTaskContext context, MailboxClosedReason reason)
     {
-        if (context.Reply is not { } reply)
-        {
-            string cause =
-                context.ReplyClosedReason == MailboxClosedReason.Deadline
-                    ? $"the exchange stayed open for {ArchiveReplyTimeout.TotalDays:0} days without a receipt arriving"
-                    : "the exchange was closed before a receipt arrived";
+        string cause =
+            reason == MailboxClosedReason.Deadline
+                ? $"the exchange stayed open for {ArchiveReplyTimeout.TotalDays:0} days without a receipt arriving"
+                : "the exchange was closed before a receipt arrived";
 
-            return ServiceTaskResult.FailedPermanent(
+        return Task.FromResult<ServiceTaskResult>(
+            ServiceTaskResult.FailedPermanent(
                 "The archive never confirmed the record. The archive record was handed to Fiks IO and "
                     + $"{cause}. The record may still be archived — the messages the exchange did receive show "
                     + "whether the archive acknowledged it — so manual follow-up is required."
-            );
-        }
+            )
+        );
+    }
 
+    private async Task<ServiceTaskExchangeResult> HandleArchiveMessage(
+        ServiceTaskContext context,
+        ServiceTaskReply reply
+    )
+    {
         if (ReadForwardedMessage(reply) is not { } message)
         {
             return ServiceTaskResult.FailedPermanent(
@@ -211,7 +217,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             );
         }
 
-        return ServiceTaskResult.AwaitNextReply();
+        return ServiceTaskExchangeResult.AwaitNextReply();
     }
 
     /// <summary>

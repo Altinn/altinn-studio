@@ -47,41 +47,21 @@ internal sealed class MintMailbox(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            // Redeploy drift, both arms: the workflow was enqueued against a pipeline that opened a mailbox
-            // here, and the code answering this callback no longer does. The stage arm is a refinement of the
-            // declaration arm below rather than extra coverage — the builder refuses a declaration naming an
-            // uncomposed stage, so a missing stage means the declaration moved or went with it — and it exists
-            // to name the stage as what went missing.
-            if (pipeline.FindStage(payload.StageName) is null)
+            // Redeploy drift, one lookup: the workflow was enqueued against a stage that opened a mailbox
+            // here, and the code answering this callback has no such stage opening one. A rename and a
+            // withdrawn declaration are the same miss now that the declaration lives on the stage.
+            if (pipeline.FindStage(payload.StageName)?.OpensMailbox is not { } declaration)
             {
-                // The likeliest shape of this drift is a stage renamed together with its declaration, and then
-                // where the declaration went is the actionable half.
-                string declaredNow = pipeline.Mailbox is { } relocated
-                    ? $" This task's mailbox is now opened by stage '{relocated.StageName}'."
-                    : string.Empty;
-                return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{payload.ServiceTaskType}' composes no stage named '{payload.StageName}', so "
-                        + "there is no mailbox to open for it. Stage names are a compatibility surface for in-flight "
-                        + "workflows: if the stage was renamed or removed since this workflow was enqueued, redeploy "
-                        + $"with the original name restored in {nameof(IPipelineServiceTask.Define)} and resume the "
-                        + $"workflow.{declaredNow}",
-                    "ServiceTaskStageNotFound"
-                );
-            }
-
-            if (
-                pipeline.Mailbox is not { } declaration
-                || !string.Equals(declaration.StageName, payload.StageName, StringComparison.Ordinal)
-            )
-            {
-                string opensNow = pipeline.Mailbox is { } moved
-                    ? $"its mailbox is now opened by stage '{moved.StageName}'"
+                // Where the mailbox went is the actionable half, so it comes before the remediation.
+                string opensNow = pipeline.Stages.FirstOrDefault(s => s.OpensMailbox is not null) is { } relocated
+                    ? $"its mailbox is now opened by stage '{relocated.Name}'"
                     : "its pipeline now opens no mailbox at all";
                 return FailedProcessEngineCommandResult.Permanent(
                     $"Service task '{payload.ServiceTaskType}' opened a mailbox from stage '{payload.StageName}' when "
-                        + $"this workflow was enqueued, but {opensNow}. The declaration was removed or moved while "
-                        + "this workflow was in flight: redeploy with it back on the stage that this exchange was "
-                        + $"declared from in {nameof(IPipelineServiceTask.Define)} and resume the workflow.",
+                        + $"this workflow was enqueued, but {opensNow}. Stage names and the mailboxes they open are a "
+                        + "compatibility surface for in-flight workflows: redeploy with the mailbox opened from a "
+                        + $"stage named '{payload.StageName}' in {nameof(IPipelineServiceTask.Define)} and resume the "
+                        + "workflow.",
                     "MailboxDeclarationNotFound"
                 );
             }
@@ -89,7 +69,7 @@ internal sealed class MintMailbox(
             if (context.Payload.StepId == Guid.Empty)
             {
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Stage '{declaration.StageName}' opens a mailbox, but the workflow engine supplied no step id to "
+                    $"Stage '{payload.StageName}' opens a mailbox, but the workflow engine supplied no step id to "
                         + "key it on. A mailbox keyed on an empty id would be shared by every task in this "
                         + "application. Upgrade the workflow engine to a version that sends stepId.",
                     "MailboxStepIdMissing"
@@ -101,7 +81,7 @@ internal sealed class MintMailbox(
                 new MailboxCreateRequest
                 {
                     IdempotencyKey = context.Payload.StepId.ToString(),
-                    Timeout = declaration.Options.Timeout,
+                    Timeout = declaration.Timeout,
                     CollectionKey = ProcessNextRequestFactory.CreateCollectionKey(context.InstanceId),
                 },
                 context.CancellationToken
@@ -112,14 +92,14 @@ internal sealed class MintMailbox(
                 case MailboxMintResult.Minted minted:
                     // The address must outlive this step: the declaring stage reads it from here, and so does the
                     // step that enqueues the first receiver — neither can re-derive this mint's key.
-                    context.StateCarry.RecordMailbox(declaration.StageName, minted.Mailbox.Id, minted.Mailbox.Deadline);
+                    context.StateCarry.RecordMailbox(payload.StageName, minted.Mailbox.Id, minted.Mailbox.Deadline);
                     return new SuccessfulProcessEngineCommandResult();
 
                 // The engine found the declaration impossible (usually a Timeout past its maximum, uncheckable at
                 // app startup). Retrying replays the same rejection.
                 case MailboxMintResult.Rejected rejected:
                     return FailedProcessEngineCommandResult.Permanent(
-                        $"The workflow engine refused the mailbox opened by stage '{declaration.StageName}': "
+                        $"The workflow engine refused the mailbox opened by stage '{payload.StageName}': "
                             + $"{rejected.Detail}",
                         "MailboxRejected"
                     );
@@ -127,7 +107,7 @@ internal sealed class MintMailbox(
                 // Named on the first failure rather than retried silently: a cap hit is a runaway.
                 case MailboxMintResult.AtCapacity atCapacity:
                     return FailedProcessEngineCommandResult.Retryable(
-                        $"The workflow engine could not open the mailbox for stage '{declaration.StageName}' yet: "
+                        $"The workflow engine could not open the mailbox for stage '{payload.StageName}' yet: "
                             + $"{atCapacity.Detail}",
                         "MailboxAtCapacity"
                     );

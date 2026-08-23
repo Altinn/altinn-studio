@@ -13,7 +13,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
-using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -644,6 +643,20 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(TimeSpan.FromHours(48), conclusion.Command.WaitBudget);
     }
 
+    private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> SendStage(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
     /// <summary>
     /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
     /// shown to resolve the <c>Finally</c>'s options.
@@ -656,12 +669,13 @@ public class ProcessNextRequestFactoryTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(
-                    _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
+                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .ConcludeOnReplies(
+                    archive,
+                    OnMessage,
+                    OnClosed,
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
-                )
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                );
     }
 
     /// <summary>
@@ -675,15 +689,16 @@ public class ProcessNextRequestFactoryTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("PrepareDocuments", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage("PrepareDocuments", PlainStage)
                 .Stage(
                     "SendToArchive",
-                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    SendStage,
+                    _mailboxThreeDays,
+                    out MailboxHandle archive,
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
                 )
-                .Stage("RecordDispatch", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage("RecordDispatch", PlainStage)
+                .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
     private static MintMailboxPayload ExtractMintPayload(WorkflowEnqueueEnvelope bundle)

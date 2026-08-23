@@ -1,9 +1,8 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// One message delivered into the mailbox a service task opened with
-/// <see cref="ServiceTaskPipeline.WithReplyFrom"/>, handed to the conclusion as
-/// <see cref="ServiceTaskContext.Reply"/> — exactly one per execution, each its own durable unit of work.
+/// One message delivered into the mailbox a service task's stage opened, handed to the reply terminal's
+/// <c>onMessage</c> handler — exactly one per execution, each its own durable unit of work.
 /// </summary>
 /// <remarks>
 /// The payload originated outside the platform: validate defensively, and conclude an ununderstandable

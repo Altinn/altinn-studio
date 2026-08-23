@@ -43,12 +43,11 @@ internal static class ServiceTaskLookupExtensions
     /// The task's composed pipeline — for an <see cref="IServiceTask"/>, the forwarding default
     /// (<c>Finally(Execute)</c>). Throws when <c>Define</c> returns null, which no honest
     /// implementation does (the builder is the only source of a pipeline) but mocks that bypass
-    /// the interface default do — and when it composed a mailbox and then returned the pipeline
-    /// from before that declaration.
+    /// the interface default do.
     /// </summary>
     public static ServiceTaskPipeline ResolvePipeline(this IPipelineServiceTask task)
     {
-        // Fresh per call, so anything it records is scoped to this one Define invocation.
+        // Fresh per call, so the mailbox handle it issues cannot be answered from another task's Define.
         var builder = new ServiceTaskPipelineBuilder();
 
         ServiceTaskPipeline pipeline =
@@ -57,16 +56,6 @@ internal static class ServiceTaskLookupExtensions
                 $"{task.GetType().Name}.{nameof(IPipelineServiceTask.Define)} returned null — a service task must "
                     + "return the pipeline composed from the supplied builder."
             );
-
-        if (builder.MailboxDeclared && pipeline.Mailbox is null)
-        {
-            throw new InvalidOperationException(
-                $"{task.GetType().Name}.{nameof(IPipelineServiceTask.Define)} called "
-                    + $"{nameof(ServiceTaskPipeline.WithReplyFrom)} but returned the pipeline from before it, so the "
-                    + $"mailbox would never be opened. Return what {nameof(ServiceTaskPipeline.WithReplyFrom)} gives "
-                    + "you: 'return pipeline.Stage(…).Finally(…).WithReplyFrom(…);'."
-            );
-        }
 
         return pipeline;
     }

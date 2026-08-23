@@ -2012,6 +2012,7 @@ namespace Altinn.App.Core.Features.Process
         Request = 0,
         Deadline = 1,
     }
+    public sealed class MailboxHandle { }
     public sealed class MailboxOptions : System.IEquatable<Altinn.App.Core.Features.Process.MailboxOptions>
     {
         public MailboxOptions() { }
@@ -2076,7 +2077,7 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset? Deadline { get; init; }
         public int RetryCount { get; init; }
     }
-    public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
+    public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
@@ -2084,9 +2085,6 @@ namespace Altinn.App.Core.Features.Process
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public System.DateTimeOffset ExecutionReferenceTime { get; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-        public Altinn.App.Core.Features.Process.ServiceTaskMailbox Mailbox { get; }
-        public Altinn.App.Core.Features.Process.ServiceTaskReply? Reply { get; }
-        public Altinn.App.Core.Features.Process.MailboxClosedReason? ReplyClosedReason { get; }
         public required System.Guid StepId { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
         public required System.Guid WorkflowId { get; init; }
@@ -2096,6 +2094,11 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskDeferredResult() { }
         public required System.TimeSpan Delay { get; init; }
         public string? Reason { get; init; }
+    }
+    public abstract class ServiceTaskExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>
+    {
+        protected ServiceTaskExchangeResult() { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
     }
     public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
     {
@@ -2107,15 +2110,15 @@ namespace Altinn.App.Core.Features.Process
         public required System.DateTimeOffset Deadline { get; init; }
         public required System.Guid Id { get; init; }
     }
-    public sealed class ServiceTaskPipeline
-    {
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline WithReplyFrom(string stageName, Altinn.App.Core.Features.Process.MailboxOptions options) { }
-    }
+    public sealed class ServiceTaskPipeline { }
     public sealed class ServiceTaskPipelineBuilder
     {
         public ServiceTaskPipelineBuilder() { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline ConcludeOnReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline ConcludeOnReply(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
         public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(string name, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(string name, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
     public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
     {
@@ -2143,10 +2146,9 @@ namespace Altinn.App.Core.Features.Process
         EngineUnavailable = 5,
         SigningUnavailable = 6,
     }
-    public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
+    public abstract class ServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
         protected ServiceTaskResult() { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
         public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }

@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The mailbox opened for the stage that declared it, read from <see cref="ServiceTaskContext.Mailbox"/>.
+/// The mailbox opened for the stage that declared it, handed to that stage's work as its second argument.
 /// <see cref="Id"/> is the reply address the stage publishes in its outbound message;
 /// <see cref="Deadline"/> is when the mailbox stops accepting answers. Minted before the declaring stage's work
 /// runs, keyed on the stage's own step id, so a retried attempt is handed the same mailbox.

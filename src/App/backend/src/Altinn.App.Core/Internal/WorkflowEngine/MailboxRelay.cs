@@ -48,7 +48,10 @@ internal sealed class MailboxRelay
     /// The continuation returned alongside the outcome is run by <see cref="Continue"/> once the handler's data
     /// changes are saved.
     /// </summary>
-    /// <param name="result">The handler's verdict on this message, or on the closure.</param>
+    /// <param name="result">
+    /// The handler's verdict on this message, or on the closure. Typed as the exchange vocabulary because a
+    /// message handler may also answer "await the next message"; a closure handler cannot.
+    /// </param>
     /// <param name="serviceTaskType">The task whose exchange this is, for the failure wording.</param>
     /// <param name="stepId">The executing step, which every keyed engine call is keyed off.</param>
     /// <param name="mailbox">The rendezvous the engine handed this execution.</param>
@@ -58,7 +61,7 @@ internal sealed class MailboxRelay
     /// command, which reads the declaration anyway.
     /// </param>
     internal static ProcessEngineCommandResult Decide(
-        ServiceTaskResult result,
+        ServiceTaskExchangeResult result,
         string serviceTaskType,
         Guid stepId,
         AppCallbackMailbox mailbox,
@@ -69,19 +72,8 @@ internal sealed class MailboxRelay
         switch (result)
         {
             case ServiceTaskAwaitNextReplyResult:
-                // The one contract violation the engine leaves to the app-lib. Permanent because a retry
-                // re-derives the same truth.
-                if (mailbox.Delivery is null)
-                {
-                    return FailedProcessEngineCommandResult.Permanent(
-                        $"Service task '{serviceTaskType}' answered AwaitNextReply to a closed mailbox. "
-                            + $"ServiceTaskContext.Reply was null, which means the mailbox closed "
-                            + $"({mailbox.DisposedReason}) and no further message can arrive, so the handler must "
-                            + "conclude with Success or FailedPermanent.",
-                        "MailboxExchangeAlreadyClosed"
-                    );
-                }
-
+                // Only a message handler can have returned this — a closure handler returns ServiceTaskResult,
+                // which cannot express it.
                 if (StepIdMissing(stepId, serviceTaskType, "enqueue the exchange's next receiver") is { } noKey)
                 {
                     return noKey;

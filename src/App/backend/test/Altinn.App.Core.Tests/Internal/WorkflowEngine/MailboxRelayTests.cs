@@ -173,16 +173,29 @@ public class MailboxRelayTests
         );
     }
 
-    /// <summary>A task whose conclusion is the reply handler, so the relay has a step shape to build.</summary>
+    private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> SendStage(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
+    /// <summary>A task that concludes on replies, so the relay has a step shape to build.</summary>
     private sealed class ArchivingTask : IPipelineServiceTask
     {
         public string Type => ServiceTaskType;
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
     private static MailboxRelayRequest CreateRequest(
@@ -348,28 +361,6 @@ public class MailboxRelayTests
         Assert.Empty(recorder.AfterWorkflows);
     }
 
-    [Fact]
-    public void AwaitNextReply_OnAClosedMailbox_IsRejectedNonRetryably()
-    {
-        var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(OpeningStage, _mailboxId, _mailboxDeadline);
-
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
-            ServiceTaskResult.AwaitNextReply(),
-            ServiceTaskType,
-            _stepId,
-            Closed(),
-            carry,
-            OpeningStage
-        );
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxExchangeAlreadyClosed", failed.ExceptionType);
-        Assert.Null(failed.MailboxContinuation);
-        Assert.NotNull(carry.FindMailbox(OpeningStage));
-    }
-
     // ---------------------------------------------------------------------------------------------
     // Saga invariant 3 — every mid-callback call keys off the executing step.
     // ---------------------------------------------------------------------------------------------
@@ -439,7 +430,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStage, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
-            awaitNext ? ServiceTaskResult.AwaitNextReply() : ServiceTaskResult.Success(),
+            awaitNext ? ServiceTaskExchangeResult.AwaitNextReply() : ServiceTaskResult.Success(),
             ServiceTaskType,
             Guid.Empty,
             Delivered(),
@@ -635,7 +626,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStage, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
-            ServiceTaskResult.AwaitNextReply(),
+            ServiceTaskExchangeResult.AwaitNextReply(),
             ServiceTaskType,
             _stepId,
             Delivered(seq: 4),

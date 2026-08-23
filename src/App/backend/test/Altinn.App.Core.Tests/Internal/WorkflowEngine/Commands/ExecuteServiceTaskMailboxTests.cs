@@ -12,9 +12,9 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The mailbox half of <see cref="ExecuteServiceTask"/>: which execution can read the address the
-/// <see cref="MintMailbox"/> step published, and what everything else sees. The mint itself is
-/// <see cref="MintMailboxTests"/>'s subject — nothing here opens a mailbox.
+/// The mailbox half of <see cref="ExecuteServiceTask"/>: the declaring stage being handed the address the
+/// <see cref="MintMailbox"/> step published, and what the executions that open no mailbox do instead. The
+/// mint itself is <see cref="MintMailboxTests"/>'s subject — nothing here opens a mailbox.
 /// </summary>
 public class ExecuteServiceTaskMailboxTests
 {
@@ -29,18 +29,44 @@ public class ExecuteServiceTaskMailboxTests
 
         public Dictionary<string, ServiceTaskContext> Seen { get; } = new(StringComparer.Ordinal);
 
+        /// <summary>The address handed to the stage that opens the mailbox.</summary>
+        public ServiceTaskMailbox? SentTo { get; private set; }
+
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(SendStage, Record<ServiceTaskStageResult>(SendStage, ServiceTaskStageResult.Completed()))
+                .Stage(
+                    SendStage,
+                    (context, mailbox) =>
+                    {
+                        Seen[SendStage] = context;
+                        SentTo = mailbox;
+                        return Task.FromResult(ServiceTaskStageResult.Completed());
+                    },
+                    new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
+                    out MailboxHandle archive
+                )
                 .Stage(
                     "RecordDispatch",
                     Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed())
                 )
-                .Finally(Record<ServiceTaskResult>("Finally", ServiceTaskResult.Success()))
-                .WithReplyFrom(SendStage, new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .ConcludeOnReplies(
+                    archive,
+                    onMessage: Record<ServiceTaskExchangeResult, ServiceTaskReply>(
+                        "OnMessage",
+                        ServiceTaskResult.Success()
+                    ),
+                    onClosed: Record<ServiceTaskResult, MailboxClosedReason>("OnClosed", ServiceTaskResult.Success())
+                );
 
         private Func<ServiceTaskContext, Task<T>> Record<T>(string step, T result) =>
             context =>
+            {
+                Seen[step] = context;
+                return Task.FromResult(result);
+            };
+
+        private Func<ServiceTaskContext, TArg, Task<T>> Record<T, TArg>(string step, T result) =>
+            (context, _) =>
             {
                 Seen[step] = context;
                 return Task.FromResult(result);
@@ -151,7 +177,7 @@ public class ExecuteServiceTaskMailboxTests
     private static ExecuteServiceTaskPayload Payload(string? stageName) => new("archiving", stageName);
 
     [Fact]
-    public async Task DeclaringStage_ReadsTheMailboxTheMintStepCarried()
+    public async Task DeclaringStage_IsHandedTheMailboxTheMintStepCarried()
     {
         var task = new ArchivingTask();
 
@@ -160,7 +186,7 @@ public class ExecuteServiceTaskMailboxTests
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
 
-        ServiceTaskMailbox mailbox = task.Seen[SendStage].Mailbox;
+        ServiceTaskMailbox mailbox = Assert.IsType<ServiceTaskMailbox>(task.SentTo);
         Assert.Equal(CarriedMailboxId, mailbox.Id);
         Assert.Equal(CarriedDeadline, mailbox.Deadline);
     }
@@ -202,47 +228,37 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Empty(task.Seen);
     }
 
-    [Theory]
-    [InlineData("RecordDispatch")]
-    [InlineData(null)]
-    public async Task StepThatIsNotTheDeclaringStage_ReadingTheMailboxThrows(string? stageName)
+    /// <summary>
+    /// A stage that opens no mailbox needs no carried entry, and gets none: the runtime reads the stage's own
+    /// declaration to decide what to hand it, so an empty carry is not this stage's problem.
+    /// </summary>
+    [Fact]
+    public async Task NonDeclaringStage_RunsWithAnEmptyCarry()
     {
         var task = new ArchivingTask();
 
-        await CreateCommand(task)
-            .Execute(
-                CreateContext(MintedCarry(), stageName is null ? Delivered(CarriedMailboxId) : null),
-                Payload(stageName)
-            );
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(), Payload("RecordDispatch"));
 
-        ServiceTaskContext seen = task.Seen[stageName ?? "Finally"];
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => seen.Mailbox);
-        Assert.Contains(
-            $"mailbox is opened by stage '{SendStage}' and is readable only there",
-            exception.Message,
-            StringComparison.Ordinal
-        );
-        Assert.Contains(
-            stageName is null ? "the pipeline's conclusion" : $"stage '{stageName}'",
-            exception.Message,
-            StringComparison.Ordinal
-        );
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Contains("RecordDispatch", task.Seen);
+        Assert.Null(task.SentTo);
     }
 
-    [Theory]
-    [InlineData(SendStage)]
-    [InlineData(null)]
-    public async Task TaskThatDeclaresNoMailbox_ReadingTheMailboxThrows(string? stageName)
+    [Fact]
+    public async Task TaskThatOpensNoMailbox_RunsBothItsStepsWithAnEmptyCarry()
     {
         var task = new PlainTask();
 
-        await CreateCommand(task).Execute(CreateContext(), Payload(stageName));
-
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            task.Seen[stageName ?? "Finally"].Mailbox
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(
+            await CreateCommand(task).Execute(CreateContext(), Payload(SendStage))
         );
-        Assert.Contains("this task opens no mailbox", exception.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(ServiceTaskPipeline.WithReplyFrom), exception.Message, StringComparison.Ordinal);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(
+            await CreateCommand(task).Execute(CreateContext(), Payload(stageName: null))
+        );
+
+        Assert.Contains(SendStage, task.Seen);
+        Assert.Contains("Finally", task.Seen);
     }
 
     /// <summary>
@@ -266,7 +282,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     [Fact]
-    public async Task ConclusionOfADeclaringPipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
+    public async Task ReplyHandlerOfAnExchangePipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
     {
         var task = new ArchivingTask();
 

@@ -122,17 +122,33 @@ public class MintMailboxTests
         ) => throw new NotSupportedException();
     }
 
-    /// <summary>The shape the mint step is emitted for: a stage that sends, answered by a message.</summary>
+    private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+    private static Task<ServiceTaskStageResult> Plain(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> Conclude(ServiceTaskContext context) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
+    /// <summary>The shape the mint step is emitted for: a stage that sends, answered by messages.</summary>
     private sealed class ArchivingTask : IPipelineServiceTask
     {
         public string Type => "archiving";
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(SendStage, _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Stage("RecordDispatch", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-                .WithReplyFrom(SendStage, new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage(SendStage, Send, _threeDays, out MailboxHandle archive)
+                .Stage("RecordDispatch", Plain)
+                .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>Drift: the stage the workflow was enqueued against no longer exists.</summary>
@@ -142,9 +158,8 @@ public class MintMailboxTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchiveV2", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-                .WithReplyFrom("SendToArchiveV2", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage("SendToArchiveV2", Send, _threeDays, out MailboxHandle archive)
+                .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>Drift: neither the stage nor any mailbox declaration survived the redeploy.</summary>
@@ -153,9 +168,7 @@ public class MintMailboxTests
         public string Type => "archiving";
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage("SendToArchiveV2", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+            pipeline.Stage("SendToArchiveV2", Plain).Finally(Conclude);
     }
 
     /// <summary>Drift: the stage is still there, but the pipeline no longer opens a mailbox at all.</summary>
@@ -164,9 +177,7 @@ public class MintMailboxTests
         public string Type => "archiving";
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage(SendStage, _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+            pipeline.Stage(SendStage, Plain).Finally(Conclude);
     }
 
     /// <summary>Drift: the declaration moved to a later stage while this workflow was in flight.</summary>
@@ -176,10 +187,9 @@ public class MintMailboxTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(SendStage, _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Stage("SendReceipt", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-                .WithReplyFrom("SendReceipt", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage(SendStage, Plain)
+                .Stage("SendReceipt", Send, _threeDays, out MailboxHandle receipts)
+                .ConcludeOnReplies(receipts, OnMessage, OnClosed);
     }
 
     private static MintMailbox CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
@@ -358,7 +368,11 @@ public class MintMailboxTests
         Assert.Null(carry.Mailboxes);
     }
 
-    /// <summary>Redeploy drift: the stage this step was emitted for was renamed or removed mid-flight.</summary>
+    /// <summary>
+    /// Redeploy drift: the stage this step was emitted for was renamed or removed mid-flight. One lookup now
+    /// covers it and the declaration-drift cases below — a stage that does not open this exchange is a miss
+    /// however it came to be one.
+    /// </summary>
     [Fact]
     public async Task Execute_WhenTheStageIsGone_FailsPermanentlyNamingTheRedeployFix()
     {
@@ -369,8 +383,8 @@ public class MintMailboxTests
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
-        Assert.Contains($"no stage named '{SendStage}'", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
+        Assert.Contains($"from stage '{SendStage}'", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Contains("redeploy", failed.ErrorMessage, StringComparison.Ordinal);
         // The actionable half: a stage renamed together with its declaration is the likeliest shape of this
         // drift, so the message says where the declaration went rather than only that the stage is gone.
@@ -396,7 +410,7 @@ public class MintMailboxTests
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
+        Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
         Assert.DoesNotContain("now opened by stage", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(minter.Mints);
     }

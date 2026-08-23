@@ -35,6 +35,15 @@ public class ServiceTaskRegistrationValidatorTests
     private static Task<ServiceTaskResult> NoopFinally(ServiceTaskContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
+    private static Task<ServiceTaskStageResult> NoopSend(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> NoopMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> NoopClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
     // ── Well-formed tasks ────────────────────────────────────────────────────────────────────
 
     private sealed class SimpleTask : IServiceTask
@@ -187,48 +196,63 @@ public class ServiceTaskRegistrationValidatorTests
 
     // ── The sealed forwarding Define (backstop for the ALTINNAPP0700 analyzer) ──────────────
 
-    private sealed class DiscardedMailboxDeclarationTask : IPipelineServiceTask
+    private sealed class UnansweredMailboxTask : IPipelineServiceTask
     {
-        public string Type => "discardedMailbox";
+        public string Type => "unansweredMailbox";
 
-        // The violation: WithReplyFrom returns the declared pipeline, so calling it for its side effect composes a
-        // task whose mailbox is never opened.
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
-        {
-            ServiceTaskPipeline composed = pipeline.Stage("Send", NoopStage).Finally(NoopFinally);
-            composed.WithReplyFrom("Send", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
-            return composed;
-        }
-    }
-
-    [Fact]
-    public async Task PipelineTaskDiscardingItsMailboxDeclaration_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, DiscardedMailboxDeclarationTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains(nameof(ServiceTaskPipeline.WithReplyFrom), exception.Message, StringComparison.Ordinal);
-        Assert.Contains("returned the pipeline from before it", exception.Message, StringComparison.Ordinal);
-    }
-
-    private sealed class MailboxOnAnUnknownStageTask : IPipelineServiceTask
-    {
-        public string Type => "unknownMailboxStage";
-
+        // The violation: a stage opens a mailbox and the pipeline ends with Finally, so nothing answers the
+        // messages that come back.
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("Send", NoopStage)
-                .Finally(NoopFinally)
-                .WithReplyFrom("Dispatch", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage("Send", NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
+                .Finally(NoopFinally);
     }
 
     [Fact]
-    public async Task PipelineTaskNamingAStageThatDoesNotExist_FailsStartup()
+    public async Task PipelineTaskOpeningAMailboxNothingAnswers_FailsStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, MailboxOnAnUnknownStageTask>());
+        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, UnansweredMailboxTask>());
 
         Assert.NotNull(exception);
-        Assert.Contains("No stage named 'Dispatch'", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("Stage 'Send' opens a mailbox", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            nameof(ServiceTaskPipelineBuilder.ConcludeOnReplies),
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    private sealed class ForeignMailboxHandleTask : IPipelineServiceTask
+    {
+        public string Type => "foreignMailboxHandle";
+
+        private static readonly MailboxHandle _cached = CacheAHandle();
+
+        private static MailboxHandle CacheAHandle()
+        {
+            new ServiceTaskPipelineBuilder().Stage(
+                "Send",
+                NoopSend,
+                new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
+                out MailboxHandle handle
+            );
+            return handle;
+        }
+
+        // The violation: a handle cached from an earlier Define call belongs to that call's builder.
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("Send", NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
+                .ConcludeOnReplies(_cached, NoopMessage, NoopClosed);
+    }
+
+    [Fact]
+    public async Task PipelineTaskAnsweringAnotherPipelinesMailbox_FailsStartup()
+    {
+        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, ForeignMailboxHandleTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
     }
 
     private sealed class ReplacedDefineTask : IServiceTask

@@ -61,11 +61,11 @@ public class EFormidlingServiceTaskTests
         ServiceTaskStage stage =
             task.ResolvePipeline().FindStage("SendShipment")
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
-        return stage.Work(context);
+        return stage.Work(context, null);
     }
 
     private static Task<ServiceTaskResult> AwaitDelivery(EFormidlingServiceTask task, ServiceTaskContext context) =>
-        task.ResolvePipeline().Final(context);
+        Assert.IsType<PipelineConclusion.FinalStep>(task.ResolvePipeline().Conclusion).Work(context);
 
     private void SetupShipmentStatus(
         EFormidlingDeliveryState state,
@@ -107,7 +107,7 @@ public class EFormidlingServiceTaskTests
         // handed a budget it can never use. Deliberately longer than the two-hour lifetime the
         // shipment carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the
         // instance before our wait gives up.
-        Assert.Equal(TimeSpan.FromHours(2.5), pipeline.FinalStepOptions?.WaitBudget);
+        Assert.Equal(TimeSpan.FromHours(2.5), pipeline.Conclusion.StepOptions?.WaitBudget);
         Assert.Null(((IPipelineServiceTask)_serviceTask).StepOptions);
         Assert.Null(pipeline.Stages.Single().StepOptions);
     }

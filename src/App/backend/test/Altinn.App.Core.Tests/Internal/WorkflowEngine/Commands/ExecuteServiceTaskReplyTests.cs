@@ -21,9 +21,9 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The reply half of <see cref="ExecuteServiceTask"/>: what the engine's rendezvous block becomes on
-/// the way to <see cref="ServiceTaskContext.Reply"/>, and what happens when the block and the
-/// pipeline's own declaration disagree.
+/// The reply half of <see cref="ExecuteServiceTask"/>: which of an exchange's two handlers the engine's
+/// rendezvous block dispatches to, what the message becomes on the way there, and what happens when the
+/// block and the pipeline's own shape disagree.
 /// </summary>
 public class ExecuteServiceTaskReplyTests
 {
@@ -37,20 +37,36 @@ public class ExecuteServiceTaskReplyTests
     /// </summary>
     private static readonly MailboxDeliveryEnvelope _envelope = TestMailboxDeliveryEnvelope.Create();
 
-    /// <summary>A task answered by a message: one sending stage, and a conclusion that reads it.</summary>
+    /// <summary>
+    /// A task answered by messages: a sending stage that opens the mailbox, an unrelated stage after it, and
+    /// the two handlers that answer the exchange. Each handler records what it was handed.
+    /// </summary>
     private sealed class ArchivingTask : IPipelineServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskResult Verdict { get; init; } = ServiceTaskResult.Success();
+        public ServiceTaskExchangeResult MessageVerdict { get; init; } = ServiceTaskResult.Success();
 
-        public ServiceTaskContext? Conclusion { get; private set; }
+        public ServiceTaskResult ClosedVerdict { get; init; } = ServiceTaskResult.Success();
+
+        public ServiceTaskContext? MessageContext { get; private set; }
+
+        public ServiceTaskReply? Message { get; private set; }
+
+        public ServiceTaskContext? ClosedContext { get; private set; }
+
+        public MailboxClosedReason? ClosedReason { get; private set; }
 
         public ServiceTaskContext? Stage { get; private set; }
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(
+                    "SendToArchive",
+                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
+                    out MailboxHandle archive
+                )
                 .Stage(
                     "RecordDispatch",
                     context =>
@@ -59,12 +75,21 @@ public class ExecuteServiceTaskReplyTests
                         return Task.FromResult(ServiceTaskStageResult.Completed());
                     }
                 )
-                .Finally(context =>
-                {
-                    Conclusion = context;
-                    return Task.FromResult(Verdict);
-                })
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .ConcludeOnReplies(
+                    archive,
+                    onMessage: (context, reply) =>
+                    {
+                        MessageContext = context;
+                        Message = reply;
+                        return Task.FromResult(MessageVerdict);
+                    },
+                    onClosed: (context, reason) =>
+                    {
+                        ClosedContext = context;
+                        ClosedReason = reason;
+                        return Task.FromResult(ClosedVerdict);
+                    }
+                );
     }
 
     /// <summary>The same task without a mailbox — it is never answered by a message.</summary>
@@ -155,7 +180,7 @@ public class ExecuteServiceTaskReplyTests
         };
 
     [Fact]
-    public async Task Conclusion_WithADeliveredMessage_ReadsItVerbatim()
+    public async Task OnMessage_WithADeliveredMessage_ReadsItVerbatim()
     {
         var task = new ArchivingTask();
 
@@ -163,31 +188,31 @@ public class ExecuteServiceTaskReplyTests
             .Execute(CreateContext(Delivered(seq: 3)), new ExecuteServiceTaskPayload("archiving"));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        ServiceTaskReply reply = Assert.IsType<ServiceTaskReply>(task.Conclusion!.Reply);
+        ServiceTaskReply reply = Assert.IsType<ServiceTaskReply>(task.Message);
         Assert.Equal("<receipt>ok</receipt>", reply.Payload);
         Assert.Equal("fiks-message-42", reply.IdempotencyKey);
         Assert.Equal(new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero), reply.AcceptedAt);
         Assert.Equal(3, reply.Position);
-        Assert.Null(task.Conclusion.ReplyClosedReason);
+        Assert.Null(task.ClosedContext);
     }
 
     [Fact]
-    public async Task Conclusion_WithAnEmptyMessage_StillReadsAMessage()
+    public async Task OnMessage_WithAnEmptyMessage_StillRunsWithAMessage()
     {
         var task = new ArchivingTask();
         AppCallbackMailbox empty = Delivered(body: "");
 
         await CreateCommand(task).Execute(CreateContext(empty), new ExecuteServiceTaskPayload("archiving"));
 
-        Assert.NotNull(task.Conclusion!.Reply);
-        Assert.Equal("", task.Conclusion.Reply.Payload);
-        Assert.Null(task.Conclusion.ReplyClosedReason);
+        Assert.NotNull(task.Message);
+        Assert.Equal("", task.Message.Payload);
+        Assert.Null(task.ClosedContext);
     }
 
     [Theory]
     [InlineData(MailboxDisposedReason.Deadline, MailboxClosedReason.Deadline)]
     [InlineData(MailboxDisposedReason.Request, MailboxClosedReason.Request)]
-    public async Task Conclusion_OnAClosedMailbox_ReadsNullAndTheReason(
+    public async Task OnClosed_RunsWithTheReasonAndNoMessage(
         MailboxDisposedReason engineReason,
         MailboxClosedReason appReason
     )
@@ -197,27 +222,27 @@ public class ExecuteServiceTaskReplyTests
         await CreateCommand(task)
             .Execute(CreateContext(Closed(engineReason)), new ExecuteServiceTaskPayload("archiving"));
 
-        Assert.Null(task.Conclusion!.Reply);
-        Assert.Equal(appReason, task.Conclusion.ReplyClosedReason);
+        Assert.Null(task.Message);
+        Assert.NotNull(task.ClosedContext);
+        Assert.Equal(appReason, task.ClosedReason);
     }
 
     [Fact]
-    public async Task Stage_OfADeclaringPipeline_CannotReadAReply()
+    public async Task Stage_OfAnExchangePipeline_RunsWithoutReachingEitherHandler()
     {
         var task = new ArchivingTask();
 
-        await CreateCommand(task)
+        ProcessEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(), new ExecuteServiceTaskPayload("archiving", "RecordDispatch"));
 
-        Assert.Null(task.Conclusion);
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() => task.Stage!.Reply);
-        Assert.Contains("a stage never answers a message", thrown.Message, StringComparison.Ordinal);
-        Assert.Contains("RecordDispatch", thrown.Message, StringComparison.Ordinal);
-        Assert.Throws<InvalidOperationException>(() => task.Stage!.ReplyClosedReason);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(task.Stage);
+        Assert.Null(task.MessageContext);
+        Assert.Null(task.ClosedContext);
     }
 
     [Fact]
-    public async Task Conclusion_OfATaskWithNoMailbox_ThrowsOnReplyRatherThanAnsweringNull()
+    public async Task Conclusion_OfATaskWithNoMailbox_RunsItsFinalStep()
     {
         var task = new PlainTask();
 
@@ -225,9 +250,7 @@ public class ExecuteServiceTaskReplyTests
             .Execute(CreateContext(), new ExecuteServiceTaskPayload("archiving"));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() => task.Conclusion!.Reply);
-        Assert.Contains("not answered by a message", thrown.Message, StringComparison.Ordinal);
-        Assert.Throws<InvalidOperationException>(() => task.Conclusion!.ReplyClosedReason);
+        Assert.NotNull(task.Conclusion);
     }
 
     [Fact]
@@ -245,7 +268,7 @@ public class ExecuteServiceTaskReplyTests
     }
 
     [Fact]
-    public async Task Conclusion_ReadsBackExactlyWhatTheForwarderForwarded()
+    public async Task OnMessage_ReadsBackExactlyWhatTheForwarderForwarded()
     {
         // The two halves meeting with nothing hand-written between them: every other test constructs the
         // sealed payload itself, so this is the one that catches the two ends binding different things.
@@ -309,12 +332,12 @@ public class ExecuteServiceTaskReplyTests
             .Execute(CreateContext(receipt), new ExecuteServiceTaskPayload("archiving"));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Equal(forwardedBody, task.Conclusion!.Reply!.Payload);
-        Assert.Equal(sourceMessageId, task.Conclusion.Reply.IdempotencyKey);
+        Assert.Equal(forwardedBody, task.Message!.Payload);
+        Assert.Equal(sourceMessageId, task.Message.IdempotencyKey);
     }
 
     [Fact]
-    public async Task Conclusion_WithAMessageThisAppNeverSealed_FailsPermanentlyWithoutRunningTheHandler()
+    public async Task OnMessage_WithAMessageThisAppNeverSealed_FailsPermanentlyWithoutRunningTheHandler()
     {
         var task = new ArchivingTask();
         AppCallbackMailbox unsealed = Delivered() with
@@ -328,7 +351,7 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
-        Assert.Null(task.Conclusion);
+        Assert.Null(task.MessageContext);
     }
 
     public static TheoryData<string, Guid, string, string> ForeignSeals =>
@@ -342,7 +365,7 @@ public class ExecuteServiceTaskReplyTests
 
     [Theory]
     [MemberData(nameof(ForeignSeals))]
-    public async Task Conclusion_WithAMessageSealedForSomethingElse_FailsPermanently(
+    public async Task OnMessage_WithAMessageSealedForSomethingElse_FailsPermanently(
         string what,
         Guid sealedForMailbox,
         string sealedForTask,
@@ -365,11 +388,11 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
-        Assert.Null(task.Conclusion);
+        Assert.Null(task.MessageContext);
     }
 
     [Fact]
-    public async Task Conclusion_OnAClosedMailbox_NeedsNoEnvelope()
+    public async Task OnClosed_NeedsNoEnvelope()
     {
         var task = new ArchivingTask();
 
@@ -377,8 +400,8 @@ public class ExecuteServiceTaskReplyTests
             .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), new ExecuteServiceTaskPayload("archiving"));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.NotNull(task.Conclusion);
-        Assert.Null(task.Conclusion!.Reply);
+        Assert.NotNull(task.ClosedContext);
+        Assert.Null(task.Message);
     }
 
     [Fact]
@@ -392,12 +415,13 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptOnStage", failed.ExceptionType);
+        Assert.Null(task.Stage);
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Conclusion_HandedAnAmbiguousRendezvous_FailsPermanently(bool both)
+    public async Task Exchange_HandedAnAmbiguousRendezvous_FailsPermanently(bool both)
     {
         // "Neither" must not read as closed: an absent message is an instruction to conclude.
         var task = new ArchivingTask();
@@ -414,26 +438,14 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptAmbiguous", failed.ExceptionType);
-        Assert.Null(task.Conclusion);
-    }
-
-    [Fact]
-    public async Task AwaitNextReply_FromATaskThatAnswersNoMessage_IsRejectedNonRetryably()
-    {
-        var task = new PlainTask { Verdict = ServiceTaskResult.AwaitNextReply() };
-
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(), new ExecuteServiceTaskPayload("archiving"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("AwaitNextReplyOutsideAnExchange", failed.ExceptionType);
+        Assert.Null(task.MessageContext);
+        Assert.Null(task.ClosedContext);
     }
 
     [Fact]
     public async Task AwaitNextReply_OnADeliveredMessage_AsksTheRelayForTheNextReceiver()
     {
-        var task = new ArchivingTask { Verdict = ServiceTaskResult.AwaitNextReply() };
+        var task = new ArchivingTask { MessageVerdict = ServiceTaskExchangeResult.AwaitNextReply() };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(Delivered(seq: 1)), new ExecuteServiceTaskPayload("archiving"));
@@ -448,25 +460,11 @@ public class ExecuteServiceTaskReplyTests
     }
 
     [Fact]
-    public async Task AwaitNextReply_OnAClosedMailbox_IsRejectedNonRetryably()
-    {
-        var task = new ArchivingTask { Verdict = ServiceTaskResult.AwaitNextReply() };
-
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), new ExecuteServiceTaskPayload("archiving"));
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxExchangeAlreadyClosed", failed.ExceptionType);
-        Assert.Null(failed.MailboxContinuation);
-    }
-
-    [Fact]
-    public async Task Conclusion_ThatSucceeds_CarriesTheConclusionAndDropsTheMailboxFromTheBlob()
+    public async Task OnMessage_ThatSucceeds_CarriesTheConclusionAndDropsTheMailboxFromTheBlob()
     {
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox("SendToArchive", _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
-        var task = new ArchivingTask { Verdict = ServiceTaskResult.Success("confirm") };
+        var task = new ArchivingTask { MessageVerdict = ServiceTaskResult.Success("confirm") };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(Delivered(), carry), new ExecuteServiceTaskPayload("archiving"));
@@ -479,11 +477,11 @@ public class ExecuteServiceTaskReplyTests
     }
 
     [Fact]
-    public async Task Conclusion_ThatFailsPermanently_StillCarriesTheConclusion()
+    public async Task OnClosed_ThatFailsPermanently_StillCarriesTheConclusion()
     {
         var task = new ArchivingTask
         {
-            Verdict = ServiceTaskResult.FailedPermanent("the archive never confirmed before the deadline"),
+            ClosedVerdict = ServiceTaskResult.FailedPermanent("the archive never confirmed before the deadline"),
         };
 
         ProcessEngineCommandResult result = await CreateCommand(task)

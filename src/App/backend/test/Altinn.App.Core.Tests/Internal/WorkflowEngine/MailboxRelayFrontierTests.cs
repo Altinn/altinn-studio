@@ -214,15 +214,28 @@ public class MailboxRelayFrontierTests
         ) => throw new NotSupportedException();
     }
 
+    private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> SendStage(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
     private sealed class ArchivingTask : IPipelineServiceTask
     {
         public string Type => ServiceTaskType;
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-                .WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromDays(3) });
+                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
     private static Instance CreateInstance() =>

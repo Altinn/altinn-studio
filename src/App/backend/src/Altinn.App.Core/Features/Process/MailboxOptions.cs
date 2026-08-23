@@ -1,9 +1,9 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The mailbox a service task opens via <see cref="ServiceTaskPipeline.WithReplyFrom"/>: a durable inbox
-/// whose id the declaring stage publishes as its reply address. Minted when that stage runs, carrying the
-/// exchange's one absolute deadline (<em>now + <see cref="Timeout"/></em>); nothing re-arms it.
+/// The mailbox a service task's stage opens: a durable inbox whose id that stage publishes as its reply
+/// address. Minted when the stage runs, carrying the exchange's one absolute deadline
+/// (<em>now + <see cref="Timeout"/></em>); nothing re-arms it.
 /// </summary>
 public sealed record MailboxOptions
 {
@@ -21,8 +21,8 @@ public sealed record MailboxOptions
     public required TimeSpan Timeout { get; init; }
 
     /// <summary>
-    /// Called eagerly by <see cref="ServiceTaskPipeline.WithReplyFrom"/>, so a bad declaration is an app
-    /// startup failure.
+    /// Called eagerly by the mailbox-opening <c>Stage</c> overload, so a bad declaration is an app startup
+    /// failure.
     /// </summary>
     internal void Validate() =>
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(Timeout, TimeSpan.Zero, nameof(Timeout));

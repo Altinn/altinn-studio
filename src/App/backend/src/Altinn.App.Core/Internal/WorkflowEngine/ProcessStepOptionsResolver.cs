@@ -114,7 +114,7 @@ internal sealed class ProcessStepOptionsResolver
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
             ProcessStepOptions? stepOptions = serviceTaskStageName is not null
                 ? pipeline.FindStage(serviceTaskStageName)?.StepOptions
-                : pipeline.FinalStepOptions;
+                : pipeline.Conclusion.StepOptions;
             ProcessStepOptions? taskOptions = serviceTask.StepOptions;
             if (stepOptions is null && taskOptions is null)
             {

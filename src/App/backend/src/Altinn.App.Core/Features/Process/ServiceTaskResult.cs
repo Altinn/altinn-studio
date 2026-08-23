@@ -1,9 +1,11 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Base type for the result of executing a service task.
+/// Base type for the result of executing a service task: how the task concludes. A subtype of
+/// <see cref="ServiceTaskExchangeResult"/>, so every one of these answers is also a valid answer from a
+/// multi-message exchange's reply handler — the reverse does not hold.
 /// </summary>
-public abstract record ServiceTaskResult
+public abstract record ServiceTaskResult : ServiceTaskExchangeResult
 {
     /// <summary>
     /// Creates a service task result representing successful execution.
@@ -14,8 +16,8 @@ public abstract record ServiceTaskResult
     /// When null, the default BPMN transition is used.
     /// </param>
     /// <remarks>
-    /// From a declaring pipeline's conclusion this also <strong>ends the exchange</strong>: the mailbox closes
-    /// before anything downstream starts.
+    /// From a reply handler this also <strong>ends the exchange</strong>: the mailbox closes before anything
+    /// downstream starts.
     /// </remarks>
     public static ServiceTaskSuccessResult Success(string? action = null) => new() { Action = action };
 
@@ -34,8 +36,8 @@ public abstract record ServiceTaskResult
     /// <remarks>
     /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
     /// failure are discarded, and the retry starts from exactly the state this attempt received.
-    /// From a declaring pipeline's conclusion it retries <em>this message</em>, leaving the exchange open. A
-    /// handler that will answer the same every time holds the exchange to its deadline; conclude with
+    /// From a reply handler it retries <em>this message</em>, leaving the exchange open. A handler that will
+    /// answer the same every time holds the exchange to its deadline; conclude with
     /// <see cref="FailedPermanent"/> instead.
     /// </remarks>
     public static ServiceTaskFailedResult FailedRetryable(string errorMessage)
@@ -57,9 +59,9 @@ public abstract record ServiceTaskResult
     /// this attempt received.
     /// </para>
     /// <para>
-    /// From a declaring pipeline's conclusion it <strong>ends the exchange as failed</strong>: the mailbox is
-    /// closed first, and whatever waited is not started. Data changes are still discarded — a conclusion that
-    /// must <em>record</em> something records it and answers <see cref="Success"/>.
+    /// From a reply handler it <strong>ends the exchange as failed</strong>: the mailbox is closed first, and
+    /// whatever waited is not started. Data changes are still discarded — a handler that must
+    /// <em>record</em> something records it and answers <see cref="Success"/>.
     /// </para>
     /// </remarks>
     public static ServiceTaskFailedResult FailedPermanent(string errorMessage)
@@ -106,26 +108,6 @@ public abstract record ServiceTaskResult
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
         return new ServiceTaskDeferredResult { Delay = delay, Reason = reason };
     }
-
-    /// <summary>
-    /// This message is handled; the exchange is not over. Only a declaring pipeline's conclusion may return it,
-    /// for exchanges of more than one message.
-    /// </summary>
-    /// <remarks>
-    /// An ordinary successful completion: data changes are saved, and the state travels on — publish what the
-    /// next message should see. The task stays unconcluded until a later message answers with
-    /// <see cref="Success"/>/<see cref="FailedPermanent"/> or the mailbox's timeout runs out. Returning it from
-    /// the closing signal, or outside an exchange, is rejected non-retryably.
-    /// </remarks>
-    public static ServiceTaskAwaitNextReplyResult AwaitNextReply() => ServiceTaskAwaitNextReplyResult.Instance;
-}
-
-/// <summary>A conclusion handler finished its message while the exchange stays open.</summary>
-public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskResult
-{
-    internal static readonly ServiceTaskAwaitNextReplyResult Instance = new();
-
-    internal ServiceTaskAwaitNextReplyResult() { }
 }
 
 /// <summary>

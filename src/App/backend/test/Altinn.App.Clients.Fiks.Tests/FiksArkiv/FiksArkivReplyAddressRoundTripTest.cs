@@ -93,8 +93,11 @@ public class FiksArkivReplyAddressRoundTripTest
 
         // 1. The send stage publishes the mailbox id as the reply address.
         ServiceTaskStageResult sendResult = await fixture
-            .FiksArkivPipeline.Stages.Single(x => x.Name == "SendToArchive")
-            .Work(CreateSendContext(dataMutator.Object));
+            .FiksArkivPipeline.FindStage("SendToArchive")!
+            .Work(
+                CreateSendContext(dataMutator.Object),
+                new ServiceTaskMailbox { Id = _mailboxId, Deadline = _executionReferenceTime + TimeSpan.FromDays(7) }
+            );
 
         Assert.IsType<CompletedServiceTaskStageResult>(sendResult);
         FiksIOMessageRequest sent = Assert.Single(sentRequests);
@@ -238,11 +241,5 @@ public class FiksArkivReplyAddressRoundTripTest
             WorkflowId = Guid.Parse("2f4bd7b5-19f0-4bd0-bd0c-9c7ec6f45a4a"),
             StepId = _workflowStepId,
             ExecutionReferenceTime = _executionReferenceTime,
-            MailboxOrDefault = new ServiceTaskMailbox
-            {
-                Id = _mailboxId,
-                Deadline = _executionReferenceTime + TimeSpan.FromDays(7),
-            },
-            ReplyUnavailableReason = "This execution is a stage, not the mailbox's reply handler.",
         };
 }

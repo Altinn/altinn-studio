@@ -82,10 +82,7 @@ internal sealed class WorkflowCommandSet
             // what callback dispatch keys on.
             foreach (string stageName in context.ServiceTaskStageNames ?? [])
             {
-                if (
-                    context.ServiceTaskMailbox is { } declaration
-                    && string.Equals(declaration.StageName, stageName, StringComparison.Ordinal)
-                )
+                if (string.Equals(context.MailboxOpeningStageName, stageName, StringComparison.Ordinal))
                 {
                     // The mint hugs the stage that sends, on both sides: the deadline clock starts here, so no
                     // earlier stage may erode it, and the stage must never send without an address, so the mint
@@ -107,13 +104,14 @@ internal sealed class WorkflowCommandSet
                 );
             }
 
-            if (context.ServiceTaskMailbox is { } mailbox)
+            if (context.MailboxOpeningStageName is { } openingStageName)
             {
-                // A mailbox-opening task expands to no concluding Main step — the conclusion runs on the receive
-                // workflows, once per message. Main gains the step that enqueues the first receiver instead.
+                // A mailbox-opening task expands to no concluding Main step — the reply handler runs on the
+                // receive workflows, once per message. Main gains the step that enqueues the first receiver
+                // instead.
                 group.MailboxReceive = new MailboxReceivePlan(
                     CreateReceiveHandlerStep(context.ServiceTaskType),
-                    mailbox.StageName
+                    openingStageName
                 );
             }
             else
@@ -237,7 +235,7 @@ internal sealed class WorkflowCommandSet
 
     /// <summary>
     /// The one step a receive workflow runs: the same <c>ExecuteServiceTask</c> conclusion step a non-mailbox
-    /// task ends with.
+    /// task ends with — a null stage name is the conclusion, whichever shape it has.
     /// </summary>
     internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType) =>
         CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType));

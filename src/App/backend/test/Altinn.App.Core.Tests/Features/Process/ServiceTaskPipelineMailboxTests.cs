@@ -4,21 +4,34 @@ using Xunit;
 namespace Altinn.App.Core.Tests.Features.Process;
 
 /// <summary>
-/// Composition of <see cref="ServiceTaskPipeline.WithReplyFrom"/>: what it accepts, what it refuses eagerly, and
-/// the two properties the shape rests on — that it returns a new pipeline rather than changing the one it was
-/// called on, and that discarding that return value is caught instead of silently dropping the mailbox.
+/// Composition of a mailbox exchange: what the mailbox-opening <c>Stage</c> overload records, what the reply
+/// terminals record, and the four mistakes the builder refuses eagerly — a second mailbox, a handle from
+/// another pipeline, a handle answered twice, and a mailbox nothing answers.
 /// </summary>
 public class ServiceTaskPipelineMailboxTests
 {
     private static readonly MailboxOptions ThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static ServiceTaskPipeline Compose(ServiceTaskPipelineBuilder builder) =>
-        builder
-            .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-            .Stage("RecordDispatch", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
-            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
 
-    private static ServiceTaskPipeline Compose() => Compose(new ServiceTaskPipelineBuilder());
+    private static Task<ServiceTaskResult> Conclude(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskExchangeResult> Handle(ServiceTaskContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskExchangeResult.AwaitNextReply());
+
+    private static Task<ServiceTaskResult> Closed(ServiceTaskContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedPermanent("no answer"));
+
+    /// <summary>The running shape: a send that opens the mailbox, then an unrelated stage, then the terminal.</summary>
+    private static ServiceTaskPipelineBuilder ComposeStages(
+        ServiceTaskPipelineBuilder builder,
+        out MailboxHandle handle
+    ) =>
+        builder
+            .Stage("SendToArchive", Send, ThreeDays, out handle)
+            .Stage("RecordDispatch", _ => Task.FromResult(ServiceTaskStageResult.Completed()));
 
     /// <summary>A pipeline task whose <c>Define</c> the test scripts, so composition mistakes can be
     /// pushed through the runtime's own resolution path.</summary>
@@ -31,71 +44,107 @@ public class ServiceTaskPipelineMailboxTests
     }
 
     [Fact]
-    public void WithReplyFrom_RecordsTheStageAndOptions()
+    public void MailboxStage_RecordsTheDeclarationOnTheStageThatOpensIt()
     {
-        ServiceTaskPipeline pipeline = Compose().WithReplyFrom("SendToArchive", ThreeDays);
+        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+            .ConcludeOnReplies(handle, Handle, Closed);
 
-        Assert.NotNull(pipeline.Mailbox);
-        Assert.Equal("SendToArchive", pipeline.Mailbox!.StageName);
-        Assert.Equal(TimeSpan.FromDays(3), pipeline.Mailbox.Options.Timeout);
+        Assert.Equal(["SendToArchive", "RecordDispatch"], pipeline.Stages.Select(s => s.Name));
+        Assert.Equal(TimeSpan.FromDays(3), pipeline.FindStage("SendToArchive")!.OpensMailbox!.Timeout);
+        Assert.Null(pipeline.FindStage("RecordDispatch")!.OpensMailbox);
     }
 
     [Fact]
-    public void WithReplyFrom_KeepsEverythingElseTheComposedPipelineHad()
+    public void ConcludeOnReplies_RecordsAnExchangeKeyedOnTheOpeningStage()
     {
-        ServiceTaskPipeline source = Compose();
-        ServiceTaskPipeline declared = source.WithReplyFrom("SendToArchive", ThreeDays);
+        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+            .ConcludeOnReplies(handle, Handle, Closed);
 
-        Assert.Equal(["SendToArchive", "RecordDispatch"], declared.Stages.Select(s => s.Name));
-        Assert.Same(source.Stages, declared.Stages);
-        Assert.Same(source.Final, declared.Final);
-        Assert.Same(source.FinalStepOptions, declared.FinalStepOptions);
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
+        Assert.Equal("SendToArchive", exchange.OpeningStageName);
+        Assert.Null(exchange.StepOptions);
     }
 
     [Fact]
-    public void WithReplyFrom_ReturnsANewPipelineAndLeavesTheSourceUndeclared()
+    public void ConcludeOnReply_RecordsTheSameExchangeShapeWithTheHandlerWrapped()
     {
-        ServiceTaskPipeline source = Compose();
+        // Single and multi are the same model: the compile-time split already happened at the API boundary.
+        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
 
-        ServiceTaskPipeline declared = source.WithReplyFrom("SendToArchive", ThreeDays);
+        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+            .ConcludeOnReply(handle, Conclude, Closed, options);
 
-        Assert.NotSame(source, declared);
-        Assert.Null(source.Mailbox);
-        Assert.NotNull(declared.Mailbox);
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
+        Assert.Equal("SendToArchive", exchange.OpeningStageName);
+        Assert.Same(options, exchange.StepOptions);
     }
 
     [Fact]
-    public void WithReplyFrom_UnknownStage_ThrowsNamingTheStagesComposed()
+    public async Task ConcludeOnReply_WrappedHandler_ForwardsArgumentsAndResult()
     {
-        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
-            Compose().WithReplyFrom("SendToRegistry", ThreeDays)
-        );
+        ServiceTaskContext? seenContext = null;
+        ServiceTaskReply? seenReply = null;
+        ServiceTaskResult answer = ServiceTaskResult.Success("reject");
 
-        Assert.Contains("SendToRegistry", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("'SendToArchive', 'RecordDispatch'", exception.Message, StringComparison.Ordinal);
+        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+            .ConcludeOnReply(
+                handle,
+                (context, reply) =>
+                {
+                    seenContext = context;
+                    seenReply = reply;
+                    return Task.FromResult(answer);
+                },
+                Closed
+            );
+
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
+        ServiceTaskContext context = TestContext();
+        var reply = new ServiceTaskReply
+        {
+            Payload = "<receipt/>",
+            IdempotencyKey = "source-message-7",
+            AcceptedAt = DateTimeOffset.UtcNow,
+            Position = 2,
+        };
+
+        ServiceTaskExchangeResult result = await exchange.OnMessage(context, reply);
+
+        Assert.Same(context, seenContext);
+        Assert.Same(reply, seenReply);
+        Assert.Same(answer, result);
     }
 
     [Fact]
-    public void WithReplyFrom_OnAPipelineWithNoStages_Throws()
+    public async Task MailboxStage_HandsTheMintedMailboxToTheWork()
     {
-        ServiceTaskPipeline conclusionOnly = new ServiceTaskPipelineBuilder().Finally(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
-        );
+        ServiceTaskMailbox? seen = null;
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(
+                "SendToArchive",
+                (_, mailbox) =>
+                {
+                    seen = mailbox;
+                    return Task.FromResult(ServiceTaskStageResult.Completed());
+                },
+                ThreeDays,
+                out MailboxHandle handle
+            )
+            .ConcludeOnReplies(handle, Handle, Closed);
 
-        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
-            conclusionOnly.WithReplyFrom("SendToArchive", ThreeDays)
-        );
+        var mailbox = new ServiceTaskMailbox { Id = Guid.NewGuid(), Deadline = DateTimeOffset.UtcNow.AddDays(3) };
+        await pipeline.FindStage("SendToArchive")!.Work(TestContext(), mailbox);
 
-        Assert.Contains("Stages composed: none", exception.Message, StringComparison.Ordinal);
+        Assert.Same(mailbox, seen);
     }
 
     [Fact]
-    public void WithReplyFrom_Twice_Throws()
+    public void SecondMailbox_Throws()
     {
-        ServiceTaskPipeline declared = Compose().WithReplyFrom("SendToArchive", ThreeDays);
-
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            declared.WithReplyFrom("RecordDispatch", ThreeDays)
+            new ServiceTaskPipelineBuilder()
+                .Stage("SendToArchive", Send, ThreeDays, out MailboxHandle _)
+                .Stage("SendToRegistry", Send, ThreeDays, out MailboxHandle _)
         );
 
         Assert.Contains(
@@ -105,83 +154,142 @@ public class ServiceTaskPipelineMailboxTests
         );
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void WithReplyFrom_NonPositiveTimeout_Throws(int hours)
+    [Fact]
+    public void HandleFromAnotherPipeline_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            Compose().WithReplyFrom("SendToArchive", new MailboxOptions { Timeout = TimeSpan.FromHours(hours) })
+        // Not a hypothetical: a task that caches a handle from a previous Define call lands here.
+        new ServiceTaskPipelineBuilder().Stage("SendToArchive", Send, ThreeDays, out MailboxHandle foreign);
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle _);
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+            builder.ConcludeOnReplies(foreign, Handle, Closed)
+        );
+
+        Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HandleAnsweredTwice_Throws()
+    {
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle handle);
+        builder.ConcludeOnReplies(handle, Handle, Closed);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            builder.ConcludeOnReply(handle, Conclude, Closed)
+        );
+
+        Assert.Contains("is already answered by a reply terminal", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MailboxOpenedButFinallyEndsThePipeline_Throws()
+    {
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle _);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            builder.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
+        );
+
+        Assert.Contains("Stage 'SendToArchive' opens a mailbox", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            nameof(ServiceTaskPipelineBuilder.ConcludeOnReplies),
+            exception.Message,
+            StringComparison.Ordinal
         );
     }
 
     [Fact]
-    public void WithReplyFrom_NullArguments_Throw()
+    public void FinallyAfterAReplyTerminal_StillThrows()
     {
-        Assert.Throws<ArgumentNullException>(() => Compose().WithReplyFrom("SendToArchive", null!));
-        Assert.Throws<ArgumentNullException>(() => Compose().WithReplyFrom(null!, ThreeDays));
-        Assert.Throws<ArgumentException>(() => Compose().WithReplyFrom("  ", ThreeDays));
+        // A pipeline with a mailbox-opening stage has no valid final step, whether or not a terminal already
+        // answered the handle: the stage would send an address nothing reads.
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle handle);
+        builder.ConcludeOnReplies(handle, Handle, Closed);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            builder.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
+        );
     }
 
     [Fact]
-    public void ResolvePipeline_DefineDiscardedTheDeclaration_Throws()
+    public void NoMailbox_FinallyStillEndsThePipeline()
+    {
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage("SendToArchive", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Conclusion);
+        Assert.Null(pipeline.FindStage("SendToArchive")!.OpensMailbox);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void NonPositiveTimeout_Throws(int hours)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new ServiceTaskPipelineBuilder().Stage(
+                "SendToArchive",
+                Send,
+                new MailboxOptions { Timeout = TimeSpan.FromHours(hours) },
+                out MailboxHandle _
+            )
+        );
+    }
+
+    [Fact]
+    public void NullArguments_Throw()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new ServiceTaskPipelineBuilder().Stage("SendToArchive", Send, null!, out MailboxHandle _)
+        );
+        Assert.Throws<ArgumentNullException>(() =>
+            new ServiceTaskPipelineBuilder().Stage("SendToArchive", null!, ThreeDays, out MailboxHandle _)
+        );
+
+        var builder = new ServiceTaskPipelineBuilder();
+        builder.Stage("SendToArchive", Send, ThreeDays, out MailboxHandle handle);
+        Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(null!, Handle, Closed));
+        Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(handle, null!, Closed));
+        Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(handle, Handle, null!));
+    }
+
+    [Fact]
+    public void ResolvePipeline_MailboxPipeline_Resolves()
     {
         var task = new ScriptedTask(builder =>
+            ComposeStages(builder, out MailboxHandle handle).ConcludeOnReplies(handle, Handle, Closed)
+        );
+
+        for (int i = 0; i < 2; i++)
         {
-            ServiceTaskPipeline pipeline = Compose(builder);
-            pipeline.WithReplyFrom("SendToArchive", ThreeDays);
-            return pipeline;
-        });
-
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => task.ResolvePipeline());
-
-        Assert.Contains("returned the pipeline from before it", exception.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(ServiceTaskPipeline.WithReplyFrom), exception.Message, StringComparison.Ordinal);
+            var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(task.ResolvePipeline().Conclusion);
+            Assert.Equal("SendToArchive", exchange.OpeningStageName);
+        }
     }
 
     [Fact]
-    public void ResolvePipeline_DefineReturnedTheDeclaration_Resolves()
+    public void ResolvePipeline_DefineCachesThePipeline_StillResolves()
     {
-        var task = new ScriptedTask(builder => Compose(builder).WithReplyFrom("SendToArchive", ThreeDays));
-
-        ServiceTaskPipeline pipeline = task.ResolvePipeline();
-
-        Assert.Equal("SendToArchive", pipeline.Mailbox!.StageName);
-    }
-
-    [Fact]
-    public void ResolvePipeline_DefineCachesTheDeclaredPipeline_StillResolves()
-    {
-        // Caching violates Define's contract but must not become a hard error here: the returned pipeline
-        // carries the declaration, and this call's builder never saw WithReplyFrom.
-        ServiceTaskPipeline cached = Compose().WithReplyFrom("SendToArchive", ThreeDays);
+        // Caching violates Define's contract but must not become a hard error: the pipeline is immutable, and
+        // this call's builder issued no handle of its own.
+        ServiceTaskPipeline cached = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+            .ConcludeOnReplies(handle, Handle, Closed);
         var task = new ScriptedTask(_ => cached);
 
-        Assert.Equal("SendToArchive", task.ResolvePipeline().Mailbox!.StageName);
-        Assert.Equal("SendToArchive", task.ResolvePipeline().Mailbox!.StageName);
+        Assert.Same(cached, task.ResolvePipeline());
+        Assert.Same(cached, task.ResolvePipeline());
     }
 
-    [Fact]
-    public void ResolvePipeline_DefineDeclaresFromACachedUndeclaredBaseEachCall_ResolvesEveryTime()
-    {
-        // The shape that broke under the mutable pipeline: a cached undeclared base, WithReplyFrom per Define.
-        ServiceTaskPipeline cachedBase = Compose();
-        var task = new ScriptedTask(_ => cachedBase.WithReplyFrom("SendToArchive", ThreeDays));
-
-        Assert.Equal("SendToArchive", task.ResolvePipeline().Mailbox!.StageName);
-        Assert.Equal("SendToArchive", task.ResolvePipeline().Mailbox!.StageName);
-        Assert.Null(cachedBase.Mailbox);
-    }
-
-    [Fact]
-    public void ResolvePipeline_SharedBaseDeclaredByOneTask_DoesNotPoisonAnother()
-    {
-        // A shared base: A's declaration marks A's per-call builder, so it cannot latch the base and fail B.
-        ServiceTaskPipeline sharedBase = Compose();
-        var taskA = new ScriptedTask(_ => sharedBase.WithReplyFrom("SendToArchive", ThreeDays));
-        var taskB = new ScriptedTask(_ => sharedBase);
-
-        Assert.Equal("SendToArchive", taskA.ResolvePipeline().Mailbox!.StageName);
-        Assert.Null(taskB.ResolvePipeline().Mailbox);
-    }
+    private static ServiceTaskContext TestContext() =>
+        new()
+        {
+            InstanceDataMutator = null!,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
 }
