@@ -1,10 +1,28 @@
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// What the relay does next — a closed set of exactly two answers, which is where "at most one execution
-/// concludes" is made structural: neither member can express the other's action, and the private
+/// What the relay does next — a closed set of exactly three answers, which is where "at most one execution
+/// concludes, per exchange" is made structural: no member can express another's action, and the private
 /// constructor keeps the set closed.
 /// </summary>
+/// <remarks>
+/// <para>
+/// What each member cannot say is the point: <see cref="AwaitNextMessage"/> has no path to a closure, and
+/// neither closing member has a path to a successor receiver of the exchange it closes. Between the two
+/// closings, only <see cref="ConcludeAndContinue"/> starts the pipeline's next segment.
+/// </para>
+/// <para>
+/// <strong><see cref="Conclude"/> does not tell you which kind of handler produced it</strong>, and nothing
+/// here should be read as saying so: a terminal returns it on a success and on a permanent failure, and a
+/// mid-pipeline handler returns it on a permanent failure too — decision 5, "close only my own mailbox and
+/// start nothing". What keeps an after-workflow out of a mid-pipeline handler's reach is not this type but
+/// two facts outside it: the stage vocabulary has no <c>Success(action)</c>, so
+/// <see cref="MailboxRelay.DecideSegment"/> never sets <c>AutoAdvanceProcess</c>; and
+/// <see cref="Conclude"/> is gated on that flag in <see cref="MailboxRelay.Continue"/>, which the callback
+/// controller pins to <c>false</c> on its failure branch — the only branch a mid-pipeline handler's
+/// <see cref="Conclude"/> ever arrives on.
+/// </para>
+/// </remarks>
 internal abstract record MailboxContinuation
 {
     private MailboxContinuation(Guid mailboxId)
@@ -43,10 +61,54 @@ internal abstract record MailboxContinuation
         public long Position { get; }
     }
 
-    /// <summary>The handler concluded the exchange: close the mailbox, then start whatever comes after it.</summary>
+    /// <summary>
+    /// The exchange is over and the pipeline has nothing left to run for it: close the mailbox, then start
+    /// the after-workflow if — and only if — the answer asked the process to advance.
+    /// </summary>
+    /// <remarks>
+    /// Returned by a terminal's success or permanent failure, and by a mid-pipeline handler's permanent
+    /// failure. See this type's base for why that shared use is safe.
+    /// </remarks>
     internal sealed record Conclude : MailboxContinuation
     {
         public Conclude(Guid mailboxId)
             : base(mailboxId) { }
+    }
+
+    /// <summary>
+    /// A mid-pipeline handler concluded <em>its</em> exchange while the task carries on: close that one
+    /// mailbox, then start the pipeline's next segment.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not <see cref="Conclude"/> with a flag: what follows a closing is then a shape the
+    /// relay dispatches on rather than a field it reads, so no arm can drift into performing the other's
+    /// move. It is <em>not</em> what keeps a mid-pipeline handler away from the after-workflow — see this
+    /// type's base for what actually does.
+    /// <para>
+    /// Closing exactly one mailbox is the whole point: a later exchange whose stage already sent is open and
+    /// stays open, spending its own deadline, as <see cref="Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder.HandleReplies"/>
+    /// promises.
+    /// </para>
+    /// </remarks>
+    internal sealed record ConcludeAndContinue : MailboxContinuation
+    {
+        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, string openingStageName)
+            : base(mailboxId)
+        {
+            ServiceTaskType = serviceTaskType;
+            OpeningStageName = openingStageName;
+        }
+
+        /// <summary>The service task whose pipeline the next segment belongs to.</summary>
+        public string ServiceTaskType { get; }
+
+        /// <summary>
+        /// The stage that opened the exchange just concluded — the carry key the conclusion dropped, and the
+        /// handler's position in the pipeline, which is where the next segment starts. Sourced from the
+        /// executing step's own payload rather than re-derived here, for the reason
+        /// <see cref="AwaitNextMessage.OpeningStageName"/> gives: a stage renamed mid-flight would otherwise
+        /// pick another handler's position, and run the wrong segment.
+        /// </summary>
+        public string OpeningStageName { get; }
     }
 }

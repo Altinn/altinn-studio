@@ -657,6 +657,16 @@ public class ProcessNextRequestFactoryTests
     private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
+    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
+        ServiceTaskContext context,
+        ServiceTaskReply reply
+    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> OnSegmentClosed(
+        ServiceTaskContext context,
+        MailboxClosedReason reason
+    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+
     /// <summary>
     /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
     /// shown to resolve the <c>Finally</c>'s options.
@@ -699,6 +709,36 @@ public class ProcessNextRequestFactoryTests
                 )
                 .Stage("RecordDispatch", PlainStage)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
+    }
+
+    /// <summary>
+    /// Two exchanges, the first answered <em>mid-pipeline</em>: Main therefore carries only the pipeline's
+    /// first segment and hands over to that exchange's receiver, with the journal's send and the terminal
+    /// belonging to the continuation the archive's conclusion starts. The two handlers declare distinct
+    /// timeouts so the receive step can be shown to resolve the handler that answers <em>it</em>.
+    /// </summary>
+    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .HandleReplies(
+                    archive,
+                    OnSegmentMessage,
+                    OnSegmentClosed,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) }
+                )
+                .Stage("SendToJournal", SendStage, _mailboxThreeDays, out MailboxHandle journal)
+                .ConcludeOnReplies(
+                    journal,
+                    OnMessage,
+                    OnClosed,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+                );
     }
 
     private static MintMailboxPayload ExtractMintPayload(WorkflowEnqueueEnvelope bundle)
@@ -808,6 +848,49 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         Assert.Equal("SendToArchive", ExtractReceiveEnqueuePayload(bundle).OpeningStageName);
+    }
+
+    /// <summary>
+    /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to
+    /// split at a reply handler, a composed <c>HandleReplies</c> made Main's planning throw, so this shape
+    /// could not reach the engine at all. Main now ends with the hand-over to the exchange its <em>first</em>
+    /// segment ends on — the mid-pipeline handler's, never the terminal's — and carries neither the later
+    /// send nor a concluding step.
+    /// </summary>
+    [Fact]
+    public async Task Create_MailboxPipelineAnsweredMidPipeline_HandsMainOverToTheFirstExchange()
+    {
+        var factory = CreateFactory(serviceTasks: new ArchiveThenJournalTask());
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
+
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
+
+        // One stage step, the archive's send: no send for the journal (that stage rides the continuation) and
+        // no concluding step (a step naming neither name would run the terminal here, on nothing).
+        var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
+        StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
+        Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", sendStep.OperationId);
+        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageName is null);
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
+        Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
+        // Only the archive's mailbox is minted in Main: the journal's clock starts in the continuation.
+        Assert.Single(keys, key => key == MintMailbox.Key);
+        Assert.Equal("SendToArchive", ExtractMintPayload(bundle).StageName);
+
+        EnqueueReceiveWorkflowPayload payload = ExtractReceiveEnqueuePayload(bundle);
+        Assert.Equal("SendToArchive", payload.OpeningStageName);
+
+        StepRequest receiveStep = Assert.Single(Assert.Single(payload.EnqueueRequest.Workflows).Steps);
+        var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
+        var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
+        Assert.Equal("SendToArchive", receivePayload.RepliesTo);
+        Assert.Null(receivePayload.StageName);
+
+        // Resolved from the handler that answers this exchange — the HandleReplies call — and not from the
+        // terminal that ends the chain, whose 3 minutes belong to a different exchange.
+        Assert.Equal(TimeSpan.FromMinutes(5), receiveStep.Command.MaxExecutionTime);
     }
 
     [Fact]

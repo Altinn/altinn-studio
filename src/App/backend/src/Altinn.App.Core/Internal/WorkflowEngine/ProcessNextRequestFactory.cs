@@ -83,6 +83,13 @@ internal sealed class ProcessNextRequestFactory
     /// </summary>
     internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
+    /// <summary>
+    /// OperationId prefix for a workflow running a pipeline segment after an exchange concluded — enqueued by
+    /// <see cref="MailboxRelay"/>, never by this factory, which only ever assembles segment 0 into Main. A
+    /// naming convention for ops and logs; nothing identifies a continuation by it.
+    /// </summary>
+    internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
@@ -364,8 +371,9 @@ internal sealed class ProcessNextRequestFactory
 
                 if (workflowCommands.MailboxReceive is { } receive)
                 {
-                    // The receive step is the pipeline's conclusion and resolves its options as a concluding Main step
-                    // would.
+                    // The receive step answers whichever handler owns the exchange Main's segment ends on — the
+                    // reply terminal, or a mid-pipeline handler the pipeline carries on past — and resolves that
+                    // handler's own options, found through the exchange name the step carries.
                     mailboxReceive = receive with
                     {
                         Step = receive.Step.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType),
@@ -533,20 +541,10 @@ internal sealed class ProcessNextRequestFactory
     private StepRequest CreateEnqueueReceiveWorkflowCommand(
         WorkflowEnqueueRequest receiveEnqueueRequest,
         string openingStageName
-    )
-    {
-        var payload = new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest, openingStageName);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = EnqueueReceiveWorkflow.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = EnqueueReceiveWorkflow.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
-    }
+    ) =>
+        WorkflowCommandSet
+            .CreateReceiveEnqueueStep(receiveEnqueueRequest, openingStageName)
+            .ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
 
     private StepRequest CreateEnqueueSideEffectsWorkflowCommand(WorkflowEnqueueRequest sideEffectsEnqueueRequest)
     {

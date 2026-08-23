@@ -34,7 +34,7 @@ public abstract record ServiceTaskExchangeResult
     /// <para>
     /// What does fail loudly is the hole this does not close: a record's synthesized <em>copy</em> constructor
     /// is <c>protected</c> and C# forbids narrowing it on an unsealed record, so an app can still chain it.
-    /// Three tests derive that way — one per root the runtime maps — to pin that it converges on such a value
+    /// Four tests derive that way — one per root the runtime maps — to pin that it converges on such a value
     /// instead of throwing into a retry ladder. They are self-cleaning: close the hole properly (which means
     /// moving these roots off records) and <c>base(original)</c> stops compiling, taking those tests with it.
     /// </para>

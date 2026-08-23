@@ -679,15 +679,19 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal("fiks-message-42", reply.IdempotencyKey);
         Assert.Equal(4, reply.Position);
         Assert.Null(task.ClosedReason);
-        // The pipeline's own final step is not the exchange's handler and must not run in its place.
+        // The pipeline's own final step is not the exchange's handler and must not run in its place — it runs
+        // on the continuation this verdict asks the relay for.
         Assert.Null(task.Conclusion);
 
-        // What this version does with the verdict: nothing it can act on. Continuing a pipeline past an
-        // exchange is the relay's move, and the relay does not have it yet.
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxSegmentNotContinued", failed.ExceptionType);
-        Assert.Null(failed.MailboxContinuation);
+        // Completed() from a handler the pipeline carries on past: this exchange is over, run the next segment.
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.False(success.AutoAdvanceProcess);
+        MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
+            success.MailboxContinuation
+        );
+        Assert.Equal(_mailboxId, continuing.MailboxId);
+        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal(OpeningStage, continuing.OpeningStageName);
     }
 
     [Theory]
@@ -708,21 +712,24 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// The property that justifies running the handler at all: whatever it answered is <em>named</em>, so the
-    /// failure says which verdict had nowhere to go rather than only that the exchange stalled. Both halves
-    /// answer in the stage vocabulary, and both reach the wording.
+    /// Both halves answer in the stage vocabulary, and both are mapped by the relay's segment decision rather
+    /// than by the terminal's — so <c>AwaitNextReply</c> keeps the exchange going and a permanent failure
+    /// closes that exchange's mailbox while starting nothing at all.
     /// </summary>
     [Fact]
-    public async Task ReceiveStep_AnsweredMidPipeline_NamesTheVerdictTheHandlerReturned()
+    public async Task ReceiveStep_AnsweredMidPipeline_MapsBothHalvesThroughTheStageVocabulary()
     {
         var awaiting = new ContinuingTask { MessageVerdict = ServiceTaskStageExchangeResult.AwaitNextReply() };
 
-        FailedProcessEngineCommandResult onMessage = Assert.IsType<FailedProcessEngineCommandResult>(
-            await CreateCommand(awaiting).Execute(CreateContext(Delivered()), ReceiveStep())
+        SuccessfulProcessEngineCommandResult onMessage = Assert.IsType<SuccessfulProcessEngineCommandResult>(
+            await CreateCommand(awaiting).Execute(CreateContext(Delivered(seq: 2)), ReceiveStep())
         );
 
-        Assert.Equal("MailboxSegmentNotContinued", onMessage.ExceptionType);
-        Assert.Contains(nameof(ServiceTaskStageAwaitNextReplyResult), onMessage.ErrorMessage, StringComparison.Ordinal);
+        MailboxContinuation.AwaitNextMessage next = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            onMessage.MailboxContinuation
+        );
+        Assert.Equal(OpeningStage, next.OpeningStageName);
+        Assert.Equal(2, next.Position);
         Assert.NotNull(awaiting.Message);
 
         var failing = new ContinuingTask
@@ -734,9 +741,12 @@ public class ExecuteServiceTaskReplyTests
             await CreateCommand(failing).Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), ReceiveStep())
         );
 
-        Assert.Equal("MailboxSegmentNotContinued", onClosed.ExceptionType);
-        Assert.Contains(nameof(FailedServiceTaskStageResult), onClosed.ErrorMessage, StringComparison.Ordinal);
+        Assert.True(onClosed.NonRetryable);
+        Assert.Contains("the archive never confirmed", onClosed.ErrorMessage, StringComparison.Ordinal);
+        // Closes its own exchange and starts nothing — not the next segment either.
+        Assert.IsType<MailboxContinuation.Conclude>(onClosed.MailboxContinuation);
         Assert.Equal(MailboxClosedReason.Deadline, failing.ClosedReason);
+        Assert.Null(failing.Conclusion);
     }
 
     /// <summary>
@@ -776,20 +786,53 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// A name no handler carries still reaches the terminal when there is one — the mid-flight rename
-    /// tolerance the terminal has always had, which the mid-pipeline lookup must not narrow: the lookup
-    /// missing is not the same as nothing answering.
+    /// The terminal's mid-flight rename tolerance, on the shape where it is <em>provable</em>: the pipeline
+    /// answers exactly one exchange, so a name matching nothing can only be its own opening stage renamed
+    /// since the receiver was enqueued, and answering it with the one handler there is cannot be wrong.
     /// </summary>
     [Fact]
-    public async Task ReceiveStep_NamingAnExchangeNoHandlerCarries_StillReachesTheTerminal()
+    public async Task ReceiveStep_NamingAnUnknownExchange_OnAPipelineWithOneExchange_StillReachesTheTerminal()
+    {
+        var task = new ArchivingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), ReceiveStep("SendToArchive_v1"));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(task.Message);
+    }
+
+    /// <summary>
+    /// The same name on a pipeline answering <em>several</em> exchanges is refused instead, because the
+    /// tolerance stops being a proof there: the receiver could belong to any of them, and standing the
+    /// terminal in would hand one exchange's message to another's handler — which may then conclude the task
+    /// on it. A legible drift failure with the usual "restore the name and resume" remedy is strictly better
+    /// than settling a task on an answer that was never meant for it.
+    /// </summary>
+    [Theory]
+    [InlineData("SendToArchive_v1")]
+    [InlineData("SendToJournal_v1")]
+    public async Task ReceiveStep_NamingAnUnknownExchange_OnAPipelineWithSeveral_IsRefusedRatherThanGuessed(
+        string repliesTo
+    )
     {
         var task = new TwoExchangeTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered()), ReceiveStep("SendToJournal_v1"));
+            .Execute(CreateContext(Delivered()), ReceiveStep(repliesTo));
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Equal(["terminal.onMessage"], task.Answered);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
+        Assert.Empty(task.Answered);
+
+        // The terminal's exchange is named among the answers too — leaving it out would tell the reader the
+        // pipeline answers less than it does.
+        Assert.Contains(
+            $"now answers only the exchanges opened by stages '{OpeningStage}', '{TwoExchangeTask.JournalStage}'",
+            failed.ErrorMessage,
+            StringComparison.Ordinal
+        );
     }
 
     /// <summary>
@@ -913,6 +956,24 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal(5, task.Message.Position);
         // The fallback reached the carry under the pipeline's own name, so the conclusion still drops it.
         Assert.Null(carry.Mailboxes);
+    }
+
+    /// <summary>
+    /// The compatibility arm is <em>not</em> narrowed by the refusal a name matching nothing now gets on a
+    /// multi-exchange pipeline, and the difference is evidence: a name that matches nothing is positive proof
+    /// of drift, while no name at all is proof of nothing — every receiver that carries none was enqueued
+    /// against a shape whose one exchange was the terminal's, and refusing them would strand the lot.
+    /// </summary>
+    [Fact]
+    public async Task ANameLessReceiver_OnAPipelineAnsweringSeveralExchanges_StillReachesTheTerminal()
+    {
+        var task = new TwoExchangeTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), ConcludingStep());
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Equal(["terminal.onMessage"], task.Answered);
     }
 
     /// <summary>

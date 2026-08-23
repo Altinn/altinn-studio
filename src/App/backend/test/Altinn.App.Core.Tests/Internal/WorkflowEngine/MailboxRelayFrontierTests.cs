@@ -239,6 +239,24 @@ public class MailboxRelayFrontierTests
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
+    /// <summary>Two exchanges: the first answered mid-pipeline, so concluding it starts a continuation.</summary>
+    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    {
+        public string Type => ServiceTaskType;
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(OpeningStage, SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .HandleReplies(
+                    archive,
+                    (_, _) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed()),
+                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed())
+                )
+                .Stage("RecordArchive", PlainStage)
+                .Stage("SendToJournal", SendStage, _mailboxThreeDays, out MailboxHandle journal)
+                .ConcludeOnReplies(journal, OnMessage, OnClosed);
+    }
+
     private static Instance CreateInstance() =>
         new()
         {
@@ -256,11 +274,11 @@ public class MailboxRelayFrontierTests
     /// The relay, wired to the model; the after-workflow is intercepted at the same <see cref="IProcessEngine"/>
     /// entry point production uses and enqueued with the shape it gives it.
     /// </summary>
-    private static MailboxRelay CreateRelay(CollectionModel collection)
+    private static MailboxRelay CreateRelay(CollectionModel collection, IPipelineServiceTask? serviceTask = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        services.AddSingleton<IPipelineServiceTask>(new ArchivingTask());
+        services.AddSingleton(serviceTask ?? new ArchivingTask());
         ServiceProvider sp = services.BuildServiceProvider();
 
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
@@ -299,7 +317,8 @@ public class MailboxRelayFrontierTests
             collection,
             Mock.Of<IWorkflowCallbackTokenGenerator>(g => g.GenerateToken(It.IsAny<Guid>()) == "callback-token"),
             new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
-            processEngine.Object
+            processEngine.Object,
+            sp.GetRequiredService<AppImplementationFactory>()
         );
     }
 
@@ -429,6 +448,38 @@ public class MailboxRelayFrontierTests
             CancellationToken.None
         );
         Assert.IsType<CurrentTaskWorkflowState.Unblocked>(state);
+    }
+
+    /// <summary>
+    /// The same invariant across the new hop: a continuation is enqueued from inside the receiver that
+    /// concluded the exchange before it, so the collection never reads all-settled at the hand-over — and it
+    /// still holds the frontier alone once retention purges the workflows before it.
+    /// </summary>
+    [Fact]
+    public async Task AContinuation_HoldsTheFrontierFromInsideTheReceiverThatConcludedTheExchange()
+    {
+        var collection = new CollectionModel();
+        MailboxRelay relay = CreateRelay(collection, new ArchiveThenJournalTask());
+        WorkflowEngineService reader = CreateReader(collection);
+
+        Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Completed);
+        Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
+
+        int headsBefore = collection.EnqueuedByTheRelay.Count;
+        await relay.Continue(
+            new MailboxContinuation.ConcludeAndContinue(_mailboxId, ServiceTaskType, OpeningStage),
+            CreateRequest(receiver, Guid.NewGuid()),
+            CancellationToken.None
+        );
+        Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
+        Guid continuation = collection.EnqueuedByTheRelay[^1];
+
+        // Only now does the engine settle the step that concluded exchange A.
+        collection.Settle(receiver);
+        await AssertFrontierHeldOpenBy(reader, CreateInstance(), continuation, "the concluding receiver settled");
+
+        collection.Purge(main, receiver);
+        await AssertFrontierHeldOpenBy(reader, CreateInstance(), continuation, "retention purged Main and receiver 1");
     }
 
     private static async Task AssertFrontierHeldOpenBy(

@@ -171,8 +171,9 @@ public class ExecuteServiceTaskTests
     /// naming the type.
     /// </summary>
     /// <remarks>
-    /// Self-cleaning, like its two siblings (<c>ExecuteServiceTaskStageTests.RogueStageResult</c>,
-    /// <c>MailboxRelayTests.RogueVerdict</c>): should the roots ever move off records and close this route,
+    /// Self-cleaning, like its three siblings (<c>ExecuteServiceTaskStageTests.RogueStageResult</c>,
+    /// <c>MailboxRelayTests.RogueVerdict</c>, <c>MailboxRelayTests.RogueStageVerdict</c>): should the roots
+    /// ever move off records and close this route,
     /// <c>base(original)</c> stops compiling and this test goes with the arm it pins.
     /// </remarks>
     private sealed record RogueResult : ServiceTaskResult

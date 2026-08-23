@@ -12,14 +12,23 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// A mailbox-opening service task's receive half: the one step its receive workflows run — the pipeline's
-/// conclusion — and the stage that opens the exchange that step answers.
+/// A segment's receive half: the one step its receive workflows run — the handler answering the exchange the
+/// segment ends on, whether that is a mid-pipeline one or the pipeline's terminal — and the stage that opens
+/// the exchange that step answers.
 /// </summary>
 /// <remarks>
-/// The step belongs to the enqueued receiver, never to Main, and has its options resolved by the caller like
-/// any other step's. The stage name is the exchange's identity, fixed at assembly time and never re-derived
-/// later, so a mid-flight rename cannot silently address a different mailbox. One type rather than two
-/// nullable fields because neither half means anything without the other.
+/// <para>
+/// The step belongs to the enqueued receiver, never to the workflow running the segment, and has its options
+/// resolved by the caller like any other step's. The stage name is the exchange's identity, fixed at assembly
+/// time and never re-derived later, so a mid-flight rename cannot silently address a different mailbox. One
+/// type rather than two nullable fields because neither half means anything without the other.
+/// </para>
+/// <para>
+/// <see cref="OpeningStageName"/> is deliberately the same string that sits inside <see cref="Step"/>'s
+/// serialized payload, held twice: the enqueueing hop needs it to tell <c>EnqueueReceiveWorkflow</c> which
+/// carried mailbox to declare, and reading it back out of the step would mean deserializing a payload this
+/// plan just wrote. Do not "deduplicate" it away.
+/// </para>
 /// </remarks>
 /// <param name="Step">The receive workflow's single step.</param>
 /// <param name="OpeningStageName">The stage whose mint the receiver is enqueued against.</param>
@@ -210,12 +219,21 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Plans the pipeline's segment: one <c>ExecuteServiceTask</c> step per stage in composition order, each
-    /// preceded by a <c>MintMailbox</c> step where the stage opens a mailbox, ended by the conclusion — the
-    /// concluding step for a <see cref="PipelineConclusion.FinalStep"/>, or the receive half for a
-    /// <see cref="PipelineConclusion.ReplyExchange"/>, whose enqueue step the caller appends.
+    /// Plans one pipeline segment: one <c>ExecuteServiceTask</c> step per stage in composition order, each
+    /// preceded by a <c>MintMailbox</c> step where the stage opens a mailbox, ended by whatever ends the
+    /// segment — the next <see cref="ReplySegment"/>'s receive half, or, when no handler follows, the
+    /// pipeline's conclusion (the concluding step for a <see cref="PipelineConclusion.FinalStep"/>, the
+    /// receive half for a <see cref="PipelineConclusion.ReplyExchange"/>). A receive half's enqueue step is
+    /// the caller's to append.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// <strong>Segments are the items split at each reply handler.</strong> Segment 0 — the whole pipeline
+    /// for a task with no mid-pipeline handler — rides Main; segment k rides the continuation the relay
+    /// enqueues when exchange k concludes. A handler is never a step of the segment it ends: it runs on the
+    /// receive workflows that segment's last step enqueues, once per message. So the two callers ask for a
+    /// segment the same way — the factory for the first, the relay naming the handler it just ran past.
+    /// </para>
     /// <para>
     /// Options are left unresolved, as <see cref="CreateReceiveHandlerStep"/> leaves them: the task the steps
     /// run under is the enqueueing hop's to know, so the hop resolves them.
@@ -226,17 +244,43 @@ internal sealed class WorkflowCommandSet
     /// The expansion fixes that shape for the workflow's lifetime, so a stage name is a compatibility surface
     /// for in-flight workflows even though the plan is rebuilt.
     /// </para>
+    /// <para>
+    /// <strong>Frontier-never-empty is the caller's to hold, not this method's.</strong> What keeps the
+    /// collection non-empty is that the step enqueueing the next receiver is the segment's <em>last</em>
+    /// step, and that step is appended by the hop — so each hop reproduces that ordering itself, and a
+    /// reviewer cannot read it off this method.
+    /// </para>
     /// </remarks>
     /// <param name="serviceTaskType">The service task the steps dispatch back to.</param>
     /// <param name="pipeline">The task's pipeline, resolved at this hop.</param>
-    internal static ServiceTaskSegmentPlan PlanSegment(string serviceTaskType, ServiceTaskPipeline pipeline)
+    /// <param name="afterExchange">
+    /// The exchange whose handler this segment follows, naming it by the stage that opened it — so the
+    /// segment starts at the item after that handler. Null for segment 0, which starts at the beginning.
+    /// </param>
+    internal static ServiceTaskSegmentPlan PlanSegment(
+        string serviceTaskType,
+        ServiceTaskPipeline pipeline,
+        string? afterExchange = null
+    )
     {
         var steps = new List<StepRequest>();
 
-        foreach (PipelineItem item in pipeline.Items)
+        for (int index = FindSegmentStart(pipeline, afterExchange); index < pipeline.Items.Count; index++)
         {
-            switch (item)
+            switch (pipeline.Items[index])
             {
+                case ReplySegment handler:
+                    // The segment ends here: its exchange is answered on receive workflows, not in this
+                    // workflow, so the hop ends the segment by enqueueing the first of them. Everything
+                    // composed after this handler belongs to the segment that exchange's conclusion starts.
+                    return new ServiceTaskSegmentPlan(
+                        steps,
+                        new MailboxReceivePlan(
+                            CreateReceiveHandlerStep(serviceTaskType, handler.OpeningStageName),
+                            handler.OpeningStageName
+                        )
+                    );
+
                 case ServiceTaskStage stage:
                     if (stage is ServiceTaskStage.MailboxOpening)
                     {
@@ -266,19 +310,23 @@ internal sealed class WorkflowCommandSet
                     );
                     break;
 
-                // Drift guard for this assembly's own model: PipelineItem is a closed set, so the only way
-                // here is a shape added without a plan for the steps it expands to.
+                // Drift guard for this assembly's own model: PipelineItem is a closed two-shape set and both
+                // shapes are planned above, so the only way here is a third shape added without a plan for
+                // the steps it expands to.
                 default:
-                    throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}");
+                    throw new UnreachableException(
+                        $"Unknown pipeline item type: {pipeline.Items[index].GetType().Name}"
+                    );
             }
         }
 
+        // No handler follows, so this is the pipeline's last segment and the conclusion ends it.
         switch (pipeline.Conclusion)
         {
             case PipelineConclusion.ReplyExchange exchange:
-                // A mailbox-opening task expands to no concluding step here — the reply handler runs on the
-                // receive workflows, once per message. The enqueuing hop ends the segment with the step that
-                // enqueues the first receiver instead.
+                // A task concluded by an exchange expands to no concluding step here — the reply terminal runs
+                // on the receive workflows, once per message. The enqueuing hop ends the segment with the step
+                // that enqueues the first receiver instead.
                 return new ServiceTaskSegmentPlan(
                     steps,
                     new MailboxReceivePlan(
@@ -301,6 +349,43 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
+    /// Where the requested segment starts: the beginning for segment 0, and otherwise the item after the
+    /// handler answering <paramref name="afterExchange"/>.
+    /// </summary>
+    /// <remarks>
+    /// A name matching no handler throws rather than silently planning segment 0 — which would re-run every
+    /// stage of the task, re-minting mailboxes and re-sending. Unreachable in practice and therefore not a
+    /// failure result: the only caller naming an exchange is the relay, running inside the very callback
+    /// whose dispatch found that handler in this same pipeline, and <c>Define</c> is contractually
+    /// deterministic. It throws (rather than <see cref="UnreachableException"/>) because what it would take
+    /// to get here is an app's <c>Define</c> breaking that contract, not this assembly's model drifting.
+    /// </remarks>
+    private static int FindSegmentStart(ServiceTaskPipeline pipeline, string? afterExchange)
+    {
+        if (afterExchange is null)
+        {
+            return 0;
+        }
+
+        for (int index = 0; index < pipeline.Items.Count; index++)
+        {
+            if (
+                pipeline.Items[index] is ReplySegment handler
+                && string.Equals(handler.OpeningStageName, afterExchange, StringComparison.Ordinal)
+            )
+            {
+                return index + 1;
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"The pipeline composes no handler for the exchange opened by stage '{afterExchange}', so the "
+                + "segment that follows it cannot be planned. Define must return the same pipeline every time "
+                + "it is called."
+        );
+    }
+
+    /// <summary>
     /// The one step a receive workflow runs: an <c>ExecuteServiceTask</c> step that names the exchange it
     /// answers rather than a stage it runs.
     /// </summary>
@@ -319,6 +404,27 @@ internal sealed class WorkflowCommandSet
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageName),
             serviceTaskRepliesTo: openingStageName
+        );
+
+    /// <summary>
+    /// The step that ends a segment ending on an exchange: it enqueues the exchange's first receive workflow,
+    /// carrying the workflow its hop pre-assembled and the name of the stage whose mailbox that receiver is
+    /// declared against.
+    /// </summary>
+    /// <remarks>
+    /// Shared by the two hops that end a segment — Main's assembly and the relay's continuation — because the
+    /// step is the same either way. What is <em>not</em> shared is the workflow inside it: its labels,
+    /// operation id and callback context are the enqueueing hop's, and no two hops assemble them alike.
+    /// </remarks>
+    /// <param name="receiveEnqueueRequest">The receive workflow, pre-assembled by the hop.</param>
+    /// <param name="openingStageName">The stage whose carried mailbox the receiver is declared against.</param>
+    internal static StepRequest CreateReceiveEnqueueStep(
+        WorkflowEnqueueRequest receiveEnqueueRequest,
+        string openingStageName
+    ) =>
+        CreateCommand(
+            EnqueueReceiveWorkflow.Key,
+            new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest, openingStageName)
         );
 
     private static StepRequest CreateCommand(
