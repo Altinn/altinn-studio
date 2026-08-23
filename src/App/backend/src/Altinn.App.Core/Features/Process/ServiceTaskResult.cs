@@ -8,6 +8,13 @@ namespace Altinn.App.Core.Features.Process;
 public abstract record ServiceTaskResult : ServiceTaskExchangeResult
 {
     /// <summary>
+    /// Declares no constructor an app can call, for the reason given on
+    /// <see cref="ServiceTaskExchangeResult"/>: the answers below are the whole vocabulary the runtime can
+    /// act on.
+    /// </summary>
+    private protected ServiceTaskResult() { }
+
+    /// <summary>
     /// Creates a service task result representing successful execution.
     /// The process will automatically advance to the next element.
     /// </summary>

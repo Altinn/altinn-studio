@@ -38,6 +38,33 @@ internal sealed class EnqueueReceiveWorkflow(
 
     public override string GetKey() => Key;
 
+    /// <summary>
+    /// Fills in the three execution-only values and enqueues the receiver, guarding three things:
+    /// <list type="bullet">
+    /// <item>
+    /// <term><c>InvalidPayloadException</c></term>
+    /// <description>
+    /// the pre-assembled request does not hold exactly one workflow. It was assembled by this app-lib's own
+    /// expansion, so this is app-lib drift: a payload written by a version whose receive shape differed.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term><c>MailboxIdMissingFromState</c></term>
+    /// <description>
+    /// a broken carry, and only that — this step and the mint step are emitted by the same expansion, so a
+    /// redeploy cannot leave one without the other. A step between the two dropped the record, and retrying
+    /// only repeats the read.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term><c>MailboxStepIdMissing</c></term>
+    /// <description>
+    /// engine drift: an engine version that does not send <c>stepId</c>. The enqueue is keyed on it, and an
+    /// empty key is a constant shared by every exchange in the application.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </summary>
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
         EnqueueReceiveWorkflowPayload payload
@@ -54,7 +81,7 @@ internal sealed class EnqueueReceiveWorkflow(
 
         // Carried in the state blob because the mint's key is the declaring stage's step id, which nothing later
         // can re-derive. Looked up by the stage the payload names rather than by scanning the map, so a second
-        // carried mailbox is no obstacle. A missing entry is a broken carry, which retrying only repeats.
+        // carried mailbox is no obstacle.
         if (context.StateCarry.FindMailbox(payload.OpeningStageName) is not { } carried)
         {
             return FailedProcessEngineCommandResult.Permanent(
@@ -67,8 +94,7 @@ internal sealed class EnqueueReceiveWorkflow(
 
         Guid mailboxId = carried.Id;
 
-        // Saga rule: keyed off the executing step, so a crashed attempt's replay deduplicates. An empty step id
-        // is a constant that would collapse every receive enqueue in the namespace onto one workflow.
+        // Saga rule: keyed off the executing step, so a crashed attempt's replay deduplicates.
         if (context.Payload.StepId == Guid.Empty)
         {
             return FailedProcessEngineCommandResult.Permanent(

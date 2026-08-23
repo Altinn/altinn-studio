@@ -192,8 +192,10 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The stage may not send without an address, and it has no way to obtain one: the mint step records it
-    /// immediately before this stage runs, so an empty carry means a step between the two dropped it.
+    /// The stage may not send without an address, and it has no way to obtain one. Two causes reach here and
+    /// the wording must name both: a redeploy that <em>added</em> the declaration to this stage, so the
+    /// in-flight workflow's step list holds no mint step at all, and a mint step whose record did not survive
+    /// into this step's state. Naming only the second sent readers hunting a step that never existed.
     /// </summary>
     [Fact]
     public async Task DeclaringStage_WithoutACarriedMailbox_FailsPermanentlyAndNeverRuns()
@@ -206,7 +208,8 @@ public class ExecuteServiceTaskMailboxTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
         Assert.Contains($"Stage '{SendStage}' opens a mailbox", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("mint step records it", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("enqueued before the stage opened one", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("did not survive into this step's state", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(task.Seen);
     }
 

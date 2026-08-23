@@ -2097,7 +2097,6 @@ namespace Altinn.App.Core.Features.Process
     }
     public abstract class ServiceTaskExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>
     {
-        protected ServiceTaskExchangeResult() { }
         public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
     }
     public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
@@ -2148,7 +2147,6 @@ namespace Altinn.App.Core.Features.Process
     }
     public abstract class ServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
-        protected ServiceTaskResult() { }
         public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }

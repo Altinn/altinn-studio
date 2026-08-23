@@ -14,6 +14,14 @@ namespace Altinn.App.Core.Features.Process;
 public abstract record ServiceTaskExchangeResult
 {
     /// <summary>
+    /// Declares no constructor an app can call, so this vocabulary is closed to ordinary derivation — as
+    /// <see cref="ServiceTaskStageResult"/> is. The answers below are the whole set, and the runtime maps each
+    /// to a workflow-engine outcome by its type; it has nothing to give a subtype it does not know. Should one
+    /// reach it anyway, the task fails permanently naming the type rather than being concluded on a guess.
+    /// </summary>
+    private protected ServiceTaskExchangeResult() { }
+
+    /// <summary>
     /// This message is handled; the exchange is not over. Returnable only from a multi-message exchange's
     /// message handler.
     /// </summary>

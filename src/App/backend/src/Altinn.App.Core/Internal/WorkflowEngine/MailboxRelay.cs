@@ -121,15 +121,43 @@ internal sealed class MailboxRelay
                     MailboxContinuation = new MailboxContinuation.Conclude(mailbox.Id),
                 };
 
+            // An answer this version has no move for. THE REACHABILITY ANCHOR for all three of these arms
+            // (the two mappers in ExecuteServiceTask are the others): declaring a result type does not
+            // compile, because the roots' declared constructors are inaccessible outside this assembly — but
+            // these roots are records, and C# forbids narrowing a record's synthesized copy constructor below
+            // protected on an unsealed type, so an app can still reach here by chaining that. Permanent, not
+            // a throw: the outer catch in ExecuteServiceTask would turn a throw into a retryable failure, and
+            // an unrecognised result type is an author error no retry converges on. No continuation, though:
+            // what closes the mailbox in this switch is the app having *concluded* the exchange, and an
+            // unrecognised verdict is no conclusion — the runtime cannot tell whether Success,
+            // FailedPermanent or AwaitNextReply was meant, and closing picks the most destructive reading,
+            // losing the answer even after the author fixes the bug. Left open, the deadline still bounds it,
+            // an operator can close it by hand, and a resume replays the message into the corrected handler.
             default:
-                throw new UnreachableException($"Unknown service task result type: {result.GetType().Name}");
+                return FailedProcessEngineCommandResult.Permanent(
+                    $"Service task '{serviceTaskType}' answered a message with a result of type "
+                        + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
+                        + "handler must return one of the results the factory methods produce — "
+                        + $"{nameof(ServiceTaskResult.Success)}, "
+                        + $"{nameof(ServiceTaskResult.SuccessWithoutAutoAdvance)}, "
+                        + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
+                        + $"{nameof(ServiceTaskResult.FailedPermanent)}, {nameof(ServiceTaskResult.Defer)} or "
+                        + $"{nameof(ServiceTaskExchangeResult.AwaitNextReply)} — never a type of its own.",
+                    "ServiceTaskResultUnknown"
+                );
         }
     }
 
     /// <summary>
+    /// <c>MailboxStepIdMissing</c>. Engine drift: an engine version that does not send <c>stepId</c> on the
+    /// callback. Every enqueue the saga makes is keyed off it, and an empty id is a constant — engine
+    /// idempotency is scoped to <c>(namespace, key)</c>, so every exchange in the application would collapse
+    /// onto one successor and one after-workflow.
+    /// </summary>
+    /// <remarks>
     /// Only the two keyed verdicts are refused, and before anything is closed or enqueued: refusing a verdict
     /// that makes no keyed call would fail a working callback over a key it never uses.
-    /// </summary>
+    /// </remarks>
     private static FailedProcessEngineCommandResult? StepIdMissing(Guid stepId, string serviceTaskType, string wouldDo)
     {
         if (stepId != Guid.Empty)
@@ -164,6 +192,9 @@ internal sealed class MailboxRelay
 
                 return;
 
+            // Drift guard for this assembly's own vocabulary: MailboxContinuation is a closed two-member set —
+            // deliberately, since that is what makes "at most one execution concludes" structural — so the only
+            // way here is a third member added without a case to perform it.
             default:
                 throw new UnreachableException($"Unknown mailbox continuation type: {continuation.GetType().Name}");
         }

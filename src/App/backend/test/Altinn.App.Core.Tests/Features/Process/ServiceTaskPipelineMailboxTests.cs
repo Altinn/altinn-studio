@@ -50,8 +50,9 @@ public class ServiceTaskPipelineMailboxTests
             .ConcludeOnReplies(handle, Handle, Closed);
 
         Assert.Equal(["SendToArchive", "RecordDispatch"], pipeline.Stages.Select(s => s.Name));
-        Assert.Equal(TimeSpan.FromDays(3), pipeline.FindStage("SendToArchive")!.OpensMailbox!.Timeout);
-        Assert.Null(pipeline.FindStage("RecordDispatch")!.OpensMailbox);
+        var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.FindStage("SendToArchive"));
+        Assert.Equal(TimeSpan.FromDays(3), opening.Declaration.Timeout);
+        Assert.IsType<ServiceTaskStage.Plain>(pipeline.FindStage("RecordDispatch"));
     }
 
     [Fact]
@@ -133,7 +134,8 @@ public class ServiceTaskPipelineMailboxTests
             .ConcludeOnReplies(handle, Handle, Closed);
 
         var mailbox = new ServiceTaskMailbox { Id = Guid.NewGuid(), Deadline = DateTimeOffset.UtcNow.AddDays(3) };
-        await pipeline.FindStage("SendToArchive")!.Work(TestContext(), mailbox);
+        var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.FindStage("SendToArchive"));
+        await opening.Work(TestContext(), mailbox);
 
         Assert.Same(mailbox, seen);
     }
@@ -223,7 +225,7 @@ public class ServiceTaskPipelineMailboxTests
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Conclusion);
-        Assert.Null(pipeline.FindStage("SendToArchive")!.OpensMailbox);
+        Assert.IsType<ServiceTaskStage.Plain>(pipeline.FindStage("SendToArchive"));
     }
 
     [Theory]

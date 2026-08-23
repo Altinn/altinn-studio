@@ -577,6 +577,41 @@ public class MailboxRelayTests
         Assert.Equal("reject", action);
     }
 
+    /// <summary>
+    /// A verdict the saga has no move for. Reachable from app code by chaining a record's protected copy
+    /// constructor, so it must converge rather than throw into the caller's retry ladder — and it must leave
+    /// the exchange alone: what closes the mailbox here is the app having concluded, and an unrecognised
+    /// verdict is no conclusion. Closing would pick one of the three readings it could have meant and lose
+    /// the answer even after the author fixes the bug.
+    /// </summary>
+    private sealed record RogueVerdict : ServiceTaskExchangeResult
+    {
+        public RogueVerdict(ServiceTaskExchangeResult original)
+            : base(original) { }
+    }
+
+    [Fact]
+    public void UnrecognisedVerdict_FailsPermanentlyNamesTheTypeAndLeavesTheExchangeOpen()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStage, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.Decide(
+            new RogueVerdict(ServiceTaskResult.Success()),
+            ServiceTaskType,
+            _stepId,
+            Delivered(),
+            carry,
+            OpeningStage
+        );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains(nameof(RogueVerdict), failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
+    }
+
     [Fact]
     public void Success_ConcludesAndStopsTheMailboxIdTraveling()
     {

@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
@@ -60,7 +58,8 @@ public sealed class ServiceTaskPipelineBuilder
     )
     {
         ArgumentNullException.ThrowIfNull(work);
-        AddStage(name, (context, _) => work(context), options, opensMailbox: null);
+        ValidateStage(name, options);
+        _stages.Add(new ServiceTaskStage.Plain(name, work, options));
         return this;
     }
 
@@ -107,21 +106,8 @@ public sealed class ServiceTaskPipelineBuilder
             );
         }
 
-        AddStage(
-            name,
-            // Non-null for a declaring stage by construction: the runtime reads the stage's own declaration to
-            // decide what to hand it, and fails the step before the work runs if the mint's record is missing.
-            (context, minted) =>
-                work(
-                    context,
-                    minted
-                        ?? throw new UnreachableException(
-                            $"Stage '{name}' opens a mailbox but was handed none to publish."
-                        )
-                ),
-            options,
-            opensMailbox: mailbox
-        );
+        ValidateStage(name, options);
+        _stages.Add(new ServiceTaskStage.MailboxOpening(name, work, mailbox, options));
 
         handle = _handle = new MailboxHandle(this, name);
         return this;
@@ -275,12 +261,11 @@ public sealed class ServiceTaskPipelineBuilder
         );
     }
 
-    private void AddStage(
-        string name,
-        Func<ServiceTaskContext, ServiceTaskMailbox?, Task<ServiceTaskStageResult>> work,
-        ProcessStepOptions? options,
-        MailboxOptions? opensMailbox
-    )
+    /// <summary>
+    /// The checks both <c>Stage</c> overloads share, run before either constructs its stage: the name is a
+    /// usable wire value, unique in this pipeline, and the options are well formed.
+    /// </summary>
+    private void ValidateStage(string name, ProcessStepOptions? options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (name.Any(c => c < 0x20 || c > 0x7E))
@@ -299,7 +284,5 @@ public sealed class ServiceTaskPipelineBuilder
             );
         }
         options?.Validate();
-
-        _stages.Add(new ServiceTaskStage(name, work, options, opensMailbox));
     }
 }

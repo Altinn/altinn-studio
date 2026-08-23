@@ -58,10 +58,10 @@ public class EFormidlingServiceTaskTests
     /// </summary>
     private static Task<ServiceTaskStageResult> SendShipment(EFormidlingServiceTask task, ServiceTaskContext context)
     {
-        ServiceTaskStage stage =
-            task.ResolvePipeline().FindStage("SendShipment")
+        var stage =
+            task.ResolvePipeline().FindStage("SendShipment") as ServiceTaskStage.Plain
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
-        return stage.Work(context, null);
+        return stage.Work(context);
     }
 
     private static Task<ServiceTaskResult> AwaitDelivery(EFormidlingServiceTask task, ServiceTaskContext context) =>

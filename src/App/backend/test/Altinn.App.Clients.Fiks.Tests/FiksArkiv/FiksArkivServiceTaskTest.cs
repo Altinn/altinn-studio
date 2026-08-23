@@ -36,10 +36,10 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskPipeline pipeline = fixture.FiksArkivPipeline;
 
-        ServiceTaskStage stage = Assert.Single(pipeline.Stages);
+        var stage = Assert.IsType<ServiceTaskStage.MailboxOpening>(Assert.Single(pipeline.Stages));
         Assert.Equal("SendToArchive", stage.Name);
 
-        Assert.Equal(TimeSpan.FromDays(7), stage.OpensMailbox!.Timeout);
+        Assert.Equal(TimeSpan.FromDays(7), stage.Declaration.Timeout);
 
         var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
         Assert.Equal("SendToArchive", exchange.OpeningStageName);
@@ -688,9 +688,9 @@ public class FiksArkivServiceTaskTest
         instanceClient.VerifyNoOtherCalls();
     }
 
-    private static Func<ServiceTaskContext, ServiceTaskMailbox?, Task<ServiceTaskStageResult>> SendStage(
+    private static Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> SendStage(
         TestFixture fixture
-    ) => fixture.FiksArkivPipeline.FindStage("SendToArchive")!.Work;
+    ) => Assert.IsType<ServiceTaskStage.MailboxOpening>(fixture.FiksArkivPipeline.FindStage("SendToArchive")).Work;
 
     private static Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage(
         TestFixture fixture

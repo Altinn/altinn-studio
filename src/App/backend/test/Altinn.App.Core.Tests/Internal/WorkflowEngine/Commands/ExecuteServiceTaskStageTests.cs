@@ -86,6 +86,35 @@ public class ExecuteServiceTaskStageTests
 
     private static ExecuteServiceTaskPayload Payload(string? stageName) => new("shipping", stageName);
 
+    /// <summary>
+    /// The stage-result counterpart of
+    /// <c>ExecuteServiceTaskTests.Execute_WhenServiceTaskReturnsAnUnrecognisedResultType_…</c>: a type the
+    /// mapper does not know must fail permanently and name itself, never be concluded as a silent success and
+    /// never ride the outer catch's retry ladder.
+    /// </summary>
+    private sealed record RogueStageResult : ServiceTaskStageResult
+    {
+        public RogueStageResult(ServiceTaskStageResult original)
+            : base(original) { }
+    }
+
+    [Fact]
+    public async Task Stage_WhenItReturnsAnUnrecognisedResultType_FailsPermanentlyAndNamesIt()
+    {
+        var task = new ShippingTask
+        {
+            OnSend = _ =>
+                Task.FromResult<ServiceTaskStageResult>(new RogueStageResult(ServiceTaskStageResult.Completed())),
+        };
+
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload("SendShipment"));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains(nameof(RogueStageResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Stage_Completed_ReturnsSuccessWithoutAdvance()
     {
