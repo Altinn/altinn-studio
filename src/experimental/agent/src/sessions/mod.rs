@@ -138,11 +138,39 @@ pub struct LaunchState {
     pub attempts: u32,
 }
 
+/// Opaque bearer token authenticating one exact harness launch.
+#[derive(Clone, Eq, PartialEq)]
+pub struct LaunchToken(Uuid);
+
+impl LaunchToken {
+    pub(crate) fn generate() -> Self {
+        Self(Uuid::new_v4())
+    }
+
+    pub(crate) fn expose(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+impl std::fmt::Debug for LaunchToken {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("LaunchToken([redacted])")
+    }
+}
+
+impl std::str::FromStr for LaunchToken {
+    type Err = uuid::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        value.parse().map(Self)
+    }
+}
+
 /// One new harness launch to persist before its external effects begin.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LaunchRecord {
     /// Per-launch bearer token expected by the Session hook endpoint.
-    pub token: String,
+    pub token: LaunchToken,
     /// Sandbox ID the harness is being launched in.
     pub sandbox: String,
     /// Launch time as Unix seconds.
@@ -231,7 +259,7 @@ pub trait SessionStore {
     fn set_session_native_id_for_launch<'a>(
         &'a self,
         id: SessionId,
-        token: &'a str,
+        token: &'a LaunchToken,
         native: &'a str,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
@@ -261,5 +289,7 @@ pub(crate) type SharedStore = std::rc::Rc<dyn SessionStore>;
 /// Returns an error when the Session is not ready or the recorded Sandbox
 /// Provider cannot carry the attachment.
 pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(), Error> {
+    // TODO: Move attachment behind a runtime-neutral capability after a second
+    // Session runtime establishes the interface tmux currently supplies.
     tmux::attach(home, target).await
 }

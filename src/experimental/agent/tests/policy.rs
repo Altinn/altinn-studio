@@ -14,10 +14,10 @@ async fn allows_general_egress_but_scopes_each_secret_to_its_hosts() {
     let mut agent = support::agent("worker");
     agent.spec.network.deny.push("blocked.example".into());
     agent.spec.secrets.push(SecretSpec {
-        name: "github-token".into(),
-        placeholder: "placeholder".into(),
+        environment: "GITHUB_TOKEN".into(),
+        placeholder: None,
         allowed_hosts: vec!["github.com".into()],
-        source: "GH_PAT".into(),
+        source: Some("GH_PAT".into()),
     });
     let policy = AgentPolicyEngine::new();
     let sandbox = SandboxName::new("agent-test-id").expect("Sandbox name");
@@ -53,7 +53,7 @@ async fn allows_general_egress_but_scopes_each_secret_to_its_hosts() {
             sandbox.as_str(),
             action::SECRET_USE,
             resource_kind::SECRET,
-            "github-token",
+            "GITHUB_TOKEN",
             "github.com",
         )
         .await,
@@ -65,7 +65,7 @@ async fn allows_general_egress_but_scopes_each_secret_to_its_hosts() {
             sandbox.as_str(),
             action::SECRET_USE,
             resource_kind::SECRET,
-            "github-token",
+            "GITHUB_TOKEN",
             "example.com",
         )
         .await,

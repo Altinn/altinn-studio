@@ -52,7 +52,7 @@ impl AgentPolicyEngine {
             .spec
             .secrets
             .iter()
-            .map(|secret| (secret.name.clone(), secret.allowed_hosts.clone()))
+            .map(|secret| (secret.environment.clone(), secret.allowed_hosts.clone()))
             .chain(managed_secrets)
             .collect();
         self.agents.borrow_mut().insert(

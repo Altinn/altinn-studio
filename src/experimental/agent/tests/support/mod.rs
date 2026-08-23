@@ -3,8 +3,8 @@
 use std::{path::PathBuf, time::SystemTime};
 
 use agent::{
-    API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, KIND, Metadata, NetworkAllow, NetworkMode,
-    NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, Spec, Status,
+    API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
+    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, Spec, Status,
 };
 use sandbox::{ByteQuantity, CpuQuantity, RetentionPolicy, RootFilesystem, SandboxResources, image::ImageSource};
 pub(crate) fn agent(name: &str) -> Agent {
@@ -44,6 +44,9 @@ pub(crate) fn agent(name: &str) -> Agent {
             home: HomeSpec {
                 source: PathBuf::from("home"),
             },
+            instructions: Some(InstructionsSpec {
+                source: PathBuf::from("instructions.md"),
+            }),
             harness: HarnessSpec {
                 kind: Harness::ClaudeCode,
                 version: "2.1.239".into(),

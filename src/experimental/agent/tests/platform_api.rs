@@ -62,6 +62,8 @@ async fn request(port: u16, token: &str, body: &str) -> u16 {
 
 #[tokio::test(flavor = "local")]
 async fn session_reports_require_the_current_launch_token() {
+    const TOKEN_1: &str = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const TOKEN_2: &str = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
     let directory = TempDir::new().expect("temporary directory");
     let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
     let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
@@ -74,7 +76,7 @@ async fn session_reports_require_the_current_launch_token() {
         .record_session_launch(
             session.id,
             LaunchRecord {
-                token: "launch-token-1".into(),
+                token: TOKEN_1.parse().expect("launch token"),
                 sandbox: "sandbox-1".into(),
                 launched_at: 0,
                 attempts: 1,
@@ -99,28 +101,25 @@ async fn session_reports_require_the_current_launch_token() {
         session.id
     );
 
-    assert_eq!(
-        request_to(port, "/v1/session-reports", "launch-token-1", &report).await,
-        404
-    );
+    assert_eq!(request_to(port, "/v1/session-reports", TOKEN_1, &report).await, 404);
     // A stale or foreign token authenticates as nothing.
     assert_eq!(request(port, "unknown-token", &report).await, 401);
     // A valid token for a different platform Session is rejected.
     let mismatched = format!(r#"{{"sessionId":"{agent_id}","nativeSessionId":"{native}"}}"#);
-    assert_eq!(request(port, "launch-token-1", &mismatched).await, 401);
+    assert_eq!(request(port, TOKEN_1, &mismatched).await, 401);
     // Harness-native IDs are opaque to the platform layer.
     let opaque = format!(
         r#"{{"sessionId":"{}","nativeSessionId":"opaque-harness-id"}}"#,
         session.id
     );
-    assert_eq!(request(port, "launch-token-1", &opaque).await, 204);
+    assert_eq!(request(port, TOKEN_1, &opaque).await, 204);
     let stored = database.get_session(session.id).await.expect("session");
     assert_eq!(stored.status.harness_session_id.as_deref(), Some("opaque-harness-id"));
 
     let empty = format!(r#"{{"sessionId":"{}","nativeSessionId":""}}"#, session.id);
-    assert_eq!(request(port, "launch-token-1", &empty).await, 400);
+    assert_eq!(request(port, TOKEN_1, &empty).await, 400);
 
-    assert_eq!(request(port, "launch-token-1", &report).await, 204);
+    assert_eq!(request(port, TOKEN_1, &report).await, 204);
     let stored = database.get_session(session.id).await.expect("session");
     assert_eq!(stored.status.harness_session_id.as_deref(), Some(native));
 
@@ -145,7 +144,7 @@ async fn session_reports_require_the_current_launch_token() {
         .record_session_launch(
             session.id,
             LaunchRecord {
-                token: "launch-token-2".into(),
+                token: TOKEN_2.parse().expect("launch token"),
                 sandbox: "sandbox-1".into(),
                 launched_at: 1,
                 attempts: 2,
@@ -153,8 +152,8 @@ async fn session_reports_require_the_current_launch_token() {
         )
         .await
         .expect("record relaunch");
-    assert_eq!(request(port, "launch-token-1", &report).await, 401);
-    assert_eq!(request(port, "launch-token-2", &report).await, 204);
+    assert_eq!(request(port, TOKEN_1, &report).await, 401);
+    assert_eq!(request(port, TOKEN_2, &report).await, 204);
 
     server_task.abort();
 }
@@ -178,7 +177,7 @@ async fn launch_bookkeeping_round_trips_and_resets() {
         .record_session_launch(
             session.id,
             LaunchRecord {
-                token: "token".into(),
+                token: "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("launch token"),
                 sandbox: "sandbox-1".into(),
                 launched_at: 42,
                 attempts: 3,
@@ -209,6 +208,7 @@ async fn launch_bookkeeping_round_trips_and_resets() {
 
 #[tokio::test(flavor = "local")]
 async fn platform_api_bounds_stalled_connections() {
+    const TOKEN: &str = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
     let directory = TempDir::new().expect("temporary directory");
     let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
     let listener = agent::platform_api::bind_persistent(&directory.path().join("platform-api-port"))
@@ -234,7 +234,7 @@ async fn platform_api_bounds_stalled_connections() {
 
     let blocked = tokio::time::timeout(
         Duration::from_millis(100),
-        request_to(port, "/v1/session/hooks/start", "token", "{}"),
+        request_to(port, "/v1/session/hooks/start", TOKEN, "{}"),
     )
     .await;
     assert!(blocked.is_err(), "a connection beyond the limit must wait for capacity");
@@ -242,7 +242,7 @@ async fn platform_api_bounds_stalled_connections() {
     drop(stalled.pop());
     let status = tokio::time::timeout(
         Duration::from_secs(1),
-        request_to(port, "/v1/session/hooks/start", "token", "{}"),
+        request_to(port, "/v1/session/hooks/start", TOKEN, "{}"),
     )
     .await
     .expect("request should proceed after capacity is released");

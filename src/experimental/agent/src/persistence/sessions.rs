@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     AgentId, ConditionStatus, Error,
     sandbox::Assignment,
-    sessions::{AttachTarget, LaunchState, Session, SessionId, SessionName, State, Status},
+    sessions::{AttachTarget, LaunchState, LaunchToken, Session, SessionId, SessionName, State, Status},
 };
 
 use super::{agents, database_error};
@@ -141,7 +141,7 @@ pub(super) fn set_native_session_id(connection: &Connection, id: SessionId, nati
 pub(super) fn set_native_session_id_for_launch(
     connection: &Connection,
     id: SessionId,
-    token: &str,
+    token: &LaunchToken,
     native: &str,
 ) -> Result<(), Error> {
     let changed = connection
@@ -152,7 +152,7 @@ pub(super) fn set_native_session_id_for_launch(
                  SELECT 1 FROM agents
                  WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL
              )",
-            params![native, id.to_string(), token],
+            params![native, id.to_string(), token.expose()],
         )
         .map_err(database_error)?;
     if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
@@ -161,7 +161,7 @@ pub(super) fn set_native_session_id_for_launch(
 pub(super) fn record_launch(
     connection: &Connection,
     id: SessionId,
-    token: &str,
+    token: &LaunchToken,
     sandbox: &str,
     launched_at: i64,
     attempts: u32,
@@ -170,7 +170,7 @@ pub(super) fn record_launch(
         .execute(
             "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4 \
              WHERE id = ?5",
-            params![token, sandbox, launched_at, attempts, id.to_string()],
+            params![token.expose(), sandbox, launched_at, attempts, id.to_string()],
         )
         .map_err(database_error)?;
     if changed == 1 { Ok(()) } else { Err(Error::NotFound) }

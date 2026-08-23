@@ -27,7 +27,7 @@ pub(in crate::harness) struct Authentication {
 }
 
 impl Authentication {
-    /// Creates a credential manager over the shared database owner.
+    /// Creates a harness authentication manager over the shared database owner.
     #[must_use]
     pub(in crate::harness) fn new(database: persistence::Database) -> Self {
         Self {
@@ -58,7 +58,7 @@ impl Authentication {
         self.database
             .put_provider_account(persistence::ProviderAccountWrite {
                 provider: PROVIDER.into(),
-                credentials: vec![persistence::StoredCredential {
+                credentials: vec![persistence::StoredSecret {
                     name: ACCESS_SECRET.into(),
                     value: Zeroizing::new(token.as_bytes().to_vec()),
                 }],

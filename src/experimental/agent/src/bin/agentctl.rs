@@ -166,25 +166,13 @@ fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(log);
-    configure_detached(&mut command);
+    agent::local::process::configure_detached(&mut command);
     command.spawn().map_err(Error::from)
 }
 
 fn daemon_executable(agentctl: &Path) -> PathBuf {
     agentctl.with_file_name(format!("agentd{}", std::env::consts::EXE_SUFFIX))
 }
-
-#[cfg(windows)]
-fn configure_detached(command: &mut ProcessCommand) {
-    use std::os::windows::process::CommandExt as _;
-
-    const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
-    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-    command.creation_flags(CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW);
-}
-
-#[cfg(not(windows))]
-const fn configure_detached(_command: &mut ProcessCommand) {}
 
 async fn read_apply_request(filename: PathBuf) -> Result<ApplyRequest, Error> {
     let filename = absolute(filename)?;

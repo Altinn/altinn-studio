@@ -19,21 +19,19 @@ spec:
     initSystem: image
   home:
     source: home
+  instructions:
+    source: instructions.md
   harness:
     type: claudeCode
     version: "2.1.239"
     auth: mediated
   secrets:
-    - name: github-token
-      placeholder: agent-github-token-placeholder
+    - environment: GITHUB_TOKEN
       allowedHosts:
         - github.com
-      source: GITHUB_TOKEN
-    - name: studio-token
-      placeholder: agent-studio-token-placeholder
+    - environment: STUDIO_DEV_API_KEY
       allowedHosts:
         - dev.altinn.studio
-      source: STUDIO_DEV_API_KEY
   network:
     mode: mediated
     allow: all

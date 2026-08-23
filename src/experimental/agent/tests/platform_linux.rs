@@ -25,17 +25,28 @@ fn is_claude_version(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+async fn read_file(sandbox: &sandbox::SandboxHandle, path: &str) -> Vec<u8> {
+    let mut bytes = Vec::new();
+    sandbox
+        .read_file(&SandboxPath::new(path))
+        .await
+        .expect("read file")
+        .read_to_end(&mut bytes)
+        .await
+        .expect("read file bytes");
+    bytes
+}
+
 #[tokio::test(flavor = "local")]
 async fn linux_setup_rewrites_configuration_without_owning_workspace_initialization() {
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
     std::fs::create_dir_all(&home).expect("home directory");
-    std::fs::write(home.join("AGENTS.md"), "test instructions").expect("home file");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
     let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     let mut resource = support::agent("worker");
     resource.metadata.generation = 1;
     resource.spec.home.source = home;
-    resource.spec.sandbox.init_system = sandbox::init::InitSystem::Image;
     let record = AgentRecord {
         id: agent_id,
         source_directory: directory.path().to_path_buf(),
@@ -79,15 +90,10 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         .expect("write harness-owned state");
     platform.setup(&record, &sandbox).await.expect("second setup");
 
-    let mut preserved = Vec::new();
-    sandbox
-        .read_file(&SandboxPath::new("/home/agent/.claude/.claude.json"))
-        .await
-        .expect("read harness-owned state")
-        .read_to_end(&mut preserved)
-        .await
-        .expect("read state bytes");
+    let preserved = read_file(&sandbox, "/home/agent/.claude/.claude.json").await;
     assert_eq!(preserved, mutable_state);
+    let instructions = read_file(&sandbox, "/home/agent/.claude/CLAUDE.md").await;
+    assert_eq!(instructions, b"test instructions");
 
     let executions = backend.execution_specs();
     let commands = executions
@@ -101,13 +107,6 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         commands
             .iter()
             .filter(|(executable, _)| *executable == "/usr/bin/env")
-            .count(),
-        2
-    );
-    assert_eq!(
-        commands
-            .iter()
-            .filter(|(executable, args)| { *executable == "/usr/local/libexec/agent-image-ready" && args.is_empty() })
             .count(),
         2
     );

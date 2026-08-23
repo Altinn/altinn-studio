@@ -170,23 +170,16 @@ fn secure_file_for_host(path: &Path) -> Result<(), Error> {
 
 #[cfg(target_os = "windows")]
 fn secure_windows_path(path: &Path, inherit: bool) -> Result<(), Error> {
-    use std::os::windows::process::CommandExt as _;
-
-    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-
     let user = env::var("USERNAME").map_err(|error| Error::Invalid(error.to_string()))?;
     let grant = if inherit {
         format!("{user}:(OI)(CI)F")
     } else {
         format!("{user}:F")
     };
-    let status = std::process::Command::new("icacls")
-        .arg(path)
-        .arg("/inheritance:r")
-        .arg("/grant:r")
-        .arg(grant)
-        .creation_flags(CREATE_NO_WINDOW)
-        .status()?;
+    let mut command = std::process::Command::new("icacls");
+    command.arg(path).arg("/inheritance:r").arg("/grant:r").arg(grant);
+    super::process::configure_hidden(&mut command);
+    let status = command.status()?;
     if !status.success() {
         return Err(Error::Io(std::io::Error::other(format!(
             "icacls failed for {} with {status}",

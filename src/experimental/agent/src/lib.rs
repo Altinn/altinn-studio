@@ -18,8 +18,8 @@ pub mod sessions;
 pub use control_plane::AgentId;
 pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
 pub use manifest::{
-    API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, KIND, Metadata, NetworkAllow, NetworkMode, NetworkSpec,
-    PlatformManifestSpec, SandboxManifestSpec, SecretSpec, Spec, Status,
+    API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, InstructionsSpec, KIND, Metadata, NetworkAllow,
+    NetworkMode, NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, SecretSpec, Spec, Status,
 };
 
 use thiserror::Error;

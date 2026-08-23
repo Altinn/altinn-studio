@@ -158,6 +158,9 @@ fn validate_immutable_fields(
     if current.agent.spec.home != desired.spec.home {
         return Err(Error::Immutable("spec.home"));
     }
+    if current.agent.spec.instructions != desired.spec.instructions {
+        return Err(Error::Immutable("spec.instructions"));
+    }
     if current.agent.spec.harness.kind != desired.spec.harness.kind {
         return Err(Error::Immutable("spec.harness.type"));
     }

@@ -15,6 +15,11 @@ pub(super) struct Preparation {
     network: Rc<MicrosandboxNetworkBackend>,
 }
 
+pub(super) struct PreparedNetwork {
+    pub(super) bindings_changed: bool,
+    pub(super) environment: BTreeMap<String, String>,
+}
+
 impl Preparation {
     /// Creates the Agent-side Microsandbox mediation adapter.
     #[must_use]
@@ -40,7 +45,7 @@ impl Preparation {
         self.network.stop(sandbox.id()).await.map_err(Error::from)
     }
 
-    pub(super) async fn prepare(&self, record: &control_plane::AgentRecord) -> Result<bool, Error> {
+    pub(super) async fn prepare(&self, record: &control_plane::AgentRecord) -> Result<PreparedNetwork, Error> {
         let sandbox_name = record.sandbox_name()?;
         let result = async {
             let environment = if record.agent.spec.secrets.is_empty() {
@@ -50,24 +55,25 @@ impl Preparation {
             };
             let mut secret_writes = Vec::with_capacity(record.agent.spec.secrets.len());
             for secret in &record.agent.spec.secrets {
-                let value = environment.get(&secret.source).ok_or_else(|| {
-                    Error::Invalid(format!(".env does not define required variable {:?}", secret.source))
+                let value = environment.get(secret.source()).ok_or_else(|| {
+                    Error::Invalid(format!(".env does not define required variable {:?}", secret.source()))
                 })?;
                 if value.is_empty() {
                     return Err(Error::Invalid(format!(
                         ".env variable {:?} must not be empty",
-                        secret.source
+                        secret.source()
                     )));
                 }
-                secret_writes.push(persistence::StoredCredential {
-                    name: secret.name.clone(),
+                secret_writes.push(persistence::StoredSecret {
+                    name: secret.environment.clone(),
                     value: Zeroizing::new(value.as_bytes().to_vec()),
                 });
             }
             let references = self.database.replace_agent_secrets(record.id, secret_writes).await?;
             let mut bindings = Vec::with_capacity(record.agent.spec.secrets.len() + 1);
             for (secret, reference) in record.agent.spec.secrets.iter().zip(references) {
-                bindings.push(SecretBinding::new(&secret.name, &secret.placeholder, reference)?);
+                let binding = SecretBinding::with_placeholder(&secret.environment, secret.inert_value(), reference)?;
+                bindings.push(binding);
             }
             let managed_secrets = harness::prepare(record.agent.spec.harness.kind, &self.database).await?;
             self.policy.set_agent(
@@ -75,12 +81,27 @@ impl Preparation {
                 &record.agent,
                 managed_secrets
                     .iter()
-                    .map(|secret| (secret.name.into(), secret.allowed_hosts.clone())),
+                    .map(|secret| (secret.environment.into(), secret.allowed_hosts.clone())),
             );
             for secret in managed_secrets {
-                bindings.push(SecretBinding::new(secret.name, secret.placeholder, secret.reference)?);
+                bindings.push(SecretBinding::with_placeholder(
+                    secret.environment,
+                    secret.placeholder,
+                    secret.reference,
+                )?);
             }
-            Ok(self.network.set_secret_bindings(sandbox_name.clone(), bindings)?)
+            let guest_environment = bindings
+                .iter()
+                .map(|binding| {
+                    let (name, value) = binding.guest_environment();
+                    (name.to_owned(), value.to_owned())
+                })
+                .collect();
+            let bindings_changed = self.network.set_secret_bindings(sandbox_name.clone(), bindings)?;
+            Ok(PreparedNetwork {
+                bindings_changed,
+                environment: guest_environment,
+            })
         }
         .await;
         if result.is_err() {

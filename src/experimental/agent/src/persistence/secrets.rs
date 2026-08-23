@@ -6,7 +6,7 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 
 use crate::{AgentId, Error};
 
-use super::{ProviderAccountWrite, StoredCredential, agent_secret_name, agent_secret_prefix, database_error};
+use super::{ProviderAccountWrite, StoredSecret, agent_secret_name, agent_secret_prefix, database_error};
 
 pub(super) fn set_secret(connection: &Connection, name: &str, value: &[u8]) -> Result<(), Error> {
     connection
@@ -36,7 +36,7 @@ pub(super) fn resolve_secret(
 pub(super) fn replace_agent_secrets(
     connection: &mut Connection,
     id: AgentId,
-    secrets: &[StoredCredential],
+    secrets: &[StoredSecret],
 ) -> Result<(), Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let mut desired = BTreeSet::new();

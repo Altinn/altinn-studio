@@ -18,6 +18,8 @@ spec:
         mode: layered
   home:
     source: home
+  instructions:
+    source: instructions.md
   harness:
     type: claudeCode
     version: "2.1.239"

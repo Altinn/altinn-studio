@@ -93,13 +93,13 @@ pub(crate) async fn prepare(harness: Harness, database: &persistence::Database) 
 }
 
 pub(crate) struct MediatedSecret {
-    pub(crate) name: &'static str,
+    pub(crate) environment: &'static str,
     pub(crate) placeholder: &'static str,
     pub(crate) reference: sandbox::secret_store::SecretReference,
     pub(crate) allowed_hosts: Vec<String>,
 }
 
-pub(crate) fn conflicts_with_managed_secret(harness: Harness, name: &str, placeholder: &str) -> bool {
+pub(crate) fn conflicts_with_managed_secret(harness: Harness, name: &str, placeholder: Option<&str>) -> bool {
     match harness {
         Harness::ClaudeCode => claude_code::conflicts_with_managed_secret(name, placeholder),
     }
@@ -109,9 +109,10 @@ pub(crate) async fn bootstrap_linux(
     harness: Harness,
     sandbox: &sandbox::SandboxHandle,
     home: &str,
+    instructions: Option<&[u8]>,
 ) -> Result<(), Error> {
     match harness {
-        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home).await,
+        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions).await,
     }
 }
 

@@ -9,8 +9,8 @@ use zeroize::Zeroizing;
 use crate::{AgentId, Error, Status, control_plane::AgentRecord, local::home};
 
 mod agents;
-mod credentials;
 mod schema;
+mod secrets;
 mod sessions;
 
 /// Persistent Agent store backed by the shared control-plane database owner.
@@ -21,11 +21,11 @@ pub struct Database {
 
 pub(crate) struct ProviderAccountWrite {
     pub(crate) provider: String,
-    pub(crate) credentials: Vec<StoredCredential>,
+    pub(crate) credentials: Vec<StoredSecret>,
     pub(crate) metadata_json: String,
 }
 
-pub(crate) struct StoredCredential {
+pub(crate) struct StoredSecret {
     pub(crate) name: String,
     pub(crate) value: Zeroizing<Vec<u8>>,
 }
@@ -72,7 +72,7 @@ impl Database {
     pub(crate) async fn replace_agent_secrets(
         &self,
         id: AgentId,
-        secrets: Vec<StoredCredential>,
+        secrets: Vec<StoredSecret>,
     ) -> Result<Vec<sandbox::secret_store::SecretReference>, Error> {
         let references = secrets
             .iter()
@@ -174,13 +174,13 @@ impl crate::sessions::SessionStore for Database {
     fn set_session_native_id_for_launch<'a>(
         &'a self,
         id: crate::sessions::SessionId,
-        token: &'a str,
+        token: &'a crate::sessions::LaunchToken,
         native: &'a str,
     ) -> sandbox::LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
             self.request(|response| Command::SetSessionNativeIdForLaunch {
                 id,
-                token: token.into(),
+                token: token.clone(),
                 native: native.into(),
                 response,
             })
@@ -372,7 +372,7 @@ enum Command {
     },
     ReplaceAgentSecrets {
         id: AgentId,
-        secrets: Vec<StoredCredential>,
+        secrets: Vec<StoredSecret>,
         response: oneshot::Sender<Result<(), Error>>,
     },
     ResolveSecret {
@@ -424,13 +424,13 @@ enum Command {
     },
     SetSessionNativeIdForLaunch {
         id: crate::sessions::SessionId,
-        token: String,
+        token: crate::sessions::LaunchToken,
         native: String,
         response: oneshot::Sender<Result<(), Error>>,
     },
     RecordSessionLaunch {
         id: crate::sessions::SessionId,
-        token: String,
+        token: crate::sessions::LaunchToken,
         sandbox: String,
         launched_at: i64,
         attempts: u32,
@@ -515,19 +515,19 @@ fn execute(connection: &mut Connection, command: Command) {
             let _ = response.send(agents::finalize_deletion(connection, id, generation));
         }
         Command::SetSecret { name, value, response } => {
-            let _ = response.send(credentials::set_secret(connection, &name, &value));
+            let _ = response.send(secrets::set_secret(connection, &name, &value));
         }
         Command::ReplaceAgentSecrets { id, secrets, response } => {
-            let _ = response.send(credentials::replace_agent_secrets(connection, id, &secrets));
+            let _ = response.send(secrets::replace_agent_secrets(connection, id, &secrets));
         }
         Command::ResolveSecret { name, response } => {
-            let _ = response.send(credentials::resolve_secret(connection, &name));
+            let _ = response.send(secrets::resolve_secret(connection, &name));
         }
         Command::PutProviderAccount { account, response } => {
-            let _ = response.send(credentials::put_provider_account(connection, &account));
+            let _ = response.send(secrets::put_provider_account(connection, &account));
         }
         Command::ProviderAccountExists { provider, response } => {
-            let _ = response.send(credentials::provider_account_exists(connection, &provider));
+            let _ = response.send(secrets::provider_account_exists(connection, &provider));
         }
         session_command => execute_session(connection, session_command),
     }
@@ -634,7 +634,7 @@ mod tests {
     use tempfile::TempDir;
     use zeroize::Zeroizing;
 
-    use super::{Database, StoredCredential, open};
+    use super::{Database, StoredSecret, open};
 
     #[test]
     fn database_owner_enables_secure_deletion() {
@@ -665,11 +665,11 @@ mod tests {
             .replace_agent_secrets(
                 agent_id,
                 vec![
-                    StoredCredential {
+                    StoredSecret {
                         name: "github-token".into(),
                         value: Zeroizing::new(b"github-secret".to_vec()),
                     },
-                    StoredCredential {
+                    StoredSecret {
                         name: "studio-token".into(),
                         value: Zeroizing::new(b"studio-secret".to_vec()),
                     },
@@ -680,7 +680,7 @@ mod tests {
         database
             .replace_agent_secrets(
                 agent_id,
-                vec![StoredCredential {
+                vec![StoredSecret {
                     name: "studio-token".into(),
                     value: Zeroizing::new(b"rotated-studio-secret".to_vec()),
                 }],

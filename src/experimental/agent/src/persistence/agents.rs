@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 
 use crate::{Agent, AgentId, Error, Status, control_plane::AgentRecord};
 
-use super::{credentials, database_error};
+use super::{database_error, secrets};
 
 pub(super) fn get(connection: &Connection, id: AgentId) -> Result<AgentRecord, Error> {
     connection
@@ -155,7 +155,7 @@ pub(super) fn finalize_deletion(connection: &mut Connection, id: AgentId, genera
     if changed != 1 {
         return Err(Error::Conflict);
     }
-    credentials::delete_agent_secrets(&transaction, id)?;
+    secrets::delete_agent_secrets(&transaction, id)?;
     transaction.commit().map_err(database_error)
 }
 

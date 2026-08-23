@@ -7,7 +7,7 @@ use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
 use agent::{
     AgentId, ConditionStatus, Error, SecretSpec, Status,
     control_plane::{AgentRecord, AgentStore, ControlPlane, Controller, Notifier, Reconciler, memory},
-    sandbox::{PlatformAdapter, Provider, ProviderId, Service},
+    sandbox::{PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
 };
 use sandbox::{
     EnsureSandboxRequest, LocalFuture, Platform, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxName,
@@ -67,6 +67,7 @@ struct MemoryProvider {
     service: SandboxService,
     default_architecture: String,
     blocking: Option<Blocking>,
+    report_runtime_restart: Rc<Cell<bool>>,
 }
 
 impl MemoryProvider {
@@ -81,6 +82,7 @@ impl MemoryProvider {
             )),
             default_architecture: Platform::native("linux").architecture,
             blocking: None,
+            report_runtime_restart: Rc::new(Cell::new(false)),
         }
     }
 
@@ -99,7 +101,7 @@ impl Provider for MemoryProvider {
         Box::pin(async move { Ok(record.agent.spec.sandbox.platform.os == "linux") })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             if let Some(blocking) = &self.blocking
                 && record.id == blocking.agent
@@ -116,10 +118,15 @@ impl Provider for MemoryProvider {
                 .spec
                 .sandbox
                 .resolve_from(&record.source_directory, &self.default_architecture);
-            self.service
+            let sandbox = self
+                .service
                 .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec))
                 .await
-                .map_err(Error::from)
+                .map_err(Error::from)?;
+            Ok(ProviderEnsureOutcome {
+                sandbox,
+                runtime_restarted: self.report_runtime_restart.replace(false),
+            })
         })
     }
 
@@ -170,7 +177,7 @@ impl Provider for UnsupportedProvider {
         Box::pin(async { Ok(false) })
     }
 
-    fn ensure<'a>(&'a self, _record: &'a AgentRecord) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+    fn ensure<'a>(&'a self, _record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
     }
 
@@ -377,6 +384,27 @@ async fn agent_transitions_notify_sessions_without_repeated_ready_noise() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn sandbox_runtime_restart_notifies_sessions_without_an_identity_change() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider = MemoryProvider::new(backend);
+    let restart = provider.report_runtime_restart.clone();
+    let provider: Rc<dyn Provider> = Rc::new(provider);
+    let notifications = Rc::new(SessionNotificationCounter::default());
+    let reconciler = reconciler(store.clone(), provider).with_session_notifier(notifications.clone());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("Agent").id;
+
+    reconciler.reconcile(id).await.expect("materialize");
+    assert_eq!(notifications.0.get(), 1);
+    restart.set(true);
+    reconciler.reconcile(id).await.expect("restart-backed reconcile");
+
+    assert_eq!(notifications.0.get(), 2);
+}
+
+#[tokio::test(flavor = "local")]
 async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
     let fixture = fixture();
     let request = apply_request("worker");
@@ -448,10 +476,10 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
 
     let mut changed = request;
     changed.agent.spec.secrets.push(SecretSpec {
-        name: "github-token".into(),
-        placeholder: "agent-github-placeholder".into(),
+        environment: "GITHUB_TOKEN".into(),
+        placeholder: None,
         allowed_hosts: vec!["github.com".into()],
-        source: "GH_PAT".into(),
+        source: Some("GH_PAT".into()),
     });
     let applied = fixture
         .control_plane

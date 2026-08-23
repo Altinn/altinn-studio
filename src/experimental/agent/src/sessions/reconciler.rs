@@ -6,7 +6,7 @@ use ::sandbox::LocalFuture;
 
 use crate::{ConditionStatus, Error, control_plane::AgentStore};
 
-use super::{LaunchRecord, Session, SessionId, SharedStore, State, Status, tmux};
+use super::{LaunchRecord, LaunchToken, Session, SessionId, SharedStore, State, Status, tmux};
 
 /// A launch is considered healthy after surviving this long, resetting backoff.
 const HEALTHY_AFTER_SECONDS: i64 = 60;
@@ -120,7 +120,7 @@ impl Reconciler {
                 self.sessions.set_session_native_id(session.id, None).await?;
             }
         }
-        let token = uuid::Uuid::new_v4().to_string();
+        let token = LaunchToken::generate();
         self.sessions
             .record_session_launch(
                 session.id,

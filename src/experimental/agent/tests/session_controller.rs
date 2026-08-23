@@ -8,7 +8,7 @@ use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
     control_plane::{AgentRecord, AgentStore as _},
     persistence,
-    sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderId},
+    sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{Reconcile, SessionId, SessionName, SessionStore as _},
 };
 use sandbox::{
@@ -125,7 +125,7 @@ impl Provider for CountingProvider {
         Box::pin(async { Ok(true) })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             self.ensure_calls.set(self.ensure_calls.get() + 1);
             let spec = record
@@ -133,10 +133,15 @@ impl Provider for CountingProvider {
                 .spec
                 .sandbox
                 .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
-            self.service
+            let sandbox = self
+                .service
                 .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec))
                 .await
-                .map_err(Error::from)
+                .map_err(Error::from)?;
+            Ok(ProviderEnsureOutcome {
+                sandbox,
+                runtime_restarted: false,
+            })
         })
     }
 
@@ -316,7 +321,7 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
         .record_session_launch(
             session.id,
             agent::sessions::LaunchRecord {
-                token: "old-launch".into(),
+                token: "dddddddd-dddd-4ddd-8ddd-dddddddddddd".parse().expect("launch token"),
                 sandbox: sandbox.id().to_string(),
                 launched_at: time::OffsetDateTime::now_utc().unix_timestamp(),
                 attempts: 4,

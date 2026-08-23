@@ -75,8 +75,8 @@ impl Reconciler {
             record.agent.status = status;
         }
 
-        let sandbox_id = match self.sandboxes.ensure(&record).await {
-            Ok(sandbox_id) => sandbox_id,
+        let ensured = match self.sandboxes.ensure(&record).await {
+            Ok(ensured) => ensured,
             Err(error) => {
                 let message = error.to_string();
                 let status = Status {
@@ -105,14 +105,18 @@ impl Reconciler {
             observed_generation: record.agent.metadata.generation,
             sandbox: Some(crate::sandbox::Assignment::Materialized {
                 provider,
-                id: sandbox_id,
+                id: ensured.id,
             }),
             conditions: vec![
                 condition(SANDBOX_READY, ConditionStatus::True, "SandboxRunning", ""),
                 condition(READY, ConditionStatus::True, "SandboxReady", ""),
             ],
         };
-        self.update_status(&record, status).await
+        self.update_status(&record, status).await?;
+        if ensured.runtime_restarted {
+            self.notify_sessions(record.id);
+        }
+        Ok(())
     }
 
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {

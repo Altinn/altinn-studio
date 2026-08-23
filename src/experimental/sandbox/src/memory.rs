@@ -329,6 +329,7 @@ impl SandboxBackend for Provider {
                     resources: request.resources,
                     state: SandboxState::Stopped,
                     mounts: request.mounts,
+                    environment: request.environment,
                     network: request.network,
                 };
                 storage.by_name.insert(sandbox.name.clone(), id.clone());
@@ -350,6 +351,27 @@ impl SandboxBackend for Provider {
                     return Err(Error::Immutable("resources.rootFilesystem.mode"));
                 }
                 sandbox.resources = resources;
+                Ok(sandbox.clone())
+            })
+        })
+    }
+
+    fn update_environment<'a>(
+        &'a self,
+        id: &'a SandboxId,
+        environment: BTreeMap<String, String>,
+    ) -> PendingOperation<'a, Sandbox> {
+        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+            Box::pin(async move {
+                let mut storage = self.state.borrow_mut();
+                let sandbox = storage
+                    .by_id
+                    .get_mut(id)
+                    .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
+                if sandbox.state != SandboxState::Stopped {
+                    return Err(Error::invalid("sandbox.state", "must be stopped"));
+                }
+                sandbox.environment = environment;
                 Ok(sandbox.clone())
             })
         })

@@ -422,6 +422,47 @@ async fn ensure_reconciles_mutable_resources() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn ensure_reconciles_environment_by_restarting_the_sandbox_and_network() {
+    let backend = Rc::new(memory::Provider::new());
+    let network = Rc::new(memory::NetworkBackend::for_endpoint(
+        "network-a",
+        NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+    ));
+    let service = SandboxService::new(backend).with_network_backend(network.clone());
+    let first_request = request().with_environment([("API_TOKEN".into(), "placeholder-one".into())]);
+    let first = service.ensure(&first_request).await.expect("first ensure");
+
+    let second_request = request().with_environment([("API_TOKEN".into(), "placeholder-two".into())]);
+    let updated = service.ensure(&second_request).await.expect("environment update");
+
+    assert_eq!(updated.id(), first.id());
+    assert_eq!(updated.snapshot().state, sandbox::SandboxState::Running);
+    assert_eq!(updated.snapshot().environment, second_request.environment().clone());
+    assert!(network.is_running(updated.id()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_rejects_invalid_environment_before_materialization() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend.clone());
+    let request = request().with_environment([("NOT-AN-ENV".into(), "placeholder".into())]);
+
+    let error = service
+        .ensure(&request)
+        .await
+        .expect_err("invalid environment should fail at the SDK boundary");
+
+    assert!(matches!(
+        error,
+        Error::Invalid {
+            field: "environment",
+            ..
+        }
+    ));
+    assert_eq!(backend.count(), 0);
+}
+
+#[tokio::test(flavor = "local")]
 async fn root_filesystem_mode_is_immutable() {
     let backend = Rc::new(memory::Provider::new());
     let service = SandboxService::new(backend);

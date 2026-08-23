@@ -42,7 +42,7 @@ pub struct MicrosandboxNetworkBackend {
 /// Host-owned mapping from a non-secret placeholder to current secret material.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SecretBinding {
-    id: String,
+    environment: String,
     placeholder: String,
     reference: SecretReference,
 }
@@ -220,29 +220,49 @@ impl SecretBinding {
     ///
     /// # Errors
     ///
-    /// Returns an error when the ID or placeholder is invalid.
-    pub fn new(
-        id: impl Into<String>,
+    /// Returns an error when the environment-variable name is invalid.
+    pub fn new(environment: impl Into<String>, reference: SecretReference) -> Result<Self, Error> {
+        let environment = environment.into();
+        let placeholder = format!("$MSB_{environment}");
+        Self::with_placeholder(environment, placeholder, reference)
+    }
+
+    /// Creates a host-owned secret binding with a caller-selected placeholder.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the environment-variable name or placeholder is invalid.
+    pub fn with_placeholder(
+        environment: impl Into<String>,
         placeholder: impl Into<String>,
         reference: SecretReference,
     ) -> Result<Self, Error> {
         let binding = Self {
-            id: id.into(),
+            environment: environment.into(),
             placeholder: placeholder.into(),
             reference,
         };
         if !valid_secret_binding(&binding) {
-            return Err(Error::invalid("secretBinding", "ID or placeholder is invalid"));
+            return Err(Error::invalid(
+                "secretBinding",
+                "environment-variable name or placeholder is invalid",
+            ));
         }
         Ok(binding)
     }
 
+    /// Returns the non-secret environment assignment exposed inside the Sandbox.
+    #[must_use]
+    pub fn guest_environment(&self) -> (&str, &str) {
+        (&self.environment, &self.placeholder)
+    }
+
     fn runtime_entry(&self) -> SecretEntry {
         SecretEntry {
-            env_var: self.id.clone(),
+            env_var: self.environment.clone(),
             value: Zeroizing::new(String::new()),
             source: Some(SecretSource::Store {
-                reference: self.id.clone(),
+                reference: self.environment.clone(),
             }),
             placeholder: self.placeholder.clone(),
             allowed_hosts: vec![HostPattern::Any],
@@ -368,7 +388,7 @@ async fn authorize_operation(
     if let NetworkOperation::SecretUse { secret, locations, .. } = operation
         && (locations.is_empty()
             || locations.iter().collect::<HashSet<_>>().len() != locations.len()
-            || !bindings.iter().any(|binding| binding.id == *secret))
+            || !bindings.iter().any(|binding| binding.environment == *secret))
     {
         return None;
     }
@@ -381,7 +401,7 @@ async fn authorize_operation(
     let NetworkOperation::SecretUse { secret, .. } = operation else {
         return Some(None);
     };
-    let binding = bindings.iter().find(|binding| binding.id == *secret)?;
+    let binding = bindings.iter().find(|binding| binding.environment == *secret)?;
     let store = secret_store?;
     let resolved = store.resolve(&binding.reference).await.ok()?;
     let value = std::str::from_utf8(resolved.expose()).ok()?;
@@ -518,7 +538,10 @@ fn validate_secret_bindings(bindings: &[SecretBinding]) -> Result<(), Error> {
     if bindings.iter().any(|binding| !valid_secret_binding(binding)) {
         return Err(Error::invalid("secretBindings", "contains an invalid binding"));
     }
-    let ids = bindings.iter().map(|binding| &binding.id).collect::<HashSet<_>>();
+    let environments = bindings
+        .iter()
+        .map(|binding| &binding.environment)
+        .collect::<HashSet<_>>();
     let placeholders = bindings
         .iter()
         .map(|binding| &binding.placeholder)
@@ -529,23 +552,31 @@ fn validate_secret_bindings(bindings: &[SecretBinding]) -> Result<(), Error> {
             .enumerate()
             .all(|(other_index, other)| index == other_index || !binding.placeholder.contains(&other.placeholder))
     });
-    if ids.len() != bindings.len() || placeholders.len() != bindings.len() || !unambiguous {
+    if environments.len() != bindings.len() || placeholders.len() != bindings.len() || !unambiguous {
         return Err(Error::invalid(
             "secretBindings",
-            "IDs and placeholders must be unique and placeholders must be unambiguous",
+            "environment variables and placeholders must be unique and placeholders must be unambiguous",
         ));
     }
     Ok(())
 }
 
 fn valid_secret_binding(binding: &SecretBinding) -> bool {
-    !binding.id.is_empty()
+    valid_environment_variable(&binding.environment)
         && !binding.placeholder.is_empty()
         && binding.placeholder.len() <= microsandbox_network::secrets::config::MAX_SECRET_PLACEHOLDER_BYTES
         && !binding
             .placeholder
             .bytes()
             .any(|byte| matches!(byte, 0 | b'\r' | b'\n'))
+}
+
+fn valid_environment_variable(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .enumerate()
+            .all(|(index, byte)| byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit()))
 }
 
 const fn http_scheme_name(scheme: microsandbox_network::control::HttpScheme) -> &'static str {
@@ -744,7 +775,7 @@ mod tests {
             path: "/items".to_string(),
             version: HttpVersion::Http1,
             stream_id: None,
-            secret: "provider-token".to_string(),
+            secret: "PROVIDER_TOKEN".to_string(),
             locations: vec![microsandbox_network::control::SecretLocation::Header],
         }
     }
@@ -784,8 +815,12 @@ mod tests {
             .set_secret_bindings(
                 first.clone(),
                 vec![
-                    SecretBinding::new("first-token", "$FIRST_TOKEN", SecretReference::from_opaque("first"))
-                        .expect("valid first binding"),
+                    SecretBinding::with_placeholder(
+                        "FIRST_TOKEN",
+                        "$FIRST_TOKEN",
+                        SecretReference::from_opaque("first"),
+                    )
+                    .expect("valid first binding"),
                 ],
             )
             .expect("configure first Sandbox");
@@ -793,23 +828,44 @@ mod tests {
             .set_secret_bindings(
                 second.clone(),
                 vec![
-                    SecretBinding::new("second-token", "$SECOND_TOKEN", SecretReference::from_opaque("second"))
-                        .expect("valid second binding"),
+                    SecretBinding::with_placeholder(
+                        "SECOND_TOKEN",
+                        "$SECOND_TOKEN",
+                        SecretReference::from_opaque("second"),
+                    )
+                    .expect("valid second binding"),
                 ],
             )
             .expect("configure second Sandbox");
 
         let bindings = backend.secret_bindings.borrow();
-        assert_eq!(bindings[&first][0].id, "first-token");
-        assert_eq!(bindings[&second][0].id, "second-token");
+        assert_eq!(bindings[&first][0].environment, "FIRST_TOKEN");
+        assert_eq!(bindings[&second][0].environment, "SECOND_TOKEN");
+    }
+
+    #[test]
+    fn default_secret_binding_exposes_an_inert_environment_placeholder() {
+        let binding =
+            SecretBinding::new("API_TOKEN", SecretReference::from_opaque("stored-token")).expect("valid binding");
+        let runtime = binding.runtime_entry();
+
+        assert_eq!(runtime.env_var, "API_TOKEN");
+        assert_eq!(runtime.placeholder, "$MSB_API_TOKEN");
+    }
+
+    #[test]
+    fn secret_binding_rejects_an_invalid_environment_variable() {
+        let error = SecretBinding::new("NOT-AN-ENV", SecretReference::from_opaque("stored-token"))
+            .expect_err("invalid environment-variable names must fail closed");
+
+        assert!(error.to_string().contains("environment-variable name"));
     }
 
     #[test]
     fn replacing_secret_bindings_reports_definition_changes() {
         let backend = MicrosandboxNetworkBackend::new(Rc::new(StaticPolicy::allow_all()));
         let sandbox = sandbox_name();
-        let binding =
-            || SecretBinding::new("token", "$TOKEN", SecretReference::from_opaque("token")).expect("valid binding");
+        let binding = || SecretBinding::new("TOKEN", SecretReference::from_opaque("token")).expect("valid binding");
 
         assert!(
             backend
@@ -934,7 +990,7 @@ mod tests {
         backend
             .set_secret_bindings(
                 sandbox_name(),
-                vec![SecretBinding::new("provider-token", "$TOKEN", reference).expect("valid binding")],
+                vec![SecretBinding::with_placeholder("PROVIDER_TOKEN", "$TOKEN", reference).expect("valid binding")],
             )
             .expect("configure secret mediation");
         let sandbox_id = sandbox_id();
@@ -972,7 +1028,7 @@ mod tests {
             assert_eq!(requests[0].action.as_str(), "http.request");
             assert_eq!(requests[1].action.as_str(), "secret.use");
             assert_eq!(requests[1].resource.kind, "secret");
-            assert_eq!(requests[1].resource.id, "provider-token");
+            assert_eq!(requests[1].resource.id, "PROVIDER_TOKEN");
             assert_eq!(
                 requests[1].context.attributes["http.authority"].as_str(),
                 Some("example.com")
@@ -1021,8 +1077,9 @@ mod tests {
             id: &sandbox_id,
             name: &sandbox_name,
         };
-        let missing = SecretBinding::new("provider-token", "$TOKEN", SecretReference::from_opaque("missing"))
-            .expect("valid binding");
+        let missing =
+            SecretBinding::with_placeholder("PROVIDER_TOKEN", "$TOKEN", SecretReference::from_opaque("missing"))
+                .expect("valid binding");
 
         assert!(
             super::authorize_operation(

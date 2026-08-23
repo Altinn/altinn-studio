@@ -2,7 +2,7 @@
 
 mod support;
 
-use agent::{API_VERSION, KIND, manifest};
+use agent::{API_VERSION, KIND, SecretSpec, manifest};
 use sandbox::RootFilesystemMode;
 
 #[test]
@@ -30,6 +30,9 @@ fn decodes_the_self_development_manifest() {
     assert_eq!(agent.metadata.name, "studiodev");
     assert_eq!(agent.spec.sandbox.platform.architecture, None);
     assert_eq!(agent.spec.secrets.len(), 2);
+    assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
+    assert_eq!(agent.spec.secrets[0].source(), "GITHUB_TOKEN");
+    assert_eq!(agent.spec.secrets[0].placeholder, None);
     assert_eq!(
         agent.spec.sandbox.resources.root_filesystem().mode(),
         RootFilesystemMode::Direct
@@ -44,17 +47,17 @@ fn self_development_image_leaves_harness_startup_to_sessions() {
 }
 
 #[test]
-fn self_development_workspace_clone_is_one_shot_and_does_not_gate_readiness_after_failure() {
+fn self_development_workspace_clone_is_a_simple_one_shot() {
     let unit = include_str!("../examples/self-dev/workspace-init.service");
-    let readiness = include_str!("../examples/self-dev/image-ready.sh");
     let initialization = include_str!("../examples/self-dev/workspace-init.sh");
 
     assert!(!unit.contains("Restart="));
     assert!(!unit.contains("StartLimit"));
-    assert!(!readiness.contains("reset-failed"));
-    assert!(!readiness.contains("systemctl restart"));
-    assert!(readiness.contains("workspace clone failed; a Session may retry it"));
+    assert!(unit.contains("PassEnvironment=GITHUB_TOKEN"));
+    assert!(!unit.contains("MSB_GITHUB_TOKEN"));
     assert!(!initialization.contains(".clone."));
+    assert!(initialization.contains("${GITHUB_TOKEN}"));
+    assert!(!initialization.contains("agent-github-token-placeholder"));
     assert!(initialization.contains("git clone --origin origin -- \"$repository\" \"$destination\""));
 }
 
@@ -79,4 +82,29 @@ fn rejects_an_agent_name_that_cannot_identify_its_sandbox() {
     let error = agent.validate().expect_err("non-portable name should be rejected");
 
     assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("metadata.name:")));
+}
+
+#[test]
+fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
+    let mut agent = support::agent("worker");
+    agent.spec.secrets = vec![
+        SecretSpec {
+            environment: "FIRST_TOKEN".into(),
+            placeholder: None,
+            allowed_hosts: vec!["example.com".into()],
+            source: None,
+        },
+        SecretSpec {
+            environment: "SECOND_TOKEN".into(),
+            placeholder: Some("$AGENT_SECRET_FIRST_TOKEN".into()),
+            allowed_hosts: vec!["example.com".into()],
+            source: None,
+        },
+    ];
+
+    let error = agent
+        .validate()
+        .expect_err("effective placeholders must remain unambiguous");
+
+    assert!(matches!(error, agent::Error::Invalid(message) if message.contains("spec.secrets[1]")));
 }

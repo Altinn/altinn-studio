@@ -69,12 +69,13 @@ for (let attempt = 0; attempt < 3; attempt += 1) {
 process.exit(0);
 "#;
 
-pub(super) async fn configure(sandbox: &SandboxHandle, home: &str) -> Result<(), Error> {
+pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions: Option<&[u8]>) -> Result<(), Error> {
     let config = format!("{home}/.claude");
     let hooks_path = format!("{config}/hooks");
     let credentials_path = format!("{config}/.credentials.json");
     let hook_path = format!("{config}/hooks/session-start.mjs");
     let settings_path = format!("{config}/agent-settings.json");
+    let instructions_path = format!("{config}/CLAUDE.md");
     run_checked(sandbox, "/usr/bin/mkdir", ["-p", hooks_path.as_str()]).await?;
     let credentials = serde_json::to_vec(&serde_json::json!({
         "claudeAiOauth": {
@@ -91,6 +92,14 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str) -> Result<(),
             Box::pin(Cursor::new(credentials)),
         )
         .await?;
+    if let Some(instructions) = instructions {
+        sandbox
+            .write_file(
+                &SandboxPath::new(instructions_path.clone()),
+                Box::pin(Cursor::new(instructions.to_vec())),
+            )
+            .await?;
+    }
     sandbox
         .write_file(
             &SandboxPath::new(hook_path.clone()),
@@ -129,7 +138,17 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str) -> Result<(),
         ],
     )
     .await?;
-    run_checked(sandbox, "/usr/bin/chmod", ["600", credentials_path.as_str()]).await
+    run_checked(sandbox, "/usr/bin/chmod", ["600", credentials_path.as_str()]).await?;
+    if instructions.is_some() {
+        run_checked(
+            sandbox,
+            "/usr/bin/sudo",
+            ["/usr/bin/chown", "agent:agent", instructions_path.as_str()],
+        )
+        .await?;
+        run_checked(sandbox, "/usr/bin/chmod", ["644", instructions_path.as_str()]).await?;
+    }
+    Ok(())
 }
 
 async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, args: [&str; N]) -> Result<(), Error> {

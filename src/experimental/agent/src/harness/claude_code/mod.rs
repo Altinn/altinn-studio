@@ -12,6 +12,7 @@ mod bootstrap;
 
 const PROVIDER: &str = "claude";
 const ACCESS_SECRET: &str = "claude-access-token";
+const ACCESS_ENVIRONMENT: &str = "CLAUDE_CODE_OAUTH_TOKEN";
 const ACCESS_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-placeholder-not-a-real-credential";
 const API_HOST: &str = "api.anthropic.com";
 
@@ -22,15 +23,15 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
         ));
     }
     Ok(vec![MediatedSecret {
-        name: ACCESS_SECRET,
+        environment: ACCESS_ENVIRONMENT,
         placeholder: ACCESS_PLACEHOLDER,
         reference: SecretReference::from_opaque(ACCESS_SECRET),
         allowed_hosts: vec![authentication::mediated_host().into()],
     }])
 }
 
-pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: &str) -> bool {
-    name == ACCESS_SECRET || placeholder == ACCESS_PLACEHOLDER
+pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str>) -> bool {
+    name == ACCESS_ENVIRONMENT || placeholder == Some(ACCESS_PLACEHOLDER)
 }
 
 /// Long-lived Claude setup tokens carry this prefix.
@@ -93,8 +94,12 @@ fn prompt_for_token() -> Result<zeroize::Zeroizing<String>, Error> {
     Ok(token)
 }
 
-pub(super) async fn bootstrap_linux(sandbox: &sandbox::SandboxHandle, home: &str) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home).await
+pub(super) async fn bootstrap_linux(
+    sandbox: &sandbox::SandboxHandle,
+    home: &str,
+    instructions: Option<&[u8]>,
+) -> Result<(), Error> {
+    bootstrap::configure_linux(sandbox, home, instructions).await
 }
 
 pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {

@@ -11,7 +11,6 @@ use super::super::PlatformAdapter;
 
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
-const IMAGE_READY: &str = "/usr/local/libexec/agent-image-ready";
 const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
 
 /// Agent setup for Linux Sandboxes.
@@ -33,9 +32,6 @@ impl PlatformAdapter for Linux {
 
 impl Linux {
     async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        if record.agent.spec.sandbox.init_system == ::sandbox::init::InitSystem::Image {
-            run_checked(sandbox, IMAGE_READY, []).await?;
-        }
         harness::verify_linux(
             record.agent.spec.harness.kind,
             sandbox,
@@ -45,8 +41,25 @@ impl Linux {
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
-        harness::bootstrap_linux(record.agent.spec.harness.kind, sandbox, HOME).await
+        let instructions = read_instructions(record).await?;
+        harness::bootstrap_linux(record.agent.spec.harness.kind, sandbox, HOME, instructions.as_deref()).await
     }
+}
+
+async fn read_instructions(record: &control_plane::AgentRecord) -> Result<Option<Vec<u8>>, Error> {
+    let Some(spec) = &record.agent.spec.instructions else {
+        return Ok(None);
+    };
+    let source = if spec.source.is_absolute() {
+        spec.source.clone()
+    } else {
+        record.source_directory.join(&spec.source)
+    };
+    let metadata = tokio::fs::metadata(&source).await?;
+    if !metadata.is_file() {
+        return Err(Error::Invalid("spec.instructions.source must identify a file".into()));
+    }
+    tokio::fs::read(source).await.map(Some).map_err(Error::from)
 }
 
 async fn archive_home(manifest_directory: std::path::PathBuf, source: std::path::PathBuf) -> Result<Vec<u8>, Error> {

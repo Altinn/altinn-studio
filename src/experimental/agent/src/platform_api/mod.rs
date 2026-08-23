@@ -122,10 +122,13 @@ impl Server {
         let Some(token) = request.bearer_token() else {
             return 401;
         };
+        let Ok(token) = token.parse::<sessions::LaunchToken>() else {
+            return 401;
+        };
         let Ok(report) = serde_json::from_slice::<SessionReport>(&request.body) else {
             return 400;
         };
-        self.accept_report(token, &report).await
+        self.accept_report(&token, &report).await
     }
 
     /// Applies one authenticated session report.
@@ -133,7 +136,7 @@ impl Server {
     /// The per-launch token rejects reports from earlier harness incarnations.
     /// Sessions in one Agent share a Unix identity and are not mutually
     /// isolated security principals.
-    async fn accept_report(&self, token: &str, report: &SessionReport) -> u16 {
+    async fn accept_report(&self, token: &sessions::LaunchToken, report: &SessionReport) -> u16 {
         if report.native_session_id.is_empty() || report.native_session_id.len() > MAX_NATIVE_SESSION_ID_BYTES {
             return 400;
         }

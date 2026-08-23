@@ -84,6 +84,9 @@ pub struct Spec {
     pub sandbox: SandboxManifestSpec,
     /// Host directory synchronized into the sandbox user's home at bootstrap.
     pub home: HomeSpec,
+    /// Optional Agent-wide guidance installed through the selected Harness Adapter.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instructions: Option<InstructionsSpec>,
     /// Harness installation and authentication behavior.
     pub harness: HarnessSpec,
     /// Host-owned values made available only through mediated requests.
@@ -207,19 +210,34 @@ impl Spec {
         if self.home.source.as_os_str().is_empty() {
             return Err(Error::Invalid("spec.home.source must not be empty".into()));
         }
+        if self
+            .instructions
+            .as_ref()
+            .is_some_and(|instructions| instructions.source.as_os_str().is_empty())
+        {
+            return Err(Error::Invalid("spec.instructions.source must not be empty".into()));
+        }
         if self.harness.version.is_empty() {
             return Err(Error::Invalid("spec.harness.version must not be empty".into()));
         }
-        let mut names = std::collections::BTreeSet::new();
+        let mut environments = std::collections::BTreeSet::new();
         let mut placeholders = std::collections::BTreeSet::new();
         for (index, secret) in self.secrets.iter().enumerate() {
-            if secret.name.is_empty()
-                || secret.placeholder.is_empty()
-                || harness::conflicts_with_managed_secret(self.harness.kind, &secret.name, &secret.placeholder)
-                || secret.source.is_empty()
+            let placeholder = secret.inert_value();
+            if !valid_environment_variable(&secret.environment)
+                || secret
+                    .source
+                    .as_deref()
+                    .is_some_and(|source| !valid_environment_variable(source))
+                || secret.placeholder.as_ref().is_some_and(String::is_empty)
+                || harness::conflicts_with_managed_secret(
+                    self.harness.kind,
+                    &secret.environment,
+                    secret.placeholder.as_deref(),
+                )
                 || secret.allowed_hosts.is_empty()
-                || !names.insert(&secret.name)
-                || !placeholders.insert(&secret.placeholder)
+                || !environments.insert(&secret.environment)
+                || !placeholders.insert(placeholder)
                 || secret.allowed_hosts.iter().any(|host| !valid_host_pattern(host))
             {
                 return Err(Error::Invalid(format!(
@@ -244,18 +262,44 @@ pub struct HomeSpec {
     pub source: std::path::PathBuf,
 }
 
-/// One value loaded from the manifest directory's environment file and retained on the host.
+/// Harness-neutral Agent-wide instruction source.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct InstructionsSpec {
+    /// Host file, resolved relative to the manifest directory.
+    pub source: std::path::PathBuf,
+}
+
+/// One host-owned value exposed to Sandbox processes only as an inert environment placeholder.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct SecretSpec {
-    /// Stable secret binding name.
-    pub name: String,
-    /// Inert value placed in sandbox-side configuration.
-    pub placeholder: String,
+    /// Guest environment variable and stable secret binding name.
+    pub environment: String,
+    /// Optional inert value; the selected Network Backend generates one when omitted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub placeholder: Option<String>,
     /// Hosts at which this secret may be substituted.
     pub allowed_hosts: Vec<String>,
-    /// Environment variable name in the manifest directory's `.env` file.
-    pub source: String,
+    /// Optional variable name in the manifest directory's `.env`; defaults to `environment`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+}
+
+impl SecretSpec {
+    /// Returns the host `.env` variable that supplies the secret material.
+    #[must_use]
+    pub fn source(&self) -> &str {
+        self.source.as_deref().unwrap_or(&self.environment)
+    }
+
+    /// Returns the explicit or provider-neutral generated value exposed inside the Sandbox.
+    #[must_use]
+    pub fn inert_value(&self) -> String {
+        self.placeholder
+            .clone()
+            .unwrap_or_else(|| format!("$AGENT_SECRET_{}", self.environment))
+    }
 }
 
 /// Required network mediation mode.
@@ -295,6 +339,14 @@ fn valid_host_pattern(pattern: &str) -> bool {
             .unwrap_or(pattern)
             .split('.')
             .all(|label| !label.is_empty() && label.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-'))
+}
+
+fn valid_environment_variable(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .enumerate()
+            .all(|(index, byte)| byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit()))
 }
 
 /// Most recently observed Agent state.

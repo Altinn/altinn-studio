@@ -2,7 +2,7 @@
 
 use std::{path::Path, rc::Rc};
 
-use ::sandbox::{EnsureSandboxRequest, ErrorKind, LocalFuture, Platform, SandboxHandle, SandboxService};
+use ::sandbox::{EnsureSandboxRequest, ErrorKind, LocalFuture, Platform, SandboxHandle, SandboxService, SandboxState};
 use sandbox_microsandbox::{MicrosandboxNetworkBackend, MicrosandboxProvider};
 
 use crate::{Error, authorization::AgentPolicyEngine, control_plane::AgentRecord, persistence};
@@ -14,7 +14,7 @@ pub use terminal::attach_terminal;
 
 use preparation::Preparation;
 
-use super::{Provider, ProviderId};
+use super::{Provider, ProviderEnsureOutcome, ProviderId};
 
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
@@ -98,7 +98,7 @@ impl Provider for Adapter {
         })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             let running_before = record
                 .agent
@@ -107,15 +107,25 @@ impl Provider for Adapter {
                 .as_ref()
                 .and_then(super::Assignment::id)
                 .is_some_and(|id| self.preparation.network_is_running(id));
-            let bindings_changed = self.preparation.prepare(record).await?;
-            let request = EnsureSandboxRequest::new(record.sandbox_name()?, self.sandbox_spec(record));
+            let prepared = self.preparation.prepare(record).await?;
+            let sandbox_name = record.sandbox_name()?;
+            let runtime_restarted = match self.service.inspect(&sandbox_name).await {
+                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != prepared.environment,
+                Err(error) if error.is_not_found() => false,
+                Err(error) => return Err(error.into()),
+            };
+            let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
+                .with_environment(prepared.environment);
             let mut sandbox = self.service.ensure(&request).await?;
-            if bindings_changed && running_before {
+            if prepared.bindings_changed && running_before {
                 self.preparation.restart_network(&sandbox).await?;
                 // Re-ensure starts the stopped Network with the replacement handshake bindings.
                 sandbox = self.service.ensure(&request).await?;
             }
-            Ok(sandbox)
+            Ok(ProviderEnsureOutcome {
+                sandbox,
+                runtime_restarted,
+            })
         })
     }
 

@@ -13,7 +13,7 @@ use ::sandbox::{
 
 use crate::{Error, control_plane::AgentRecord, harness};
 
-use super::{AttachTarget, Session, State};
+use super::{AttachTarget, LaunchToken, Session, State};
 
 /// Guest-observed tmux state. The idle age is calculated against the guest's
 /// clock so host/microVM clock skew cannot make an active Session look idle.
@@ -119,14 +119,14 @@ pub(super) async fn create(
     session: &Session,
     sandbox: &SandboxHandle,
     session_hook_url: &str,
-    token: &str,
+    token: &LaunchToken,
     resume: Option<&str>,
 ) -> Result<(), Error> {
     let launch = harness::launch_linux(agent.agent.spec.harness.kind, crate::sandbox::platform::HOME, resume);
     let mut arguments = vec!["new-session".into(), "-d".into(), "-s".into(), session_name(session)];
     let session_environment = launch.environment.iter().cloned().chain([
         ("AGENT_SESSION_ID".into(), session.id.to_string()),
-        ("AGENT_SESSION_TOKEN".into(), token.into()),
+        ("AGENT_SESSION_TOKEN".into(), token.expose()),
         ("AGENT_SESSION_HOOK_URL".into(), session_hook_url.into()),
     ]);
     for (name, value) in session_environment {

@@ -108,13 +108,25 @@ pub trait Provider {
     fn supports<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<bool, Error>>;
 
     /// Idempotently ensures the Sandbox and its Provider-specific host integration.
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<SandboxHandle, Error>>;
+    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
     fn open<'a>(&'a self, record: &'a AgentRecord, id: &'a SandboxId) -> LocalFuture<'a, Result<SandboxHandle, Error>>;
 
     /// Idempotently releases the Sandbox and its Provider-specific host integration.
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>>;
+}
+
+/// Provider result retaining lifecycle information needed by dependent Sessions.
+pub struct ProviderEnsureOutcome {
+    pub sandbox: SandboxHandle,
+    pub runtime_restarted: bool,
+}
+
+/// Materialized Sandbox identity and relevant lifecycle transition.
+pub struct EnsureOutcome {
+    pub id: SandboxId,
+    pub runtime_restarted: bool,
 }
 
 /// Runtime-selectable setup for an operating system reported by a materialized Sandbox.
@@ -187,9 +199,10 @@ impl Service {
     /// # Errors
     ///
     /// Returns an error when the assignment is missing, its Provider is unavailable, or setup fails.
-    pub async fn ensure(&self, record: &AgentRecord) -> Result<SandboxId, Error> {
+    pub async fn ensure(&self, record: &AgentRecord) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
-        let sandbox = provider.ensure(record).await?;
+        let outcome = provider.ensure(record).await?;
+        let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self
             .platforms
@@ -201,7 +214,10 @@ impl Service {
                 ))
             })?;
         adapter.setup(record, &sandbox).await?;
-        Ok(sandbox.snapshot().id.clone())
+        Ok(EnsureOutcome {
+            id: sandbox.snapshot().id.clone(),
+            runtime_restarted: outcome.runtime_restarted,
+        })
     }
 
     /// Opens the persisted materialized Sandbox without lifecycle or setup effects.

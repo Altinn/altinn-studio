@@ -158,7 +158,6 @@ ENV DISABLE_AUTOUPDATER=1
 ENV PATH=/home/agent/.local/bin:${PATH}
 
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
-COPY --chmod=0755 image-ready.sh /usr/local/libexec/agent-image-ready
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
 COPY tmpfiles.conf /usr/lib/tmpfiles.d/self-dev.conf
 
