@@ -455,6 +455,138 @@ public class ProcessStepOptionsResolverTests
         Assert.Equal(everyField, declaredOnTask.Resolve(ExecuteServiceTask.Key, taskId: null, "task-options"));
     }
 
+    // ── Receive steps: the answering handler's options (tier 3) ─────────────────────────────────
+
+    /// <summary>
+    /// Task-level options (1 h timeout) with two exchanges answered two ways: the archive's mid-pipeline,
+    /// overriding the timeout (2 h), and the journal's by the terminal, declaring only a wait budget.
+    /// </summary>
+    private sealed class TwoExchangeTask : IPipelineServiceTask
+    {
+        public string Type => "exchanges";
+
+        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("SendToArchive", Send, _threeDays, out MailboxHandle archive)
+                .HandleReplies(
+                    archive,
+                    OnSegmentMessage,
+                    OnSegmentClosed,
+                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+                )
+                .Stage("SendToJournal", Send, _threeDays, out MailboxHandle journal)
+                .ConcludeOnReplies(
+                    journal,
+                    OnMessage,
+                    OnClosed,
+                    new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(3) }
+                );
+
+        private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+        private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+            Task.FromResult(ServiceTaskStageResult.Completed());
+
+        private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
+            ServiceTaskContext context,
+            ServiceTaskReply reply
+        ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+
+        private static Task<ServiceTaskStageResult> OnSegmentClosed(
+            ServiceTaskContext context,
+            MailboxClosedReason reason
+        ) => Task.FromResult(ServiceTaskStageResult.Completed());
+
+        private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+            Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+        private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
+    private static ProcessStepOptionsResolver CreateResolverWithTwoExchanges() =>
+        CreateResolver(services => services.AddSingleton<IPipelineServiceTask, TwoExchangeTask>());
+
+    /// <summary>
+    /// The promise <c>HandleReplies</c>' <c>options</c> parameter makes: they configure the step each
+    /// execution of <em>those</em> handlers runs as. Reachable only through the receive step's own exchange
+    /// name — a handler answered mid-pipeline is not a stage and not the conclusion.
+    /// </summary>
+    [Fact]
+    public void Resolve_ReceiveStep_AnsweredMidPipeline_UsesThatHandlersOwnOptions()
+    {
+        var resolver = CreateResolverWithTwoExchanges();
+
+        var result = resolver.Resolve(
+            ExecuteServiceTask.Key,
+            taskId: null,
+            serviceTaskType: "exchanges",
+            serviceTaskStageName: null,
+            serviceTaskRepliesTo: "SendToArchive"
+        );
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime); // the handler's own
+        // Whatever the handler leaves unset falls back to the task's options — never to the terminal's, which
+        // belong to a different exchange.
+        Assert.Null(result.WaitBudget);
+    }
+
+    [Fact]
+    public void Resolve_ReceiveStep_AnsweredByTheTerminal_UsesTheConclusionsOptions()
+    {
+        var resolver = CreateResolverWithTwoExchanges();
+
+        var result = resolver.Resolve(
+            ExecuteServiceTask.Key,
+            taskId: null,
+            serviceTaskType: "exchanges",
+            serviceTaskStageName: null,
+            serviceTaskRepliesTo: "SendToJournal"
+        );
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(3), result.WaitBudget); // the terminal's own
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // falls back to the task's
+    }
+
+    /// <summary>
+    /// A receive step naming an exchange no mid-pipeline handler answers resolves the conclusion's options,
+    /// exactly as a name-less receiver does. The terminal is what answers such a step, so its options are the
+    /// step's — and a mid-flight rename must not silently drop them.
+    /// </summary>
+    [Theory]
+    [InlineData("SendToArchive_v1")]
+    [InlineData(null)]
+    public void Resolve_ReceiveStep_NamingNoMidPipelineHandler_FallsBackToTheConclusion(string? repliesTo)
+    {
+        var resolver = CreateResolverWithTwoExchanges();
+
+        var result = resolver.Resolve(ExecuteServiceTask.Key, null, "exchanges", null, repliesTo);
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromHours(3), result.WaitBudget);
+    }
+
+    /// <summary>
+    /// The identity rides the step, so every hop that enqueues a receiver passes it through by construction:
+    /// both the factory's first receiver and the relay's successors build the step this way.
+    /// </summary>
+    [Fact]
+    public void ApplyStepOptions_ReceiveStep_ResolvesTheAnsweringHandlersOptions()
+    {
+        ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
+
+        StepRequest resolved = WorkflowCommandSet
+            .CreateReceiveHandlerStep("exchanges", "SendToArchive")
+            .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
+
+        Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);
+        Assert.Null(resolved.Command.WaitBudget);
+    }
+
     private sealed class PerStepOptionsTask(ProcessStepOptions options) : IPipelineServiceTask
     {
         public string Type => "per-step-options";

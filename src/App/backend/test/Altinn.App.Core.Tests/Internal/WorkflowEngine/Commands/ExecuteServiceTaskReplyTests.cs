@@ -93,6 +93,124 @@ public class ExecuteServiceTaskReplyTests
                 );
     }
 
+    private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
+
+    private static Task<ServiceTaskStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    /// <summary>
+    /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an item rather than the
+    /// conclusion, so the pipeline carries on after the exchange and ends with a final step. Each handler
+    /// records what it was handed, and answers in the stage vocabulary — which is the whole point of the
+    /// shape.
+    /// </summary>
+    private sealed class ContinuingTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ServiceTaskStageExchangeResult MessageVerdict { get; init; } = ServiceTaskStageResult.Completed();
+
+        public ServiceTaskStageResult ClosedVerdict { get; init; } = ServiceTaskStageResult.Completed();
+
+        public ServiceTaskReply? Message { get; private set; }
+
+        public MailboxClosedReason? ClosedReason { get; private set; }
+
+        public ServiceTaskContext? Conclusion { get; private set; }
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(OpeningStage, Send, _threeDays, out MailboxHandle archive)
+                .HandleReplies(
+                    archive,
+                    onMessage: (_, reply) =>
+                    {
+                        Message = reply;
+                        return Task.FromResult(MessageVerdict);
+                    },
+                    onClosed: (_, reason) =>
+                    {
+                        ClosedReason = reason;
+                        return Task.FromResult(ClosedVerdict);
+                    }
+                )
+                .Stage("RecordDispatch", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Finally(context =>
+                {
+                    Conclusion = context;
+                    return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+                });
+    }
+
+    /// <summary>
+    /// Two exchanges, one answered each way: the archive's mid-pipeline, the journal's by the terminal. The
+    /// shape the whole expansion exists for, and the one that tells the two lookups apart.
+    /// </summary>
+    private sealed class TwoExchangeTask : IPipelineServiceTask
+    {
+        public const string JournalStage = "SendToJournal";
+
+        public string Type => "archiving";
+
+        /// <summary>Which handler answered, in the order they did — a name, so a miss is legible.</summary>
+        public List<string> Answered { get; } = [];
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(OpeningStage, Send, _threeDays, out MailboxHandle archive)
+                .HandleReplies(
+                    archive,
+                    onMessage: (_, _) =>
+                    {
+                        Answered.Add("segment.onMessage");
+                        return Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+                    },
+                    onClosed: (_, _) =>
+                    {
+                        Answered.Add("segment.onClosed");
+                        return Task.FromResult(ServiceTaskStageResult.Completed());
+                    }
+                )
+                .Stage(JournalStage, Send, _threeDays, out MailboxHandle journal)
+                .ConcludeOnReplies(
+                    journal,
+                    onMessage: (_, _) =>
+                    {
+                        Answered.Add("terminal.onMessage");
+                        return Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+                    },
+                    onClosed: (_, _) =>
+                    {
+                        Answered.Add("terminal.onClosed");
+                        return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+                    }
+                );
+    }
+
+    /// <summary>Two exchanges answered mid-pipeline and none by the conclusion, for the guard's wording.</summary>
+    private sealed class TwoContinuingExchangesTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(OpeningStage, Send, _threeDays, out MailboxHandle archive)
+                .Stage(TwoExchangeTask.JournalStage, Send, _threeDays, out MailboxHandle journal)
+                .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
+                .HandleReplies(journal, OnSegmentMessage, OnSegmentClosed)
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
+            ServiceTaskContext context,
+            ServiceTaskReply reply
+        ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+
+        private static Task<ServiceTaskStageResult> OnSegmentClosed(
+            ServiceTaskContext context,
+            MailboxClosedReason reason
+        ) => Task.FromResult(ServiceTaskStageResult.Completed());
+    }
+
     /// <summary>The same task without a mailbox — it is never answered by a message.</summary>
     private sealed class PlainTask : IPipelineServiceTask
     {
@@ -278,7 +396,8 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
-        // One reason code, two routes, and each names what it actually observed: this route saw a rendezvous.
+        // The reason code's one remaining route, and it names what it actually observed: a step that names no
+        // exchange, handed a rendezvous. A step that names one is dispatched on the name instead.
         Assert.Contains("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Conclusion);
     }
@@ -507,15 +626,14 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// A receive step is dispatched by the exchange it names, so a pipeline that has stopped answering
-    /// messages fails it permanently instead of running the <c>Finally</c> that replaced the terminal. The
-    /// route is a redeploy that withdrew the reply terminal while the exchange was in flight.
+    /// A receive step is dispatched by the exchange it names, so a pipeline where nothing answers that
+    /// exchange any more fails it permanently instead of running the <c>Finally</c> that replaced the
+    /// terminal. The route is a redeploy that withdrew the handler while the exchange was in flight.
     /// </summary>
     /// <param name="withRendezvous">
-    /// Both cells of the arm. <c>true</c> is what phase 1 already failed this way; <c>false</c> is this
-    /// step's new behavior — the step names an exchange, which is enough on its own, where phase 1 ran the
-    /// <c>Finally</c> and concluded the task on nothing. The arm requires no rendezvous, so its wording must
-    /// not claim one: it reports what it actually saw.
+    /// Both cells of the arm, which requires no rendezvous to notice the miss — so its wording must not claim
+    /// one, and must not claim the pipeline opens no mailbox either: it reports the exchange the step named
+    /// and what the pipeline answers instead.
     /// </param>
     [Theory]
     [InlineData(true)]
@@ -529,14 +647,208 @@ public class ExecuteServiceTaskReplyTests
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
+        Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
         Assert.Null(task.Conclusion);
 
-        // The arm reports what it saw — a step naming an exchange — in both cells, because that is all it
-        // checked. Claiming a rendezvous would be false in the second cell and is not what selected the arm
-        // in the first.
-        Assert.Contains("has a step naming an exchange to answer", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains(
+            $"answered the exchange opened by stage '{OpeningStage}'",
+            failed.ErrorMessage,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("now answers no exchange at all", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("redeploy", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.DoesNotContain("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The exchange is answered mid-pipeline, so the receive step reaches <em>that</em> handler — not the
+    /// terminal, and not the <c>MailboxHandlerNotFound</c> the same conclusion shape reports for an exchange
+    /// nothing answers. Everything up to the verdict is the terminal's path: the same rendezvous guards, the
+    /// same envelope, the same message.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_NamingAnExchangeAnsweredMidPipeline_RunsThatHandlerWithTheMessage()
+    {
+        var task = new ContinuingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered(seq: 4)), ReceiveStep());
+
+        ServiceTaskReply reply = Assert.IsType<ServiceTaskReply>(task.Message);
+        Assert.Equal("<receipt>ok</receipt>", reply.Payload);
+        Assert.Equal("fiks-message-42", reply.IdempotencyKey);
+        Assert.Equal(4, reply.Position);
+        Assert.Null(task.ClosedReason);
+        // The pipeline's own final step is not the exchange's handler and must not run in its place.
+        Assert.Null(task.Conclusion);
+
+        // What this version does with the verdict: nothing it can act on. Continuing a pipeline past an
+        // exchange is the relay's move, and the relay does not have it yet.
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxSegmentNotContinued", failed.ExceptionType);
+        Assert.Null(failed.MailboxContinuation);
+    }
+
+    [Theory]
+    [InlineData(MailboxDisposedReason.Deadline, MailboxClosedReason.Deadline)]
+    [InlineData(MailboxDisposedReason.Request, MailboxClosedReason.Request)]
+    public async Task ReceiveStep_NamingAnExchangeAnsweredMidPipeline_RunsItsClosedHalf(
+        MailboxDisposedReason engineReason,
+        MailboxClosedReason appReason
+    )
+    {
+        var task = new ContinuingTask();
+
+        await CreateCommand(task).Execute(CreateContext(Closed(engineReason)), ReceiveStep());
+
+        Assert.Equal(appReason, task.ClosedReason);
+        Assert.Null(task.Message);
+        Assert.Null(task.Conclusion);
+    }
+
+    /// <summary>
+    /// The property that justifies running the handler at all: whatever it answered is <em>named</em>, so the
+    /// failure says which verdict had nowhere to go rather than only that the exchange stalled. Both halves
+    /// answer in the stage vocabulary, and both reach the wording.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_AnsweredMidPipeline_NamesTheVerdictTheHandlerReturned()
+    {
+        var awaiting = new ContinuingTask { MessageVerdict = ServiceTaskStageExchangeResult.AwaitNextReply() };
+
+        FailedProcessEngineCommandResult onMessage = Assert.IsType<FailedProcessEngineCommandResult>(
+            await CreateCommand(awaiting).Execute(CreateContext(Delivered()), ReceiveStep())
+        );
+
+        Assert.Equal("MailboxSegmentNotContinued", onMessage.ExceptionType);
+        Assert.Contains(nameof(ServiceTaskStageAwaitNextReplyResult), onMessage.ErrorMessage, StringComparison.Ordinal);
+        Assert.NotNull(awaiting.Message);
+
+        var failing = new ContinuingTask
+        {
+            ClosedVerdict = ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
+        };
+
+        FailedProcessEngineCommandResult onClosed = Assert.IsType<FailedProcessEngineCommandResult>(
+            await CreateCommand(failing).Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), ReceiveStep())
+        );
+
+        Assert.Equal("MailboxSegmentNotContinued", onClosed.ExceptionType);
+        Assert.Contains(nameof(FailedServiceTaskStageResult), onClosed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Equal(MailboxClosedReason.Deadline, failing.ClosedReason);
+    }
+
+    /// <summary>
+    /// The rendezvous guards run before either kind of handler, because they are one path up to the verdict.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_AnsweredMidPipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
+    {
+        var task = new ContinuingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), ReceiveStep());
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
+        Assert.Null(task.Message);
+        Assert.Null(task.ClosedReason);
+    }
+
+    /// <summary>
+    /// Both lookups on one pipeline: the name decides which handler answers, and each exchange reaches
+    /// exactly its own.
+    /// </summary>
+    [Theory]
+    [InlineData(OpeningStage, "segment.onMessage")]
+    [InlineData(TwoExchangeTask.JournalStage, "terminal.onMessage")]
+    public async Task ReceiveStep_OnAPipelineAnsweringBothWays_ReachesTheHandlerForItsOwnExchange(
+        string repliesTo,
+        string expected
+    )
+    {
+        var task = new TwoExchangeTask();
+
+        await CreateCommand(task).Execute(CreateContext(Delivered()), ReceiveStep(repliesTo));
+
+        Assert.Equal([expected], task.Answered);
+    }
+
+    /// <summary>
+    /// A name no handler carries still reaches the terminal when there is one — the mid-flight rename
+    /// tolerance the terminal has always had, which the mid-pipeline lookup must not narrow: the lookup
+    /// missing is not the same as nothing answering.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_NamingAnExchangeNoHandlerCarries_StillReachesTheTerminal()
+    {
+        var task = new TwoExchangeTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), ReceiveStep("SendToJournal_v1"));
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Equal(["terminal.onMessage"], task.Answered);
+    }
+
+    /// <summary>
+    /// <c>MailboxHandlerNotFound</c> names every exchange the pipeline does answer, not just the first: with
+    /// several in play, one name would read as the whole answer to where this one went.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_NamingAnExchangeNobodyAnswers_NamesEveryExchangeThatIsAnswered()
+    {
+        var task = new TwoContinuingExchangesTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), ReceiveStep("SendToArchive_v1"));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
+        Assert.Contains(
+            $"now answers only the exchanges opened by stages '{OpeningStage}', '{TwoExchangeTask.JournalStage}'",
+            failed.ErrorMessage,
+            StringComparison.Ordinal
+        );
+    }
+
+    /// <summary>The singular half of the same wording, and the pipeline shape step 5 made composable.</summary>
+    [Fact]
+    public async Task ReceiveStep_NamingAnExchangeNobodyAnswers_NamesTheOneThatIs()
+    {
+        var task = new ContinuingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), ReceiveStep("SendToArchive_v1"));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
+        Assert.Contains(
+            $"now answers only the exchange opened by stage '{OpeningStage}'",
+            failed.ErrorMessage,
+            StringComparison.Ordinal
+        );
+        Assert.Null(task.Message);
+        Assert.Null(task.Conclusion);
+    }
+
+    /// <summary>
+    /// A pipeline that answers an exchange mid-pipeline still concludes with its final step, and a concluding
+    /// step — which names no exchange — is what runs it. The arm the mid-pipeline lookup sits in front of must
+    /// not swallow this one.
+    /// </summary>
+    [Fact]
+    public async Task Conclusion_OfAPipelineThatAnswersMidPipeline_RunsItsFinalStep()
+    {
+        var task = new ContinuingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), ConcludingStep());
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(task.Conclusion);
+        Assert.Null(task.Message);
     }
 
     /// <summary>
@@ -628,6 +940,30 @@ public class ExecuteServiceTaskReplyTests
         Assert.Null(task.Stage);
         Assert.Null(task.MessageContext);
         Assert.Null(task.ClosedContext);
+    }
+
+    /// <summary>
+    /// The refusal runs <em>before</em> the service task is resolved, which is the only thing that makes a
+    /// doubly-broken payload converge: resolving first turns anything the resolution throws — an unregistered
+    /// task type, a <c>Define</c> that throws — into a retryable failure, and this payload is one no retry can
+    /// fix, so the workflow would retry until its budget ran out instead of ending on a legible 422. Pinned
+    /// here because the other both-names tests register a real task and would pass with the check back inside
+    /// the try.
+    /// </summary>
+    [Fact]
+    public async Task AStepNamingBothNames_OnAnUnregisteredServiceTaskType_StillFailsPermanently()
+    {
+        ExecuteServiceTask command = CreateCommand(new ArchivingTask());
+
+        ProcessEngineCommandResult result = await command.Execute(
+            CreateContext(),
+            new ExecuteServiceTaskPayload("nonExistentType", StageName: "RecordDispatch", RepliesTo: OpeningStage)
+        );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
+        Assert.Contains("nonExistentType", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     [Fact]

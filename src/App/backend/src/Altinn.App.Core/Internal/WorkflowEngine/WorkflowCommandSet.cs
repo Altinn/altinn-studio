@@ -306,23 +306,27 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     /// <remarks>
     /// The name is fixed here, at the receiver's enqueue, and never re-derived at the hop that runs the step —
-    /// a stage renamed mid-flight would otherwise address a different exchange, or silently none. The step
-    /// itself carries no <c>ServiceTaskStageName</c>: options for a receive step are the conclusion's, and
-    /// that is what a null one resolves to.
+    /// a stage renamed mid-flight would otherwise address a different exchange, or silently none. It travels
+    /// twice, deliberately: in the payload, which is what dispatch reads at the hop that runs the step, and in
+    /// <see cref="StepRequest.ServiceTaskRepliesTo"/>, which is what the enqueueing hop resolves the step's
+    /// options by — the second would otherwise mean re-deserializing the payload the hop just wrote. No
+    /// <c>ServiceTaskStageName</c>: a receive step runs no stage.
     /// </remarks>
     /// <param name="serviceTaskType">The service task whose pipeline answers the exchange.</param>
     /// <param name="openingStageName">The stage that opened the exchange this receiver answers.</param>
     internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, string openingStageName) =>
         CreateCommand(
             ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageName)
+            new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageName),
+            serviceTaskRepliesTo: openingStageName
         );
 
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        string? serviceTaskStageName = null
+        string? serviceTaskStageName = null,
+        string? serviceTaskRepliesTo = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -335,6 +339,7 @@ internal sealed class WorkflowCommandSet
             ),
             CommandKey = commandKey,
             ServiceTaskStageName = serviceTaskStageName,
+            ServiceTaskRepliesTo = serviceTaskRepliesTo,
         };
     }
 }

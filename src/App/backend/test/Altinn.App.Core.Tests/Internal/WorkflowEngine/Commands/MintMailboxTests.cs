@@ -192,6 +192,32 @@ public class MintMailboxTests
                 .ConcludeOnReplies(receipts, OnMessage, OnClosed);
     }
 
+    /// <summary>
+    /// Drift with more than one place to point: the pipeline opens two mailboxes now, and neither is this
+    /// step's. Naming one of them would read as the whole answer to where this one went.
+    /// </summary>
+    private sealed class TwoRelocatedDeclarationsTask : IPipelineServiceTask
+    {
+        public string Type => "archiving";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage("SendToArchiveV2", Send, _threeDays, out MailboxHandle archive)
+                .Stage("SendToJournal", Send, _threeDays, out MailboxHandle journal)
+                .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
+                .ConcludeOnReplies(journal, OnMessage, OnClosed);
+    }
+
+    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
+        ServiceTaskContext context,
+        ServiceTaskReply reply
+    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> OnSegmentClosed(
+        ServiceTaskContext context,
+        MailboxClosedReason reason
+    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+
     private static MintMailbox CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
     {
         var services = new ServiceCollection();
@@ -428,6 +454,29 @@ public class MintMailboxTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
         Assert.Contains("now opens no mailbox at all", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Empty(minter.Mints);
+    }
+
+    /// <summary>
+    /// The same drift on a pipeline that now opens several mailboxes: the message names all of them, because
+    /// naming only the first would tell the reader the mailbox moved to a stage it may well not have.
+    /// </summary>
+    [Fact]
+    public async Task Execute_WhenSeveralMailboxesAreOpenedNow_NamesEveryOpeningStage()
+    {
+        var minter = new RecordingMailboxMinter();
+
+        ProcessEngineCommandResult result = await CreateCommand(new TwoRelocatedDeclarationsTask(), minter)
+            .Execute(CreateContext(), Payload());
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
+        Assert.Contains(
+            "its mailboxes are now opened by stages 'SendToArchiveV2', 'SendToJournal'",
+            failed.ErrorMessage,
+            StringComparison.Ordinal
+        );
         Assert.Empty(minter.Mints);
     }
 

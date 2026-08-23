@@ -85,11 +85,20 @@ internal sealed class MintMailbox(
             // lives on the stage.
             if (pipeline.FindStage(payload.StageName) is not ServiceTaskStage.MailboxOpening declaring)
             {
-                // Where the mailbox went is the actionable half, so it comes before the remediation.
-                string opensNow = pipeline.Items.OfType<ServiceTaskStage.MailboxOpening>().FirstOrDefault()
-                    is { } relocated
-                    ? $"its mailbox is now opened by stage '{relocated.Name}'"
-                    : "its pipeline now opens no mailbox at all";
+                // Where the mailbox went is the actionable half, so it comes before the remediation. Every
+                // opening stage is named, not just the first: a pipeline may open several mailboxes, and
+                // naming one of them would read as the whole answer to where this one went.
+                string[] opening = pipeline
+                    .Items.OfType<ServiceTaskStage.MailboxOpening>()
+                    .Select(s => s.Name)
+                    .ToArray();
+                string opensNow = opening switch
+                {
+                    [] => "its pipeline now opens no mailbox at all",
+                    [string only] => $"its mailbox is now opened by stage '{only}'",
+                    _ => "its mailboxes are now opened by stages "
+                        + string.Join(", ", opening.Select(name => $"'{name}'")),
+                };
                 return FailedProcessEngineCommandResult.Permanent(
                     $"Service task '{payload.ServiceTaskType}' opened a mailbox from stage '{payload.StageName}' when "
                         + $"this workflow was enqueued, but {opensNow}. Stage names and the mailboxes they open are a "

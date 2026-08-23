@@ -46,4 +46,13 @@ internal sealed record StepRequest
     /// and never serialized — the engine sees the stage name only inside the command payload.
     /// </summary>
     internal string? ServiceTaskStageName { get; init; }
+
+    /// <summary>
+    /// For a service-task receive step: the stage that opened the exchange the step answers, carried so the
+    /// per-handler options resolution (see <c>ProcessStepOptionsResolver</c>) can find the handler that
+    /// answers it — a non-terminal one by this name, or the conclusion. Internal and never serialized, like
+    /// <see cref="ServiceTaskStageName"/>, and never set on the same step as that one: a step runs a stage or
+    /// answers an exchange.
+    /// </summary>
+    internal string? ServiceTaskRepliesTo { get; init; }
 }

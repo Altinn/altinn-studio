@@ -33,6 +33,21 @@ public sealed class ServiceTaskPipeline
         Items
             .OfType<ServiceTaskStage>()
             .FirstOrDefault(s => string.Equals(s.Name, stageName, StringComparison.Ordinal));
+
+    /// <summary>
+    /// The non-terminal handler answering the exchange the named stage opened (exact match, as for a
+    /// stage), or <c>null</c> — which for a receive step means the exchange is the conclusion's or nobody's.
+    /// </summary>
+    /// <remarks>
+    /// An exchange is answered exactly once, so the first match is the only one. Unlike
+    /// <see cref="FindStage"/> this looks up an <em>exchange's</em> identity rather than a stage's: the two
+    /// are the same string in different roles, which is why they are two lookups over one list rather than
+    /// one lookup callers filter afterwards.
+    /// </remarks>
+    internal ReplySegment? FindReplySegment(string openingStageName) =>
+        Items
+            .OfType<ReplySegment>()
+            .FirstOrDefault(r => string.Equals(r.OpeningStageName, openingStageName, StringComparison.Ordinal));
 }
 
 /// <summary>
