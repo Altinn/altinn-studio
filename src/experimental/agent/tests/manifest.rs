@@ -58,7 +58,14 @@ fn self_development_workspace_clone_is_a_simple_one_shot() {
     assert!(!initialization.contains(".clone."));
     assert!(initialization.contains("${GITHUB_TOKEN}"));
     assert!(!initialization.contains("agent-github-token-placeholder"));
-    assert!(initialization.contains("git clone --origin origin -- \"$repository\" \"$destination\""));
+    assert!(initialization.contains("getent ahosts github.com"));
+    assert!(initialization.contains("remaining=$((remaining - 1))"));
+    assert_eq!(
+        initialization
+            .matches("git clone --origin origin -- \"$repository\" \"$destination\"")
+            .count(),
+        1
+    );
 }
 
 #[test]
