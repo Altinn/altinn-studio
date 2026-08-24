@@ -120,24 +120,29 @@ internal sealed class MaskinportenSettingsCollisionDetector
             }
         }
 
-        var warnings = new List<string>();
-        AppendFindings(warnings, ExternalShapeSummary, externalShaped);
-        AppendFindings(warnings, ProvisionedOverlapSummary, provisionedOverlap);
+        var messages = new List<MigrationMessage>();
+        AppendFindings(messages, ExternalShapeSummary, externalShaped);
+        AppendFindings(messages, ProvisionedOverlapSummary, provisionedOverlap);
 
-        var manualActionRequired = externalShaped.Concat(provisionedOverlap).Any(static finding => !finding.LocalOnly);
+        if (externalShaped.Concat(provisionedOverlap).Any(static finding => !finding.LocalOnly))
+        {
+            messages.Todo(
+                "MaskinportenSettings needs manual follow-up due to a section collision. See warnings above."
+            );
+        }
 
-        return new MigrationResult(manualActionRequired, warnings);
+        return new MigrationResult(messages);
     }
 
-    private static void AppendFindings(List<string> warnings, string summary, List<SectionFinding> findings)
+    private static void AppendFindings(List<MigrationMessage> messages, string summary, List<SectionFinding> findings)
     {
         if (findings.Count == 0)
         {
             return;
         }
 
-        warnings.Add(summary);
-        warnings.AddRange(
+        messages.Warn(summary);
+        messages.WarnRange(
             findings.Select(static finding =>
                 finding.LocalOnly ? $"{finding.Detail} (development only - not loaded when deployed)" : finding.Detail
             )
