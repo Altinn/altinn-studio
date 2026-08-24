@@ -185,7 +185,7 @@ __metadata:
     vite-tsconfig-paths: "npm:6.1.1"
     vitest: "npm:4.1.10"
   peerDependencies:
-    "@digdir/designsystemet-react": 1.11.1
+    "@digdir/designsystemet-react": 1.20.0
     "@navikt/aksel-icons": 8.16.1
     react: 19.2.8
     react-dom: 19.2.8
