@@ -451,6 +451,7 @@ describe('UI Components', () => {
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
+    cy.get(appFrontend.confirmPopover).should('not.exist');
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
     cy.get(appFrontend.confirmPopover).should(
