@@ -50,10 +50,7 @@ export const EditComponentIdRow = ({
   };
 
   const dataTypeWithNameExists = (id: string) => {
-    if (
-      component.type === ComponentType.FileUpload ||
-      component.type === ComponentType.FileUploadWithTag
-    ) {
+    if (component.type === ComponentType.FileUpload) {
       return appMetadata.dataTypes?.find(
         (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
       );

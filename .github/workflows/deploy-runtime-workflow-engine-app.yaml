@@ -53,6 +53,8 @@ jobs:
         working-directory: src/Runtime/workflow-engine-app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set vars
         id: vars
@@ -99,7 +101,10 @@ jobs:
           if [ "${{ inputs.tag-latest }}" = "true" ]; then
             TAGS="$TAGS -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest"
           fi
-          docker build --platform linux/amd64,linux/arm64 --build-arg BUILD_VERSION=${{ steps.vars.outputs.short-sha }} $TAGS -f Runtime/workflow-engine-app/Dockerfile .
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache,mode=max \
+            --build-arg BUILD_VERSION=${{ steps.vars.outputs.short-sha }} $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}

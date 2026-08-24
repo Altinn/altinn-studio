@@ -54,18 +54,20 @@ export type FormItemConfig<T extends ComponentType | CustomComponentType = Compo
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// ComponentType also contains pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+// ComponentType also contains pre-v9 names used by the legacy ux editors.
+export type SupportedComponentType = Exclude<
+  ComponentType | CustomComponentType,
+  ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
+>;
+
 export type FormItemConfigs = {
-  [
-    T in Exclude<
-      ComponentType | CustomComponentType,
-      ComponentType.OrganisationLookup | ComponentType.Header
-    >
-  ]: FormItemConfig<T>;
+  [T in SupportedComponentType]: FormItemConfig<T>;
 } & Partial<{
   [ComponentType.OrganisationLookup]: FormItemConfig<ComponentType.OrganisationLookup>;
   [ComponentType.Header]: FormItemConfig<ComponentType.Header>;
 }>;
+
+export type FormItemConfigEntry = NonNullable<FormItemConfigs[keyof FormItemConfigs]>;
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -240,20 +242,6 @@ export const formItemConfigs: FormItemConfigs = {
       minNumberOfAttachments: 1,
     },
     propertyPath: 'definitions/fileUploadComponent',
-    icon: PaperclipIcon,
-  },
-  [ComponentType.FileUploadWithTag]: {
-    name: ComponentType.FileUploadWithTag,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      displayMode: 'list',
-      hasCustomFileEndings: false,
-      maxFileSizeInMB: 25,
-      maxNumberOfAttachments: 1,
-      minNumberOfAttachments: 1,
-      optionsId: '',
-    },
-    propertyPath: 'definitions/fileUploadWithTagComponent',
     icon: PaperclipIcon,
   },
   [ComponentType.Grid]: {
@@ -546,7 +534,11 @@ export const formItemConfigs: FormItemConfigs = {
   },
 };
 
-export const advancedItems: FormItemConfigs[ComponentType][] = [
+export const isSupportedComponentType = (
+  componentType: ComponentType | CustomComponentType,
+): componentType is SupportedComponentType => componentType in formItemConfigs;
+
+export const advancedItems: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
@@ -562,7 +554,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const schemaComponents: FormItemConfigs[ComponentType][] = [
+export const schemaComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Input],
   formItemConfigs[ComponentType.TextArea],
   formItemConfigs[ComponentType.Checkboxes],
@@ -575,7 +567,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
-  formItemConfigs[ComponentType.FileUploadWithTag],
   formItemConfigs[ComponentType.Button],
   formItemConfigs[ComponentType.CustomButton],
   formItemConfigs[ComponentType.NavigationButtons],
@@ -590,7 +581,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const textComponents: FormItemConfigs[ComponentType][] = [
+export const textComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
@@ -598,14 +589,14 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Text],
 ];
 
-export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
+export const confOnScreenComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
 ];
 
-export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
+export const paymentLayoutComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Payment],
   ...confOnScreenComponents,
 ];
@@ -660,12 +651,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.InstantiationButton,
     ComponentType.ActionButton,
   ],
-  attachment: [
-    ComponentType.AttachmentList,
-    ComponentType.FileUpload,
-    ComponentType.FileUploadWithTag,
-    ComponentType.ImageUpload,
-  ],
+  attachment: [ComponentType.AttachmentList, ComponentType.FileUpload, ComponentType.ImageUpload],
   container: [
     ComponentType.Group,
     ComponentType.Grid,
@@ -677,7 +663,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
   ],
   advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
 };
-export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
+export const subformLayoutComponents: FormItemConfigEntry[] = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
