@@ -225,7 +225,15 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     let directory = TempDir::new().expect("temporary directory");
     let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
     let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
-    database.put(ready_record("worker", agent_id), 0).await.expect("Agent");
+    let mut record = ready_record("worker", agent_id);
+    record.agent.spec.harnesses[0].default = true;
+    record.agent.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: "0.149.1".into(),
+        auth: agent::HarnessAuthMode::Mediated,
+        default: false,
+    });
+    database.put(record, 0).await.expect("Agent");
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
@@ -248,7 +256,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
-            Some(agent::Harness::ClaudeCode),
+            Some(agent::Harness::Codex),
         )
         .await
         .expect("explicit harness Session");
@@ -257,8 +265,18 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .await
         .expect("implicit default Session");
 
-    assert_eq!(explicit.session.harness, agent::Harness::ClaudeCode);
+    assert_eq!(explicit.session.harness, agent::Harness::Codex);
     assert_eq!(implicit.session.harness, agent::Harness::ClaudeCode);
+
+    let conflict = service
+        .ensure(
+            "worker",
+            &SessionName::new("explicit").expect("name"),
+            Some(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect_err("an existing Session keeps its harness");
+    assert!(conflict.to_string().contains("already uses harness \"codex\""));
     agent_task.abort();
     session_task.abort();
 }

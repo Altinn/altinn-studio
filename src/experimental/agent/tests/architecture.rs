@@ -20,7 +20,7 @@ fn harness_internals_are_contained_by_the_harness_adapter() {
         }
         let contents = std::fs::read_to_string(&path).expect("Agent source should be readable");
         let lowercase = contents.to_ascii_lowercase();
-        for implementation_name in ["claude", "anthropic", "sk-ant"] {
+        for implementation_name in ["claude", "anthropic", "sk-ant", "codex", "openai"] {
             assert!(
                 !lowercase.contains(implementation_name),
                 "harness-specific name {implementation_name:?} leaked into {}",
@@ -32,7 +32,16 @@ fn harness_internals_are_contained_by_the_harness_adapter() {
     for binary in ["agentctl.rs", "agentd.rs"] {
         let contents = std::fs::read_to_string(binaries.join(binary)).expect("binary source should be readable");
         let lowercase = contents.to_ascii_lowercase();
-        for implementation_detail in ["anthropic", "sk-ant", "setup-token", "oauth", ".credentials.json"] {
+        for implementation_detail in [
+            "anthropic",
+            "sk-ant",
+            "setup-token",
+            "oauth",
+            ".credentials.json",
+            "api.openai",
+            "auth.json",
+            "sk-agent-mediated",
+        ] {
             assert!(
                 !lowercase.contains(implementation_detail),
                 "harness implementation detail {implementation_detail:?} leaked into bin/{binary}"
@@ -49,6 +58,9 @@ fn harness_internals_are_contained_by_the_harness_adapter() {
         "oauth",
         "access-token",
         "refresh-token",
+        "api.openai",
+        "auth.json",
+        "sk-agent-mediated",
     ] {
         assert!(
             !lowercase.contains(implementation_detail),

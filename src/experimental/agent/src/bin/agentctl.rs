@@ -43,6 +43,11 @@ enum Command {
         #[command(subcommand)]
         command: ClaudeCommand,
     },
+    /// Manage Codex CLI harness authentication.
+    Codex {
+        #[command(subcommand)]
+        command: CodexCommand,
+    },
     /// Create or update an Agent from a manifest.
     Apply {
         /// Agent manifest path.
@@ -146,6 +151,12 @@ enum ClaudeCommand {
     Login,
 }
 
+#[derive(Subcommand)]
+enum CodexCommand {
+    /// Sign in with `ChatGPT` and store an Agent-only grant.
+    Login,
+}
+
 fn main() -> ExitCode {
     match run() {
         Ok(code) => code,
@@ -171,8 +182,15 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::Claude {
             command: ClaudeCommand::Login,
         } => {
-            let token = agent::harness::acquire_host_token(agent::Harness::ClaudeCode)?;
+            let token = agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?;
             let imported = client.auth_login(agent::Harness::ClaudeCode, token.to_string()).await?;
+            println!("{} authentication stored", imported.provider);
+        }
+        Command::Codex {
+            command: CodexCommand::Login,
+        } => {
+            let credential = agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?;
+            let imported = client.auth_login(agent::Harness::Codex, credential.to_string()).await?;
             println!("{} authentication stored", imported.provider);
         }
         Command::Apply { filename, name } => {
@@ -821,6 +839,19 @@ mod tests {
         };
         assert!(resource.is_none());
         assert_eq!(command, ["pwd"]);
+    }
+
+    #[test]
+    fn codex_login_uses_an_isolated_chatgpt_grant() {
+        let arguments =
+            Arguments::try_parse_from(["agentctl", "codex", "login"]).expect("Codex ChatGPT login arguments");
+        assert!(matches!(
+            arguments.command,
+            Command::Codex {
+                command: CodexCommand::Login
+            }
+        ));
+        assert!(Arguments::try_parse_from(["agentctl", "codex", "login", "--with-api-key"]).is_err());
     }
 
     #[test]

@@ -134,7 +134,7 @@ RUN mkdir -p "${COREPACK_HOME}" \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
-ARG CODEX_VERSION=0.147.0
+ARG CODEX_VERSION=0.149.1
 ARG CLAUDE_CODE_VERSION=2.1.239
 
 RUN npm install --global "@openai/codex@${CODEX_VERSION}" \

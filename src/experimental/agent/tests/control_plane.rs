@@ -479,6 +479,21 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
     assert_eq!(updated.spec.harnesses[0].version, "2.1.240");
     assert!(updated.spec.harnesses[0].default);
 
+    let mut kind_set_change = updated_request.clone();
+    kind_set_change.agent.spec.harnesses[0].default = true;
+    kind_set_change.agent.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: "0.149.1".into(),
+        auth: agent::HarnessAuthMode::Mediated,
+        default: false,
+    });
+    let error = fixture
+        .control_plane
+        .apply(kind_set_change)
+        .await
+        .expect_err("harness kind set should be immutable");
+    assert!(matches!(error, Error::Immutable("spec.harnesses.type")));
+
     let mut immutable_change = updated_request.clone();
     immutable_change.agent.spec.sandbox.platform.architecture = Some("arm64".into());
     let error = fixture

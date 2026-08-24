@@ -103,3 +103,14 @@ pub(super) fn provider_account_exists(connection: &Connection, provider: &str) -
         .map(|row| row.is_some())
         .map_err(database_error)
 }
+
+pub(super) fn provider_account_metadata(connection: &Connection, provider: &str) -> Result<Option<String>, Error> {
+    connection
+        .query_row(
+            "SELECT metadata_json FROM provider_accounts WHERE provider = ?1",
+            [provider],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(database_error)
+}

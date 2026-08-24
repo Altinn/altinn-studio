@@ -112,9 +112,8 @@ impl Authentication {
     }
 }
 
-/// How a stored provider credential was obtained. New credential kinds (an
-/// `agentctl`-driven PKCE grant, or a Codex login) extend this without a schema
-/// change.
+/// How a stored Claude credential was obtained. A future `agentctl`-driven
+/// PKCE grant can extend this without a schema change.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 enum CredentialKind {

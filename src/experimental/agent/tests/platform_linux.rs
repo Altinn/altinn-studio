@@ -25,6 +25,14 @@ fn is_claude_version(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_codex_version(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/env" && args == &["codex", "--version"]
+    )
+}
+
 fn is_podman_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     matches!(
         spec.program(),
@@ -100,6 +108,7 @@ fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]
 }
 
 #[tokio::test(flavor = "local")]
+#[allow(clippy::too_many_lines)]
 async fn linux_setup_rewrites_configuration_without_owning_workspace_initialization() {
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
@@ -109,6 +118,13 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let mut resource = support::agent("worker");
     resource.metadata.generation = 1;
     resource.spec.home.source = home;
+    resource.spec.harnesses[0].default = true;
+    resource.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: "0.149.1".into(),
+        auth: agent::HarnessAuthMode::Mediated,
+        default: false,
+    });
     let record = AgentRecord {
         id: agent_id,
         source_directory: directory.path().to_path_buf(),
@@ -122,6 +138,14 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
             vec![
                 ExecutionEvent::Started { process_id: None },
                 ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+                ExecutionEvent::Exited(ExitStatus { code: 0 }),
+            ],
+        );
+        backend.queue_execution_events_matching(
+            is_codex_version,
+            vec![
+                ExecutionEvent::Started { process_id: None },
+                ExecutionEvent::Stdout("codex-cli 0.149.1\n".into()),
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
         );
@@ -157,6 +181,24 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     assert_eq!(preserved, mutable_state);
     let instructions = read_file(&sandbox, "/home/agent/.claude/CLAUDE.md").await;
     assert_eq!(instructions, b"test instructions");
+    let codex_instructions = read_file(&sandbox, "/home/agent/.codex/AGENTS.md").await;
+    assert_eq!(codex_instructions, b"test instructions");
+    let codex_auth: serde_json::Value =
+        serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/auth.json").await).expect("Codex auth JSON");
+    assert_eq!(codex_auth["auth_mode"], "chatgpt");
+    assert_eq!(
+        codex_auth["tokens"]["account_id"],
+        "agent-mediated-codex-account-placeholder"
+    );
+    assert_eq!(codex_auth["tokens"]["access_token"], codex_auth["tokens"]["id_token"]);
+    assert!(codex_auth["last_refresh"].is_string());
+    let codex_hooks: serde_json::Value =
+        serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/hooks.json").await).expect("Codex hooks JSON");
+    assert_eq!(
+        codex_hooks["hooks"]["SessionStart"][0]["hooks"][0]["command"],
+        "node /home/agent/.codex/hooks/session-start.mjs"
+    );
+    assert!(codex_hooks["hooks"]["SessionStart"][0].get("matcher").is_none());
 
     let executions = backend.execution_specs();
     let commands = executions
@@ -171,7 +213,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
             .iter()
             .filter(|(executable, _)| *executable == "/usr/bin/env")
             .count(),
-        2
+        4
     );
     assert_eq!(
         commands

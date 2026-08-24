@@ -39,7 +39,11 @@ fn decodes_the_self_development_manifest() {
     assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].source(), "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].placeholder, None);
+    assert_eq!(agent.spec.harnesses.len(), 2);
     assert!(agent.spec.harnesses[0].default);
+    assert_eq!(agent.spec.harnesses[0].kind, Harness::ClaudeCode);
+    assert_eq!(agent.spec.harnesses[1].kind, Harness::Codex);
+    assert!(!agent.spec.harnesses[1].default);
     assert_eq!(
         agent.spec.sandbox.resources.root_filesystem().mode(),
         RootFilesystemMode::Direct
@@ -146,17 +150,21 @@ fn validates_harness_installation_cardinality_and_defaults() {
         Err(agent::Error::Invalid(message)) if message.contains("duplicate harness kind")
     ));
 
+    let mut codex = installation.clone();
+    codex.kind = Harness::Codex;
+    codex.version = "0.149.1".into();
+
     let mut no_default = support::agent("worker");
-    no_default.spec.harnesses = vec![installation.clone(), installation.clone()];
+    no_default.spec.harnesses = vec![installation.clone(), codex.clone()];
     assert!(matches!(
         no_default.validate(),
         Err(agent::Error::Invalid(message)) if message.contains("exactly one default")
     ));
 
     let mut multiple_defaults = support::agent("worker");
-    let mut first = installation.clone();
+    let mut first = installation;
     first.default = true;
-    let mut second = installation;
+    let mut second = codex;
     second.default = true;
     multiple_defaults.spec.harnesses = vec![first, second];
     assert!(matches!(
@@ -168,10 +176,16 @@ fn validates_harness_installation_cardinality_and_defaults() {
 #[test]
 fn rejects_manifest_secrets_owned_by_a_declared_harness() {
     let mut agent = support::agent("worker");
+    let mut codex = agent.spec.harnesses[0].clone();
+    codex.kind = Harness::Codex;
+    codex.version = "0.149.1".into();
+    codex.default = false;
+    agent.spec.harnesses[0].default = true;
+    agent.spec.harnesses.push(codex);
     agent.spec.secrets.push(SecretSpec {
-        environment: "CLAUDE_CODE_OAUTH_TOKEN".into(),
+        environment: "AGENT_CODEX_ACCESS_TOKEN".into(),
         placeholder: None,
-        allowed_hosts: vec!["api.anthropic.com".into()],
+        allowed_hosts: vec!["chatgpt.com".into()],
         source: None,
     });
 

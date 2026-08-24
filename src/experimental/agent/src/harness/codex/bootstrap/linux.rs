@@ -1,4 +1,4 @@
-//! Linux Sandbox configuration for mediated Claude Code authentication.
+//! Linux Sandbox configuration for mediated Codex CLI authentication.
 
 use std::io::Cursor;
 
@@ -6,30 +6,37 @@ use sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
 
 use crate::Error;
 
-use super::super::ACCESS_PLACEHOLDER;
+use super::super::{ACCESS_PLACEHOLDER, ACCOUNT_PLACEHOLDER, REFRESH_PLACEHOLDER};
 
 pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions: Option<&[u8]>) -> Result<(), Error> {
-    let config = format!("{home}/.claude");
+    let config = format!("{home}/.codex");
     let hooks_path = format!("{config}/hooks");
-    let credentials_path = format!("{config}/.credentials.json");
+    let auth_path = format!("{config}/auth.json");
     let hook_path = format!("{config}/hooks/session-start.mjs");
-    let settings_path = format!("{config}/agent-settings.json");
-    let instructions_path = format!("{config}/CLAUDE.md");
+    let hooks_config_path = format!("{config}/hooks.json");
+    let instructions_path = format!("{config}/AGENTS.md");
+
     run_checked(sandbox, "/usr/bin/mkdir", ["-p", hooks_path.as_str()]).await?;
-    let credentials = serde_json::to_vec(&serde_json::json!({
-        "claudeAiOauth": {
-            "accessToken": ACCESS_PLACEHOLDER,
-            "refreshToken": "agent-mediated-refresh-placeholder-not-a-real-credential",
-            "expiresAt": 4_102_444_800_000_i64,
-            "refreshTokenExpiresAt": 4_102_444_800_000_i64,
-            "scopes": ["user:inference"]
-        }
+    // Codex must believe it owns a normal ChatGPT login while the real,
+    // rotating grant remains host-only. The fake JWT expiry and fresh refresh
+    // timestamp suppress proactive guest refresh; a 401 can only attempt the
+    // deliberately unusable placeholder refresh token.
+    let last_refresh = time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .map_err(|error| Error::SandboxSetup(format!("could not format Codex refresh time: {error}")))?;
+    let auth = serde_json::to_vec(&serde_json::json!({
+        "auth_mode": "chatgpt",
+        "OPENAI_API_KEY": null,
+        "tokens": {
+            "id_token": ACCESS_PLACEHOLDER,
+            "access_token": ACCESS_PLACEHOLDER,
+            "refresh_token": REFRESH_PLACEHOLDER,
+            "account_id": ACCOUNT_PLACEHOLDER,
+        },
+        "last_refresh": last_refresh,
     }))?;
     sandbox
-        .write_file(
-            &SandboxPath::new(credentials_path.clone()),
-            Box::pin(Cursor::new(credentials)),
-        )
+        .write_file(&SandboxPath::new(auth_path.clone()), Box::pin(Cursor::new(auth)))
         .await?;
     if let Some(instructions) = instructions {
         sandbox
@@ -45,24 +52,24 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
             Box::pin(Cursor::new(crate::harness::session_start::HOOK.as_bytes().to_vec())),
         )
         .await?;
-    let settings = serde_json::to_vec(&serde_json::json!({
+    let hooks = serde_json::to_vec(&serde_json::json!({
         "hooks": {
             "SessionStart": [{
-                "matcher": "startup|resume|clear|compact",
-                "hooks": [{ "type": "command", "command": format!("node {hook_path}") }]
+                "hooks": [{
+                    "type": "command",
+                    "command": format!("node {hook_path}"),
+                    "timeout": 2,
+                }]
             }]
         }
     }))?;
     sandbox
         .write_file(
-            &SandboxPath::new(settings_path.clone()),
-            Box::pin(Cursor::new(settings)),
+            &SandboxPath::new(hooks_config_path.clone()),
+            Box::pin(Cursor::new(hooks)),
         )
         .await?;
-    // Runtime file transfer writes as the Sandbox supervisor (root), while
-    // executions run as the image user. Correct only the directories and files
-    // managed above: recursive ownership walks would traverse the growing
-    // harness state tree on every reconciliation pass.
+
     run_checked(
         sandbox,
         "/usr/bin/sudo",
@@ -71,13 +78,13 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
             "agent:agent",
             config.as_str(),
             hooks_path.as_str(),
-            credentials_path.as_str(),
+            auth_path.as_str(),
             hook_path.as_str(),
-            settings_path.as_str(),
+            hooks_config_path.as_str(),
         ],
     )
     .await?;
-    run_checked(sandbox, "/usr/bin/chmod", ["600", credentials_path.as_str()]).await?;
+    run_checked(sandbox, "/usr/bin/chmod", ["600", auth_path.as_str()]).await?;
     if instructions.is_some() {
         run_checked(
             sandbox,

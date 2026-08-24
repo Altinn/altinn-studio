@@ -46,12 +46,19 @@ fn run() -> Result<(), Error> {
 
 async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
     let store = Rc::new(database.clone());
+    let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
     let policy = Rc::new(agent::authorization::AgentPolicyEngine::new());
     let platform_api_listener = agent::platform_api::bind_persistent(&home.path().join("platform-api-port")).await?;
     let platform_api_port = platform_api_listener.local_addr()?.port();
     let microsandbox = Rc::new(
-        agent::sandbox::microsandbox::Adapter::open(home.path(), database.clone(), policy.clone(), platform_api_port)
-            .await?,
+        agent::sandbox::microsandbox::Adapter::open(
+            home.path(),
+            database.clone(),
+            credentials.clone(),
+            policy.clone(),
+            platform_api_port,
+        )
+        .await?,
     );
     let session_hook_url = microsandbox.platform_url("/v1/session/hooks/start")?;
     let provider: Rc<dyn agent::sandbox::Provider> = microsandbox;
@@ -102,7 +109,6 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         wakeup,
         session_wakeup,
     ));
-    let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),

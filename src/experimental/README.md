@@ -85,12 +85,12 @@ with the consequence that those files are reapplied on every Agent pass.
 
 `spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
 `spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
-at its global instruction location; for Claude Code this is `~/.claude/CLAUDE.md`. Repository-local instruction files
-continue to be discovered by the harness itself.
+at its global instruction location: `~/.claude/CLAUDE.md` for Claude Code and `~/.codex/AGENTS.md` for Codex.
+Repository-local instruction files continue to be discovered by the harness itself.
 
 Harness Adapters own authentication, version verification, managed configuration, hooks, native conversation IDs and
-launch arguments. The current adapter supports Claude Code only. Harness-owned mutable state is seeded by the image or
-the user and is not used as a trusted bootstrap marker.
+launch arguments. The current adapters support Claude Code and Codex CLI. Harness-owned mutable state is seeded by the
+image or the user and is not used as a trusted bootstrap marker.
 
 ## Secrets and network policy
 
@@ -114,13 +114,13 @@ erasure guarantee across WAL history, filesystem snapshots or backups.
 
 ## Current scope and direction
 
-The current milestone provides persistent Agents and Sessions, real Microsandbox lifecycle, mediated Claude and GitHub
+The current milestone provides persistent Agents and Sessions, real Microsandbox lifecycle, mediated harness and GitHub
 authentication, image-owned workspace initialization, idle/resume behavior, local packaging and release-pinned runtime
 downloads.
 
 Important current limitations are:
 
-- Claude Code is the only Harness Adapter;
+- Codex uses a separate ChatGPT subscription login owned and refreshed by `agentd`;
 - Sessions share one Sandbox user and tmux server and therefore one trust boundary;
 - attachment is still a client-side Provider operation rather than a daemon-owned terminal capability;
 - Session content, prompt steering, archive/delete and plugin APIs are not implemented; and
@@ -129,10 +129,9 @@ Important current limitations are:
 The next planned slices are:
 
 1. expose harness-native Session content and prompt/steer/interrupt operations;
-2. add Codex through the existing Agent and Session harness-installation model;
-3. add Session lifecycle operations such as archive and soft deletion;
-4. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
-5. add global orchestration only after the local control-plane contracts are proven.
+2. add Session lifecycle operations such as archive and soft deletion;
+3. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
+4. add global orchestration only after the local control-plane contracts are proven.
 
 ## References
 

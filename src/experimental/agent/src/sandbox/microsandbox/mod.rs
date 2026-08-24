@@ -45,12 +45,12 @@ impl Adapter {
     pub async fn open(
         home: &Path,
         database: persistence::Database,
+        secret_store: Rc<dyn ::sandbox::secret_store::SecretStore>,
         policy: Rc<AgentPolicyEngine>,
         platform_port: u16,
     ) -> Result<Self, Error> {
         let provider = Rc::new(MicrosandboxProvider::open(home.join("microsandbox")).await?);
-        let network =
-            Rc::new(MicrosandboxNetworkBackend::new(policy.clone()).with_secret_store(Rc::new(database.clone())));
+        let network = Rc::new(MicrosandboxNetworkBackend::new(policy.clone()).with_secret_store(secret_store));
         let service = SandboxService::new(provider).with_network_backend(network.clone());
         policy.set_platform_endpoint(HOST_ALIAS, platform_port);
         Ok(Self {

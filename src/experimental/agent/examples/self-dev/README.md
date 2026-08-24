@@ -1,7 +1,7 @@
 # Altinn Studio self-development Agent
 
-Prerequisites are Docker, hardware virtualization, and an authenticated Claude Code installation on
-the host. Linux requires `/dev/kvm`; macOS requires Apple Silicon; Windows requires the distinct
+Prerequisites are Docker, hardware virtualization, and authenticated Claude Code and ChatGPT subscriptions on the
+host. Linux requires `/dev/kvm`; macOS requires Apple Silicon; Windows requires the distinct
 `HypervisorPlatform` optional feature and Docker Desktop in Linux-container mode.
 The example owns its Ubuntu 26.04 LTS multi-platform development-toolchain Dockerfile and uses a direct ext4 root
 filesystem so Podman's overlay storage does not nest on the Sandbox root OverlayFS.
@@ -16,6 +16,7 @@ checkout.
 
 ```sh
 agentctl claude login
+agentctl codex login
 cp .env.sample .env
 # Add a GitHub PAT and Studio bot token to .env without committing it.
 agentctl apply -f agent.yaml --name studiodev-0
@@ -25,7 +26,7 @@ agentctl wait --for=condition=Ready agent/studiodev-0 --timeout=10m
 agentctl exec agent/studiodev-0 -- git -C altinn-studio status --short
 agentctl exec -it agent/studiodev-0 -- bash
 agentctl attach session/s1 --agent studiodev-0
-agentctl attach session/s2 --agent studiodev-0
+agentctl attach session/s2 --agent studiodev-0 --harness codex
 agentctl get sessions --agent studiodev-0
 ```
 
@@ -43,6 +44,7 @@ Microsandbox network mediator substitutes them only at their configured hosts. T
 state or Codex `config.toml` through `spec.home`; files supplied through `spec.home` are desired state and therefore
 reapplied on every Agent reconciliation pass. The builder-wide `instructions.md` payload is declared separately through
 `spec.instructions`; the Claude adapter installs it as `~/.claude/CLAUDE.md`.
+The Codex adapter installs the same source as `~/.codex/AGENTS.md`.
 
 Container tooling inside the Agent is Podman. The `podman-docker` package makes the `docker` CLI and
 `/run/docker.sock` compatibility surfaces Podman-backed, `podman buildx build` is the buildx-compatible alias, and

@@ -90,6 +90,14 @@ impl Database {
         })
         .await
     }
+
+    pub(crate) async fn provider_account_metadata(&self, provider: &str) -> Result<Option<String>, Error> {
+        self.request(|response| Command::ProviderAccountMetadata {
+            provider: provider.into(),
+            response,
+        })
+        .await
+    }
 }
 
 impl crate::sessions::SessionStore for Database {
@@ -404,6 +412,10 @@ enum Command {
         provider: String,
         response: oneshot::Sender<Result<bool, Error>>,
     },
+    ProviderAccountMetadata {
+        provider: String,
+        response: oneshot::Sender<Result<Option<String>, Error>>,
+    },
     EnsureSession {
         agent: String,
         name: crate::sessions::SessionName,
@@ -551,6 +563,9 @@ fn execute(connection: &mut Connection, command: Command) {
         }
         Command::ProviderAccountExists { provider, response } => {
             let _ = response.send(secrets::provider_account_exists(connection, &provider));
+        }
+        Command::ProviderAccountMetadata { provider, response } => {
+            let _ = response.send(secrets::provider_account_metadata(connection, &provider));
         }
         session_command => execute_session(connection, session_command),
     }

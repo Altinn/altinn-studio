@@ -113,17 +113,17 @@ impl Client {
         Ok(())
     }
 
-    /// Stores a host-minted long-lived harness token in the daemon.
+    /// Stores a host-acquired harness credential in the daemon.
     ///
     /// # Errors
     ///
-    /// Returns an error when the token is invalid, rejected, or cannot be persisted.
+    /// Returns an error when the credential is invalid, rejected, or cannot be persisted.
     pub async fn auth_login(
         &self,
         harness: harness::Harness,
-        token: String,
+        credential: String,
     ) -> Result<harness::ImportedAuthentication, Error> {
-        self.call(METHOD_AUTH_LOGIN, LoginParams { harness, token }).await
+        self.call(METHOD_AUTH_LOGIN, LoginParams { harness, credential }).await
     }
 
     /// Creates or resolves one named session attach target.

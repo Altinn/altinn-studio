@@ -95,7 +95,7 @@ pub(crate) struct SessionListParams {
 #[serde(deny_unknown_fields)]
 pub(crate) struct LoginParams {
     pub harness: crate::harness::Harness,
-    pub token: String,
+    pub credential: String,
 }
 
 pub(crate) fn error_response(id: u64, code: i32, message: impl Into<String>) -> Response {
