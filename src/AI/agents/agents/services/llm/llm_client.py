@@ -51,22 +51,26 @@ def _is_reasoning_model(model_name: Optional[str]) -> bool:
         or m.startswith("gpt-5")
     )
 
-# The text fallback embeds the filename; a document block carries it as a title.
-MODEL_VISIBLE_ATTACHMENT_FIELDS = ("text", "title")
+ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
+
+
+def _defang_attachment_value(value: Any) -> Any:
+    """Defang every string in a block; base64 payloads cannot contain the delimiter."""
+    if isinstance(value, str):
+        return defang_delimiter(value, ATTACHMENT_TAG)
+    if isinstance(value, dict):
+        return {
+            key: item if key in ATTACHMENT_PAYLOAD_FIELDS else _defang_attachment_value(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_defang_attachment_value(item) for item in value]
+    return value
 
 
 def _defang_attachment_blocks(blocks: List[dict]) -> List[dict]:
-    """Attachment blocks carry uploader-chosen strings. Stop any of them
-    closing the block they sit inside."""
-    defanged: List[dict] = []
-    for block in blocks:
-        replacements = {
-            field: defang_delimiter(block[field], ATTACHMENT_TAG)
-            for field in MODEL_VISIBLE_ATTACHMENT_FIELDS
-            if isinstance(block.get(field), str)
-        }
-        defanged.append({**block, **replacements} if replacements else block)
-    return defanged
+    """Stop an attachment closing the block it sits inside."""
+    return [_defang_attachment_value(block) for block in blocks]
 
 
 def _build_anthropic_user_content(
