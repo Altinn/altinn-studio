@@ -98,17 +98,17 @@ ownership model inside a Sandbox.
 **Scenarios**:
 
 Github trigger:
-
 - Altinn Studio dev, e.g. @martinothamar:
   1. > @altinn-studio-agent get an agent to work on this issue, the session should use Fable 5 with high reasoning
-  - Control plane detects which user is prompting
-  - @martinothamar is registered in the global control plane, and has logged in with Claude session (OAuth flow in the platform)
-  - Control plane spins up a special orchestrator agent in a sandbox (using @martinothamar access/membership), which is tasked to consutrct
-    - `spawn.agent` call
-    - `spawn.session` call (specs from prompt, Fable 5 with High)
-    - prompt for the agent based on input
-  - Control plane provisions agent according to requests, including session and `initialPrompt`
-  - Agent subsequently calls back to the issue (according to instructions?)
+    - Control plane detects which user is prompting
+    - @martinothamar is registered in the global control plane, and has logged in with Claude session (OAuth flow in the platform)
+    - Control plane spins up a special orchestrator agent in a sandbox (using @martinothamar access/membership), which is tasked to consutrct
+      - `spawn.agent` call
+      - `spawn.session` call (specs from prompt, Fable 5 with High)
+      - prompt for the agent based on input
+    - Control plane provisions agent according to requests, including session and `initialPrompt`
+    - Agent subsequently calls back to the issue (according to instructions?)
+
 
 ### Tech stack and features
 
