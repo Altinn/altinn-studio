@@ -31,20 +31,17 @@ internal sealed record MigrationResult(IReadOnlyList<MigrationMessage> Messages)
     /// <summary>Whether any message is work left for a human.</summary>
     public bool RequiresManualFollowUp => Messages.Any(static message => message.Kind == MigrationMessageKind.Todo);
 
-    /// <summary>The warning texts, in order, for callers that care about only one kind.</summary>
+    /// <summary>The warning texts</summary>
     public IReadOnlyList<string> Warnings => TextsOfKind(MigrationMessageKind.Warning);
 
-    /// <summary>The to-do texts, in order, for callers that care about only one kind.</summary>
+    /// <summary>The to-do texts</summary>
     public IReadOnlyList<string> Todos => TextsOfKind(MigrationMessageKind.Todo);
 
     private IReadOnlyList<string> TextsOfKind(MigrationMessageKind kind) =>
         [.. Messages.Where(message => message.Kind == kind).Select(static message => message.Text)];
 }
 
-/// <summary>
-/// Collects a migrator's messages in reporting order. Kept as extensions on the plain list so a migrator
-/// builds its result the way it built its warning list before, one <c>Warn</c>/<c>Todo</c> call per line.
-/// </summary>
+/// <summary>Utility functions for building a migrator's message list.</summary>
 internal static class MigrationMessageListExtensions
 {
     public static void Warn(this List<MigrationMessage> messages, string text) =>

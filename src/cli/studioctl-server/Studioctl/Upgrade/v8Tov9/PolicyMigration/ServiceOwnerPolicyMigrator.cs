@@ -186,15 +186,7 @@ internal sealed class ServiceOwnerPolicyMigrator
             }
             else
             {
-                // InsertOrgRule could not add the rule safely (it warned with specifics); the required
-                // grant is still missing, so spell out the work its warning leaves behind.
-                _messages.Todo(
-                    $"Grant the app owner '{orgValue}' the action(s) [{string.Join(", ", missingActions)}] on "
-                        + $"{orgValue}/{appValue} in config/authorization/policy.xml by hand - the upgrade could "
-                        + "not insert the rule (see the warning above). The v9 workflow engine persists process "
-                        + "transitions to Storage as the service owner, so the process cannot advance without "
-                        + "them."
-                );
+                _messages.Todo("Grant is still missing and must be added by hand. See warning above.");
             }
         }
 

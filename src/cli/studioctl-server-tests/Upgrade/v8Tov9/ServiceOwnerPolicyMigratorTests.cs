@@ -475,12 +475,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         var result = await MigrateResult(policy);
 
         Assert.Contains(result.Warnings, w => w.Contains("inside a comment", StringComparison.Ordinal));
-        Assert.Contains(
-            result.Todos,
-            t =>
-                t.Contains("Grant the app owner 'ttd'", StringComparison.Ordinal)
-                && t.Contains("[read, write, complete]", StringComparison.Ordinal)
-        );
+        Assert.Contains(result.Todos, t => t.Contains("Grant is still missing", StringComparison.Ordinal));
         Assert.DoesNotContain(result.Warnings, w => w.Contains("Added a policy rule", StringComparison.Ordinal));
         Assert.Equal(policy, PolicyAfter());
     }

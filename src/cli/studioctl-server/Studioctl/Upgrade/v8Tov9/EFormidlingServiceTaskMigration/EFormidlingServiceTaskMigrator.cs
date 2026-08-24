@@ -18,13 +18,6 @@ internal sealed class EFormidlingServiceTaskMigrator
     }
 
     /// <summary>
-    /// The follow-up left behind whenever the migration could not finish: the specifics are in the
-    /// warnings, which say what stopped it and what was left in place.
-    /// </summary>
-    private const string ManualFollowUpTodo =
-        "eFormidling service task migration needs manual follow-up. Review the warnings above.";
-
-    /// <summary>
     /// Runs the migration. The result carries any warnings, plus a to-do when manual follow-up is
     /// required (e.g. a task that could not be migrated left the legacy block in place). No warnings and
     /// no to-dos means a clean migration (or nothing to migrate). Throws if a required file is
@@ -167,7 +160,7 @@ internal sealed class EFormidlingServiceTaskMigrator
             );
         }
 
-        // The only manual follow-up left is if a strip could not
+        // The block was migrated and stripped; the only manual follow-up left is if a strip could
         // be applied safely (unusual formatting, or a result that would not parse).
         return metadataRewriter.ManualActionRequired || settingsRewriter.ManualActionRequired
             ? FollowUp(messages)
@@ -179,7 +172,7 @@ internal sealed class EFormidlingServiceTaskMigrator
     /// </summary>
     private static MigrationResult FollowUp(List<MigrationMessage> messages)
     {
-        messages.Todo(ManualFollowUpTodo);
+        messages.Todo("eFormidling service task migration needs manual follow-up. Review the warnings above.");
         return new MigrationResult(messages);
     }
 
