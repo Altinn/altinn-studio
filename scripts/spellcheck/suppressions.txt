@@ -104,8 +104,9 @@ als
 @paths src/runner-org-sync/** src/AI/agents/**
 ACN
 
-# Azure Kubernetes Service, in infra config and the code that talks to it
-@paths charts/** infra/** src/**
+# Azure Kubernetes Service, in infra config, workflow comments, and the
+# code that talks to it
+@paths charts/** infra/** src/** .github/workflows/**
 AKS
 aks
 
