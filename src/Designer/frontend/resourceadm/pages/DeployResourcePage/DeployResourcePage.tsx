@@ -95,6 +95,9 @@ export const DeployResourcePage = ({
   };
 
   const deprecatedAltinn2Roles = getDeprecatedAltinn2SubjectsFromRules(policyData?.rules || []);
+  const hasAccessListSubject = policyData?.rules.some((rule) =>
+    rule.subject.some((subject) => subject.indexOf('urn:altinn:access-list') > -1),
+  );
 
   /**
    * Gets either error, pending or success for the card type
@@ -274,6 +277,11 @@ export const DeployResourcePage = ({
                   itemType={t('resourceadm.deploy_resource_item')}
                   deprecatedAltinn2Roles={deprecatedAltinn2Roles}
                 />
+              )}
+              {hasAccessListSubject && (
+                <StudioAlert data-color='warning'>
+                  {t('resourceadm.deploy_with_access_list_subject')}
+                </StudioAlert>
               )}
               <StudioParagraph className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
