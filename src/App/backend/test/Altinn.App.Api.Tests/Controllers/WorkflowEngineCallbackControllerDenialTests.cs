@@ -103,9 +103,7 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFi
 
         var snapshot = await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 0);
         Assert.NotNull(snapshot.Activities);
-        var callback = Assert.Single(
-            snapshot.Activities.Where(a => a.Name.EndsWith(".Callback", StringComparison.Ordinal))
-        );
+        var callback = Assert.Single(snapshot.Activities, a => a.Name.EndsWith(".Callback", StringComparison.Ordinal));
         Assert.Contains(
             callback.Tags,
             tag =>
