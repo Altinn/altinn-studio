@@ -10,7 +10,7 @@ import (
 
 const (
 	devImageTagPDF3   = "localtest-pdf3:dev"
-	buildCacheRefPDF3 = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
+	buildCacheRefPDF3 = "ghcr.io/altinn/altinn-studio/localtest-pdf3-dev-cache:buildcache"
 )
 
 func registerPDFComponents(manifest *Manifest, opts *Options) {

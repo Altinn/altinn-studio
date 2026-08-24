@@ -26,7 +26,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     runs-on: self-hosted-ubuntu
     timeout-minutes: 30
-    name: Type-checks, eslint, unit tests and SonarCloud
+    name: Type-checks, eslint and unit tests
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -34,24 +34,14 @@ jobs:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          persist-credentials: false
 
       - name: install node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '22'
-
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - name: install dependencies
         run: yarn --immutable
@@ -76,16 +66,3 @@ jobs:
         run: yarn test --coverage --maxWorkers=4
         env:
           NODE_OPTIONS: --max-old-space-size=4096
-
-      # TODO: consider for removal?
-      # - name: SonarCloud Scan
-      #   if: |
-      #     github.repository_owner == 'Altinn' &&
-      #     (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-      #     (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
-      #   with:
-      #     projectBaseDir: src/App/frontend/
-      #   uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25 # v5.3.1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
