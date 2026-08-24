@@ -18,7 +18,7 @@ export interface AssistantMessageData {
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
   traceId?: string;
-  hasSecurityNotice?: boolean;
+  attachmentInstructionFlagged?: boolean;
 }
 
 /**

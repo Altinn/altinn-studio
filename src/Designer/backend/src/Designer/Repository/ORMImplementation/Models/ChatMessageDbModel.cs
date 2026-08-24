@@ -54,5 +54,5 @@ public class ChatMessageDbModel
     /// <summary>
     /// Set when the assistant reported that an uploaded document tried to instruct it.
     /// </summary>
-    public bool? HasSecurityNotice { get; set; }
+    public bool? AttachmentInstructionFlagged { get; set; }
 }

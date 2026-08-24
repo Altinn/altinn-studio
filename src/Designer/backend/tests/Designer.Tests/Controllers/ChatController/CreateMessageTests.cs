@@ -71,7 +71,7 @@ public class CreateMessageTests : ChatControllerTestsBase<CreateMessageTests>
     }
 
     [Fact]
-    public async Task CreateMessage_PersistsSecurityNoticeFlag()
+    public async Task CreateMessage_PersistsAttachmentInstructionFlag()
     {
         var thread = await SeedThreadAsync();
         var request = new CreateChatMessageRequest(
@@ -81,7 +81,7 @@ public class CreateMessageTests : ChatControllerTestsBase<CreateMessageTests>
             AttachmentFileNames: null,
             FilesChanged: null,
             Sources: null,
-            HasSecurityNotice: true
+            AttachmentInstructionFlagged: true
         );
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MessagesUrl(thread.Id))
         {
@@ -93,12 +93,12 @@ public class CreateMessageTests : ChatControllerTestsBase<CreateMessageTests>
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleAsync(m => m.Id == created.Id);
-        Assert.True(dbRecord.HasSecurityNotice);
-        Assert.True(created.HasSecurityNotice);
+        Assert.True(dbRecord.AttachmentInstructionFlagged);
+        Assert.True(created.AttachmentInstructionFlagged);
     }
 
     [Fact]
-    public async Task CreateMessage_LeavesSecurityNoticeFlagNull_WhenOmitted()
+    public async Task CreateMessage_LeavesAttachmentInstructionFlagNull_WhenOmitted()
     {
         var thread = await SeedThreadAsync();
         var request = new CreateChatMessageRequest(
@@ -119,7 +119,7 @@ public class CreateMessageTests : ChatControllerTestsBase<CreateMessageTests>
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleAsync(m => m.Id == created.Id);
-        Assert.Null(dbRecord.HasSecurityNotice);
+        Assert.Null(dbRecord.AttachmentInstructionFlagged);
     }
 
     [Fact]

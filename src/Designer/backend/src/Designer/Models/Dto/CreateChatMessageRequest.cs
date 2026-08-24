@@ -11,5 +11,5 @@ public record CreateChatMessageRequest(
     List<string>? AttachmentFileNames,
     List<string>? FilesChanged,
     List<ChatSourceEntity>? Sources,
-    bool? HasSecurityNotice = null
+    bool? AttachmentInstructionFlagged = null
 );

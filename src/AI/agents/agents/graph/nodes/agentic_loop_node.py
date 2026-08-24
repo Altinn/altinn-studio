@@ -589,7 +589,7 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
     if security_notice:
         # Only the flag crosses into Designer; attacker-influenced prose is
         # never rendered to the user.
-        message_data["hasSecurityNotice"] = True
+        message_data["attachmentInstructionFlagged"] = True
         log.warning(
             "Prompt injection reported by the model for session %s: %s",
             state.session_id,

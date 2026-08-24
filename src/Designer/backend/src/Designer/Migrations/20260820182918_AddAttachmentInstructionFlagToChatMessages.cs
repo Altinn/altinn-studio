@@ -5,13 +5,13 @@
 namespace Altinn.Studio.Designer.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSecurityNoticeFlagToChatMessages : Migration
+    public partial class AddAttachmentInstructionFlagToChatMessages : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "has_security_notice",
+                name: "attachment_instruction_flagged",
                 schema: "designer",
                 table: "chat_messages",
                 type: "boolean",
@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(name: "has_security_notice", schema: "designer", table: "chat_messages");
+            migrationBuilder.DropColumn(name: "attachment_instruction_flagged", schema: "designer", table: "chat_messages");
         }
     }
 }

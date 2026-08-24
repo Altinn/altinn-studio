@@ -268,9 +268,9 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
 
-                    b.Property<bool?>("HasSecurityNotice")
+                    b.Property<bool?>("AttachmentInstructionFlagged")
                         .HasColumnType("boolean")
-                        .HasColumnName("has_security_notice");
+                        .HasColumnName("attachment_instruction_flagged");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")

@@ -37,6 +37,6 @@ export function mapChatMessageToFrontend(message: ChatMessage) {
     role: MessageAuthor.Assistant as const,
     filesChanged: message.filesChanged,
     sources: message.sources,
-    hasSecurityNotice: message.hasSecurityNotice,
+    attachmentInstructionFlagged: message.attachmentInstructionFlagged,
   };
 }

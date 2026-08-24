@@ -96,7 +96,7 @@ class TestEmittedEvent:
         )
         message = next(e for e in sent if e.type == "assistant_message")
 
-        assert message.data["hasSecurityNotice"] is True
+        assert message.data["attachmentInstructionFlagged"] is True
         assert "SECURITY_NOTICE" not in message.data["content"]
 
     def test_the_notice_text_never_leaves_the_agent(self, monkeypatch):
@@ -111,7 +111,7 @@ class TestEmittedEvent:
         sent = _completion_events(monkeypatch, _SUMMARY)
         message = next(e for e in sent if e.type == "assistant_message")
 
-        assert "hasSecurityNotice" not in message.data
+        assert "attachmentInstructionFlagged" not in message.data
 
     def test_history_records_a_fixed_marker_not_the_notice(self, monkeypatch):
         history: list = []

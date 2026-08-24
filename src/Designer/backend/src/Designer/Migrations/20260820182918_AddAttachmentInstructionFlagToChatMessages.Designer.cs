@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20260820182918_AddSecurityNoticeFlagToChatMessages")]
-    partial class AddSecurityNoticeFlagToChatMessages
+    [Migration("20260820182918_AddAttachmentInstructionFlagToChatMessages")]
+    partial class AddAttachmentInstructionFlagToChatMessages
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -271,9 +271,9 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
 
-                    b.Property<bool?>("HasSecurityNotice")
+                    b.Property<bool?>("AttachmentInstructionFlagged")
                         .HasColumnType("boolean")
-                        .HasColumnName("has_security_notice");
+                        .HasColumnName("attachment_instruction_flagged");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")

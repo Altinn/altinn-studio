@@ -34,6 +34,6 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.Property(e => e.Sources).HasColumnType("jsonb").HasColumnName("sources");
 
-        builder.Property(e => e.HasSecurityNotice).HasColumnType("boolean").HasColumnName("has_security_notice");
+        builder.Property(e => e.AttachmentInstructionFlagged).HasColumnType("boolean").HasColumnName("attachment_instruction_flagged");
     }
 }

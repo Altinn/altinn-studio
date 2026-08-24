@@ -51,7 +51,7 @@ export type AssistantMessage = {
   filesChanged?: string[];
   sources?: Source[];
   traceId?: string;
-  hasSecurityNotice?: boolean;
+  attachmentInstructionFlagged?: boolean;
 };
 
 export type Message = UserMessage | AssistantMessage;

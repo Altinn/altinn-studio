@@ -46,7 +46,9 @@ export function AssistantMessage({
       {criticalFiles.length > 0 && (
         <CriticalFileAlert criticalFiles={criticalFiles} texts={texts.criticalFileAlert} />
       )}
-      {message.hasSecurityNotice && <SecurityNoticeAlert texts={texts.securityNoticeAlert} />}
+      {message.attachmentInstructionFlagged && (
+        <SecurityNoticeAlert texts={texts.securityNoticeAlert} />
+      )}
       {showFeedback && (
         <MessageFeedback
           texts={texts.feedback}

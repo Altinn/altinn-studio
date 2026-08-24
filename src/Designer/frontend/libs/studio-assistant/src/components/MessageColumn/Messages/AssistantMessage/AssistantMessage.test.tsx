@@ -79,7 +79,9 @@ describe('AssistantMessage', () => {
   });
 
   it('renders the security notice alert when the message is flagged', () => {
-    renderAssistantMessage({ message: createAssistantMessage({ hasSecurityNotice: true }) });
+    renderAssistantMessage({
+      message: createAssistantMessage({ attachmentInstructionFlagged: true }),
+    });
 
     expect(
       screen.getByRole('heading', { name: securityNoticeAlertTexts.heading }),
