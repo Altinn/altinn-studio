@@ -18,10 +18,10 @@
             "id": "personlookup",
             "type": "PersonLookup",
             "dataModelBindings": {
-              "person_lookup_ssn": "PersonLookup.Ssn",
-              "person_lookup_name": "PersonLookup.Name",
-              "person_lookup_first_name": "PersonLookup.FirstName",
-              "person_lookup_last_name": "PersonLookup.LastName"
+              "ssn": "PersonLookup.Ssn",
+              "fullName": "PersonLookup.Name",
+              "firstName": "PersonLookup.FirstName",
+              "lastName": "PersonLookup.LastName"
             }
           }
         ]

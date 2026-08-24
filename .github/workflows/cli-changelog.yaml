@@ -36,10 +36,9 @@ jobs:
           persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: ./.github/actions/setup-go-cached
         with:
-          go-version-file: 'src/tools/releaser/go.mod'
-          cache-dependency-path: src/tools/releaser/go.sum
+          module: src/tools/releaser
 
       - name: Validate studioctl changelog entry
         working-directory: src/tools/releaser

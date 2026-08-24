@@ -41,10 +41,24 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     public readonly bool NonRetryable;
 
     /// <summary>
+    /// The failure was Altinn Authorization denying the app while it acted as the service owner,
+    /// which almost always means the app's policy is missing a service-owner grant rather than that
+    /// anything transient happened. Recorded here because only the caught exception can tell, and
+    /// explained where the app and task are known (see <see cref="ServiceOwnerAuthorizationDiagnostics"/>).
+    /// It deliberately does not affect the retry classification.
+    /// </summary>
+    public readonly bool ServiceOwnerAuthorizationDenied;
+
+    /// <summary>
     /// Creates a retryable failure from a caught exception (likely transient — Storage down, HTTP timeout, etc.).
     /// </summary>
     public static FailedProcessEngineCommandResult Retryable(Exception exception) =>
-        new(exception.Message, exception.GetType().Name, nonRetryable: false);
+        new(
+            exception.Message,
+            exception.GetType().Name,
+            nonRetryable: false,
+            serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(exception)
+        );
 
     /// <summary>
     /// Creates a retryable failure from a caught exception (likely transient — Storage down, HTTP timeout, etc.).
@@ -59,10 +73,16 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     public static FailedProcessEngineCommandResult Permanent(string errorMessage, string? exceptionType = null) =>
         new(errorMessage, exceptionType, nonRetryable: true);
 
-    private FailedProcessEngineCommandResult(string errorMessage, string? exceptionType, bool nonRetryable)
+    private FailedProcessEngineCommandResult(
+        string errorMessage,
+        string? exceptionType,
+        bool nonRetryable,
+        bool serviceOwnerAuthorizationDenied = false
+    )
     {
         ErrorMessage = errorMessage;
         ExceptionType = exceptionType ?? "Not specified";
         NonRetryable = nonRetryable;
+        ServiceOwnerAuthorizationDenied = serviceOwnerAuthorizationDenied;
     }
 }

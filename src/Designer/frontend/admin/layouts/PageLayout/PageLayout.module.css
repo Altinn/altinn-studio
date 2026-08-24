@@ -8,7 +8,7 @@
   );
   --left-menu-width: 68px;
 
-  background: var(--fds-semantic-background-default);
+  background: var(--ds-color-neutral-background-default);
   width: 100%;
 }
 
