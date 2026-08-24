@@ -70,4 +70,21 @@ public sealed class CamelCaseLayoutPropertyMigrationTests : IDisposable
         Assert.Equal(0, await CamelCaseLayoutPropertyMigration.Migrate(_app.Root));
         Assert.Equal(before.Item2, _app.Read(before.Item1));
     }
+
+    [Fact]
+    public async Task RewritesEscapedPropertyNameWithoutCorruptingJson()
+    {
+        const string layoutPath = "ui/Task_1/layouts/Page1.json";
+        _app.Write(
+            layoutPath,
+            """{ "data": { "layout": [{ "id": "group", "type": "RepeatingGroup", "textResourceBindings": { "\u0061dd_button": "add" } }] } }"""
+        );
+
+        using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
+        Assert.Equal(0, await CamelCaseLayoutPropertyMigration.Migrate(_app.Root));
+
+        var layout = _app.Read(layoutPath);
+        Assert.Contains("\"addButton\": \"add\"", layout, StringComparison.Ordinal);
+        using var _ = System.Text.Json.JsonDocument.Parse(layout);
+    }
 }

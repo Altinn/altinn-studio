@@ -200,7 +200,7 @@ internal static class CamelCaseLayoutPropertyMigration
                     replacements.Add(
                         new PropertyReplacement(
                             checked((int)reader.TokenStartIndex),
-                            Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(propertyName)),
+                            checked(reader.ValueSpan.Length + 2),
                             newName
                         )
                     );
