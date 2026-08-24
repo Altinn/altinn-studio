@@ -258,7 +258,7 @@
           "group": "root.arbeidserfaring"
         },
         "textResourceBindings": {
-          "add_button": "arbeidserfaring.add_button"
+          "addButton": "arbeidserfaring.add_button"
         }
       },
       {
@@ -391,7 +391,7 @@
           "group": "root.arbeidserfaring.prosjekter"
         },
         "textResourceBindings": {
-          "add_button": "tsnLc5YNPHLJ"
+          "addButton": "tsnLc5YNPHLJ"
         }
       },
       {
