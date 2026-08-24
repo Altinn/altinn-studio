@@ -31,30 +31,53 @@ public sealed class CamelCaseLayoutPropertyMigrationTests : IDisposable
         Assert.Equal(0, await CamelCaseLayoutPropertyMigration.Migrate(_app.Root));
 
         var layout = _app.Read("ui/Task_1/layouts/Page1.json");
-        foreach (
-            var property in new[]
-            {
-                "orgnr",
-                "name",
-                "ssn",
-                "fullName",
-                "firstName",
-                "middleName",
-                "lastName",
-                "addButtonFull",
-                "addButton",
-                "saveButton",
-                "saveAndNextButton",
-                "editButtonClose",
-                "editButtonOpen",
-                "paginationNextButton",
-                "paginationBackButton",
-                "multipageNextButton",
-                "multipageBackButton",
-            }
-        )
-            Assert.Contains($"\"{property}\"", layout, StringComparison.Ordinal);
-        using var _ = System.Text.Json.JsonDocument.Parse(layout);
+        var legacyProperties = new[]
+        {
+            "organization_lookup_orgnr",
+            "organization_lookup_name",
+            "person_lookup_ssn",
+            "person_lookup_name",
+            "person_lookup_first_name",
+            "person_lookup_middle_name",
+            "person_lookup_last_name",
+            "add_button_full",
+            "add_button",
+            "save_button",
+            "save_and_next_button",
+            "edit_button_close",
+            "edit_button_open",
+            "pagination_next_button",
+            "pagination_back_button",
+            "multipage_next_button",
+            "multipage_back_button",
+        };
+        foreach (var property in legacyProperties)
+            Assert.DoesNotContain($"\"{property}\"", layout, StringComparison.Ordinal);
+
+        using var document = System.Text.Json.JsonDocument.Parse(layout);
+        var components = document.RootElement.GetProperty("data").GetProperty("layout");
+        AssertBindings(components[0].GetProperty("dataModelBindings"), ("orgnr", "org"), ("name", "name"));
+        AssertBindings(
+            components[1].GetProperty("dataModelBindings"),
+            ("ssn", "ssn"),
+            ("fullName", "name"),
+            ("firstName", "first"),
+            ("middleName", "middle"),
+            ("lastName", "last")
+        );
+        AssertBindings(
+            components[2].GetProperty("textResourceBindings"),
+            ("addButtonFull", "addFull"),
+            ("addButton", "add"),
+            ("saveButton", "save"),
+            ("saveAndNextButton", "next"),
+            ("editButtonClose", "close"),
+            ("editButtonOpen", "open"),
+            ("paginationNextButton", "pageNext"),
+            ("paginationBackButton", "pageBack"),
+            ("multipageNextButton", "multiNext"),
+            ("multipageBackButton", "multiBack")
+        );
     }
 
     [Fact]
@@ -84,7 +107,21 @@ public sealed class CamelCaseLayoutPropertyMigrationTests : IDisposable
         Assert.Equal(0, await CamelCaseLayoutPropertyMigration.Migrate(_app.Root));
 
         var layout = _app.Read(layoutPath);
-        Assert.Contains("\"addButton\": \"add\"", layout, StringComparison.Ordinal);
-        using var _ = System.Text.Json.JsonDocument.Parse(layout);
+        using var document = System.Text.Json.JsonDocument.Parse(layout);
+        var bindings = document
+            .RootElement.GetProperty("data")
+            .GetProperty("layout")[0]
+            .GetProperty("textResourceBindings");
+        Assert.False(bindings.TryGetProperty("add_button", out _));
+        AssertBindings(bindings, ("addButton", "add"));
+    }
+
+    private static void AssertBindings(
+        System.Text.Json.JsonElement bindings,
+        params (string Property, string Value)[] expected
+    )
+    {
+        foreach (var (property, value) in expected)
+            Assert.Equal(value, bindings.GetProperty(property).GetString());
     }
 }
