@@ -32,6 +32,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
@@ -54,6 +56,8 @@ jobs:
           SHA="${GITHUB_SHA::10}"
           IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
           docker build --platform linux/amd64,linux/arm64 src \
+            --cache-from "type=registry,ref=${IMAGE_BASE}:buildcache" \
+            --cache-to "type=registry,ref=${IMAGE_BASE}:buildcache,mode=max" \
             -f src/Runtime/kubernetes-wrapper/src/Dockerfile \
             -t "${IMAGE_BASE}:${SHA}"
 
@@ -76,6 +80,8 @@ jobs:
       config-repo: ${{ steps.vars.outputs.config-repo }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set vars
         id: vars
