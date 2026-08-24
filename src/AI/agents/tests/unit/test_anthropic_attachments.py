@@ -216,5 +216,5 @@ class TestHostileFilename:
 
         message = client._build_human_message("Extract fields", [att])
 
-        file_block = [b for b in message.content if b.get("type") == "file"][0]["file"]
+        file_block = next(b for b in message.content if b.get("type") == "file")["file"]
         assert file_block["file_data"].endswith(b64encode(payload).decode("ascii"))
