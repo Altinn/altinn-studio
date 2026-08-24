@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- New build-time check `ALTINNAPP0800`: your app's `config/authorization/policy.xml` must grant the app owner (your org) the rights the app uses on its own behalf, since it writes process transitions and instance data to Storage as the service owner rather than as the end user. A policy missing them now fails the build and names the actions to add, instead of surfacing as an unexplained authorization failure at runtime; `studioctl app upgrade` adds them for you. Where the policy cannot be evaluated with certainty you get the warning `ALTINNAPP0801` instead.
+
 ### Changed
 
 - When Altinn Authorization denies the app while it is acting as the service owner, the app now logs what that means instead of only the bare `403`: which app owner was denied, that the rights belong to the org rather than the end user, that `config/authorization/policy.xml` is where to fix it, and which action the current task needs. The process-callback span also carries the attribute `authorization.service_owner.denied` in that case, so this failure can be separated from a transient platform failure in monitoring — it needs a policy change for every instance of the app, not a redrive. Nothing else about the failure changes — it is retried and reported exactly as before.
