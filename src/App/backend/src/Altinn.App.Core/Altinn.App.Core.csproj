@@ -48,11 +48,6 @@
 
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="Altinn.App.Api.Tests" />
-    <!--
-      The analyzer tests assert that the app owner actions ALTINNAPP0800 requires stay in sync with
-      ProcessEngineAuthorizer's task-type mapping. The analyzer itself targets netstandard2.0 and
-      cannot reference this assembly, so the pinning lives in its (net10.0) test project.
-    -->
     <InternalsVisibleTo Include="Altinn.App.Analyzers.Tests" />
     <InternalsVisibleTo Include="Altinn.App.SourceGenerator.Integration.Tests" />
     <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
