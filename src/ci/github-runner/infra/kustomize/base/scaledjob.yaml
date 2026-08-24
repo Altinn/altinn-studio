@@ -1,0 +1,194 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: github-runners
+  labels:
+    app.kubernetes.io/name: github-runner
+    app.kubernetes.io/component: runner
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest
+    altinn.studio/image-tag: latest
+    altinn.studio/runner-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
+    altinn.studio/runner-image-tag: latest
+    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest
+    altinn.studio/prepared-image-tag: latest
+spec:
+  maxReplicaCount: 64
+  minReplicaCount: 0
+  pollingInterval: 30
+  rollout:
+    strategy: gradual
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTargetRef:
+    parallelism: 1
+    completions: 1
+    backoffLimit: 0
+    ttlSecondsAfterFinished: 300
+    activeDeadlineSeconds: 7200
+    template:
+      metadata:
+        annotations:
+          cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+        labels:
+          app.kubernetes.io/name: github-runner
+          app.kubernetes.io/component: runner
+      spec:
+        automountServiceAccountToken: false
+        restartPolicy: Never
+        terminationGracePeriodSeconds: 120
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+          seccompProfile:
+            type: RuntimeDefault
+        initContainers:
+          - name: prepare-image
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-prepared:latest
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+            env:
+              - name: SANDBOX_PROVIDER_HOME
+                value: /tmp/sandbox-provider
+              - name: SANDBOX_CACHE_HOME
+                value: /var/cache/altinn/sandbox
+              - name: PREPARED_IMAGE_DIRECTORY
+                value: /opt/altinn/prepared-image
+              - name: SANDBOX_IMAGE
+                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
+            resources:
+              requests:
+                cpu: "4"
+                memory: 2Gi
+              limits:
+                memory: 2Gi
+            volumeMounts:
+              - name: provider-cache
+                mountPath: /var/cache/altinn/sandbox
+              - name: tmp
+                mountPath: /tmp
+        containers:
+          - name: coordinator
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+            env:
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: POD_UID
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.uid
+              - name: SANDBOX_PROVIDER_HOME
+                value: /var/lib/altinn/sandbox-provider
+              - name: SANDBOX_CACHE_HOME
+                value: /var/cache/altinn/sandbox
+              - name: SANDBOX_IMAGE
+                value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
+              - name: SANDBOX_CPUS
+                value: "4"
+              - name: SANDBOX_MEMORY
+                value: 16Gi
+              - name: SANDBOX_ROOT_FILESYSTEM
+                value: 100Gi
+              - name: GITHUB_API_URL
+                value: https://api.github.com
+              - name: GITHUB_SERVER_URL
+                value: https://github.com
+              - name: GITHUB_OWNER
+                value: Altinn
+              - name: GITHUB_REPOSITORY_NAME
+                value: altinn-studio
+              - name: RUNNER_SCOPE
+                value: repo
+              - name: RUNNER_LABELS
+                value: self-hosted-ubuntu
+              - name: RUNNER_GROUP
+                value: Default
+              - name: RUNNER_WORKDIR
+                value: /home/runner/_work
+              - name: RUNNER_CLAIM_TIMEOUT_SECONDS
+                value: "600"
+              - name: APP_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: appId
+              - name: APP_INSTALLATION_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: installationId
+              - name: APP_PRIVATE_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: appPrivateKey
+            resources:
+              requests:
+                cpu: "5"
+                memory: 17Gi
+                ephemeral-storage: 2Gi
+                devices.altinn.studio/kvm: "1"
+              limits:
+                memory: 18Gi
+                ephemeral-storage: 4Gi
+                devices.altinn.studio/kvm: "1"
+            volumeMounts:
+              - name: provider-home
+                mountPath: /var/lib/altinn/sandbox-provider
+                subPathExpr: $(POD_UID)
+              - name: provider-cache
+                mountPath: /var/cache/altinn/sandbox
+              - name: tmp
+                mountPath: /tmp
+        volumes:
+          - name: provider-home
+            hostPath:
+              path: /var/lib/altinn/sandbox/homes
+              type: Directory
+          - name: provider-cache
+            hostPath:
+              path: /var/lib/altinn/sandbox/cache
+              type: Directory
+          - name: tmp
+            emptyDir:
+              sizeLimit: 1Gi
+        nodeSelector:
+          purpose: sandbox
+          kubernetes.io/arch: amd64
+        tolerations:
+          - key: purpose
+            operator: Equal
+            value: sandbox
+            effect: NoSchedule
+  triggers:
+    - type: github-runner
+      metadata:
+        githubApiURL: https://api.github.com
+        owner: Altinn
+        runnerScope: repo
+        repos: altinn-studio
+        labels: self-hosted-ubuntu
+        noDefaultLabels: "true"
+        enableEtags: "false"
+        applicationIDFromEnv: APP_ID
+        installationIDFromEnv: APP_INSTALLATION_ID
+        targetWorkflowQueueLength: "1"
+      authenticationRef:
+        name: github-runner-auth

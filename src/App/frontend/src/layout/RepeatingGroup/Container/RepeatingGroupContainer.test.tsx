@@ -153,7 +153,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          add_button: 'person',
+          addButton: 'person',
         },
         ...mockContainer,
       },
@@ -396,7 +396,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          edit_button_open: 'button.open',
+          editButtonOpen: 'button.open',
         },
       },
       numRows: 4,
@@ -410,7 +410,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          edit_button_close: 'button.close',
+          editButtonClose: 'button.close',
         },
       },
       numRows: 4,
@@ -457,7 +457,7 @@ describe('RepeatingGroupContainer', () => {
     await render({
       container: {
         textResourceBindings: {
-          save_button: 'button.save',
+          saveButton: 'button.save',
         },
       },
     });

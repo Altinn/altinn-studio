@@ -52,15 +52,4 @@ Use Tokio's `LocalRuntime` for asynchronous work. Keep control-plane state singl
 
 ## Development
 
-```sh
-make build
-make fmt
-make lint
-make test
-make check
-make check-platforms
-```
-
-`make check` runs formatting checks, strict Clippy analysis, builds, and tests for the Rust workspace.
-`make check-platforms` runs Clippy over the portable crates' Windows and macOS code after their Rust
-standard-library targets are installed. Concrete Backends still require the documented native test matrix.
+Run `make help` in this directory to list the available development targets.

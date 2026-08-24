@@ -18,7 +18,7 @@
             "id": "organizationlookup",
             "type": "OrganizationLookup",
             "dataModelBindings": {
-              "organization_lookup_orgnr": "OrganizationLookup.OrgNr"
+              "orgnr": "OrganizationLookup.OrgNr"
             }
           }
         ]

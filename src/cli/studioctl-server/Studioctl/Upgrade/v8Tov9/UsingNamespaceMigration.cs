@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,16 +8,16 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 internal sealed class UsingNamespaceMigration
 {
-    private readonly string _projectFile;
+    private readonly CSharpSourceScanner _scanner;
 
-    public UsingNamespaceMigration(string projectFile)
+    public UsingNamespaceMigration(CSharpSourceScanner scanner)
     {
-        _projectFile = projectFile;
+        _scanner = scanner;
     }
 
     public bool Migrate(string oldNamespace, string newNamespace, Regex pathMatcher)
     {
-        var csharpFiles = GetMatchingCSharpFiles(pathMatcher).ToArray();
+        var csharpFiles = _scanner.Files.Where(file => pathMatcher.IsMatch(file.RelativePath)).ToArray();
         if (csharpFiles.Length == 0)
         {
             UpgradeConsole.Skip($"No C# files matched {pathMatcher}");
@@ -37,33 +38,9 @@ internal sealed class UsingNamespaceMigration
         return migratedAnyFile;
     }
 
-    private IEnumerable<string> GetMatchingCSharpFiles(Regex pathMatcher)
+    private bool MigrateFile(ScannedCSharpFile csharpFile, string oldNamespace, string newNamespace)
     {
-        var projectDirectory = Path.GetDirectoryName(_projectFile);
-        if (projectDirectory is null || !Directory.Exists(projectDirectory))
-        {
-            yield break;
-        }
-
-        foreach (var csharpFile in Directory.EnumerateFiles(projectDirectory, "*.cs", SearchOption.AllDirectories))
-        {
-            var relativePath = Path.GetRelativePath(projectDirectory, csharpFile);
-            if (BuildOutputPaths.IsBuildOutput(relativePath))
-            {
-                continue;
-            }
-
-            if (pathMatcher.IsMatch(relativePath))
-            {
-                yield return csharpFile;
-            }
-        }
-    }
-
-    private static bool MigrateFile(string csharpFile, string oldNamespace, string newNamespace)
-    {
-        var content = File.ReadAllText(csharpFile);
-        var root = CSharpSyntaxTree.ParseText(content).GetCompilationUnitRoot();
+        var root = csharpFile.Root;
         var oldUsings = root.DescendantNodes().OfType<UsingDirectiveSyntax>().Where(IsOldUsing).ToArray();
         if (oldUsings.Length == 0)
         {
@@ -78,8 +55,8 @@ internal sealed class UsingNamespaceMigration
             .ToHashSet();
         var updatedRoot = UpdateUsings(root, oldUsings, newNamespace, scopesWithNewUsing);
 
-        File.WriteAllText(csharpFile, updatedRoot.ToFullString());
-        UpgradeConsole.Ok($"Namespace migrated in {csharpFile}: {oldNamespace} -> {newNamespace}");
+        _scanner.Update(csharpFile, updatedRoot);
+        UpgradeConsole.Ok($"Namespace migrated in {csharpFile.Path}: {oldNamespace} -> {newNamespace}");
         return true;
 
         bool IsOldUsing(UsingDirectiveSyntax usingDirective) =>

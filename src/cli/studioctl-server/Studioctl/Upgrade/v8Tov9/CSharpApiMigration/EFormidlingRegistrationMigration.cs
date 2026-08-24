@@ -53,7 +53,8 @@ internal sealed class EFormidlingRegistrationMigration
                 .Any(t => t.Identifier.Text == DefaultReceiversTypeName)
         );
 
-        foreach (var file in _scanner.Files)
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        foreach (var file in _scanner.Files.ToArray())
         {
             var rewrites = new Dictionary<InvocationExpressionSyntax, string>();
 
@@ -138,7 +139,7 @@ internal sealed class EFormidlingRegistrationMigration
                 rewrites.Keys,
                 (original, _) => SyntaxFactory.ParseExpression(rewrites[original]).WithTriviaFrom(original)
             );
-            File.WriteAllText(file.Path, updatedRoot.ToFullString());
+            _scanner.Update(file, updatedRoot);
         }
 
         return new MigrationResult(manualActionRequired, warnings);
