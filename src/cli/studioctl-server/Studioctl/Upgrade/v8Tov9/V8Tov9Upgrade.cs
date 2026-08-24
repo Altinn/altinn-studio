@@ -148,10 +148,16 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCamelCaseLayoutProperties(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
@@ -566,6 +572,19 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateCamelCaseLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("CamelCase layout properties");
+        try
+        {
+            return await CamelCaseLayoutPropertyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating camelCase layout properties", ex);
+        }
+    }
+
     static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
     {
         UpgradeConsole.BeginStep("Datepicker timeStamp");
@@ -601,6 +620,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Header components to Heading", ex);
+        }
+    }
+
+    static async Task<int> MigrateFileUploadWithTagLayouts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("FileUploadWithTag components");
+        try
+        {
+            return await FileUploadWithTagLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
         }
     }
 

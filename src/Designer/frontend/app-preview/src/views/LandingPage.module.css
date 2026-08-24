@@ -7,7 +7,7 @@
 .iframeContainer {
   display: flex;
   justify-content: center;
-  background-color: var(--fds-semantic-surface-neutral-dark);
+  background-color: var(--ds-color-neutral-border-default);
   flex: 1;
 }
 
@@ -21,6 +21,6 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - var(--header-height));
-  gap: var(--fds-spacing-4);
-  margin-inline: var(--fds-spacing-18);
+  gap: var(--ds-size-4);
+  margin-inline: var(--ds-size-18);
 }

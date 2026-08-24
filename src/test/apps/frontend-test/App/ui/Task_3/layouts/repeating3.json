@@ -73,7 +73,7 @@
         },
         "textResourceBindings": {
           "title": "Pets.Title",
-          "add_button_full": "Pets.AddButton"
+          "addButtonFull": "Pets.AddButton"
         },
         "edit": {
           "saveAndNextButton": true
@@ -188,7 +188,7 @@
         },
         "textResourceBindings": {
           "title": "Pets.Title",
-          "add_button_full": "Pets.AddButton"
+          "addButtonFull": "Pets.AddButton"
         },
         "edit": {
           "saveAndNextButton": true
