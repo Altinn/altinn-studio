@@ -27,6 +27,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { UrlConstants } from '../../utils/urlUtils';
 import { getDeprecatedAltinn2SubjectsFromRules } from 'app-shared/utils/altinn2RoleUtils';
 import { Altinn2RoleWarning } from 'app-shared/components/Altinn2RoleWarning/Altinn2RoleWarning';
+import { ACCESS_LIST_SUBJECT_SOURCE } from '@altinn/policy-editor/constants';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -96,7 +97,7 @@ export const DeployResourcePage = ({
 
   const deprecatedAltinn2Roles = getDeprecatedAltinn2SubjectsFromRules(policyData?.rules || []);
   const hasAccessListSubject = policyData?.rules.some((rule) =>
-    rule.subject.some((subject) => subject.indexOf('urn:altinn:access-list') > -1),
+    rule.subject.some((subject) => subject.startsWith(ACCESS_LIST_SUBJECT_SOURCE)),
   );
 
   /**
