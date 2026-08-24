@@ -5496,6 +5496,9 @@ __metadata:
   resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
   dependencies:
     "@chromatic-com/storybook": "npm:^5.0.1"
+    "@digdir/design-system-tokens": "npm:0.13.0"
+    "@digdir/designsystemet-css": "npm:0.10.0"
+    "@digdir/designsystemet-react": "npm:0.63.1"
     "@storybook/addon-docs": "npm:10.5.7"
     "@storybook/addon-links": "npm:10.5.7"
     "@storybook/builder-vite": "npm:10.5.7"
@@ -7603,6 +7606,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
+    "@digdir/designsystemet-css": "npm:0.10.0"
+    "@digdir/designsystemet-theme": "npm:0.15.3"
     "@studio/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     "@types/react": "npm:19.2.18"
@@ -18729,10 +18734,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "studio-designer-frontend@workspace:src/Designer/frontend"
   dependencies:
-    "@digdir/design-system-tokens": "npm:0.13.0"
-    "@digdir/designsystemet-css": "npm:0.10.0"
-    "@digdir/designsystemet-react": "npm:0.63.1"
-    "@digdir/designsystemet-theme": "npm:0.15.3"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/eslintrc": "npm:3.3.6"
     "@microsoft/applicationinsights-react-js": "npm:17.3.6"

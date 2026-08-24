@@ -136,7 +136,7 @@ public sealed class HostRouteProxy
 
     private static void ApplyForwardedHeaders(HttpContext context, HttpRequestMessage request)
     {
-        SetRequestHeader(request, "X-Forwarded-Host", context.Request.Host.Value);
+        SetRequestHeader(request, "X-Forwarded-Host", context.Request.Host.ToUriComponent());
         SetRequestHeader(request, "X-Forwarded-Proto", context.Request.Scheme);
         SetForwardedForHeader(request, context.Connection.RemoteIpAddress?.ToString());
 

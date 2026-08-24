@@ -154,8 +154,10 @@ describe('TextEditor', () => {
     const textEntries = screen.getAllByRole('textbox');
     expect(textEntries[0]).toHaveValue(textValue1);
 
-    const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
-    await user.click(sortAlphabeticallyButton);
+    const sortAlphabeticallyChip = screen.getByRole('checkbox', {
+      name: textMock('text_editor.sort_alphabetically'),
+    });
+    await user.click(sortAlphabeticallyChip);
 
     const sortedTranslations = screen.getAllByRole('textbox');
     expect(sortedTranslations[0]).toHaveValue(textValue2);
