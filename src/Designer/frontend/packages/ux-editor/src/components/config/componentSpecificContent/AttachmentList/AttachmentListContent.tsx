@@ -1,5 +1,4 @@
-import { Checkbox } from '@digdir/designsystemet-react';
-import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioCheckbox, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type IAttachmentListContent = {
@@ -20,17 +19,23 @@ export const AttachmentListContent = ({
   const handleSelectedChange = (items: StudioSuggestionItem[]): void =>
     onChange(items.map((item) => item.value));
 
+  const setSelectAllCheckboxRef = (checkbox: HTMLInputElement | null): void => {
+    if (checkbox) {
+      checkbox.indeterminate = checkboxInIndeterminateState;
+    }
+  };
+
   return (
     <>
-      <Checkbox
-        size='small'
+      <StudioCheckbox
+        ref={setSelectAllCheckboxRef}
+        data-size='sm'
         checked={selectedDataTypes.length === currentAvailableAttachments.length}
-        indeterminate={checkboxInIndeterminateState}
+        aria-checked={checkboxInIndeterminateState ? 'mixed' : undefined}
         value={t('ux_editor.component_properties.select_all_attachments')}
+        label={t('ux_editor.component_properties.select_all_attachments')}
         onChange={(e) => onChange(e.target.checked ? currentAvailableAttachments : [])}
-      >
-        {t('ux_editor.component_properties.select_all_attachments')}
-      </Checkbox>
+      />
       <StudioSuggestion
         multiple
         label={t('ux_editor.component_properties.select_attachments')}

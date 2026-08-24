@@ -3,8 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components';
+import { StudioCheckbox, StudioFieldset, StudioHeading } from '@studio/components';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
@@ -49,20 +48,19 @@ export const RightMenu = ({
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.rightMenuVerticalContent}>
-        <Fieldset legend={t('schema_editor.active_languages')}>
+        <StudioFieldset legend={t('schema_editor.active_languages')}>
           <div className={classes.rightMenuRadioGroup}>
             {availableLanguages?.map((langCode) => {
               return (
                 <div key={langCode}>
                   <div className={classes.rightMenuRadio}>
-                    <Checkbox
+                    <StudioCheckbox
                       value={getLangName({ code: langCode })}
                       name={langCode}
                       onChange={handleSelectChange}
                       checked={selectedLanguages.includes(langCode)}
-                    >
-                      {getLangName({ code: langCode })}
-                    </Checkbox>
+                      label={getLangName({ code: langCode })}
+                    />
                     <AltinnConfirmDialog
                       open={langCode === langCodeToDelete}
                       confirmText={t('schema_editor.language_confirm_deletion')}
@@ -88,7 +86,7 @@ export const RightMenu = ({
               );
             })}
           </div>
-        </Fieldset>
+        </StudioFieldset>
       </div>
       <LangSelector onAddLang={addLanguage} options={addLangOptions} />
     </aside>

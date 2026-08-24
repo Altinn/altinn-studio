@@ -1,4 +1,3 @@
-import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -6,7 +5,7 @@ import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/comp
 import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
-import { StudioSwitch } from '@studio/components';
+import { StudioFieldset, StudioSwitch } from '@studio/components';
 
 export const AddressComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -19,7 +18,7 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
   };
 
   return (
-    <Fieldset
+    <StudioFieldset
       className={classes.container}
       legend={t('ux_editor.address_component.settings')}
       hideLegend
@@ -59,6 +58,6 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
           />
         );
       })}
-    </Fieldset>
+    </StudioFieldset>
   );
 };

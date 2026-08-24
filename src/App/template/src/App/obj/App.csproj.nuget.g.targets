@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)system.text.json/10.0.3/buildTransitive/net8.0/System.Text.Json.targets" Condition="Exists('$(NuGetPackageRoot)system.text.json/10.0.3/buildTransitive/net8.0/System.Text.Json.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.extensions.logging.abstractions/10.0.8/buildTransitive/net8.0/Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.extensions.logging.abstractions/10.0.8/buildTransitive/net8.0/Microsoft.Extensions.Logging.Abstractions.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.extensions.options/10.0.8/buildTransitive/net8.0/Microsoft.Extensions.Options.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.extensions.options/10.0.8/buildTransitive/net8.0/Microsoft.Extensions.Options.targets')" />
+    <Import Project="$(NuGetPackageRoot)system.clientmodel/1.12.0/buildTransitive/net8.0/System.ClientModel.targets" Condition="Exists('$(NuGetPackageRoot)system.clientmodel/1.12.0/buildTransitive/net8.0/System.ClientModel.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.extensions.configuration.binder/8.0.2/buildTransitive/netstandard2.0/Microsoft.Extensions.Configuration.Binder.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.extensions.configuration.binder/8.0.2/buildTransitive/netstandard2.0/Microsoft.Extensions.Configuration.Binder.targets')" />
+    <Import Project="$(NuGetPackageRoot)csharpier.msbuild/1.3.0/buildTransitive/CSharpier.MsBuild.targets" Condition="Exists('$(NuGetPackageRoot)csharpier.msbuild/1.3.0/buildTransitive/CSharpier.MsBuild.targets')" />
+    <Import Project="$(NuGetPackageRoot)azure.core/1.56.0/buildTransitive/net8.0/Azure.Core.targets" Condition="Exists('$(NuGetPackageRoot)azure.core/1.56.0/buildTransitive/net8.0/Azure.Core.targets')" />
+    <Import Project="$(NuGetPackageRoot)azure.security.keyvault.secrets/4.10.0/buildTransitive/net8.0/Azure.Security.KeyVault.Secrets.targets" Condition="Exists('$(NuGetPackageRoot)azure.security.keyvault.secrets/4.10.0/buildTransitive/net8.0/Azure.Security.KeyVault.Secrets.targets')" />
+  </ImportGroup>
+</Project>

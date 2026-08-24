@@ -25,6 +25,10 @@ Important considerations:
 - Agents should be able to use standard development tools, including Docker or Podman, `strace` and `perf` inside a
   Linux Sandbox
 
+## Development
+
+See the [`Makefile`](Makefile) for available development commands.
+
 ## High-level Architecture
 
 - Client-server-operator model
@@ -51,7 +55,7 @@ Host
 Sandbox
 └── Agent Runtime
     ├── sessiond       Session, harness and plugin runtime
-    └── sessionctl     Local Agent Runtime CLI
+    └── sessionctl     Local Agent Runtime CLI (agent.spawn, session.spawn)
 ```
 
 `agentctl` may also be installed inside a Sandbox as an authorized client of the host `agentd`; it remains separate
@@ -91,6 +95,21 @@ Runner Coordinator
 A future Operator schedules Sandboxes across Nodes. It sits above the generic Sandbox layer and does not change the
 ownership model inside a Sandbox.
 
+**Scenarios**:
+
+Github trigger:
+- Altinn Studio dev, e.g. @martinothamar:
+  1. > @altinn-studio-agent get an agent to work on this issue, the session should use Fable 5 with high reasoning
+    - Control plane detects which user is prompting
+    - @martinothamar is registered in the global control plane, and has logged in with Claude session (OAuth flow in the platform)
+    - Control plane spins up a special orchestrator agent in a sandbox (using @martinothamar access/membership), which is tasked to consutrct
+      - `spawn.agent` call
+      - `spawn.session` call (specs from prompt, Fable 5 with High)
+      - prompt for the agent based on input
+    - Control plane provisions agent according to requests, including session and `initialPrompt`
+    - Agent subsequently calls back to the issue (according to instructions?)
+
+
 ### Tech stack and features
 
 - Languages:
@@ -104,6 +123,8 @@ ownership model inside a Sandbox.
   versioned control-protocol endpoints
 - SDKs to manage sandboxes and agents
 - OCI images built from user-supplied Dockerfiles or resolved from registry references
+- Provider-neutral prepared-image operations for transporting pristine, pre-materialized derivatives of OCI
+  images; formats remain opaque, Provider-owned and usable only with compatible Sandbox Providers
 
 #### Initial deliverable
 
@@ -129,13 +150,26 @@ This working plan will be removed when the initial Agent deliverable is complete
     authorization and secret-store implementations
   - Reconcile applied Agents into retained Sandboxes, adopt them after `agentd` restarts and report useful status
   - Keep the Agent manifest declarative while keeping Sessions imperative
+  - Prefer to keep management and control plane logic in `agentd` as opposed to `sessiond`, consider whether `sessiond` is needed (what needs in-sandbox automation?).
+    The idea is that agent sessions may use and mutate the in-sandbox environment as much as they want. There is also some "host exposure" depending on devices exposed
+    through libkrun and our infrastructure.
+  - All logic that is harness-specific should exist in and be contained by harness-specific adapters. It should be simple to add support for another harness
 - Implement persistent, harness-neutral Sessions in the Agent Runtime
   - Use this public data model; the control plane assigns the UUID, and `CreateSession.workingDirectory` defaults to
     `$HOME/code` while the resulting `Session.workingDirectory` is always the resolved absolute Sandbox path:
 
     ```text
+    HarnessInstallationId {
+      Claude,
+      Codex
+    }
+
     CreateSession {
+      agentId: AgentId
       initialPrompt: String
+      modelId: String
+      reasoningEffort: String
+      accessMode: String
       harnessInstallation: HarnessInstallationId
       workingDirectory?: SandboxPath,
       plugins: SessionPlugin[]
@@ -143,7 +177,11 @@ This working plan will be removed when the initial Agent deliverable is complete
 
     Session {
       id: SessionId (UUID)
+      agentId: AgentId
       initialPrompt: String
+      modelId: String
+      reasoningEffort: String
+      accessMode: String
       harnessInstallation: HarnessInstallationId
       workingDirectory: SandboxPath
       state: Starting | Running { activity: SessionActivity } | Stopped | Failed

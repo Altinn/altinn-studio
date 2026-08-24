@@ -65,6 +65,10 @@ app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
 Early agent-platform architecture with a reusable sandbox SDK and a separate agent automation layer.
 
+### Continuous integration — [`src/ci`](src/ci/AGENTS.md)
+
+Runner images and cluster integration used to execute GitHub and Gitea CI workloads.
+
 ### Shared code
 
 | Area                                                 | What it is                                                                                                                             |
@@ -76,20 +80,19 @@ Early agent-platform architecture with a reusable sandbox SDK and a separate age
 
 `K6` load/performance scripts and `apps` (sample Altinn apps used as E2E/frontend test targets).
 
-### Infrastructure (Docker/ops, no per-folder AGENTS.md)
+### Infrastructure (Docker/ops)
 
 Small build/ops images and configs, documented here rather than individually:
 
 - `gitea` — custom image for the self-hosted Gitea (Studio's "Repositories" Git server).
 - `gitea-proxy` — nginx+njs proxy restricting Gitea API-key/basic-auth to git + REST API only.
-- `gitea-runner` — Gitea Actions CI runner image (also runs Renovate jobs).
-- `github-runner` — self-hosted GitHub Actions runner image preloaded with Studio's toolchains.
-- `runner-org-sync` — Go CronJob syncing the Altinn org list into per-org Gitea runners (KEDA scaling).
 - `lhci-server` — Lighthouse CI server (Node + Postgres) tracking frontend performance.
 - `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
 
 Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
-`scripts/`, and root Docker/compose files for the Designer dev stack (see `README.md`).
+`scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
+architecture and its cross-repo couplings), and root Docker/compose files for the Designer dev
+stack (see `README.md`).
 
 ## Conventions across the repo
 
