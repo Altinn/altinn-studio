@@ -50,10 +50,11 @@ extend-exclude = [
 
     # The spell-check harness itself: fixtures with deliberately planted
     # errors (the self-test copies them elsewhere and checks them with THIS
-    # config), the Norwegian glossaries, and the suppression registry — which
-    # necessarily quotes the misspellings it governs.
+    # config), the Norwegian glossaries, and the suppression and
+    # key-declaration registries — which necessarily quote the misspellings
+    # and contract spellings they govern.
     "scripts/spellcheck/selftest/**", "scripts/spellcheck/glossary.*.txt",
-    "scripts/spellcheck/suppressions.txt",
+    "scripts/spellcheck/suppressions.txt", "scripts/spellcheck/keys.txt",
 
     # The registered language files (see scripts/spellcheck/registry.mjs).
     # Their values are Norwegian or British and are checked by the runner;

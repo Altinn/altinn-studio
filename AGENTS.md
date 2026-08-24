@@ -141,7 +141,14 @@ Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (AD
   identifiers, formats — go in `glossary.shared.txt`, which both languages accept. A glossary
   entry that no longer rescues any flagged word is reported as stale. If an English spelling
   genuinely cannot change
-  (a wire contract, someone else's API), add a scoped entry to `suppressions.txt`. Note that
+  (a wire contract, someone else's API), add a scoped entry to `suppressions.txt`. Deliberate
+  facts about a specific translation **entry** are declared per key in
+  `scripts/spellcheck/keys.txt`: `@empty` (the value is intentionally blank), `@key-contract`
+  (the key's spelling is a code contract — an ISO code, a name keyed by a wire value — while its
+  value stays checked), and `@language nb|nn` (the value is deliberately in the other Norwegian
+  language and is checked with **that** language's dictionary rather than skipped). Like
+  suppressions, every declaration is scoped to files and reported as stale once it stops doing
+  work. Note that
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.
 - **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`

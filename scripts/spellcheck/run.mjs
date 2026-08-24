@@ -50,22 +50,27 @@ import {
   REPO_ROOT,
   applyValueFix,
   classifyFindings,
+  compileKeyDeclarations,
   compileSuppressions,
   ensureDictionaries,
   ensureOrdbank,
   excludeLiveness,
   fileLineReader,
+  findKeyDeclaration,
   findKeyLine,
   globToRegExp,
   paramsOf,
+  parseKeyDeclarations,
   partitionFindings,
   parseSuppressions,
   readGlossary,
   readGroup,
+  readKeyDeclarations,
   readSuppressions,
   runHunspell,
   runTypos,
   sourcePath,
+  staleKeyDeclarations,
   stripNonProse,
   toolAvailable,
   trackedFiles,
@@ -78,6 +83,8 @@ const HERE = import.meta.dirname;
 const EN_GB_CONFIG = join(HERE, 'typos.values.en-gb.toml');
 const EN_US_CONFIG = join(HERE, 'typos.values.en-us.toml');
 const ROOT_CONFIG = join(REPO_ROOT, 'typos.toml');
+const KEYS_PATH = join(HERE, 'keys.txt');
+const KEYS_LABEL = 'scripts/spellcheck/keys.txt';
 
 // A check returns { findings, counts } and throws HarnessError when it could
 // not do its job. `skip(reason)` marks a check that could not run at all.
@@ -178,7 +185,8 @@ function applyCodeFixes(root, kept) {
 
 // ------------------------------------------------------- structure check ---
 
-async function checkStructure({ registry, root }) {
+async function checkStructure({ registry, root, keysPath = KEYS_PATH, staleCheck = true }) {
+  const keyDecls = compileKeyDeclarations(readKeyDeclarations(keysPath));
   const findings = [];
   let keyCount = 0;
 
@@ -236,7 +244,12 @@ async function checkStructure({ registry, root }) {
     for (const [lang, entries] of Object.entries(langs)) {
       for (const [key, text] of entries) {
         if (text.trim() === '') {
-          findings.push(finding(sourcePath(group, lang), key, `'${key}' is empty`));
+          const declared = findKeyDeclaration(keyDecls, 'empty', sourcePath(group, lang), key);
+          if (declared) {
+            declared.hits += 1;
+          } else {
+            findings.push(finding(sourcePath(group, lang), key, `'${key}' is empty`));
+          }
           continue;
         }
         if (lang === refLang) continue;
@@ -256,6 +269,19 @@ async function checkStructure({ registry, root }) {
   }
 
   if (keyCount === 0) throw new HarnessError('the registry parsed to zero keys');
+  if (staleCheck) {
+    // Config-health first, like every other registry: an @empty declaration
+    // whose key no longer exists or is no longer empty licenses nothing.
+    findings.unshift(
+      ...staleKeyDeclarations(keyDecls, 'empty').map((e) =>
+        finding(
+          KEYS_LABEL,
+          undefined,
+          `@empty for '${e.key}' matched no empty value — stale entry, remove it`,
+        ),
+      ),
+    );
+  }
   return { findings, counts: `${registry.GROUPS.length} groups, ${keyCount} entries compared` };
 }
 
@@ -368,7 +394,8 @@ function checkCoverage({ registry, root }) {
 
 // --------------------------------------------------------- english check ---
 
-async function checkEnglish({ registry, root, fix }) {
+async function checkEnglish({ registry, root, fix, keysPath = KEYS_PATH, staleCheck = true }) {
+  const keyDecls = compileKeyDeclarations(readKeyDeclarations(keysPath));
   const batches = { 'en-gb': [], 'en-us': [] }; // items: { group, kind, key, text, sourceFile }
   let valueCount = 0;
   let keyCount = 0;
@@ -421,6 +448,16 @@ async function checkEnglish({ registry, root, fix }) {
       for (const f of runTypos(['--config', config, derived])) {
         const item = items[f.line_num - 1];
         if (!item) throw new HarnessError(`typos reported line ${f.line_num} outside the extract`);
+        if (item.kind === 'key') {
+          // A key spelling can be a contract (an ISO code, a name keyed by a
+          // wire value) — declared per key, and only the KEY: the value of a
+          // declared key is still checked like any other.
+          const declared = findKeyDeclaration(keyDecls, 'key-contract', item.sourceFile, item.key);
+          if (declared) {
+            declared.hits += 1;
+            continue;
+          }
+        }
         findings.push({
           file: item.sourceFile,
           key: item.key,
@@ -448,12 +485,29 @@ async function checkEnglish({ registry, root, fix }) {
     if (applied > 0) console.log(`  applied ${applied} value fix(es) — re-run to verify`);
   }
 
+  if (staleCheck) {
+    findings.unshift(
+      ...staleKeyDeclarations(keyDecls, 'key-contract').map((e) =>
+        finding(
+          KEYS_LABEL,
+          undefined,
+          `@key-contract for '${e.key}' rescued no flagged key — stale entry, remove it`,
+        ),
+      ),
+    );
+  }
   return { findings, counts: `${valueCount} values + ${keyCount} keys examined` };
 }
 
 // -------------------------------------------------------- norwegian check ---
 
-async function checkNorwegian({ registry, root, offline = false, staleCheck = true }) {
+async function checkNorwegian({
+  registry,
+  root,
+  offline = false,
+  staleCheck = true,
+  keysPath = KEYS_PATH,
+}) {
   if (!toolAvailable('hunspell')) {
     return skip('hunspell is not installed (`brew install hunspell` / `apt install hunspell`)');
   }
@@ -482,15 +536,41 @@ async function checkNorwegian({ registry, root, offline = false, staleCheck = tr
       .flatMap((g) => Object.keys(g.files ?? {}))
       .filter((l) => l === 'nb' || l === 'nn'),
   );
-  for (const lang of ['nb', 'nn']) {
-    const items = [];
-    for (const group of registry.GROUPS) {
-      const langs = await readGroup(group, root);
+  // Values are gathered up front so a @language declaration can re-route one
+  // to the other language's pipeline: a deliberately nynorsk value inside a
+  // bokmål file is checked AS nynorsk — with the nynorsk dictionary and
+  // glossary — never merely skipped.
+  const keyDecls = compileKeyDeclarations(readKeyDeclarations(keysPath));
+  const itemsByLang = { nb: [], nn: [] };
+  for (const group of registry.GROUPS) {
+    const langs = await readGroup(group, root);
+    for (const lang of ['nb', 'nn']) {
       for (const [key, value] of langs[lang] ?? []) {
         const text = stripNonProse(value);
-        if (text !== '') items.push({ sourceFile: sourcePath(group, lang), key, text });
+        if (text === '') continue;
+        const file = sourcePath(group, lang);
+        const declared = findKeyDeclaration(keyDecls, 'language', file, key);
+        // Only an actual re-route counts as the entry working: declaring a
+        // value to be in the language of its own file rescues nothing.
+        if (declared && declared.lang !== lang) declared.hits += 1;
+        itemsByLang[declared?.lang ?? lang].push({ sourceFile: file, key, text });
       }
     }
+  }
+  if (staleCheck) {
+    for (const e of staleKeyDeclarations(keyDecls, 'language')) {
+      configFindings.push(
+        finding(
+          KEYS_LABEL,
+          undefined,
+          `@language ${e.lang} for '${e.key}' re-routed nothing — stale entry, remove it`,
+        ),
+      );
+    }
+  }
+
+  for (const lang of ['nb', 'nn']) {
+    const items = itemsByLang[lang];
     if (items.length === 0) {
       if (declared.has(lang)) {
         throw new HarnessError(`${lang}: the registry declares files but no values were extracted`);
@@ -632,10 +712,12 @@ async function checkQuick(ctx, fileArgs) {
   const notes = [];
   if (affected.length > 0) {
     const subset = { GROUPS: affected };
-    const structure = await checkStructure({ registry: subset, root });
+    // staleCheck off throughout: a scoped run proves nothing about entries
+    // whose keys live in unaffected groups.
+    const structure = await checkStructure({ registry: subset, root, staleCheck: false });
     findings.push(...structure.findings);
     if (affected.some((g) => g.english || g.checkKeys !== false)) {
-      const english = await checkEnglish({ registry: subset, root, fix: false });
+      const english = await checkEnglish({ registry: subset, root, fix: false, staleCheck: false });
       findings.push(...english.findings);
     }
     if (affected.some((g) => Object.keys(g.files ?? {}).some((l) => l === 'nb' || l === 'nn'))) {
@@ -771,18 +853,35 @@ async function checkSelfTest({ ci }) {
     rmSync(tmp, { recursive: true, force: true });
   }
 
-  const structure = await checkStructure({ registry, root: REPO_ROOT });
+  // The fixture key declarations ride along like the fixture registry does:
+  // each declaration kind is planted next to a live defect of the same
+  // class, so the checks prove they honor a declaration without going
+  // blind, plus one stale entry per kind whose check runs stale detection.
+  const fixtureKeys = join(HERE, 'selftest/fixtures/keys.txt');
+
+  const structure = await checkStructure({ registry, root: REPO_ROOT, keysPath: fixtureKeys });
   assertFindings('structure', structure.findings, 'structure');
 
   const coverage = checkCoverage({ registry, root: REPO_ROOT });
   assertFindings('coverage', coverage.findings, 'coverage');
 
-  const english = await checkEnglish({ registry, root: REPO_ROOT, fix: false });
+  const english = await checkEnglish({
+    registry,
+    root: REPO_ROOT,
+    fix: false,
+    keysPath: fixtureKeys,
+  });
   assertFindings('en', english.findings, 'en');
 
   // staleCheck off: against fixture values alone, nearly every production
-  // glossary term would read as stale.
-  const norwegian = await checkNorwegian({ registry, root: REPO_ROOT, staleCheck: false });
+  // glossary term would read as stale. (@language staleness is covered by
+  // the keyDeclarationFailures unit block instead.)
+  const norwegian = await checkNorwegian({
+    registry,
+    root: REPO_ROOT,
+    staleCheck: false,
+    keysPath: fixtureKeys,
+  });
   if (norwegian.skipped) {
     if (ci) failures.push(finding('(self-test)', undefined, `no: skipped (${norwegian.skipped})`));
     else console.log(`  ⚠ self-test of the Norwegian check skipped: ${norwegian.skipped}`);
@@ -840,6 +939,15 @@ async function checkSelfTest({ ci }) {
     assertions += 1;
   }
   assertions += 5;
+
+  // The key-declaration format and matcher, on synthetic documents: section
+  // grammar, every parse and compile error, kind/scope matching, and stale
+  // detection.
+  for (const failure of keyDeclarationFailures()) {
+    failures.push(finding('(self-test)', undefined, `key declarations: ${failure}`));
+    assertions += 1;
+  }
+  assertions += 17;
 
   return { findings: failures, counts: `${assertions} assertions over planted fixtures` };
 }
@@ -989,6 +1097,87 @@ function suppressionFailures() {
   }
   if (stale.length !== 1 || stale[0].token !== 'Phantom') {
     failures.push('the planted stale entry was not detected');
+  }
+  return failures;
+}
+
+/**
+ * The key-declaration format (keys.txt) must parse exactly, reject every
+ * malformed document, and match by kind within its @files scope; an entry
+ * that did no work must read as stale. An empty document is legal — the
+ * format ships before any product entry needs it, and zero declarations
+ * only makes the checks stricter.
+ */
+function keyDeclarationFailures() {
+  const failures = [];
+  const doc = [
+    '# empties',
+    '@files a/*.json',
+    '@empty',
+    'some.key',
+    'other.key  # trailing note',
+    '',
+    '@language nn',
+    '@files b/nb.json',
+    'routed.key',
+  ].join('\n');
+  const entries = parseKeyDeclarations(doc, '(synthetic)');
+  const want = [
+    { key: 'some.key', files: ['a/*.json'], kind: 'empty' },
+    { key: 'other.key', files: ['a/*.json'], kind: 'empty' },
+    { key: 'routed.key', kind: 'language', lang: 'nn', files: ['b/nb.json'] },
+  ];
+  if (JSON.stringify(entries) !== JSON.stringify(want)) {
+    failures.push(`parsed ${JSON.stringify(entries)}`);
+  }
+  if (parseKeyDeclarations('# comments only\n', '(synthetic)').length !== 0) {
+    failures.push('an entry appeared out of a comment-only document');
+  }
+
+  const rejects = [
+    ['orphan key', 'some.key'],
+    ['unknown directive', '@keys x\nsome.key'],
+    ['two kinds in one section', '@empty\n@key-contract\n@files a\nk'],
+    ['a bad @language argument', '@language sv\n@files a\nk'],
+    ['a missing @language argument', '@language\n@files a\nk'],
+    ['empty @files', '@files\nk'],
+    ['trailing directives', '@files a\n@empty\nk\n@empty'],
+    ['whitespace in a key', '@files a\n@empty\nnot a.key'],
+  ];
+  for (const [what, text] of rejects) {
+    try {
+      parseKeyDeclarations(text, '(synthetic)');
+      failures.push(`accepted a document with ${what}`);
+    } catch (err) {
+      if (!(err instanceof HarnessError)) throw err;
+    }
+  }
+
+  const compileRejects = [
+    ['no kind', [{ key: 'k', files: ['a'] }]],
+    ['no @files scope', [{ key: 'k', kind: 'empty' }]],
+    ['no key', [{ kind: 'empty', files: ['a'] }]],
+  ];
+  for (const [what, entryList] of compileRejects) {
+    try {
+      compileKeyDeclarations(entryList);
+      failures.push(`compiled an entry with ${what}`);
+    } catch (err) {
+      if (!(err instanceof HarnessError)) throw err;
+    }
+  }
+
+  const compiled = compileKeyDeclarations([{ key: 'k.e', kind: 'empty', files: ['x/*.json'] }]);
+  const hit = findKeyDeclaration(compiled, 'empty', 'x/nb.json', 'k.e');
+  if (!hit) failures.push('a declaration in scope did not match');
+  if (findKeyDeclaration(compiled, 'empty', 'y/nb.json', 'k.e')) {
+    failures.push('a declaration matched outside its @files scope');
+  }
+  if (findKeyDeclaration(compiled, 'key-contract', 'x/nb.json', 'k.e')) {
+    failures.push('a declaration matched a different kind');
+  }
+  if (staleKeyDeclarations(compiled, 'empty').length !== 1) {
+    failures.push('an entry that did no work was not reported as stale');
   }
   return failures;
 }

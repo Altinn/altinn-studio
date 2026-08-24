@@ -680,6 +680,111 @@ export function partitionFindings(findings, compiled, readLine, { staleCheck = t
   return { kept, suppressedCount: findings.length - kept.length, stale };
 }
 
+// -------------------------------------------------------- key declarations ---
+
+/**
+ * Parses the per-key declaration registry (keys.txt): facts about specific
+ * translation entries that the checks cannot infer. Same text grammar as
+ * suppressions.txt — '#' comment and blank lines are free; a section is one
+ * or more @directive lines followed by one key per line; a directive after a
+ * key starts a NEW section, nothing is inherited. Directives:
+ *
+ *   @files <glob> <glob> …   which language files the keys live in (required)
+ *   @empty                   the value may be deliberately empty
+ *   @key-contract            the KEY's spelling is a code contract the en
+ *                            check must accept; the value stays checked
+ *   @language <nb|nn>        the VALUE is deliberately in this language —
+ *                            it is checked with that language's dictionary
+ *                            instead of the file's own
+ *
+ * Unlike suppressions.txt, a file with no entries is legal: the harness
+ * ships the format before any product entry needs it, and zero declarations
+ * only makes the checks stricter, never blinder.
+ */
+export function parseKeyDeclarations(text, name) {
+  const entries = [];
+  let section = null;
+  let sealed = true; // no open section yet
+  text.split('\n').forEach((raw, i) => {
+    const where = `${name}:${i + 1}`;
+    const line = raw.trim();
+    if (line === '' || line.startsWith('#')) return;
+    if (line.startsWith('@')) {
+      if (sealed) {
+        section = {};
+        sealed = false;
+      }
+      const [directive, ...args] = line.split(/\s+/);
+      if (directive === '@files') {
+        if (args.length === 0) throw new HarnessError(`${where}: @files needs globs`);
+        section.files = args;
+      } else if (directive === '@empty') {
+        section.kind = assignKind(section, 'empty', where);
+      } else if (directive === '@key-contract') {
+        section.kind = assignKind(section, 'key-contract', where);
+      } else if (directive === '@language') {
+        if (args.length !== 1 || !['nb', 'nn'].includes(args[0])) {
+          throw new HarnessError(`${where}: @language needs exactly one of: nb, nn`);
+        }
+        section.kind = assignKind(section, 'language', where);
+        section.lang = args[0];
+      } else {
+        throw new HarnessError(`${where}: unknown directive '${directive}'`);
+      }
+      return;
+    }
+    const key = line.replace(/\s+#.*/, '').trim();
+    if (/\s/.test(key)) throw new HarnessError(`${where}: a key is a single token`);
+    if (section === null) throw new HarnessError(`${where}: key before any @directives`);
+    sealed = true;
+    entries.push({ key, ...section });
+  });
+  if (!sealed) throw new HarnessError(`${name}: trailing @directives with no keys`);
+  return entries;
+}
+
+function assignKind(section, kind, where) {
+  if (section.kind !== undefined) {
+    throw new HarnessError(`${where}: a section declares exactly one of @empty/@key-contract/@language`);
+  }
+  return kind;
+}
+
+/** Reads and parses the key-declaration registry file. */
+export function readKeyDeclarations(path) {
+  if (!existsSync(path)) throw new HarnessError(`key-declaration registry ${path} is missing`);
+  return parseKeyDeclarations(readFileSync(path, 'utf8'), path);
+}
+
+/**
+ * Validates key-declaration entries and compiles their globs. Each entry
+ * must carry a key, exactly one declaration kind, and a @files scope.
+ */
+export function compileKeyDeclarations(entries) {
+  return entries.map((e, i) => {
+    const where = `key declaration #${i} ('${e.key ?? '?'}')`;
+    if (!e.key) throw new HarnessError(`${where} needs a key`);
+    if (!e.kind) throw new HarnessError(`${where} declares no kind (@empty/@key-contract/@language)`);
+    if (!e.files) throw new HarnessError(`${where} declares no @files scope`);
+    return { ...e, res: e.files.map(globToRegExp), hits: 0 };
+  });
+}
+
+/**
+ * The declaration of `kind` covering `key` in `file`, or undefined. Does NOT
+ * count a hit — the caller decides what counts as the entry doing work (a
+ * matched @language entry that does not actually re-route, for example,
+ * rescued nothing and must read as stale).
+ */
+export function findKeyDeclaration(compiled, kind, file, key) {
+  return compiled.find((e) => e.kind === kind && e.key === key && e.res.some((r) => r.test(file)));
+}
+
+/** Entries of `kind` that did no work, for stale reporting on full runs. */
+export function staleKeyDeclarations(compiled, kind) {
+  return compiled.filter((e) => e.kind === kind && e.hits === 0);
+}
+
 function scopeMatches(entry, f, path, readLine) {
   if (!entry.identifiers && !entry.identifierPart) return true;
   const ident = surroundingIdentifier(f, path, readLine);

@@ -203,6 +203,9 @@ export const EXPECTED = {
     "'planted.empty_in_nb' is empty",
     "'planted.param_mismatch' interpolates",
     "'planted.duplicate' is defined 2 times",
+    // fixtures/keys.txt: planted.empty_ok is declared and must NOT appear
+    // above; the ghost entry matches nothing and must read as stale.
+    "@empty for 'planted.ghost_empty'",
   ],
   coverage: ['unregistered.nb.json'],
   coverageDrift: [
@@ -215,6 +218,12 @@ export const EXPECTED = {
     '`organization` should be `organisation`',
     '`recieve` should be `receive`',
     "key of 'planted.colour_key'",
+    // fixtures/keys.txt: planted.organisation_key_ok is a declared key
+    // contract and must NOT appear above; the ghost entry must read as stale.
+    "@key-contract for 'planted.ghost_key'",
   ],
+  // planted.nynorsk_ok re-routes its nb value to the nn pipeline via
+  // fixtures/keys.txt — 'eg'/'ikkje' appearing under nb here would mean the
+  // re-route silently stopped working.
   no: ["nb: 'Gateadrese'", "nn: 'Gateadrese'"],
 };
