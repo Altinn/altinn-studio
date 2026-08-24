@@ -389,7 +389,7 @@ public class ExecuteServiceTaskReplyTests
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
+        Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
         Assert.Contains("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Conclusion);
     }
@@ -915,13 +915,12 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// The compatibility arm: a receiver enqueued before receive steps named their exchange carries neither
-    /// name, and must still be answered — with the pipeline's own opening stage standing in for the identity
-    /// it never carried. Narrowing that arm to a non-null <c>RepliesTo</c> would strand every such receiver
-    /// in flight, so it stays pinned even though nothing enqueues this shape any more.
+    /// A rendezvous on a step that names no exchange is refused, never answered: every receive step this
+    /// expansion builds names the exchange it answers, so this workflow was not built by it. No handler runs,
+    /// and the carry is untouched — a refusal concludes nothing.
     /// </summary>
     [Fact]
-    public async Task ANameLessReceiver_IsStillAnswered_AndFallsBackToThePipelinesOpeningStage()
+    public async Task ANameLessStepWithARendezvous_IsRefusedWithoutRunningAnyHandler()
     {
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStage, _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
@@ -930,27 +929,33 @@ public class ExecuteServiceTaskReplyTests
         ProcessEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(Delivered(seq: 5), carry), ConcludingStep());
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.NotNull(task.Message);
-        Assert.Equal(5, task.Message.Position);
-        Assert.Null(carry.Mailboxes);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
+        Assert.Null(task.Message);
+        Assert.Null(task.ClosedReason);
+        Assert.NotNull(carry.Mailboxes);
     }
 
     /// <summary>
-    /// The compatibility arm is <em>not</em> narrowed by the refusal a name matching nothing now gets on a
-    /// multi-exchange pipeline: a name that matches nothing is proof of drift, while no name at all is proof
-    /// of nothing.
+    /// The refusal runs <em>before</em> the service task is resolved — like the both-names guard, and for the
+    /// same reason: nothing about the pipeline changes what a message without an exchange name can mean, and
+    /// resolving first would turn an unregistered type into a retryable failure that never converges.
     /// </summary>
     [Fact]
-    public async Task ANameLessReceiver_OnAPipelineAnsweringSeveralExchanges_StillReachesTheTerminal()
+    public async Task ANameLessStepWithARendezvous_OnAnUnregisteredServiceTaskType_StillFailsPermanently()
     {
-        var task = new TwoExchangeTask();
+        ExecuteServiceTask command = CreateCommand(new ArchivingTask());
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered()), ConcludingStep());
+        ProcessEngineCommandResult result = await command.Execute(
+            CreateContext(Delivered()),
+            new ExecuteServiceTaskPayload("nonExistentType")
+        );
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Equal(["terminal.onMessage"], task.Answered);
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
+        Assert.Contains("nonExistentType", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     /// <summary>

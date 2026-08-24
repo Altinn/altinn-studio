@@ -553,9 +553,9 @@ public class ProcessStepOptionsResolverTests
     }
 
     /// <summary>
-    /// A receive step naming an exchange no mid-pipeline handler answers resolves the conclusion's options,
-    /// exactly as a name-less receiver does. The terminal is what answers such a step, so its options are the
-    /// step's — and a mid-flight rename must not silently drop them.
+    /// A receive step naming an exchange no mid-pipeline handler answers resolves the conclusion's options:
+    /// the terminal is what answers such a step, so its options are the step's — and a mid-flight rename must
+    /// not silently drop them. A null name resolves the same options, being the concluding step's own.
     /// </summary>
     [Theory]
     [InlineData("SendToArchive_v1")]
