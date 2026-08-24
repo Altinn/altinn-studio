@@ -27,7 +27,13 @@ const render = (
   options?: Parameters<typeof renderWithTranslations>[1],
 ) =>
   renderWithTranslations(
-    <Checkboxes componentId='my-checkboxes' options={land} value={[]} {...props} />,
+    <Checkboxes
+      componentId='my-checkboxes'
+      options={land}
+      value={[]}
+      onChange={() => {}}
+      {...props}
+    />,
     { overrides, ...options },
   );
 
