@@ -19,7 +19,6 @@ import type { TypeConfig as DatepickerTypeConfig } from '@app/layout-contract/ge
 import type { TypeConfig as DividerTypeConfig } from '@app/layout-contract/generated/components/Divider/config.generated';
 import type { TypeConfig as DropdownTypeConfig } from '@app/layout-contract/generated/components/Dropdown/config.generated';
 import type { TypeConfig as FileUploadTypeConfig } from '@app/layout-contract/generated/components/FileUpload/config.generated';
-import type { TypeConfig as FileUploadWithTagTypeConfig } from '@app/layout-contract/generated/components/FileUploadWithTag/config.generated';
 import type { TypeConfig as GridTypeConfig } from '@app/layout-contract/generated/components/Grid/config.generated';
 import type { TypeConfig as GroupTypeConfig } from '@app/layout-contract/generated/components/Group/config.generated';
 import type { TypeConfig as HeadingTypeConfig } from '@app/layout-contract/generated/components/Heading/config.generated';
@@ -82,7 +81,6 @@ export type ComponentTypeConfigs = {
   Divider: DividerTypeConfig;
   Dropdown: DropdownTypeConfig;
   FileUpload: FileUploadTypeConfig;
-  FileUploadWithTag: FileUploadWithTagTypeConfig;
   Grid: GridTypeConfig;
   Group: GroupTypeConfig;
   Heading: HeadingTypeConfig;
@@ -146,7 +144,6 @@ export type ConfigurableComponent =
   | DividerTypeConfig['layout']
   | DropdownTypeConfig['layout']
   | FileUploadTypeConfig['layout']
-  | FileUploadWithTagTypeConfig['layout']
   | GridTypeConfig['layout']
   | GroupTypeConfig['layout']
   | HeadingTypeConfig['layout']
@@ -189,4 +186,4 @@ export type ConfigurableComponent =
   | VideoTypeConfig['layout'];
 export type CompExternal = ComponentTypeConfigs[keyof ComponentTypeConfigs]['layout'];
 
-// Source hash: b2fd66415b6db57c6954027509273c14b99cc95fdba287a1918f5299b6e5ab66
+// Source hash: 8387c0ffd6a5142ed797669605c6c2750d58fdb5db33d64c61f5936408d9c1f3

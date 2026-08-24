@@ -19,7 +19,6 @@ import type { CompDatepickerSerialized } from '@app/layout-contract/generated/co
 import type { CompDividerSerialized } from '@app/layout-contract/generated/components/Divider/serialized.generated';
 import type { CompDropdownSerialized } from '@app/layout-contract/generated/components/Dropdown/serialized.generated';
 import type { CompFileUploadSerialized } from '@app/layout-contract/generated/components/FileUpload/serialized.generated';
-import type { CompFileUploadWithTagSerialized } from '@app/layout-contract/generated/components/FileUploadWithTag/serialized.generated';
 import type { CompGridSerialized } from '@app/layout-contract/generated/components/Grid/serialized.generated';
 import type { CompGroupSerialized } from '@app/layout-contract/generated/components/Group/serialized.generated';
 import type { CompHeadingSerialized } from '@app/layout-contract/generated/components/Heading/serialized.generated';
@@ -81,7 +80,6 @@ export enum ComponentType {
   Divider = 'Divider',
   Dropdown = 'Dropdown',
   FileUpload = 'FileUpload',
-  FileUploadWithTag = 'FileUploadWithTag',
   Grid = 'Grid',
   Group = 'Group',
   Heading = 'Heading',
@@ -144,7 +142,6 @@ export type SerializedComponent =
   | CompDividerSerialized
   | CompDropdownSerialized
   | CompFileUploadSerialized
-  | CompFileUploadWithTagSerialized
   | CompGridSerialized
   | CompGroupSerialized
   | CompHeadingSerialized
@@ -186,4 +183,4 @@ export type SerializedComponent =
   | CompTimePickerSerialized
   | CompVideoSerialized;
 
-// Source hash: f46cb029dfa025cfb78178df4ecdb1c5ee06273d82effccdb15aca5c192a3e37
+// Source hash: b2e8d5fcbbde3565ee47ac2caa9ffc14a58ac0908459334dd3c7046230a032d0

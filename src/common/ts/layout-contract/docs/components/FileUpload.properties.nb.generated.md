@@ -9,6 +9,24 @@ Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id
 | `forceShowInSummary` | `boolean \| expression<boolean>` | Nei | `false` | Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten. |
 | `labelSettings` | `object` | Nei |  | Styrer hvordan ledeteksten til komponenten vises. |
 | `labelSettings.optionalIndicator` | `boolean` | Nei |  | Viser en markering for valgfrie felt ved ledeteksten. |
+| `optionsId` | `string` | Nei |  | ID-en til listen med alternativer som skal hentes fra serveren. |
+| `mapping` | `object` | Nei |  | En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen. |
+| `queryParameters` | `object` | Nei |  | Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes. |
+| `options` | `object[]` | Nei |  | Liste over statiske alternativer. |
+| `options[].label` | `string` | Ja |  | Teksten som vises for alternativet. |
+| `options[].value` | `string \| number \| boolean \| null` | Ja |  | Verdien som lagres når alternativet velges. |
+| `options[].description` | `string` | Nei |  | Utfyllende tekst som vises med alternativet. |
+| `options[].helpText` | `string` | Nei |  | Hjelpetekst for alternativet. |
+| `secure` | `boolean` | Nei | `false` | Angir om det sikre API-endepunktet skal brukes når alternativer hentes fra serveren. |
+| `sortOrder` | `"asc" \| "desc"` | Nei |  | Sorterer kodelisten stigende eller synkende etter ledetekst. Tillatte verdier: "asc", "desc". |
+| `source` | `object` | Nei |  | Henter alternativer fra en repeterende gruppestruktur i datamodellen. |
+| `source.dataType` | `string` | Nei |  | Datamodellen der dataene til den repeterende gruppen lagres. Hvis den ikke er angitt, brukes datamodellen fra layout-settet. |
+| `source.group` | `string` | Ja |  | Den repeterende gruppen som alternativene skal bygges fra. |
+| `source.label` | `string \| expression<string>` | Ja |  | Ledetekst for alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk. |
+| `source.value` | `string` | Ja |  | Feltet i gruppen som skal brukes som verdi. |
+| `source.description` | `string \| expression<string>` | Nei |  | Beskrivelse av alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk. |
+| `source.helpText` | `string \| expression<string>` | Nei |  | Hjelpetekst for alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk. |
+| `optionFilter` | `boolean \| expression<boolean>` | Nei |  | Filtrerer listen med alternativer ved hjelp av et uttrykk. Uttrykket skal returnere true for å beholde alternativet og false for å fjerne det. Bruk ["value"] for verdien og ["value", "label"] for tekstressurs-ID-en. Tilsvarende gjelder «description» og «helpText». |
 | `type` | `"FileUpload"` | Ja |  | Angir hvilken komponenttype konfigurasjonen gjelder. |
 | `textResourceBindings` | `object` | Nei |  | Kobler tekstene i komponenten til tekstressurser eller uttrykk. |
 | `textResourceBindings.tableTitle` | `string \| expression<string>` | Nei |  | Tittelen som vises i tabellvisningen. Overstyrer den vanlige tittelen. |
@@ -19,6 +37,7 @@ Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id
 | `textResourceBindings.title` | `string \| expression<string>` | Nei |  | Ledeteksten eller tittelen som vises over komponenten. |
 | `textResourceBindings.description` | `string \| expression<string>` | Nei |  | Beskrivelsen som vises mellom ledeteksten og komponenten. |
 | `textResourceBindings.help` | `string \| expression<string>` | Nei |  | Hjelpeteksten som vises når brukeren åpner hjelpeknappen. |
+| `textResourceBindings.tagTitle` | `string \| expression<string>` | Nei |  | Ledeteksten som vises når brukeren velger en tagg for hver opplastede fil. |
 | `removeWhenHidden` | `boolean \| expression<boolean>` | Nei |  | Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven. |
 | `dataModelBindings` | `object \| object` | Nei |  | Kobler verdiene i komponenten til felter i datamodellen. |
 | `dataModelBindings.simpleBinding` | `object` | Ja |  | Angir hvor i datamodellen komponenten skal lagre verdien. En enkel binding brukes for komponenter som lagrer én verdi, vanligvis en streng. |

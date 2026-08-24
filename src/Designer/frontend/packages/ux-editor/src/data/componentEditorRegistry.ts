@@ -6,8 +6,7 @@ const specializedPropertiesByComponent: Partial<Record<ComponentType, readonly s
   [ComponentType.AttachmentList]: ['dataTypeIds'],
   [ComponentType.Checkboxes]: ['mapping', 'queryParameters', 'source'],
   [ComponentType.Dropdown]: ['mapping', 'queryParameters', 'source'],
-  [ComponentType.FileUpload]: ['hasCustomFileEndings', 'validFileEndings'],
-  [ComponentType.FileUploadWithTag]: [
+  [ComponentType.FileUpload]: [
     'hasCustomFileEndings',
     'mapping',
     'queryParameters',

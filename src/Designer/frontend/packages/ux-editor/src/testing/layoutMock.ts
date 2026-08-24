@@ -78,8 +78,6 @@ export const layoutMock: IInternalLayout = {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
     [component3IdMock]: component3Mock,
-    [componentMocks[ComponentType.FileUploadWithTag].id]:
-      componentMocks[ComponentType.FileUploadWithTag],
     ComponentWithOptionsMock: componentWithOptionsMock,
   },
   containers: {
@@ -101,11 +99,7 @@ export const layoutMock: IInternalLayout = {
   order: {
     [baseContainerIdMock]: [container1IdMock, container2IdMock, 'ComponentWithOptionsMock'],
     [container1IdMock]: [component1IdMock],
-    [container2IdMock]: [
-      component2IdMock,
-      component3IdMock,
-      componentMocks[ComponentType.FileUploadWithTag].id,
-    ],
+    [container2IdMock]: [component2IdMock, component3IdMock],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -123,11 +117,7 @@ export const layout1Mock: SerializedFormLayout = {
       {
         id: container2IdMock,
         type: ComponentType.RepeatingGroup,
-        children: [
-          component2IdMock,
-          component3IdMock,
-          componentMocks[ComponentType.FileUploadWithTag].id,
-        ],
+        children: [component2IdMock, component3IdMock],
         dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       },
       {
@@ -139,25 +129,7 @@ export const layout1Mock: SerializedFormLayout = {
         id: component2IdMock,
         type: component2TypeMock,
       },
-      {
-        id: componentMocks[ComponentType.FileUpload].id,
-        type: ComponentType.FileUpload,
-        displayMode: 'list',
-        hasCustomFileEndings: false,
-        maxFileSizeInMB: 1,
-        maxNumberOfAttachments: 1,
-        minNumberOfAttachments: 1,
-      },
-      {
-        id: componentMocks[ComponentType.FileUploadWithTag].id,
-        type: ComponentType.FileUploadWithTag,
-        displayMode: 'list',
-        hasCustomFileEndings: false,
-        maxFileSizeInMB: 1,
-        maxNumberOfAttachments: 1,
-        minNumberOfAttachments: 1,
-        optionsId: '',
-      },
+      componentMocks[ComponentType.FileUpload],
       {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,

@@ -13,7 +13,7 @@ const fileUploadMainNumberProperties = [
 ];
 
 type FileUploadMainConfigProps = {
-  component: FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>;
+  component: FormItem<ComponentType.FileUpload>;
   handleComponentChange: (component: FormItem) => void;
   className?: string;
 };

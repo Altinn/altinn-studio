@@ -21,7 +21,6 @@ import { getConfig as getDatepickerConfig } from 'src/layout/Datepicker/config.r
 import { getConfig as getDividerConfig } from 'src/layout/Divider/config.runtime.generated';
 import { getConfig as getDropdownConfig } from 'src/layout/Dropdown/config.runtime.generated';
 import { getConfig as getFileUploadConfig } from 'src/layout/FileUpload/config.runtime.generated';
-import { getConfig as getFileUploadWithTagConfig } from 'src/layout/FileUploadWithTag/config.runtime.generated';
 import { getConfig as getGridConfig } from 'src/layout/Grid/config.runtime.generated';
 import { getConfig as getGroupConfig } from 'src/layout/Group/config.runtime.generated';
 import { getConfig as getHeadingConfig } from 'src/layout/Heading/config.runtime.generated';
@@ -85,7 +84,6 @@ function createComponentConfigs() {
     Divider: getDividerConfig(),
     Dropdown: getDropdownConfig(),
     FileUpload: getFileUploadConfig(),
-    FileUploadWithTag: getFileUploadWithTagConfig(),
     Grid: getGridConfig(),
     Group: getGroupConfig(),
     Heading: getHeadingConfig(),
@@ -137,4 +135,4 @@ export function getComponentConfigs() {
 
 export type ComponentTypeConfigs = GeneratedComponentTypeConfigs;
 
-// Source hash: 29aa6d44d82ffbaf66d8cc45df3b80b6dd07e527ac33b58b69b6d72a070b2299
+// Source hash: 21f57c6038e3d0b81a8f231d17aa2794fbdc7403cb3a75e7e75c4bb405d56421

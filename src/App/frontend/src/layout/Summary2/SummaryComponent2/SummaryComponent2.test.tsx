@@ -12,9 +12,7 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 
 describe('SummaryComponent', () => {
-  const layoutMock = (
-    components: string[] = ['Input', 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'],
-  ): ILayoutCollection => ({
+  const layoutMock = (components: string[] = ['Input', 'Group', 'FileUpload', 'Checkboxes']): ILayoutCollection => ({
     FormLayout: {
       data: {
         layout: [

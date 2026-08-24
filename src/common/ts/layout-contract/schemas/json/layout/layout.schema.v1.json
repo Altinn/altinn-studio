@@ -29,7 +29,6 @@
             "Divider",
             "Dropdown",
             "FileUpload",
-            "FileUploadWithTag",
             "Grid",
             "Group",
             "Heading",
@@ -300,18 +299,6 @@
           },
           "then": {
             "$ref": "#/definitions/CompFileUpload"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "FileUploadWithTag"
-              }
-            }
-          },
-          "then": {
-            "$ref": "#/definitions/CompFileUploadWithTag"
           }
         },
         {
@@ -852,9 +839,6 @@
     },
     "CompFileUpload": {
       "$ref": "#/definitions/CompFileUploadExternal"
-    },
-    "CompFileUploadWithTag": {
-      "$ref": "#/definitions/CompFileUploadWithTagExternal"
     },
     "CompGrid": {
       "$ref": "#/definitions/CompGridExternal"
@@ -3183,6 +3167,9 @@
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
+          "$ref": "#/definitions/ISelectionComponent"
+        },
+        {
           "title": "CompFileUploadExternal",
           "type": "object",
           "properties": {
@@ -3190,181 +3177,6 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "FileUpload"
-            },
-            "textResourceBindings": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/TRBFormComp"
-                },
-                {
-                  "$ref": "#/definitions/TRBSummarizable"
-                },
-                {
-                  "$ref": "#/definitions/TRBLabel"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "tableTitle": true,
-                    "shortName": true,
-                    "requiredValidation": true,
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
-                    "title": true,
-                    "description": true,
-                    "help": true
-                  },
-                  "additionalProperties": false
-                }
-              ]
-            },
-            "removeWhenHidden": {
-              "title": "Remove fields from component dataModelBindings when hidden expression is true",
-              "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
-            "dataModelBindings": {
-              "title": "Data model bindings",
-              "description": "Connects component values to fields in the data model.",
-              "anyOf": [
-                {
-                  "title": "Data model bindings",
-                  "description": "Connects component values to fields in the data model.",
-                  "$ref": "#/definitions/IDataModelBindingsSimple"
-                },
-                {
-                  "$ref": "#/definitions/IDataModelBindingsList"
-                }
-              ]
-            },
-            "maxFileSizeInMB": {
-              "title": "Max file size (MB)",
-              "description": "Sets the maximum file size allowed in megabytes",
-              "type": "integer"
-            },
-            "maxNumberOfAttachments": {
-              "title": "Max number of attachments",
-              "description": "Sets the maximum number of attachments allowed to upload",
-              "$ref": "expression.schema.v1.json#/definitions/number"
-            },
-            "minNumberOfAttachments": {
-              "title": "Min number of attachments",
-              "description": "Sets the minimum number of attachments required to upload",
-              "$ref": "expression.schema.v1.json#/definitions/number"
-            },
-            "displayMode": {
-              "enum": [
-                "simple",
-                "list"
-              ]
-            },
-            "hasCustomFileEndings": {
-              "title": "Has custom file endings",
-              "description": "Boolean value indicating if the component has valid file endings",
-              "default": false,
-              "type": "boolean"
-            },
-            "validFileEndings": {
-              "title": "Valid file endings",
-              "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
-              "examples": [
-                ".csv",
-                ".doc",
-                ".docx",
-                ".gif",
-                ".jpeg",
-                ".pdf",
-                ".txt"
-              ],
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              ]
-            },
-            "alertOnDelete": {
-              "title": "Alert on delete",
-              "description": "Boolean value indicating if warning popup should be displayed when attempting to delete an element",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            }
-          },
-          "required": [
-            "type",
-            "maxFileSizeInMB",
-            "maxNumberOfAttachments",
-            "minNumberOfAttachments",
-            "displayMode"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": true,
-            "hidden": true,
-            "grid": true,
-            "pageBreak": true,
-            "readOnly": true,
-            "required": true,
-            "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
-            "labelSettings": true,
-            "type": true,
-            "textResourceBindings": true,
-            "removeWhenHidden": true,
-            "dataModelBindings": true,
-            "maxFileSizeInMB": true,
-            "maxNumberOfAttachments": true,
-            "minNumberOfAttachments": true,
-            "displayMode": true,
-            "hasCustomFileEndings": true,
-            "validFileEndings": true,
-            "alertOnDelete": true
-          },
-          "required": [
-            "id",
-            "type",
-            "maxFileSizeInMB",
-            "maxNumberOfAttachments",
-            "minNumberOfAttachments",
-            "displayMode"
-          ],
-          "additionalProperties": false
-        }
-      ]
-    },
-    "CompFileUploadWithTagExternal": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/ComponentBase"
-        },
-        {
-          "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
-          "$ref": "#/definitions/LabeledComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ISelectionComponent"
-        },
-        {
-          "title": "CompFileUploadWithTagExternal",
-          "type": "object",
-          "properties": {
-            "type": {
-              "title": "Component type",
-              "description": "Identifies which component type this configuration represents.",
-              "const": "FileUploadWithTag"
             },
             "textResourceBindings": {
               "allOf": [

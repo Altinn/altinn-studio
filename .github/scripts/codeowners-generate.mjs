@@ -73,7 +73,7 @@ const GROUPS = [
     roots: [
       'src/cli',
       'src/gitea',
-      'src/gitea-runner',
+      'src/ci',
       'src/gitea-proxy',
       'src/load-balancer',
       'src/lhci-server',

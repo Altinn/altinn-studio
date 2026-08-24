@@ -111,16 +111,6 @@ const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
 };
-const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
-  ...commonProps(ComponentType.FileUploadWithTag),
-  dataModelBindings: undefined,
-  displayMode: 'list',
-  hasCustomFileEndings: false,
-  maxFileSizeInMB: 1,
-  maxNumberOfAttachments: 1,
-  minNumberOfAttachments: 1,
-  optionsId: '',
-};
 const buttonComponent: FormComponent<ComponentType.Button> = {
   ...commonProps(ComponentType.Button),
 };
@@ -215,7 +205,6 @@ export const componentMocks = {
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Divider]: dividerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
-  [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
   [ComponentType.FileUpload]: fileUploadComponent,
   [ComponentType.Group]: groupContainer,
   [ComponentType.Heading]: headingComponent,

@@ -1,20 +1,28 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   FormComponentProps,
   IDataModelBindingsList,
   IDataModelBindingsSimple,
+  ISelectionComponent,
   LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompFileUploadExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends
+    ComponentBase,
+    FormComponentProps,
+    SummarizableComponentProps,
+    LabeledComponentProps,
+    ISelectionComponent {
   type: 'FileUpload';
-  textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  textResourceBindings?: { tagTitle?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
+    TRBSummarizable &
+    TRBLabel;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsSimple | IDataModelBindingsList;
   maxFileSizeInMB: number;
@@ -41,7 +49,7 @@ export const componentConfig = {
   behaviors: {
     isSummarizable: true,
     canHaveLabel: false,
-    canHaveOptions: false,
+    canHaveOptions: true,
     canHaveAttachments: true,
   },
 } as const;
@@ -54,4 +62,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 1957aab488dd40215584285155a16384d8c7a5341c894fd379ff42f883793616
+// Source hash: f1c8cd80ad11b68cefb2dce4748a0892e71feb693661c94a39b7e106ce08d210

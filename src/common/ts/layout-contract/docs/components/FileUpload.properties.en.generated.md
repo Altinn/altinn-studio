@@ -9,6 +9,24 @@ The component also supports the common properties [`id`](../common-properties/#i
 | `forceShowInSummary` | `boolean \| expression<boolean>` | No | `false` | Will force show the component in a summary even if hideEmptyFields is set to true in the summary component. |
 | `labelSettings` | `object` | No |  | Controls how the component label is displayed. |
 | `labelSettings.optionalIndicator` | `boolean` | No |  | Show optional indicator on label |
+| `optionsId` | `string` | No |  | ID of the option list to fetch from the server |
+| `mapping` | `object` | No |  | A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter). |
+| `queryParameters` | `object` | No |  | A mapping of query string parameters to values. Will be appended to the URL when fetching options. |
+| `options` | `object[]` | No |  | List of static options |
+| `options[].label` | `string` | Yes |  | The text displayed for the option. |
+| `options[].value` | `string \| number \| boolean \| null` | Yes |  | The value stored when the option is selected. |
+| `options[].description` | `string` | No |  | Additional text displayed with the option. |
+| `options[].helpText` | `string` | No |  | Help text for the option. |
+| `secure` | `boolean` | No | `false` | Whether to call the secure API endpoint when fetching options from the server (allows for user/instance-specific options) |
+| `sortOrder` | `"asc" \| "desc"` | No |  | Sorts the code list in either ascending or descending order by label. Allowed values: "asc", "desc". |
+| `source` | `object` | No |  | Allows for fetching options from the data model, pointing to a repeating group structure |
+| `source.dataType` | `string` | No |  | The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used. |
+| `source.group` | `string` | Yes |  | The repeating group to base options on. |
+| `source.label` | `string \| expression<string>` | Yes |  | A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression. |
+| `source.value` | `string` | Yes |  | Field in the group that should be used as value |
+| `source.description` | `string \| expression<string>` | No |  | A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression. |
+| `source.helpText` | `string \| expression<string>` | No |  | A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression. |
+| `optionFilter` | `boolean \| expression<boolean>` | No |  | Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText". |
 | `type` | `"FileUpload"` | Yes |  | Identifies which component type this configuration represents. |
 | `textResourceBindings` | `object` | No |  | Connects component texts to text resources or expressions. |
 | `textResourceBindings.tableTitle` | `string \| expression<string>` | No |  | Title used in the table view (overrides the default title) |
@@ -19,6 +37,7 @@ The component also supports the common properties [`id`](../common-properties/#i
 | `textResourceBindings.title` | `string \| expression<string>` | No |  | Label text/title shown above the component |
 | `textResourceBindings.description` | `string \| expression<string>` | No |  | Label description shown above the component, below the title |
 | `textResourceBindings.help` | `string \| expression<string>` | No |  | Help text shown in a tooltip when clicking the help button |
+| `textResourceBindings.tagTitle` | `string \| expression<string>` | No |  | The title to show when selecting a tag for each uploaded file |
 | `removeWhenHidden` | `boolean \| expression<boolean>` | No |  | Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled. |
 | `dataModelBindings` | `object \| object` | No |  | Connects component values to fields in the data model. |
 | `dataModelBindings.simpleBinding` | `object` | Yes |  | Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string. |

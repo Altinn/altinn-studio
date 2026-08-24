@@ -87,10 +87,7 @@ export const useUpdateFormComponentMutation = (
 const isFileUploadComponent = (
   component: FormComponent,
 ): component is FormFileUploaderComponent => {
-  return (
-    component.type === ComponentType.FileUpload ||
-    component.type === ComponentType.FileUploadWithTag
-  );
+  return component.type === ComponentType.FileUpload;
 };
 
 type UseHandleFileUploadComponentUpdateParams = {

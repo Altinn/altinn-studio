@@ -1,7 +1,7 @@
 import type { ConfPageType } from './types/ConfigPageType';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
-import type { FormItemConfigs } from '../../data/formItemConfig';
+import type { FormItemConfigEntry } from '../../data/formItemConfig';
 import {
   confOnScreenComponents,
   paymentLayoutComponents,
@@ -35,9 +35,7 @@ export class ElementsUtils {
     return undefined;
   }
 
-  public static getAvailableComponentList(
-    confPageType: ConfPageType,
-  ): FormItemConfigs[ComponentType][] {
+  public static getAvailableComponentList(confPageType: ConfPageType): FormItemConfigEntry[] {
     switch (confPageType) {
       case 'receipt':
         return confOnScreenComponents;

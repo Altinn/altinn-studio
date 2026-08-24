@@ -1,13 +1,13 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
-import type { CompFileUploadWithTagExternal } from '@app/layout-contract/generated/components/FileUploadWithTag/config.generated';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
+import { CompExternal } from 'src/layout/layout';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
@@ -63,9 +63,9 @@ const availableOptions = {
 };
 
 describe('AttachmentWithTagSummaryComponent', () => {
-  const component: CompFileUploadWithTagExternal = {
+  const component: CompExternal<'FileUpload'> = {
     id: 'myComponent',
-    type: 'FileUploadWithTag',
+    type: 'FileUpload',
     textResourceBindings: {},
     optionsId: 'a',
     maxFileSizeInMB: 15,
@@ -97,7 +97,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
 });
 
 interface RenderProps {
-  component: CompFileUploadWithTagExternal;
+  component: CompExternal<'FileUpload'>;
   addAttachment?: boolean;
 }
 

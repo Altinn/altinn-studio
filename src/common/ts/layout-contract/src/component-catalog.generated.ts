@@ -6138,176 +6138,10 @@ const generatedContract = {
       behaviors: {
         isSummarizable: true,
         canHaveLabel: false,
-        canHaveOptions: false,
-        canHaveAttachments: true,
-      },
-      metadata: { name: { nb: 'Vedlegg', en: 'FileUpload' }, lifecycle: { status: 'stable' } },
-      properties: {
-        id: ComponentBase['properties']['id'],
-        hidden: ComponentBase['properties']['hidden'],
-        grid: ComponentBase['properties']['grid'],
-        pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
-        showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        labelSettings: LabeledComponentProps['properties']['labelSettings'],
-        type: {
-          type: 'constant',
-          value: 'FileUpload',
-          title: { en: 'Component type', nb: 'Komponenttype' },
-          description: {
-            en: 'Identifies which component type this configuration represents.',
-            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
-          },
-          required: true,
-        },
-        textResourceBindings: {
-          type: 'object',
-          properties: {
-            tableTitle: TRBFormComp['properties']['tableTitle'],
-            shortName: TRBFormComp['properties']['shortName'],
-            requiredValidation: TRBFormComp['properties']['requiredValidation'],
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
-            title: TRBLabel['properties']['title'],
-            description: TRBLabel['properties']['description'],
-            help: TRBLabel['properties']['help'],
-          },
-          additionalProperties: false,
-          title: { en: 'Text resources', nb: 'Tekstressurser' },
-          description: {
-            en: 'Connects component texts to text resources or expressions.',
-            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
-          },
-          required: false,
-        },
-        removeWhenHidden: {
-          type: 'boolean',
-          expression: true,
-          title: {
-            en: 'Remove fields from component dataModelBindings when hidden expression is true',
-            nb: 'Behold datamodellfelter når komponenten skjules',
-          },
-          description: {
-            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
-            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
-          },
-          required: false,
-        },
-        dataModelBindings: {
-          type: 'union',
-          variants: [
-            {
-              type: 'object',
-              properties: IDataModelBindingsSimple['properties'],
-              additionalProperties: false,
-              title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
-              description: {
-                en: 'Connects component values to fields in the data model.',
-                nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
-              },
-            },
-            {
-              type: 'object',
-              properties: IDataModelBindingsList['properties'],
-              additionalProperties: false,
-            },
-          ],
-          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
-          description: {
-            en: 'Connects component values to fields in the data model.',
-            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
-          },
-          required: false,
-        },
-        maxFileSizeInMB: {
-          type: 'integer',
-          title: { en: 'Max file size (MB)', nb: 'Maksimal filstørrelse (MB)' },
-          description: {
-            en: 'Sets the maximum file size allowed in megabytes',
-            nb: 'Angir maksimal tillatt filstørrelse i megabyte.',
-          },
-          required: true,
-        },
-        maxNumberOfAttachments: {
-          type: 'number',
-          expression: true,
-          title: { en: 'Max number of attachments', nb: 'Maksimalt antall vedlegg' },
-          description: {
-            en: 'Sets the maximum number of attachments allowed to upload',
-            nb: 'Angir maksimalt antall vedlegg brukeren kan laste opp.',
-          },
-          required: true,
-        },
-        minNumberOfAttachments: {
-          type: 'number',
-          expression: true,
-          title: { en: 'Min number of attachments', nb: 'Minste antall vedlegg' },
-          description: {
-            en: 'Sets the minimum number of attachments required to upload',
-            nb: 'Angir minste antall vedlegg brukeren må laste opp.',
-          },
-          required: true,
-        },
-        displayMode: { type: 'string', allowedValues: ['simple', 'list'], required: true },
-        hasCustomFileEndings: {
-          type: 'boolean',
-          title: { en: 'Has custom file endings', nb: 'Har egendefinerte filendelser' },
-          description: {
-            en: 'Boolean value indicating if the component has valid file endings',
-            nb: 'Angir om komponenten har gyldige filendelser.',
-          },
-          default: false,
-          required: false,
-        },
-        validFileEndings: {
-          type: 'union',
-          variants: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
-          title: { en: 'Valid file endings', nb: 'Tillatte filendelser' },
-          description: {
-            en: 'A separated string of valid file endings to upload. If not set all endings are accepted.',
-            nb: 'En kommaseparert liste over tillatte filendelser. Alle filendelser godtas hvis egenskapen ikke er satt.',
-          },
-          examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
-          required: false,
-        },
-        alertOnDelete: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Alert on delete', nb: 'Varsel ved sletting' },
-          description: {
-            en: 'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
-            nb: 'Angir om en advarsel skal vises når brukeren prøver å slette et element.',
-          },
-          default: false,
-          required: false,
-        },
-      },
-    },
-    FileUploadWithTag: {
-      kind: 'component',
-      category: 'Form',
-      capabilities: {
-        renderInTable: false,
-        renderInButtonGroup: false,
-        renderInAccordion: true,
-        renderInAccordionGroup: false,
-        renderInCards: true,
-        renderInCardsMedia: false,
-        renderInTabs: true,
-      },
-      behaviors: {
-        isSummarizable: true,
-        canHaveLabel: false,
         canHaveOptions: true,
         canHaveAttachments: true,
       },
-      metadata: {
-        name: { nb: 'Vedlegg med merking', en: 'FileUploadWithTag' },
-        lifecycle: { status: 'stable' },
-      },
+      metadata: { name: { nb: 'Vedlegg', en: 'FileUpload' }, lifecycle: { status: 'stable' } },
       properties: {
         id: ComponentBase['properties']['id'],
         hidden: ComponentBase['properties']['hidden'],
@@ -6329,7 +6163,7 @@ const generatedContract = {
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         type: {
           type: 'constant',
-          value: 'FileUploadWithTag',
+          value: 'FileUpload',
           title: { en: 'Component type', nb: 'Komponenttype' },
           description: {
             en: 'Identifies which component type this configuration represents.',

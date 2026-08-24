@@ -65,6 +65,8 @@ export type ComponentPresetConfigs = {
   [T in ComponentPreset]: FormItemConfig<T>;
 };
 
+export type FormItemConfigEntry = NonNullable<FormItemConfigs[keyof FormItemConfigs]>;
+
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
     name: ComponentType.Alert,
@@ -193,18 +195,6 @@ export const formItemConfigs: FormItemConfigs = {
       maxFileSizeInMB: 25,
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
-    },
-    icon: PaperclipIcon,
-  },
-  [ComponentType.FileUploadWithTag]: {
-    name: ComponentType.FileUploadWithTag,
-    defaultProperties: {
-      displayMode: 'list',
-      hasCustomFileEndings: false,
-      maxFileSizeInMB: 25,
-      maxNumberOfAttachments: 1,
-      minNumberOfAttachments: 1,
-      optionsId: '',
     },
     icon: PaperclipIcon,
   },
@@ -563,7 +553,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Cards],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const schemaComponents: FormItemConfigs[ComponentType][] = [
+export const schemaComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Input],
   formItemConfigs[ComponentType.TextArea],
   formItemConfigs[ComponentType.Checkboxes],
@@ -577,7 +567,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.TimePicker],
   formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
-  formItemConfigs[ComponentType.FileUploadWithTag],
   formItemConfigs[ComponentType.Button],
   formItemConfigs[ComponentType.CustomButton],
   formItemConfigs[ComponentType.NavigationButtons],
@@ -593,7 +582,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
-export const textComponents: FormItemConfigs[ComponentType][] = [
+export const textComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
@@ -604,14 +593,14 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Option],
 ];
 
-export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
+export const confOnScreenComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Heading],
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
 ];
 
-export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
+export const paymentLayoutComponents: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Payment],
   ...confOnScreenComponents,
 ];
@@ -674,12 +663,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.InstantiationButton,
     ComponentType.ActionButton,
   ],
-  attachment: [
-    ComponentType.AttachmentList,
-    ComponentType.FileUpload,
-    ComponentType.FileUploadWithTag,
-    ComponentType.ImageUpload,
-  ],
+  attachment: [ComponentType.AttachmentList, ComponentType.FileUpload, ComponentType.ImageUpload],
   container: [
     ComponentType.Group,
     ComponentType.Grid,
@@ -702,7 +686,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.SimpleTable,
   ],
 };
-export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
+export const subformLayoutComponents: FormItemConfigEntry[] = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
