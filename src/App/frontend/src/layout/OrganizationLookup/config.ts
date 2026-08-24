@@ -26,7 +26,7 @@ export const Config = new CG.component({
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(
-        'organization_lookup_orgnr',
+        'orgnr',
         new CG.dataModelBinding()
           .setTitle('Data binding for organization number', 'Databinding for organisasjonsnummer')
           .setDescription(
@@ -35,7 +35,7 @@ export const Config = new CG.component({
           ),
       ),
       new CG.prop(
-        'organization_lookup_name',
+        'name',
         new CG.dataModelBinding()
           .setTitle('Data binding for organization name', 'Databinding for organisasjonsnavn')
           .setDescription(

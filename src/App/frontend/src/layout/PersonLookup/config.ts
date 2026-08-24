@@ -26,7 +26,7 @@ export const Config = new CG.component({
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(
-        'person_lookup_ssn',
+        'ssn',
         new CG.dataModelBinding()
           .setTitle('Data model binding for social security number', 'Datamodellbinding for fødselsnummer')
           .setDescription(
@@ -35,7 +35,7 @@ export const Config = new CG.component({
           ),
       ),
       new CG.prop(
-        'person_lookup_name',
+        'fullName',
         new CG.dataModelBinding()
           .optional()
           .setTitle('Data model binding for the full name of a person', 'Datamodellbinding for fullt navn')
@@ -45,7 +45,7 @@ export const Config = new CG.component({
           ),
       ),
       new CG.prop(
-        'person_lookup_last_name',
+        'lastName',
         new CG.dataModelBinding()
           .optional()
           .setTitle('Data model binding for the last name of a person', 'Datamodellbinding for etternavn')
@@ -55,7 +55,7 @@ export const Config = new CG.component({
           ),
       ),
       new CG.prop(
-        'person_lookup_middle_name',
+        'middleName',
         new CG.dataModelBinding()
           .optional()
           .setTitle('Data model binding for the middle name of a person', 'Datamodellbinding for mellomnavn')
@@ -65,7 +65,7 @@ export const Config = new CG.component({
           ),
       ),
       new CG.prop(
-        'person_lookup_first_name',
+        'firstName',
         new CG.dataModelBinding()
           .optional()
           .setTitle('Data model binding for the first name of a person', 'Datamodellbinding for fornavn')

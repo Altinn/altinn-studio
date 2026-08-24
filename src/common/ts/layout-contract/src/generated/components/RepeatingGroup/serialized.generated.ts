@@ -40,16 +40,16 @@ export type CompRepeatingGroupSerialized = {
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
-    add_button_full?: ExprValToActualOrExpr<ExprVal.String>;
-    add_button?: ExprValToActualOrExpr<ExprVal.String>;
-    save_button?: ExprValToActualOrExpr<ExprVal.String>;
-    save_and_next_button?: ExprValToActualOrExpr<ExprVal.String>;
-    edit_button_close?: ExprValToActualOrExpr<ExprVal.String>;
-    edit_button_open?: ExprValToActualOrExpr<ExprVal.String>;
-    pagination_next_button?: ExprValToActualOrExpr<ExprVal.String>;
-    pagination_back_button?: ExprValToActualOrExpr<ExprVal.String>;
-    multipage_back_button?: ExprValToActualOrExpr<ExprVal.String>;
-    multipage_next_button?: ExprValToActualOrExpr<ExprVal.String>;
+    addButtonFull?: ExprValToActualOrExpr<ExprVal.String>;
+    addButton?: ExprValToActualOrExpr<ExprVal.String>;
+    saveButton?: ExprValToActualOrExpr<ExprVal.String>;
+    saveAndNextButton?: ExprValToActualOrExpr<ExprVal.String>;
+    editButtonClose?: ExprValToActualOrExpr<ExprVal.String>;
+    editButtonOpen?: ExprValToActualOrExpr<ExprVal.String>;
+    paginationNextButton?: ExprValToActualOrExpr<ExprVal.String>;
+    paginationBackButton?: ExprValToActualOrExpr<ExprVal.String>;
+    multipageBackButton?: ExprValToActualOrExpr<ExprVal.String>;
+    multipageNextButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
   rowsBefore?: GridRows;
   rowsAfter?: GridRows;
@@ -71,4 +71,4 @@ export type CompRepeatingGroupSerialized = {
 } & ComponentBase &
   SummarizableComponentProps;
 
-// Source hash: b668612403c24c88f89a385fa64decd7c42eb2866289df5333d2493219d1fabd
+// Source hash: 47c534cfe8c12f36cf76c77f45d05ac19ce4e67a05228427d3c4b4f191e3b0af

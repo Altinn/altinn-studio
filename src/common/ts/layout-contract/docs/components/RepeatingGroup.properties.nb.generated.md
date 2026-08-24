@@ -10,16 +10,16 @@ Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id
 | `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>` | Nei |  | Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen. |
 | `textResourceBindings.title` | `string \| expression<string>` | Nei |  | Ledeteksten til gruppen, vist over hver forekomst i en oppsummering. |
 | `textResourceBindings.description` | `string \| expression<string>` | Nei |  | Beskrivelsen som vises under ledeteksten. |
-| `textResourceBindings.add_button_full` | `string \| expression<string>` | Nei |  | Teksten på «Legg til»-knappen. Overstyrer «add_button» og angir hele knappeteksten. |
-| `textResourceBindings.add_button` | `string \| expression<string>` | Nei |  | Teksten som legges til etter standardteksten på «Legg til»-knappen. |
-| `textResourceBindings.save_button` | `string \| expression<string>` | Nei |  | Teksten på «Lagre»-knappen når raden i den repeterende gruppen redigeres. |
-| `textResourceBindings.save_and_next_button` | `string \| expression<string>` | Nei |  | Teksten på «Lagre og neste»-knappen når raden redigeres. Vises bare når edit.saveAndNextButton er true. |
-| `textResourceBindings.edit_button_close` | `string \| expression<string>` | Nei |  | Teksten på «Rediger»-knappen når raden redigeres og brukeren kan lukke redigeringsvisningen. |
-| `textResourceBindings.edit_button_open` | `string \| expression<string>` | Nei |  | Teksten på «Rediger»-knappen når raden i den repeterende gruppen ikke redigeres. |
-| `textResourceBindings.pagination_next_button` | `string \| expression<string>` | Nei |  | Teksten på «Neste»-knappen i paginering. |
-| `textResourceBindings.pagination_back_button` | `string \| expression<string>` | Nei |  | Teksten på «Tilbake»-knappen i paginering. |
-| `textResourceBindings.multipage_back_button` | `string \| expression<string>` | Nei |  | Teksten på «Tilbake»-knappen i flersidenavigasjon. |
-| `textResourceBindings.multipage_next_button` | `string \| expression<string>` | Nei |  | Teksten på «Neste»-knappen i flersidenavigasjon. |
+| `textResourceBindings.addButtonFull` | `string \| expression<string>` | Nei |  | Teksten på «Legg til»-knappen. Overstyrer «addButton» og angir hele knappeteksten. |
+| `textResourceBindings.addButton` | `string \| expression<string>` | Nei |  | Teksten som legges til etter standardteksten på «Legg til»-knappen. |
+| `textResourceBindings.saveButton` | `string \| expression<string>` | Nei |  | Teksten på «Lagre»-knappen når raden i den repeterende gruppen redigeres. |
+| `textResourceBindings.saveAndNextButton` | `string \| expression<string>` | Nei |  | Teksten på «Lagre og neste»-knappen når raden redigeres. Vises bare når edit.saveAndNextButton er true. |
+| `textResourceBindings.editButtonClose` | `string \| expression<string>` | Nei |  | Teksten på «Rediger»-knappen når raden redigeres og brukeren kan lukke redigeringsvisningen. |
+| `textResourceBindings.editButtonOpen` | `string \| expression<string>` | Nei |  | Teksten på «Rediger»-knappen når raden i den repeterende gruppen ikke redigeres. |
+| `textResourceBindings.paginationNextButton` | `string \| expression<string>` | Nei |  | Teksten på «Neste»-knappen i paginering. |
+| `textResourceBindings.paginationBackButton` | `string \| expression<string>` | Nei |  | Teksten på «Tilbake»-knappen i paginering. |
+| `textResourceBindings.multipageBackButton` | `string \| expression<string>` | Nei |  | Teksten på «Tilbake»-knappen i flersidenavigasjon. |
+| `textResourceBindings.multipageNextButton` | `string \| expression<string>` | Nei |  | Teksten på «Neste»-knappen i flersidenavigasjon. |
 | `rowsBefore` | `object[]` | Nei |  | Listen over radene i rutenettet. |
 | `rowsBefore[].header` | `boolean` | Nei | `false` |  |
 | `rowsBefore[].readOnly` | `boolean` | Nei | `false` |  |

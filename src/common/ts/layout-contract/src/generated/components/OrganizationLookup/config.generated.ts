@@ -19,10 +19,7 @@ export interface CompOrganizationLookupExternal
   } & TRBFormComp &
     TRBSummarizable;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  dataModelBindings: {
-    organization_lookup_orgnr: IDataModelReference;
-    organization_lookup_name?: IDataModelReference;
-  };
+  dataModelBindings: { orgnr: IDataModelReference; name?: IDataModelReference };
 }
 
 export type OrganizationLookupSummaryOverridesWithRef =
@@ -57,4 +54,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: OrganizationLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 9148dae72ae951cbc58c2aa442c0a5eff14b48731ad6d9772ebad48ee2973290
+// Source hash: c58125cdb08ce538a2e3f1810b2bcf73b3b09746f9d948af680e5508966ad0d8

@@ -1,27 +1,27 @@
 .configContent {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .recommendedActionBackdrop {
-  background-color: var(--fds-semantic-border-divider-default);
+  background-color: var(--ds-color-neutral-border-subtle);
 }
 
 .recommendedActionContentBackdrop {
-  background-color: var(--fds-semantic-border-divider-default);
+  background-color: var(--ds-color-neutral-border-subtle);
   height: 100%;
 }
 
 .displayTile {
-  padding-inline: var(--fds-spacing-5);
+  padding-inline: var(--ds-size-5);
 }
 
 .detailsContent {
   margin: 0;
-  padding: var(--fds-spacing-5);
+  padding: var(--ds-size-5);
   padding-inline: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }

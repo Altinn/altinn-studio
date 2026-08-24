@@ -19,9 +19,9 @@ The component also supports the common properties [`id`](../common-properties/#i
 | `textResourceBindings.help` | `string \| expression<string>` | No |  | Help text, optionally shown next to the title |
 | `removeWhenHidden` | `boolean \| expression<boolean>` | No |  | Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled. |
 | `dataModelBindings` | `object` | Yes |  | Connects component values to fields in the data model. |
-| `dataModelBindings.organization_lookup_orgnr` | `object` | Yes |  | Describes the location in the data model where the component should store the organization number of the organization to look up. |
-| `dataModelBindings.organization_lookup_orgnr.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.organization_lookup_orgnr.field` | `string` | Yes |  | The path to the property using dot-notation |
-| `dataModelBindings.organization_lookup_name` | `object` | No |  | Describes the location in the data model where the component should store the name of the organisation. |
-| `dataModelBindings.organization_lookup_name.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.organization_lookup_name.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.orgnr` | `object` | Yes |  | Describes the location in the data model where the component should store the organization number of the organization to look up. |
+| `dataModelBindings.orgnr.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.orgnr.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.name` | `object` | No |  | Describes the location in the data model where the component should store the name of the organisation. |
+| `dataModelBindings.name.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.name.field` | `string` | Yes |  | The path to the property using dot-notation |

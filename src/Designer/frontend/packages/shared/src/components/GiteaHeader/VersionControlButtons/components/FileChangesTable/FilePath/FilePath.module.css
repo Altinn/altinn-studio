@@ -1,12 +1,12 @@
 .filePathWithDiffContainer {
-  color: var(--fds-semantic-surface-action-default);
+  color: var(--ds-color-accent-base-default);
   text-decoration: underline;
   align-items: center;
   cursor: pointer;
 }
 
 .filePathWithDiffContainer:hover {
-  color: var(--fds-semantic-surface-action-hover);
+  color: var(--ds-color-accent-base-hover);
 }
 
 .filePathWithDiffContainer,
@@ -36,10 +36,10 @@ details[open] .chevronIcon {
 }
 
 .gitDiffViewer {
-  padding: var(--fds-spacing-4);
-  border-radius: var(--fds-sizing-2);
-  margin-top: var(--fds-spacing-2);
-  background-color: var(--fds-semantic-surface-action-first-no_fill);
+  padding: var(--ds-size-4);
+  border-radius: var(--ds-size-2);
+  margin-top: var(--ds-size-2);
+  background-color: var(--ds-color-accent-surface-default);
   font-family: monospace;
   font-size: small;
 }
@@ -49,11 +49,11 @@ details[open] .chevronIcon {
 }
 
 .removedLine {
-  background-color: var(--fds-semantic-surface-danger-subtle);
-  color: var(--fds-semantic-text-danger-default);
+  background-color: var(--ds-color-danger-surface-tinted);
+  color: var(--ds-color-danger-text-default);
 }
 
 .addedLine {
-  background-color: var(--fds-semantic-surface-success-subtle);
-  color: var(--fds-semantic-text-success-default);
+  background-color: var(--ds-color-success-surface-tinted);
+  color: var(--ds-color-success-text-default);
 }

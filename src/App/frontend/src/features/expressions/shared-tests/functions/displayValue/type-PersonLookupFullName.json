@@ -18,8 +18,8 @@
             "id": "personlookup",
             "type": "PersonLookup",
             "dataModelBindings": {
-              "person_lookup_ssn": "PersonLookup.Ssn",
-              "person_lookup_name": "PersonLookup.Name"
+              "ssn": "PersonLookup.Ssn",
+              "fullName": "PersonLookup.Name"
             }
           }
         ]

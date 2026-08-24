@@ -17,12 +17,9 @@ export type CompOrganizationLookupSerialized = {
   } & TRBFormComp &
     TRBSummarizable;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  dataModelBindings: {
-    organization_lookup_orgnr: IRawDataModelBinding;
-    organization_lookup_name?: IRawDataModelBinding;
-  };
+  dataModelBindings: { orgnr: IRawDataModelBinding; name?: IRawDataModelBinding };
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: cb8ab4ca8f4d7b8b8fd1f6624eba347cd96188c3f9af84207ccb94a76a2a1277
+// Source hash: 4091d3191c5d5c0764bf84421f6bb2a08cb77a7d16d23591f0b91463d14c1344

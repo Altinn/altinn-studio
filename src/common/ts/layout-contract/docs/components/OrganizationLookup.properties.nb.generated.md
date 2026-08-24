@@ -19,9 +19,9 @@ Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id
 | `textResourceBindings.help` | `string \| expression<string>` | Nei |  | Valgfri hjelpetekst som vises ved ledeteksten. |
 | `removeWhenHidden` | `boolean \| expression<boolean>` | Nei |  | Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven. |
 | `dataModelBindings` | `object` | Ja |  | Kobler verdiene i komponenten til felter i datamodellen. |
-| `dataModelBindings.organization_lookup_orgnr` | `object` | Ja |  | Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp. |
-| `dataModelBindings.organization_lookup_orgnr.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.organization_lookup_orgnr.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
-| `dataModelBindings.organization_lookup_name` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet. |
-| `dataModelBindings.organization_lookup_name.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.organization_lookup_name.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.orgnr` | `object` | Ja |  | Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp. |
+| `dataModelBindings.orgnr.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.orgnr.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.name` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet. |
+| `dataModelBindings.name.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.name.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |

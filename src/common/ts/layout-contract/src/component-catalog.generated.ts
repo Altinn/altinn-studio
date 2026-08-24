@@ -2522,7 +2522,7 @@ const PanelVariant = {
 const IDataModelBindingsForPersonLookup = {
   type: 'object',
   properties: {
-    person_lookup_ssn: {
+    ssn: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
@@ -2536,7 +2536,7 @@ const IDataModelBindingsForPersonLookup = {
       },
       required: true,
     },
-    person_lookup_name: {
+    fullName: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
@@ -2550,7 +2550,7 @@ const IDataModelBindingsForPersonLookup = {
       },
       required: false,
     },
-    person_lookup_last_name: {
+    lastName: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
@@ -2564,7 +2564,7 @@ const IDataModelBindingsForPersonLookup = {
       },
       required: false,
     },
-    person_lookup_middle_name: {
+    middleName: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
@@ -2578,7 +2578,7 @@ const IDataModelBindingsForPersonLookup = {
       },
       required: false,
     },
-    person_lookup_first_name: {
+    firstName: {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
@@ -8209,7 +8209,7 @@ const generatedContract = {
         dataModelBindings: {
           type: 'object',
           properties: {
-            organization_lookup_orgnr: {
+            orgnr: {
               type: 'object',
               properties: IDataModelReference['properties'],
               additionalProperties: false,
@@ -8223,7 +8223,7 @@ const generatedContract = {
               },
               required: true,
             },
-            organization_lookup_name: {
+            name: {
               type: 'object',
               properties: IDataModelReference['properties'],
               additionalProperties: false,
@@ -8984,7 +8984,7 @@ const generatedContract = {
               },
               required: false,
             },
-            add_button_full: {
+            addButtonFull: {
               type: 'string',
               expression: true,
               title: {
@@ -8992,12 +8992,12 @@ const generatedContract = {
                 nb: 'Legg til-knapp (full tekst, for repeterende grupper)',
               },
               description: {
-                en: 'The text for the "Add" button (overrides "add_button", and sets the full text for the button)',
-                nb: 'Teksten på «Legg til»-knappen. Overstyrer «add_button» og angir hele knappeteksten.',
+                en: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
+                nb: 'Teksten på «Legg til»-knappen. Overstyrer «addButton» og angir hele knappeteksten.',
               },
               required: false,
             },
-            add_button: {
+            addButton: {
               type: 'string',
               expression: true,
               title: {
@@ -9010,7 +9010,7 @@ const generatedContract = {
               },
               required: false,
             },
-            save_button: {
+            saveButton: {
               type: 'string',
               expression: true,
               title: {
@@ -9023,7 +9023,7 @@ const generatedContract = {
               },
               required: false,
             },
-            save_and_next_button: {
+            saveAndNextButton: {
               type: 'string',
               expression: true,
               title: {
@@ -9036,7 +9036,7 @@ const generatedContract = {
               },
               required: false,
             },
-            edit_button_close: {
+            editButtonClose: {
               type: 'string',
               expression: true,
               title: {
@@ -9049,7 +9049,7 @@ const generatedContract = {
               },
               required: false,
             },
-            edit_button_open: {
+            editButtonOpen: {
               type: 'string',
               expression: true,
               title: {
@@ -9062,7 +9062,7 @@ const generatedContract = {
               },
               required: false,
             },
-            pagination_next_button: {
+            paginationNextButton: {
               type: 'string',
               expression: true,
               title: { en: 'Next button in pagination', nb: 'Neste-knapp i paginering' },
@@ -9072,7 +9072,7 @@ const generatedContract = {
               },
               required: false,
             },
-            pagination_back_button: {
+            paginationBackButton: {
               type: 'string',
               expression: true,
               title: { en: 'Back button in pagination', nb: 'Tilbakeknapp i paginering' },
@@ -9082,7 +9082,7 @@ const generatedContract = {
               },
               required: false,
             },
-            multipage_back_button: {
+            multipageBackButton: {
               type: 'string',
               expression: true,
               title: {
@@ -9095,7 +9095,7 @@ const generatedContract = {
               },
               required: false,
             },
-            multipage_next_button: {
+            multipageNextButton: {
               type: 'string',
               expression: true,
               title: {

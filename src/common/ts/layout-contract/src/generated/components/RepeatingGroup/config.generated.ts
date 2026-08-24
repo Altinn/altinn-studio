@@ -17,16 +17,16 @@ export interface CompRepeatingGroupExternal extends ComponentBase, SummarizableC
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
-    add_button_full?: ExprValToActualOrExpr<ExprVal.String>;
-    add_button?: ExprValToActualOrExpr<ExprVal.String>;
-    save_button?: ExprValToActualOrExpr<ExprVal.String>;
-    save_and_next_button?: ExprValToActualOrExpr<ExprVal.String>;
-    edit_button_close?: ExprValToActualOrExpr<ExprVal.String>;
-    edit_button_open?: ExprValToActualOrExpr<ExprVal.String>;
-    pagination_next_button?: ExprValToActualOrExpr<ExprVal.String>;
-    pagination_back_button?: ExprValToActualOrExpr<ExprVal.String>;
-    multipage_back_button?: ExprValToActualOrExpr<ExprVal.String>;
-    multipage_next_button?: ExprValToActualOrExpr<ExprVal.String>;
+    addButtonFull?: ExprValToActualOrExpr<ExprVal.String>;
+    addButton?: ExprValToActualOrExpr<ExprVal.String>;
+    saveButton?: ExprValToActualOrExpr<ExprVal.String>;
+    saveAndNextButton?: ExprValToActualOrExpr<ExprVal.String>;
+    editButtonClose?: ExprValToActualOrExpr<ExprVal.String>;
+    editButtonOpen?: ExprValToActualOrExpr<ExprVal.String>;
+    paginationNextButton?: ExprValToActualOrExpr<ExprVal.String>;
+    paginationBackButton?: ExprValToActualOrExpr<ExprVal.String>;
+    multipageBackButton?: ExprValToActualOrExpr<ExprVal.String>;
+    multipageNextButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
   rowsBefore?: GridRows;
   rowsAfter?: GridRows;
@@ -107,4 +107,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RepeatingGroupSummaryOverridesWithRef;
 };
 
-// Source hash: 3f142b0b3a1c07308c38981140d178b664b971a9c8e2cce725944a87dc5dfc0f
+// Source hash: b98b101cbf08f7d920cbb870d7ed13f9c6c837533948ed44136bd8ef6513e5a0

@@ -73,11 +73,11 @@ function getEditButtonText(
   textResourceBindings: GroupExpressions['textResourceBindings'] | undefined,
 ) {
   const buttonTextKey = isEditing
-    ? textResourceBindings?.edit_button_close
-      ? textResourceBindings?.edit_button_close
+    ? textResourceBindings?.editButtonClose
+      ? textResourceBindings?.editButtonClose
       : 'general.save_and_close'
-    : textResourceBindings?.edit_button_open
-      ? textResourceBindings?.edit_button_open
+    : textResourceBindings?.editButtonOpen
+      ? textResourceBindings?.editButtonOpen
       : 'general.edit_alt';
   return langTools.langAsString(buttonTextKey);
 }

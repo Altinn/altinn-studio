@@ -49,20 +49,20 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'add_button_full',
+      name: 'addButtonFull',
       title: {
         en: 'Add button (full) (for repeating groups)',
         nb: 'Legg til-knapp (full tekst, for repeterende grupper)',
       },
       description: {
-        en: 'The text for the "Add" button (overrides "add_button", and sets the full text for the button)',
-        nb: 'Teksten på «Legg til»-knappen. Overstyrer «add_button» og angir hele knappeteksten.',
+        en: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
+        nb: 'Teksten på «Legg til»-knappen. Overstyrer «addButton» og angir hele knappeteksten.',
       },
     }),
   )
   .addTextResource(
     new CG.trb({
-      name: 'add_button',
+      name: 'addButton',
       title: {
         en: 'Add button (suffix) (for repeating groups)',
         nb: 'Legg til-knapp (suffiks, for repeterende grupper)',
@@ -75,7 +75,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'save_button',
+      name: 'saveButton',
       title: { en: 'Save button (for repeating groups)', nb: 'Lagre-knapp (for repeterende grupper)' },
       description: {
         en: 'The text for the "Save" button when the repeating group item is in edit mode',
@@ -85,7 +85,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'save_and_next_button',
+      name: 'saveAndNextButton',
       title: {
         en: 'Save and next button (for repeating groups)',
         nb: 'Lagre og neste-knapp (for repeterende grupper)',
@@ -100,7 +100,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'edit_button_close',
+      name: 'editButtonClose',
       title: {
         en: 'Edit button (close) (for repeating groups)',
         nb: 'Redigeringsknapp (lukk, for repeterende grupper)',
@@ -115,7 +115,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'edit_button_open',
+      name: 'editButtonOpen',
       title: {
         en: 'Edit button (open) (for repeating groups)',
         nb: 'Redigeringsknapp (åpne, for repeterende grupper)',
@@ -128,7 +128,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'pagination_next_button',
+      name: 'paginationNextButton',
       title: { en: 'Next button in pagination', nb: 'Neste-knapp i paginering' },
       description: {
         en: 'The text for the "Next" button in pagination',
@@ -138,7 +138,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'pagination_back_button',
+      name: 'paginationBackButton',
       title: { en: 'Back button in pagination', nb: 'Tilbakeknapp i paginering' },
       description: {
         en: 'The text for the "Back" button in pagination',
@@ -148,7 +148,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'multipage_back_button',
+      name: 'multipageBackButton',
       title: { en: 'Back button in multipage navigation', nb: 'Tilbakeknapp i flersidenavigasjon' },
       description: {
         en: 'The text for the "Back" button in multipage navigation',
@@ -158,7 +158,7 @@ export const Config = new CG.component({
   )
   .addTextResource(
     new CG.trb({
-      name: 'multipage_next_button',
+      name: 'multipageNextButton',
       title: { en: 'Next button in multipage navigation', nb: 'Neste-knapp i flersidenavigasjon' },
       description: {
         en: 'The text for the "Next" button in multipage navigation',

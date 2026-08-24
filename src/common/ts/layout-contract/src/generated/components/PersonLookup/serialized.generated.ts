@@ -9,11 +9,11 @@ import {
 } from '@app/layout-contract/generated/common.generated';
 
 export interface IDataModelBindingsForPersonLookup {
-  person_lookup_ssn: IRawDataModelBinding;
-  person_lookup_name?: IRawDataModelBinding;
-  person_lookup_last_name?: IRawDataModelBinding;
-  person_lookup_middle_name?: IRawDataModelBinding;
-  person_lookup_first_name?: IRawDataModelBinding;
+  ssn: IRawDataModelBinding;
+  fullName?: IRawDataModelBinding;
+  lastName?: IRawDataModelBinding;
+  middleName?: IRawDataModelBinding;
+  firstName?: IRawDataModelBinding;
 }
 
 export type CompPersonLookupSerialized = {
@@ -30,4 +30,4 @@ export type CompPersonLookupSerialized = {
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: 4055f82b6c4b3db61454cdb7c32586b4fa3a31ffeb56f65ef20cec09ed47ea59
+// Source hash: 429203383e9b2de73155c1c7c41ecd4aa242a307fde042487ea342d957184f1e

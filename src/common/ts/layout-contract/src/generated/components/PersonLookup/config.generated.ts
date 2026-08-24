@@ -23,11 +23,11 @@ export interface CompPersonLookupExternal
 }
 
 export interface IDataModelBindingsForPersonLookup {
-  person_lookup_ssn: IDataModelReference;
-  person_lookup_name?: IDataModelReference;
-  person_lookup_last_name?: IDataModelReference;
-  person_lookup_middle_name?: IDataModelReference;
-  person_lookup_first_name?: IDataModelReference;
+  ssn: IDataModelReference;
+  fullName?: IDataModelReference;
+  lastName?: IDataModelReference;
+  middleName?: IDataModelReference;
+  firstName?: IDataModelReference;
 }
 
 export type PersonLookupSummaryOverridesWithRef =
@@ -62,4 +62,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 4453adc614a839c5a2b772c54d569916811c8db39b21d5b094b54d96cbb9267a
+// Source hash: 4262ba903bd26eaa33143af1ca17c7c39c0f9420f5d2208f4063c4d491805b91

@@ -19,18 +19,18 @@ The component also supports the common properties [`id`](../common-properties/#i
 | `textResourceBindings.help` | `string \| expression<string>` | No |  | Help text, optionally shown next to the title |
 | `removeWhenHidden` | `boolean \| expression<boolean>` | No |  | Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled. |
 | `dataModelBindings` | `object` | Yes |  | Connects component values to fields in the data model. |
-| `dataModelBindings.person_lookup_ssn` | `object` | Yes |  | Describes the location in the data model where the component should store the ssn of the person to look up. |
-| `dataModelBindings.person_lookup_ssn.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.person_lookup_ssn.field` | `string` | Yes |  | The path to the property using dot-notation |
-| `dataModelBindings.person_lookup_name` | `object` | No |  | Describes the location in the data model where the component should store the name of the person to look up. |
-| `dataModelBindings.person_lookup_name.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.person_lookup_name.field` | `string` | Yes |  | The path to the property using dot-notation |
-| `dataModelBindings.person_lookup_last_name` | `object` | No |  | Describes the location in the data model where the component should store the last name of the person to look up. |
-| `dataModelBindings.person_lookup_last_name.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.person_lookup_last_name.field` | `string` | Yes |  | The path to the property using dot-notation |
-| `dataModelBindings.person_lookup_middle_name` | `object` | No |  | Describes the location in the data model where the component should store the middle name of the person to look up. |
-| `dataModelBindings.person_lookup_middle_name.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.person_lookup_middle_name.field` | `string` | Yes |  | The path to the property using dot-notation |
-| `dataModelBindings.person_lookup_first_name` | `object` | No |  | Describes the location in the data model where the component should store the first name of the person to look up. |
-| `dataModelBindings.person_lookup_first_name.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
-| `dataModelBindings.person_lookup_first_name.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.ssn` | `object` | Yes |  | Describes the location in the data model where the component should store the ssn of the person to look up. |
+| `dataModelBindings.ssn.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.ssn.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.fullName` | `object` | No |  | Describes the location in the data model where the component should store the name of the person to look up. |
+| `dataModelBindings.fullName.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.fullName.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.lastName` | `object` | No |  | Describes the location in the data model where the component should store the last name of the person to look up. |
+| `dataModelBindings.lastName.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.lastName.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.middleName` | `object` | No |  | Describes the location in the data model where the component should store the middle name of the person to look up. |
+| `dataModelBindings.middleName.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.middleName.field` | `string` | Yes |  | The path to the property using dot-notation |
+| `dataModelBindings.firstName` | `object` | No |  | Describes the location in the data model where the component should store the first name of the person to look up. |
+| `dataModelBindings.firstName.dataType` | `string` | Yes |  | The name of the datamodel type to reference |
+| `dataModelBindings.firstName.field` | `string` | Yes |  | The path to the property using dot-notation |

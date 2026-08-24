@@ -10,16 +10,16 @@ The component also supports the common properties [`id`](../common-properties/#i
 | `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>` | No |  | Title used for aria-label on the edit button in the summary view (overrides the default and summary title) |
 | `textResourceBindings.title` | `string \| expression<string>` | No |  | The title of the group (shown above each instance in a Summary) |
 | `textResourceBindings.description` | `string \| expression<string>` | No |  | The description text shown underneath the title |
-| `textResourceBindings.add_button_full` | `string \| expression<string>` | No |  | The text for the "Add" button (overrides "add_button", and sets the full text for the button) |
-| `textResourceBindings.add_button` | `string \| expression<string>` | No |  | The text for the "Add" button (used as a suffix after the default button text) |
-| `textResourceBindings.save_button` | `string \| expression<string>` | No |  | The text for the "Save" button when the repeating group item is in edit mode |
-| `textResourceBindings.save_and_next_button` | `string \| expression<string>` | No |  | The text for the "Save and next" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true) |
-| `textResourceBindings.edit_button_close` | `string \| expression<string>` | No |  | The text for the "Edit" button when the repeating group item is in edit mode (i.e. the user can close the edit mode) |
-| `textResourceBindings.edit_button_open` | `string \| expression<string>` | No |  | The text for the "Edit" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode) |
-| `textResourceBindings.pagination_next_button` | `string \| expression<string>` | No |  | The text for the "Next" button in pagination |
-| `textResourceBindings.pagination_back_button` | `string \| expression<string>` | No |  | The text for the "Back" button in pagination |
-| `textResourceBindings.multipage_back_button` | `string \| expression<string>` | No |  | The text for the "Back" button in multipage navigation |
-| `textResourceBindings.multipage_next_button` | `string \| expression<string>` | No |  | The text for the "Next" button in multipage navigation |
+| `textResourceBindings.addButtonFull` | `string \| expression<string>` | No |  | The text for the "Add" button (overrides "addButton", and sets the full text for the button) |
+| `textResourceBindings.addButton` | `string \| expression<string>` | No |  | The text for the "Add" button (used as a suffix after the default button text) |
+| `textResourceBindings.saveButton` | `string \| expression<string>` | No |  | The text for the "Save" button when the repeating group item is in edit mode |
+| `textResourceBindings.saveAndNextButton` | `string \| expression<string>` | No |  | The text for the "Save and next" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true) |
+| `textResourceBindings.editButtonClose` | `string \| expression<string>` | No |  | The text for the "Edit" button when the repeating group item is in edit mode (i.e. the user can close the edit mode) |
+| `textResourceBindings.editButtonOpen` | `string \| expression<string>` | No |  | The text for the "Edit" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode) |
+| `textResourceBindings.paginationNextButton` | `string \| expression<string>` | No |  | The text for the "Next" button in pagination |
+| `textResourceBindings.paginationBackButton` | `string \| expression<string>` | No |  | The text for the "Back" button in pagination |
+| `textResourceBindings.multipageBackButton` | `string \| expression<string>` | No |  | The text for the "Back" button in multipage navigation |
+| `textResourceBindings.multipageNextButton` | `string \| expression<string>` | No |  | The text for the "Next" button in multipage navigation |
 | `rowsBefore` | `object[]` | No |  | The list of rows in this grid |
 | `rowsBefore[].header` | `boolean` | No | `false` |  |
 | `rowsBefore[].readOnly` | `boolean` | No | `false` |  |

@@ -19,18 +19,18 @@ Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id
 | `textResourceBindings.help` | `string \| expression<string>` | Nei |  | Valgfri hjelpetekst som vises ved ledeteksten. |
 | `removeWhenHidden` | `boolean \| expression<boolean>` | Nei |  | Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven. |
 | `dataModelBindings` | `object` | Ja |  | Kobler verdiene i komponenten til felter i datamodellen. |
-| `dataModelBindings.person_lookup_ssn` | `object` | Ja |  | Angir hvor i datamodellen komponenten skal lagre fødselsnummeret til personen som slås opp. |
-| `dataModelBindings.person_lookup_ssn.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.person_lookup_ssn.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
-| `dataModelBindings.person_lookup_name` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre navnet på personen som slås opp. |
-| `dataModelBindings.person_lookup_name.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.person_lookup_name.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
-| `dataModelBindings.person_lookup_last_name` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre etternavnet til personen som slås opp. |
-| `dataModelBindings.person_lookup_last_name.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.person_lookup_last_name.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
-| `dataModelBindings.person_lookup_middle_name` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre mellomnavnet til personen som slås opp. |
-| `dataModelBindings.person_lookup_middle_name.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.person_lookup_middle_name.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
-| `dataModelBindings.person_lookup_first_name` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre fornavnet til personen som slås opp. |
-| `dataModelBindings.person_lookup_first_name.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
-| `dataModelBindings.person_lookup_first_name.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.ssn` | `object` | Ja |  | Angir hvor i datamodellen komponenten skal lagre fødselsnummeret til personen som slås opp. |
+| `dataModelBindings.ssn.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.ssn.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.fullName` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre navnet på personen som slås opp. |
+| `dataModelBindings.fullName.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.fullName.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.lastName` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre etternavnet til personen som slås opp. |
+| `dataModelBindings.lastName.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.lastName.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.middleName` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre mellomnavnet til personen som slås opp. |
+| `dataModelBindings.middleName.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.middleName.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
+| `dataModelBindings.firstName` | `object` | Nei |  | Angir hvor i datamodellen komponenten skal lagre fornavnet til personen som slås opp. |
+| `dataModelBindings.firstName.dataType` | `string` | Ja |  | Navnet på datamodelltypen det skal refereres til. |
+| `dataModelBindings.firstName.field` | `string` | Ja |  | Stien til egenskapen i punktnotasjon. |
