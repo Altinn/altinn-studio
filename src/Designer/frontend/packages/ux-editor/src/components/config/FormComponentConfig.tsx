@@ -11,8 +11,8 @@ import {
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
 import type { PropertyDefinition } from '@app/layout-contract';
-import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigObjectProperty } from './ConfigProperties/ConfigObjectProperty/ConfigObjectProperty';
+import { getSpecializedPropertyPaths } from '../../data/componentEditorRegistry';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -23,6 +23,8 @@ export interface IEditFormComponentProps {
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
   properties: Readonly<Record<string, PropertyDefinition>>;
+  propertyPath?: readonly string[];
+  specializedPropertyPaths?: readonly string[];
 }
 
 export const FormComponentConfig = ({
@@ -31,24 +33,17 @@ export const FormComponentConfig = ({
   component,
   handleComponentUpdate,
   keepEditOpen,
+  propertyPath = [],
+  specializedPropertyPaths = getSpecializedPropertyPaths(component.type),
 }: FormComponentConfigProps) => {
-  // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
-  const customProperties = [
-    'hasCustomFileEndings',
-    'validFileEndings',
-    'grid',
-    'layoutSet',
-    'children',
-    'dataTypeIds',
-    'target',
-    'tableColumns',
-    'overrides',
-    component.type === ComponentType.Text ? 'value' : '',
-  ];
+  const pathPrefix = propertyPath.length ? `${propertyPath.join('.')}.` : '';
+  const specializedProperties = specializedPropertyPaths
+    .filter((path) => path.startsWith(pathPrefix) && !path.slice(pathPrefix.length).includes('.'))
+    .map((path) => path.slice(pathPrefix.length));
 
   const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys } = usePropertyTypes(
     properties,
-    customProperties,
+    specializedProperties,
   );
 
   const { layoutSet } = properties;
@@ -128,6 +123,8 @@ export const FormComponentConfig = ({
               component={component}
               handleComponentUpdate={handleComponentUpdate}
               className={classes.elementWrapper}
+              propertyPath={propertyPath}
+              specializedPropertyPaths={specializedPropertyPaths}
             />
           );
         })}

@@ -16,6 +16,8 @@ import type { FormContainer } from '../../../types/FormContainer';
 import { ObjectUtils } from '@studio/pure-functions';
 import { LogicalTupleOperator } from '@studio/components';
 import { app, org } from '@studio/testing/testids';
+import { expressionPropertiesOnFormItem, setExpressionOnFormItem } from './utils';
+import type { FormItem } from '../../../types/FormItem';
 
 // Test data:
 const layoutSetName = layoutSet1NameMock;
@@ -55,20 +57,17 @@ describe('Expressions', () => {
 
   it('renders the expression and the button for adding an expression when the hidden field on the component has an expression', () => {
     renderExpressions();
-    const expressionName = textMock('right_menu.expressions_property_preview_hidden');
+    const expressionName = `${textMock('ux_editor.component_properties.hidden')} some-id`;
     screen.getByRole('group', { name: expressionName });
     screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
   });
 
   it('Disables the add button when all supported expression properties are set on a simple component', () => {
-    const componentWithMultipleExpressions: FormComponent = {
+    const componentWithMultipleExpressions = withAllExpressions({
       id: 'some-id',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      hidden: parsableLogicalExpression,
-      required: parsableLogicalExpression,
-      readOnly: parsableLogicalExpression,
-    };
+    });
     renderExpressions({ formItem: componentWithMultipleExpressions });
     const addButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
@@ -77,21 +76,11 @@ describe('Expressions', () => {
   });
 
   it('Disables the add button when all supported expression properties are set on a repeating group', () => {
-    const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer<ComponentType.RepeatingGroup> =
-      {
-        id: 'some-id',
-        type: ComponentType.RepeatingGroup,
-        dataModelBindings: { group: { field: 'some-path', dataType: '' } },
-        hidden: parsableLogicalExpression,
-        edit: {
-          addButton: parsableLogicalExpression,
-          alertOnDelete: parsableLogicalExpression,
-          deleteButton: parsableLogicalExpression,
-          editButton: parsableLogicalExpression,
-          saveAndNextButton: parsableLogicalExpression,
-          saveButton: parsableLogicalExpression,
-        },
-      };
+    const groupComponentWithAllBooleanFieldsAsExpressions = withAllExpressions({
+      id: 'some-id',
+      type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: { field: 'some-path', dataType: '' } },
+    } as FormContainer<ComponentType.RepeatingGroup>);
     renderExpressions({ formItem: groupComponentWithAllBooleanFieldsAsExpressions });
     const addButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
@@ -105,7 +94,7 @@ describe('Expressions', () => {
     renderExpressions({ handleUpdate });
     const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
     await user.click(addButton);
-    const buttonName = textMock('right_menu.expressions_property_read_only');
+    const buttonName = textMock('ux_editor.component_properties.readOnly');
     const button = screen.getByRole('button', { name: buttonName });
     await user.click(button);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
@@ -120,7 +109,7 @@ describe('Expressions', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const handleUpdate = jest.fn();
     renderExpressions({ handleUpdate });
-    const expressionName = textMock('right_menu.expressions_property_preview_hidden');
+    const expressionName = `${textMock('ux_editor.component_properties.hidden')} some-id`;
     const expression = screen.getByRole('group', { name: expressionName });
     const deleteButtonName = textMock('right_menu.expression_delete');
     const deleteButton = within(expression).getByRole('button', { name: deleteButtonName });
@@ -135,7 +124,7 @@ describe('Expressions', () => {
     const user = userEvent.setup();
     const handleUpdate = jest.fn();
     renderExpressions({ handleUpdate });
-    const expressionName = textMock('right_menu.expressions_property_preview_hidden');
+    const expressionName = `${textMock('ux_editor.component_properties.hidden')} some-id`;
     const expression = screen.getByRole('group', { name: expressionName });
     const orButtonName = textMock('expression.logicalTupleOperator.or');
     const orButton = within(expression).getByRole('radio', { name: orButtonName });
@@ -161,6 +150,13 @@ describe('Expressions', () => {
     expect(addExpressionBtn).toBeInTheDocument();
   });
 });
+
+const withAllExpressions = <T extends FormItem>(formItem: T): T =>
+  expressionPropertiesOnFormItem(formItem.type).reduce(
+    (component, property) =>
+      setExpressionOnFormItem(component, property, parsableLogicalExpression),
+    formItem,
+  );
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
   const queryClient = createQueryClientMock();

@@ -173,6 +173,45 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('ux_editor.component_properties.value')).not.toBeInTheDocument();
   });
 
+  it('renders declared language sources for Video', async () => {
+    const user = userEvent.setup();
+    renderFormComponentConfig({
+      component: {
+        id: 'video',
+        type: ComponentType.Video,
+        video: { src: {} },
+      },
+      properties: componentCatalog.Video.properties,
+    });
+
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.video')));
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.src')));
+
+    expect(screen.getByText(textMock('ux_editor.component_properties.nb'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.nn'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.en'))).toBeInTheDocument();
+  });
+
+  it('keeps generic Image settings while leaving its source to the image library editor', async () => {
+    const user = userEvent.setup();
+    renderFormComponentConfig({
+      component: {
+        id: 'image',
+        type: ComponentType.Image,
+        image: { src: {} },
+      },
+      properties: componentCatalog.Image.properties,
+    });
+
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.image')));
+
+    expect(screen.getByText(textMock('ux_editor.component_properties.width'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.component_properties.align'))).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('ux_editor.component_properties.src')),
+    ).not.toBeInTheDocument();
+  });
+
   const renderFormComponentConfig = (props: Partial<FormComponentConfigProps> = {}) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: FormComponentConfigProps = {

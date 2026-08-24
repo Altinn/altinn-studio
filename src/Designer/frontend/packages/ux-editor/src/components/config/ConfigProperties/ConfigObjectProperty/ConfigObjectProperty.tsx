@@ -10,6 +10,8 @@ export interface ConfigObjectPropertyProps extends CatalogConfigProps {
   objectPropertyKey: string;
   editFormId: string;
   className?: string;
+  propertyPath?: readonly string[];
+  specializedPropertyPaths?: readonly string[];
 }
 
 export const ConfigObjectProperty = ({
@@ -19,6 +21,8 @@ export const ConfigObjectProperty = ({
   editFormId,
   handleComponentUpdate,
   className,
+  propertyPath = [],
+  specializedPropertyPaths = [],
 }: ConfigObjectPropertyProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const [openObjectCard, setOpenObjectCard] = useState<boolean>(false);
@@ -44,6 +48,8 @@ export const ConfigObjectProperty = ({
       handleComponentUpdate={handleComponentUpdate}
       setOpenObjectCard={setOpenObjectCard}
       editFormId={editFormId}
+      propertyPath={propertyPath}
+      specializedPropertyPaths={specializedPropertyPaths}
     />
   );
 };

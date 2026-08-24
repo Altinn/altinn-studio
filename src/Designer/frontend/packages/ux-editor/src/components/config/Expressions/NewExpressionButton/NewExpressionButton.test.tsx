@@ -56,7 +56,7 @@ describe('NewExpressionButton', () => {
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await user.click(addButton);
     const dropdownOption = screen.getByRole('button', {
-      name: textMock('right_menu.expressions_property_read_only'),
+      name: textMock('ux_editor.component_properties.readOnly'),
     });
     await user.click(dropdownOption);
 

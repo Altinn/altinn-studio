@@ -8,7 +8,7 @@ type ComponentProperties = Readonly<Record<string, PropertyDefinition>>;
 const getKeys = (
   properties: ComponentProperties,
   types: EditablePropertyType[],
-  excludedProperties: string[],
+  excludedProperties: readonly string[],
 ): string[] =>
   Object.keys(properties).filter(
     (key) =>
@@ -17,7 +17,10 @@ const getKeys = (
       types.includes(getEditablePropertyType(properties[key])),
   );
 
-export const usePropertyTypes = (properties: ComponentProperties, customProperties: string[]) => {
+export const usePropertyTypes = (
+  properties: ComponentProperties,
+  customProperties: readonly string[],
+) => {
   return useMemo(() => {
     const booleanKeys = getKeys(properties, ['boolean'], customProperties);
     const stringKeys = getKeys(properties, ['string'], customProperties);

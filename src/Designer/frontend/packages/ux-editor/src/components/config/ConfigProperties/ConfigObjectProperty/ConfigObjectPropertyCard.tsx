@@ -14,6 +14,8 @@ export interface ConfigObjectPropertyCardProps extends CatalogConfigProps {
   objectPropertyKey: string;
   editFormId: string;
   setOpenObjectCard: (open: boolean) => void;
+  propertyPath?: readonly string[];
+  specializedPropertyPaths?: readonly string[];
 }
 
 export const ConfigObjectPropertyCard = ({
@@ -23,6 +25,8 @@ export const ConfigObjectPropertyCard = ({
   handleComponentUpdate,
   setOpenObjectCard,
   editFormId,
+  propertyPath = [],
+  specializedPropertyPaths = [],
 }: ConfigObjectPropertyCardProps) => {
   const [currentValues, setCurrentValues] = useState<object | undefined>(
     component[objectPropertyKey],
@@ -78,6 +82,8 @@ export const ConfigObjectPropertyCard = ({
           }
           editFormId={editFormId}
           keepEditOpen={true}
+          propertyPath={[...propertyPath, objectPropertyKey]}
+          specializedPropertyPaths={specializedPropertyPaths}
         />
       </StudioConfigCard.Body>
       <StudioConfigCard.Footer

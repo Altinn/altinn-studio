@@ -3,6 +3,7 @@ import {
   getAllowedValues,
   getArrayStringChoices,
   getBooleanDefault,
+  getBooleanExpressionProperties,
   getEditablePropertyType,
   getNestedPropertyDefinition,
   getPropertyChoices,
@@ -40,14 +41,23 @@ describe('componentCatalog', () => {
     expect(getEditablePropertyType({ type: 'array', items: { type: 'string' } })).toBeUndefined();
   });
 
-  it('exposes closed nested objects to the generic editor', () => {
+  it('exposes declared properties on open nested objects to the generic editor', () => {
     expect(
       getEditablePropertyType({
         type: 'object',
         properties: { enabled: { type: 'boolean', required: false } },
-        additionalProperties: false,
+        additionalProperties: { type: 'string' },
       }),
     ).toBe('object');
+  });
+
+  it('discovers boolean expressions from component definitions', () => {
+    expect(getBooleanExpressionProperties('Input').map(({ path }) => path)).toEqual(
+      expect.arrayContaining([['hidden'], ['required'], ['readOnly'], ['removeWhenHidden']]),
+    );
+    expect(getBooleanExpressionProperties('RepeatingGroup').map(({ path }) => path)).toContainEqual(
+      ['edit', 'addButton'],
+    );
   });
 
   it('uses examples as editor choices and preserves boolean defaults', () => {

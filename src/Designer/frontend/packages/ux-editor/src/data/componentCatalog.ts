@@ -5,6 +5,7 @@ import type {
   PropertyDefinition,
   PropertyValueDefinition,
 } from '@app/layout-contract';
+import type { FormItemProperty } from '../types/FormItemProperty';
 
 const catalog: ComponentCatalog = componentCatalog;
 
@@ -36,9 +37,7 @@ export function getEditablePropertyType(
     return getAllowedValues(definition.items)?.length ? 'array' : undefined;
   }
   if (definition.type === 'object') {
-    return definition.additionalProperties === false && Object.keys(definition.properties).length
-      ? 'object'
-      : undefined;
+    return Object.keys(definition.properties).length ? 'object' : undefined;
   }
   if (definition.type === 'union') {
     const types = new Set(
@@ -51,6 +50,63 @@ export function getEditablePropertyType(
     return types.size === 1 ? [...types][0] : undefined;
   }
   return undefined;
+}
+
+export function getBooleanExpressionProperties(componentType: string): FormItemProperty[] {
+  const definition = getComponentDefinition(componentType);
+  if (!definition) return [];
+
+  return Object.entries(definition.properties).flatMap(([key, property]) =>
+    findBooleanExpressionProperties(property, [key]),
+  );
+}
+
+function findBooleanExpressionProperties(
+  definition: PropertyDefinition,
+  path: readonly string[],
+): FormItemProperty[] {
+  if (definition.type === 'boolean' && definition.expression) return [{ path, definition }];
+  if (definition.type === 'object') {
+    return Object.entries(definition.properties).flatMap(([key, property]) =>
+      findBooleanExpressionProperties(property, [...path, key]),
+    );
+  }
+  if (definition.type === 'union') {
+    return uniqueProperties(
+      definition.variants.flatMap((variant) =>
+        variant.type === 'object'
+          ? Object.entries(variant.properties).flatMap(([key, property]) =>
+              findBooleanExpressionProperties(property, [...path, key]),
+            )
+          : [],
+      ),
+    );
+  }
+  if (definition.type === 'intersection') {
+    return uniqueProperties(
+      definition.parts.flatMap((part) =>
+        part.type === 'object'
+          ? Object.entries(part.properties).flatMap(([key, property]) =>
+              findBooleanExpressionProperties(property, [...path, key]),
+            )
+          : [],
+      ),
+    );
+  }
+  return [];
+}
+
+function uniqueProperties(properties: FormItemProperty[]): FormItemProperty[] {
+  return properties.filter(
+    (property, index) =>
+      properties.findIndex((candidate) => pathsAreEqual(candidate.path, property.path)) === index,
+  );
+}
+
+function pathsAreEqual(first: readonly string[], second: readonly string[]): boolean {
+  return (
+    first.length === second.length && first.every((segment, index) => segment === second[index])
+  );
 }
 
 export function getAllowedValues(
