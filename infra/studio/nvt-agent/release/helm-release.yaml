@@ -546,6 +546,7 @@ spec:
             endpoint: https://api.github.com/user
             subjectPath: id
           issuer: https://github.com
+          authorizationResponseIssuer: https://github.com/login/oauth
           scopes: []
           tokenURL: https://github.com/login/oauth/access_token
       slots: []
