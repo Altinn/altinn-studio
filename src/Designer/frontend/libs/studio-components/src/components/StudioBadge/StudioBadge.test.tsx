@@ -9,19 +9,19 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioBadge', () => {
   it('should support forwarding the ref', () => {
-    testRefForwarding<HTMLDivElement>((ref) => renderTestAlert({}, ref));
+    testRefForwarding<HTMLDivElement>((ref) => renderTestBadge({}, ref));
   });
 
   it('should append classname to root', () => {
-    testRootClassNameAppending((className) => renderTestAlert({ className }));
+    testRootClassNameAppending((className) => renderTestBadge({ className }));
   });
 
   it('should allow custom attributes', () => {
-    testCustomAttributes((customAttributes) => renderTestAlert({ ...customAttributes }));
+    testCustomAttributes((customAttributes) => renderTestBadge({ ...customAttributes }));
   });
 });
 
-const renderTestAlert = (
+const renderTestBadge = (
   props: Partial<StudioBadgeProps> = {},
   ref?: ForwardedRef<HTMLDivElement>,
 ): RenderResult => {
