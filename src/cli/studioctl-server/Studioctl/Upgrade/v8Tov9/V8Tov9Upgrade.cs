@@ -157,6 +157,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -628,6 +631,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Header components to Heading", ex);
+        }
+    }
+
+    static async Task<int> MigrateFileUploadWithTagLayouts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("FileUploadWithTag components");
+        try
+        {
+            return await FileUploadWithTagLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
         }
     }
 

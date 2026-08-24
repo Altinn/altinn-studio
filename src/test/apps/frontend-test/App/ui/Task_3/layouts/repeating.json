@@ -536,7 +536,7 @@
       },
       {
         "id": "subUploader",
-        "type": "FileUploadWithTag",
+        "type": "FileUpload",
         "textResourceBindings": {
           "title": "Nested uploader with tags"
         },

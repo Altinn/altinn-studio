@@ -36,6 +36,7 @@ internal sealed class DirectFileRestorer
 
         // Get file path relative to repo root
         var fullFilePath = Path.Combine(repoRoot, diffFile.FilePath);
+        var hadBom = File.ReadAllBytes(fullFilePath).AsSpan().StartsWith(Encoding.UTF8.Preamble);
 
         // Read original content from HEAD
         string originalContent = _gitService.GetFileContentFromHead(repoRoot, diffFile.FilePath);
@@ -55,7 +56,7 @@ internal sealed class DirectFileRestorer
             resultContent += lineEnding;
         }
 
-        File.WriteAllText(fullFilePath, resultContent, Encoding.UTF8);
+        File.WriteAllText(fullFilePath, resultContent, new UTF8Encoding(encoderShouldEmitUTF8Identifier: hadBom));
     }
 
     /// <summary>
