@@ -175,7 +175,7 @@ Three layers, each covering what the others cannot.
 
 **Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment *filenames*, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
 
-**Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change lands on a session branch a human reviews before merge.
+**Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change the agent makes to a repository lands on a session branch a human reviews before merge. That covers repository changes only: publishing a prompt with `scripts/sync_prompts.py --push` reaches the deployed service immediately, with no branch and no review (see [Prompts and Langfuse](#prompts-and-langfuse)).
 
 **Spotlighting** (both modes) covers what the intent gate never sees: the content of uploaded documents. Users attach PDFs and images as context, and that content reaches the model twice: once as the attachment the spec extractor reads, and again as the extracted `FormSpec` in the loop's system prompt. Both are wrapped in `<attachment_content>` / `<form_spec>` delimiters carrying an explicit instruction that the block is data to describe, not instructions to obey. A closing tag written inside the content is escaped so a document cannot end its own block early.
 

@@ -51,15 +51,22 @@ def _is_reasoning_model(model_name: Optional[str]) -> bool:
         or m.startswith("gpt-5")
     )
 
-def _defang_text_blocks(blocks: List[dict]) -> List[dict]:
-    """Attachment blocks that fall back to text carry the filename, which the
-    uploader chose. Stop it closing the block it sits inside."""
-    return [
-        {**block, "text": defang_delimiter(block["text"], ATTACHMENT_TAG)}
-        if block.get("type") == "text" and isinstance(block.get("text"), str)
-        else block
-        for block in blocks
-    ]
+# The text fallback embeds the filename; a document block carries it as a title.
+MODEL_VISIBLE_ATTACHMENT_FIELDS = ("text", "title")
+
+
+def _defang_attachment_blocks(blocks: List[dict]) -> List[dict]:
+    """Attachment blocks carry uploader-chosen strings. Stop any of them
+    closing the block they sit inside."""
+    defanged: List[dict] = []
+    for block in blocks:
+        replacements = {
+            field: defang_delimiter(block[field], ATTACHMENT_TAG)
+            for field in MODEL_VISIBLE_ATTACHMENT_FIELDS
+            if isinstance(block.get(field), str)
+        }
+        defanged.append({**block, **replacements} if replacements else block)
+    return defanged
 
 
 def _build_anthropic_user_content(
@@ -81,7 +88,7 @@ def _build_anthropic_user_content(
     blocks: List[dict] = [{"type": "text", "text": stripped}] if stripped else []
     blocks.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
     for attachment in attachments:
-        blocks.extend(_defang_text_blocks(attachment.to_anthropic_blocks()))
+        blocks.extend(_defang_attachment_blocks(attachment.to_anthropic_blocks()))
     blocks.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
     return blocks
 
@@ -369,7 +376,7 @@ class LLMClient:
             content = [{"type": "text", "text": user_prompt}]
             content.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
             for attachment in attachments:
-                content.extend(_defang_text_blocks(attachment.to_content_blocks()))
+                content.extend(_defang_attachment_blocks(attachment.to_content_blocks()))
             content.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
             return HumanMessage(content=content)
         return HumanMessage(content=user_prompt)
