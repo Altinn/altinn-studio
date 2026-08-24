@@ -1033,7 +1033,7 @@ internal static class V8Tov9Upgrade
     }
 
     // Process exit codes. A job that completes but leaves work for a human (e.g. a legacy flag kept in
-    // place) reports a to-do so tooling can tell "clean" from "needs manual follow-up".
+    // place) reports ManualActionRequired so tooling can tell "clean" from "needs manual follow-up".
     private const int ExitSuccess = 0;
     private const int ExitError = 1;
     private const int ExitUnsupportedVersion = 2;
