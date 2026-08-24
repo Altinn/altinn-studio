@@ -22,3 +22,34 @@
 # flagged key, or re-routes a value is reported as stale by the check that
 # consumes it.
 
+# Gitea's sign-in page: the override deliberately blanks the "or" separator
+# between sign-in methods.
+@files src/gitea/files/locale/custom/locale_nb-NO.json src/gitea/files/locale/custom/locale_en-US.json
+@empty
+sign_in_or
+
+# ISO 639-1 language codes, not English words.
+@files src/Designer/frontend/language/src/*.json
+@key-contract
+language.ba
+language.fo
+language.nd
+
+# Keyed by the v8 OrganisationLookup component type and its data-model
+# binding names. Designer serves v8 apps, whose layouts still carry the old
+# type, so these keys follow the component rename (a versioned product
+# change with a layout migration) — not the spelling pass.
+@files src/Designer/frontend/language/src/*.json
+@key-contract
+ux_editor.component_help_text.OrganisationLookup
+ux_editor.component_title.OrganisationLookup
+ux_editor.modal_properties_data_model_label.organisation_lookup_name
+ux_editor.modal_properties_data_model_label.organisation_lookup_orgnr
+
+# Consent previews deliberately shown in nynorsk inside the bokmål file.
+@files src/Designer/frontend/resourceadm/language/src/nb.json
+@language nn
+resourceadm.about_resource_consent_preview_approve_nn
+resourceadm.about_resource_consent_preview_reject_nn
+resourceadm.about_resource_consent_preview_approve_poa_nn
+resourceadm.about_resource_consent_preview_reject_poa_nn
