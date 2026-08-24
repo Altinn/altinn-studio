@@ -14,13 +14,7 @@ internal enum MigrationMessageKind
 internal readonly record struct MigrationMessage(string Text, MigrationMessageKind Kind);
 
 /// <summary>
-/// The outcome of a migration job: everything the migrator has to say, in the order it said it - so a
-/// to-do can sit directly after the warning explaining why the upgrade could not do it for you. A single
-/// <see cref="MigrationMessageKind.Todo"/> message means the migrator ran but could not fully apply its
-/// change, so a human must finish the work. That is distinct from an outright error (an unhandled
-/// exception): the upgrade completed everything it safely could, but the result is not "done", and the CLI
-/// reflects that with a dedicated exit code so tooling can tell "clean" apart from "needs manual
-/// follow-up".
+/// Everything a migration job has to say. Any to-do message means a manual follow-up is required to finish the migration successfully; warnings are just informational.
 /// </summary>
 internal sealed record MigrationResult(IReadOnlyList<MigrationMessage> Messages)
 {
