@@ -64,10 +64,14 @@ export const Config = new CG.component({
               nn: 'https://example.com/audio.mp3',
               en: 'https://example.com/audio.mp3',
             })
+            .setTitle('Audio sources', 'Lydkilder')
+            .setDescription('Audio sources for each supported language.', 'Lydkilder for hvert språk appen støtter.')
             .exportAs('AudioSrc'),
         ),
       )
         .optional()
+        .setTitle('Audio settings', 'Lydinnstillinger')
+        .setDescription('Configures the audio sources.', 'Konfigurerer lydkildene.')
         .exportAs('IAudio'),
     ),
   );

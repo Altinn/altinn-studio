@@ -1169,7 +1169,8 @@
       ]
     },
     "AudioSrc": {
-      "title": "AudioSrc",
+      "title": "Audio sources",
+      "description": "Audio sources for each supported language.",
       "examples": [
         {
           "nb": "https://example.com/audio.mp3",
@@ -8404,7 +8405,8 @@
       ]
     },
     "IAudio": {
-      "title": "IAudio",
+      "title": "Audio settings",
+      "description": "Configures the audio sources.",
       "type": "object",
       "properties": {
         "src": {

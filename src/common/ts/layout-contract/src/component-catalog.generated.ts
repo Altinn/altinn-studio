@@ -477,6 +477,11 @@ const AudioSrc = {
     type: 'string',
     title: { en: 'Audio source (when using other languages)', nb: 'Lydkilde for andre språk' },
   },
+  title: { en: 'Audio sources', nb: 'Lydkilder' },
+  description: {
+    en: 'Audio sources for each supported language.',
+    nb: 'Lydkilder for hvert språk appen støtter.',
+  },
   examples: [
     {
       nb: 'https://example.com/audio.mp3',
@@ -493,11 +498,15 @@ const IAudio = {
       type: 'object',
       properties: AudioSrc['properties'],
       additionalProperties: AudioSrc['additionalProperties'],
+      title: AudioSrc['title'],
+      description: AudioSrc['description'],
       examples: AudioSrc['examples'],
       required: true,
     },
   },
   additionalProperties: false,
+  title: { en: 'Audio settings', nb: 'Lydinnstillinger' },
+  description: { en: 'Configures the audio sources.', nb: 'Konfigurerer lydkildene.' },
 } as const;
 
 const ButtonSize = {
@@ -5158,6 +5167,8 @@ const generatedContract = {
           type: 'object',
           properties: IAudio['properties'],
           additionalProperties: false,
+          title: IAudio['title'],
+          description: IAudio['description'],
           required: false,
         },
       },
