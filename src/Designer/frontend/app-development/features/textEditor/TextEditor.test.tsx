@@ -67,7 +67,7 @@ describe('TextEditor', () => {
     });
     await user.type(searchInput, search);
 
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ search });
+    await waitFor(() => expect(mockSetSearchParams).toHaveBeenCalledWith({ search }));
   });
 
   it('adds new text resource when clicking add button', async () => {
