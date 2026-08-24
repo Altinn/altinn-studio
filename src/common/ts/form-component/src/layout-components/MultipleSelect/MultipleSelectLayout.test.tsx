@@ -32,26 +32,21 @@ const render = (
     },
   );
 
-// The Designsystemet Suggestion renders a `<u-combobox>` web component whose input only gains the
-// `combobox` role once the custom element upgrades — which does not happen in the stock jsdom used
-// here. We therefore query the underlying `<input id={componentId}>` directly.
+// Query the underlying input directly when assertions need to inspect its attributes.
 const getInput = (container: HTMLElement) =>
   container.querySelector<HTMLInputElement>('input#my-multiple-select');
 
 const getPopover = (container: HTMLElement) => container.querySelector('.ds-popover');
 
-// The `<u-combobox>` custom element does not upgrade in jsdom, so we emulate its contract: the
-// Designsystemet Suggestion listens for `comboboxbeforeselect` whose `detail` is a `<data>`
+// The Designsystemet Suggestion listens for `comboboxbeforeselect` whose `detail` is a `<data>`
 // element — a connected one (an existing chip) means "remove", a detached one means "add".
 const dispatchBeforeSelect = (detail: HTMLDataElement) => {
-  const combobox = document.querySelector('u-combobox');
-  if (!combobox) {
-    throw new Error('Found no u-combobox element');
+  const suggestion = document.querySelector('ds-suggestion');
+  if (!suggestion) {
+    throw new Error('Found no ds-suggestion element');
   }
-  // The non-upgraded element lacks the u-combobox `multiple` getter (backed by data-multiple).
-  Object.defineProperty(combobox, 'multiple', { value: true, configurable: true });
   fireEvent(
-    combobox,
+    suggestion,
     new CustomEvent('comboboxbeforeselect', { detail, bubbles: true, cancelable: true }),
   );
 };
@@ -178,7 +173,7 @@ describe('MultipleSelect', () => {
   it('exposes the title via aria-label when rendered in a table', () => {
     const { container } = render({ title: 'multipleselect.title', renderedInTable: true });
     expect(getInput(container)).toHaveAttribute('aria-label', 'Språk du snakker');
-    expect(screen.getByRole('textbox', { name: 'Språk du snakker' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Språk du snakker' })).toBeInTheDocument();
   });
 
   it('does not set an aria-label on the input when not rendered in a table', () => {
