@@ -5,5 +5,5 @@
   width: 20px;
   height: 20px;
   border-radius: 100%;
-  background-color: var(--fds-semantic-surface-danger-default);
+  background-color: var(--ds-color-danger-base-default);
 }
