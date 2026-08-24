@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Ref } from 'react';
 
 import { ConditionalWrapper } from '@app/form-component/app-components/ConditionalWrapper';
@@ -48,17 +48,28 @@ export function WrappedCheckbox({
     (isChecked) => !isChecked,
   );
 
-  // This forces a rerender when checked changes, which is blocked by designsystemet's popover.
-  const [, setRerenderState] = useState({});
-  const hasRendered = useRef(false);
-  useEffect(() => {
-    if (!hasRendered.current) {
-      hasRendered.current = true;
-      return;
+  // When alertOnChange is enabled, the designsystemet Popover treats this checkbox as its trigger
+  // and calls preventDefault() on every click, making the browser revert the native checked state
+  // after React has already committed it. React then sees no prop change to write, so the DOM stays
+  // out of sync. Re-sync it here after each commit.
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const mergedRef = (node: HTMLInputElement | null) => {
+    inputRef.current = node;
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
     }
+  };
 
-    setRerenderState({});
-  }, [checked]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputRef.current && inputRef.current.checked !== Boolean(checked)) {
+        inputRef.current.checked = Boolean(checked);
+      }
+    });
+    return () => clearTimeout(timer);
+  });
 
   return (
     <ConditionalWrapper
@@ -101,7 +112,7 @@ export function WrappedCheckbox({
           onChange?.(e);
           handleChange(e.target.checked);
         }}
-        ref={ref}
+        ref={mergedRef}
       />
     </ConditionalWrapper>
   );
