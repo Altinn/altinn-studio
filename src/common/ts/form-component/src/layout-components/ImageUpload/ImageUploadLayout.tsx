@@ -14,6 +14,10 @@ export interface ImageUploadLayoutProps {
   /** The configured component id (Studio "Komponent-ID"). Used for the label's `htmlFor`, the
    * form-content wrapper and the dropzone/aria ids. */
   componentId: string;
+  /** Commit a cropped image. The runtime wrapper wires this to the attachment uploader. */
+  onSave: (file: File) => void;
+  /** Delete the stored image. The runtime wrapper wires this to the attachment remover. */
+  onDelete: () => void;
   /** The cropping area configuration (shape + size). Defaults to a 250px circle. */
   crop?: CropConfig;
   readOnly?: boolean;
@@ -32,10 +36,6 @@ export interface ImageUploadLayoutProps {
   storedImage?: StoredImage;
   /** URL of the stored image, if any. Injected by the runtime wrapper. */
   imageUrl?: string;
-  /** Commit a cropped image. The runtime wrapper wires this to the attachment uploader. */
-  onSave?: (file: File) => void;
-  /** Delete the stored image. The runtime wrapper wires this to the attachment remover. */
-  onDelete?: () => void;
   /** Grid sizing for the inner content. */
   innerGrid?: IGridStyling;
   /** Grid sizing for the validation messages. */
@@ -46,8 +46,6 @@ export interface ImageUploadLayoutProps {
    */
   validationMessages?: ReactNode;
 }
-
-const noop = () => {};
 
 export function ImageUploadLayout({
   componentId,
@@ -61,8 +59,8 @@ export function ImageUploadLayout({
   description,
   storedImage,
   imageUrl,
-  onSave = noop,
-  onDelete = noop,
+  onSave,
+  onDelete,
   innerGrid,
   validationGrid,
   validationMessages,

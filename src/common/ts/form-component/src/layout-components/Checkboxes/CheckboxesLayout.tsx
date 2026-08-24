@@ -24,7 +24,7 @@ export interface CheckboxesProps {
   componentId: string;
   options: CheckboxesOption[];
   value: string[];
-  onChange?: (value: string, checked: boolean) => void;
+  onChange: (value: string, checked: boolean) => void;
   readOnly?: boolean;
   required?: boolean;
   isValid?: boolean;
@@ -43,13 +43,11 @@ export interface CheckboxesProps {
   validationMessages?: ReactNode;
 }
 
-function noop() {}
-
 export function Checkboxes({
   componentId,
   options,
   value,
-  onChange = noop,
+  onChange,
   readOnly,
   required,
   isValid = true,
