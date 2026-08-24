@@ -120,7 +120,7 @@ internal sealed class MaskinportenSettingsCollisionDetector
             }
         }
 
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
         AppendFindings(messages, ExternalShapeSummary, externalShaped);
         AppendFindings(messages, ProvisionedOverlapSummary, provisionedOverlap);
 
@@ -134,7 +134,7 @@ internal sealed class MaskinportenSettingsCollisionDetector
         return new MigrationResult(messages);
     }
 
-    private static void AppendFindings(List<MigrationMessage> messages, string summary, List<SectionFinding> findings)
+    private static void AppendFindings(List<UpgradeMessage> messages, string summary, List<SectionFinding> findings)
     {
         if (findings.Count == 0)
         {

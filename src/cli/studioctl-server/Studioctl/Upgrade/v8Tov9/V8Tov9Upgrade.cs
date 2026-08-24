@@ -213,10 +213,7 @@ internal static class V8Tov9Upgrade
     {
         foreach (var message in result.Messages)
         {
-            UpgradeConsole.Message(
-                message.Kind == MigrationMessageKind.Todo ? UpgradeMessageStatus.Todo : UpgradeMessageStatus.Warning,
-                message.Text
-            );
+            UpgradeConsole.Message(message.Status, message.Text);
         }
 
         if (result.RequiresManualFollowUp)

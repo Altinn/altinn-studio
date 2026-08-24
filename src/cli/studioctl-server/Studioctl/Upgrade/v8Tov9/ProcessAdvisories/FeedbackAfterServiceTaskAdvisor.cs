@@ -31,7 +31,7 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
     /// </summary>
     public MigrationResult Analyze()
     {
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
 
         var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
         if (processFile is null)
@@ -50,7 +50,7 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
         return new MigrationResult(messages);
     }
 
-    private static void AnalyzeProcess(XElement process, List<MigrationMessage> messages)
+    private static void AnalyzeProcess(XElement process, List<UpgradeMessage> messages)
     {
         var elementsById = new Dictionary<string, XElement>(StringComparer.Ordinal);
         foreach (var element in process.Elements())

@@ -10,7 +10,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 internal static class WarnOnlyDetector
 {
     public static MigrationResult Report(string summary, IEnumerable<CSharpApiMatch> matches) =>
-        Build(summary, matches, MigrationMessageKind.Todo);
+        Build(summary, matches, UpgradeMessageStatus.Todo);
 
     /// <summary>
     /// Like <see cref="Report"/>, but purely informational: the matched usages still compile and run, so
@@ -19,12 +19,12 @@ internal static class WarnOnlyDetector
     /// old-fashioned.
     /// </summary>
     public static MigrationResult Advise(string summary, IEnumerable<CSharpApiMatch> matches) =>
-        Build(summary, matches, MigrationMessageKind.Warning);
+        Build(summary, matches, UpgradeMessageStatus.Warning);
 
     private static MigrationResult Build(
         string summary,
         IEnumerable<CSharpApiMatch> matches,
-        MigrationMessageKind summaryKind
+        UpgradeMessageStatus summaryKind
     )
     {
         var distinct = matches
@@ -39,7 +39,7 @@ internal static class WarnOnlyDetector
             return new MigrationResult();
         }
 
-        var messages = new List<MigrationMessage>(distinct.Count + 1) { new(summary, summaryKind) };
+        var messages = new List<UpgradeMessage>(distinct.Count + 1) { new(summary, summaryKind) };
         messages.WarnRange(distinct.Select(static match => $"{match.Location}: {match.Symbol}"));
         return new MigrationResult(messages);
     }

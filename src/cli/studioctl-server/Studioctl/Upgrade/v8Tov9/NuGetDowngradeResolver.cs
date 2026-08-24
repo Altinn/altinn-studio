@@ -34,7 +34,7 @@ internal sealed class NuGetDowngradeResolver
         CancellationToken cancellationToken
     )
     {
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
 
         // Guards against re-processing the same "id@version" downgrade forever (e.g. a downgrade for a
         // package with no explicit reference, which restore keeps reporting after we warn about it).

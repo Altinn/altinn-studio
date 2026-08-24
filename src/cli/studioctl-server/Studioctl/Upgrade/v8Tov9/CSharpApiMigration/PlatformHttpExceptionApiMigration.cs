@@ -56,7 +56,7 @@ internal sealed class PlatformHttpExceptionApiMigration
             rewrites.AddRange(rewriter.Changes);
         }
 
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
         if (rewrites.Count > 0)
         {
             messages.Warn(

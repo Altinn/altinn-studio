@@ -40,7 +40,7 @@ internal sealed class EFormidlingRegistrationMigration
 
     public MigrationResult Migrate()
     {
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
 
         // Type arguments are matched on their right-most identifier, so an app with a type of its own
         // called DefaultEFormidlingReceivers would otherwise have that registration dropped as if it

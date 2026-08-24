@@ -63,7 +63,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         };
 
     private readonly string _projectFolder;
-    private readonly List<MigrationMessage> _messages = new();
+    private readonly List<UpgradeMessage> _messages = new();
     private bool _autoDeleteOnProcessEnd;
 
     public ServiceOwnerPolicyMigrator(string projectFolder)

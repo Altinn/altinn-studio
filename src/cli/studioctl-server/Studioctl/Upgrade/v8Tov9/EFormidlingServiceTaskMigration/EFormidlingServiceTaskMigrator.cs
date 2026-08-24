@@ -25,7 +25,7 @@ internal sealed class EFormidlingServiceTaskMigrator
     /// </summary>
     public async Task<MigrationResult> Migrate()
     {
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
 
         var metadataFile = AppFiles.Resolve(_projectFolder, "config/applicationmetadata.json");
         if (metadataFile is null)
@@ -170,7 +170,7 @@ internal sealed class EFormidlingServiceTaskMigrator
     /// <summary>
     /// Ends the migration with the shared follow-up to-do, after the warning that says what stopped it.
     /// </summary>
-    private static MigrationResult FollowUp(List<MigrationMessage> messages)
+    private static MigrationResult FollowUp(List<UpgradeMessage> messages)
     {
         messages.Todo("eFormidling service task migration needs manual follow-up. Review the warnings above.");
         return new MigrationResult(messages);

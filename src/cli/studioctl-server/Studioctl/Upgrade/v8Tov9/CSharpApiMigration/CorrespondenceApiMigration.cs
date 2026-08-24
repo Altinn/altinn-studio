@@ -119,7 +119,7 @@ internal sealed class CorrespondenceApiMigration
             rewrites.AddRange(rewriter.Changes);
         }
 
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
         if (rewrites.Count > 0)
         {
             messages.Warn(

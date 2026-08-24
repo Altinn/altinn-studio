@@ -25,7 +25,7 @@ internal sealed class PdfServiceTaskMigrator
     /// </summary>
     public async Task<MigrationResult> Migrate()
     {
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
 
         var metadataFile = AppFiles.Resolve(_projectFolder, "config/applicationmetadata.json");
         if (metadataFile is null)

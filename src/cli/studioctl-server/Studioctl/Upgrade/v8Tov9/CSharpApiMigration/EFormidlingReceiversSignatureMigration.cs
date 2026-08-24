@@ -82,7 +82,7 @@ internal sealed class EFormidlingReceiversSignatureMigration
 
     public MigrationResult Migrate()
     {
-        var messages = new List<MigrationMessage>();
+        var messages = new List<UpgradeMessage>();
 
         // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
         foreach (var file in _scanner.Files.ToArray())
