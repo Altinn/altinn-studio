@@ -1,11 +1,11 @@
 import type { ReactNode, ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState, useRef } from 'react';
 import classes from './InputPopover.module.css';
-import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';
 import {
+  StudioDropdown,
   StudioPopover,
   StudioTextfield,
   StudioButton,
@@ -17,7 +17,7 @@ export type InputPopoverProps = {
   oldName: string;
   layoutOrder: string[];
   saveNewName: (newName: string) => void;
-  onClose: () => void;
+  onClose?: () => void;
 };
 
 /**
@@ -68,22 +68,26 @@ export const InputPopover = ({
   };
 
   const handleClose = () => {
-    onClose();
+    onClose?.();
     setIsEditDialogOpen(false);
   };
 
   return (
     <>
-      <DropdownMenu.Item
-        onClick={() => setIsEditDialogOpen(true)}
-        id='edit-page-button'
-        disabled={disabled}
-        ref={newNameRef}
-        aria-expanded={isEditDialogOpen}
-      >
-        <PencilIcon />
-        {t('ux_editor.page_menu_edit')}
-      </DropdownMenu.Item>
+      <StudioDropdown.Item>
+        <StudioButton
+          variant='tertiary'
+          onClick={() => setIsEditDialogOpen(true)}
+          id='edit-page-button'
+          disabled={disabled}
+          ref={newNameRef}
+          role='menuitem'
+          aria-expanded={isEditDialogOpen}
+        >
+          <PencilIcon />
+          {t('ux_editor.page_menu_edit')}
+        </StudioButton>
+      </StudioDropdown.Item>
       {isEditDialogOpen && (
         <StudioPopover.TriggerContext>
           <StudioPopover.Trigger>
