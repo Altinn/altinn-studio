@@ -22,7 +22,11 @@ namespace Altinn.Studio.Designer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(name: "attachment_instruction_flagged", schema: "designer", table: "chat_messages");
+            migrationBuilder.DropColumn(
+                name: "attachment_instruction_flagged",
+                schema: "designer",
+                table: "chat_messages"
+            );
         }
     }
 }
