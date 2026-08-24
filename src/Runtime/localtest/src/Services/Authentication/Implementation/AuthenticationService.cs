@@ -81,7 +81,11 @@ public class AuthenticationService : IAuthentication
 
     private X509SigningCredentials GetSigningCredentials()
     {
-        var cert = new X509Certificate2(_certSettings.CertificatePath, _certSettings.CertificatePwd);
+        var cert = X509CertificateLoader.LoadPkcs12FromFile(
+            _certSettings.CertificatePath,
+            _certSettings.CertificatePwd,
+            X509KeyStorageFlags.DefaultKeySet
+        );
         return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
     }
 
