@@ -203,7 +203,15 @@
       "description": "Manage experimental agent platform dependencies manually",
       "matchFileNames": ["src/experimental/**"],
       "enabled": false
+    },
+    {
+      "description": "Manage all Rust dependencies manually",
+      "matchManagers": ["cargo"],
+      "enabled": false
     }
   ],
-  "schedule": []
+  "schedule": ["* 7-15 * * 1-5"],
+  "updateNotScheduled": false,
+  "automergeSchedule": ["* 7-15 * * 1-5"],
+  "platformAutomerge": false
 }

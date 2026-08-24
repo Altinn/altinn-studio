@@ -5,6 +5,7 @@ import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopove
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
+import { optionFilter } from '@app/form-component/layout-components/common/optionFilter';
 import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
 import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
@@ -14,7 +15,6 @@ import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import classes from './DropdownLayout.module.css';
-import { optionFilter } from './optionFilter';
 
 export interface DropdownOption {
   /** The value stored in the data model when this option is selected. */

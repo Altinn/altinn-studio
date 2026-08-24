@@ -53,6 +53,26 @@ public static class Diagnostics
         );
     }
 
+    public static class Authorization
+    {
+        public static readonly DiagnosticDescriptor MissingServiceOwnerGrant = Error(
+            "ALTINNAPP0800",
+            Category.Authorization,
+            "Service owner is missing required authorization",
+            "policy.xml does not permit the app owner '{0}' any of the action(s) [{1}] on {0}/{2}, which is "
+                + "required because the app {3} as the service owner. Grant the action(s) to the org subject in "
+                + "config/authorization/policy.xml, or run the v8 to v9 upgrade to have a rule inserted."
+        );
+
+        public static readonly DiagnosticDescriptor ServiceOwnerGrantNotVerifiable = Warning(
+            "ALTINNAPP0801",
+            Category.Authorization,
+            "Service owner authorization could not be verified",
+            "Could not verify that the app owner '{0}' is permitted the action(s) [{1}] on {0}/{2}: {3}. Verify "
+                + "this manually - the app performs the corresponding operations as the service owner."
+        );
+    }
+
     internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
@@ -94,5 +114,6 @@ public static class Diagnostics
         public const string CodeSmells = nameof(CodeSmells);
         public const string Deprecation = nameof(Deprecation);
         public const string Contracts = nameof(Contracts);
+        public const string Authorization = nameof(Authorization);
     }
 }

@@ -24,6 +24,8 @@ jobs:
         working-directory: src
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
@@ -49,7 +51,11 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build image
-        run: docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.image }} -f Runtime/localtest/Dockerfile .
+        run: |
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-localtest:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-localtest:buildcache,mode=max \
+            -t ${{ steps.vars.outputs.image }} -f Runtime/localtest/Dockerfile .
 
       - name: Push image
         run: docker push ${{ steps.vars.outputs.image }}

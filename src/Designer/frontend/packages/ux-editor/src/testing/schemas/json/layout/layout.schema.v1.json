@@ -824,17 +824,12 @@
         "md": {
           "$ref": "#/definitions/gridValue",
           "title": "md",
-          "description": "Grid breakpoint at 960px"
+          "description": "Grid breakpoint at 1024px"
         },
         "lg": {
           "$ref": "#/definitions/gridValue",
           "title": "lg",
-          "description": "Grid breakpoint at 1280px"
-        },
-        "xl": {
-          "$ref": "#/definitions/gridValue",
-          "title": "xl",
-          "description": "Grid breakpoint at 1920px"
+          "description": "Grid breakpoint at 1440px"
         }
       }
     },
