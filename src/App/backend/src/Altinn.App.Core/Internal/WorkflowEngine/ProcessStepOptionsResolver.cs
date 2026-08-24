@@ -45,15 +45,12 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
     /// <param name="serviceTaskStageName">
     /// For a service-task pipeline stage: the stage's name. Null for a receive step and for the pipeline's
-    /// conclusion. Either way tier 3 is that one step's own options over the task's, field-wise — a stage's
-    /// from the builder's <c>Stage</c>, the conclusion's from whichever terminal ended the chain
-    /// (<c>Finally</c> or <c>ConcludeOnReplies</c>).
+    /// conclusion. Either way tier 3 is that one step's own options over the task's, field-wise.
     /// </param>
     /// <param name="serviceTaskRepliesTo">
     /// For a service-task receive step: the stage that opened the exchange the step answers. The step's own
     /// options are then the answering handler's — a non-terminal <c>HandleReplies</c> by that name, or the
-    /// conclusion when the terminal is what answers it — so a handler mid-pipeline is configured by its own
-    /// call rather than by the terminal that ends the chain.
+    /// conclusion when the terminal is what answers it.
     /// </param>
     public ProcessStepOptions? Resolve(
         string commandKey,
@@ -118,9 +115,8 @@ internal sealed class ProcessStepOptionsResolver
                 return null;
             }
 
-            // Options declared for one step — a stage by name, the handler answering a named exchange, or
-            // the conclusion — win field-wise over the task's own, mirroring how the merged result then
-            // wins over the command default in Resolve.
+            // Options declared for one step win field-wise over the task's own, mirroring how the merged
+            // result then wins over the command default in Resolve.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
             ProcessStepOptions? stepOptions;
             if (serviceTaskStageName is not null)
@@ -129,16 +125,14 @@ internal sealed class ProcessStepOptionsResolver
             }
             else if (serviceTaskRepliesTo is not null && pipeline.FindReplySegment(serviceTaskRepliesTo) is { } segment)
             {
-                // A non-terminal handler is configured by its own HandleReplies call, and by nothing else:
-                // whatever it leaves unset falls back to the task's options, never to the terminal's, which
-                // belong to a different exchange.
+                // Whatever a non-terminal handler leaves unset falls back to the task's options, never to the
+                // terminal's, which belong to a different exchange.
                 stepOptions = segment.StepOptions;
             }
             else
             {
-                // The conclusion — for a receive step that no non-terminal handler answers, that is the
-                // reply terminal, which is the shape that answers it. Same fallback for a step naming
-                // nothing at all, whose only shape is the conclusion.
+                // Two cases land here: a receive step no non-terminal handler answers, whose exchange the
+                // reply terminal owns, and a step naming nothing at all.
                 stepOptions = pipeline.Conclusion.StepOptions;
             }
             ProcessStepOptions? taskOptions = serviceTask.StepOptions;

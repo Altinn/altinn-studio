@@ -194,8 +194,7 @@ public class WorkflowCommandSetTests
     }
 
     /// <summary>
-    /// Segment 0 of a pipeline whose first exchange is answered mid-pipeline stops at that handler: everything
-    /// composed after it belongs to the segment that exchange's conclusion starts, and the handler itself is
+    /// Segment 0 of a pipeline whose first exchange is answered mid-pipeline stops at that handler, which is
     /// no step at all — it runs on the receive workflows.
     /// </summary>
     [Fact]
@@ -324,8 +323,7 @@ public class WorkflowCommandSetTests
 
     /// <summary>
     /// Naming a handler the pipeline does not compose would otherwise plan segment 0 — re-running every stage,
-    /// re-minting every mailbox and re-sending. It throws instead. Unreachable in production, where the only
-    /// caller naming an exchange runs inside the callback whose dispatch just found that handler.
+    /// re-minting every mailbox and re-sending. It throws instead.
     /// </summary>
     [Fact]
     public void PlanSegment_AfterAnExchangeNoHandlerAnswers_Throws()

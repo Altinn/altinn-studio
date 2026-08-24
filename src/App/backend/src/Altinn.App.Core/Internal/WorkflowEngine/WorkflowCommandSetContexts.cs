@@ -7,10 +7,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// A service task the transition enters, together with the pipeline its <c>Define</c> composed — read at
 /// enqueue time, which is the moment the pipeline's shape is fixed for the workflow's lifetime.
 /// </summary>
-/// <remarks>
-/// One type rather than two nullable fields because neither half means anything without the other: the type
-/// is what the steps dispatch back to, and the pipeline is what decides which steps there are.
-/// </remarks>
 /// <param name="Type">The service task type identifier, as the BPMN task declares it.</param>
 /// <param name="Pipeline">The task's composed pipeline.</param>
 internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipeline);

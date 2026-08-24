@@ -25,9 +25,7 @@ public sealed class ServiceTaskPipeline
     internal PipelineConclusion Conclusion { get; }
 
     /// <summary>
-    /// The stage with the given name (exact match — stage names are our own wire values), or
-    /// <c>null</c>. Filters <see cref="Items"/> down to stages, since a name is a stage's identity and
-    /// nothing else's.
+    /// The stage with the given name (exact match — stage names are our own wire values), or <c>null</c>.
     /// </summary>
     internal ServiceTaskStage? FindStage(string stageName) =>
         Items
@@ -38,12 +36,7 @@ public sealed class ServiceTaskPipeline
     /// The non-terminal handler answering the exchange the named stage opened (exact match, as for a
     /// stage), or <c>null</c> — which for a receive step means the exchange is the conclusion's or nobody's.
     /// </summary>
-    /// <remarks>
-    /// An exchange is answered exactly once, so the first match is the only one. Unlike
-    /// <see cref="FindStage"/> this looks up an <em>exchange's</em> identity rather than a stage's: the two
-    /// are the same string in different roles, which is why they are two lookups over one list rather than
-    /// one lookup callers filter afterwards.
-    /// </remarks>
+    /// <remarks>An exchange is answered exactly once, so the first match is the only one.</remarks>
     internal ReplySegment? FindReplySegment(string openingStageName) =>
         Items
             .OfType<ReplySegment>()
@@ -52,9 +45,7 @@ public sealed class ServiceTaskPipeline
 
 /// <summary>
 /// One entry in <see cref="ServiceTaskPipeline.Items"/>: something the pipeline does, in composition
-/// order, before its conclusion. Callers dispatch on the shape rather than on flags, so a reader that
-/// only cares about stages says so (<see cref="ServiceTaskPipeline.FindStage"/>) and everything else in
-/// the list stays invisible to it.
+/// order, before its conclusion.
 /// </summary>
 /// <remarks>
 /// Not a record, for the reason <see cref="ServiceTaskStage"/> gives: an item holds delegates, so
@@ -62,10 +53,6 @@ public sealed class ServiceTaskPipeline
 /// </remarks>
 internal abstract class PipelineItem
 {
-    /// <summary>
-    /// Non-public, so the set of item shapes stays this assembly's to close — the runtime has nothing to
-    /// do with an item it does not recognise.
-    /// </summary>
     private protected PipelineItem(ProcessStepOptions? stepOptions)
     {
         StepOptions = stepOptions;
@@ -158,10 +145,8 @@ internal abstract class ServiceTaskStage : PipelineItem
 /// </summary>
 /// <remarks>
 /// Deliberately the same shape as <see cref="PipelineConclusion.ReplyExchange"/> and deliberately not the
-/// same type: this <see cref="OnMessage"/> answers <see cref="ServiceTaskStageExchangeResult"/> rather than
-/// <see cref="ServiceTaskExchangeResult"/>, so concluding the task is not in its vocabulary at all, and
-/// where the handler sits in the model — an item, or the conclusion — is what tells the runtime whether
-/// answering the exchange ends the task or starts the pipeline's next leg.
+/// same type: where the handler sits in the model — an item, or the conclusion — is what tells the runtime
+/// whether answering the exchange ends the task or starts the pipeline's next leg.
 /// </remarks>
 internal sealed class ReplySegment : PipelineItem
 {
@@ -235,9 +220,8 @@ internal abstract class PipelineConclusion
     /// delivered message, <see cref="OnClosed"/> once if the mailbox closes with the task still unconcluded.
     /// </summary>
     /// <remarks>
-    /// One shape however many messages an exchange carries: nothing here records whether the app expects one
-    /// answer or several — that is its expectation of the counterparty, not something the runtime acts on —
-    /// so every exchange is executed uniformly.
+    /// One shape however many messages an exchange carries: whether the app expects one answer or several is
+    /// its expectation of the counterparty, not something the runtime records or acts on.
     /// </remarks>
     internal sealed class ReplyExchange : PipelineConclusion
     {

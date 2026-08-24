@@ -65,11 +65,7 @@ public abstract record ServiceTaskExchangeResult
 /// <summary>A reply terminal finished its message while the exchange stays open.</summary>
 /// <remarks>
 /// <strong>Its twin, <see cref="ServiceTaskStageAwaitNextReplyResult"/>, has the identical shape on
-/// purpose</strong> — that type's remarks carry the reasoning; this note exists so the duplication cannot be
-/// mistaken for an oversight from <em>this</em> side either. In short: the two roots are different contracts
-/// (one can conclude the task, the other cannot) and a type has one base, so merging them behind a shared
-/// base, an interface or a generic would put "await the next message" back within reach of the handlers each
-/// root exists to keep it away from. Do not deduplicate.
+/// purpose</strong> — see that type's remarks. Do not deduplicate.
 /// </remarks>
 public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskExchangeResult
 {

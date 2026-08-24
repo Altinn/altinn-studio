@@ -910,8 +910,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// Main runs stages, never an exchange's handler: the reply terminal runs on the receive workflows, and
-    /// naming the exchange is the receive step's job alone.
+    /// Main runs stages, never an exchange's handler: naming the exchange is the receive step's job alone.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipeline_NamesNoExchangeOnAnyOfMainsSteps()

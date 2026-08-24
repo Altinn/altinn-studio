@@ -100,9 +100,7 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an item rather than the
-    /// conclusion, so the pipeline carries on after the exchange and ends with a final step. Each handler
-    /// records what it was handed, and answers in the stage vocabulary — which is the whole point of the
-    /// shape.
+    /// conclusion, so the pipeline carries on after the exchange and ends with a final step.
     /// </summary>
     private sealed class ContinuingTask : IPipelineServiceTask
     {
@@ -143,8 +141,7 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// Two exchanges, one answered each way: the archive's mid-pipeline, the journal's by the terminal. The
-    /// shape the whole expansion exists for, and the one that tells the two lookups apart.
+    /// Two exchanges, one answered each way: the archive's mid-pipeline, the journal's by the terminal.
     /// </summary>
     private sealed class TwoExchangeTask : IPipelineServiceTask
     {
@@ -152,7 +149,6 @@ public class ExecuteServiceTaskReplyTests
 
         public string Type => "archiving";
 
-        /// <summary>Which handler answered, in the order they did — a name, so a miss is legible.</summary>
         public List<string> Answered { get; } = [];
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
@@ -300,9 +296,7 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// A receive step the way the runtime enqueues one: it names the exchange it answers rather than a stage
-    /// it runs. Dispatch reads the name's <em>presence</em> to pick this branch and the handler by the
-    /// pipeline's shape; the name itself is the exchange's identity, and travels on to the successor and the
-    /// carry.
+    /// it runs.
     /// </summary>
     private static ExecuteServiceTaskPayload ReceiveStep(string repliesTo = OpeningStage) =>
         new("archiving", RepliesTo: repliesTo);
@@ -396,8 +390,6 @@ public class ExecuteServiceTaskReplyTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptWithoutDeclaration", failed.ExceptionType);
-        // The reason code's one remaining route, and it names what it actually observed: a step that names no
-        // exchange, handed a rendezvous. A step that names one is dispatched on the name instead.
         Assert.Contains("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Conclusion);
     }
@@ -588,7 +580,6 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal("archiving", awaiting.ServiceTaskType);
-        // The successor answers the exchange this receiver did, by the name carried since it opened.
         Assert.Equal(OpeningStage, awaiting.OpeningStageName);
     }
 
@@ -663,8 +654,7 @@ public class ExecuteServiceTaskReplyTests
     /// <summary>
     /// The exchange is answered mid-pipeline, so the receive step reaches <em>that</em> handler — not the
     /// terminal, and not the <c>MailboxHandlerNotFound</c> the same conclusion shape reports for an exchange
-    /// nothing answers. Everything up to the verdict is the terminal's path: the same rendezvous guards, the
-    /// same envelope, the same message.
+    /// nothing answers.
     /// </summary>
     [Fact]
     public async Task ReceiveStep_NamingAnExchangeAnsweredMidPipeline_RunsThatHandlerWithTheMessage()
@@ -679,11 +669,8 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal("fiks-message-42", reply.IdempotencyKey);
         Assert.Equal(4, reply.Position);
         Assert.Null(task.ClosedReason);
-        // The pipeline's own final step is not the exchange's handler and must not run in its place — it runs
-        // on the continuation this verdict asks the relay for.
         Assert.Null(task.Conclusion);
 
-        // Completed() from a handler the pipeline carries on past: this exchange is over, run the next segment.
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
@@ -743,7 +730,6 @@ public class ExecuteServiceTaskReplyTests
 
         Assert.True(onClosed.NonRetryable);
         Assert.Contains("the archive never confirmed", onClosed.ErrorMessage, StringComparison.Ordinal);
-        // Closes its own exchange and starts nothing — not the next segment either.
         Assert.IsType<MailboxContinuation.Conclude>(onClosed.MailboxContinuation);
         Assert.Equal(MailboxClosedReason.Deadline, failing.ClosedReason);
         Assert.Null(failing.Conclusion);
@@ -803,11 +789,9 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// The same name on a pipeline answering <em>several</em> exchanges is refused instead, because the
-    /// tolerance stops being a proof there: the receiver could belong to any of them, and standing the
-    /// terminal in would hand one exchange's message to another's handler — which may then conclude the task
-    /// on it. A legible drift failure with the usual "restore the name and resume" remedy is strictly better
-    /// than settling a task on an answer that was never meant for it.
+    /// The same name on a pipeline answering <em>several</em> exchanges is refused instead: the receiver could
+    /// belong to any of them, and standing the terminal in would hand one exchange's message to another's
+    /// handler.
     /// </summary>
     [Theory]
     [InlineData("SendToArchive_v1")]
@@ -826,8 +810,6 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
         Assert.Empty(task.Answered);
 
-        // The terminal's exchange is named among the answers too — leaving it out would tell the reader the
-        // pipeline answers less than it does.
         Assert.Contains(
             $"now answers only the exchanges opened by stages '{OpeningStage}', '{TwoExchangeTask.JournalStage}'",
             failed.ErrorMessage,
@@ -879,8 +861,7 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// A pipeline that answers an exchange mid-pipeline still concludes with its final step, and a concluding
-    /// step — which names no exchange — is what runs it. The arm the mid-pipeline lookup sits in front of must
-    /// not swallow this one.
+    /// step — which names no exchange — is what runs it.
     /// </summary>
     [Fact]
     public async Task Conclusion_OfAPipelineThatAnswersMidPipeline_RunsItsFinalStep()
@@ -895,10 +876,8 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// Finding of the step's own review, pinned: the exchange's identity travels with the step and is not
-    /// re-derived from the pipeline at the hop that runs it. Writable only because dispatch picks the handler
-    /// by shape, so a receiver can legitimately carry a name the pipeline no longer uses — which is exactly
-    /// the mid-flight rename this rule exists for.
+    /// The exchange's identity travels with the step and is not re-derived from the pipeline at the hop that
+    /// runs it — which is what makes a mid-flight rename survivable.
     /// </summary>
     [Fact]
     public async Task AwaitNextReply_EnqueuesTheSuccessorAgainstTheNameTheReceiverCarried()
@@ -954,15 +933,13 @@ public class ExecuteServiceTaskReplyTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Message);
         Assert.Equal(5, task.Message.Position);
-        // The fallback reached the carry under the pipeline's own name, so the conclusion still drops it.
         Assert.Null(carry.Mailboxes);
     }
 
     /// <summary>
     /// The compatibility arm is <em>not</em> narrowed by the refusal a name matching nothing now gets on a
-    /// multi-exchange pipeline, and the difference is evidence: a name that matches nothing is positive proof
-    /// of drift, while no name at all is proof of nothing — every receiver that carries none was enqueued
-    /// against a shape whose one exchange was the terminal's, and refusing them would strand the lot.
+    /// multi-exchange pipeline: a name that matches nothing is proof of drift, while no name at all is proof
+    /// of nothing.
     /// </summary>
     [Fact]
     public async Task ANameLessReceiver_OnAPipelineAnsweringSeveralExchanges_StillReachesTheTerminal()
@@ -978,9 +955,7 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// The payload's one invariant, guarded where it is read: a step names a stage or an exchange, never
-    /// both. Only a version of this app-lib that identified steps differently could have written one, and
-    /// honouring either name would run the wrong part of the pipeline — so it fails permanently and runs
-    /// nothing, on both pipeline shapes.
+    /// both.
     /// </summary>
     [Fact]
     public async Task AStepNamingBothAStageAndAnExchange_FailsPermanentlyWithoutRunningAnything()
@@ -1005,11 +980,8 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// The refusal runs <em>before</em> the service task is resolved, which is the only thing that makes a
-    /// doubly-broken payload converge: resolving first turns anything the resolution throws — an unregistered
-    /// task type, a <c>Define</c> that throws — into a retryable failure, and this payload is one no retry can
-    /// fix, so the workflow would retry until its budget ran out instead of ending on a legible 422. Pinned
-    /// here because the other both-names tests register a real task and would pass with the check back inside
-    /// the try.
+    /// doubly-broken payload converge. Pinned here because the other both-names tests register a real task and
+    /// would pass with the check back inside the try.
     /// </summary>
     [Fact]
     public async Task AStepNamingBothNames_OnAnUnregisteredServiceTaskType_StillFailsPermanently()

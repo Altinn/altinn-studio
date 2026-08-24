@@ -9,11 +9,8 @@ namespace Altinn.App.Core.Features.Process;
 /// <remarks>
 /// <para>
 /// The same move as <see cref="ServiceTaskExchangeResult"/>, one rung down: that root widens the answers a
-/// service task <em>concludes</em> with, this one widens the answers a <em>stage</em> gives. Which of the two
-/// a handler answers to is therefore what decides whether it can conclude the task at all — concluding and
-/// advancing the process live on <see cref="ServiceTaskResult"/>, which is not below this root, so a handler
-/// answering here can say "this exchange is done, the pipeline moves on"
-/// (<see cref="ServiceTaskStageResult.Completed"/>) and has no way to say more.
+/// service task <em>concludes</em> with, this one widens the answers a <em>stage</em> gives. Concluding the
+/// task and advancing the process live on <see cref="ServiceTaskResult"/>, which is not below this root.
 /// </para>
 /// <para>
 /// The split is what makes "await the next message" unrepresentable where there is no next message to await:
@@ -24,20 +21,17 @@ namespace Altinn.App.Core.Features.Process;
 /// It rejects it a step later than one would like, and that is accepted rather than fixed: statics are
 /// inherited, so <c>ServiceTaskStageResult.AwaitNextReply()</c> resolves from app code and the refusal lands
 /// on the <em>return</em> as a conversion failure — <c>CS0029</c>, or <c>CS1503</c> where the task's type
-/// argument is spelled out — rather than at the call that looks wrong. Nothing unrepresentable becomes
-/// representable: the value simply cannot be returned from anywhere that would misuse it, and
-/// <see cref="ServiceTaskResult"/> has carried the identical wart since the first reply terminal shipped, so
-/// it is precedented and not worth reshaping the vocabulary over.
+/// argument is spelled out — rather than at the call that looks wrong.
+/// <see cref="ServiceTaskResult"/> has carried the identical wart since the first reply terminal shipped.
 /// </para>
 /// </remarks>
 public abstract record ServiceTaskStageExchangeResult
 {
     /// <summary>
     /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own
-    /// constructor gives: the answers below are the whole vocabulary the runtime can act on, and it has
-    /// nothing to give a subtype it does not know. Read that constructor's remarks before changing this one's
-    /// accessibility — what holds the property is one committed approval file, and only in CI — and note that
-    /// the record copy-constructor route it describes is open on this root too.
+    /// constructor gives. Read that constructor's remarks before changing this one's accessibility — what
+    /// holds the property is one committed approval file, and only in CI — and note that the record
+    /// copy-constructor route it describes is open on this root too.
     /// </summary>
     private protected ServiceTaskStageExchangeResult() { }
 

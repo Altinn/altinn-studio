@@ -33,9 +33,7 @@ internal static class StepRequestStepOptionsExtensions
     /// string): an OperationId can be a display identity — a service-task stage or the mailbox mint carries
     /// its stage name there — and keying off it would silently miss the command's own tier-2 default. A
     /// stage additionally resolves its per-stage options by <see cref="StepRequest.ServiceTaskStageName"/>, and
-    /// a receive step its per-handler options by <see cref="StepRequest.ServiceTaskRepliesTo"/> — both carried
-    /// on the step, so every hop that enqueues one passes the identity through by construction rather than by
-    /// remembering to.
+    /// a receive step its per-handler options by <see cref="StepRequest.ServiceTaskRepliesTo"/>.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,

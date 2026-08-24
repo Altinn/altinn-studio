@@ -16,39 +16,24 @@ namespace Altinn.App.Analyzers;
 /// severity, so a false positive breaks an app's build, and only the provable case is reported. A handle is
 /// followed exactly as far as a single local goes: the <c>out</c> variable the mailbox-opening <c>Stage</c>
 /// overload declared, mentioned nowhere but positions that provably only read it, with both answers in one
-/// basic block that lies on <em>every path to the method's exit</em>. Those two conditions are the whole proof
-/// — one block orders the two calls, every-path means they really run — and they hold for a fluent
-/// <c>Define</c> chain wherever it sits, including after an earlier <c>if</c>/<c>else</c>, <c>switch</c>,
-/// loop, <c>?:</c>, <c>??</c> or <c>?.</c>, and inside a <c>using</c> or a <c>try</c>/<c>finally</c>.
-/// </para>
-/// <para>
-/// What that leaves to the builder's own throw — the same division <c>ALTINNAPP0701</c> draws when it leaves
-/// unprovable non-completion to startup validation — is a handle this rule cannot follow: stored in a field,
-/// handed to a helper method, captured by a lambda, aliased by a <c>ref</c> local, rewritten by a
-/// deconstruction, or reused by a second mailbox-opening stage. And, even for a handle it can follow, two
-/// answers that do not both certainly run: one per <c>if</c>/<c>else</c> branch or either side of a
-/// <c>throw</c>/<c>return</c> guard (different blocks); both inside a conditional, a loop body, a
-/// <c>switch</c> arm or a <c>finally</c>; both inside a <c>try</c> whose <c>catch</c> could swallow the
-/// builder's complaint and hand back a valid pipeline anyway; both <em>below</em> such a <c>try</c>, whose
-/// handler can return a pipeline of its own and so return without ever reaching them; and both in a
-/// <c>while (true)</c> body, where the compiler keeps a statically-dead exit edge that leaves the exit
-/// reachable without them.
+/// basic block that lies on <em>every path to the method's exit</em>. Everything else — a handle stored, passed
+/// on, captured or reassigned, and two answers that do not both certainly run — is left to the builder's own
+/// throw, the same division <c>ALTINNAPP0701</c> draws when it leaves unprovable non-completion to startup
+/// validation. One exclusion is worth naming because nothing in the source shows it: two answers in a
+/// <c>while (true)</c> body are not reported, the compiler keeping a statically-dead exit edge that leaves the
+/// exit reachable without them.
 /// </para>
 /// <para>
 /// The never-answered companion is held to the same standard from the other side: it fires only when the local
 /// has <em>no</em> reference besides its declaration, which is what makes "nothing answers this mailbox" a fact
 /// about the whole program rather than about this method — an unreferenced handle cannot escape, so no handler
-/// anywhere can have received it. One further reference, of any kind, and the diagnostic gives way to the
-/// terminal-completeness throw. A handle discarded outright (<c>out _</c>) declares no local and is not
+/// anywhere can have received it. A handle discarded outright (<c>out _</c>) declares no local and is not
 /// reported, following the same reading of an explicit discard that <c>ALTINNAPP0701</c> takes.
 /// </para>
 /// <para>
 /// <strong>Maintenance note:</strong> which methods answer a handle is two string constants here, so a builder
 /// method added later that also answers one drops out of both rules silently — no diagnostic, and nothing
-/// failing a build to say so. Keying on "a <c>MailboxHandle</c> parameter called <c>handle</c>" instead would
-/// maintain itself, at the price of a false positive the day a builder method takes a handle without answering
-/// it; between an invisible false negative and a visible false positive, this rule's whole calibration says to
-/// take the former. So: a new answering method needs its name added below.
+/// failing a build to say so. A new answering method needs its name added below.
 /// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -146,14 +131,11 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // A write after the declaration means the local no longer names one mailbox: `Stage(B, …, out h)`
-        // reusing the local of mailbox A makes a later `HandleReplies(h, …)` answer a different exchange
-        // entirely. What counts as a write is therefore stated the other way round — a whitelist of positions
-        // that provably only read — because a list of write forms has to be complete forever and quietly
-        // wasn't: `ref MailboxHandle alias = ref h` hides the write behind an initializer, and `(h, _) = …`
-        // hides it inside a tuple, so neither looked like an assignment to this local. Passing the handle by
-        // value is the only position a real pipeline needs, and it is the one every answering call is in, so
-        // an unrecognised position costs nothing but the diagnostic it was never entitled to.
+        // A write after the declaration means the local no longer names one mailbox. What counts as a write is
+        // stated the other way round — a whitelist of positions that provably only read — because a list of
+        // write forms has to be complete forever and quietly wasn't: `ref MailboxHandle alias = ref h` hides
+        // the write behind an initializer and `(h, _) = …` hides it inside a tuple, so neither looked like an
+        // assignment to this local.
         if (reference.Parent is not IArgumentOperation { Parameter: { RefKind: RefKind.None or RefKind.In } })
         {
             tracked.Disqualified = true;
@@ -182,9 +164,8 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
             if (argument.Parameter?.Name != HandleParameterName)
                 continue;
 
-            // The bare local only. There is deliberately no unwrapping of conversions or other wrappers around
-            // it: a reference sitting inside one is not in a position TrackLocalReference recognises as a read,
-            // so its local is disqualified there and no report could follow from recording it here.
+            // No unwrapping of conversions or other wrappers: a reference sitting inside one is not a position
+            // TrackLocalReference recognises as a read, so its local is disqualified there anyway.
             if (argument.Value is ILocalReferenceOperation { IsDeclaration: false } local)
                 state.Local(local.Local).Consumptions.Add(invocation);
             return;
@@ -219,9 +200,8 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// The stage's wire name, as the message must print it: the constant when the argument is one (a literal or a
-    /// <c>const</c> field, which is what real code passes), and otherwise the expression as written, so a
-    /// computed name still points the reader at the right stage.
+    /// The stage's wire name, as the diagnostic must print it — the expression as written when the argument is
+    /// not a constant, so a computed name still points the reader at the right stage.
     /// </summary>
     private static string ReadStageName(IInvocationOperation stage)
     {
@@ -240,8 +220,6 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
 
     private static void Report(OperationBlockAnalysisContext context, BlockState state)
     {
-        // Only built when a local really has two consumptions to compare, so the ordinary pipeline pays nothing
-        // for it.
         StraightLineMap? straightLine = null;
 
         foreach (TrackedLocal tracked in state.Locals)
@@ -251,8 +229,6 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
 
             if (tracked.Consumptions.Count == 0)
             {
-                // Nothing mentions the local but the declaration itself, so the handle never left this
-                // expression and no handler anywhere holds it.
                 if (tracked.References == 1)
                 {
                     context.ReportDiagnostic(
@@ -276,9 +252,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Reports every consumption of the handle that an <em>earlier</em> consumption unconditionally precedes.
-    /// Sharing a basic block is what makes that provable: a block is a run of the flow graph with no branch in
-    /// it, so if the later call runs the earlier one has already run — and the block has to be one every
-    /// returning execution goes through, or "the later call runs" is not established at all.
+    /// See <see cref="StraightLineMap"/> for what makes that provable.
     /// </summary>
     private static void ReportDoubleConsumption(
         OperationBlockAnalysisContext context,
@@ -306,7 +280,6 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
                 if (straightLine.Find(consumptions[j].Syntax) != block)
                     continue;
 
-                // The pair is ordered; the remaining question is whether the run they share ever happens.
                 if (!straightLine.RunsOnEveryPath(block))
                     break;
 
@@ -334,24 +307,17 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     /// <summary>The mailbox-opening <c>Stage</c> call an <c>out</c> declaration came from.</summary>
     private sealed class MailboxDeclaration(Location location, string stageName)
     {
-        /// <summary>Where the handle is declared — where "nothing answers this mailbox" is reported.</summary>
         internal Location Location { get; } = location;
 
         /// <summary>The exchange's identity, as the builder's own throws name it.</summary>
         internal string StageName { get; } = stageName;
     }
 
-    /// <summary>One <c>MailboxHandle</c> local, and everything this block does with it.</summary>
     private sealed class TrackedLocal
     {
-        /// <summary>The mailbox-opening declaration, or null while the local is not known to be one.</summary>
         internal MailboxDeclaration? Declaration { get; set; }
 
-        /// <summary>
-        /// Set when the local is declared as something other than a mailbox-opening <c>out</c>, or is mentioned
-        /// anywhere that is not provably a by-value read — either way it no longer certainly names one known
-        /// mailbox, and both rules give way.
-        /// </summary>
+        /// <summary>Set when the local no longer certainly names one known mailbox, so both rules give way.</summary>
         internal bool Disqualified { get; set; }
 
         /// <summary>
@@ -360,11 +326,9 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
         /// </summary>
         internal int References { get; set; }
 
-        /// <summary>The handler calls that answer this local, in the order the operation walk found them.</summary>
         internal List<IInvocationOperation> Consumptions { get; } = [];
     }
 
-    /// <summary>The handle locals seen in one operation block, created lazily so most method bodies allocate nothing.</summary>
     private sealed class BlockState
     {
         private Dictionary<ILocalSymbol, TrackedLocal>? _locals;
@@ -396,10 +360,8 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     /// <remarks>
     /// <para>
     /// "On every path" is answered by deleting the candidate block and asking whether the exit is still reachable
-    /// from the entry. Unreachable means every execution that returns ran the block, so every execution that
-    /// returns answered the mailbox twice — and the second answer throws, so no execution returns, so the pipeline
-    /// this <c>Define</c> is supposed to hand back does not exist and app startup fails. That is the whole
-    /// argument, and it rests on nothing about how the graph orders or numbers its blocks.
+    /// from the entry. Unreachable means every execution that returns ran the block, and so answered the mailbox
+    /// twice. The argument rests on nothing about how the graph orders or numbers its blocks.
     /// </para>
     /// <para>
     /// <strong>Which edges the walk follows is where that argument can go wrong, and the risk runs one way:</strong>
@@ -432,12 +394,10 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     /// </remarks>
     private sealed class StraightLineMap
     {
-        /// <summary>Every basic block of every graph built here, indexed by the id handed out for it.</summary>
         private readonly List<(ControlFlowGraph Graph, BasicBlock Block)> _byId = [];
 
         private readonly Dictionary<SyntaxNode, int> _idBySyntax = new();
 
-        /// <summary>Memoised answers, since the query is per candidate block and blocks repeat across pairs.</summary>
         private readonly Dictionary<int, bool> _runsOnEveryPath = new();
 
         internal static StraightLineMap Build(OperationBlockAnalysisContext context)
@@ -479,10 +439,8 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
             return map;
         }
 
-        /// <summary>The branch-free run this call sits in, or null when no graph here covers it.</summary>
         internal int? Find(SyntaxNode syntax) => _idBySyntax.TryGetValue(syntax, out int id) ? id : null;
 
-        /// <summary>Whether every execution that returns runs the calls in <paramref name="id"/>.</summary>
         internal bool RunsOnEveryPath(int id)
         {
             if (_runsOnEveryPath.TryGetValue(id, out bool answer))
@@ -592,8 +550,8 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
                         case ControlFlowRegionKind.FilterAndHandler:
                             // A filter runs before its handler; both entry points go in rather than relying on
                             // the edge between them being one this walk follows. Pushing a block that turns out
-                            // to be unreachable only makes the exit look more reachable, which is the safe way
-                            // to be wrong here.
+                            // to be unreachable only makes the exit look more reachable — the safe way to be
+                            // wrong here.
                             foreach (ControlFlowRegion part in handler.NestedRegions)
                                 Push(graph.Blocks[part.FirstBlockOrdinal], candidate, seen, pending);
                             break;

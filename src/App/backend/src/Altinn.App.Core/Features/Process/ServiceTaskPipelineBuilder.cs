@@ -20,18 +20,14 @@ public sealed class ServiceTaskPipelineBuilder
     /// <summary>
     /// The mailboxes this builder has issued handles for, in the order the stages that opened them were
     /// composed, each carrying what answers it. A fresh builder per <c>Define</c> call, so this is one
-    /// pipeline's whole set. Ordered, so a completeness failure names the first mailbox left unanswered
-    /// rather than an arbitrary one; a list rather than a set because identity is what tells two handles
-    /// apart and there are never many.
+    /// pipeline's whole set.
     /// </summary>
     private readonly List<IssuedMailbox> _mailboxes = [];
 
     /// <summary>
-    /// A builder comes from the runtime, one per <see cref="IPipelineServiceTask.Define"/> call, and there is
-    /// no other source of one. That is what keeps a composition whole: the eager checks — and the declarations
-    /// they are about — belong to the builder whose terminal produced the returned pipeline, so a
-    /// <c>Define</c> spreading its composition over two builders could lose a mailbox declaration made on the
-    /// one it did not return from, silently and with nothing left to throw about.
+    /// Not constructible by apps: the eager checks — and the declarations they are about — belong to the
+    /// builder whose terminal produced the returned pipeline, so a <c>Define</c> spreading its composition
+    /// over two builders could lose a mailbox declaration made on the one it did not return from.
     /// </summary>
     internal ServiceTaskPipelineBuilder() { }
 
@@ -95,8 +91,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// <para>
     /// <strong>A task may open several mailboxes</strong>, each answered by exactly one handler:
     /// <see cref="HandleReplies"/> for an exchange the pipeline carries on after, or
-    /// <see cref="ConcludeOnReplies"/> for the one it ends on. The exchanges then run one at a time, in the
-    /// order their handlers are composed rather than the order the sends are.
+    /// <see cref="ConcludeOnReplies"/> for the one it ends on.
     /// </para>
     /// </remarks>
     /// <param name="name">The stage's wire identity, as above — and the exchange's identity too.</param>
@@ -135,11 +130,9 @@ public sealed class ServiceTaskPipelineBuilder
     /// <remarks>
     /// <para>
     /// The non-terminal sibling of <see cref="ConcludeOnReplies"/>: the same exchange, executed the same way,
-    /// with a different vocabulary. A handler here answers <see cref="ServiceTaskStageExchangeResult"/> — what
-    /// a stage answers, plus <see cref="ServiceTaskStageExchangeResult.AwaitNextReply"/> — so
-    /// <see cref="ServiceTaskStageResult.Completed"/> reads in its plain sense: <em>this exchange is done, run
-    /// the rest of the pipeline</em>. Concluding the task and advancing the process are not in that vocabulary
-    /// at all; they belong to the terminal.
+    /// with a different vocabulary. <see cref="ServiceTaskStageResult.Completed"/> reads in its plain sense —
+    /// <em>this exchange is done, run the rest of the pipeline</em> — and concluding the task or advancing the
+    /// process are not in that vocabulary at all; they belong to the terminal.
     /// </para>
     /// <para>
     /// Exchanges run one at a time, in the order their <em>handlers</em> are composed rather than the order
@@ -215,13 +208,10 @@ public sealed class ServiceTaskPipelineBuilder
     /// that never wait, where it reads as though it might apply.
     /// </param>
     /// <exception cref="InvalidOperationException">
-    /// A mailbox this pipeline opens is left unanswered. Every exchange needs its handler composed before the
-    /// pipeline ends — a final step would conclude the task before its messages arrived. An exchange already
-    /// answered by <see cref="HandleReplies"/> is no obstacle: that pipeline carries on past its exchange, and
-    /// ending it with a final step is an ordinary shape. An exchange answered by an earlier
-    /// <see cref="ConcludeOnReplies"/> <em>is</em> one, and this is the case worth knowing about: that answer is
-    /// the conclusion of the pipeline that call returned, so the pipeline this call returns opens the mailbox and
-    /// answers it nowhere. One <c>Define</c> composes one terminal and returns it.
+    /// A mailbox this pipeline opens is left unanswered. One answered by <see cref="HandleReplies"/> is no
+    /// obstacle, but one answered by an earlier <see cref="ConcludeOnReplies"/> is: that answer is the
+    /// conclusion of the pipeline <em>that</em> call returned, so the pipeline this call returns opens the
+    /// mailbox and answers it nowhere. One <c>Define</c> composes one terminal and returns it.
     /// </exception>
     public ServiceTaskPipeline Finally(
         Func<ServiceTaskContext, Task<ServiceTaskResult>> work,
@@ -250,12 +240,6 @@ public sealed class ServiceTaskPipelineBuilder
     /// published.
     /// </para>
     /// <para>
-    /// Nothing here presumes several messages: a one-answer protocol simply concludes on its first message.
-    /// That the counterparty sends exactly one is the app's expectation of it rather than something this
-    /// terminal can hold, so asking for an answer such a protocol never sends is not a compile error but a
-    /// wait — and it reports itself when the mailbox's deadline passes and <paramref name="onClosed"/> runs.
-    /// </para>
-    /// <para>
     /// The rest of the vocabulary means what it does anywhere else:
     /// <see cref="ServiceTaskResult.SuccessWithoutAutoAdvance"/> concludes without advancing the process,
     /// <see cref="ServiceTaskResult.FailedRetryable"/> retries against this same message with nothing yet
@@ -263,10 +247,8 @@ public sealed class ServiceTaskPipelineBuilder
     /// mailbox first, so no later message can land in an exchange already answered.
     /// </para>
     /// <para>
-    /// This is the exchange the task <em>ends</em> on. Any exchange before it is answered by
-    /// <see cref="HandleReplies"/>, and all of them must be answered by the time this terminal is composed —
-    /// a mailbox still waiting for a handler when the composition ends throws here, since there is no later
-    /// call left to answer it.
+    /// This is the exchange the task <em>ends</em> on; any exchange before it is answered by
+    /// <see cref="HandleReplies"/>.
     /// </para>
     /// <para>
     /// Enforcement splits in two: that <paramref name="handle"/> names a mailbox some stage really opened is a
@@ -342,12 +324,8 @@ public sealed class ServiceTaskPipelineBuilder
 
     /// <summary>
     /// Claims the mailbox <paramref name="handle"/> names for the handler being composed: the two things the
-    /// type system cannot say — that the handle came from this builder, and that nothing answers it yet —
-    /// checked and then marked, so the second handler reaching for one mailbox throws here rather than being
-    /// composed as dead code.
+    /// type system cannot say — that the handle came from this builder, and that nothing answers it yet.
     /// </summary>
-    /// <param name="handle">The handle the composing call was passed.</param>
-    /// <param name="answer">Where the claiming handler's answer lives — see <see cref="MailboxAnswer"/>.</param>
     private void ClaimMailbox(MailboxHandle handle, MailboxAnswer answer)
     {
         if (!ReferenceEquals(handle.Owner, this))
@@ -360,8 +338,7 @@ public sealed class ServiceTaskPipelineBuilder
             );
         }
 
-        // Owned by this builder, so this builder issued it, so it is registered: the lookup asserts what the
-        // check above established.
+        // Owned by this builder, so this builder issued it, so it is registered.
         IssuedMailbox mailbox = _mailboxes.Single(m => ReferenceEquals(m.Handle, handle));
         if (mailbox.Answer is not MailboxAnswer.None)
         {
@@ -382,18 +359,11 @@ public sealed class ServiceTaskPipelineBuilder
     /// naming the stage that opened it.
     /// </summary>
     /// <remarks>
-    /// A mailbox counts as answered only when the answer travels with the pipeline about to be returned. A
-    /// <see cref="HandleReplies"/> handler is one of that pipeline's items, so it always does; a terminal's
-    /// handlers are the conclusion of the one pipeline that terminal returned, so a <em>second</em> terminal
-    /// on the same builder would hand back a pipeline in which that mailbox is unanswered again. That is why
-    /// <see cref="MailboxAnswer.Terminal"/> satisfies only the terminal that made it, named here as
-    /// <paramref name="answeredHere"/> — and why <see cref="Finally"/>, which answers nothing, still refuses
-    /// a pipeline whose exchange only a terminal answered. The two ways of arriving here get their own
-    /// messages: an unanswered mailbox is told to answer it, and a mailbox answered by a superseded terminal is
-    /// told what actually went wrong, since it has been answered already.
+    /// A mailbox counts as answered only when the answer travels with the pipeline about to be returned, which
+    /// is why <see cref="MailboxAnswer.Terminal"/> satisfies only the terminal that made it — a
+    /// <em>second</em> terminal on the same builder hands back a pipeline in which that mailbox is unanswered
+    /// again.
     /// </remarks>
-    /// <param name="terminal">The terminal running the check, for the message.</param>
-    /// <param name="answeredHere">The mailbox this terminal answers, or null for <see cref="Finally"/>.</param>
     private void RequireEveryMailboxAnswered(string terminal, MailboxHandle? answeredHere)
     {
         IssuedMailbox? unanswered = _mailboxes.FirstOrDefault(m =>
@@ -404,9 +374,6 @@ public sealed class ServiceTaskPipelineBuilder
             return;
         }
 
-        // Two ways to arrive here, and they are different mistakes: nothing answered the mailbox at all, or a
-        // terminal did and this is a second terminal, so the answer went with the pipeline the first one
-        // returned. Telling the second author to "answer it" would be telling them to do what they just did.
         string stage = unanswered.Handle.OpeningStageName;
         throw new InvalidOperationException(
             unanswered.Answer is MailboxAnswer.Terminal
@@ -428,14 +395,12 @@ public sealed class ServiceTaskPipelineBuilder
     {
         internal MailboxHandle Handle { get; } = handle;
 
-        /// <summary>The "answered exactly once" mark: what claimed this mailbox, or nothing yet.</summary>
         internal MailboxAnswer Answer { get; set; }
     }
 
     /// <summary>What answers a mailbox — and, for a terminal, where that answer lives.</summary>
     private enum MailboxAnswer
     {
-        /// <summary>Nothing answers it yet.</summary>
         None,
 
         /// <summary>

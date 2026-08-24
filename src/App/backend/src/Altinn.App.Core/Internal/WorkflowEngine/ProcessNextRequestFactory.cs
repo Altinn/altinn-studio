@@ -85,8 +85,8 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// OperationId prefix for a workflow running a pipeline segment after an exchange concluded — enqueued by
-    /// <see cref="MailboxRelay"/>, never by this factory, which only ever assembles segment 0 into Main. A
-    /// naming convention for ops and logs; nothing identifies a continuation by it.
+    /// <see cref="MailboxRelay"/>, never by this factory. A naming convention for ops and logs; nothing
+    /// identifies a continuation by it.
     /// </summary>
     internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 
@@ -371,9 +371,6 @@ internal sealed class ProcessNextRequestFactory
 
                 if (workflowCommands.MailboxReceive is { } receive)
                 {
-                    // The receive step answers whichever handler owns the exchange Main's segment ends on — the
-                    // reply terminal, or a mid-pipeline handler the pipeline carries on past — and resolves that
-                    // handler's own options, found through the exchange name the step carries.
                     mailboxReceive = receive with
                     {
                         Step = receive.Step.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType),

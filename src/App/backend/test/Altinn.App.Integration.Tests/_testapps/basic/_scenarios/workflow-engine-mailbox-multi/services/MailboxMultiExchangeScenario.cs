@@ -90,8 +90,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     /// <summary>
     /// The non-terminal handler. <see cref="ServiceTaskStageResult.Completed"/> here means "this exchange
-    /// is done, the pipeline carries on" — it cannot conclude the task and cannot ask the process to
-    /// advance, because those live only on the vocabulary a terminal handler returns.
+    /// is done, the pipeline carries on".
     /// </summary>
     private Task<ServiceTaskStageExchangeResult> HandleArchiveMessage(
         ServiceTaskContext context,
@@ -261,10 +260,7 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
-    /// <summary>
-    /// The pipeline's conclusion, running on the continuation that Beta's conclusion started — no exchange
-    /// is left to answer, so this is where the task succeeds and asks the process to advance.
-    /// </summary>
+    /// <summary>The pipeline's conclusion, running on the continuation that Beta's conclusion started.</summary>
     private Task<ServiceTaskResult> ConfirmBoth(ServiceTaskContext context)
     {
         int run = MultiExchangeRecorder.NextRun("ConfirmBoth");

@@ -192,10 +192,7 @@ public class MintMailboxTests
                 .ConcludeOnReplies(receipts, OnMessage, OnClosed);
     }
 
-    /// <summary>
-    /// Drift with more than one place to point: the pipeline opens two mailboxes now, and neither is this
-    /// step's. Naming one of them would read as the whole answer to where this one went.
-    /// </summary>
+    /// <summary>Drift with more than one place to point: the pipeline opens two mailboxes, neither this step's.</summary>
     private sealed class TwoRelocatedDeclarationsTask : IPipelineServiceTask
     {
         public string Type => "archiving";

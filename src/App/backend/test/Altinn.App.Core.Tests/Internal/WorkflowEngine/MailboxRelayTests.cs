@@ -385,9 +385,8 @@ public class MailboxRelayTests
     [Fact]
     public void MailboxContinuation_HasExactlyThreeAnswers_AndNoneCanMeanAnothers()
     {
-        // Structural proof: the continuation type's constructor is private to itself, so the set is closed at
-        // three, and no member can express another's action — AwaitNextMessage has no path to a closure, and
-        // neither closing member has one to a successor receiver of the exchange it closes.
+        // Structural proof: the continuation type's constructor is private to itself, so the set is closed
+        // at three.
         Type[] members = typeof(MailboxContinuation)
             .GetNestedTypes(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
             .Where(t => typeof(MailboxContinuation).IsAssignableFrom(t))
@@ -618,9 +617,7 @@ public class MailboxRelayTests
 
     /// <summary>
     /// A successor is a receive step like the first one: it names the exchange it answers and no stage, and
-    /// the name it names is whatever the continuation carried. That the continuation's name is itself the
-    /// executing step's rather than one re-derived from the pipeline is pinned a layer up, in
-    /// <c>ExecuteServiceTaskReplyTests</c>, where the two can differ.
+    /// the name it names is whatever the continuation carried.
     /// </summary>
     [Fact]
     public async Task SuccessorReceiver_NamesTheExchangeItAnswersAndNoStage()
@@ -918,7 +915,6 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        // The stage vocabulary cannot ask the process to advance, and the continuation has no arm that does.
         Assert.False(success.AutoAdvanceProcess);
         Assert.Null(success.AutoAdvanceAction);
 
@@ -929,7 +925,6 @@ public class MailboxRelayTests
         Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
         Assert.Equal(OpeningStage, continuing.OpeningStageName);
 
-        // The concluded exchange stops travelling in the blob the continuation will carry.
         Assert.Null(carry.FindMailbox(OpeningStage));
     }
 
@@ -960,9 +955,9 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Decision 5, at the verdict: the failure closes the exchange it belongs to and starts nothing — not the
-    /// next segment either. A later mailbox already open is untouched, which is what lets a resume replay this
-    /// handler and carry the chain on.
+    /// The failure closes the exchange it belongs to and starts nothing — not the next segment either. A
+    /// later mailbox already open is untouched, which is what lets a resume replay this handler and carry the
+    /// chain on.
     /// </summary>
     [Fact]
     public void SegmentFailedPermanent_ClosesItsOwnMailboxAndStartsNothing()
@@ -1137,7 +1132,6 @@ public class MailboxRelayTests
         Assert.False(continuation.DependsOnHeads);
         Assert.Null(continuation.StartAt);
         Assert.Equal("published-state", continuation.State);
-        // Not a receive workflow: it runs stages, and the next exchange's receiver is enqueued by its last step.
         Assert.Null(continuation.Mailbox);
         Assert.Equal("Mailbox continue: Task_2 · after SendToArchive", continuation.OperationId);
 

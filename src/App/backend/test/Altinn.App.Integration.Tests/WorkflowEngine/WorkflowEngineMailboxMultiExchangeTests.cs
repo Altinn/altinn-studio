@@ -249,7 +249,6 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
         List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
 
-        // The receiver that concluded exchange A: the successor the first message's AwaitNextReply enqueued.
         EngineWorkflow concludingReceiver = Single(
             workflows,
             $"{MailboxReceiveOperationIdPrefix} {SequentialTaskId} · after message 0"
@@ -501,8 +500,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             finalState.Messages.Select(message => $"{message.Exchange}:{message.Position}").ToList()
         );
 
-        // No stage re-ran: a conclusion lives on the receive workflows and the segment after it, never on a
-        // re-entry into an earlier part of the pipeline.
+        // No stage re-ran: a conclusion never re-enters an earlier part of the pipeline.
         foreach (
             string stage in new[] { ArchiveStage, JournalStage, AlphaStage, BetaStage, RecordStage, "ConfirmBoth" }
         )

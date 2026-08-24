@@ -85,9 +85,6 @@ internal sealed class MintMailbox(
             // lives on the stage.
             if (pipeline.FindStage(payload.StageName) is not ServiceTaskStage.MailboxOpening declaring)
             {
-                // Where the mailbox went is the actionable half, so it comes before the remediation. Every
-                // opening stage is named, not just the first: a pipeline may open several mailboxes, and
-                // naming one of them would read as the whole answer to where this one went.
                 string[] opening = pipeline
                     .Items.OfType<ServiceTaskStage.MailboxOpening>()
                     .Select(s => s.Name)
