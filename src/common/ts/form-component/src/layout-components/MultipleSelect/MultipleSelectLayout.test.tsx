@@ -29,8 +29,8 @@ const render = (
       componentId='my-multiple-select'
       options={spraak}
       values={[]}
-      {...props}
       onChange={() => {}}
+      {...props}
     />,
     {
       overrides,
