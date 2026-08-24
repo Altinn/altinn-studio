@@ -1,6 +1,6 @@
 //! User-facing Session operations coordinated with the reconciler.
 
-use crate::{Error, control_plane};
+use crate::{Error, Harness, control_plane};
 
 use super::{AttachTarget, Session, SessionName, SharedStore, Wakeup};
 
@@ -34,12 +34,45 @@ impl Service {
     /// # Errors
     ///
     /// Returns an error when persistence or convergence fails.
-    pub async fn ensure(&self, agent: &str, name: &SessionName) -> Result<AttachTarget, Error> {
+    pub async fn ensure(
+        &self,
+        agent: &str,
+        name: &SessionName,
+        requested_harness: Option<Harness>,
+    ) -> Result<AttachTarget, Error> {
         let owner = self.agents.get_by_name(agent).await?;
         if owner.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
-        let session = self.store.ensure_session(agent, name).await?;
+        if let Some(harness) = requested_harness
+            && owner.agent.spec.harness(harness).is_none()
+        {
+            return Err(Error::Invalid(format!(
+                "Agent {agent:?} does not declare harness {:?}",
+                harness.as_str()
+            )));
+        }
+        let session = match self.store.get_agent_session(agent, name).await {
+            Ok(session) => {
+                if let Some(harness) = requested_harness
+                    && harness != session.harness
+                {
+                    return Err(Error::Invalid(format!(
+                        "Session {name:?} already uses harness {:?}, not {:?}",
+                        session.harness.as_str(),
+                        harness.as_str()
+                    )));
+                }
+                session
+            }
+            Err(Error::NotFound) => {
+                let harness = requested_harness
+                    .or_else(|| owner.agent.spec.default_harness().map(|installation| installation.kind))
+                    .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?;
+                self.store.ensure_session(agent, name, harness).await?
+            }
+            Err(error) => return Err(error),
+        };
         self.store.activate_session(session.id).await?;
         self.agent_wakeup.reconcile(owner.id).await?;
         self.wakeup.reconcile(session.id).await?;

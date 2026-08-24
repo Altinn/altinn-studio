@@ -206,11 +206,37 @@ fn validate_immutable_fields(
     if current.agent.spec.instructions != desired.spec.instructions {
         return Err(Error::Immutable("spec.instructions"));
     }
-    if current.agent.spec.harness.kind != desired.spec.harness.kind {
-        return Err(Error::Immutable("spec.harness.type"));
+    let current_kinds = current
+        .agent
+        .spec
+        .harnesses
+        .iter()
+        .map(|harness| harness.kind)
+        .collect::<std::collections::BTreeSet<_>>();
+    let desired_kinds = desired
+        .spec
+        .harnesses
+        .iter()
+        .map(|harness| harness.kind)
+        .collect::<std::collections::BTreeSet<_>>();
+    if current_kinds != desired_kinds {
+        return Err(Error::Immutable("spec.harnesses.type"));
     }
-    if current.agent.spec.harness.auth != desired.spec.harness.auth {
-        return Err(Error::Immutable("spec.harness.auth"));
+    let current_auth = current
+        .agent
+        .spec
+        .harnesses
+        .iter()
+        .map(|harness| (harness.kind, harness.auth))
+        .collect::<std::collections::BTreeSet<_>>();
+    let desired_auth = desired
+        .spec
+        .harnesses
+        .iter()
+        .map(|harness| (harness.kind, harness.auth))
+        .collect::<std::collections::BTreeSet<_>>();
+    if current_auth != desired_auth {
+        return Err(Error::Immutable("spec.harnesses.auth"));
     }
     Ok(())
 }

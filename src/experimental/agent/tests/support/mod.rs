@@ -47,11 +47,12 @@ pub(crate) fn agent(name: &str) -> Agent {
             instructions: Some(InstructionsSpec {
                 source: PathBuf::from("instructions.md"),
             }),
-            harness: HarnessSpec {
+            harnesses: vec![HarnessSpec {
                 kind: Harness::ClaudeCode,
                 version: "2.1.239".into(),
                 auth: HarnessAuthMode::Mediated,
-            },
+                default: false,
+            }],
             secrets: Vec::new(),
             network: NetworkSpec {
                 mode: NetworkMode::Mediated,

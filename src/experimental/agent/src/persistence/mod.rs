@@ -97,11 +97,13 @@ impl crate::sessions::SessionStore for Database {
         &'a self,
         agent: &'a str,
         name: &'a crate::sessions::SessionName,
+        harness: crate::Harness,
     ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
         Box::pin(async move {
             self.request(|response| Command::EnsureSession {
                 agent: agent.into(),
                 name: name.clone(),
+                harness,
                 response,
             })
             .await
@@ -405,6 +407,7 @@ enum Command {
     EnsureSession {
         agent: String,
         name: crate::sessions::SessionName,
+        harness: crate::Harness,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
     GetSession {
@@ -555,8 +558,13 @@ fn execute(connection: &mut Connection, command: Command) {
 
 fn execute_session(connection: &mut Connection, command: Command) {
     match command {
-        Command::EnsureSession { agent, name, response } => {
-            let _ = response.send(sessions::ensure(connection, &agent, &name));
+        Command::EnsureSession {
+            agent,
+            name,
+            harness,
+            response,
+        } => {
+            let _ = response.send(sessions::ensure(connection, &agent, &name, harness));
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));

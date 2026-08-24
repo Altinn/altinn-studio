@@ -21,7 +21,9 @@ struct IgnoreNotifications;
 
 struct FakeAuthentication;
 struct FakeExecutions;
-struct FakeSessions;
+struct FakeSessions {
+    ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+}
 
 impl Notifier for IgnoreNotifications {
     fn notify(&self, _id: agent::AgentId) {}
@@ -47,7 +49,9 @@ impl SessionApi for FakeSessions {
         &'a self,
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
+        harness: Option<agent::Harness>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
+        self.ensured_harnesses.borrow_mut().push(harness);
         Box::pin(async { Err(Error::NotFound) })
     }
 
@@ -87,6 +91,12 @@ struct InProcessConnector {
     server: Rc<Server>,
 }
 
+struct ApiFixture {
+    server: Rc<Server>,
+    client: Client,
+    ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+}
+
 impl Connector for InProcessConnector {
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
         Box::pin(async move {
@@ -100,28 +110,35 @@ impl Connector for InProcessConnector {
     }
 }
 
-fn api() -> (Rc<Server>, Client, Rc<RefCell<Vec<String>>>) {
+fn api() -> ApiFixture {
     let control_plane = Rc::new(ControlPlane::new(
         Rc::new(InMemoryAgentStore::new()),
         Rc::new(IgnoreNotifications),
     ));
-    let errors = Rc::new(RefCell::new(Vec::new()));
-    let observed_errors = errors.clone();
+    let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
+    let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
         Rc::new(FakeExecutions),
-        Rc::new(FakeSessions),
+        Rc::new(FakeSessions {
+            ensured_harnesses: ensured_harnesses.clone(),
+        }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
-    (server, client, errors)
+    ApiFixture {
+        server,
+        client,
+        ensured_harnesses,
+    }
 }
 
 #[tokio::test(flavor = "local")]
 async fn login_returns_only_non_secret_readiness() {
-    let (_server, client, _errors) = api();
-    let imported = client
+    let fixture = api();
+    let imported = fixture
+        .client
         .auth_login(agent::Harness::ClaudeCode, "sk-ant-oat01-canary".into())
         .await
         .expect("login");
@@ -131,8 +148,8 @@ async fn login_returns_only_non_secret_readiness() {
 
 #[tokio::test(flavor = "local")]
 async fn health_reports_a_compatible_daemon() {
-    let (_server, client, _errors) = api();
-    client.health().await.expect("health check");
+    let fixture = api();
+    fixture.client.health().await.expect("health check");
     assert_eq!(agent::control_api::PROTOCOL_VERSION, "v1");
 }
 
@@ -145,7 +162,8 @@ fn request(name: &str) -> ApplyRequest {
 
 #[tokio::test(flavor = "local")]
 async fn client_and_server_exchange_versioned_agent_operations() {
-    let (_server, client, _errors) = api();
+    let fixture = api();
+    let client = &fixture.client;
     let applied = client.apply(request("worker")).await.expect("apply");
     let fetched = client.get("worker").await.expect("get");
     assert_eq!(applied, fetched);
@@ -161,6 +179,19 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     assert_eq!(execution.operating_system, "linux");
     assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
+    let ensure_error = client
+        .ensure_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("Session name"),
+            Some(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect_err("fake Session ensure should fail after decoding parameters");
+    assert!(matches!(ensure_error, Error::Rpc(error) if error.code == -32004));
+    assert_eq!(
+        fixture.ensured_harnesses.borrow().as_slice(),
+        &[Some(agent::Harness::ClaudeCode)]
+    );
     let session_error = client
         .get_session("worker", agent::sessions::SessionName::new("s1").expect("Session name"))
         .await
@@ -174,8 +205,12 @@ async fn client_and_server_exchange_versioned_agent_operations() {
 
 #[tokio::test(flavor = "local")]
 async fn application_errors_keep_stable_protocol_codes() {
-    let (_server, client, _errors) = api();
-    let error = client.get("missing").await.expect_err("missing Agent should fail");
+    let fixture = api();
+    let error = fixture
+        .client
+        .get("missing")
+        .await
+        .expect_err("missing Agent should fail");
 
     match error {
         Error::Rpc(error) => assert_eq!(error.code, -32004),
@@ -185,7 +220,9 @@ async fn application_errors_keep_stable_protocol_codes() {
 
 #[tokio::test(flavor = "local")]
 async fn malformed_and_idle_connections_do_not_block_other_clients() {
-    let (server, client, _errors) = api();
+    let fixture = api();
+    let server = fixture.server;
+    let client = fixture.client;
     client.apply(request("worker")).await.expect("apply");
 
     let (mut malformed_client, malformed_server) = tokio::io::duplex(1024);
@@ -223,7 +260,8 @@ async fn unix_socket_transport_is_private_and_usable() {
 
     let temporary = TempDirectory::new("local-api-socket");
     let socket_path = temporary.path().join("private").join("agentd.sock");
-    let (server, _client, _errors) = api();
+    let fixture = api();
+    let server = fixture.server;
     let served_path = socket_path.clone();
     let mut server_task = tokio::task::spawn_local(async move { server.serve_path(&served_path).await });
     let wait_for_socket = tokio::time::timeout(Duration::from_secs(1), async {

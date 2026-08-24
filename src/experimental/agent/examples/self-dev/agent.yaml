@@ -21,10 +21,11 @@ spec:
     source: home
   instructions:
     source: instructions.md
-  harness:
-    type: claudeCode
-    version: "2.1.239"
-    auth: mediated
+  harnesses:
+    - type: claudeCode
+      version: "2.1.239"
+      auth: mediated
+      default: true
   secrets:
     - environment: GITHUB_TOKEN
       allowedHosts:

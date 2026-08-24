@@ -82,6 +82,7 @@ pub trait SessionApi {
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
+        harness: Option<harness::Harness>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
 
     /// Gets one named Session scoped to an Agent.
@@ -100,8 +101,9 @@ impl SessionApi for sessions::Service {
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
+        harness: Option<harness::Harness>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name).await })
+        Box::pin(async move { Self::ensure(self, agent, name, harness).await })
     }
 
     fn get<'a>(
@@ -290,7 +292,10 @@ impl Server {
         let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
         };
-        result_response(id, self.sessions.ensure(&params.agent, &params.name).await)
+        result_response(
+            id,
+            self.sessions.ensure(&params.agent, &params.name, params.harness).await,
+        )
     }
 
     async fn handle_session_get(&self, id: u64, value: Value) -> Response {

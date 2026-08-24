@@ -11,7 +11,7 @@ use ::sandbox::{
     terminal::{AttachTerminalRequest, TerminalAttachOutcome},
 };
 
-use crate::{Error, control_plane::AgentRecord, harness};
+use crate::{Error, harness};
 
 use super::{AttachTarget, LaunchToken, Session, State};
 
@@ -118,14 +118,13 @@ pub(super) async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(
 /// Unix identity and tmux server, so this is not a security boundary between
 /// sibling Sessions; the token only rejects stale or accidental reports.
 pub(super) async fn create(
-    agent: &AgentRecord,
     session: &Session,
     sandbox: &SandboxHandle,
     session_hook_url: &str,
     token: &LaunchToken,
     resume: Option<&str>,
 ) -> Result<(), Error> {
-    let launch = harness::launch_linux(agent.agent.spec.harness.kind, crate::sandbox::platform::HOME, resume);
+    let launch = harness::launch_linux(session.harness, crate::sandbox::platform::HOME, resume);
     let mut arguments = vec!["new-session".into(), "-d".into(), "-s".into(), session_name(session)];
     let session_environment = launch.environment.iter().cloned().chain([
         ("CONTAINER_HOST".into(), crate::sandbox::platform::CONTAINER_HOST.into()),
@@ -242,6 +241,7 @@ mod tests {
             agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
             agent: "worker".into(),
             name: "s1".to_string().try_into().expect("Session name"),
+            harness: crate::harness::test_harness(),
             created_at: OffsetDateTime::UNIX_EPOCH,
             status: Status {
                 state: State::Running,

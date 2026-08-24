@@ -74,6 +74,8 @@ pub(crate) struct NameParams {
 pub(crate) struct SessionParams {
     pub agent: String,
     pub name: crate::sessions::SessionName,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub harness: Option<crate::Harness>,
 }
 
 #[derive(Deserialize, Serialize)]

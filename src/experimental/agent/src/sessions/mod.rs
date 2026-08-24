@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{AgentId, Error, sandbox};
+use crate::{AgentId, Error, Harness, sandbox};
 
 pub use crate::controller::Reconcile;
 pub use controller::{AgentNotifier, Controller, ErrorHandler, Wakeup};
@@ -191,6 +191,8 @@ pub struct Session {
     pub agent: String,
     /// User-facing name scoped to the Agent incarnation.
     pub name: SessionName,
+    /// Immutable harness installation selected for this Session.
+    pub harness: Harness,
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
@@ -223,6 +225,7 @@ pub trait SessionStore {
         &'a self,
         agent: &'a str,
         name: &'a SessionName,
+        harness: Harness,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
     /// Gets one Session by immutable identity.

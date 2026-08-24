@@ -65,9 +65,10 @@ Desired state is persisted before reconciliation. Wakeups provide low-latency pr
 scans ensure dropped notifications or daemon restarts do not lose work. Provider assignment is sticky for an Agent
 incarnation, and a reused Agent name never inherits resources from a deleted incarnation.
 
-Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Detaching leaves a
-Session running. An inactive, unattached Session becomes Idle and is relaunched on the next ensure or attach, resuming
-the harness conversation when its native state still exists. Repeated unexpected harness exits use bounded backoff.
+Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
+immutably to one of its Agent's declared harness installations. Detaching leaves a Session running. An inactive,
+unattached Session becomes Idle and is relaunched on the next ensure or attach, resuming the harness conversation when
+its native state still exists. Repeated unexpected harness exits use bounded backoff.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
@@ -82,9 +83,10 @@ repositories they can access, and image init may make a simple best-effort check
 not delete guest files that disappear from the source. Builders may use it to own harness configuration explicitly,
 with the consequence that those files are reapplied on every Agent pass.
 
-`spec.instructions` names one harness-neutral Agent instruction file. The selected Harness Adapter installs that
-source at the harness's global instruction location; for Claude Code this is `~/.claude/CLAUDE.md`. Repository-local
-instruction files continue to be discovered by the harness itself.
+`spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
+`spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
+at its global instruction location; for Claude Code this is `~/.claude/CLAUDE.md`. Repository-local instruction files
+continue to be discovered by the harness itself.
 
 Harness Adapters own authentication, version verification, managed configuration, hooks, native conversation IDs and
 launch arguments. The current adapter supports Claude Code only. Harness-owned mutable state is seeded by the image or
@@ -127,7 +129,7 @@ Important current limitations are:
 The next planned slices are:
 
 1. expose harness-native Session content and prompt/steer/interrupt operations;
-2. support declared harness installations and add Codex through the same Agent and Session model;
+2. add Codex through the existing Agent and Session harness-installation model;
 3. add Session lifecycle operations such as archive and soft deletion;
 4. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
 5. add global orchestration only after the local control-plane contracts are proven.

@@ -2,7 +2,7 @@
 
 mod support;
 
-use agent::{API_VERSION, KIND, SecretSpec, manifest};
+use agent::{API_VERSION, Harness, KIND, SecretSpec, manifest};
 use sandbox::RootFilesystemMode;
 
 #[test]
@@ -16,6 +16,12 @@ fn decodes_the_minimal_manifest() {
     assert_eq!(agent.spec.sandbox.platform.os, "linux");
     assert_eq!(agent.spec.sandbox.platform.architecture, None);
     assert_eq!(agent.spec.sandbox.retention_policy, None);
+    assert_eq!(agent.spec.harnesses.len(), 1);
+    assert!(!agent.spec.harnesses[0].default);
+    assert_eq!(
+        agent.spec.default_harness().map(|harness| harness.kind),
+        Some(Harness::ClaudeCode)
+    );
     assert_eq!(
         agent.spec.sandbox.resources.root_filesystem().mode(),
         RootFilesystemMode::Layered
@@ -33,6 +39,7 @@ fn decodes_the_self_development_manifest() {
     assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].source(), "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].placeholder, None);
+    assert!(agent.spec.harnesses[0].default);
     assert_eq!(
         agent.spec.sandbox.resources.root_filesystem().mode(),
         RootFilesystemMode::Direct
@@ -118,4 +125,58 @@ fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
         .expect_err("effective placeholders must remain unambiguous");
 
     assert!(matches!(error, agent::Error::Invalid(message) if message.contains("spec.secrets[1]")));
+}
+
+#[test]
+fn validates_harness_installation_cardinality_and_defaults() {
+    let mut empty = support::agent("worker");
+    empty.spec.harnesses.clear();
+    assert!(matches!(
+        empty.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.harnesses must not be empty")
+    ));
+
+    let installation = support::agent("worker").spec.harnesses.remove(0);
+    let mut duplicate = support::agent("worker");
+    let mut explicit_default = installation.clone();
+    explicit_default.default = true;
+    duplicate.spec.harnesses = vec![explicit_default, installation.clone()];
+    assert!(matches!(
+        duplicate.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("duplicate harness kind")
+    ));
+
+    let mut no_default = support::agent("worker");
+    no_default.spec.harnesses = vec![installation.clone(), installation.clone()];
+    assert!(matches!(
+        no_default.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("exactly one default")
+    ));
+
+    let mut multiple_defaults = support::agent("worker");
+    let mut first = installation.clone();
+    first.default = true;
+    let mut second = installation;
+    second.default = true;
+    multiple_defaults.spec.harnesses = vec![first, second];
+    assert!(matches!(
+        multiple_defaults.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("exactly one default")
+    ));
+}
+
+#[test]
+fn rejects_manifest_secrets_owned_by_a_declared_harness() {
+    let mut agent = support::agent("worker");
+    agent.spec.secrets.push(SecretSpec {
+        environment: "CLAUDE_CODE_OAUTH_TOKEN".into(),
+        placeholder: None,
+        allowed_hosts: vec!["api.anthropic.com".into()],
+        source: None,
+    });
+
+    assert!(matches!(
+        agent.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.secrets[0]")
+    ));
 }

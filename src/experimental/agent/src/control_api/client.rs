@@ -135,12 +135,14 @@ impl Client {
         &self,
         agent: &str,
         name: sessions::SessionName,
+        harness: Option<harness::Harness>,
     ) -> Result<sessions::AttachTarget, Error> {
         self.call(
             METHOD_SESSION_ENSURE,
             SessionParams {
                 agent: agent.into(),
                 name,
+                harness,
             },
         )
         .await
@@ -157,6 +159,7 @@ impl Client {
             SessionParams {
                 agent: agent.into(),
                 name,
+                harness: None,
             },
         )
         .await

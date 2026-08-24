@@ -84,11 +84,11 @@ pub struct Spec {
     pub sandbox: SandboxManifestSpec,
     /// Host directory synchronized into the sandbox user's home at bootstrap.
     pub home: HomeSpec,
-    /// Optional Agent-wide guidance installed through the selected Harness Adapter.
+    /// Optional Agent-wide guidance installed through every declared Harness Adapter.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub instructions: Option<InstructionsSpec>,
-    /// Harness installation and authentication behavior.
-    pub harness: HarnessSpec,
+    /// Harness installations available to Sessions in this Agent.
+    pub harnesses: Vec<HarnessSpec>,
     /// Host-owned values made available only through mediated requests.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub secrets: Vec<SecretSpec>,
@@ -206,6 +206,22 @@ impl PlatformManifestSpec {
 }
 
 impl Spec {
+    /// Returns the declared installation for `kind`.
+    #[must_use]
+    pub fn harness(&self, kind: crate::Harness) -> Option<&HarnessSpec> {
+        self.harnesses.iter().find(|harness| harness.kind == kind)
+    }
+
+    /// Returns the installation selected for a new Session without an explicit harness.
+    #[must_use]
+    pub fn default_harness(&self) -> Option<&HarnessSpec> {
+        if self.harnesses.len() == 1 {
+            self.harnesses.first()
+        } else {
+            self.harnesses.iter().find(|harness| harness.default)
+        }
+    }
+
     fn validate(&self) -> Result<(), Error> {
         if self.home.source.as_os_str().is_empty() {
             return Err(Error::Invalid("spec.home.source must not be empty".into()));
@@ -217,8 +233,33 @@ impl Spec {
         {
             return Err(Error::Invalid("spec.instructions.source must not be empty".into()));
         }
-        if self.harness.version.is_empty() {
-            return Err(Error::Invalid("spec.harness.version must not be empty".into()));
+        if self.harnesses.is_empty() {
+            return Err(Error::Invalid("spec.harnesses must not be empty".into()));
+        }
+        let mut harness_kinds = std::collections::BTreeSet::new();
+        let mut duplicate_harness = None;
+        let mut default_count = 0;
+        for (index, harness) in self.harnesses.iter().enumerate() {
+            if harness.version.is_empty() {
+                return Err(Error::Invalid(format!(
+                    "spec.harnesses[{index}].version must not be empty"
+                )));
+            }
+            if !harness_kinds.insert(harness.kind) {
+                duplicate_harness = Some(harness.kind);
+            }
+            default_count += usize::from(harness.default);
+        }
+        if default_count > 1 || (self.harnesses.len() > 1 && default_count != 1) {
+            return Err(Error::Invalid(
+                "spec.harnesses must declare exactly one default when multiple harnesses are installed".into(),
+            ));
+        }
+        if let Some(harness) = duplicate_harness {
+            return Err(Error::Invalid(format!(
+                "spec.harnesses contains duplicate harness kind {:?}",
+                harness.as_str()
+            )));
         }
         let mut environments = std::collections::BTreeSet::new();
         let mut placeholders = std::collections::BTreeSet::new();
@@ -230,11 +271,13 @@ impl Spec {
                     .as_deref()
                     .is_some_and(|source| !valid_environment_variable(source))
                 || secret.placeholder.as_ref().is_some_and(String::is_empty)
-                || harness::conflicts_with_managed_secret(
-                    self.harness.kind,
-                    &secret.environment,
-                    secret.placeholder.as_deref(),
-                )
+                || self.harnesses.iter().any(|installation| {
+                    harness::conflicts_with_managed_secret(
+                        installation.kind,
+                        &secret.environment,
+                        secret.placeholder.as_deref(),
+                    )
+                })
                 || secret.allowed_hosts.is_empty()
                 || !environments.insert(&secret.environment)
                 || !placeholders.insert(placeholder)

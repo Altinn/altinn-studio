@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AgentId, ConditionStatus, Error,
+    AgentId, ConditionStatus, Error, Harness,
     sandbox::Assignment,
     sessions::{AttachTarget, LaunchState, LaunchToken, Session, SessionId, SessionName, State, Status},
 };
@@ -12,7 +12,8 @@ use crate::{
 use super::{agents, database_error};
 
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
-    sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, sessions.harness_native_id";
+    sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
+    sessions.harness_native_id";
 
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -25,7 +26,12 @@ struct Lifecycle {
     observed_activation_generation: u64,
 }
 
-pub(super) fn ensure(connection: &mut Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
+pub(super) fn ensure(
+    connection: &mut Connection,
+    agent: &str,
+    name: &SessionName,
+    harness: Harness,
+) -> Result<Session, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let owner = agents::get_by_name(&transaction, agent)?;
     if owner.agent.metadata.deletion_timestamp.is_some() {
@@ -33,6 +39,13 @@ pub(super) fn ensure(connection: &mut Connection, agent: &str, name: &SessionNam
     }
     let agent_id = owner.id;
     if let Some(session) = query_named(&transaction, agent_id, name)? {
+        if session.harness != harness {
+            return Err(Error::Invalid(format!(
+                "Session {name:?} already uses harness {:?}, not {:?}",
+                session.harness.as_str(),
+                harness.as_str()
+            )));
+        }
         transaction.commit().map_err(database_error)?;
         return Ok(session);
     }
@@ -40,8 +53,14 @@ pub(super) fn ensure(connection: &mut Connection, agent: &str, name: &SessionNam
     let created_at = time::OffsetDateTime::now_utc().unix_timestamp();
     transaction
         .execute(
-            "INSERT INTO sessions (id, agent_id, name, created_at) VALUES (?1, ?2, ?3, ?4)",
-            params![id.to_string(), agent_id.to_string(), name.as_str(), created_at],
+            "INSERT INTO sessions (id, agent_id, name, harness, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![
+                id.to_string(),
+                agent_id.to_string(),
+                name.as_str(),
+                harness.as_str(),
+                created_at
+            ],
         )
         .map_err(database_error)?;
     let session = query_named(&transaction, agent_id, name)?.ok_or(Error::NotFound)?;
@@ -270,15 +289,17 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
     let agent_id = row.get::<_, String>(1)?.parse().map_err(conversion_error)?;
     let agent = row.get::<_, String>(2)?;
     let name = SessionName::new(row.get::<_, String>(3)?).map_err(conversion_error)?;
-    let created_at = time::OffsetDateTime::from_unix_timestamp(row.get::<_, i64>(4)?).map_err(conversion_error)?;
-    let activation_generation = u64::try_from(row.get::<_, i64>(5)?).map_err(conversion_error)?;
-    let lifecycle = serde_json::from_str::<Lifecycle>(&row.get::<_, String>(6)?).map_err(conversion_error)?;
-    let harness_session_id = row.get::<_, Option<String>>(7)?;
+    let harness = row.get::<_, String>(4)?.parse().map_err(conversion_error)?;
+    let created_at = time::OffsetDateTime::from_unix_timestamp(row.get::<_, i64>(5)?).map_err(conversion_error)?;
+    let activation_generation = u64::try_from(row.get::<_, i64>(6)?).map_err(conversion_error)?;
+    let lifecycle = serde_json::from_str::<Lifecycle>(&row.get::<_, String>(7)?).map_err(conversion_error)?;
+    let harness_session_id = row.get::<_, Option<String>>(8)?;
     Ok(Session {
         id,
         agent_id,
         agent,
         name,
+        harness,
         created_at,
         status: Status {
             state: lifecycle.state,

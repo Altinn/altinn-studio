@@ -60,9 +60,16 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         let ready = ready_record("worker", test_agent_id());
         first.put(ready, 0).await.expect("ready Agent");
         let name = SessionName::new("s1").expect("session name");
-        let created = first.ensure_session("worker", &name).await.expect("create session");
-        let existing = first.ensure_session("worker", &name).await.expect("get session");
+        let created = first
+            .ensure_session("worker", &name, agent::Harness::ClaudeCode)
+            .await
+            .expect("create session");
+        let existing = first
+            .ensure_session("worker", &name, agent::Harness::ClaudeCode)
+            .await
+            .expect("get session");
         assert_eq!(created.agent_id, test_agent_id());
+        assert_eq!(created.harness, agent::Harness::ClaudeCode);
         assert_eq!(created, existing);
         first
             .update_session_status(
@@ -84,6 +91,7 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         let sessions = second.list_agent_sessions("worker").await.expect("persistent sessions");
         assert_eq!(sessions.len(), 1);
         assert_eq!(sessions[0].name.as_str(), "s1");
+        assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
         assert_eq!(sessions[0].status.state, agent::sessions::State::Running);
         assert_eq!(
             second
@@ -105,7 +113,10 @@ fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reuse
     LocalRuntime::new().expect("local runtime").block_on(async {
         store.put(ready_record("worker", old_id), 0).await.expect("old Agent");
         let old_session = SessionName::new("old-session").expect("session name");
-        store.ensure_session("worker", &old_session).await.expect("old session");
+        store
+            .ensure_session("worker", &old_session, agent::Harness::ClaudeCode)
+            .await
+            .expect("old session");
         store.mark_deleting("worker").await.expect("mark deleting");
         store.finalize_deletion(old_id, 1).await.expect("finalize deletion");
         assert!(matches!(store.get(old_id).await, Err(Error::NotFound)));

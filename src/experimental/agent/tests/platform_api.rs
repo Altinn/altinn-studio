@@ -69,7 +69,11 @@ async fn session_reports_require_the_current_launch_token() {
     let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     database.put(ready_record("worker", agent_id), 0).await.expect("Agent");
     let session = database
-        .ensure_session("worker", &SessionName::new("s1").expect("name"))
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+        )
         .await
         .expect("session");
     database
@@ -165,7 +169,11 @@ async fn launch_bookkeeping_round_trips_and_resets() {
     let agent_id = "48f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     database.put(ready_record("worker", agent_id), 0).await.expect("Agent");
     let session = database
-        .ensure_session("worker", &SessionName::new("s1").expect("name"))
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+        )
         .await
         .expect("session");
 

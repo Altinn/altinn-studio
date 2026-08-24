@@ -75,7 +75,32 @@ impl Preparation {
                 let binding = SecretBinding::with_placeholder(&secret.environment, secret.inert_value(), reference)?;
                 bindings.push(binding);
             }
-            let managed_secrets = harness::prepare(record.agent.spec.harness.kind, &self.database).await?;
+            let mut managed_secrets = Vec::new();
+            let mut managed_environments = BTreeMap::new();
+            let mut managed_placeholders = BTreeMap::new();
+            for installation in &record.agent.spec.harnesses {
+                for secret in harness::prepare(installation.kind, &self.database).await? {
+                    if let Some(existing) = managed_environments.insert(secret.environment, installation.kind.as_str())
+                    {
+                        return Err(Error::Invalid(format!(
+                            "harnesses {:?} and {:?} use the same managed environment {:?}",
+                            existing,
+                            installation.kind.as_str(),
+                            secret.environment
+                        )));
+                    }
+                    if let Some(existing) = managed_placeholders.insert(secret.placeholder, installation.kind.as_str())
+                    {
+                        return Err(Error::Invalid(format!(
+                            "harnesses {:?} and {:?} use the same managed placeholder {:?}",
+                            existing,
+                            installation.kind.as_str(),
+                            secret.placeholder
+                        )));
+                    }
+                    managed_secrets.push(secret);
+                }
+            }
             self.policy.set_agent(
                 &sandbox_name,
                 &record.agent,

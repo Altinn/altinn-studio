@@ -8,22 +8,49 @@ use crate::{Error, persistence};
 mod claude_code;
 
 /// Supported harnesses.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Harness {
     /// Anthropic Claude Code.
     ClaudeCode,
 }
 
+impl Harness {
+    /// Returns the manifest and CLI spelling of this harness family.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::ClaudeCode => "claudeCode",
+        }
+    }
+}
+
+impl std::fmt::Display for Harness {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl std::str::FromStr for Harness {
+    type Err = Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "claudeCode" => Ok(Self::ClaudeCode),
+            _ => Err(Error::Invalid(format!("unsupported harness {value:?}"))),
+        }
+    }
+}
+
 /// Supported harness authentication modes.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum HarnessAuthMode {
     /// Credentials remain on the host and are injected into authorized requests.
     Mediated,
 }
 
-/// Harness installation selected for an Agent.
+/// One harness installation declared for an Agent.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct HarnessSpec {
@@ -34,6 +61,9 @@ pub struct HarnessSpec {
     pub version: String,
     /// Authentication delivery mode.
     pub auth: HarnessAuthMode,
+    /// Whether new Sessions select this installation when no harness is specified.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub default: bool,
 }
 
 /// Non-secret result of importing a host harness login.
@@ -144,4 +174,9 @@ pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>) -> Proce
     match harness {
         Harness::ClaudeCode => claude_code::launch_linux(home, resume),
     }
+}
+
+#[cfg(test)]
+pub(crate) const fn test_harness() -> Harness {
+    Harness::ClaudeCode
 }

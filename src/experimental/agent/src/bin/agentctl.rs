@@ -88,6 +88,9 @@ enum Command {
         /// Owning Agent; inferred from the current directory when omitted.
         #[arg(long)]
         agent: Option<String>,
+        /// Harness installation to bind when creating the Session.
+        #[arg(long, value_parser = parse_harness)]
+        harness: Option<agent::Harness>,
     },
     /// Execute a command in an Agent sandbox.
     Exec {
@@ -196,7 +199,12 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             client.delete(&name).await?;
             println!("agent/{name} deleted");
         }
-        Command::Attach { resource, name, agent } => attach(home, client, &resource, name, agent).await?,
+        Command::Attach {
+            resource,
+            name,
+            agent,
+            harness,
+        } => attach(home, client, &resource, name, agent, harness).await?,
         Command::Exec {
             stdin,
             tty,
@@ -259,6 +267,7 @@ async fn attach(
     resource: &str,
     name: Option<String>,
     agent: Option<String>,
+    harness: Option<agent::Harness>,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     if resource != Resource::Session {
@@ -270,7 +279,7 @@ async fn attach(
         "Ensuring Agent {agent:?} and Session {session:?}; initial provisioning can take several minutes...",
         session = session.as_str()
     );
-    let target = client.ensure_session(&agent, session).await?;
+    let target = client.ensure_session(&agent, session, harness).await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
 }
@@ -517,6 +526,10 @@ fn parse_duration(value: &str) -> Result<Duration, String> {
     Ok(Duration::from_secs(number.saturating_mul(multiplier)))
 }
 
+fn parse_harness(value: &str) -> Result<agent::Harness, String> {
+    value.parse().map_err(|error: Error| error.to_string())
+}
+
 fn print_agents(agents: &[Agent]) {
     let rows = agents
         .iter()
@@ -532,9 +545,7 @@ fn print_agents(agents: &[Agent]) {
             } else {
                 ready.map_or("Pending", |condition| condition.reason.as_str())
             };
-            let harness = match agent.spec.harness.kind {
-                agent::Harness::ClaudeCode => "claudeCode",
-            };
+            let harnesses = format_harnesses(&agent.spec);
             let provider = agent
                 .status
                 .sandbox
@@ -544,18 +555,15 @@ fn print_agents(agents: &[Agent]) {
                 agent.metadata.name.clone(),
                 ready_value.into(),
                 status.into(),
-                harness.into(),
+                harnesses,
                 provider.into(),
             ]
         })
         .collect::<Vec<_>>();
-    print_table(&["NAME", "READY", "STATUS", "HARNESS", "PROVIDER"], &rows);
+    print_table(&["NAME", "READY", "STATUS", "HARNESSES", "PROVIDER"], &rows);
 }
 
 fn print_agent_description(agent: &Agent) {
-    let harness = match agent.spec.harness.kind {
-        agent::Harness::ClaudeCode => "claudeCode",
-    };
     let provider = agent
         .status
         .sandbox
@@ -570,7 +578,7 @@ fn print_agent_description(agent: &Agent) {
 
     println!("Name:       {}", agent.metadata.name);
     println!("Generation: {}", agent.metadata.generation);
-    println!("Harness:    {harness} {}", agent.spec.harness.version);
+    println!("Harnesses:  {}", format_harnesses(&agent.spec));
     println!("Provider:   {provider}");
     println!("Sandbox:    {sandbox}");
     println!("Conditions:");
@@ -612,6 +620,7 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
             }
             row.extend([
                 session.name.as_str().to_owned(),
+                session.harness.as_str().into(),
                 session_state(session.status.state).into(),
                 format_age(session.created_at),
             ]);
@@ -619,11 +628,26 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
         })
         .collect::<Vec<_>>();
     let headers = if show_agent {
-        vec!["AGENT", "NAME", "STATE", "AGE"]
+        vec!["AGENT", "NAME", "HARNESS", "STATE", "AGE"]
     } else {
-        vec!["NAME", "STATE", "AGE"]
+        vec!["NAME", "HARNESS", "STATE", "AGE"]
     };
     print_table(&headers, &rows);
+}
+
+fn format_harnesses(spec: &agent::Spec) -> String {
+    spec.harnesses
+        .iter()
+        .map(|harness| {
+            let suffix = if spec.harnesses.len() == 1 || harness.default {
+                " (default)"
+            } else {
+                ""
+            };
+            format!("{} {}{suffix}", harness.kind.as_str(), harness.version)
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 const fn session_state(state: agent::sessions::State) -> &'static str {

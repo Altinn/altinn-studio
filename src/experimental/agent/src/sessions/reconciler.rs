@@ -132,15 +132,7 @@ impl Reconciler {
                 },
             )
             .await?;
-        tmux::create(
-            &agent,
-            session,
-            &sandbox,
-            &self.session_hook_url,
-            &token,
-            resume.as_deref(),
-        )
-        .await?;
+        tmux::create(session, &sandbox, &self.session_hook_url, &token, resume.as_deref()).await?;
         Ok(running())
     }
 }

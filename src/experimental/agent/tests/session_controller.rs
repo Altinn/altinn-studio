@@ -76,6 +76,14 @@ impl Reconcile<AgentId> for BlockingAgentReady {
 
 struct MarkSessionReady(persistence::Database);
 
+struct NoopAgentReconcile;
+
+impl Reconcile<AgentId> for NoopAgentReconcile {
+    fn reconcile(&self, _id: AgentId) -> LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async { Ok(()) })
+    }
+}
+
 impl Reconcile<SessionId> for MarkSessionReady {
     fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
@@ -213,6 +221,49 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
 }
 
 #[tokio::test(flavor = "local")]
+async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    database.put(ready_record("worker", agent_id), 0).await.expect("Agent");
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(MarkSessionReady(database)),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = agent::sessions::Service::new(session_store, agent_store, agent_wakeup, session_wakeup);
+
+    let explicit = service
+        .ensure(
+            "worker",
+            &SessionName::new("explicit").expect("name"),
+            Some(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("explicit harness Session");
+    let implicit = service
+        .ensure("worker", &SessionName::new("implicit").expect("name"), None)
+        .await
+        .expect("implicit default Session");
+
+    assert_eq!(explicit.session.harness, agent::Harness::ClaudeCode);
+    assert_eq!(implicit.session.harness, agent::Harness::ClaudeCode);
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
 async fn session_reconciliation_never_ensures_the_agent_sandbox() {
     let directory = TempDir::new().expect("temporary directory");
     let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
@@ -242,7 +293,11 @@ async fn session_reconciliation_never_ensures_the_agent_sandbox() {
     });
     database.put(record, 0).await.expect("Agent");
     let session = database
-        .ensure_session("worker", &SessionName::new("s1").expect("name"))
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            agent::Harness::ClaudeCode,
+        )
         .await
         .expect("Session");
 
@@ -301,7 +356,11 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
     });
     database.put(record, 0).await.expect("Agent");
     let session = database
-        .ensure_session("worker", &SessionName::new("idle").expect("name"))
+        .ensure_session(
+            "worker",
+            &SessionName::new("idle").expect("name"),
+            agent::Harness::ClaudeCode,
+        )
         .await
         .expect("Session");
     let activation = database.activate_session(session.id).await.expect("activate Session");
@@ -484,7 +543,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
     let ensure_service = service.clone();
     let ensure = tokio::task::spawn_local(async move {
         ensure_service
-            .ensure("worker", &SessionName::new("s1").expect("name"))
+            .ensure("worker", &SessionName::new("s1").expect("name"), None)
             .await
     });
 
@@ -511,7 +570,11 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
 
     let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let slow = database
-        .ensure_session("worker", &SessionName::new("slow").expect("name"))
+        .ensure_session(
+            "worker",
+            &SessionName::new("slow").expect("name"),
+            agent::Harness::ClaudeCode,
+        )
         .await
         .expect("slow Session");
     let slow_calls = Rc::new(Cell::new(0));
@@ -540,7 +603,11 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
     let rerun = tokio::task::spawn_local(async move { rerun_wakeup.reconcile(slow.id).await });
 
     let fast = database
-        .ensure_session("worker", &SessionName::new("fast").expect("name"))
+        .ensure_session(
+            "worker",
+            &SessionName::new("fast").expect("name"),
+            agent::Harness::ClaudeCode,
+        )
         .await
         .expect("fast Session");
     tokio::time::timeout(Duration::from_secs(1), wakeup.reconcile(fast.id))

@@ -29,6 +29,7 @@ const SQL: &str = "
         id TEXT PRIMARY KEY NOT NULL,
         agent_id TEXT NOT NULL REFERENCES agents(id),
         name TEXT NOT NULL,
+        harness TEXT NOT NULL,
         created_at INTEGER NOT NULL,
         activation_generation INTEGER NOT NULL DEFAULT 0,
         lifecycle_json TEXT NOT NULL DEFAULT '{}',

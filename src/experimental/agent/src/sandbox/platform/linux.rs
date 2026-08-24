@@ -86,18 +86,18 @@ impl PlatformAdapter for Linux {
 
 impl Linux {
     async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        harness::verify_linux(
-            record.agent.spec.harness.kind,
-            sandbox,
-            &record.agent.spec.harness.version,
-        )
-        .await?;
+        for installation in &record.agent.spec.harnesses {
+            harness::verify_linux(installation.kind, sandbox, &installation.version).await?;
+        }
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
         configure_podman(sandbox).await?;
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
         let instructions = read_instructions(record).await?;
-        harness::bootstrap_linux(record.agent.spec.harness.kind, sandbox, HOME, instructions.as_deref()).await
+        for installation in &record.agent.spec.harnesses {
+            harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref()).await?;
+        }
+        Ok(())
     }
 }
 
