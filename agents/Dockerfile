@@ -118,9 +118,11 @@ ENV CARGO_HOME=/usr/local/cargo
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV PATH=/usr/local/cargo/bin:${PATH}
 
-# Podman's netavark backend invokes nft for rootful bridge networking.
+# Podman's netavark backend invokes nft for rootful bridge networking and aardvark-dns for
+# container-name resolution between compose services.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
+        aardvark-dns \
         clang \
         iproute2 \
         lldb \
