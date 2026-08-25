@@ -161,15 +161,14 @@ class EventSink:
                     "last_message": existing.get("last_message"),
                 }
 
-        buf = self._get_or_create_buffer(event.session_id)
-        buf.append(event)
+            # A cancel landing after the check would order this event last.
+            self._get_or_create_buffer(event.session_id).append(event)
 
-        # Also fan out to the developer-scoped buffer
-        with self._buf_lock:
-            developer = self._session_to_developer.get(event.session_id)
-            dev_buf = self._developer_buffers.get(developer) if developer else None
-        if dev_buf is not None:
-            dev_buf.append(event)
+            with self._buf_lock:
+                developer = self._session_to_developer.get(event.session_id)
+                dev_buf = self._developer_buffers.get(developer) if developer else None
+            if dev_buf is not None:
+                dev_buf.append(event)
 
     # --- event consumption (called from WebSocket handler) --------------------
 

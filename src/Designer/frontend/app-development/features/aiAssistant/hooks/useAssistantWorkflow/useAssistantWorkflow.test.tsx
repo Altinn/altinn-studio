@@ -1275,7 +1275,51 @@ describe('useAssistantWorkflow', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('swallows cancel request failures and restores then clears the composer content', async () => {
+  it('puts the message back in the thread when session registration fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-1',
+      deleteMessage: jest.fn().mockResolvedValue(undefined),
+      chatMessages: [
+        {
+          id: 'message-1',
+          role: MessageAuthor.User,
+          content: 'Please do this',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+    const cancelWorkflow = jest.fn();
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow,
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn().mockRejectedValue(new Error('hub unavailable')),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    // Registration failed, so the cancel never went out and the run continues.
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+    expect(threads.createMessage).toHaveBeenCalledWith(
+      'thread-1',
+      expect.objectContaining({ role: MessageAuthor.User, content: 'Please do this' }),
+    );
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('puts the message back in the thread when the cancel request fails', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({
       selectedThreadId: 'thread-1',
@@ -1309,12 +1353,11 @@ describe('useAssistantWorkflow', () => {
       await result.current.cancelCurrentWorkflow();
     });
 
-    // The failed cancel must not throw, and the deleted message's content is
-    // still restored to the composer — and clearable once consumed.
-    expect(result.current.cancelledMessageContent).toBe('Please do this');
-    await act(async () => {
-      result.current.clearCancelledMessageContent();
-    });
+    // The run continues, so the prompt belongs in the thread, not the composer.
+    expect(threads.createMessage).toHaveBeenCalledWith(
+      'thread-1',
+      expect.objectContaining({ role: MessageAuthor.User, content: 'Please do this' }),
+    );
     expect(result.current.cancelledMessageContent).toBeNull();
     consoleErrorSpy.mockRestore();
   });

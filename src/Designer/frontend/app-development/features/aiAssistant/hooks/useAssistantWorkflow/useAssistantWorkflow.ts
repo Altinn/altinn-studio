@@ -523,6 +523,18 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     ],
   );
 
+  const restoreCancelledMessage = useCallback(
+    async (threadId: string, message: Message): Promise<void> => {
+      try {
+        await createMessage(threadId, message);
+        setCancelledMessageContent(null);
+      } catch (error) {
+        console.error('Failed to restore the message after a failed cancel:', error);
+      }
+    },
+    [createMessage],
+  );
+
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
     const threadId = selectedThreadId;
     if (!selectedThreadId) return;
@@ -533,11 +545,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
     const latestPersistedMessage = chatMessages.at(-1);
     const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
+    let deletedMessage: Message | undefined;
     if (noAssistantResponseReceived) {
       try {
         // Delete before the cancel round-trip — the refetch it triggers in
         // every tab must not resurrect this message.
         await deleteMessage(threadId, latestPersistedMessage.id);
+        deletedMessage = latestPersistedMessage;
         setCancelledMessageContent(latestPersistedMessage.content);
       } catch (error) {
         console.error('Failed to delete the cancelled message:', error);
@@ -551,6 +565,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     } catch (error) {
       // The run is still going, so stop showing it as stopped.
       markThreadStillRunning(threadId, statusBeforeCancel);
+      // The run continues, so the answer needs its prompt above it.
+      if (deletedMessage) await restoreCancelledMessage(threadId, deletedMessage);
       console.error('Cancel workflow request failed:', error);
     }
   }, [
@@ -563,6 +579,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     chatMessages,
     setWorkflowStatus,
     markThreadStillRunning,
+    restoreCancelledMessage,
     workflowStatusByThread,
     markThreadTerminated,
   ]);

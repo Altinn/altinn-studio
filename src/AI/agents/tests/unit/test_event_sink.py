@@ -8,6 +8,8 @@ nothing left to turn it off. Result-bearing events still flow, and a new
 run on the same session (``mark_session_started``) lifts the suppression.
 """
 
+import threading
+
 from agents.services.events.jobs import EventSink
 from agents.services.events.events import AgentEvent
 
@@ -142,3 +144,28 @@ class TestAssistantMessageEventId:
 
         [event] = sink.get_developer_events_since(DEVELOPER, 0)
         assert "eventId" not in event.data
+
+
+class TestCancelRacingDelivery:
+    def test_a_progress_event_cannot_land_after_the_terminal_one(self):
+        """A cancel arriving mid-send must not overtake the event being sent."""
+        sink = _sink_with_session()
+        cancel_thread: list[threading.Thread] = []
+        original_get_buffer = sink._get_or_create_buffer
+
+        def cancel_midway(session_id: str):
+            buffer = original_get_buffer(session_id)
+            if not cancel_thread:
+                thread = threading.Thread(target=sink.cancel_session, args=(SESSION_ID,))
+                cancel_thread.append(thread)
+                thread.start()
+                # Long enough for an unlocked delivery to lose the race.
+                thread.join(timeout=0.5)
+            return buffer
+
+        sink._get_or_create_buffer = cancel_midway
+        sink.send(_event("status", message="Skanner repo"))
+        cancel_thread[0].join(timeout=5)
+
+        # The terminal error is last, so nothing restarts the activity indicator.
+        assert _delivered_types(sink) == ["status", "error"]
