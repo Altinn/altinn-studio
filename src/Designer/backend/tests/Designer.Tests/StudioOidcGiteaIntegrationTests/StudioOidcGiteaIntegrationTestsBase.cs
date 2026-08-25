@@ -84,8 +84,6 @@ public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : Api
 
         string configPath = GetConfigPath();
 
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
-
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile(configPath, false, false)
             .AddJsonStream(GenerateStudioOidcOverrideConfigStream())
