@@ -140,3 +140,12 @@ jobs:
           -p agent
           -p sandbox-microsandbox
           --all-targets --all-features --locked
+
+      - name: Test native host
+        run: >-
+          cargo test
+          -p sandbox
+          -p sandbox-authorization
+          -p agent
+          -p sandbox-microsandbox
+          --all-targets --all-features --locked
