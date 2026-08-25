@@ -18,6 +18,9 @@ export interface AssistantMessageData {
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
   traceId?: string;
+  eventId?: string;
+  /** Present when the backend already persisted this message; do not persist a copy. */
+  persistedMessageId?: string;
 }
 
 /**
@@ -33,6 +36,10 @@ export interface WorkflowStatusData {
   done?: boolean;
   mode?: string;
   phase?: WorkflowPhase;
+  /** Milliseconds since the run started, stamped by the agents service.
+   *  Lets a tab that adopts an in-flight run anchor its trail timers at the
+   *  actual run start instead of at the first event it happens to receive. */
+  elapsed_ms?: number;
   /** Stable id of the model's tool_use block. Lets the frontend match
    *  a follow-up call message to its pending placeholder and collapse
    *  them into a single journal entry. */
@@ -87,7 +94,14 @@ export interface ErrorEvent extends WorkflowEventBase {
 /** The agent asks the user to allow changes in a read-only session. */
 export interface PermissionRequestEvent extends WorkflowEventBase {
   type: 'permission_request';
-  data: { request_id: string; message: string };
+  data: {
+    request_id: string;
+    message?: string;
+    /** Set when the prompt was answered (in any tab) or timed out — every
+     *  tab showing the run must dismiss its prompt. */
+    resolved?: boolean;
+    granted?: boolean;
+  };
 }
 
 export type WorkflowEvent =

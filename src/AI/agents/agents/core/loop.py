@@ -304,6 +304,15 @@ async def run_loop(
             {"turn": turn, "stop_reason": response.stop_reason, "text": extract_text(response)},
         )
 
+        if is_cancelled and is_cancelled():
+            await _emit(on_event, "terminated", {"reason": "cancelled", "turn": turn})
+            return LoopResult(
+                reason=TerminationReason.CANCELLED,
+                messages=messages,
+                turns=turn,
+                usage=total_usage,
+            )
+
         # A turn cut off at the max_tokens budget must NEVER read as a
         # normal completion: the adapter drops the truncated (malformed)
         # trailing tool_use block, so a giant batched-writes turn can come

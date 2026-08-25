@@ -50,4 +50,16 @@ public class ChatMessageEntity
     /// Sources referenced by the assistant.
     /// </summary>
     public List<ChatSourceEntity>? Sources { get; set; }
+
+    /// <summary>
+    /// Langfuse trace id of the agent run that produced this message.
+    /// Used by the feedback (thumbs up/down) flow.
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
+    /// Id of the agent event this message was persisted from. Unique per thread.
+    /// Null when the client persisted the message.
+    /// </summary>
+    public string? EventId { get; set; }
 }
