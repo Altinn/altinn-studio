@@ -158,17 +158,20 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
 pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.codex");
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
-    // The adapter owns the mediated auth.json; builder preferences remain
-    // valid for all other Codex configuration.
-    let authentication = "-c 'cli_auth_credentials_store=\"file\"'";
-    let base = format!("codex {flags} {authentication}");
+    // Launch-only overrides keep adapter-owned authentication and the fixed
+    // Session root non-interactive without overwriting builder config.toml.
+    let configuration = format!(
+        "-c 'cli_auth_credentials_store=\"file\"' -c 'projects.{}.trust_level=\"trusted\"'",
+        crate::sandbox::platform::WORKING_DIRECTORY
+    );
+    let base = format!("codex {flags} {configuration}");
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
     let command = match resume {
         Some(native) => format!(
             "if /usr/bin/find {config}/sessions -type f \\( \
              -name 'rollout-*-{native}.jsonl' -o -name 'rollout-*-{native}.jsonl.zst' \\) \
              -print -quit 2>/dev/null | /usr/bin/grep -q .; \
-             then exec codex resume {flags} {authentication} {native}; else exec {base}; fi"
+             then exec codex resume {flags} {configuration} {native}; else exec {base}; fi"
         ),
         None => base,
     };
@@ -227,6 +230,11 @@ mod tests {
                 .contains("codex resume --dangerously-bypass-approvals-and-sandbox")
         );
         assert!(launch.command.contains("cli_auth_credentials_store=\"file\""));
+        assert!(
+            launch
+                .command
+                .contains("projects./home/agent/code.trust_level=\"trusted\"")
+        );
         assert!(launch.command.contains(native));
         assert!(launch.command.contains("else exec codex"));
     }

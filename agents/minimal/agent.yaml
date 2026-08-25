@@ -25,9 +25,9 @@ spec:
       version: "2.1.239"
       auth: mediated
       default: true
-    - type: codex
-      version: "0.149.1"
-      auth: mediated
+    # - type: codex
+    #   version: "0.149.1"
+    #   auth: mediated
   secrets:
     - environment: GITHUB_TOKEN
       allowedHosts:
