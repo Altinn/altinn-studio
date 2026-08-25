@@ -220,24 +220,26 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
 
 internal static class TestHostGarbageCollector
 {
-    private const string CollectionIntervalEnvironmentVariable = "DESIGNER_TESTS_HOST_GC_INTERVAL";
+    private const string MemoryThresholdPercentEnvironmentVariable = "DESIGNER_TESTS_HOST_GC_THRESHOLD_PERCENT";
+    private const int MinimumDisposedFactoryCountBetweenCollections = 10;
     private static readonly object SyncRoot = new();
-    private static readonly int CollectionInterval = GetCollectionInterval();
+    private static readonly long MemoryThresholdBytes = GetMemoryThresholdBytes();
     private static int _disposedFactoryCount;
 
     public static void RecordDisposedFactories(int count)
     {
-        if (CollectionInterval == 0 || count == 0)
+        if (MemoryThresholdBytes == 0 || count == 0)
         {
             return;
         }
 
-        // The lock makes the count update and threshold reset atomic, and prevents
-        // concurrent full-heap compactions from different test threads.
         lock (SyncRoot)
         {
             _disposedFactoryCount += count;
-            if (_disposedFactoryCount < CollectionInterval)
+            if (
+                _disposedFactoryCount < MinimumDisposedFactoryCountBetweenCollections
+                || GC.GetTotalMemory(forceFullCollection: false) < MemoryThresholdBytes
+            )
             {
                 return;
             }
@@ -245,21 +247,24 @@ internal static class TestHostGarbageCollector
             _disposedFactoryCount = 0;
 
             // Each test host creates a large endpoint routing graph on the LOH. Compact it
-            // periodically before short-lived hosts exhaust the test process.
+            // only under memory pressure, before short-lived hosts exhaust the test process.
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
         }
     }
 
-    private static int GetCollectionInterval()
+    private static long GetMemoryThresholdBytes()
     {
-        return
-            int.TryParse(
-                Environment.GetEnvironmentVariable(CollectionIntervalEnvironmentVariable),
-                out int collectionInterval
-            )
-            && collectionInterval > 0
-            ? collectionInterval
-            : 0;
+        if (
+            !int.TryParse(
+                Environment.GetEnvironmentVariable(MemoryThresholdPercentEnvironmentVariable),
+                out int memoryThresholdPercent
+            ) || memoryThresholdPercent is <= 0 or >= 100
+        )
+        {
+            return 0;
+        }
+
+        return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 100 * memoryThresholdPercent;
     }
 }
