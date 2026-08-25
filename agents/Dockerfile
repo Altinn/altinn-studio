@@ -193,11 +193,11 @@ RUN case "${TARGETARCH}" in \
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 
 COPY common/full-tmpfiles.conf /usr/lib/tmpfiles.d/agent-full.conf
+COPY common/full-hosts-init.service /etc/systemd/system/agent-full-hosts-init.service
 
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
-    && usermod --append --groups kvm agent
-
-RUN printf '127.0.0.1 studio.localhost\n127.0.0.1 host.docker.internal\n' >>/etc/hosts
+    && usermod --append --groups kvm agent \
+    && systemctl enable agent-full-hosts-init.service
 
 USER agent
 WORKDIR /home/agent/code
