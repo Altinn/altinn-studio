@@ -43,18 +43,16 @@ public class FetchBelongsToOrgTests
             .AddEnvironmentVariables()
             .Build();
 
-        var anonymousClient = Factory
-            .WithWebHostBuilder(builder =>
+        var anonymousClient = CreateTestClient(builder =>
+        {
+            builder.UseConfiguration(configuration);
+            builder.ConfigureTestServices(services =>
             {
-                builder.UseConfiguration(configuration);
-                builder.ConfigureTestServices(services =>
-                {
-                    services
-                        .AddAuthentication("Anonymous")
-                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Anonymous", options => { });
-                });
-            })
-            .CreateDefaultClient();
+                services
+                    .AddAuthentication("Anonymous")
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Anonymous", options => { });
+            });
+        });
 
         string url = "/designer/api/contact/belongs-to-org";
 
