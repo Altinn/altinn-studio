@@ -220,12 +220,18 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
 
 internal static class TestHostGarbageCollector
 {
-    private const int CollectionInterval = 3;
+    private const string CollectionIntervalEnvironmentVariable = "DESIGNER_TESTS_HOST_GC_INTERVAL";
     private static readonly object SyncRoot = new();
+    private static readonly int CollectionInterval = GetCollectionInterval();
     private static int _disposedFactoryCount;
 
     public static void RecordDisposedFactories(int count)
     {
+        if (CollectionInterval == 0 || count == 0)
+        {
+            return;
+        }
+
         // The lock makes the count update and threshold reset atomic, and prevents
         // concurrent full-heap compactions from different test threads.
         lock (SyncRoot)
@@ -243,5 +249,17 @@ internal static class TestHostGarbageCollector
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
         }
+    }
+
+    private static int GetCollectionInterval()
+    {
+        return
+            int.TryParse(
+                Environment.GetEnvironmentVariable(CollectionIntervalEnvironmentVariable),
+                out int collectionInterval
+            )
+            && collectionInterval > 0
+            ? collectionInterval
+            : 0;
     }
 }
