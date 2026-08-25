@@ -14,6 +14,11 @@ use agent::{
     sessions::{Session, SessionName},
 };
 use clap::{Parser, Subcommand};
+
+mod format;
+mod tui;
+
+use format::{condition_status, format_age, format_harnesses, session_state};
 use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
@@ -114,6 +119,8 @@ enum Command {
         #[arg(last = true, required = true, num_args = 1..)]
         command: Vec<String>,
     },
+    /// Open the interactive terminal UI.
+    Tui,
     /// Wait for a resource condition.
     Wait {
         /// Condition expression. Only `condition=Ready` is currently supported.
@@ -230,6 +237,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             command,
         } => return exec_command(home, client, resource, agent, &command, stdin, tty).await,
+        Command::Tui => return tui::run(home, client).await,
         Command::Wait {
             condition,
             timeout,
@@ -582,49 +590,8 @@ fn print_agents(agents: &[Agent]) {
 }
 
 fn print_agent_description(agent: &Agent) {
-    let provider = agent
-        .status
-        .sandbox
-        .as_ref()
-        .map_or("-", |assignment| assignment.provider().as_str());
-    let sandbox = agent
-        .status
-        .sandbox
-        .as_ref()
-        .and_then(agent::sandbox::Assignment::id)
-        .map_or_else(|| "-".into(), ToString::to_string);
-
-    println!("Name:       {}", agent.metadata.name);
-    println!("Generation: {}", agent.metadata.generation);
-    println!("Harnesses:  {}", format_harnesses(&agent.spec));
-    println!("Provider:   {provider}");
-    println!("Sandbox:    {sandbox}");
-    println!("Conditions:");
-    if agent.status.conditions.is_empty() {
-        println!("  None");
-        return;
-    }
-    let rows = agent
-        .status
-        .conditions
-        .iter()
-        .map(|condition| {
-            vec![
-                condition.kind.clone(),
-                condition_status(condition.status).into(),
-                condition.reason.clone(),
-                condition.message.clone(),
-            ]
-        })
-        .collect::<Vec<_>>();
-    print_table(&["TYPE", "STATUS", "REASON", "MESSAGE"], &rows);
-}
-
-const fn condition_status(status: ConditionStatus) -> &'static str {
-    match status {
-        ConditionStatus::True => "True",
-        ConditionStatus::False => "False",
-        ConditionStatus::Unknown => "Unknown",
+    for line in format::describe_agent_lines(agent) {
+        println!("{line}");
     }
 }
 
@@ -653,73 +620,13 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
     print_table(&headers, &rows);
 }
 
-fn format_harnesses(spec: &agent::Spec) -> String {
-    spec.harnesses
-        .iter()
-        .map(|harness| {
-            let suffix = if spec.harnesses.len() == 1 || harness.default {
-                " (default)"
-            } else {
-                ""
-            };
-            format!("{} {}{suffix}", harness.kind.as_str(), harness.version)
-        })
-        .collect::<Vec<_>>()
-        .join(", ")
-}
-
-const fn session_state(state: agent::sessions::State) -> &'static str {
-    match state {
-        agent::sessions::State::Starting => "Starting",
-        agent::sessions::State::Running => "Running",
-        agent::sessions::State::Idle => "Idle",
-        agent::sessions::State::Failed => "Failed",
-    }
-}
-
-fn format_age(created_at: time::OffsetDateTime) -> String {
-    let seconds = (time::OffsetDateTime::now_utc() - created_at).whole_seconds().max(0);
-    match seconds {
-        0..60 => format!("{seconds}s"),
-        60..3600 => format!("{}m", seconds / 60),
-        3600..86_400 => format!("{}h", seconds / 3600),
-        _ => format!("{}d", seconds / 86_400),
-    }
-}
-
 fn print_table(headers: &[&str], rows: &[Vec<String>]) {
     if rows.is_empty() {
         eprintln!("No resources found.");
         return;
     }
-    let widths = headers
-        .iter()
-        .enumerate()
-        .map(|(index, header)| {
-            rows.iter()
-                .filter_map(|row| row.get(index))
-                .map(String::len)
-                .max()
-                .unwrap_or_default()
-                .max(header.len())
-        })
-        .collect::<Vec<_>>();
-    print_row(
-        &headers.iter().map(|value| (*value).to_owned()).collect::<Vec<_>>(),
-        &widths,
-    );
-    for row in rows {
-        print_row(row, &widths);
-    }
-}
-
-fn print_row(values: &[String], widths: &[usize]) {
-    for (index, value) in values.iter().enumerate() {
-        if index + 1 == values.len() {
-            println!("{value}");
-        } else {
-            print!("{value:<width$}  ", width = widths[index]);
-        }
+    for line in format::table_lines(headers, rows) {
+        println!("{line}");
     }
 }
 
@@ -897,14 +804,6 @@ mod tests {
             missing.to_string(),
             "no Agent was applied from the current directory; specify --agent"
         );
-    }
-
-    #[test]
-    fn session_state_output_does_not_depend_on_debug_names() {
-        assert_eq!(session_state(agent::sessions::State::Starting), "Starting");
-        assert_eq!(session_state(agent::sessions::State::Running), "Running");
-        assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
-        assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
     }
 
     #[test]

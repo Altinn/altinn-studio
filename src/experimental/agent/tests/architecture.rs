@@ -29,8 +29,10 @@ fn harness_internals_are_contained_by_the_harness_adapter() {
         }
     }
 
-    for binary in ["agentctl.rs", "agentd.rs"] {
-        let contents = std::fs::read_to_string(binaries.join(binary)).expect("binary source should be readable");
+    let mut binary_files = Vec::new();
+    rust_files(&binaries, &mut binary_files);
+    for path in binary_files {
+        let contents = std::fs::read_to_string(&path).expect("binary source should be readable");
         let lowercase = contents.to_ascii_lowercase();
         for implementation_detail in [
             "anthropic",
@@ -44,7 +46,8 @@ fn harness_internals_are_contained_by_the_harness_adapter() {
         ] {
             assert!(
                 !lowercase.contains(implementation_detail),
-                "harness implementation detail {implementation_detail:?} leaked into bin/{binary}"
+                "harness implementation detail {implementation_detail:?} leaked into {}",
+                path.display()
             );
         }
     }

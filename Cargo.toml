@@ -20,6 +20,7 @@ base64 = "0.22.1"
 bollard = { version = "0.21.1", features = ["buildkit", "time"] }
 bytes = "1.12.1"
 clap = { version = "4.6.6", features = ["derive"] }
+crossterm = { version = "0.29.0", features = ["event-stream"] }
 futures-core = "0.3.34"
 futures-util = "0.3.34"
 ignore = "0.4.33"
@@ -33,6 +34,7 @@ microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.gi
 # Cargo's output directory; the host runtime is installed automatically on
 # first use into the control-plane home.
 microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["prebuilt"] }
+ratatui = "0.30.2"
 reqwest = { version = "0.13.4", features = ["json"] }
 rusqlite = "0.39.0"
 sandbox = { path = "src/experimental/sandbox" }
