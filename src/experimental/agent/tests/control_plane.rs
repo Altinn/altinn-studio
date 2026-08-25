@@ -5,13 +5,13 @@ mod support;
 use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
 
 use agent::{
-    AgentId, ConditionStatus, Error, SecretSpec, Status,
+    AgentId, ConditionStatus, Error, MountSpec, SecretSpec, Status,
     control_plane::{AgentRecord, AgentStore, ControlPlane, Controller, Notifier, Reconciler, memory},
     sandbox::{ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
 };
 use sandbox::{
     EnsureSandboxRequest, LocalFuture, Platform, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxName,
-    SandboxResources, SandboxService,
+    SandboxPath, SandboxResources, SandboxService,
     backend::SandboxBackend as _,
     init::InitSystem,
     memory as sandbox_memory,
@@ -19,7 +19,7 @@ use sandbox::{
 };
 use tokio::sync::Notify;
 
-use support::agent;
+use support::{TempDirectory, agent};
 
 #[derive(Default)]
 struct NotificationCounter(Cell<usize>);
@@ -120,7 +120,10 @@ impl Provider for MemoryProvider {
                 .resolve_from(&record.source_directory, &self.default_architecture);
             let sandbox = self
                 .service
-                .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec))
+                .ensure(
+                    &EnsureSandboxRequest::new(record.sandbox_name()?, spec)
+                        .with_mounts(record.agent.spec.sandbox.resolved_mounts()),
+                )
                 .await
                 .map_err(Error::from)?;
             Ok(ProviderEnsureOutcome {
@@ -284,6 +287,82 @@ async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
         .await
         .expect("nearest Agent source");
     assert_eq!(resolved.metadata.name, "inner");
+}
+
+#[tokio::test(flavor = "local")]
+async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and_materialization() {
+    let fixture = fixture();
+    let root = TempDirectory::new("bind-mount");
+    let manifest = root.path().join("agents/worktree");
+    let nested = root.path().join("src/feature");
+    std::fs::create_dir_all(&manifest).expect("manifest directory");
+    std::fs::create_dir_all(&nested).expect("nested workspace directory");
+    let mut request = apply_request("worker");
+    request.source_directory = manifest;
+    request.agent.spec.sandbox.mounts.push(MountSpec::Bind {
+        source: PathBuf::from("../.."),
+        target: SandboxPath::new("/home/agent/code/altinn-studio"),
+        read_only: false,
+    });
+
+    let applied = fixture.control_plane.apply(request).await.expect("apply");
+    let MountSpec::Bind { source, .. } = &applied.spec.sandbox.mounts[0] else {
+        panic!("expected bind Mount");
+    };
+    assert_eq!(
+        source,
+        &std::fs::canonicalize(root.path()).expect("canonical workspace")
+    );
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory(&nested)
+            .await
+            .expect("infer Agent")
+            .metadata
+            .name,
+        "worker"
+    );
+
+    reconcile(&fixture, "worker").await;
+    let record = stored(&fixture, "worker").await;
+    let materialized = fixture
+        .backend
+        .find(&sandbox_name(&record))
+        .await
+        .expect("materialized Sandbox");
+    assert_eq!(materialized.mounts, record.agent.spec.sandbox.resolved_mounts());
+}
+
+#[tokio::test(flavor = "local")]
+async fn changing_a_mount_is_rejected_for_an_existing_agent() {
+    let fixture = fixture();
+    let root = TempDirectory::new("immutable-mount");
+    let mut request = apply_request("worker");
+    request.source_directory = root.path().to_path_buf();
+    request.agent.spec.sandbox.mounts.push(MountSpec::Bind {
+        source: PathBuf::from("."),
+        target: SandboxPath::new("/home/agent/code/first"),
+        read_only: false,
+    });
+    fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("initial apply");
+    request.agent.spec.sandbox.mounts[0] = MountSpec::Bind {
+        source: PathBuf::from("."),
+        target: SandboxPath::new("/home/agent/code/second"),
+        read_only: false,
+    };
+
+    let error = fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("Mounts are immutable");
+
+    assert!(matches!(error, Error::Immutable("spec.sandbox.mounts")));
 }
 
 #[tokio::test(flavor = "local")]

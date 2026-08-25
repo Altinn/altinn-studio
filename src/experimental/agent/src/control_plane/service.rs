@@ -1,6 +1,6 @@
 use std::{path::PathBuf, rc::Rc};
 
-use crate::{Agent, AgentId, Error};
+use crate::{Agent, AgentId, Error, MountSpec};
 
 use super::{AgentRecord, SharedAgentStore, Wakeup};
 
@@ -52,6 +52,7 @@ impl ControlPlane {
 
         let mut desired = request.agent;
         desired.clear_managed_fields();
+        resolve_mount_sources(&mut desired, &request.source_directory).await?;
         desired.validate()?;
 
         loop {
@@ -146,22 +147,24 @@ impl ControlPlane {
             .list()
             .await?
             .into_iter()
-            .filter(|record| directory.starts_with(&record.source_directory))
+            .filter_map(|record| {
+                association_directories(&record)
+                    .filter(|source| directory.starts_with(source))
+                    .map(|source| source.components().count())
+                    .max()
+                    .map(|depth| (record, depth))
+            })
             .collect::<Vec<_>>();
-        let Some(depth) = matches
-            .iter()
-            .map(|record| record.source_directory.components().count())
-            .max()
-        else {
+        let Some(depth) = matches.iter().map(|(_, depth)| *depth).max() else {
             return Err(Error::NotFound);
         };
-        matches.retain(|record| record.source_directory.components().count() == depth);
+        matches.retain(|(_, candidate_depth)| *candidate_depth == depth);
         if matches.len() != 1 {
             return Err(Error::Invalid(
                 "multiple Agents were applied from this directory; specify --agent".into(),
             ));
         }
-        matches.pop().map(|record| record.agent).ok_or(Error::NotFound)
+        matches.pop().map(|(record, _)| record.agent).ok_or(Error::NotFound)
     }
 
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
@@ -199,6 +202,9 @@ fn validate_immutable_fields(
         != desired.spec.sandbox.resources.root_filesystem().mode()
     {
         return Err(Error::Immutable("spec.sandbox.resources.rootFilesystem.mode"));
+    }
+    if current.agent.spec.sandbox.mounts != desired.spec.sandbox.mounts {
+        return Err(Error::Immutable("spec.sandbox.mounts"));
     }
     if current.agent.spec.home != desired.spec.home {
         return Err(Error::Immutable("spec.home"));
@@ -239,4 +245,40 @@ fn validate_immutable_fields(
         return Err(Error::Immutable("spec.harnesses.auth"));
     }
     Ok(())
+}
+
+async fn resolve_mount_sources(agent: &mut Agent, source_directory: &std::path::Path) -> Result<(), Error> {
+    for (index, mount) in agent.spec.sandbox.mounts.iter_mut().enumerate() {
+        let MountSpec::Bind { source, .. } = mount else {
+            continue;
+        };
+        let unresolved = if source.is_absolute() {
+            source.clone()
+        } else {
+            source_directory.join(&*source)
+        };
+        let resolved = tokio::fs::canonicalize(&unresolved).await.map_err(|error| {
+            Error::Invalid(format!(
+                "spec.sandbox.mounts[{index}].source {} cannot be resolved: {error}",
+                unresolved.display()
+            ))
+        })?;
+        if !tokio::fs::metadata(&resolved).await?.is_dir() {
+            return Err(Error::Invalid(format!(
+                "spec.sandbox.mounts[{index}].source {} must identify a directory",
+                resolved.display()
+            )));
+        }
+        *source = resolved;
+    }
+    Ok(())
+}
+
+fn association_directories(record: &AgentRecord) -> impl Iterator<Item = &std::path::Path> {
+    std::iter::once(record.source_directory.as_path()).chain(record.agent.spec.sandbox.mounts.iter().filter_map(
+        |mount| match mount {
+            MountSpec::Bind { source, .. } => Some(source.as_path()),
+            MountSpec::Tmpfs { .. } => None,
+        },
+    ))
 }

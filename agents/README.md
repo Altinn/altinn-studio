@@ -1,11 +1,12 @@
 # Altinn Agents
 
-Choose one of two Claude Code development environments:
+Choose a Claude Code development environment:
 
 | Variant | Additional tools |
 | --- | --- |
 | `minimal` | .NET, Node.js and Go |
 | `full` | Rust, Podman, kind, kubectl, Helm and Flux |
+| `worktree` | Full image with the current checkout mounted read-write |
 
 Install the released Agent CLI:
 
@@ -25,6 +26,10 @@ agentctl wait agent/altinn-full --for condition=Ready --timeout 10m
 ```
 
 Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
+
+To work directly on the current checkout without cloning it, apply `agents/worktree/agent.yaml` from
+the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
+worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
 
 Create or reattach to a Session:
 

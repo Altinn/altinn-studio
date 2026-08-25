@@ -6,6 +6,53 @@ use agent::{API_VERSION, Harness, KIND, SecretSpec, manifest};
 use sandbox::RootFilesystemMode;
 
 #[test]
+fn decodes_sandbox_mount_primitives() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: example.invalid/agent:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "1Gi"
+      rootFilesystem:
+        capacity: "4Gi"
+        mode: layered
+    mounts:
+      - type: bind
+        source: ../..
+        target: /home/agent/code/altinn-studio
+        readOnly: false
+      - type: tmpfs
+        target: /tmp
+        capacity: "1Gi"
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      version: "2.1.239"
+      auth: mediated
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest with Sandbox Mounts should decode");
+    let value = serde_json::to_value(agent).expect("Agent JSON");
+
+    assert_eq!(value["spec"]["sandbox"]["platform"]["os"], "linux");
+    assert_eq!(value["spec"]["sandbox"]["mounts"][0]["source"], "../..");
+    assert_eq!(value["spec"]["sandbox"]["mounts"][1]["capacity"], "1Gi");
+}
+
+#[test]
 fn decodes_the_minimal_manifest() {
     let bytes = include_bytes!("../examples/minimal/agent.yaml");
     let agent = manifest::decode(bytes).expect("minimal manifest should decode");

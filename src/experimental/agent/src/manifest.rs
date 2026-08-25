@@ -2,7 +2,10 @@
 
 use time::OffsetDateTime;
 
-use ::sandbox::{Platform, RetentionPolicy, SandboxName, SandboxResources, image::ImageSource, init::InitSystem};
+use ::sandbox::{
+    ByteQuantity, Platform, RetentionPolicy, SandboxName, SandboxPath, SandboxResources, image::ImageSource,
+    init::InitSystem, mount::Mount,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, HarnessSpec, harness};
@@ -115,6 +118,9 @@ pub struct SandboxManifestSpec {
     /// Whether the Agent retains the Sandbox when releasing it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub retention_policy: Option<RetentionPolicy>,
+    /// Host filesystem and in-memory attachments materialized with the Sandbox.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mounts: Vec<MountSpec>,
 }
 
 impl SandboxManifestSpec {
@@ -139,6 +145,65 @@ impl SandboxManifestSpec {
     #[must_use]
     pub fn resolved_retention_policy(&self) -> RetentionPolicy {
         self.retention_policy.unwrap_or(RetentionPolicy::Delete)
+    }
+
+    /// Converts validated, absolute Agent Mount inputs to the generic Sandbox SDK representation.
+    #[must_use]
+    pub fn resolved_mounts(&self) -> Vec<Mount> {
+        self.mounts.iter().map(MountSpec::to_sandbox_mount).collect()
+    }
+}
+
+/// One filesystem attachment declared by an Agent builder.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(
+    deny_unknown_fields,
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "type"
+)]
+pub enum MountSpec {
+    /// A caller-host directory mapped into the Sandbox.
+    Bind {
+        /// Host path, resolved relative to the manifest directory at apply time.
+        source: std::path::PathBuf,
+        /// Absolute path inside the Sandbox.
+        target: SandboxPath,
+        /// Whether the Sandbox may modify the host directory.
+        read_only: bool,
+    },
+    /// Anonymous in-memory storage with an explicit capacity.
+    Tmpfs {
+        /// Absolute path inside the Sandbox.
+        target: SandboxPath,
+        /// Maximum storage capacity.
+        capacity: ByteQuantity,
+    },
+}
+
+impl MountSpec {
+    const fn target(&self) -> &SandboxPath {
+        match self {
+            Self::Bind { target, .. } | Self::Tmpfs { target, .. } => target,
+        }
+    }
+
+    fn to_sandbox_mount(&self) -> Mount {
+        match self {
+            Self::Bind {
+                source,
+                target,
+                read_only,
+            } => Mount::Bind {
+                source: source.clone(),
+                target: target.clone(),
+                read_only: *read_only,
+            },
+            Self::Tmpfs { target, capacity } => Mount::Tmpfs {
+                target: target.clone(),
+                capacity: *capacity,
+            },
+        }
     }
 }
 
@@ -223,6 +288,22 @@ impl Spec {
     }
 
     fn validate(&self) -> Result<(), Error> {
+        let mut mount_targets = std::collections::BTreeSet::new();
+        for (index, mount) in self.sandbox.mounts.iter().enumerate() {
+            if let MountSpec::Bind { source, .. } = mount
+                && source.as_os_str().is_empty()
+            {
+                return Err(Error::Invalid(format!(
+                    "spec.sandbox.mounts[{index}].source must not be empty"
+                )));
+            }
+            let target = mount.target().as_str();
+            if !valid_sandbox_path(target) || !mount_targets.insert(target) {
+                return Err(Error::Invalid(format!(
+                    "spec.sandbox.mounts[{index}].target must be a unique absolute normalized Sandbox path"
+                )));
+            }
+        }
         if self.home.source.as_os_str().is_empty() {
             return Err(Error::Invalid("spec.home.source must not be empty".into()));
         }
@@ -295,6 +376,15 @@ impl Spec {
         }
         Ok(())
     }
+}
+
+fn valid_sandbox_path(path: &str) -> bool {
+    path.starts_with('/')
+        && path != "/"
+        && path
+            .split('/')
+            .skip(1)
+            .all(|component| !component.is_empty() && component != "." && component != "..")
 }
 
 /// Host inputs synchronized into the sandbox user's home.

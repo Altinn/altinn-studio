@@ -78,6 +78,8 @@ runtime must establish the common interface before one is introduced.
 Agent images own installed tools and optional workspace initialization. Repository checkouts are persistent runtime
 data beneath `/home/agent/code`; they are not declared, updated or deleted by the Agent controller. Sessions may clone
 repositories they can access, and image init may make a simple best-effort checkout for convenience.
+`spec.sandbox.mounts` can instead attach caller-owned host directories or temporary memory filesystems when the selected
+Sandbox Provider supports them; these attachments are immutable for the Agent incarnation.
 
 `spec.home` is a continuously applied overlay onto `/home/agent`. It converges files supplied by the builder but does
 not delete guest files that disappear from the source. Builders may use it to own harness configuration explicitly,

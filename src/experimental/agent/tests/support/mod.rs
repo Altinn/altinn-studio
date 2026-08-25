@@ -42,6 +42,7 @@ pub(crate) fn agent(name: &str) -> Agent {
                 ),
                 init_system: sandbox::init::InitSystem::Backend,
                 retention_policy: Some(RetentionPolicy::Retain),
+                mounts: Vec::new(),
             },
             home: HomeSpec {
                 source: PathBuf::from("home"),

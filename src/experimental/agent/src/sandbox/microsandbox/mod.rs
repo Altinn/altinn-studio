@@ -83,6 +83,10 @@ impl Adapter {
             .sandbox
             .resolve_from(&record.source_directory, &self.default_architecture)
     }
+
+    fn sandbox_mounts(record: &AgentRecord) -> Vec<::sandbox::mount::Mount> {
+        record.agent.spec.sandbox.resolved_mounts()
+    }
 }
 
 impl Provider for Adapter {
@@ -93,7 +97,9 @@ impl Provider for Adapter {
     fn supports<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<bool, Error>> {
         Box::pin(async move {
             match self.service.capabilities(&self.sandbox_spec(record).platform).await {
-                Ok(_) => Ok(true),
+                Ok(capabilities) => Ok(Self::sandbox_mounts(record)
+                    .iter()
+                    .all(|mount| capabilities.mount_kinds().contains(mount.kind()))),
                 Err(error) if error.kind() == ErrorKind::Unsupported => Ok(false),
                 Err(error) => Err(error.into()),
             }
@@ -117,6 +123,7 @@ impl Provider for Adapter {
                 Err(error) => return Err(error.into()),
             };
             let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
+                .with_mounts(Self::sandbox_mounts(record))
                 .with_environment(prepared.environment);
             let mut sandbox = self.service.ensure(&request).await?;
             if prepared.bindings_changed && running_before {
