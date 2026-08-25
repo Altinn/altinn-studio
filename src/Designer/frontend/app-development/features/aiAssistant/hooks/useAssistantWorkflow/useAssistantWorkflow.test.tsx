@@ -1319,6 +1319,46 @@ describe('useAssistantWorkflow', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('keeps the prompt in the composer when restoring it to the thread also fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-1',
+      deleteMessage: jest.fn().mockResolvedValue(undefined),
+      createMessage: jest.fn().mockRejectedValue(new Error('thread unavailable')),
+      chatMessages: [
+        {
+          id: 'message-1',
+          role: MessageAuthor.User,
+          content: 'Please do this',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn().mockRejectedValue(new Error('agents unreachable')),
+      respondToPermission: jest.fn(),
+      registerSession: jest.fn(),
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    // Last resort: the composer holds the only copy the user has left.
+    expect(result.current.cancelledMessageContent).toBe('Please do this');
+    consoleErrorSpy.mockRestore();
+  });
+
   it('puts the message back in the thread when the cancel request fails', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({

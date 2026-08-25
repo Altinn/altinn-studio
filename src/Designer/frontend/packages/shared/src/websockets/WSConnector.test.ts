@@ -106,4 +106,21 @@ describe('WSConnector', () => {
     expect(mockConnection.on).toHaveBeenCalledTimes(2);
     expect(mockConnection.off).toHaveBeenCalledTimes(1);
   });
+
+  it('resolves whenStarted once every connection has started', async () => {
+    const connector = WSConnector.getInstance(['ws://jest-test-when-started.com'], [clientOne]);
+
+    await expect(connector.whenStarted()).resolves.toBeUndefined();
+  });
+
+  it('resolves whenStarted even when a connection fails to start', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockConnection.start.mockRejectedValueOnce(new Error('hub unreachable'));
+
+    const connector = WSConnector.getInstance(['ws://jest-test-failed-start.com'], [clientTwo]);
+
+    await expect(connector.whenStarted()).resolves.toBeUndefined();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Connection failed: ', expect.any(Error));
+    consoleErrorSpy.mockRestore();
+  });
 });

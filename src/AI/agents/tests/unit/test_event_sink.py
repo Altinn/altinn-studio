@@ -171,3 +171,29 @@ class TestCancelRacingDelivery:
 
         # The terminal error is last, so nothing restarts the activity indicator.
         assert _delivered_types(sink) == ["status", "error"]
+
+
+class TestDeliverUnlessCancelled:
+    def test_delivers_events_and_history_for_a_live_session(self):
+        sink = _sink_with_session()
+
+        delivered = sink.deliver_unless_cancelled(
+            SESSION_ID, [_event("assistant_message", content="Svar")], ("assistant", "Svar")
+        )
+
+        assert delivered is True
+        assert _delivered_types(sink) == ["assistant_message"]
+        assert [m["content"] for m in sink.get_conversation_history(SESSION_ID)] == ["Svar"]
+
+    def test_delivers_nothing_once_the_session_is_cancelled(self):
+        sink = _sink_with_session()
+        sink.cancel_session(SESSION_ID)
+
+        delivered = sink.deliver_unless_cancelled(
+            SESSION_ID, [_event("assistant_message", content="Svar")], ("assistant", "Svar")
+        )
+
+        assert delivered is False
+        # Only cancel_session's own terminal event, and no orphaned history.
+        assert _delivered_types(sink) == ["error"]
+        assert sink.get_conversation_history(SESSION_ID) == []

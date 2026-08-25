@@ -113,6 +113,15 @@ describe('useAssistantWebSocket', () => {
     expect(result.current.connectionStatus).toBe('disconnected');
   });
 
+  it('reports disconnected for a hub state it does not recognise', () => {
+    mockConnection = createMockConnection('Disconnecting');
+    mockConnections = [mockConnection];
+
+    const { result } = renderUseAssistantWebSocket();
+
+    expect(result.current.connectionStatus).toBe('disconnected');
+  });
+
   it('registers a single dispatcher even when the hook mounts twice', () => {
     renderUseAssistantWebSocket();
     renderUseAssistantWebSocket();
