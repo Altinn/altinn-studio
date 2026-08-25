@@ -6,7 +6,7 @@ spec:
   sandbox:
     image:
       type: reference
-      reference: ghcr.io/altinn/altinn-studio/agent-full:pr-20137-635bbbd831
+      reference: ghcr.io/altinn/altinn-studio/agent-full:latest
     platform:
       os: linux
     resources:
