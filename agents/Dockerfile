@@ -195,6 +195,8 @@ COPY common/full-tmpfiles.conf /usr/lib/tmpfiles.d/agent-full.conf
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --append --groups kvm agent
 
+RUN printf '127.0.0.1 studio.localhost\n127.0.0.1 host.docker.internal\n' >>/etc/hosts
+
 USER agent
 WORKDIR /home/agent/code
 
