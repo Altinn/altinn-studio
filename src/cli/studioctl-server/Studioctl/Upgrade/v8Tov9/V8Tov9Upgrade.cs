@@ -148,13 +148,22 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCamelCaseLayoutProperties(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
@@ -574,6 +583,19 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateCamelCaseLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("CamelCase layout properties");
+        try
+        {
+            return await CamelCaseLayoutPropertyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating camelCase layout properties", ex);
+        }
+    }
+
     static async Task<int> MigrateDatepickerTimeStamp(string projectFolder)
     {
         UpgradeConsole.BeginStep("Datepicker timeStamp");
@@ -612,6 +634,19 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateFileUploadWithTagLayouts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("FileUploadWithTag components");
+        try
+        {
+            return await FileUploadWithTagLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
+        }
+    }
+
     static async Task<int> MigrateDatepickerFormats(string projectFolder)
     {
         UpgradeConsole.BeginStep("Datepicker formats");
@@ -622,6 +657,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating legacy Datepicker format values", ex);
+        }
+    }
+
+    static async Task<int> MigrateGridXlSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Component grid xl settings");
+        try
+        {
+            var result = await GridXlMigration.Migrate(projectFolder);
+            if (result.PropertiesRemoved == 0)
+            {
+                UpgradeConsole.Skip("No component grid xl settings found");
+                return ExitSuccess;
+            }
+
+            UpgradeConsole.Ok(
+                $"Removed {result.PropertiesRemoved} unsupported xl grid setting(s) from {result.FilesChanged} layout file(s)"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing component grid xl settings", ex);
         }
     }
 

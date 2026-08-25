@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, within } from '@testing-library/react';
 import { PolicyActions } from './PolicyActions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
@@ -21,92 +20,67 @@ const mockActionOption4: string = mockActionId4;
 describe('PolicyActions', () => {
   afterEach(jest.clearAllMocks);
 
-  it('displays the selected actions as Chips', async () => {
-    const user = userEvent.setup();
+  it('renders the action field with its description', () => {
     renderPolicyActions();
 
-    const selectedAction1 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionOption1}`,
-    );
-    const selectedAction2 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionOption2}`,
-    );
-    const selectedAction3 = screen.queryByLabelText(
-      `${textMock('general.delete')} ${mockActionOption3}`,
-    );
-    const selectedAction4 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionOption4}`,
-    );
-    expect(selectedAction1).toBeInTheDocument();
-    expect(selectedAction2).toBeInTheDocument();
-    expect(selectedAction3).not.toBeInTheDocument();
-    expect(selectedAction4).toBeInTheDocument();
-
-    const [actionSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_actions_title'),
-    );
-    await user.click(actionSelect);
-
-    const optionAction1 = screen.queryByRole('option', { name: mockActionOption1 });
-    const optionAction2 = screen.queryByRole('option', { name: mockActionOption2 });
-    const optionAction3 = screen.getByRole('option', { name: mockActionOption3 });
-    const optionAction4 = screen.queryByRole('option', { name: mockActionOption4 });
-
-    expect(optionAction1).not.toBeInTheDocument();
-    expect(optionAction2).not.toBeInTheDocument();
-    expect(optionAction3).toBeInTheDocument();
-    expect(optionAction4).not.toBeInTheDocument();
-
-    await user.selectOptions(actionSelect, mockActionOption3);
-
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
     expect(
-      screen.queryByLabelText(`${textMock('general.delete')} ${mockActionOption3}`),
-    ).not.toBeInTheDocument();
-
-    const [inputAllSelected] = screen.getAllByText(
-      textMock('policy_editor.rule_card_actions_select_all_selected'),
-    );
-    expect(inputAllSelected).toBeInTheDocument();
+      screen.getByLabelText(textMock('policy_editor.rule_card_actions_title')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('policy_editor.rule_card_actions_select_add')),
+    ).toBeInTheDocument();
   });
 
-  it('should append action to selectable actions options list when selected action is removed', async () => {
-    const user = userEvent.setup();
+  it('offers every available action as an option', () => {
     renderPolicyActions();
 
-    const [actionSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_actions_title'),
-    );
-    await user.click(actionSelect);
-
-    expect(screen.queryByRole('option', { name: mockActionOption1 })).toBeNull();
-
-    const selectedSubject = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionOption1}`,
-    );
-    await user.click(selectedSubject);
-
-    await user.click(actionSelect);
-    expect(screen.getByRole('option', { name: mockActionOption1 })).toBeInTheDocument();
+    const options = within(getOptionList()).getAllByRole('option', { hidden: true });
+    expect(options.map((option) => option.textContent)).toEqual([
+      mockActionOption1,
+      mockActionOption2,
+      mockActionOption3,
+      mockActionOption4,
+    ]);
   });
 
-  it('calls the "setPolicyRules", "savePolicy", and "setPolicyError" function when the chip is clicked', async () => {
-    const user = userEvent.setup();
+  it('displays the actions of the rule as selected values, using their translated names', () => {
     renderPolicyActions();
 
-    const chipElement = screen.getByText(textMock('policy_editor.action_write'));
-    await user.click(chipElement);
+    // A selected action is rendered both as a selected value and as an option
+    expect(screen.getAllByText(mockActionOption1)).toHaveLength(2);
+    expect(screen.getAllByText(mockActionOption4)).toHaveLength(2);
+    expect(screen.getAllByText(mockActionOption3)).toHaveLength(1);
+  });
 
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
-    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
-    expect(mockPolicyRuleContextValue.setPolicyError).toHaveBeenCalledTimes(1);
+  it('displays the description for all actions being selected when none are left', () => {
+    renderPolicyActions({
+      policyRule: {
+        ...mockPolicyRuleContextValue.policyRule,
+        actions: [mockActionId1, mockActionId2, mockActionId3, mockActionId4],
+      },
+    });
+
+    expect(
+      screen.getByText(textMock('policy_editor.rule_card_actions_select_all_selected')),
+    ).toBeInTheDocument();
+  });
+
+  it('displays the error message when the rule has an action error and all errors are shown', () => {
+    renderPolicyActions({
+      showAllErrors: true,
+      policyError: { ...mockPolicyRuleContextValue.policyError, actionsError: true },
+    });
+
+    expect(screen.getByText(textMock('policy_editor.rule_card_actions_error'))).toBeInTheDocument();
   });
 });
 
-const renderPolicyActions = () => {
+const getOptionList = (): HTMLElement => screen.getByRole('listbox', { hidden: true });
+
+const renderPolicyActions = (ruleContextProps: Partial<typeof mockPolicyRuleContextValue> = {}) => {
   return render(
     <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
-      <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
+      <PolicyRuleContext.Provider value={{ ...mockPolicyRuleContextValue, ...ruleContextProps }}>
         <PolicyActions />
       </PolicyRuleContext.Provider>
     </PolicyEditorContext.Provider>,

@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/runner-org-sync/**'
+      - 'src/ci/runner-org-sync/**'
       - '.github/workflows/deploy-runner-org-sync.yaml'
   workflow_dispatch:
     inputs:
@@ -32,9 +32,11 @@ jobs:
       CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
-        working-directory: src/runner-org-sync
+        working-directory: src/ci/runner-org-sync
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set vars
         id: vars
@@ -64,7 +66,7 @@ jobs:
         run: docker push ${{ steps.vars.outputs.image-repo }}
 
       - name: patch base with image tag
-        working-directory: src/runner-org-sync/infra/kustomize/base
+        working-directory: src/ci/runner-org-sync/infra/kustomize/base
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
@@ -72,7 +74,7 @@ jobs:
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' cronjob.yaml
 
       - name: push artifact
-        working-directory: src/runner-org-sync/infra/kustomize
+        working-directory: src/ci/runner-org-sync/infra/kustomize
         run: |
           flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \

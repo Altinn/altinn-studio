@@ -21,6 +21,10 @@ pub mod vocabulary {
         pub const NETWORK_CONNECT: &str = "network.connect";
         /// Use host-owned secret material at an authorized location.
         pub const SECRET_USE: &str = "secret.use";
+        // Spawn another session in-sandbox
+        pub const SESSION_SPAWN: &str = "session.spawn";
+        // Spawn another session in a different sandbox
+        pub const AGENT_SPAWN: &str = "agent.spawn";
     }
 
     /// Built-in Principal kinds.

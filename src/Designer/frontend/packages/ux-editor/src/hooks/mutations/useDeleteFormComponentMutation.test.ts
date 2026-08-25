@@ -15,10 +15,7 @@ const selectedLayoutSet = layoutSet1NameMock;
 jest.mock('bpmn-moddle', () =>
   jest.fn(() => ({
     fromXML: jest.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([
-        componentMocks[ComponentType.FileUpload].id,
-        componentMocks[ComponentType.FileUploadWithTag].id,
-      ]),
+      rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
     }),
     toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
   })),
@@ -52,8 +49,8 @@ describe('useDeleteFormComponentMutation', () => {
     );
   });
 
-  describe('Testing deletion of FileUpload and FileUploadWithTag', () => {
-    const componentTypes = [ComponentType.FileUpload, ComponentType.FileUploadWithTag];
+  describe('Testing deletion of FileUpload', () => {
+    const componentTypes = [ComponentType.FileUpload];
 
     componentTypes.forEach((componentType) => {
       it(`Should remove ${componentType} data type from signing tasks`, async () => {
