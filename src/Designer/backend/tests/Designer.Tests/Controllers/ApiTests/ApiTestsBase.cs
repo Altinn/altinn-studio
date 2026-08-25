@@ -163,6 +163,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            TestWebHostDefaults.Configure(builder);
             builder.UseSetting("OpenTelemetry:Enabled", enableOpenTelemetry.ToString());
             configureWebHost(builder);
         }

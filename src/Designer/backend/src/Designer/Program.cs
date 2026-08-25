@@ -43,6 +43,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 
 ILogger logger;
+const string ReloadConfigOnChangeKey = "hostBuilder:reloadConfigOnChange";
 
 ILoggerFactory setupLoggerFactory = ConfigureSetupLogging();
 WebApplicationBuilder builder;
@@ -92,7 +93,7 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
 {
     logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-    bool reloadOnChange = !hostingEnvironment.IsEnvironment("Test");
+    bool reloadOnChange = config.GetValue(ReloadConfigOnChangeKey, true);
     config.SetBasePath(basePath);
     config.AddJsonFile(
         basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
@@ -241,14 +242,14 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         });
         signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
     }
-    else if (env.IsDevelopment() || env.IsEnvironment("Test"))
+    else if (redisSettings.AllowInMemoryCache)
     {
         services.AddDistributedMemoryCache();
     }
     else
     {
         throw new InvalidOperationException(
-            "Redis cache must be enabled outside Development/Test because studioctl auth codes require a shared distributed cache."
+            "Redis cache must be enabled unless in-memory caching is explicitly allowed because studioctl auth codes require a shared distributed cache."
         );
     }
 
