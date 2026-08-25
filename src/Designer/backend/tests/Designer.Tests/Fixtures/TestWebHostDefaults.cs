@@ -1,4 +1,3 @@
-using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Hosting;
 
 namespace Designer.Tests.Fixtures;
@@ -10,9 +9,5 @@ internal static class TestWebHostDefaults
     public static void Configure(IWebHostBuilder builder)
     {
         builder.UseSetting(ReloadConfigOnChangeKey, bool.FalseString);
-        builder.UseSetting(
-            $"{nameof(RedisCacheSettings)}:{nameof(RedisCacheSettings.AllowInMemoryCache)}",
-            bool.TrueString
-        );
     }
 }

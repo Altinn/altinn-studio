@@ -242,14 +242,14 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         });
         signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
     }
-    else if (redisSettings.AllowInMemoryCache)
+    else if (env.IsDevelopment() || env.IsEnvironment("Test"))
     {
         services.AddDistributedMemoryCache();
     }
     else
     {
         throw new InvalidOperationException(
-            "Redis cache must be enabled unless in-memory caching is explicitly allowed because studioctl auth codes require a shared distributed cache."
+            "Redis cache must be enabled outside Development/Test because studioctl auth codes require a shared distributed cache."
         );
     }
 
