@@ -49,4 +49,5 @@ jobs:
           dotnet test Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)" -v m --no-build
         working-directory: src/Designer/backend
         env:
+          DOTNET_gcServer: 1
           DOTNET_GCConserveMemory: 1
