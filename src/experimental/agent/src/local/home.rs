@@ -37,9 +37,13 @@ impl ControlPlaneHome {
     }
 
     /// Returns the fixed local API socket path.
+    ///
+    /// The socket lives in its own directory because Windows can leave a stale
+    /// `AF_UNIX` socket file that cannot be deleted or rebound until reboot;
+    /// recovery renames the directory aside, which works even then.
     #[must_use]
     pub fn socket_path(&self) -> PathBuf {
-        self.0.join("agentd.sock")
+        self.0.join("run").join("agentd.sock")
     }
 
     /// Returns the daemon diagnostic log path used by automatic startup.
@@ -124,9 +128,12 @@ pub(crate) fn secure_file(path: &Path) -> Result<(), Error> {
 
 #[cfg(target_os = "windows")]
 fn default_home() -> Result<PathBuf, Error> {
-    env::var_os("LOCALAPPDATA")
-        .map(|path| PathBuf::from(path).join("Agent"))
-        .ok_or_else(|| Error::Invalid("LOCALAPPDATA is not set".into()))
+    // Not LOCALAPPDATA: endpoint-protection filters commonly applied to the
+    // AppData tree can leave AF_UNIX sockets there unconnectable and their
+    // files undeletable, which breaks the local API socket and Microsandbox.
+    env::var_os("USERPROFILE")
+        .map(|path| PathBuf::from(path).join(".agent"))
+        .ok_or_else(|| Error::Invalid("USERPROFILE is not set".into()))
 }
 
 #[cfg(unix)]
@@ -177,7 +184,13 @@ fn secure_windows_path(path: &Path, inherit: bool) -> Result<(), Error> {
         format!("{user}:F")
     };
     let mut command = std::process::Command::new("icacls");
-    command.arg(path).arg("/inheritance:r").arg("/grant:r").arg(grant);
+    command
+        .arg(path)
+        .arg("/inheritance:r")
+        .arg("/grant:r")
+        .arg(grant)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
     super::process::configure_hidden(&mut command);
     let status = command.status()?;
     if !status.success() {

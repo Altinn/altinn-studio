@@ -88,6 +88,7 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
         .ok_or_else(|| Error::Invalid("local API socket has no parent directory".into()))?;
     std::fs::create_dir_all(parent)?;
     crate::local::home::secure_directory(parent)?;
+    sweep_quarantined_socket_directories(parent);
     match std::fs::symlink_metadata(path) {
         Ok(_) => {
             // Windows leaves the AF_UNIX path behind after an abnormal exit.
@@ -97,13 +98,21 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
             if win_uds::net::AsyncStream::connect(path).await.is_ok() {
                 return Err(Error::Invalid("local API path is already occupied".into()));
             }
-            std::fs::remove_file(path)?;
+            // afd.sys can keep a stale socket file undeletable and unbindable
+            // until reboot. Renaming its directory aside still works then, so
+            // quarantine it and recreate the directory before binding.
+            if std::fs::remove_file(path).is_err() {
+                quarantine_socket_directory(parent)?;
+                std::fs::create_dir_all(parent)?;
+                crate::local::home::secure_directory(parent)?;
+            }
         }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
         Err(error) => return Err(Error::Io(error)),
     }
+    // The socket inherits the user-only ACL from the home directory secured
+    // above; icacls cannot open an AF_UNIX socket reparse point (error 1920).
     let listener = win_uds::net::AsyncListener::bind(path)?;
-    crate::local::home::secure_file(path)?;
     let _cleanup = SocketCleanup(path.to_path_buf());
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
 
@@ -119,6 +128,53 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 }.boxed_local());
             }
             Some(()) = connections.next(), if !connections.is_empty() => {}
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+const QUARANTINE_INFIX: &str = ".stale-";
+#[cfg(target_os = "windows")]
+const QUARANTINE_ATTEMPTS: u32 = 1000;
+
+/// Renames the socket directory to an unused `<name>.stale-<n>` sibling.
+#[cfg(target_os = "windows")]
+fn quarantine_socket_directory(directory: &std::path::Path) -> Result<(), Error> {
+    let name = directory
+        .file_name()
+        .ok_or_else(|| Error::Invalid("local API socket directory has no name".into()))?;
+    for attempt in 0..QUARANTINE_ATTEMPTS {
+        let mut candidate = name.to_os_string();
+        candidate.push(format!("{QUARANTINE_INFIX}{attempt}"));
+        let candidate = directory.with_file_name(candidate);
+        if candidate.exists() {
+            continue;
+        }
+        match std::fs::rename(directory, &candidate) {
+            Ok(()) => return Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(error) => return Err(Error::Io(error)),
+        }
+    }
+    Err(Error::Invalid(
+        "no free quarantine name for the local API socket directory".into(),
+    ))
+}
+
+/// Best-effort removal of quarantined socket directories; stale `AF_UNIX`
+/// files become deletable again after a reboot.
+#[cfg(target_os = "windows")]
+fn sweep_quarantined_socket_directories(directory: &std::path::Path) {
+    let (Some(parent), Some(name)) = (directory.parent(), directory.file_name().and_then(|name| name.to_str())) else {
+        return;
+    };
+    let prefix = format!("{name}{QUARANTINE_INFIX}");
+    let Ok(entries) = std::fs::read_dir(parent) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        if entry.file_name().to_str().is_some_and(|name| name.starts_with(&prefix)) {
+            let _ignored = std::fs::remove_dir_all(entry.path());
         }
     }
 }
