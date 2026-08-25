@@ -14,6 +14,8 @@ from agents.services.events.jobs import EventSink
 from agents.services.events.events import AgentEvent
 
 SESSION_ID = "session-1"
+CANCEL_RACE_WINDOW_SECONDS = 0.5
+CANCEL_COMPLETION_TIMEOUT_SECONDS = 5
 DEVELOPER = "testUser"
 
 
@@ -160,12 +162,12 @@ class TestCancelRacingDelivery:
                 cancel_thread.append(thread)
                 thread.start()
                 # Long enough for an unlocked delivery to lose the race.
-                thread.join(timeout=0.5)
+                thread.join(timeout=CANCEL_RACE_WINDOW_SECONDS)
             return buffer
 
         sink._get_or_create_buffer = cancel_midway
         sink.send(_event("status", message="Skanner repo"))
-        cancel_thread[0].join(timeout=5)
+        cancel_thread[0].join(timeout=CANCEL_COMPLETION_TIMEOUT_SECONDS)
 
         # The terminal error is last, so nothing restarts the activity indicator.
         assert _delivered_types(sink) == ["status", "error"]
