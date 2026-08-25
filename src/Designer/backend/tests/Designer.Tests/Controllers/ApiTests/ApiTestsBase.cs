@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime;
 using System.Text;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
@@ -145,7 +144,6 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
             return;
         }
 
-        int disposedFactoryCount = _configuredFactories.Count;
         foreach (WebApplicationFactory<Program> factory in _configuredFactories)
         {
             factory.Dispose();
@@ -153,7 +151,6 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
 
         _configuredFactories.Clear();
         _httpClient = null;
-        TestHostGarbageCollector.RecordDisposedFactories(disposedFactoryCount);
     }
 
     protected List<string> JsonConfigOverrides;
@@ -215,56 +212,5 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         var configStream = new MemoryStream(Encoding.UTF8.GetBytes(overrideJsonString));
         configStream.Seek(0, SeekOrigin.Begin);
         return configStream;
-    }
-}
-
-internal static class TestHostGarbageCollector
-{
-    private const string MemoryThresholdPercentEnvironmentVariable = "DESIGNER_TESTS_HOST_GC_THRESHOLD_PERCENT";
-    private const int MinimumDisposedFactoryCountBetweenCollections = 10;
-    private static readonly object SyncRoot = new();
-    private static readonly long MemoryThresholdBytes = GetMemoryThresholdBytes();
-    private static int _disposedFactoryCount;
-
-    public static void RecordDisposedFactories(int count)
-    {
-        if (MemoryThresholdBytes == 0 || count == 0)
-        {
-            return;
-        }
-
-        lock (SyncRoot)
-        {
-            _disposedFactoryCount += count;
-            if (
-                _disposedFactoryCount < MinimumDisposedFactoryCountBetweenCollections
-                || GC.GetTotalMemory(forceFullCollection: false) < MemoryThresholdBytes
-            )
-            {
-                return;
-            }
-
-            _disposedFactoryCount = 0;
-
-            // Each test host creates a large endpoint routing graph on the LOH. Compact it
-            // only under memory pressure, before short-lived hosts exhaust the test process.
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
-        }
-    }
-
-    private static long GetMemoryThresholdBytes()
-    {
-        if (
-            !int.TryParse(
-                Environment.GetEnvironmentVariable(MemoryThresholdPercentEnvironmentVariable),
-                out int memoryThresholdPercent
-            ) || memoryThresholdPercent is <= 0 or >= 100
-        )
-        {
-            return 0;
-        }
-
-        return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 100 * memoryThresholdPercent;
     }
 }
