@@ -929,14 +929,18 @@ mod tests {
             .block_on(read_apply_request(PathBuf::from("agent.yaml")));
 
         std::env::set_current_dir(original_directory).expect("restore current directory");
-        std::fs::remove_dir_all(&directory).expect("remove temporary directory");
         let request = result.expect("read apply request");
-        assert_eq!(request.source_directory, directory);
+        let actual_directory = std::fs::canonicalize(&request.source_directory).expect("canonical source directory");
+        let expected_directory = std::fs::canonicalize(&directory).expect("canonical temporary directory");
+        std::fs::remove_dir_all(&directory).expect("remove temporary directory");
+        assert_eq!(actual_directory, expected_directory);
     }
 
     #[test]
     fn daemon_binary_is_resolved_beside_agentctl() {
-        let executable = daemon_executable(Path::new("/opt/agent/bin/agentctl"));
-        assert_eq!(executable, Path::new("/opt/agent/bin/agentd"));
+        let directory = Path::new("opt").join("agent").join("bin");
+        let agentctl = directory.join(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
+        let agentd = directory.join(format!("agentd{}", std::env::consts::EXE_SUFFIX));
+        assert_eq!(daemon_executable(&agentctl), agentd);
     }
 }

@@ -6,7 +6,9 @@ use agent::{
     API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
     NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, Spec, Status,
 };
-use sandbox::{ByteQuantity, CpuQuantity, RetentionPolicy, RootFilesystem, SandboxResources, image::ImageSource};
+use sandbox::{
+    ByteQuantity, CpuQuantity, Platform, RetentionPolicy, RootFilesystem, SandboxResources, image::ImageSource,
+};
 pub(crate) fn agent(name: &str) -> Agent {
     Agent {
         api_version: API_VERSION.into(),
@@ -24,7 +26,7 @@ pub(crate) fn agent(name: &str) -> Agent {
                 },
                 platform: PlatformManifestSpec {
                     os: "linux".into(),
-                    architecture: Some("amd64".into()),
+                    architecture: Some(Platform::native("linux").architecture),
                     variant: None,
                     os_version: None,
                     os_features: std::collections::BTreeSet::new(),

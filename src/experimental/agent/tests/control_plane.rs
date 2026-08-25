@@ -251,7 +251,10 @@ async fn apply_stores_desired_state_without_running_inline() {
         .expect("apply");
 
     assert_eq!(applied.metadata.generation, 1);
-    assert_eq!(applied.spec.sandbox.platform.architecture.as_deref(), Some("amd64"));
+    assert_eq!(
+        applied.spec.sandbox.platform.architecture,
+        Some(Platform::native("linux").architecture)
+    );
     assert_eq!(fixture.backend.count(), 0);
     assert!(applied.status.conditions.is_empty());
 }
@@ -495,7 +498,14 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
     assert!(matches!(error, Error::Immutable("spec.harnesses.type")));
 
     let mut immutable_change = updated_request.clone();
-    immutable_change.agent.spec.sandbox.platform.architecture = Some("arm64".into());
+    immutable_change.agent.spec.sandbox.platform.architecture = Some(
+        if Platform::native("linux").architecture == "amd64" {
+            "arm64"
+        } else {
+            "amd64"
+        }
+        .into(),
+    );
     let error = fixture
         .control_plane
         .apply(immutable_change)
