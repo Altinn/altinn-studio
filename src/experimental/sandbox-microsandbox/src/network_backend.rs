@@ -658,6 +658,33 @@ mod tests {
 
     use super::{MicrosandboxNetworkBackend, SecretBinding};
 
+    struct TestControlEndpoint {
+        #[cfg(unix)]
+        _directory: tempfile::TempDir,
+        path: std::path::PathBuf,
+    }
+
+    impl TestControlEndpoint {
+        fn new() -> Self {
+            #[cfg(unix)]
+            {
+                let directory = tempfile::tempdir().expect("temporary endpoint directory");
+                let path = directory.path().join("network.sock");
+                Self {
+                    _directory: directory,
+                    path,
+                }
+            }
+
+            #[cfg(windows)]
+            {
+                Self {
+                    path: format!(r"\\.\pipe\agent-network-test-{}", uuid::Uuid::new_v4()).into(),
+                }
+            }
+        }
+    }
+
     struct RecordingPolicy {
         decisions: RefCell<BTreeMap<String, AuthorizationDecision>>,
         requests: RefCell<Vec<AuthorizationRequest>>,
@@ -886,8 +913,8 @@ mod tests {
 
     #[tokio::test(flavor = "local")]
     async fn controller_allows_and_revokes_a_live_flow() {
-        let directory = tempfile::tempdir().expect("temporary endpoint directory");
-        let path = directory.path().join("network.sock");
+        let control = TestControlEndpoint::new();
+        let path = control.path.clone();
         let controller = microsandbox_network::control::NetworkControlHost::bind(path.clone())
             .await
             .expect("bind Network control endpoint");
@@ -936,8 +963,8 @@ mod tests {
 
     #[tokio::test(flavor = "local")]
     async fn controller_fails_closed_on_policy_denial_and_disconnect() {
-        let directory = tempfile::tempdir().expect("temporary endpoint directory");
-        let path = directory.path().join("network.sock");
+        let control = TestControlEndpoint::new();
+        let path = control.path.clone();
         let controller = microsandbox_network::control::NetworkControlHost::bind(path.clone())
             .await
             .expect("bind Network control endpoint");
@@ -974,8 +1001,8 @@ mod tests {
 
     #[tokio::test(flavor = "local")]
     async fn controller_resolves_secrets_after_both_authorizations_and_observes_rotation() {
-        let directory = tempfile::tempdir().expect("temporary endpoint directory");
-        let path = directory.path().join("network.sock");
+        let control = TestControlEndpoint::new();
+        let path = control.path.clone();
         let controller = microsandbox_network::control::NetworkControlHost::bind(path.clone())
             .await
             .expect("bind Network control endpoint");

@@ -23,7 +23,7 @@ fn spec() -> SandboxSpec {
             context: PathBuf::from("."),
             dockerfile: PathBuf::from("Dockerfile"),
         },
-        platform: Platform::new("linux", "amd64"),
+        platform: Platform::native("linux"),
         resources: resources("2", "1Gi", "4Gi"),
         init_system: sandbox::init::InitSystem::Backend,
         retention_policy: RetentionPolicy::Retain,
@@ -80,7 +80,7 @@ async fn component_errors_preserve_stable_kind_and_resource_identity() {
 
 #[tokio::test(flavor = "local")]
 async fn capabilities_describe_the_configured_consumer_surface() {
-    let platform = Platform::new("linux", "amd64");
+    let platform = Platform::native("linux");
     let without_network = SandboxService::new(Rc::new(memory::Provider::new()))
         .capabilities(&platform)
         .await
@@ -782,7 +782,7 @@ impl sandbox::provider::SandboxProvider for IncompatibleProvider {
 #[tokio::test(flavor = "local")]
 async fn ensure_rejects_an_image_that_does_not_satisfy_the_requested_platform() {
     let provider = Rc::new(IncompatibleProvider {
-        backend: memory::Provider::with_platforms(Platform::new("linux", "amd64"), [Platform::new("windows", "amd64")]),
+        backend: memory::Provider::with_platforms(Platform::native("linux"), [Platform::new("windows", "amd64")]),
         image_backend: IncompatibleImageBackend,
     });
     let service = SandboxService::new(provider.clone());
@@ -846,8 +846,8 @@ async fn ensure_rejects_a_root_mode_the_image_backend_cannot_materialize() {
 
 #[tokio::test(flavor = "local")]
 async fn platform_is_immutable_after_materialization() {
-    let linux = Platform::new("linux", "amd64");
-    let windows = Platform::new("windows", "amd64");
+    let linux = Platform::native("linux");
+    let windows = Platform::native("windows");
     let backend = Rc::new(memory::Provider::with_platforms(linux.clone(), [windows.clone()]));
     let service = SandboxService::new(backend);
     let linux_request = request();

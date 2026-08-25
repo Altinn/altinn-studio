@@ -13,8 +13,6 @@ use agent::{
 use sandbox::LocalFuture;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
-#[cfg(unix)]
-use support::TempDirectory;
 use support::agent;
 
 struct IgnoreNotifications;
@@ -258,8 +256,11 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
 async fn unix_socket_transport_is_private_and_usable() {
     use std::os::unix::fs::PermissionsExt;
 
-    let temporary = TempDirectory::new("local-api-socket");
-    let socket_path = temporary.path().join("private").join("agentd.sock");
+    let temporary = tempfile::Builder::new()
+        .prefix("agent-api-")
+        .tempdir()
+        .expect("temporary API directory");
+    let socket_path = temporary.path().join("p").join("agentd.sock");
     let fixture = api();
     let server = fixture.server;
     let served_path = socket_path.clone();

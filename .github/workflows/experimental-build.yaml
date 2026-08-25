@@ -111,6 +111,11 @@ jobs:
         shell: bash
         working-directory: src/experimental
     steps:
+      - name: Enable long paths for git on Windows
+        if: runner.os == 'Windows'
+        working-directory: ${{ runner.temp }}
+        run: git config --system core.longpaths true
+
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
