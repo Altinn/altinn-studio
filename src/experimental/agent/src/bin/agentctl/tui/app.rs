@@ -224,6 +224,13 @@ impl App {
                     scroll: 0,
                 });
             }
+            KeyCode::Char('y') => {
+                self.detail = Some(Detail {
+                    title: format!("agent/{name} yaml"),
+                    lines: yaml_lines(agent),
+                    scroll: 0,
+                });
+            }
             KeyCode::Char('d') => {
                 let sessions = self.groups.get(group).map_or(0, |group| group.sessions.len());
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
@@ -255,6 +262,13 @@ impl App {
                 }
             }
             KeyCode::Char('s') => self.detail = Some(session_detail(session)),
+            KeyCode::Char('y') => {
+                self.detail = Some(Detail {
+                    title: format!("session/{}/{} yaml", session.agent, session.name.as_str()),
+                    lines: yaml_lines(session),
+                    scroll: 0,
+                });
+            }
             KeyCode::Char('n') => self.open_new_session(group),
             _ => {}
         }
@@ -464,12 +478,18 @@ impl App {
             Some(Row::Agent(_)) => vec![
                 ("enter", "fold"),
                 ("s", "describe"),
+                ("y", "yaml"),
                 ("n", "new session"),
                 ("e", "exec"),
                 ("d", "delete"),
                 ("z", "all"),
             ],
-            Some(Row::Session { .. }) => vec![("enter", "attach"), ("s", "describe"), ("n", "new session")],
+            Some(Row::Session { .. }) => vec![
+                ("enter", "attach"),
+                ("s", "describe"),
+                ("y", "yaml"),
+                ("n", "new session"),
+            ],
             None => Vec::new(),
         }
     }
@@ -509,6 +529,13 @@ const fn session_tone(state: State) -> Tone {
         State::Idle => Tone::Gray,
         State::Failed => Tone::Red,
     }
+}
+
+fn yaml_lines<T: serde::Serialize>(value: &T) -> Vec<String> {
+    serde_yaml_ng::to_string(value).map_or_else(
+        |error| vec![format!("failed to render YAML: {error}")],
+        |yaml| yaml.lines().map(str::to_owned).collect(),
+    )
 }
 
 fn session_detail(session: &Session) -> Detail {
@@ -785,5 +812,23 @@ mod tests {
         app.selected = 1;
         app.on_key(key(KeyCode::Char('s')));
         assert_eq!(app.detail.as_ref().expect("session detail").title, "session/builder/b1");
+    }
+
+    #[test]
+    fn yaml_views_render_the_full_resource() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('y')));
+        let detail = app.detail.as_ref().expect("agent yaml");
+        assert_eq!(detail.title, "agent/builder yaml");
+        assert!(detail.lines.iter().any(|line| line == "kind: Agent"));
+        assert!(detail.lines.iter().any(|line| line.contains("apiVersion:")));
+        assert!(detail.lines.iter().any(|line| line.contains("harnesses:")));
+        app.on_key(key(KeyCode::Char('q')));
+        app.selected = 1;
+        app.on_key(key(KeyCode::Char('y')));
+        let detail = app.detail.as_ref().expect("session yaml");
+        assert_eq!(detail.title, "session/builder/b1 yaml");
+        assert!(detail.lines.iter().any(|line| line.contains("harness: claudeCode")));
+        assert!(detail.lines.iter().any(|line| line.contains("name: b1")));
     }
 }
