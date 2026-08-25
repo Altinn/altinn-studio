@@ -5,5 +5,5 @@ files before changing code, keep changes tied to the requested outcome, and run 
 reporting completion.
 
 This example intentionally has no boot-time repository checkout. You may clone a repository on demand only when the
-Agent has a mediated secret that permits its HTTPS host. Preserve existing workspaces; never delete and reclone one as
-a retry strategy.
+Agent is configured with GitHub access; use the installed `gh repo clone OWNER/REPOSITORY` command. Preserve existing
+workspaces; never delete and reclone one as a retry strategy.

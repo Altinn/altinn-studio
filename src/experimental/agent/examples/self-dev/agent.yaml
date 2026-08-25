@@ -33,6 +33,7 @@ spec:
     - environment: GITHUB_TOKEN
       allowedHosts:
         - github.com
+        - api.github.com
     - environment: STUDIO_DEV_API_KEY
       allowedHosts:
         - dev.altinn.studio

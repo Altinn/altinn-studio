@@ -15,6 +15,17 @@ curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/exper
 agentctl claude login
 ```
 
+## GitHub token
+
+Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+for the repositories the Agent will use. Grant `Contents: Read and write` and
+`Pull requests: Read and write`; add `Actions: Read` for CI inspection and `Workflows: Read and
+write` only when the Agent must change workflow files. Organization approval may be required.
+
+Copy the chosen variant's `.env.sample` to `.env` and set `GITHUB_TOKEN` there. The token remains
+on the host and is substituted only for authorized GitHub requests. The worktree variant does not
+receive a token because its host checkout is mounted into the Agent.
+
 From the repository root, configure and start an Agent:
 
 ```sh

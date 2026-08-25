@@ -42,13 +42,12 @@ process of moving into the monorepo; inspect the repository and current project 
 ## Workspace
 
 Sessions start in `/home/agent/code`. Image startup makes one non-destructive attempt to clone Altinn Studio into
-`/home/agent/code/altinn-studio`. If it is absent, clone
-`https://x-access-token:${GITHUB_TOKEN}@github.com/Altinn/altinn-studio.git` there. Preserve any existing path and
-never repair a checkout by deleting it or performing a destructive reset.
+`/home/agent/code/altinn-studio`. If it is absent, run
+`gh repo clone Altinn/altinn-studio /home/agent/code/altinn-studio`. Preserve any existing path and never repair a
+checkout by deleting it or performing a destructive reset.
 
-Keep repositories beneath `/home/agent/code` and application checkouts beneath `/home/agent/code/apps`. You may clone
-other relevant repositories when the mediated GitHub secret can access them. Use HTTPS with the inert
-`${GITHUB_TOKEN}` value; do not attempt to discover or expose its real host-owned value.
+Keep repositories beneath `/home/agent/code` and application checkouts beneath `/home/agent/code/apps`. Use
+`gh repo clone OWNER/REPOSITORY` to clone other relevant repositories as needed.
 
 Do task work in a dedicated Git worktree under `/home/agent/code/.worktrees/`, with one worktree per task. Keep primary
 checkouts clean for synchronizing remotes and creating, inspecting, or removing worktrees. Start new Altinn Studio
@@ -77,6 +76,8 @@ is impractical, run the lightest meaningful check and state exactly what remains
 
 When asked to create or update a pull request:
 
+- Push the branch explicitly before `gh pr create`, and pass `--base`, `--head`, `--title`, and
+  `--body-file` rather than relying on interactive inference.
 - Use a conventional commit-style title such as `feat:`, `fix:`, or `chore:` and follow the repository template.
 - Explain what changed, why it changed, and how it was verified.
 - Include screenshots for relevant user-interface changes and command/output evidence for CLI behavior changes.

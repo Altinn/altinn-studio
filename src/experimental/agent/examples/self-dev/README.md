@@ -7,12 +7,9 @@ The example owns its Ubuntu 26.04 LTS multi-platform development-toolchain Docke
 filesystem so Podman's overlay storage does not nest on the Sandbox root OverlayFS.
 Its systemd boot unit clones Altinn Studio over mediated HTTPS into `/home/agent/code/altinn-studio`, and the image
 declares `/home/agent/code` as the stable Session workspace root so other repositories can live beside that checkout.
-The unit skips an existing `.git` checkout and otherwise makes one straightforward clone attempt per boot; it never
-updates or deletes workspace data. The backend-neutral Sandbox environment supplies the manifest binding's
-`GITHUB_TOKEN` inert value to image init, and the systemd unit passes that environment by name. The Sandbox network
-mediator substitutes the host-side value only for the Git request to GitHub. Workspace initialization is intentionally
-independent of Agent readiness. The example's `instructions.md` tells the attached Agent to clone a still-missing
-checkout.
+The unit uses the preauthenticated GitHub CLI, skips an existing `.git` checkout, and otherwise makes one straightforward
+clone attempt per boot; it never updates or deletes workspace data. Workspace initialization is intentionally independent
+of Agent readiness. The example's `instructions.md` tells the attached Agent to clone a still-missing checkout.
 
 ```sh
 agentctl claude login
@@ -35,8 +32,8 @@ may omit `--agent`; both infer the owner. Multiple Agent names from the same dir
 
 The first apply includes the image build and can take several minutes. Image init starts one repository clone attempt,
 which may still be running when the Agent becomes Ready. Later boots reuse a successful persistent checkout. Sessions
-may clone a missing primary checkout or other relevant repositories on demand when the mediated GitHub secret can
-access them; those checkouts are Session work, not declarative Agent state.
+may use `gh repo clone` for a missing primary checkout or other relevant repositories; those checkouts are Session work,
+not declarative Agent state.
 
 The Sandbox receives only inert placeholders. `agentd` stores real values in its owner-only SQLite database and the
 Microsandbox network mediator substitutes them only at their configured hosts. The image also seeds Claude's mutable

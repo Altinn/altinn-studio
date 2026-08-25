@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-repository=${AGENT_WORKSPACE_REPOSITORY:-https://x-access-token:${GITHUB_TOKEN}@github.com/Altinn/altinn-studio.git}
+repository=${AGENT_WORKSPACE_REPOSITORY:-Altinn/altinn-studio}
 destination=${AGENT_WORKSPACE_DESTINATION:-/home/agent/code/altinn-studio}
 
 if [ -d "$destination/.git" ]; then
@@ -23,4 +23,4 @@ while ! /usr/bin/getent ahosts github.com >/dev/null 2>&1; do
     /usr/bin/sleep 1
 done
 
-/usr/bin/git clone --origin origin -- "$repository" "$destination"
+/usr/local/bin/gh repo clone "$repository" "$destination"
