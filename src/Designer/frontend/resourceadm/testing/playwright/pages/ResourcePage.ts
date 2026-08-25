@@ -101,9 +101,9 @@ export class ResourcePage extends ResourceEnvironment {
     this.addPolicyRuleButton = this.page.getByRole('button', {
       name: textMock('policy_editor.card_button_text'),
     });
-    this.policyActionDropdown = this.page.getByLabel(
-      textMock('policy_editor.rule_card_actions_title'),
-    );
+    this.policyActionDropdown = this.page.getByRole('combobox', {
+      name: textMock('policy_editor.rule_card_actions_title'),
+    });
     this.policySubjectAccordion = this.page
       .locator('summary')
       .filter({ hasText: textMock('policy_editor.org_subjects_header') });
@@ -209,7 +209,7 @@ export class ResourcePage extends ResourceEnvironment {
 
   private async setPolicyActionLes(): Promise<void> {
     await this.policyActionDropdown.click();
-    await this.policyActionDropdown.fill('Les');
+    await this.policyActionDropdown.fill(textMock('policy_editor.action_read'));
     await this.policyActionDropdown.press('Enter');
   }
 
