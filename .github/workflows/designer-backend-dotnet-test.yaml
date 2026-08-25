@@ -46,12 +46,5 @@ jobs:
         working-directory: src/Designer/backend
       - name: Test
         run: |
-          dotnet test Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build || exit 1;
-          dotnet test Designer.sln --filter FullyQualifiedName~PolicyControllerTests --no-build || exit 1;
-          dotnet test Designer.sln --filter FullyQualifiedName~PreviewController --no-build || exit 1;
-          dotnet test Designer.sln --filter FullyQualifiedName~DataModelsController --no-build || exit 1;
-          dotnet test Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build || exit 1;
-          dotnet test Designer.sln --filter FullyQualifiedName~TextController --no-build || exit 1;
-          dotnet test Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
-          dotnet test Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
+          dotnet test Designer.sln --filter "(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)" -v m --no-build
         working-directory: src/Designer/backend

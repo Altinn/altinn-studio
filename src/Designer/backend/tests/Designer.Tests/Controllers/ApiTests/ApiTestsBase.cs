@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime;
 using System.Text;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
@@ -28,6 +29,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     where TControllerTest : class
 {
     private HttpClient _httpClient;
+    private readonly List<WebApplicationFactory<Program>> _configuredFactories = [];
 
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
@@ -80,8 +82,8 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory
-            .WithWebHostBuilder(builder =>
+        return CreateTestClient(
+            builder =>
             {
                 builder.UseConfiguration(configuration);
                 builder.ConfigureAppConfiguration(
@@ -106,9 +108,20 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                     services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
                 });
                 builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
-            })
-            .CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
+            },
+            new ApiTestsAuthAndCookieDelegatingHandler(),
+            new CookieContainerHandler()
+        );
     }
+
+    protected HttpClient CreateTestClient(Action<IWebHostBuilder> configureWebHost, params DelegatingHandler[] handlers)
+    {
+        var factory = new TestWebApplicationFactory(configureWebHost, EnableOpenTelemetry);
+        _configuredFactories.Add(factory);
+        return factory.CreateDefaultClient(handlers);
+    }
+
+    protected virtual bool EnableOpenTelemetry => false;
 
     /// <summary>
     /// Override when want to build WebHost with non default appsettings.json
@@ -125,9 +138,35 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         Dispose(true);
     }
 
-    protected virtual void Dispose(bool disposing) { }
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing)
+        {
+            return;
+        }
+
+        int disposedFactoryCount = _configuredFactories.Count;
+        foreach (WebApplicationFactory<Program> factory in _configuredFactories)
+        {
+            factory.Dispose();
+        }
+
+        _configuredFactories.Clear();
+        _httpClient = null;
+        TestHostGarbageCollector.RecordDisposedFactories(disposedFactoryCount);
+    }
 
     protected List<string> JsonConfigOverrides;
+
+    private sealed class TestWebApplicationFactory(Action<IWebHostBuilder> configureWebHost, bool enableOpenTelemetry)
+        : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseSetting("OpenTelemetry:Enabled", enableOpenTelemetry.ToString());
+            configureWebHost(builder);
+        }
+    }
 
     private void InitializeJsonConfigOverrides()
     {
@@ -175,5 +214,33 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         var configStream = new MemoryStream(Encoding.UTF8.GetBytes(overrideJsonString));
         configStream.Seek(0, SeekOrigin.Begin);
         return configStream;
+    }
+}
+
+internal static class TestHostGarbageCollector
+{
+    private const int CollectionInterval = 3;
+    private static readonly object SyncRoot = new();
+    private static int _disposedFactoryCount;
+
+    public static void RecordDisposedFactories(int count)
+    {
+        // The lock makes the count update and threshold reset atomic, and prevents
+        // concurrent full-heap compactions from different test threads.
+        lock (SyncRoot)
+        {
+            _disposedFactoryCount += count;
+            if (_disposedFactoryCount < CollectionInterval)
+            {
+                return;
+            }
+
+            _disposedFactoryCount = 0;
+
+            // Each test host creates a large endpoint routing graph on the LOH. Compact it
+            // periodically before short-lived hosts exhaust the test process.
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+        }
     }
 }
