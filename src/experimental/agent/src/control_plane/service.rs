@@ -142,19 +142,20 @@ impl ControlPlane {
         if !directory.is_absolute() {
             return Err(Error::Invalid("directory must be absolute".into()));
         }
-        let mut matches = self
-            .store
-            .list()
-            .await?
-            .into_iter()
-            .filter_map(|record| {
-                association_directories(&record)
-                    .filter(|source| directory.starts_with(source))
-                    .map(|source| source.components().count())
-                    .max()
-                    .map(|depth| (record, depth))
-            })
-            .collect::<Vec<_>>();
+        let directory = canonical_or_original(directory).await;
+        let mut matches = Vec::new();
+        for record in self.store.list().await? {
+            let mut closest_depth: Option<usize> = None;
+            for source in association_directories(&record) {
+                let source = canonical_or_original(source).await;
+                if directory.starts_with(&source) {
+                    closest_depth = Some(closest_depth.unwrap_or_default().max(source.components().count()));
+                }
+            }
+            if let Some(depth) = closest_depth {
+                matches.push((record, depth));
+            }
+        }
         let Some(depth) = matches.iter().map(|(_, depth)| *depth).max() else {
             return Err(Error::NotFound);
         };
@@ -272,6 +273,12 @@ async fn resolve_mount_sources(agent: &mut Agent, source_directory: &std::path::
         *source = resolved;
     }
     Ok(())
+}
+
+async fn canonical_or_original(path: &std::path::Path) -> PathBuf {
+    tokio::fs::canonicalize(path)
+        .await
+        .unwrap_or_else(|_| path.to_path_buf())
 }
 
 fn association_directories(record: &AgentRecord) -> impl Iterator<Item = &std::path::Path> {

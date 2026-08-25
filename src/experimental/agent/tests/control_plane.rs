@@ -292,9 +292,19 @@ async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
 #[tokio::test(flavor = "local")]
 async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and_materialization() {
     let fixture = fixture();
-    let root = TempDirectory::new("bind-mount");
-    let manifest = root.path().join("agents/worktree");
-    let nested = root.path().join("src/feature");
+    let temporary = TempDirectory::new("bind-mount");
+    let physical_root = temporary.path().join("physical");
+    std::fs::create_dir_all(&physical_root).expect("physical workspace directory");
+    #[cfg(unix)]
+    let root = {
+        let alias = temporary.path().join("alias");
+        std::os::unix::fs::symlink(&physical_root, &alias).expect("workspace alias");
+        alias
+    };
+    #[cfg(not(unix))]
+    let root = physical_root.clone();
+    let manifest = root.join("agents/worktree");
+    let nested = root.join("src/feature");
     std::fs::create_dir_all(&manifest).expect("manifest directory");
     std::fs::create_dir_all(&nested).expect("nested workspace directory");
     let mut request = apply_request("worker");
@@ -309,10 +319,7 @@ async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and
     let MountSpec::Bind { source, .. } = &applied.spec.sandbox.mounts[0] else {
         panic!("expected bind Mount");
     };
-    assert_eq!(
-        source,
-        &std::fs::canonicalize(root.path()).expect("canonical workspace")
-    );
+    assert_eq!(source, &std::fs::canonicalize(&root).expect("canonical workspace"));
     assert_eq!(
         fixture
             .control_plane
