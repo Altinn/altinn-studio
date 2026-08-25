@@ -1,7 +1,7 @@
 .textAreaWrapper {
-  margin-top: var(--fds-spacing-3);
+  margin-top: var(--ds-size-3);
 }
 
 .descriptionInput {
-  margin-top: var(--fds-spacing-7);
+  margin-top: var(--ds-size-7);
 }

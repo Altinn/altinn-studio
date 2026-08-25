@@ -201,15 +201,15 @@ export class ResourcePage extends ResourceEnvironment {
     const isPolicyRuleVisible = await this.ruleHeader.isVisible();
     if (!isPolicyRuleVisible) {
       await this.addPolicyRuleButton.click();
-      await this.setPolicyAction();
+      await this.setPolicyActionLes();
       await this.expandPolicySubjectAccordion();
       await this.setPolicySubject();
     }
   }
 
-  private async setPolicyAction(): Promise<void> {
+  private async setPolicyActionLes(): Promise<void> {
     await this.policyActionDropdown.click();
-    await this.policyActionDropdown.press('ArrowDown');
+    await this.policyActionDropdown.fill(textMock('policy_editor.action_read'));
     await this.policyActionDropdown.press('Enter');
   }
 

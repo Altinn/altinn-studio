@@ -1,5 +1,5 @@
 .informationText  {
-  color: var(--fds-semantic-text-neutral-subtle);
+  color: var(--ds-color-neutral-text-subtle);
   padding-bottom: var(--ds-size-4);
 }
 
@@ -60,6 +60,6 @@
 }
 
 .emptyState {
-  color: var(--fds-semantic-text-neutral-subtle);
+  color: var(--ds-color-neutral-text-subtle);
   margin-top: var(--ds-size-4);
 }
