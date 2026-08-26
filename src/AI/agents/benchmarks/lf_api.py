@@ -14,6 +14,8 @@ from typing import Any
 
 import httpx
 
+from shared.utils.langfuse_public_api import root_span_filter
+
 MAX_OBSERVATION_PAGES = 10
 OBSERVATION_PAGE_SIZE = 50
 
@@ -141,6 +143,8 @@ class LangfuseApi:
                 "fromStartTime": from_timestamp,
                 "toStartTime": _now_iso(),
                 "limit": OBSERVATION_PAGE_SIZE,
+                # Child observations would otherwise consume the page budget.
+                "filter": root_span_filter(),
             }
             if cursor:
                 params["cursor"] = cursor

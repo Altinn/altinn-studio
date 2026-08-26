@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from benchmarks.lf_api import LangfuseApi
@@ -46,6 +48,17 @@ class TestFindTraceForSession:
         assert params["fromStartTime"] == "2026-01-01"
         assert params["toStartTime"]
         assert params["name"] == "Altinity Agent Workflow"
+
+    def test_restricts_the_query_to_root_observations(self):
+        """Child observations would otherwise use up the page budget before the
+        root span carrying the session id is reached."""
+        api = _Api([{"data": [_row("sess-a", "trace-a")], "meta": {}}])
+        api.find_trace_for_session("sess-a", "Altinity Agent Workflow", "2026-01-01")
+
+        _, params = api.calls[0]
+        assert json.loads(params["filter"]) == [
+            {"column": "isRootObservation", "operator": "=", "value": True, "type": "boolean"}
+        ]
 
     def test_follows_the_cursor_to_the_next_page(self):
         api = _Api(

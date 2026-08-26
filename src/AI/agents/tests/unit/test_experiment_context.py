@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from shared.models.experiment import (
     EXPERIMENT_DATASET_ID,
@@ -57,7 +58,7 @@ class TestSpanAttributes:
         assert all(isinstance(v, str) for v in attributes.values())
 
     def test_the_identifying_fields_are_required(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             ExperimentContext(experimentName="n", datasetId="d", itemId="i")
 
 

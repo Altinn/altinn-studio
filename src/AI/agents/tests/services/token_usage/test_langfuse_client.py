@@ -3,7 +3,14 @@ import json
 import httpx
 
 from services.token_usage.langfuse_client import _as_trace_payload
-from shared.utils.langfuse_public_api import PAGE_SIZE, fetch_observations
+import pytest
+
+from shared.utils.langfuse_public_api import (
+    MAX_PAGES,
+    PAGE_SIZE,
+    ObservationsTruncated,
+    fetch_observations,
+)
 
 
 class TestFetchObservations:
@@ -33,6 +40,17 @@ class TestFetchObservations:
 
         assert items == []
         assert cursors == [None]
+
+
+    async def test_hitting_the_page_cap_raises_instead_of_truncating(self):
+        """A caller that deletes or reports on the result cannot tell a partial
+        list from a complete one."""
+        client, _ = _create_client_mock(
+            [(_rows(PAGE_SIZE), f"CUR{i}") for i in range(MAX_PAGES)]
+        )
+
+        with pytest.raises(ObservationsTruncated):
+            await fetch_observations(client, {})
 
 
 class TestAsTracePayload:

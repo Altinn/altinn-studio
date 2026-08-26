@@ -46,10 +46,19 @@ def type_filter(observation_type: str) -> str:
     )
 
 
+class ObservationsTruncated(RuntimeError):
+    """The window holds more rows than the page cap allows."""
+
+
 async def fetch_observations(
     client: httpx.AsyncClient, params: dict[str, Any]
 ) -> list[dict[str, Any]]:
-    """Page the observations API, which is cursor-based."""
+    """Page the observations API, which is cursor-based.
+
+    Raises `ObservationsTruncated` rather than returning a partial list: a
+    caller that deletes or reports on what it gets back cannot tell the
+    difference, and would under-delete or under-report in silence.
+    """
     items: list[dict[str, Any]] = []
     cursor: str | None = None
     for _ in range(MAX_PAGES):
@@ -63,5 +72,8 @@ async def fetch_observations(
         items.extend(page_items)
         cursor = (body.get("meta") or {}).get("cursor")
         if not cursor or not page_items:
-            break
-    return items
+            return items
+    raise ObservationsTruncated(
+        f"more than {MAX_PAGES * PAGE_SIZE} observations in the requested window; "
+        "narrow the time range"
+    )
