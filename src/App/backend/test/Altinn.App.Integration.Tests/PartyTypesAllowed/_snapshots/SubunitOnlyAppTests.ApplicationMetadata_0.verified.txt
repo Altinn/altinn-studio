@@ -102,7 +102,7 @@
     ],
     PartyTypesAllowed: {
       BankruptcyEstate: false,
-      Organization: false,
+      Organisation: false,
       Person: false,
       SubUnit: true
     },

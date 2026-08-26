@@ -7,7 +7,7 @@
   details: {
     party: {
       partyId: 500005,
-      partyTypeName: Organization,
+      partyTypeName: Organisation,
       partyUuid: null,
       ssn: null,
       orgNumber: 405003309,
