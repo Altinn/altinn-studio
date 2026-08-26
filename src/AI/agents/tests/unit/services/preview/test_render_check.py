@@ -14,6 +14,7 @@ from agents.services.preview.render_check import (
     PageRenderResult,
     PreviewCheckUnavailable,
     _check_pages,
+    read_page_order,
     _is_thrown_error,
 )
 
@@ -73,3 +74,25 @@ class TestPartialPageValidation:
 
         assert checked == ["Side1", "Side2", "Side3"]
         assert len(results) == 3
+
+
+class TestPageOrderShapes:
+    """Settings.json is written by the agent, so a malformed one must skip the
+    file rather than take down the render check."""
+
+    def _write(self, tmp_path, content: str):
+        settings = tmp_path / "App" / "ui" / "layoutset" / "Settings.json"
+        settings.parent.mkdir(parents=True)
+        settings.write_text(content, encoding="utf-8")
+        return tmp_path
+
+    @pytest.mark.parametrize(
+        "content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}']
+    )
+    def test_a_shape_that_is_not_an_order_is_skipped(self, tmp_path, content):
+        assert read_page_order(self._write(tmp_path, content)) == []
+
+    def test_a_valid_order_is_read(self, tmp_path):
+        root = self._write(tmp_path, '{"pages": {"order": ["Side1", "Side2"]}}')
+
+        assert read_page_order(root) == ["Side1", "Side2"]

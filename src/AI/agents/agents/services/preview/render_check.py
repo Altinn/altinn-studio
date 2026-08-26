@@ -109,7 +109,12 @@ def read_page_order(repo_root: Path) -> list[str]:
             settings = json.loads(settings_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        order = (settings.get(PAGES_KEY) or {}).get(PAGE_ORDER_KEY)
+        if not isinstance(settings, dict):
+            continue
+        pages = settings.get(PAGES_KEY)
+        if not isinstance(pages, dict):
+            continue
+        order = pages.get(PAGE_ORDER_KEY)
         if isinstance(order, list) and len(order) > len(best):
             best = [p for p in order if isinstance(p, str)]
     return best
