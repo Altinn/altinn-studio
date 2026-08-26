@@ -99,4 +99,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-        run: gh release create "${TAG}" dist/* --generate-notes --title "Experimental Agent ${TAG#experimental-agent/}"
+        run: >-
+          gh release create "${TAG}" dist/*
+          --generate-notes
+          --latest=false
+          --prerelease
+          --title "Experimental Agent ${TAG#experimental-agent/}"
+          --verify-tag
