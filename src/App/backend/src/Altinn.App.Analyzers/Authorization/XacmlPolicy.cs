@@ -25,7 +25,7 @@ internal enum GrantResult
 /// owner as subject, this app as the resource, and one of a set of candidate actions.
 /// </summary>
 /// <remarks>
-/// Only the parts of XACML an Altinn app policy actually uses are modelled. Anything outside that
+/// Only the parts of XACML an Altinn app policy actually uses are modeled. Anything outside that
 /// (custom attributes, non-equality match functions, conditions) yields
 /// <see cref="GrantResult.Inconclusive"/> rather than a verdict, so an unusual but valid policy can
 /// never fail a build.
@@ -309,11 +309,11 @@ internal sealed class XacmlPolicy
 
     /// <summary>
     /// Compares a Match's literal value with the request's. Match functions other than string
-    /// equality (regular expressions, bag functions) are not modelled, so they yield unknown.
+    /// equality (regular expressions, bag functions) are not modeled, so they yield unknown.
     /// </summary>
     private static MatchOutcome ValueMatches(XElement match, string expected)
     {
-        if (!IsModelledEquality(match))
+        if (!IsModeledEquality(match))
         {
             return MatchOutcome.Unknown;
         }
@@ -330,7 +330,7 @@ internal sealed class XacmlPolicy
     /// </summary>
     private static MatchOutcome ValueIsOneOf(XElement match, HashSet<string> allowedIds)
     {
-        if (!IsModelledEquality(match))
+        if (!IsModeledEquality(match))
         {
             return MatchOutcome.Unknown;
         }
@@ -354,10 +354,10 @@ internal sealed class XacmlPolicy
 
     /// <summary>
     /// Whether the Match declares one of the two string-equality functions this analysis understands.
-    /// Anything else - a regular expression, a bag function - is not modelled, and a Match using one
+    /// Anything else - a regular expression, a bag function - is not modeled, and a Match using one
     /// can neither be confirmed nor ruled out.
     /// </summary>
-    private static bool IsModelledEquality(XElement match)
+    private static bool IsModeledEquality(XElement match)
     {
         var matchId = match.Attribute("MatchId")?.Value;
         return matchId == StringEqual || matchId == StringEqualIgnoreCase;
@@ -391,7 +391,7 @@ internal sealed class XacmlPolicy
             && designator.Attribute("Category")?.Value == category;
     }
 
-    /// <summary>Three-valued logic, so an unmodelled construct never masquerades as a verdict.</summary>
+    /// <summary>Three-valued logic, so an unmodeled construct never masquerades as a verdict.</summary>
     private enum MatchOutcome
     {
         Satisfied,
