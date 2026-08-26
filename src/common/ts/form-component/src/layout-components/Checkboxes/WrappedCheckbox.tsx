@@ -91,7 +91,7 @@ export function WrappedCheckbox({
       )}
     >
       <Checkbox
-        id={`${componentId}-${option.label.replace(/\s/g, '-')}`}
+        id={stringUtils.slugify(`${componentId}-${option.label`)}
         description={option.description && lang(option.description)}
         value={option.value}
         readOnly={readOnly}
