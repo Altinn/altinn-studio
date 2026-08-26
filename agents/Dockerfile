@@ -127,9 +127,11 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 
 FROM base AS full
 
+ARG PLAYWRIGHT_VERSION=1.62.1
 ARG RUST_VERSION=1.97.1
 
 ENV CARGO_HOME=/usr/local/cargo
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV PATH=/usr/local/cargo/bin:${PATH}
 
@@ -153,6 +155,12 @@ RUN apt-get update \
     && rustup set profile minimal \
     && rustup default "${RUST_VERSION}" \
     && rustup component add clippy rustfmt
+
+RUN npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
+    && playwright install --with-deps chromium \
+    && chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}" \
+    && rm -rf /var/lib/apt/lists/* \
+    && playwright --version
 
 ARG FLUX_VERSION=2.9.4
 ARG HELM_VERSION=3.21.1

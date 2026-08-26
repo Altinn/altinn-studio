@@ -23,6 +23,7 @@ const PODMAN: &str = "/usr/bin/podman";
 const PODMAN_CONTAINERS_CONF: &str = "/etc/containers/containers.conf.d/50-agent-ca.conf";
 const PODMAN_RUNTIME_CONF: &str = "/etc/containers/containers.conf.d/51-agent-runtime.conf";
 const PODMAN_MOUNTS_CONF: &str = "/etc/containers/mounts.conf";
+const PODMAN_REGISTRIES_CONF: &str = "/etc/containers/registries.conf.d/50-agent-docker-hub.conf";
 const PODMAN_SOCKET_DROP_IN: &str = "/etc/systemd/system/podman.socket.d/50-agent-access.conf";
 const PODMAN_CONTAINERS_CONF_CONTENTS: &[u8] = br#"[containers]
 env = [
@@ -39,12 +40,19 @@ env = [
 // keeps ownership inside Podman instead of relying on unavailable systemd APIs.
 // Sandbox teardown owns final cleanup, rather than systemd tracking these
 // container cgroups as units.
-const PODMAN_RUNTIME_CONF_CONTENTS: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\n";
+// The compatibility API must apply Docker's implicit docker.io resolution as
+// well; it does not consult registries.conf for that behavior.
+const PODMAN_RUNTIME_CONF_CONTENTS: &[u8] =
+    b"[engine]\ncgroup_manager = \"cgroupfs\"\ncompat_api_enforce_docker_hub = true\n";
 const PODMAN_MOUNTS_CONF_CONTENTS: &[u8] = br"/etc/ssl/certs/ca-certificates.crt:/run/agent/tls/ca-bundle.pem
 /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
 /etc/ssl/certs/ca-certificates.crt:/etc/pki/tls/certs/ca-bundle.crt
 /etc/ssl/certs/ca-certificates.crt:/etc/ssl/cert.pem
 ";
+// One search registry is deterministic in enforcing mode and reproduces
+// Docker's implicit docker.io[/library] normalization without alias upkeep.
+const PODMAN_REGISTRIES_CONF_CONTENTS: &[u8] =
+    b"unqualified-search-registries = [\"docker.io\"]\nshort-name-mode = \"enforcing\"\n";
 const PODMAN_SOCKET_DROP_IN_CONTENTS: &[u8] = b"[Socket]\nDirectoryMode=0755\nSocketGroup=agent\nSocketMode=0660\n";
 
 /// Agent setup for Linux Sandboxes.
@@ -128,6 +136,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
             "-m",
             "0755",
             "/etc/containers/containers.conf.d",
+            "/etc/containers/registries.conf.d",
             "/etc/systemd/system/podman.socket.d",
         ],
     )
@@ -135,6 +144,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
     write_file(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
     write_file(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
     write_file(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
+    write_file(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
     write_file(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
     run_checked(
         sandbox,

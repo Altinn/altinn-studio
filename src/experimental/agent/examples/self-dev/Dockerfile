@@ -150,10 +150,19 @@ RUN case "${TARGETARCH}" in \
 
 ARG CODEX_VERSION=0.149.1
 ARG CLAUDE_CODE_VERSION=2.1.239
+ARG PLAYWRIGHT_VERSION=1.62.1
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 
 RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+RUN npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
+    && playwright install --with-deps chromium \
+    && chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}" \
+    && rm -rf /var/lib/apt/lists/* \
+    && playwright --version
 
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 

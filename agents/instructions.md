@@ -97,12 +97,13 @@ When posting multiline GitHub comments from a shell, pass the body through stdin
 Real secrets are host-mediated. Never search for, print, copy, or persist their values.
 
 The full image provides Podman, with `docker` and `/run/docker.sock` as compatibility surfaces, plus Rust, kind,
-kubectl, Helm, and Flux. The minimal image does not provide container or Kubernetes tooling. Detect available tools
-before relying on them.
+kubectl, Helm, Flux, and Playwright with Chromium. The minimal image does not provide container, Kubernetes, or browser
+tooling. Detect available tools before relying on them.
 
 When Podman is available, containers receive mediated CA configuration automatically. Build steps receive the full CA
-bundle at `/run/agent/tls/ca-bundle.pem` and common system trust paths. A tool that ignores the system store may need a
-step-scoped variable such as `NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem`. Kind's
+bundle at `/run/agent/tls/ca-bundle.pem` and common system trust paths. A current Buildah bug drops default environment
+variables from build stages, so tools that ignore the system store need a step-scoped variable such as
+`RUN NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem npm ci`. Kind's
 `KIND_EXPERIMENTAL_PROVIDER=podman` mode is installed but unverified; do not assume nested kind containers inherit the
 Agent's mediated CA trust.
 

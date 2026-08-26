@@ -13,7 +13,7 @@ Real secrets are host-mediated. Never search for, print, copy, or persist their 
 
 Container tooling uses Podman. The `docker` command and `/run/docker.sock` are Podman compatibility surfaces,
 ordinary Agent commands use the rootful system socket, `podman buildx build` provides the buildx alias, and
-`podman-compose` is available for Compose projects. Kind's
+`podman-compose` is available for Compose projects. Playwright and Chromium are preinstalled for browser work. Kind's
 `KIND_EXPERIMENTAL_PROVIDER=podman` mode is installed but unverified; do not assume nested kind containers inherit the
 Agent's mediated CA trust.
 

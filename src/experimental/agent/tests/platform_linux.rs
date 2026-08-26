@@ -58,7 +58,9 @@ env = [
   "NPM_CONFIG_CAFILE=/run/agent/tls/ca-bundle.pem",
 ]
 "#;
-const PODMAN_RUNTIME_CONF: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\n";
+const PODMAN_RUNTIME_CONF: &[u8] = b"[engine]\ncgroup_manager = \"cgroupfs\"\ncompat_api_enforce_docker_hub = true\n";
+const PODMAN_REGISTRIES_CONF: &[u8] =
+    b"unqualified-search-registries = [\"docker.io\"]\nshort-name-mode = \"enforcing\"\n";
 const PODMAN_MOUNTS_CONF: &[u8] = br"/etc/ssl/certs/ca-certificates.crt:/run/agent/tls/ca-bundle.pem
 /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
 /etc/ssl/certs/ca-certificates.crt:/etc/pki/tls/certs/ca-bundle.crt
@@ -304,6 +306,10 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
     assert_eq!(
         read_file(&sandbox, "/etc/containers/mounts.conf").await,
         PODMAN_MOUNTS_CONF
+    );
+    assert_eq!(
+        read_file(&sandbox, "/etc/containers/registries.conf.d/50-agent-docker-hub.conf").await,
+        PODMAN_REGISTRIES_CONF
     );
     assert_eq!(
         read_file(&sandbox, "/etc/systemd/system/podman.socket.d/50-agent-access.conf").await,
