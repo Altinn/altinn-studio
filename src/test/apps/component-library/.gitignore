@@ -146,7 +146,7 @@ DocProject/Help/html
 publish/
 
 # Publish Web Output
-*.[Pp]publish.xml
+*.[Pp]ublish.xml
 *.azurePubxml
 *.pubxml
 *.publishproj

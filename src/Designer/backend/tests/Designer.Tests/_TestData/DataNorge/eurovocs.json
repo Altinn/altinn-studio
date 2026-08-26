@@ -101178,7 +101178,7 @@
             "uri": "http://eurovoc.europa.eu/7223",
             "code": "7223",
             "label": {
-                "en": "neighborhood police"
+                "en": "neighbourhood police"
             },
             "children": [
             ],
@@ -104788,7 +104788,7 @@
             "uri": "http://eurovoc.europa.eu/7932",
             "code": "7932",
             "label": {
-                "en": "European neighborhood policy"
+                "en": "European neighbourhood policy"
             },
             "children": [
                 "http://eurovoc.europa.eu/c_2e7c1ac5",
@@ -113735,7 +113735,7 @@
             "uri": "http://eurovoc.europa.eu/c_2e7c1ac5",
             "code": "c_2e7c1ac5",
             "label": {
-                "en": "Southern neighborhood"
+                "en": "Southern neighbourhood"
             },
             "children": [
             ],

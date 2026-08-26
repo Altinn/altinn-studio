@@ -7,7 +7,7 @@
     "appId": "org/app-name",
     "instanceOwner": {
       "partyId": "12345",
-      "organizationNumber": "1234567"
+      "organisationNumber": "1234567"
     }
   }
 }

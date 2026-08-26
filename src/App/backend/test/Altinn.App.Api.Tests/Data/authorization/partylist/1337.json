@@ -8,7 +8,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": null
   },
   {
@@ -20,7 +20,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": [
       {
         "partyId": "500001",
@@ -31,7 +31,7 @@
         "isDeleted": false,
         "onlyHierarchyElementWithNoAccess": false,
         "person": null,
-        "organization": null,
+        "organisation": null,
         "childParties": null
       },
       {
@@ -43,7 +43,7 @@
         "isDeleted": false,
         "onlyHierarchyElementWithNoAccess": false,
         "person": null,
-        "organization": null,
+        "organisation": null,
         "childParties": null
       },
       {
@@ -55,7 +55,7 @@
         "isDeleted": false,
         "onlyHierarchyElementWithNoAccess": false,
         "person": null,
-        "organization": null,
+        "organisation": null,
         "childParties": null
       }
 
@@ -70,7 +70,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": null
   },
   {
@@ -82,7 +82,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": null
   },
   {
@@ -94,7 +94,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": null
   },
   {
@@ -106,7 +106,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": null
   },
   {
@@ -118,7 +118,7 @@
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "childParties": null
   }
 ]

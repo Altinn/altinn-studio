@@ -56,7 +56,7 @@
   ],
   "partyTypesAllowed": {
     "bankruptcyEstate": false,
-    "organization": false,
+    "organisation": false,
     "person": false,
     "subUnit": false
   },

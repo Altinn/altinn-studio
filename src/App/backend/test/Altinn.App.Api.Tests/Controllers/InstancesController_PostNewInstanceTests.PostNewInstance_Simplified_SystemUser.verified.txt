@@ -143,10 +143,10 @@
           network.protocol.version: 1.1
         },
         {
-          organization.number: 310702641
+          organisation.number: 310702641
         },
         {
-          organization.systemuser.id: Guid_1
+          organisation.systemuser.id: Guid_1
         },
         {
           server.address: localhost
@@ -200,10 +200,10 @@
           network.protocol.version: 1.1
         },
         {
-          organization.number: 310702641
+          organisation.number: 310702641
         },
         {
-          organization.systemuser.id: Guid_1
+          organisation.systemuser.id: Guid_1
         },
         {
           server.address: localhost

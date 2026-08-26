@@ -2,7 +2,7 @@
     "id": "500600/00000000-dead-0000-babe-000000000999",
     "instanceOwner": {
         "partyId": "500600",
-        "organizationNumber": "897069631"
+        "organisationNumber": "897069631"
     },
     "appId": "tdd/contributer-restriction",
     "org": "tdd",
