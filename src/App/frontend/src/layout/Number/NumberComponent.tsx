@@ -8,6 +8,7 @@ import { useComponentStructureData } from 'src/utils/layout/useComponentStructur
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
+// test comment from agent
 export const NumberComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Number'>) => {
   const { textResourceBindings, value, icon, direction, formatting, grid } = useItemWhenType(baseComponentId, 'Number');
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
