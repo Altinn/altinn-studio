@@ -9,8 +9,8 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Auth;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 

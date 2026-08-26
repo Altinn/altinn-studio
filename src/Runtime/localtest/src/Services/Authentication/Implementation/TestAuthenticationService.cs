@@ -5,7 +5,7 @@ using AltinnCore.Authentication.Constants;
 using LocalTest.Models.Authentication;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.TestData;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Altinn.Platform.Profile.Enums;
 
 namespace LocalTest.Services.Authentication.Implementation;

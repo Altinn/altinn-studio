@@ -1,7 +1,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.Platform.Storage.Services;
 

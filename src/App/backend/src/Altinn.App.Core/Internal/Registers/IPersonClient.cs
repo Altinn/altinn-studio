@@ -1,5 +1,5 @@
 using Altinn.App.Core.Features;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Core.Internal.Registers;
 

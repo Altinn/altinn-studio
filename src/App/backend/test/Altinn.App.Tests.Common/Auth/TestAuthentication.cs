@@ -7,9 +7,8 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 using Xunit.Abstractions;
 using static Altinn.App.Core.Features.Auth.Authenticated;
@@ -213,6 +212,8 @@ public static class TestAuthentication
             SSN = ssn ?? "12345678901",
             Name = "Test Testesen",
         };
+        // UserProfile.Party is still typed against the legacy Altinn.Platform.Register.Models package.
+        var profileParty = party.ToLegacyParty();
         var auth = Authenticated.From(
             token,
             null,
@@ -227,7 +228,7 @@ public static class TestAuthentication
                     {
                         UserId = userId,
                         PartyId = userPartyId,
-                        Party = party,
+                        Party = profileParty,
                         Email = email ?? "test@testesen.no",
                         ProfileSettingPreference = profileSettingPreference,
                     }
@@ -307,6 +308,8 @@ public static class TestAuthentication
             OrgNumber = null,
             Name = "Test Testesen",
         };
+        // UserProfile.Party is still typed against the legacy Altinn.Platform.Register.Models package.
+        var profileParty = party.ToLegacyParty();
         var auth = Authenticated.From(
             token,
             null,
@@ -322,7 +325,7 @@ public static class TestAuthentication
                         UserId = userId,
                         UserName = username,
                         PartyId = partyId,
-                        Party = party,
+                        Party = profileParty,
                         Email = email ?? "test@testesen.no",
                         ProfileSettingPreference = profileSettingPreference,
                     }

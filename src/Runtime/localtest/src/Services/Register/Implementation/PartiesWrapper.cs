@@ -1,5 +1,4 @@
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.TestData;
@@ -83,10 +82,10 @@ namespace LocalTest.Services.Register.Implementation
             switch (party.PartyTypeName)
             {
                 case PartyType.Person:
-                    party.Person = await _personService.GetPerson(party.SSN);
+                    party.Person = await _personService.GetPerson(party.SSN!);
                     break;
                 case PartyType.Organisation:
-                    party.Organization = await _organizationService.GetOrganization(party.OrgNumber);
+                    party.Organization = await _organizationService.GetOrganization(party.OrgNumber!);
                     break;
             }
         }

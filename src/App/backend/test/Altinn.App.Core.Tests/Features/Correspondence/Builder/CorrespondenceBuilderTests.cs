@@ -2,7 +2,7 @@ using System.Text;
 using Altinn.App.Core.Features.Correspondence.Builder;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Features.Correspondence.Builder;

@@ -10,7 +10,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

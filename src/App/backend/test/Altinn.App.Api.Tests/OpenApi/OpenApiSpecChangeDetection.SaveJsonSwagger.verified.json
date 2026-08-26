@@ -670,27 +670,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Party"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Party"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Party"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Party"
-                }
-              },
-              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/Party"
                 }
@@ -4446,39 +4426,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Party"
-                  }
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Party"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Party"
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Party"
-                  }
-                }
-              },
-              "text/xml": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -4491,27 +4439,7 @@
           "401": {
             "description": "Unauthorized",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -4560,17 +4488,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/InstantiationValidationResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InstantiationValidationResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InstantiationValidationResult"
                 }
@@ -4580,7 +4498,7 @@
           "500": {
             "description": "Internal Server Error",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
                   "type": "string"
                 }
@@ -10128,6 +10046,215 @@
         },
         "additionalProperties": false
       },
+      "LegacyOrganization": {
+        "type": "object",
+        "properties": {
+          "orgNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitType": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "faxNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "eMailAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "internetAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "businessAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "businessPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "businessPostalCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitStatus": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "LegacyParty": {
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "partyUuid": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "partyTypeName": {
+            "$ref": "#/components/schemas/LegacyPartyType"
+          },
+          "orgNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "ssn": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitType": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "onlyHierarchyElementWithNoAccess": {
+            "type": "boolean"
+          },
+          "person": {
+            "$ref": "#/components/schemas/LegacyPerson"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/LegacyOrganization"
+          },
+          "childParties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegacyParty"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "LegacyPartyType": {
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "LegacyPerson": {
+        "type": "object",
+        "properties": {
+          "ssn": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressMunicipalNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressMunicipalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressStreetName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressHouseNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressHouseLetter": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfDeath": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "Logo": {
         "type": "object",
         "properties": {
@@ -10455,6 +10582,16 @@
             "items": {
               "$ref": "#/components/schemas/Party"
             },
+            "nullable": true
+          },
+          "lastChangedInAltinn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastChangedInExternalRegister": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
@@ -11671,7 +11808,7 @@
             "format": "int32"
           },
           "party": {
-            "$ref": "#/components/schemas/Party"
+            "$ref": "#/components/schemas/LegacyParty"
           },
           "userType": {
             "$ref": "#/components/schemas/UserType"

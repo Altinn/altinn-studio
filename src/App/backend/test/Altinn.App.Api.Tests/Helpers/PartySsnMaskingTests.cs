@@ -1,7 +1,6 @@
 using Altinn.App.Api.Helpers;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Tests.Helpers;
 
@@ -31,8 +30,8 @@ public class PartySsnMaskingTests
         Party masked = PartySsnMasking.MaskParty(party);
 
         Assert.Equal("123456*****", masked.SSN);
-        Assert.Equal("123456*****", masked.Person.SSN);
-        Assert.Equal("109876*****", masked.ChildParties[0].SSN);
+        Assert.Equal("123456*****", masked.Person!.SSN);
+        Assert.Equal("109876*****", masked.ChildParties![0].SSN);
 
         // Non-SSN fields are copied unchanged.
         Assert.Equal("Ola Nordmann", masked.Name);
@@ -107,7 +106,7 @@ public class PartySsnMaskingTests
                 Name = "GRENSE TROVERDIG",
                 SSN = "26917699894",
                 Person = new Person { SSN = "26917699894", Name = "GRENSE TROVERDIG" },
-            },
+            }.ToLegacyParty(),
         };
 
         UserProfile masked = PartySsnMasking.MaskUserProfile(profile);

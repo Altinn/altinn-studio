@@ -10,8 +10,8 @@ using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -73,8 +73,7 @@ public class AuthorizationClient : IAuthorizationClient
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string partyListData = await response.Content.ReadAsStringAsync();
-                partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
+                partyList = await JsonSerializerPermissive.DeserializeAsync<List<Party>>(response.Content);
             }
         }
         catch (Exception e)

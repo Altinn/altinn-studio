@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Tests.Common.Data;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Tests.Mocks;
 

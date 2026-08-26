@@ -9,8 +9,8 @@ using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

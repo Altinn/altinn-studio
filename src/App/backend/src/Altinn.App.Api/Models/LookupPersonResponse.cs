@@ -1,4 +1,4 @@
-﻿using Altinn.Platform.Register.Models;
+﻿using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Models;
 
@@ -67,11 +67,11 @@ public class PersonDetails
     {
         return new PersonDetails
         {
-            Ssn = person.SSN,
-            Name = person.Name,
+            Ssn = person.SSN ?? throw new InvalidOperationException("Person has no SSN"),
+            Name = person.Name ?? throw new InvalidOperationException("Person has no name"),
             FirstName = person.FirstName,
             MiddleName = person.MiddleName,
-            LastName = person.LastName,
+            LastName = person.LastName ?? throw new InvalidOperationException("Person has no last name"),
         };
     }
 }

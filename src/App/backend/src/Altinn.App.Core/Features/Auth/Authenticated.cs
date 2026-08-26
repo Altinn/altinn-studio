@@ -9,7 +9,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 
 namespace Altinn.App.Core.Features.Auth;
@@ -314,19 +314,22 @@ public abstract class Authenticated
             var userProfile =
                 await _getUserProfile(UserId)
                 ?? throw new AuthenticationContextException($"Could not get user profile for logged in user: {UserId}");
-            if (userProfile.Party is null)
-                throw new AuthenticationContextException($"Could not get user party from profile for user: {UserId}");
+            var userParty =
+                userProfile.Party.ToRegisterContractsParty()
+                ?? throw new AuthenticationContextException(
+                    $"Could not get user party from profile for user: {UserId}"
+                );
 
             var lookupPartyTask =
                 SelectedPartyId == userProfile.PartyId
-                    ? Task.FromResult((Party?)userProfile.Party)
+                    ? Task.FromResult((Party?)userParty)
                     : _lookupParty(SelectedPartyId);
             var partiesTask = _getPartyList(UserId);
             await Task.WhenAll(lookupPartyTask, partiesTask);
 
             var parties = await partiesTask ?? [];
             if (parties.Count == 0)
-                parties.Add(userProfile.Party);
+                parties.Add(userParty);
 
             var selectedParty = await lookupPartyTask;
             if (selectedParty is null)
@@ -352,7 +355,7 @@ public abstract class Authenticated
             );
 
             _extra = new Details(
-                userProfile.Party,
+                userParty,
                 selectedParty,
                 userProfile,
                 representsSelf,

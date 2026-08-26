@@ -7,13 +7,13 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
-using Person = Altinn.Platform.Register.Models.Person;
+using Person = Altinn.Register.Contracts.V1.Person;
 using Signee = Altinn.App.Core.Features.Signing.Models.Signee;
 using StorageSignee = Altinn.Platform.Storage.Interface.Models.Signee;
 

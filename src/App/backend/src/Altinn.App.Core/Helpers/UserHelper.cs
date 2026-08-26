@@ -90,10 +90,10 @@ public class UserHelper
         if (partyCookieValue is not null)
             userContext.PartyId = Convert.ToInt32(partyCookieValue, CultureInfo.InvariantCulture);
 
-        userContext.UserParty = userProfile.Party;
+        userContext.UserParty = userProfile.Party.ToRegisterContractsParty();
 
         if (userContext.PartyId == userProfile.PartyId)
-            userContext.Party = userProfile.Party;
+            userContext.Party = userProfile.Party.ToRegisterContractsParty();
         else if (userContext.PartyId != default)
             userContext.Party = await _altinnPartyClientService.GetParty(userContext.PartyId);
 

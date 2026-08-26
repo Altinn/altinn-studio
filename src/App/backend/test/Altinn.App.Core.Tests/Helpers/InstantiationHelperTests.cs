@@ -2,9 +2,8 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Helpers;
@@ -273,7 +272,7 @@ public class InstantiationHelperTests
             UserId = userId,
             PartyId = partyId,
             ExternalIdentity = externalIdentity,
-            Party = party,
+            Party = party.ToLegacyParty(),
         };
 
         var token = TestAuthentication.GetSelfIdentifiedUserToken(userId: userId, partyId: partyId);

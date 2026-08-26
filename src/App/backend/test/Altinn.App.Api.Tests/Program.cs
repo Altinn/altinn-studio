@@ -96,6 +96,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
         StartupHelper.IncludeXmlComments(c.IncludeXmlComments);
+        StartupHelper.UseDisambiguatingSchemaIds(c);
     });
 }
 

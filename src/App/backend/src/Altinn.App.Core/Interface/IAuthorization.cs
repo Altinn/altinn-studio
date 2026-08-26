@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Core.Interface;
 

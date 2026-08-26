@@ -2,8 +2,9 @@ using System.Globalization;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -40,6 +41,9 @@ public class AuthorizationController : Controller
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Party), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // Party.ChildParties is IReadOnlyList<Party>, which System.Xml.Serialization.XmlSerializer cannot
+    // handle (it requires a settable/Add-able collection type), so this response can only be JSON.
+    [Produces("application/json")]
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
     public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
@@ -67,7 +71,9 @@ public class AuthorizationController : Controller
 
                 // Now we know the user can't represent the selected party (reportee)
                 // so we will automatically switch to the user's own party (from the profile)
-                var reportee = details.Profile.Party;
+                var reportee =
+                    details.Profile.Party.ToRegisterContractsParty()
+                    ?? throw new InvalidOperationException("Could not get party from profile");
                 if (user.SelectedPartyId != reportee.PartyId)
                 {
                     // Setting cookie to partyID of logged in user if it varies from previus value.

@@ -3,7 +3,7 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -38,6 +38,9 @@ public class PartiesController : ControllerBase
     /// <returns>parties</returns>
     [ProducesResponseType(typeof(IReadOnlyList<Party>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // Party.ChildParties is IReadOnlyList<Party>, which System.Xml.Serialization.XmlSerializer cannot
+    // handle (it requires a settable/Add-able collection type), so this response can only be JSON.
+    [Produces("application/json")]
     [Authorize]
     [HttpGet("{org}/{app}/api/v1/parties")]
     public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
@@ -82,6 +85,10 @@ public class PartiesController : ControllerBase
     /// <returns>A validation status</returns>
     [ProducesResponseType(typeof(InstantiationValidationResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
+    // InstantiationValidationResult.ValidParties contains Party objects, and Party.ChildParties is
+    // IReadOnlyList<Party>, which System.Xml.Serialization.XmlSerializer cannot handle (it requires a
+    // settable/Add-able collection type), so this response can only be JSON.
+    [Produces("application/json")]
     [Authorize]
     [Obsolete("Will be removed in the future")]
     [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]

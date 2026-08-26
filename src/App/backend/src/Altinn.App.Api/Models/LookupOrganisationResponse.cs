@@ -1,4 +1,4 @@
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Models;
 
@@ -52,6 +52,12 @@ public class OrganisationDetails
     /// </summary>
     public static OrganisationDetails MapFromOrganisation(Organization organisation)
     {
-        return new OrganisationDetails { OrgNr = organisation.OrgNumber, Name = organisation.Name };
+        return new OrganisationDetails
+        {
+            OrgNr =
+                organisation.OrgNumber
+                ?? throw new InvalidOperationException("Organisation has no organisation number"),
+            Name = organisation.Name ?? throw new InvalidOperationException("Organisation has no name"),
+        };
     }
 }

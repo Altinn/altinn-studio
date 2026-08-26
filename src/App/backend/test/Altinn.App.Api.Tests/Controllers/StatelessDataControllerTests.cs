@@ -15,6 +15,7 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -162,7 +163,7 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
+            .ReturnsAsync(new Party { PartyId = 234 });
 
         // Act
         var response = await client.SendAsync(request);
@@ -190,7 +191,7 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
+            .ReturnsAsync(new Party { PartyId = 234 });
 
         // Act
         var response = await client.SendAsync(request);

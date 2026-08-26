@@ -2,9 +2,8 @@ using System.Globalization;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Core.Helpers;
 
@@ -54,23 +53,21 @@ public static class InstantiationHelper
 
             if (canPartyInstantiate && isChildPartyAllowed)
             {
-                party.ChildParties = new List<Party>();
                 if (allowedChildParties is null)
                 {
                     throw new Exception("List of allowed child parties unexpectedly null");
                 }
-                party.ChildParties.AddRange(allowedChildParties);
+                party.ChildParties = allowedChildParties;
                 allowed.Add(party);
             }
             else if (!canPartyInstantiate && isChildPartyAllowed)
             {
-                party.ChildParties = new List<Party>();
                 party.OnlyHierarchyElementWithNoAccess = true;
                 if (allowedChildParties is null)
                 {
                     throw new Exception("List of allowed child parties unexpectedly null");
                 }
-                party.ChildParties.AddRange(allowedChildParties);
+                party.ChildParties = allowedChildParties;
                 allowed.Add(party);
             }
             else if (canPartyInstantiate)
@@ -182,7 +179,7 @@ public static class InstantiationHelper
             }
             else if (party.ChildParties != null && party.ChildParties.Count > 0)
             {
-                Party? validChildParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
+                Party? validChildParty = party.ChildParties.FirstOrDefault(cp => cp.PartyId == partyId);
                 if (validChildParty != null)
                 {
                     validParty = validChildParty;

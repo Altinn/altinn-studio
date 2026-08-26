@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

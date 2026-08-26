@@ -2,8 +2,8 @@ using System.Security.Claims;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Register.Contracts.V1;
 using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.App.Api.Tests.Mocks;
