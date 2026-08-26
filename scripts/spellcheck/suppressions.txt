@@ -249,3 +249,8 @@ Organisation
 # matches them in order to rewrite them, and the release note names them
 @paths src/cli/**/Upgrade/** src/cli/CHANGELOG.md
 organisation
+
+# Designer API route: the frontend (paths.js) and the controller tests call
+# it by this spelling, so the literal is a wire contract
+@paths src/Designer/backend/src/Designer/Controllers/ProcessModelingController.cs
+modelling
