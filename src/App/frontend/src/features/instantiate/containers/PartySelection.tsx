@@ -275,7 +275,7 @@ function templatePartyTypesString({
   if (allDisallowed || partyTypesAllowed?.person) {
     partyTypes.push(langAsString('party_selection.unit_type_private_person'));
   }
-  if (allDisallowed || partyTypesAllowed?.organization) {
+  if (allDisallowed || partyTypesAllowed?.organisation) {
     partyTypes.push(langAsString('party_selection.unit_type_company'));
   }
   if (allDisallowed || partyTypesAllowed?.subUnit) {

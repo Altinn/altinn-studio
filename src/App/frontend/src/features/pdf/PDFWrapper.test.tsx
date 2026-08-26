@@ -26,7 +26,7 @@ const render = async (renderAs: RenderAs) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((m) => {
     m.org = 'brg';
     m.partyTypesAllowed.person = true;
-    m.partyTypesAllowed.organization = true;
+    m.partyTypesAllowed.organisation = true;
   });
   const getInstanceMock = vi.fn(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();

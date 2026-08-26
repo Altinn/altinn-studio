@@ -20,7 +20,7 @@ export function NoValidPartiesError() {
       if (partyTypesAllowed.person) {
         partyTypes.push(langAsString('party_selection.unit_type_private_person'));
       }
-      if (partyTypesAllowed.organization) {
+      if (partyTypesAllowed.organisation) {
         partyTypes.push(langAsString('party_selection.unit_type_company'));
       }
       if (partyTypesAllowed.subUnit) {

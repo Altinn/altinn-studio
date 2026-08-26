@@ -156,7 +156,7 @@ export class ExternalApp {
         subUnit: true,
         person: true,
         bankruptcyEstate: true,
-        organization: true,
+        organisation: true,
       };
 
       // We delete this for multiple reasons:

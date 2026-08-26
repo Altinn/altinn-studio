@@ -4,11 +4,7 @@ import { dataModelingContainerId } from '@studio/testing/testids';
 
 // Todo: Is this component necessary?
 const DataModelingContainer = () => (
-  <div
-    className={classes.root}
-    id={dataModelingContainerId}
-    data-testid={dataModelingContainerId}
-  >
+  <div className={classes.root} id={dataModelingContainerId} data-testid={dataModelingContainerId}>
     <div className={classes.dataModelingWrapper}>
       <DataModeling />
     </div>
