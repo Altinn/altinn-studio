@@ -1,5 +1,5 @@
 {
-  "name": "Display value of FileUploadWithTag component",
+  "name": "Display value of FileUpload with tags",
   "expression": [
     "displayValue",
     "documents"
@@ -16,7 +16,7 @@
         "layout": [
           {
             "id": "documents",
-            "type": "FileUploadWithTag",
+            "type": "FileUpload",
             "maxFileSizeInMB": 5,
             "maxNumberOfAttachments": 5,
             "minNumberOfAttachments": 0,

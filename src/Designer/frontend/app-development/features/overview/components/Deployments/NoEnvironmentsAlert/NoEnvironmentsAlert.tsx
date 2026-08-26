@@ -1,18 +1,17 @@
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import type { AlertProps } from '@digdir/designsystemet-react';
-import { StudioParagraph, StudioHeading } from '@studio/components';
-import { Alert } from '@digdir/designsystemet-react';
+import type { StudioAlertProps } from '@studio/components';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
-type NoEnvironmentsAlertProps = AlertProps;
+type NoEnvironmentsAlertProps = StudioAlertProps;
 export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
   const { t } = useTranslation();
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
   return (
-    <Alert severity='warning' className={cn(rest.className)} {...rest}>
+    <StudioAlert {...rest} data-color='warning' className={cn(rest.className)}>
       <StudioHeading level={2} data-size='sm' spacing>
         {t('app_deployment.no_env_title')}
       </StudioHeading>
@@ -30,6 +29,6 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
           />
         </Trans>
       </StudioParagraph>
-    </Alert>
+    </StudioAlert>
   );
 };

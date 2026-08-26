@@ -82,9 +82,10 @@ internal sealed class EFormidlingReceiversSignatureMigration
 
     public MigrationResult Migrate()
     {
-        var warnings = new List<string>();
+        var messages = new List<UpgradeMessage>();
 
-        foreach (var file in _scanner.Files)
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        foreach (var file in _scanner.Files.ToArray())
         {
             var methods = FindMethodsToMigrate(file.Root).ToArray();
             if (methods.Length == 0)
@@ -101,11 +102,11 @@ internal sealed class EFormidlingReceiversSignatureMigration
                         nullable: NullableAnnotationsActiveAt(file.Root, original, _projectNullableAnnotationsEnabled)
                     )
             );
-            File.WriteAllText(file.Path, updatedRoot.ToFullString());
+            _scanner.Update(file, updatedRoot);
 
             foreach (var line in lines)
             {
-                warnings.Add(
+                messages.Warn(
                     $"{file.RelativePath}:{line}: added '{NewParameterName}' parameter to {MethodName}. "
                         + "Review whether the implementation should use it (the receiver org number configured on the "
                         + "eFormidling service task) instead of ignoring it."
@@ -115,7 +116,7 @@ internal sealed class EFormidlingReceiversSignatureMigration
 
         // This is an auto-migration: the app compiles again, so it does not require manual action even
         // though we ask the developer to review usage of the new parameter.
-        return new MigrationResult(ManualActionRequired: false, warnings);
+        return new MigrationResult(messages);
     }
 
     private static IEnumerable<MethodDeclarationSyntax> FindMethodsToMigrate(CompilationUnitSyntax root)

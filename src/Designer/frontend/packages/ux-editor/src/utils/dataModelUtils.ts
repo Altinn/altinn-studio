@@ -57,7 +57,6 @@ export const getDataModelFieldsFilter = (
     case ComponentType.RepeatingGroup:
       return repeatingGroupFilter;
     case ComponentType.FileUpload:
-    case ComponentType.FileUploadWithTag:
       return label ? multipleAttachmentsFilter : generalFilter;
     default:
       return generalFilter;

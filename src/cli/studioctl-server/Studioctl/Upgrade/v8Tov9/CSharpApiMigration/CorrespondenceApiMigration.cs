@@ -70,10 +70,12 @@ internal sealed class CorrespondenceApiMigration
         "GetDataBytes",
     };
 
-    /// <summary>Written-out types that mean "byte payload" when a declaration names one.</summary>
-    private static readonly IReadOnlySet<string> _byteTypeNames = new HashSet<string>(StringComparer.Ordinal)
+    /// <summary>
+    /// Written-out types that mean "memory payload" when a declaration names one: the type is settled,
+    /// but no mechanical rewrite compiles (the <c>MemoryStream</c> constructor takes an array).
+    /// </summary>
+    private static readonly IReadOnlySet<string> _memoryTypeNames = new HashSet<string>(StringComparer.Ordinal)
     {
-        "byte[]",
         "ReadOnlyMemory<byte>",
         "Memory<byte>",
         "ReadOnlyMemory<byte>?",
@@ -93,9 +95,10 @@ internal sealed class CorrespondenceApiMigration
 
     public MigrationResult Migrate()
     {
-        var warnings = new List<string>();
+        var rewrites = new List<string>();
         var unresolved = new List<string>();
-        var files = _scanner.Files;
+        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
+        var files = _scanner.Files.ToArray();
 
         foreach (var file in files)
         {
@@ -112,32 +115,33 @@ internal sealed class CorrespondenceApiMigration
                 updated = AddUsingIfMissing(unit, AuthenticationMethodNamespace);
             }
 
-            File.WriteAllText(file.Path, updated.ToFullString());
-            warnings.AddRange(rewriter.Changes);
+            _scanner.Update(file, (CompilationUnitSyntax)updated);
+            rewrites.AddRange(rewriter.Changes);
         }
 
-        if (warnings.Count > 0)
+        var messages = new List<UpgradeMessage>();
+        if (rewrites.Count > 0)
         {
-            warnings.Insert(
-                0,
+            messages.Warn(
                 "Migrated removed Correspondence APIs. Each rewrite is listed below - review them, especially any "
                     + "line noting a discarded argument, since the argument expression is no longer evaluated:"
             );
-        }
-
-        if (unresolved.Count > 0)
-        {
-            warnings.Add(
-                "These `WithData` call sites could not be classified from syntax alone - the removed "
-                    + "ReadOnlyMemory<byte> overload and the surviving Stream overload share a name and an arity, "
-                    + "so wrapping blindly could break working code:"
-            );
-            warnings.AddRange(unresolved);
+            messages.WarnRange(rewrites);
         }
 
         // Auto-migration: the rewrites leave the app compiling. Unclassifiable WithData sites do need a
-        // human, so they set the manual-action flag - the app will not build until they are resolved.
-        return new MigrationResult(ManualActionRequired: unresolved.Count > 0, warnings);
+        // human, so they leave a to-do behind - the app will not build until they are resolved.
+        if (unresolved.Count > 0)
+        {
+            messages.Todo(
+                "These `WithData` call sites could not be rewritten automatically - the removed "
+                    + "ReadOnlyMemory<byte> overload and the surviving Stream overload share a name and an arity, "
+                    + "so rewriting blindly could break working code:"
+            );
+            messages.WarnRange(unresolved);
+        }
+
+        return new MigrationResult(messages);
     }
 
     private static CompilationUnitSyntax AddUsingIfMissing(CompilationUnitSyntax unit, string namespaceName)
@@ -167,11 +171,13 @@ internal sealed class CorrespondenceApiMigration
     {
         private readonly ScannedCSharpFile _file;
         private readonly IReadOnlyList<ScannedCSharpFile> _allFiles;
+        private readonly SemanticModel? _semanticModel;
 
         public Rewriter(ScannedCSharpFile file, IReadOnlyList<ScannedCSharpFile> allFiles)
         {
             _file = file;
             _allFiles = allFiles;
+            _semanticModel = file.SemanticModel;
         }
 
         public List<string> Changes { get; } = [];
@@ -267,7 +273,18 @@ internal sealed class CorrespondenceApiMigration
             }
 
             var argument = visited.ArgumentList.Arguments[0];
-            switch (ClassifyDataArgument(argument.Expression))
+
+            // With the v8 compilation, overload resolution already answered the question: the call
+            // bound to either WithData(ReadOnlyMemory<byte>) or WithData(Stream), and the chosen
+            // parameter type says which. A semantic verdict is authoritative - falling through to the
+            // syntax heuristics could wrap an argument the semantic model proved unwrappable.
+            // Classification runs on `original` - the pristine tree node the semantic model knows;
+            // `visited` may contain rewritten descendants it does not.
+            var kind =
+                ClassifyBoundWithData(original, original.ArgumentList.Arguments[0].Expression)
+                ?? ClassifyDataArgument(argument.Expression);
+
+            switch (kind)
             {
                 case DataKind.Stream:
                     return null;
@@ -286,9 +303,24 @@ internal sealed class CorrespondenceApiMigration
                         )
                     );
 
-                default:
+                case DataKind.ProvenMemory:
+                    // The type is settled (bound overload or written-out declaration); only the fix
+                    // needs a human, because the MemoryStream constructor takes an array, not a
+                    // ReadOnlyMemory/Memory value.
                     Unresolved.Add(
-                        $"{_file.RelativePath}:{_file.GetLine(name)}: `WithData({argument.Expression})` - "
+                        $"{_file.RelativePath}:{_file.GetLine(original)}: `WithData({argument.Expression})` - "
+                            + "WithData(ReadOnlyMemory<byte>) is removed and this argument is a "
+                            + "ReadOnlyMemory/Memory value, which cannot be wrapped in a MemoryStream directly. "
+                            + "Pass a Stream instead, or wrap as `new MemoryStream(x.ToArray())` (copies the payload)."
+                    );
+                    return null;
+
+                default:
+                    // `original` for the location: `name` comes off `visited`, which is detached from
+                    // the file's tree when an inner rewrite happened in the same chain, and measuring
+                    // a detached node reports a line number relative to the fragment.
+                    Unresolved.Add(
+                        $"{_file.RelativePath}:{_file.GetLine(original)}: `WithData({argument.Expression})` - "
                             + "WithData(ReadOnlyMemory<byte>) is removed. If this argument is a byte payload, wrap it "
                             + "as `new MemoryStream(..)`; if it is already a Stream, nothing needs to change. Its type "
                             + "could not be determined here."
@@ -302,6 +334,51 @@ internal sealed class CorrespondenceApiMigration
             Unknown,
             Bytes,
             Stream,
+
+            /// <summary>
+            /// Proven <c>ReadOnlyMemory&lt;byte&gt;</c>/<c>Memory&lt;byte&gt;</c> — by overload
+            /// resolution or a written-out declaration: the type is known, but no mechanical
+            /// rewrite compiles.
+            /// </summary>
+            ProvenMemory,
+        }
+
+        /// <summary>
+        /// The kind implied by which v8 <c>WithData</c> overload the call bound to. Returns
+        /// <c>null</c> when there is no semantic model or the call did not bind to the SDK's
+        /// <c>WithData</c>, letting the syntax classification take over. A call bound to the removed
+        /// <c>ReadOnlyMemory&lt;byte&gt;</c> overload only classifies as bytes when the argument itself
+        /// is a byte array: a genuine <c>ReadOnlyMemory</c>/<c>Memory</c> value cannot be wrapped in a
+        /// <c>MemoryStream</c> mechanically (the constructor takes an array), so it is reported as
+        /// <see cref="DataKind.ProvenMemory"/> instead of rewritten into code that does not compile.
+        /// </summary>
+        private DataKind? ClassifyBoundWithData(InvocationExpressionSyntax original, ExpressionSyntax originalArgument)
+        {
+            if (_semanticModel?.GetSymbolInfo(original).Symbol is not IMethodSymbol method)
+            {
+                return null;
+            }
+
+            var unreduced = method.ReducedFrom ?? method;
+            if (!CSharpSemanticQueries.IsAltinnAppSymbol(unreduced) || unreduced.Parameters.Length == 0)
+            {
+                return null;
+            }
+
+            switch (unreduced.Parameters[^1].Type)
+            {
+                case INamedTypeSymbol { Name: "Stream", ContainingNamespace.Name: "IO" }:
+                    return DataKind.Stream;
+
+                case INamedTypeSymbol { Name: "ReadOnlyMemory" }:
+                    var argumentType = _semanticModel.GetTypeInfo(originalArgument).Type;
+                    return argumentType is IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte }
+                        ? DataKind.Bytes
+                        : DataKind.ProvenMemory;
+
+                default:
+                    return null;
+            }
         }
 
         private DataKind ClassifyDataArgument(ExpressionSyntax expression) => ClassifyDataArgument(expression, 0);
@@ -366,9 +443,14 @@ internal sealed class CorrespondenceApiMigration
                 return DataKind.Stream;
             }
 
-            if (_byteTypeNames.Contains(typeName) || typeName.StartsWith("byte[", StringComparison.Ordinal))
+            if (typeName.StartsWith("byte[", StringComparison.Ordinal))
             {
                 return DataKind.Bytes;
+            }
+
+            if (_memoryTypeNames.Contains(typeName))
+            {
+                return DataKind.ProvenMemory;
             }
 
             return DataKind.Unknown;

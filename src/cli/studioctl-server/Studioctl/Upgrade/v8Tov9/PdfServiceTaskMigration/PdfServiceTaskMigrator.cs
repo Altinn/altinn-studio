@@ -19,20 +19,20 @@ internal sealed class PdfServiceTaskMigrator
     }
 
     /// <summary>
-    /// Runs the migration. The result carries any warnings and whether manual follow-up is required
-    /// (e.g. a task that could not be migrated left the legacy flag in place). No warnings and no
-    /// manual action means a clean migration.
+    /// Runs the migration. The result carries any warnings, plus a to-do when manual follow-up is
+    /// required (e.g. a task that could not be migrated left the legacy flag in place). No warnings and
+    /// no to-dos means a clean migration.
     /// </summary>
     public async Task<MigrationResult> Migrate()
     {
-        var warnings = new List<string>();
+        var messages = new List<UpgradeMessage>();
 
         var metadataFile = AppFiles.Resolve(_projectFolder, "config/applicationmetadata.json");
         if (metadataFile is null)
         {
             // Nothing to migrate and no flag left behind, so no manual follow-up is implied.
-            warnings.Add("Could not find config/applicationmetadata.json; skipped PDF service task migration.");
-            return new MigrationResult(ManualActionRequired: false, warnings);
+            messages.Warn("Could not find config/applicationmetadata.json; skipped PDF service task migration.");
+            return new MigrationResult(messages);
         }
 
         var metadataRewriter = new ApplicationMetadataPdfRewriter(metadataFile);
@@ -44,20 +44,20 @@ internal sealed class PdfServiceTaskMigrator
         }
         catch (DecoderFallbackException)
         {
-            warnings.Add(
+            messages.Todo(
                 "config/applicationmetadata.json is not valid UTF-8 (it may use a legacy encoding such as "
                     + "ISO-8859-1); skipped PDF service task migration. Convert the file to UTF-8 and re-run "
                     + "the upgrade."
             );
-            return new MigrationResult(ManualActionRequired: true, warnings);
+            return new MigrationResult(messages);
         }
         catch (JsonException ex)
         {
-            warnings.Add(
+            messages.Todo(
                 $"config/applicationmetadata.json is not valid JSON ({ex.Message}); skipped PDF service task "
                     + "migration. Fix the file and re-run the upgrade."
             );
-            return new MigrationResult(ManualActionRequired: true, warnings);
+            return new MigrationResult(messages);
         }
 
         if (tasks.Count > 0)
@@ -65,11 +65,11 @@ internal sealed class PdfServiceTaskMigrator
             var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
             if (processFile is null)
             {
-                warnings.Add(
+                messages.Todo(
                     "applicationmetadata.json enables PDF creation, but config/process/process.bpmn was not "
                         + "found; cannot add PDF service task(s). Left applicationmetadata.json unchanged."
                 );
-                return new MigrationResult(ManualActionRequired: true, warnings);
+                return new MigrationResult(messages);
             }
 
             PdfProcessRewriter processRewriter;
@@ -79,20 +79,20 @@ internal sealed class PdfServiceTaskMigrator
             }
             catch (DecoderFallbackException)
             {
-                warnings.Add(
+                messages.Todo(
                     "config/process/process.bpmn is not valid UTF-8 (it may use a legacy encoding such as "
                         + "ISO-8859-1); cannot add PDF service task(s). Left applicationmetadata.json unchanged. "
                         + "Convert the file to UTF-8 and re-run the upgrade."
                 );
-                return new MigrationResult(ManualActionRequired: true, warnings);
+                return new MigrationResult(messages);
             }
             catch (XmlException ex)
             {
-                warnings.Add(
+                messages.Todo(
                     $"config/process/process.bpmn is not valid XML ({ex.Message}); cannot add PDF service "
                         + "task(s). Left applicationmetadata.json unchanged. Fix the file and re-run the upgrade."
                 );
-                return new MigrationResult(ManualActionRequired: true, warnings);
+                return new MigrationResult(messages);
             }
 
             processRewriter.InsertPdfServiceTasks(tasks);
@@ -100,7 +100,7 @@ internal sealed class PdfServiceTaskMigrator
             // satisfied must not reformat the file for nothing.
             if (processRewriter.HasChanges)
                 await processRewriter.Write();
-            warnings.AddRange(processRewriter.GetWarnings());
+            messages.WarnRange(processRewriter.GetWarnings());
 
             // If any insertion was skipped, keep the legacy flag: stripping it now would leave the
             // app with neither the v8 flag nor the v9 service task (silently dropping PDF generation),
@@ -110,22 +110,27 @@ internal sealed class PdfServiceTaskMigrator
             IReadOnlyList<string> skippedTasks = processRewriter.GetSkippedTasks();
             if (skippedTasks.Count > 0)
             {
-                warnings.Add(
+                messages.Todo(
                     $"Left enablePdfCreation in applicationmetadata.json unchanged because the PDF service "
                         + $"task(s) for [{string.Join(", ", skippedTasks)}] could not be inserted automatically. "
                         + "Add the service task(s) manually (or fix the process) and re-run the upgrade to "
                         + "strip the flag."
                 );
-                return new MigrationResult(ManualActionRequired: true, warnings);
+                return new MigrationResult(messages);
             }
         }
 
         // Strip the flag last, so a failure inserting service tasks above leaves metadata untouched.
         await metadataRewriter.StripEnablePdfCreation();
-        warnings.AddRange(metadataRewriter.GetWarnings());
+        messages.WarnRange(metadataRewriter.GetWarnings());
 
         // The rewriter leaves the flag in place when it can't strip it safely (unusual formatting, or
         // a result that would not parse); that too is manual follow-up.
-        return new MigrationResult(metadataRewriter.ManualActionRequired, warnings);
+        if (metadataRewriter.ManualActionRequired)
+        {
+            messages.Todo("PDF service task migration needs manual follow-up. Review the warnings above.");
+        }
+
+        return new MigrationResult(messages);
     }
 }

@@ -37,5 +37,7 @@ export function mapChatMessageToFrontend(message: ChatMessage) {
     role: MessageAuthor.Assistant as const,
     filesChanged: message.filesChanged,
     sources: message.sources,
+    traceId: message.traceId,
+    feedbackThumbsUp: message.feedbackThumbsUp ?? undefined,
   };
 }

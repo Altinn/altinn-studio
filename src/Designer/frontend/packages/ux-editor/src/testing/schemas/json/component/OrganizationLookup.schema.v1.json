@@ -20,7 +20,6 @@
         "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
-        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -136,10 +135,10 @@
     "dataModelBindings": {
       "type": "object",
       "properties": {
-        "organization_lookup_orgnr": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "organization_lookup_name": { "$ref": "#/definitions/IRawDataModelBinding" }
+        "orgnr": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "name": { "$ref": "#/definitions/IRawDataModelBinding" }
       },
-      "required": ["organization_lookup_orgnr"],
+      "required": ["orgnr"],
       "additionalProperties": false
     }
   },

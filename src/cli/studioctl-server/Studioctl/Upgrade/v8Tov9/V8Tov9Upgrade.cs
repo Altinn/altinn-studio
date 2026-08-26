@@ -21,7 +21,8 @@ internal sealed record V8Tov9UpgradeOptions(
     string? StudioRoot,
     UpgradeReport Report,
     TextWriter Error,
-    CancellationToken CancellationToken
+    CancellationToken CancellationToken,
+    bool SkipSemanticAnalysis = false
 );
 
 internal static class V8Tov9Upgrade
@@ -64,6 +65,13 @@ internal static class V8Tov9Upgrade
                 exitCode: ExitUnsupportedVersion
             );
 
+        // The C# source view is created — and, unless disabled, compiled — *before* the csproj bump:
+        // the symbols the detectors look for are precisely the ones v9 removes, so only the current
+        // (v8) dependency graph resolves them. The one scanner is shared by every C# step below;
+        // rewriters keep it (and its semantic models) current through CSharpSourceScanner.Update.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        var scanner = await CreateSourceScanner(projectFolder, projectFile, options);
+
         var returnCode = 0;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
@@ -99,7 +107,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveSwashbucklePackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
         // fails to restore (NU1605). Only relevant when we actually bumped the csproj to v9 packages.
@@ -113,22 +121,22 @@ internal static class V8Tov9Upgrade
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(projectFile));
+        returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsCollision(projectFolder));
@@ -140,13 +148,22 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCamelCaseLayoutProperties(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
@@ -182,35 +199,27 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports a migrator's result on the current step and maps it to an exit code. Warnings become
-    /// manual follow-up when the migrator left work for a human, plain warnings otherwise; a clean run
+    /// Reports a migrator's result on the current step and maps it to an exit code. Messages are reported
+    /// in the order the migrator produced them, so a to-do reads directly after the warning explaining why
+    /// the upgrade could not do it for you. Any to-do means the step requires manual follow-up. A clean run
     /// reports <paramref name="cleanText"/> with <paramref name="cleanStatus"/> - Skip for a check that
-    /// found nothing to act on, Ok (the default) for a migration that applied. Optionally reports
-    /// <paramref name="manualActionText"/> when manual follow-up is required.
+    /// found nothing to act on, Ok (the default) for a migration that applied.
     /// </summary>
     private static int ReportMigrationResult(
         MigrationResult result,
         string cleanText,
-        UpgradeMessageStatus cleanStatus = UpgradeMessageStatus.Ok,
-        string? manualActionText = null
+        UpgradeMessageStatus cleanStatus = UpgradeMessageStatus.Ok
     )
     {
-        foreach (var warning in result.Warnings)
+        foreach (var message in result.Messages)
         {
-            UpgradeConsole.Warning(warning);
+            UpgradeConsole.Message(message.Status, message.Text);
         }
 
-        if (result.ManualActionRequired)
-        {
-            if (!string.IsNullOrWhiteSpace(manualActionText))
-            {
-                UpgradeConsole.Todo(manualActionText);
-            }
-
+        if (result.RequiresManualFollowUp)
             return ExitManualActionRequired;
-        }
 
-        if (result.Warnings.Count == 0)
+        if (result.Messages.Count == 0)
             UpgradeConsole.Message(cleanStatus, cleanText);
 
         return ExitSuccess;
@@ -282,12 +291,33 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> MigrateOpenApiNamespace(string projectFile)
+    /// <summary>
+    /// Parses the app's C# source once, shared by every C# migration step. Unless disabled, it first
+    /// restores and compiles the app against its current (v8) packages so detection can use exact
+    /// symbol information; when that fails (the app does not compile, no matching SDK, offline), the
+    /// scanner degrades to syntax-only and detection over-reports rather than misses.
+    /// </summary>
+    static async Task<CSharpSourceScanner> CreateSourceScanner(
+        string projectFolder,
+        string projectFile,
+        V8Tov9UpgradeOptions options
+    )
+    {
+        if (options.SkipSemanticAnalysis)
+        {
+            return CSharpSourceScanner.ForProject(projectFile);
+        }
+
+        var semantic = await V8CompilationLoader.LoadAsync(projectFolder, projectFile, options.CancellationToken);
+        return CSharpSourceScanner.ForProject(projectFile, semantic.Compilation);
+    }
+
+    static async Task<int> MigrateOpenApiNamespace(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("OpenAPI namespace");
         try
         {
-            var migration = new UsingNamespaceMigration(projectFile);
+            var migration = new UsingNamespaceMigration(scanner);
             migration.Migrate("Microsoft.OpenApi.Models", "Microsoft.OpenApi", _programCsPathMatcher);
             return ExitSuccess;
         }
@@ -312,11 +342,7 @@ internal static class V8Tov9Upgrade
         {
             var resolver = new NuGetDowngradeResolver();
             var result = await resolver.ResolveAsync(projectFolder, projectFile, cancellationToken);
-            return ReportMigrationResult(
-                result,
-                cleanText: "No package downgrades against the v9 dependency floors",
-                manualActionText: "Some package downgrades need manual follow-up. Review the messages above."
-            );
+            return ReportMigrationResult(result, cleanText: "No package downgrades against the v9 dependency floors");
         }
         catch (OperationCanceledException)
         {
@@ -329,12 +355,12 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
-    static async Task<int> MigrateServiceTaskNamespace(string projectFile)
+    static async Task<int> MigrateServiceTaskNamespace(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("IServiceTask namespace");
         try
         {
-            var migration = new UsingNamespaceMigration(projectFile);
+            var migration = new UsingNamespaceMigration(scanner);
             migration.Migrate(ServiceTaskOldNamespace, ServiceTaskNewNamespace, _allCSharpFilesMatcher);
             return ExitSuccess;
         }
@@ -347,12 +373,11 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Rewrites the v8 eFormidling registration call to the v9 staged builder.
     /// </summary>
-    static async Task<int> MigrateEFormidlingRegistration(string projectFile)
+    static async Task<int> MigrateEFormidlingRegistration(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("eFormidling registration");
         try
         {
-            var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = new EFormidlingRegistrationMigration(scanner).Migrate();
             return ReportMigrationResult(
                 result,
@@ -370,12 +395,11 @@ internal static class V8Tov9Upgrade
     /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
     /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
     /// </summary>
-    static async Task<int> MigrateEFormidlingReceiversSignature(string projectFile)
+    static async Task<int> MigrateEFormidlingReceiversSignature(CSharpSourceScanner scanner, string projectFile)
     {
         UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
         try
         {
-            var scanner = CSharpSourceScanner.ForProject(projectFile);
             var migration = new EFormidlingReceiversSignatureMigration(
                 scanner,
                 EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
@@ -394,20 +418,14 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
-    /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
-    /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
-    /// </summary>
-    /// <summary>
     /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
     /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
     /// </summary>
-    static async Task<int> MigrateCorrespondenceApis(string projectFile)
+    static async Task<int> MigrateCorrespondenceApis(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("Correspondence APIs");
         try
         {
-            var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = new CorrespondenceApiMigration(scanner).Migrate();
 
             // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
@@ -429,12 +447,11 @@ internal static class V8Tov9Upgrade
     /// Rewrites the mechanical PlatformHttpException breaks. Runs before <see cref="CheckRemovedCSharpApis"/>
     /// so the uses it cannot rewrite are reported there instead.
     /// </summary>
-    static async Task<int> MigratePlatformHttpExceptionApis(string projectFile)
+    static async Task<int> MigratePlatformHttpExceptionApis(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("PlatformHttpException APIs");
         try
         {
-            var scanner = CSharpSourceScanner.ForProject(projectFile);
             var result = new PlatformHttpExceptionApiMigration(scanner).Migrate();
             return ReportMigrationResult(
                 result,
@@ -448,17 +465,32 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> CheckRemovedCSharpApis(string projectFile)
+    /// <summary>
+    /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgement:
+    /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
+    /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
+    /// </summary>
+    /// <remarks>
+    /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
+    /// silent-blindness bug (semantic detectors on the rewritten live view) or self-contradicting
+    /// output (syntax detectors on the pristine view re-reporting what a rewriter just fixed).
+    /// </remarks>
+    internal static async Task<int> CheckRemovedCSharpApis(CSharpSourceScanner scanner, string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
         try
         {
-            var scanner = CSharpSourceScanner.ForProject(projectFile);
+            // The semantic-aware detectors bind against the pristine pre-rewrite view - the v8
+            // compilation cannot bind names the rewriters already moved toward v9. The syntax-only
+            // detectors read the live (rewritten) view, preserving their contract with the rewriters:
+            // a usage is either fixed there or reported here, never both.
+            var pristineView = scanner.PristineView;
+
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
-                new ServiceTaskResultApiDetector(scanner).Detect(),
-                new LegacyEFormidlingCodeDetector(scanner).Detect(),
+                new ServiceTaskResultApiDetector(pristineView).Detect(),
+                new LegacyEFormidlingCodeDetector(pristineView).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
                 new LegacyCorrespondenceCodeDetector(scanner).Detect(),
                 new PlatformHttpExceptionApiDetector(scanner).Detect(),
@@ -470,8 +502,7 @@ internal static class V8Tov9Upgrade
             return ReportMigrationResult(
                 result,
                 cleanText: "No removed or changed v9 C# APIs in use",
-                cleanStatus: UpgradeMessageStatus.Skip,
-                manualActionText: "Removed or changed C# APIs need manual follow-up. Review the messages above."
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
@@ -516,8 +547,7 @@ internal static class V8Tov9Upgrade
             return ReportMigrationResult(
                 result,
                 cleanText: "No conflicting MaskinportenSettings configuration found",
-                cleanStatus: UpgradeMessageStatus.Skip,
-                manualActionText: "The Maskinporten configuration section needs manual follow-up. Review the messages above."
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
@@ -536,6 +566,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating OrganisationLookup components", ex);
+        }
+    }
+
+    static async Task<int> MigrateCamelCaseLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("CamelCase layout properties");
+        try
+        {
+            return await CamelCaseLayoutPropertyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating camelCase layout properties", ex);
         }
     }
 
@@ -577,6 +620,19 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateFileUploadWithTagLayouts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("FileUploadWithTag components");
+        try
+        {
+            return await FileUploadWithTagLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
+        }
+    }
+
     static async Task<int> MigrateDatepickerFormats(string projectFolder)
     {
         UpgradeConsole.BeginStep("Datepicker formats");
@@ -587,6 +643,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating legacy Datepicker format values", ex);
+        }
+    }
+
+    static async Task<int> MigrateGridXlSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Component grid xl settings");
+        try
+        {
+            var result = await GridXlMigration.Migrate(projectFolder);
+            if (result.PropertiesRemoved == 0)
+            {
+                UpgradeConsole.Skip("No component grid xl settings found");
+                return ExitSuccess;
+            }
+
+            UpgradeConsole.Ok(
+                $"Removed {result.PropertiesRemoved} unsupported xl grid setting(s) from {result.FilesChanged} layout file(s)"
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing component grid xl settings", ex);
         }
     }
 
@@ -908,11 +988,7 @@ internal static class V8Tov9Upgrade
             // Phrased as an end state, not an action: this migrator reports no warnings both when it
             // migrated cleanly and when there was nothing to migrate, and MigrationResult cannot tell the
             // two apart.
-            return ReportMigrationResult(
-                result,
-                cleanText: "No enablePdfCreation flags remain",
-                manualActionText: "PDF service task migration needs manual follow-up. Review the warnings above."
-            );
+            return ReportMigrationResult(result, cleanText: "No enablePdfCreation flags remain");
         }
         catch (Exception ex)
         {
@@ -933,8 +1009,7 @@ internal static class V8Tov9Upgrade
             var result = await migrator.Migrate();
             return ReportMigrationResult(
                 result,
-                cleanText: "policy.xml already grants the service owner the required process-transition rights",
-                manualActionText: "Service-owner policy migration needs manual follow-up. Review the warnings above."
+                cleanText: "policy.xml already grants the service owner the required process-transition rights"
             );
         }
         catch (Exception ex)
@@ -954,11 +1029,7 @@ internal static class V8Tov9Upgrade
         {
             var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
             var result = await migrator.Migrate();
-            return ReportMigrationResult(
-                result,
-                cleanText: "No legacy eFormidling configuration remains",
-                manualActionText: "eFormidling service task migration needs manual follow-up. Review the warnings above."
-            );
+            return ReportMigrationResult(result, cleanText: "No legacy eFormidling configuration remains");
         }
         catch (Exception ex)
         {

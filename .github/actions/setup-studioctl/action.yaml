@@ -1,19 +1,33 @@
-name: "Setup studioctl"
-description: "Builds a dev studioctl install for CI workflows"
+name: "Set up studioctl"
+description: "Restores or builds a source-keyed studioctl dev installation for CI workflows"
 runs:
   using: "composite"
   steps:
-    - name: Setup Go
-      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-      with:
-        go-version-file: src/cli/go.mod
+    - name: Resolve studioctl cache key
+      id: studioctl-cache-key
+      shell: bash
+      run: echo "key=studioctl-dev-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Runtime/localtest/testdata/**', 'src/Runtime/localtest/infra/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!src/cli/build/**', '!**/bin/**', '!**/obj/**') }}" >> "$GITHUB_OUTPUT"
 
-    - name: Setup .NET
+    - name: Cache studioctl dev install
+      id: cache-studioctl
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: src/cli/build/dev-home
+        key: ${{ steps.studioctl-cache-key.outputs.key }}
+
+    - name: Set up Go
+      if: ${{ steps.cache-studioctl.outputs.cache-hit != 'true' }}
+      uses: ./.github/actions/setup-go-cached
+      with:
+        module: src/cli
+
+    - name: Set up .NET
       uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
       with:
         dotnet-version: "10.0.x"
 
     - name: Build studioctl dev install
+      if: ${{ steps.cache-studioctl.outputs.cache-hit != 'true' }}
       working-directory: src/cli
       run: make dev-install
       shell: bash
@@ -25,3 +39,10 @@ runs:
         echo "STUDIOCTL_INTERNAL_DEV=true" >> "$GITHUB_ENV"
         echo "$studioctl_home/bin" >> "$GITHUB_PATH"
       shell: bash
+
+    - name: Set up LocalTest hostnames
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo --preserve-env=STUDIOCTL_HOME,STUDIOCTL_INTERNAL_DEV \
+          "$(command -v studioctl)" env hosts add

@@ -1,5 +1,5 @@
 .wrapper {
-  padding: var(--ds-size-5) var(--ds-size-11);
+  padding: var(--ds-size-4) var(--ds-size-11);
   background-color: var(--ds-color-surface-tinted);
   margin-bottom: var(--ds-size-2);
 }
@@ -16,5 +16,5 @@
 
 .requiredIndicator {
   display: inline;
-  padding: var(--fds-spacing-2);
+  padding: var(--ds-size-2);
 }

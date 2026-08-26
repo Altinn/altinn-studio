@@ -866,11 +866,6 @@ public class DataController : ControllerBase
             CancellationToken.None
         );
 
-        if (dataStream is null)
-        {
-            return NotFound();
-        }
-
         // The stream owns the HTTP response behind it. File(...) hands it to the result pipeline,
         // which disposes it — until then this scope owns it, including if the read-status update throws.
         try

@@ -1,0 +1,9 @@
+{
+  "hasCompletedOnboarding": true,
+  "bypassPermissionsModeAccepted": true,
+  "projects": {
+    "/home/agent/code": {
+      "hasTrustDialogAccepted": true
+    }
+  }
+}
