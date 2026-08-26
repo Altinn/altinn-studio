@@ -10598,7 +10598,7 @@
       "PayerCompany": {
         "type": "object",
         "properties": {
-          "organizationNumber": {
+          "organisationNumber": {
             "type": "string",
             "nullable": true
           },
@@ -10749,7 +10749,7 @@
       "PaymentReceiver": {
         "type": "object",
         "properties": {
-          "organizationNumber": {
+          "organisationNumber": {
             "type": "string",
             "nullable": true
           },

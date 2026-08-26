@@ -1669,7 +1669,7 @@ public class InstancesController : ControllerBase
         }
         else
         {
-            string lookupNumber = "personNumber or organizationNumber";
+            string lookupNumber = "personNumber or organisationNumber";
             string personOrOrganizationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
             try
             {
@@ -1695,7 +1695,7 @@ public class InstancesController : ControllerBase
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                 {
-                    lookupNumber = "organizationNumber";
+                    lookupNumber = "organisationNumber";
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
                     );
@@ -1723,7 +1723,7 @@ public class InstancesController : ControllerBase
                 {
                     throw new ServiceException(
                         HttpStatusCode.BadRequest,
-                        "Neither personNumber or organizationNumber has value in instanceOwner"
+                        "Neither personNumber or organisationNumber has value in instanceOwner"
                     );
                 }
             }

@@ -8,6 +8,7 @@ public class PaymentReceiver
     /// <summary>
     /// The organization number of the receiver.
     /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
     public string? OrganizationNumber { get; set; }
 
     /// <summary>

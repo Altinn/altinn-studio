@@ -222,7 +222,7 @@ public class InstancesController : ControllerBase
                         person = instanceOwnerIdValue;
                         break;
 
-                    case PartyType.Organization:
+                    case PartyType.Organisation:
                         if (
                             !InstanceOwnerIdRegExHelper
                                 .NineDigitRegex()

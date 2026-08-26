@@ -8,19 +8,19 @@ internal static class OrganizationLookupLayoutMigration
 {
     private const string OldComponentType = "OrganisationLookup";
     private const string NewComponentType = "OrganizationLookup";
-    private const string OldOrganizationNumberBinding = "organization_lookup_orgnr";
-    private const string OldOrganizationNameBinding = "organization_lookup_name";
+    private const string OldOrganizationNumberBinding = "organisation_lookup_orgnr";
+    private const string OldOrganizationNameBinding = "organisation_lookup_name";
 
     private static readonly Regex _componentTypePattern = new(
         "(\"type\"\\s*:\\s*)\"OrganisationLookup\"",
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
     private static readonly Regex _organizationNumberBindingPattern = new(
-        "\"organization_lookup_orgnr\"(?=\\s*:)",
+        "\"organisation_lookup_orgnr\"(?=\\s*:)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
     private static readonly Regex _organizationNameBindingPattern = new(
-        "\"organization_lookup_name\"(?=\\s*:)",
+        "\"organisation_lookup_name\"(?=\\s*:)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant
     );
 

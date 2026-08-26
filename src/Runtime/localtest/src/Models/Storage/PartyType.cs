@@ -15,5 +15,5 @@ public enum PartyType
     /// <summary>
     /// Represents an organization.
     /// </summary>
-    Organization,
+    Organisation,
 }

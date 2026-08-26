@@ -219,7 +219,7 @@ internal class SigningUserAction : IUserAction
         if (userId is null)
         {
             _logger.LogWarning(
-                "Unsupported authentication type for signing on behalf of {OrganizationNumber}",
+                "Unsupported authentication type for signing on behalf of {OrganisationNumber}",
                 context.OnBehalfOf
             );
             return false;
@@ -237,11 +237,11 @@ internal class SigningUserAction : IUserAction
 
         if (isAuthorized)
         {
-            _logger.LogInformation("User is authorized to sign on behalf of {OrganizationNumber}", context.OnBehalfOf);
+            _logger.LogInformation("User is authorized to sign on behalf of {OrganisationNumber}", context.OnBehalfOf);
         }
         else
         {
-            _logger.LogWarning("User is not authorized to sign on behalf of {OrganizationNumber}", context.OnBehalfOf);
+            _logger.LogWarning("User is not authorized to sign on behalf of {OrganisationNumber}", context.OnBehalfOf);
         }
 
         return isAuthorized;

@@ -196,7 +196,7 @@ designet
 # Gitea Organization model type). Prose in these files stays enforced
 # through the exact-identifier scope.
 @identifiers Organisation organisation
-@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/**
+@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/**
 Organisation
 organisation
 
@@ -244,3 +244,8 @@ Extentions
 Indicies
 Instansiation
 Organisation
+
+# v8 OrganisationLookup data-model binding names: the layout migration
+# matches them in order to rewrite them, and the release note names them
+@paths src/cli/**/Upgrade/** src/cli/CHANGELOG.md
+organisation

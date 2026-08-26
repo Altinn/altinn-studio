@@ -8,6 +8,7 @@ public class PayerCompany
     /// <summary>
     /// The organization number of the company.
     /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
     public string? OrganizationNumber { get; set; }
 
     /// <summary>

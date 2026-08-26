@@ -1815,6 +1815,7 @@ namespace Altinn.App.Core.Features.Payment.Models
         public PayerCompany() { }
         public Altinn.App.Core.Features.Payment.Models.PayerPrivatePerson? ContactPerson { get; set; }
         public string? Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
         public string? OrganizationNumber { get; set; }
     }
     public class PayerPrivatePerson
@@ -1869,6 +1870,7 @@ namespace Altinn.App.Core.Features.Payment.Models
         public string? BankAccountNumber { get; set; }
         public string? Email { get; set; }
         public string? Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
         public string? OrganizationNumber { get; set; }
         public Altinn.App.Core.Features.Payment.Models.PhoneNumber? PhoneNumber { get; set; }
         public Altinn.App.Core.Features.Payment.Models.Address? PostalAddress { get; set; }
