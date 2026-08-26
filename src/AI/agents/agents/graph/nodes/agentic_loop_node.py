@@ -261,7 +261,7 @@ async def _repair_render_failures(
 
     check = PreviewRenderCheckTool()
     args = check.input_schema.model_validate({})
-    for _ in range(MAX_RENDER_REPAIR_ROUNDS + 1):
+    for attempt in range(MAX_RENDER_REPAIR_ROUNDS + 1):
         if not ctx.extras.get("session_committed"):
             return result
         try:
@@ -272,6 +272,13 @@ async def _repair_render_failures(
         if outcome.metadata.get("unavailable") or not outcome.is_error:
             return result
         if sink.is_cancelled(state.session_id):
+            return result
+        if attempt == MAX_RENDER_REPAIR_ROUNDS:
+            log.warning(
+                "Render check still failing for session %s after %s repair round(s)",
+                state.session_id,
+                MAX_RENDER_REPAIR_ROUNDS,
+            )
             return result
 
         log.info("Render check failed for session %s; asking the model to fix", state.session_id)

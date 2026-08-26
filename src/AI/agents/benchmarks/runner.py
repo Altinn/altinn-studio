@@ -50,10 +50,14 @@ SCORE_CONFIG_SPECS: dict[str, dict] = {
 }
 
 PREVIEW_SCORE_CONFIG_SPECS: dict[str, dict] = {
-    "bench_renders": {"dataType": "BOOLEAN"},
-    "bench_pages_render": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
-    "bench_render_fix_rounds": {"dataType": "NUMERIC", "minValue": 0},
-    "bench_pages_render_after_fix": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
+    preview_check.RENDERS_SCORE_NAME: {"dataType": "BOOLEAN"},
+    preview_check.PAGES_RENDER_SCORE_NAME: {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
+    preview_check.RENDER_FIX_ROUNDS_SCORE_NAME: {"dataType": "NUMERIC", "minValue": 0},
+    preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME: {
+        "dataType": "NUMERIC",
+        "minValue": 0,
+        "maxValue": 1,
+    },
 }
 
 RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
@@ -193,6 +197,22 @@ def _render_fix_goal(failures: list[preview_check.PageRenderResult]) -> str:
     )
 
 
+def _render_fix_rounds() -> int:
+    """Read the round budget, falling back rather than dying mid-run."""
+    raw = os.environ.get(RENDER_FIX_ROUNDS_ENV, str(DEFAULT_RENDER_FIX_ROUNDS))
+    try:
+        rounds = int(raw)
+    except ValueError:
+        rounds = -1
+    if rounds < 0:
+        print(
+            f"  {RENDER_FIX_ROUNDS_ENV}={raw!r} is not a non-negative integer; "
+            f"using {DEFAULT_RENDER_FIX_ROUNDS}"
+        )
+        return DEFAULT_RENDER_FIX_ROUNDS
+    return rounds
+
+
 def _fix_render_failures(
     agent_base: str,
     session_id: str,
@@ -202,7 +222,7 @@ def _fix_render_failures(
     """Send render failures back into the agent session and re-check,
     up to BENCH_RENDER_FIX_ROUNDS rounds (each round is a full agent
     workflow). Returns (results of the last re-check, rounds run)."""
-    max_rounds = int(os.environ.get(RENDER_FIX_ROUNDS_ENV, str(DEFAULT_RENDER_FIX_ROUNDS)))
+    max_rounds = _render_fix_rounds()
     branch = _session_branch(session_id)
     results: list[preview_check.PageRenderResult] | None = None
     rounds = 0
@@ -232,7 +252,7 @@ def _after_fix_scores(
 ) -> list[Score]:
     scores = [
         Score(
-            name="bench_render_fix_rounds",
+            name=preview_check.RENDER_FIX_ROUNDS_SCORE_NAME,
             value=float(rounds),
             data_type="NUMERIC",
             comment=f"{rounds} render-fix round(s) sent back into the agent session",
@@ -245,7 +265,7 @@ def _after_fix_scores(
     failure_summary = "; ".join(f"{failure.page}: {failure.detail}" for failure in failures)
     scores.append(
         Score(
-            name="bench_pages_render_after_fix",
+            name=preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME,
             value=rendered_count / len(results) if results else 0.0,
             data_type="NUMERIC",
             comment=f"{rendered_count}/{len(results)} pages rendered after fix"

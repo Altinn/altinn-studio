@@ -24,6 +24,11 @@ XSRF_HEADER_NAME = "X-XSRF-TOKEN"
 
 ERROR_SELECTOR = '[data-testid="AltinnError"], [data-fatal-error]'
 RENDERED_OR_ERROR_SELECTOR = f"#finishedLoading, #readyForPrint, {ERROR_SELECTOR}"
+APP_DIR_NAME = "App"
+UI_DIR_NAME = "ui"
+LAYOUT_SETTINGS_FILE_NAME = "Settings.json"
+PAGES_KEY = "pages"
+PAGE_ORDER_KEY = "order"
 PREVIEW_IFRAME_SELECTOR = "#app-frontend-react-iframe"
 
 THROWN_ERROR_PATTERN = re.compile(
@@ -96,15 +101,15 @@ def read_page_order(repo_root: Path) -> list[str]:
     With several ordered layout sets the longest wins, as the benchmark does.
     """
     best: list[str] = []
-    ui_dir = repo_root / "App" / "ui"
+    ui_dir = repo_root / APP_DIR_NAME / UI_DIR_NAME
     if not ui_dir.is_dir():
         return best
-    for settings_path in sorted(ui_dir.rglob("Settings.json")):
+    for settings_path in sorted(ui_dir.rglob(LAYOUT_SETTINGS_FILE_NAME)):
         try:
             settings = json.loads(settings_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        order = (settings.get("pages") or {}).get("order")
+        order = (settings.get(PAGES_KEY) or {}).get(PAGE_ORDER_KEY)
         if isinstance(order, list) and len(order) > len(best):
             best = [p for p in order if isinstance(p, str)]
     return best
@@ -175,7 +180,11 @@ def _checkout_branch(context, studio_base: str, org: str, app: str, branch: str)
     """
     repo_api = f"{studio_base}/designer/api/repos/repo/{org}/{app}"
 
-    context.request.get(f"{repo_api}/reset", timeout=CHECKOUT_TIMEOUT_MS)
+    reset = context.request.get(f"{repo_api}/reset", timeout=CHECKOUT_TIMEOUT_MS)
+    if not reset.ok:
+        raise PreviewCheckUnavailable(
+            f"reset before checkout of {branch!r} failed: {reset.status} {reset.status_text}"
+        )
 
     checkout = context.request.post(
         f"{repo_api}/checkout",
@@ -218,8 +227,10 @@ def _check_pages(page, first_page_url: str, page_order: list[str]) -> list[PageR
     for layout in page_order:
         url = swap_layout_in_preview_url(first_page_url, layout)
         if url is None:
-            results.append(_check_single_page(page, first_page_url, layout))
-            break
+            # Scoring a subset would report a pass the run never earned.
+            raise PreviewCheckUnavailable(
+                f"preview url {first_page_url!r} cannot select layouts; cannot check {len(page_order)} page(s)"
+            )
         results.append(_check_single_page(page, url, layout))
     return results
 

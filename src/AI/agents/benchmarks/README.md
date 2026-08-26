@@ -206,10 +206,13 @@ runs. Checkout and preview both run as that browser user, so the
 preview always renders the working copy the check just switched to the
 session branch.
 
-Failure containment: render failures score 0 with the failing page and
-an error snippet in the comment; infrastructure problems (Playwright
-missing, login or checkout failing) skip the check with a log line and
-post no render scores; the benchmark run itself never fails.
+Failure containment: `bench_renders` is 1 only when the first ordered
+page renders, and `bench_pages_render` is the fraction of pages that
+did, so a late failure shows up as a fraction below 1 rather than a
+zero. The failing page and an error snippet go in the comment.
+Infrastructure problems (Playwright missing, login or checkout failing,
+a preview url that cannot select layouts) skip the check with a log
+line and post no render scores; the benchmark run itself never fails.
 
 ### The agent's own render check
 

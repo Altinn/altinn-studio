@@ -738,6 +738,14 @@ def _loop_result():
     return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
 
 
+class _AsyncRecommit:
+    """Stands in for the auto-commit that follows a repair round, which is what
+    makes the session checkable again."""
+
+    async def __call__(self, _state, _result, ctx):
+        ctx.extras["session_committed"] = True
+
+
 class TestEnforcedRenderCheck:
     async def test_passing_check_does_not_re_enter_the_loop(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=False)])
@@ -766,6 +774,56 @@ class TestEnforcedRenderCheck:
         )
 
         assert reran == []
+
+    async def test_a_persistent_failure_repairs_only_the_configured_rounds(
+        self, tmp_path, monkeypatch
+    ):
+        """Two failing checks, one repair: the second check verifies the fix
+        rather than triggering another."""
+        check = _CheckStub([_outcome(is_error=True), _outcome(is_error=True)])
+        monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
+        monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
+        reran = []
+
+        async def fake_run_loop(**kw):
+            reran.append(kw)
+            return _loop_result()
+
+        monkeypatch.setattr(node, "run_loop", fake_run_loop)
+        monkeypatch.setattr(node, "_maybe_auto_commit", _AsyncRecommit())
+        ctx = _committed_ctx(tmp_path)
+
+        await node._repair_render_failures(
+            _state(), _loop_result(), ctx,
+            registry=None, adapter=None, system_prompt="", on_event=None,
+        )
+
+        assert len(reran) == node.MAX_RENDER_REPAIR_ROUNDS
+        assert check.calls == node.MAX_RENDER_REPAIR_ROUNDS + 1
+
+    async def test_a_repair_that_works_is_confirmed_by_a_final_check(
+        self, tmp_path, monkeypatch
+    ):
+        check = _CheckStub([_outcome(is_error=True), _outcome(is_error=False)])
+        monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
+        monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
+        reran = []
+
+        async def fake_run_loop(**kw):
+            reran.append(kw)
+            return _loop_result()
+
+        monkeypatch.setattr(node, "run_loop", fake_run_loop)
+        monkeypatch.setattr(node, "_maybe_auto_commit", _AsyncRecommit())
+        ctx = _committed_ctx(tmp_path)
+
+        await node._repair_render_failures(
+            _state(), _loop_result(), ctx,
+            registry=None, adapter=None, system_prompt="", on_event=None,
+        )
+
+        assert len(reran) == 1
+        assert check.calls == 2
 
     async def test_uncommitted_session_is_not_checked(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=False)])

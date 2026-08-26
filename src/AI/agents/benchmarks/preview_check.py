@@ -18,6 +18,11 @@ from agents.services.preview.render_check import (
 
 from .evaluators import Score
 
+RENDERS_SCORE_NAME = "bench_renders"
+PAGES_RENDER_SCORE_NAME = "bench_pages_render"
+RENDER_FIX_ROUNDS_SCORE_NAME = "bench_render_fix_rounds"
+PAGES_RENDER_AFTER_FIX_SCORE_NAME = "bench_pages_render_after_fix"
+
 __all__ = [
     "PageRenderResult",
     "PreviewCheckUnavailable",
@@ -80,7 +85,7 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
 
     first = results[0] if results else None
     renders = Score(
-        name="bench_renders",
+        name=RENDERS_SCORE_NAME,
         value=1.0 if first and first.rendered else 0.0,
         data_type="BOOLEAN",
         comment=(
@@ -92,7 +97,7 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
         ),
     )
     pages_render = Score(
-        name="bench_pages_render",
+        name=PAGES_RENDER_SCORE_NAME,
         value=rendered_count / len(results) if results else 0.0,
         data_type="NUMERIC",
         comment=(
