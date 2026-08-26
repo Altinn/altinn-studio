@@ -1,19 +1,18 @@
-import type { ReactElement } from 'react';
+import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioHeading, StudioParagraph, StudioSwitch } from '@studio/components';
+import { StudioButton, StudioCheckbox, StudioFieldset, StudioHeading } from '@studio/components';
 import { useConsent, useConsentMutation } from '../../utils/consent';
-import classNames from 'classnames';
 import classes from './ConsentForm.module.css';
 
 type ConsentFormProps = {
-  variant?: 'banner' | 'default';
+  headingId?: string;
   onSave?: () => void;
   onDeclineAll?: () => void;
 };
 
 export const ConsentForm = ({
-  variant = 'default',
+  headingId,
   onSave,
   onDeclineAll,
 }: ConsentFormProps): ReactElement => {
@@ -25,8 +24,6 @@ export const ConsentForm = ({
     hasAnalyticsConsent && hasSessionRecordingConsent,
   );
 
-  const isBanner = variant === 'banner';
-
   const handleAnalyticsChange = (checked: boolean): void => {
     setAnalytics(checked);
     if (!checked) {
@@ -34,7 +31,8 @@ export const ConsentForm = ({
     }
   };
 
-  const handleSave = (): void => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     setConsentPreferences({ analytics, sessionRecording });
     onSave?.();
   };
@@ -47,30 +45,37 @@ export const ConsentForm = ({
   };
 
   return (
-    <div className={classes.form}>
-      <StudioHeading level={2}>{t('consent.banner.title')}</StudioHeading>
-      <StudioParagraph>{t('consent.banner.description')}</StudioParagraph>
-      <StudioSwitch
-        checked={analytics}
-        onChange={(e) => handleAnalyticsChange(e.target.checked)}
-        label={t('consent.banner.analytics.label')}
-      />
-      <StudioSwitch
-        checked={sessionRecording}
-        onChange={(e) => setSessionRecording(e.target.checked)}
-        disabled={!analytics}
-        label={t('consent.banner.sessionRecording.label')}
-      />
-      <div className={classNames(classes.actions, isBanner && classes.bannerActions)}>
-        <StudioButton variant='primary' onClick={handleSave} disabled={isBanner && !analytics}>
-          {t('consent.banner.save')}
-        </StudioButton>
+    <form className={classes.form} onSubmit={handleSubmit}>
+      <StudioFieldset
+        legend={
+          <StudioHeading id={headingId} level={2}>
+            {t('consent.banner.title')}
+          </StudioHeading>
+        }
+        description={t('consent.banner.description')}
+      >
+        <StudioCheckbox
+          checked={analytics}
+          label={t('consent.banner.analytics.label')}
+          onChange={(event) => handleAnalyticsChange(event.target.checked)}
+          value='analytics'
+        />
+        <StudioCheckbox
+          checked={sessionRecording}
+          disabled={!analytics}
+          label={t('consent.banner.sessionRecording.label')}
+          onChange={(event) => setSessionRecording(event.target.checked)}
+          value='sessionRecording'
+        />
+      </StudioFieldset>
+      <div className={classes.actions}>
+        <StudioButton type='submit'>{t('consent.banner.save')}</StudioButton>
         {onDeclineAll && (
-          <StudioButton variant='secondary' onClick={handleDeclineAll}>
+          <StudioButton type='button' onClick={handleDeclineAll}>
             {t('consent.banner.declineAll')}
           </StudioButton>
         )}
       </div>
-    </div>
+    </form>
   );
 };

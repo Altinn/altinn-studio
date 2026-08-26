@@ -22,11 +22,11 @@ const defaultConsentState = {
 
 const renderPrivacy = () => render(<Privacy />);
 
-const getAnalyticsSwitch = () =>
-  screen.getByRole('switch', { name: textMock('consent.banner.analytics.label') });
+const getAnalyticsCheckbox = () =>
+  screen.getByRole('checkbox', { name: textMock('consent.banner.analytics.label') });
 
-const getSessionRecordingSwitch = () =>
-  screen.getByRole('switch', { name: textMock('consent.banner.sessionRecording.label') });
+const getSessionRecordingCheckbox = () =>
+  screen.getByRole('checkbox', { name: textMock('consent.banner.sessionRecording.label') });
 
 const getSaveButton = () => screen.getByRole('button', { name: textMock('consent.banner.save') });
 
@@ -53,7 +53,7 @@ describe('Privacy', () => {
       hasSessionRecordingConsent: false,
     });
     renderPrivacy();
-    expect(getAnalyticsSwitch()).toBeChecked();
+    expect(getAnalyticsCheckbox()).toBeChecked();
   });
 
   it('reflects current session recording consent state when both consents are granted', () => {
@@ -62,19 +62,19 @@ describe('Privacy', () => {
       hasSessionRecordingConsent: true,
     });
     renderPrivacy();
-    expect(getSessionRecordingSwitch()).toBeChecked();
+    expect(getSessionRecordingCheckbox()).toBeChecked();
   });
 
-  it('disables session recording switch when analytics is off', () => {
+  it('disables session recording checkbox when analytics is off', () => {
     renderPrivacy();
-    expect(getSessionRecordingSwitch()).toBeDisabled();
+    expect(getSessionRecordingCheckbox()).toBeDisabled();
   });
 
-  it('enables session recording switch when analytics is turned on', async () => {
+  it('enables session recording checkbox when analytics is turned on', async () => {
     const user = userEvent.setup();
     renderPrivacy();
-    await user.click(getAnalyticsSwitch());
-    expect(getSessionRecordingSwitch()).not.toBeDisabled();
+    await user.click(getAnalyticsCheckbox());
+    expect(getSessionRecordingCheckbox()).not.toBeDisabled();
   });
 
   it('unchecks session recording when analytics is turned off', async () => {
@@ -84,14 +84,14 @@ describe('Privacy', () => {
     });
     const user = userEvent.setup();
     renderPrivacy();
-    await user.click(getAnalyticsSwitch());
-    expect(getSessionRecordingSwitch()).not.toBeChecked();
+    await user.click(getAnalyticsCheckbox());
+    expect(getSessionRecordingCheckbox()).not.toBeChecked();
   });
 
   it('shows a success toast after saving', async () => {
     const user = userEvent.setup();
     renderPrivacy();
-    await user.click(getAnalyticsSwitch());
+    await user.click(getAnalyticsCheckbox());
     await user.click(getSaveButton());
     expect(toast.success).toHaveBeenCalledWith(textMock('settings.user.privacy.saved'));
   });
