@@ -345,6 +345,8 @@ pub struct EnsureSandboxRequest {
     spec: SandboxSpec,
     /// Attachments contributed by the caller or a higher platform layer.
     mounts: Vec<Mount>,
+    /// Non-secret environment contributed by the caller or a higher platform layer.
+    environment: std::collections::BTreeMap<String, String>,
     /// Optional functionality required from the selected Sandbox Backend.
     required_features: SandboxFeatureSet,
 }
@@ -357,6 +359,7 @@ impl EnsureSandboxRequest {
             name,
             spec,
             mounts: Vec::new(),
+            environment: std::collections::BTreeMap::new(),
             required_features: SandboxFeatureSet::new(),
         }
     }
@@ -365,6 +368,13 @@ impl EnsureSandboxRequest {
     #[must_use]
     pub fn with_mounts(mut self, mounts: impl IntoIterator<Item = Mount>) -> Self {
         self.mounts = mounts.into_iter().collect();
+        self
+    }
+
+    /// Adds non-secret environment inherited by image init and Sandbox Executions.
+    #[must_use]
+    pub fn with_environment(mut self, environment: impl IntoIterator<Item = (String, String)>) -> Self {
+        self.environment.extend(environment);
         self
     }
 
@@ -397,6 +407,12 @@ impl EnsureSandboxRequest {
     #[must_use]
     pub fn mounts(&self) -> &[Mount] {
         &self.mounts
+    }
+
+    /// Returns the desired non-secret Sandbox environment.
+    #[must_use]
+    pub const fn environment(&self) -> &std::collections::BTreeMap<String, String> {
+        &self.environment
     }
 
     /// Returns explicit optional Feature requirements.
@@ -579,6 +595,7 @@ impl SandboxService {
         let started = Instant::now();
         events.phase_started(SandboxPhase::Validate).await;
         request.spec.validate()?;
+        validate_environment(&request.environment)?;
         events
             .phase_completed(SandboxPhase::Validate, PhaseOutcome::Completed, started.elapsed())
             .await;
@@ -611,6 +628,7 @@ impl SandboxService {
                 if sandbox.network != network {
                     return Err(Error::Immutable("network"));
                 }
+                let sandbox = self.ensure_environment(sandbox, &request.environment, events).await?;
                 let sandbox = self.ensure_resources(sandbox, request.spec.resources, events).await?;
                 self.ensure_running(sandbox, events).await
             }
@@ -636,6 +654,7 @@ impl SandboxService {
                         resources: request.spec.resources,
                         init_system: request.spec.init_system,
                         mounts: request.mounts.clone(),
+                        environment: request.environment.clone(),
                         network,
                     })
                     .forward(events)
@@ -704,6 +723,43 @@ impl SandboxService {
                 .forward(events)
                 .await
                 .map_err(|error| Error::component("update Sandbox resources", error))?;
+            (sandbox, PhaseOutcome::Completed)
+        };
+        events
+            .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
+            .await;
+        Ok(sandbox)
+    }
+
+    async fn ensure_environment(
+        &self,
+        sandbox: Sandbox,
+        environment: &std::collections::BTreeMap<String, String>,
+        events: &SandboxEvents,
+    ) -> Result<Sandbox, Error> {
+        let started = Instant::now();
+        events.phase_started(SandboxPhase::SandboxUpdate).await;
+        let (sandbox, outcome) = if &sandbox.environment == environment {
+            (sandbox, PhaseOutcome::Reused)
+        } else {
+            if sandbox.state != SandboxState::Stopped {
+                self.backend()
+                    .stop(&sandbox.id)
+                    .await
+                    .map_err(|error| Error::component("stop Sandbox for environment update", error))?;
+                if let Some(network_backend) = self.network_backend_for(&sandbox)? {
+                    network_backend
+                        .stop(&sandbox.id)
+                        .await
+                        .map_err(|error| Error::component("stop Sandbox Network for environment update", error))?;
+                }
+            }
+            let sandbox = self
+                .backend()
+                .update_environment(&sandbox.id, environment.clone())
+                .forward(events)
+                .await
+                .map_err(|error| Error::component("update Sandbox environment", error))?;
             (sandbox, PhaseOutcome::Completed)
         };
         events
@@ -819,6 +875,28 @@ impl SandboxService {
             .find(name)
             .await
             .map_err(|error| Error::component("find Sandbox", error))
+    }
+
+    /// Opens an effect-free Handle for an already materialized Sandbox.
+    ///
+    /// This never creates, starts, updates, or reconnects the Sandbox. Callers
+    /// that own only in-Sandbox effects use it after a lifecycle owner has
+    /// persisted the exact Sandbox identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Sandbox does not exist or cannot be inspected.
+    pub async fn open(&self, id: &crate::SandboxId, retention_policy: RetentionPolicy) -> Result<SandboxHandle, Error> {
+        let sandbox = self
+            .backend()
+            .inspect(id)
+            .await
+            .map_err(|error| Error::component("inspect Sandbox", error))?;
+        Ok(SandboxHandle {
+            service: self.clone(),
+            sandbox,
+            retention_policy,
+        })
     }
 
     /// Stops and deletes a named Sandbox if it exists.
@@ -984,6 +1062,22 @@ impl SandboxService {
     pub async fn delete_volume(&self, id: &volume::VolumeId) -> Result<(), Error> {
         self.backend().delete_volume(id).await
     }
+}
+
+fn validate_environment(environment: &std::collections::BTreeMap<String, String>) -> Result<(), Error> {
+    for (name, value) in environment {
+        let valid_name = !name.is_empty()
+            && name.bytes().enumerate().all(|(index, byte)| {
+                byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit())
+            });
+        if !valid_name || value.contains('\0') {
+            return Err(Error::invalid(
+                "environment",
+                "names must be portable environment variables and values must not contain NUL",
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// A ready Sandbox and the operations scoped to its immutable lifecycle ID.
