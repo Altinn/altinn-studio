@@ -85,7 +85,7 @@ Elipsis
 Labelled
 
 # BuildKit SolveStatus field name
-@paths src/Runtime/devenv/pkg/container/dockerapi/**
+@paths src/Runtime/devenv/pkg/container/dockerapi/** src/experimental/sandbox-microsandbox/src/image.rs
 Vertexes
 vertexes
 
@@ -196,7 +196,7 @@ designet
 # Gitea Organization model type). Prose in these files stays enforced
 # through the exact-identifier scope.
 @identifiers Organisation organisation
-@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/**
+@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts
 Organisation
 organisation
 
@@ -230,6 +230,7 @@ lik
 @paths src/AI/augmenter-agent/TODO-coderabbit.md
 foldes
 prosess
+som
 
 # The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
 # so the old spellings are its working data: the rename map, the rewrite
@@ -254,3 +255,7 @@ organisation
 # it by this spelling, so the literal is a wire contract
 @paths src/Designer/backend/src/Designer/Controllers/ProcessModelingController.cs
 modelling
+
+# Norwegian JSX text node in the Storybook docs component
+@paths src/common/ts/form-component/src/layout-components/common/storybook/LayoutComponentDocs.tsx
+som

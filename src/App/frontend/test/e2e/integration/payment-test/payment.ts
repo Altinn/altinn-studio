@@ -9,7 +9,7 @@ describe('Payment', () => {
   beforeEach(() => {
     cy.startAppInstance(appFrontend.apps.paymentTest, { authenticationLevel: '1' });
 
-    cy.findByRole('radio', { name: /Jeg fyller ut skjemaet some søker/ }).click();
+    cy.findByRole('radio', { name: /Jeg fyller ut skjemaet som søker/ }).click();
     cy.contains('button', 'Varer og tjenester').click();
     cy.findByRole('checkbox', { name: /Jeg har lest og forstått/ }).click();
     cy.findByRole('textbox', { name: /Klassenummer/ }).type('1');
@@ -80,7 +80,7 @@ describe('PaymentInformation component', () => {
   it('should re-fetch stale data when rendering the component for the first time after the relevant data in the datamodel has changed', () => {
     cy.startAppInstance(appFrontend.apps.paymentTest, { authenticationLevel: '1' });
 
-    cy.findByRole('radio', { name: /Jeg fyller ut skjemaet some søker/ }).click();
+    cy.findByRole('radio', { name: /Jeg fyller ut skjemaet som søker/ }).click();
     // hiding the payment details component on the page where the orderlines are created in order to test the
     // payment information component fetching order details on first render. Another payment details component exists
     // on the last page of the data task, where this test is being performed.

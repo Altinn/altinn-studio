@@ -7,7 +7,7 @@ describe('Number and Text components', () => {
       .findByLabelText(/total gjeld/i)
       .should('contain.text', '0 kr');
     cy.get(numberCard)
-      .findByLabelText(/Statisk verdi some tall/i)
+      .findByLabelText(/Statisk verdi som tall/i)
       .should('contain.text', '2 000 kr');
     cy.get(numberCard)
       .findByLabelText(/Kredittkort prosent/i)

@@ -412,7 +412,7 @@ const mockAppConfigComplete: ApplicationMetadata = {
     delegable: false,
     rightDescription: mockRightDescription,
   },
-  partyTypesAllowed: { person: true, bankruptcyEstate: false, organization: false, subUnit: false },
+  partyTypesAllowed: { person: true, bankruptcyEstate: false, organisation: false, subUnit: false },
   contactPoints: [mockContactPoints],
 };
 

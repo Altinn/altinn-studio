@@ -14,7 +14,7 @@ const mockValidTo: string = '2023-11-13T12:00:00Z';
 
 const mockPartyTypesAllowed: PartyTypesAllowed = {
   bankruptcyEstate: true,
-  organization: false,
+  organisation: false,
   person: false,
   subUnit: false,
 };

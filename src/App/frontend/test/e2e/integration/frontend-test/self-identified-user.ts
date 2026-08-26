@@ -23,7 +23,7 @@ describe('Self identified user', () => {
           person: true,
           subUnit: false,
           bankruptcyEstate: false,
-          organization: false,
+          organisation: false,
         };
       });
     });

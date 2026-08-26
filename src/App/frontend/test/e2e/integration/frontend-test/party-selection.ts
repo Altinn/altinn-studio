@@ -65,7 +65,7 @@ describe('Party selection', () => {
         person: true,
         subUnit: false,
         bankruptcyEstate: false,
-        organization: false,
+        organisation: false,
       },
     });
 
@@ -87,7 +87,7 @@ describe('Party selection', () => {
         person: false,
         subUnit: false,
         bankruptcyEstate: false,
-        organization: true,
+        organisation: true,
       },
     });
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });

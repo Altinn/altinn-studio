@@ -1,6 +1,6 @@
 # CodeRabbit Review TODOs (PR #17684)
 
-Tilbakemeldinger fra CodeRabbit some ikke er adressert ennå.
+Tilbakemeldinger fra CodeRabbit som ikke er adressert ennå.
 Prioriterer validering av applikasjonen i et miljø først — arkitekturen
 kan endre seg vesentlig (tilstand, lastbalansering, filesystem-avhengigheter).
 
@@ -20,7 +20,7 @@ kan endre seg vesentlig (tilstand, lastbalansering, filesystem-avhengigheter).
 - [ ] **SSRF-beskyttelse i CallbackService** (`CallbackService.cs:12`)
   CallbackService poster til bruker-oppgitt URL uten nettverksrestriksjoner.
   CallbackUrlValidator sjekker pattern-match, men blokkerer ikke private/loopback
-  IP-adresser. Vurder `SocketsHttpHandler` med `ConnectCallback` some avviser
+  IP-adresser. Vurder `SocketsHttpHandler` med `ConnectCallback` som avviser
   private IP-er etter DNS-oppslag (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16,
   169.254.0.0/16, ::1, fc00::/7, fe80::/10).
 
@@ -45,7 +45,7 @@ kan endre seg vesentlig (tilstand, lastbalansering, filesystem-avhengigheter).
   men dette er ikke håndtert i `/generate`-endpointet. Bør fange og returnere
   passende feilkode (f.eks. 422/500 med feilmelding).
 
-- [ ] **Caller-cancellation maskert some timeout** (`PdfGeneratorService.cs:56-68`)
+- [ ] **Caller-cancellation maskert som timeout** (`PdfGeneratorService.cs:56-68`)
   Når den linkede `CancellationTokenSource` avfyres, git både caller-cancellation
   og intern timeout `OperationCanceledException`. Bør skille mellom de to for
   riktig logging og feilmelding.
