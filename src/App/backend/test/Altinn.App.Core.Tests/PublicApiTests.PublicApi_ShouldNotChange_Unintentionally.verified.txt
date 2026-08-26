@@ -44,7 +44,6 @@ namespace Altinn.App.Core.Configuration
         public string ServiceStylesConfigFileName { get; set; }
         public string TextFolder { get; set; }
         public string UiFolder { get; set; }
-        public bool UseOpenTelemetry { get; set; }
         public bool UseOpenTelemetryCollector { get; set; }
         public string ValidationConfigurationFileName { get; set; }
         public bool XsdValidation { get; set; }

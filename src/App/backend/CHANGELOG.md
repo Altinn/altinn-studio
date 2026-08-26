@@ -25,6 +25,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Removed
 
 - Breaking: remove the obsolete `Altinn.App.Core.Interface.IData` interface. Use `Altinn.App.Core.Internal.Data.IDataClient` instead.
+- Breaking: the app now always runs on OpenTelemetry for tracing, metrics, and logging. The classic Application Insights SDK and the `AppSettings:UseOpenTelemetry` setting are removed; setting it no longer has any effect. If your app still uses an `ApplicationInsights:InstrumentationKey`/`ConnectionString` or the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable, telemetry keeps flowing to the same Application Insights resource, now exported through OpenTelemetry's Azure Monitor exporter instead of the classic SDK. Set `AppSettings:UseOpenTelemetryCollector` to `true` to export via OTLP to a collector instead.
 
 ## [9.0.0-preview.4] - 2026-08-11
 
