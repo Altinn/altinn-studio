@@ -389,7 +389,7 @@ public class AppTestPerson
         PhoneNumber = TelephoneNumber ?? MobileNumber,
         Email = Email,
         // ExternalIdentity,
-        Party = ToParty().ToLegacyParty(),
+        Party = ToParty(),
         ProfileSettingPreference = new()
         {
             // DoNotPromptForParty,

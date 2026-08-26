@@ -790,7 +790,7 @@ internal class ProcessEngine : IProcessEngine
                 {
                     UserId = auth.UserId,
                     AuthenticationLevel = auth.AuthenticationLevel,
-                    NationalIdentityNumber = details.Profile.Party.SSN,
+                    NationalIdentityNumber = details.Profile.Party?.SSN,
                 };
             }
             case Authenticated.Org:

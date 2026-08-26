@@ -8,7 +8,6 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 
@@ -315,7 +314,7 @@ public abstract class Authenticated
                 await _getUserProfile(UserId)
                 ?? throw new AuthenticationContextException($"Could not get user profile for logged in user: {UserId}");
             var userParty =
-                userProfile.Party.ToRegisterContractsParty()
+                userProfile.Party
                 ?? throw new AuthenticationContextException(
                     $"Could not get user party from profile for user: {UserId}"
                 );

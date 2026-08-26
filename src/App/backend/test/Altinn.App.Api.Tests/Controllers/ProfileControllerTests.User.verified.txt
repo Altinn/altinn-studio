@@ -93,13 +93,19 @@
           onlyHierarchyElementWithNoAccess: false,
           person: null,
           organization: null,
-          childParties: null
+          childParties: null,
+          lastChangedInAltinn: null,
+          lastChangedInExternalRegister: null
         },
         userType: 1,
         profileSettingPreference: {
           language: nn,
           preSelectedPartyId: 0,
-          doNotPromptForParty: true
+          doNotPromptForParty: true,
+          preselectedPartyUuid: null,
+          showClientUnits: false,
+          shouldShowSubEntities: false,
+          shouldShowDeletedEntities: false
         }
       }
     }

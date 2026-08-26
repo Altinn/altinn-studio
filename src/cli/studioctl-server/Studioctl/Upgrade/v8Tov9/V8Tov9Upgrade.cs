@@ -49,6 +49,12 @@ internal static class V8Tov9Upgrade
     private const string PartyEnumsOldNamespace = "Altinn.Platform.Register.Enums";
     private const string PartyContractsV1Namespace = "Altinn.Register.Contracts.V1";
 
+    // UserProfile/UserType/ProfileSettingPreference moved from the frozen Altinn.Platform.Models
+    // package (Altinn.Platform.Profile.Models) to being vendored directly in Altinn.App.Core, since
+    // apps get them from the App SDK itself now rather than a separate NuGet package.
+    private const string UserProfileOldNamespace = "Altinn.Platform.Profile.Models";
+    private const string AppCoreModelsNamespace = "Altinn.App.Core.Models";
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
@@ -133,6 +139,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePartyModelNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateUserProfileNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePartyChildParties(scanner));
@@ -402,6 +411,25 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating the Party model namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the app-facing <c>UserProfile</c>/<c>UserType</c>/<c>ProfileSettingPreference</c>
+    /// namespace to <c>Altinn.App.Core.Models</c>, where the App SDK now vendors them directly.
+    /// </summary>
+    static async Task<int> MigrateUserProfileNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("UserProfile namespace");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            migration.Migrate(UserProfileOldNamespace, AppCoreModelsNamespace, _allCSharpFilesMatcher);
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the UserProfile namespace", ex);
         }
     }
 

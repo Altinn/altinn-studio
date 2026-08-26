@@ -549,7 +549,8 @@ namespace Altinn.App.Api.Controllers
         public ProfileController(Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("user")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Profile.Models.UserProfile), 200)]
+        [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.UserProfile), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetUser() { }
     }
@@ -811,7 +812,6 @@ namespace Altinn.App.Api.Helpers
     {
         public static string GetApplicationId() { }
         public static void IncludeXmlComments(Altinn.App.Api.Helpers.StartupHelper.SwaggerIncludeXmlComments swaggerDelegate) { }
-        public static void UseDisambiguatingSchemaIds(Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions options) { }
         public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
     }
 }

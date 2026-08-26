@@ -1,7 +1,7 @@
 using System.Globalization;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Register.Contracts.V1;
 

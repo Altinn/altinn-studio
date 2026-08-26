@@ -27,7 +27,7 @@ namespace LocalTest.Services.Profile.Implementation
             if (data.Profile.User.TryGetValue(userId.ToString(), out UserProfile? user))
             {
                 var party = await _partiesService.GetParty(user.PartyId);
-                user.Party = party is null ? null : party.ToLegacyParty();
+                user.Party = party;
                 return user;
             }
 
@@ -43,7 +43,7 @@ namespace LocalTest.Services.Profile.Implementation
                 return null;
             var user = data.Profile.User.FirstOrDefault(u => u.Value.PartyId == party.PartyId).Value;
             if (user is not null)
-                user.Party = party.ToLegacyParty();
+                user.Party = party;
             return user;
         }
     }

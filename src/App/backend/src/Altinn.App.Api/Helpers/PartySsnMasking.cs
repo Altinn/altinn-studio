@@ -1,9 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Altinn.App.Core.Extensions;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using Altinn.Register.Contracts.V1;
-using OldModels = Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Api.Helpers;
 
@@ -21,12 +20,6 @@ internal static class PartySsnMasking
     private static readonly PropertyInfo[] _personProperties = CopyableProperties(typeof(Person));
     private static readonly PropertyInfo[] _userProfileProperties = CopyableProperties(typeof(UserProfile));
 
-    // UserProfile.Party is still typed against the legacy Altinn.Platform.Register.Models package
-    // (that's Altinn.Platform.Profile.Models' own dependency, not ours), so masking it needs its own
-    // copy of the same reflection-based clone logic against the old types.
-    private static readonly PropertyInfo[] _oldPartyProperties = CopyableProperties(typeof(OldModels.Party));
-    private static readonly PropertyInfo[] _oldPersonProperties = CopyableProperties(typeof(OldModels.Person));
-
     /// <summary>
     /// Returns a copy of <paramref name="profile"/> with the SSN masked on its nested
     /// <see cref="UserProfile.Party"/> (including that party's <see cref="Party.Person"/> and
@@ -43,44 +36,7 @@ internal static class PartySsnMasking
         UserProfile clone = new UserProfile();
         CopyProperties(_userProfileProperties, profile, clone);
 
-        clone.Party = MaskOldParty(profile.Party);
-
-        return clone;
-    }
-
-    /// <summary>
-    /// Same masking as <see cref="MaskParty"/>, but for the legacy
-    /// <see cref="Altinn.Platform.Register.Models.Party"/> type still used by <see cref="UserProfile.Party"/>.
-    /// </summary>
-    [return: NotNullIfNotNull(nameof(party))]
-    private static OldModels.Party? MaskOldParty(OldModels.Party? party)
-    {
-        if (party is null)
-        {
-            return null;
-        }
-
-        OldModels.Party clone = new OldModels.Party();
-        CopyProperties(_oldPartyProperties, party, clone);
-
-        clone.SSN = NationalIdentityNumberExtensions.Mask(party.SSN);
-        clone.Person = MaskOldPerson(party.Person);
-        clone.ChildParties = party.ChildParties?.Select(MaskOldParty).ToList();
-
-        return clone;
-    }
-
-    private static OldModels.Person? MaskOldPerson(OldModels.Person? person)
-    {
-        if (person is null)
-        {
-            return null;
-        }
-
-        OldModels.Person clone = new OldModels.Person();
-        CopyProperties(_oldPersonProperties, person, clone);
-
-        clone.SSN = NationalIdentityNumberExtensions.Mask(person.SSN);
+        clone.Party = MaskParty(profile.Party);
 
         return clone;
     }

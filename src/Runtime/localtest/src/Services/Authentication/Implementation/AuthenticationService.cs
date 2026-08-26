@@ -160,7 +160,7 @@ public class AuthenticationService : IAuthentication
         claims.Add(
             new Claim(
                 AltinnCoreClaimTypes.UserName,
-                profile.UserName,
+                profile.UserName ?? string.Empty,
                 ClaimValueTypes.String,
                 issuer
             )

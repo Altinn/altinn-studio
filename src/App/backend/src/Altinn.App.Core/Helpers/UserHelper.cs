@@ -4,7 +4,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -90,10 +89,10 @@ public class UserHelper
         if (partyCookieValue is not null)
             userContext.PartyId = Convert.ToInt32(partyCookieValue, CultureInfo.InvariantCulture);
 
-        userContext.UserParty = userProfile.Party.ToRegisterContractsParty();
+        userContext.UserParty = userProfile.Party;
 
         if (userContext.PartyId == userProfile.PartyId)
-            userContext.Party = userProfile.Party.ToRegisterContractsParty();
+            userContext.Party = userProfile.Party;
         else if (userContext.PartyId != default)
             userContext.Party = await _altinnPartyClientService.GetParty(userContext.PartyId);
 

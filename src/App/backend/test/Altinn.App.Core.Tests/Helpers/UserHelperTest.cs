@@ -60,7 +60,7 @@ public class UserHelperTest
         var httpContext = httpContextAccessor.HttpContext;
         var userProfile = await fixture.ProfileClientMock.GetUserProfile(userId);
         var party = partyId.Equals(userProfile!.PartyId)
-            ? userProfile!.Party.ToRegisterContractsParty()
+            ? userProfile!.Party
             : await fixture.AltinnPartyClientMock.GetParty(partyId);
 
         // Act
@@ -78,7 +78,7 @@ public class UserHelperTest
                     PartyId = partyId,
                     AuthenticationLevel = authLevel,
                     User = userPrincipal,
-                    UserParty = userProfile!.Party.ToRegisterContractsParty(),
+                    UserParty = userProfile!.Party,
                     Party = party,
                 }
             );
@@ -116,7 +116,7 @@ public class UserHelperTest
                     PartyId = default,
                     AuthenticationLevel = authLevel,
                     User = userPrincipal,
-                    UserParty = userProfile!.Party.ToRegisterContractsParty(),
+                    UserParty = userProfile!.Party,
                     Party = null,
                 }
             );

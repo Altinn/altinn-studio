@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 using static Altinn.App.Core.Features.Auth.Authenticated;
@@ -377,7 +376,7 @@ public class AuthenticatedTests
                                 {
                                     UserId = ReadClaimInt(AltinnCoreClaimTypes.UserId),
                                     PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
-                                    Party = party.ToLegacyParty(),
+                                    Party = party,
                                 }
                             );
                         },
@@ -429,7 +428,7 @@ public class AuthenticatedTests
                                 {
                                     UserId = ReadClaimInt(AltinnCoreClaimTypes.UserId),
                                     PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
-                                    Party = party.ToLegacyParty(),
+                                    Party = party,
                                 }
                             );
                         },

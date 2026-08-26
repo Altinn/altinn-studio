@@ -4,7 +4,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Register.Contracts.V1;
 using FluentAssertions;

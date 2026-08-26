@@ -1,5 +1,5 @@
 using Altinn.App.Api.Helpers;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Tests.Helpers;
@@ -106,11 +106,13 @@ public class PartySsnMaskingTests
                 Name = "GRENSE TROVERDIG",
                 SSN = "26917699894",
                 Person = new Person { SSN = "26917699894", Name = "GRENSE TROVERDIG" },
-            }.ToLegacyParty(),
+            },
         };
 
         UserProfile masked = PartySsnMasking.MaskUserProfile(profile);
 
+        Assert.NotNull(masked.Party);
+        Assert.NotNull(masked.Party.Person);
         Assert.Equal("269176*****", masked.Party.SSN);
         Assert.Equal("269176*****", masked.Party.Person.SSN);
 

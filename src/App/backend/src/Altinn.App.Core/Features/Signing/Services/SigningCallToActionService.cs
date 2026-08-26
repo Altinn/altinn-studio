@@ -13,7 +13,6 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -80,7 +79,7 @@ internal sealed class SigningCallToActionService(
                 );
             }
         }
-        string recipientLanguage = recipientProfile?.ProfileSettingPreference.Language ?? LanguageConst.Nb;
+        string recipientLanguage = recipientProfile?.ProfileSettingPreference?.Language ?? LanguageConst.Nb;
         ContentWrapper contentWrapper = await GetContent(
             instanceIdentifier,
             applicationMetadata,

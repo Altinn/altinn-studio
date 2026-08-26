@@ -44,7 +44,8 @@
       SSN: 12345678901,
       Name: Test Testesen,
       IsDeleted: false,
-      OnlyHierarchyElementWithNoAccess: false
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
     },
     SelectedParty: {
       PartyId: 51829336,
@@ -52,7 +53,8 @@
       SSN: 12345678901,
       Name: Test Testesen,
       IsDeleted: false,
-      OnlyHierarchyElementWithNoAccess: false
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
     },
     Profile: {
       UserId: 160872,
@@ -64,7 +66,8 @@
         SSN: 12345678901,
         Name: Test Testesen,
         IsDeleted: false,
-        OnlyHierarchyElementWithNoAccess: false
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
       }
     },
     RepresentsSelf: true,

@@ -1,7 +1,7 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Profile;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 

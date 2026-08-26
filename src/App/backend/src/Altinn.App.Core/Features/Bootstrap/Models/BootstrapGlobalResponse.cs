@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Register.Contracts.V1;
 

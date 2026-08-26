@@ -6,7 +6,6 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
@@ -212,8 +211,7 @@ public static class TestAuthentication
             SSN = ssn ?? "12345678901",
             Name = "Test Testesen",
         };
-        // UserProfile.Party is still typed against the legacy Altinn.Platform.Register.Models package.
-        var profileParty = party.ToLegacyParty();
+        var profileParty = party;
         var auth = Authenticated.From(
             token,
             null,
@@ -308,8 +306,7 @@ public static class TestAuthentication
             OrgNumber = null,
             Name = "Test Testesen",
         };
-        // UserProfile.Party is still typed against the legacy Altinn.Platform.Register.Models package.
-        var profileParty = party.ToLegacyParty();
+        var profileParty = party;
         var auth = Authenticated.From(
             token,
             null,
