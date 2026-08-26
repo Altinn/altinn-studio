@@ -38,5 +38,6 @@ export function mapChatMessageToFrontend(message: ChatMessage) {
     filesChanged: message.filesChanged,
     sources: message.sources,
     traceId: message.traceId,
+    feedbackThumbsUp: message.feedbackThumbsUp ?? undefined,
   };
 }
