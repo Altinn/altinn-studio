@@ -42,14 +42,14 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
     public const string ServiceTaskType = "mailbox";
 
     /// <summary>A plain stage before the send, so "the mint does not run before it" is falsifiable.</summary>
-    public const string PrepareStageName = "PrepareDocuments";
+    public const string PrepareStageLabel = "PrepareDocuments";
 
     /// <summary>The declaring stage's log/recorder key. Stages are dispatched by item index; this label
     /// only names the stage in the scenario's own recorded runs and logs.</summary>
-    public const string SendStageName = "SendToArchive";
+    public const string SendStageLabel = "SendToArchive";
 
     /// <summary>A plain stage after the send, so "the mint is not deferred past it" is falsifiable.</summary>
-    public const string RecordStageName = "RecordDispatch";
+    public const string RecordStageLabel = "RecordDispatch";
 
     public string Type => ServiceTaskType;
 
@@ -70,14 +70,14 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskStageResult> PrepareDocuments(ServiceTaskContext context)
     {
-        int run = MailboxExchangeRecorder.NextRun(PrepareStageName);
+        int run = MailboxExchangeRecorder.NextRun(PrepareStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.PrepareDocuments.Run{run}.Completed");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
     private Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
-        int run = MailboxExchangeRecorder.NextRun(SendStageName);
+        int run = MailboxExchangeRecorder.NextRun(SendStageLabel);
         // Standing in for the outbound message that would carry the reply address to the archive.
         MailboxExchangeRecorder.PublishAddress(mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Mailbox.SendToArchive.Run{run}.Published");
@@ -86,7 +86,7 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskStageResult> RecordDispatch(ServiceTaskContext context)
     {
-        int run = MailboxExchangeRecorder.NextRun(RecordStageName);
+        int run = MailboxExchangeRecorder.NextRun(RecordStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.RecordDispatch.Run{run}.Completed");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }

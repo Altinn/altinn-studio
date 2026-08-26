@@ -176,7 +176,7 @@ successor/continuation enqueues embed the indexes just resolved, same request.
 | Step | Scope                                                        | Status    |
 | ---- | ------------------------------------------------------------ | --------- |
 | 1    | PR 1 — the identity swap (API, payloads, carry, guards, relay, consumers, tests) | approved (jj `mkyuprxoltps` / `e2af606e`; residuals recorded below) |
-| 2    | PR 2 — docs: AGENTS.md rewrite, changelog, xmldoc pass, `rg` proof | pending   |
+| 2    | PR 2 — docs: AGENTS.md rewrite, changelog, xmldoc pass, `rg` proof | approved (jj `vrqmkmsxloyn` / `20b26c15`; also carries the mechanical `process-transition-test` compile fix left by step 1) |
 
 ### Recorded residual gaps (non-blocking)
 
@@ -184,4 +184,7 @@ successor/continuation enqueues embed the indexes just resolved, same request.
   literals) — caused by the separate `.editorconfig` crlf→lf ancestor commit (`trtzopwnwmkl`), not by any
   step here; the generator-literal sites documented in `src/App/backend/AGENTS.md` need normalizing with that flip.
 - Restore-time blob-key collision (`"0"` vs `"00"` would last-writer-win on restore; nothing writes such keys today).
-- Test-scenario recorder labels still named `*StageName` (display-only log keys) — to be resolved in step 2's sweep decision.
+- Released `[9.0.0-preview.4]` changelog text still teaches the retired name-based API (history left unedited;
+  superseded by the new Unreleased → Changed breaking-change entry).
+- CHANGELOG.md unreleased wording "the same `Stage(work, options, out handle)` overload as before" refers to
+  overload shape, not identity — cosmetic.

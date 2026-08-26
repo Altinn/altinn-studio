@@ -35,9 +35,9 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClassFixture classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {
-    private const string PrepareStageName = "PrepareDocuments";
-    private const string SendStageName = "SendToArchive";
-    private const string RecordStageName = "RecordDispatch";
+    private const string PrepareStageLabel = "PrepareDocuments";
+    private const string SendStageLabel = "SendToArchive";
+    private const string RecordStageLabel = "RecordDispatch";
     private const string MainOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
@@ -149,9 +149,9 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
 
         // Neither stage ever ran twice - the conclusion lives on the receive workflows, not on a
         // re-entry into the pipeline.
-        Assert.Equal(1, Assert.Contains(PrepareStageName, finalState.Runs));
-        Assert.Equal(1, Assert.Contains(SendStageName, finalState.Runs));
-        Assert.Equal(1, Assert.Contains(RecordStageName, finalState.Runs));
+        Assert.Equal(1, Assert.Contains(PrepareStageLabel, finalState.Runs));
+        Assert.Equal(1, Assert.Contains(SendStageLabel, finalState.Runs));
+        Assert.Equal(1, Assert.Contains(RecordStageLabel, finalState.Runs));
 
         // ---- Invariant 2, from the engine's own books: the conclusion closed the mailbox ----
         // Neither ClosedReason nor the end event can see this: Conclude closes the mailbox and *then*

@@ -41,10 +41,10 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     /// <summary>The recorder key of the stage that opens the first exchange. Exchanges are identified by
     /// their opening item index on the wire; this label only names it in the scenario's records and logs.</summary>
-    public const string ArchiveStageName = "SendToArchive";
+    public const string ArchiveStageLabel = "SendToArchive";
 
     /// <summary>The recorder key of the stage that opens the second exchange, composed after the first handler.</summary>
-    public const string JournalStageName = "SendToJournal";
+    public const string JournalStageLabel = "SendToJournal";
 
     /// <summary>
     /// Comfortably clear of the sum of the test's own waits, so a slow run fails on a test deadline that
@@ -65,16 +65,16 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
-        int run = MultiExchangeRecorder.NextRun(ArchiveStageName);
-        MultiExchangeRecorder.PublishAddress(ArchiveStageName, ServiceTaskType, mailbox.Id, mailbox.Deadline);
+        int run = MultiExchangeRecorder.NextRun(ArchiveStageLabel);
+        MultiExchangeRecorder.PublishAddress(ArchiveStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendToArchive.Run{run}.Published");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
     private Task<ServiceTaskStageResult> SendToJournal(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
-        int run = MultiExchangeRecorder.NextRun(JournalStageName);
-        MultiExchangeRecorder.PublishAddress(JournalStageName, ServiceTaskType, mailbox.Id, mailbox.Deadline);
+        int run = MultiExchangeRecorder.NextRun(JournalStageLabel);
+        MultiExchangeRecorder.PublishAddress(JournalStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendToJournal.Run{run}.Published");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
@@ -88,7 +88,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
         ServiceTaskReply reply
     )
     {
-        MultiExchangeRecorder.RecordMessage(ArchiveStageName, reply);
+        MultiExchangeRecorder.RecordMessage(ArchiveStageLabel, reply);
         string kind = ReadKind(reply.Payload);
         switch (kind)
         {
@@ -113,7 +113,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
     /// <summary>The terminal handler: the one that concludes the task and lets the process advance.</summary>
     private Task<ServiceTaskExchangeResult> HandleJournalMessage(ServiceTaskContext context, ServiceTaskReply reply)
     {
-        MultiExchangeRecorder.RecordMessage(JournalStageName, reply);
+        MultiExchangeRecorder.RecordMessage(JournalStageLabel, reply);
         string kind = ReadKind(reply.Payload);
         if (kind == "receipt")
         {
@@ -129,7 +129,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskStageResult> HandleArchiveClosed(ServiceTaskContext context, MailboxClosedReason reason)
     {
-        MultiExchangeRecorder.RecordClosed(ArchiveStageName, reason);
+        MultiExchangeRecorder.RecordClosed(ArchiveStageLabel, reason);
         SnapshotLogger.LogError($"Multi.Archive.OnClosed.{reason}.Tripwire");
         return Task.FromResult(
             ServiceTaskStageResult.FailedPermanent($"The archive never answered before its mailbox closed ({reason}).")
@@ -138,7 +138,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskResult> HandleJournalClosed(ServiceTaskContext context, MailboxClosedReason reason)
     {
-        MultiExchangeRecorder.RecordClosed(JournalStageName, reason);
+        MultiExchangeRecorder.RecordClosed(JournalStageLabel, reason);
         SnapshotLogger.LogError($"Multi.Journal.OnClosed.{reason}.Tripwire");
         return Task.FromResult<ServiceTaskResult>(
             ServiceTaskResult.FailedPermanent($"The journal never answered before its mailbox closed ({reason}).")
@@ -206,13 +206,13 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
     public const string ServiceTaskType = "mailbox-upfront";
 
     /// <summary>The stage that opens the first exchange.</summary>
-    public const string AlphaStageName = "SendAlpha";
+    public const string AlphaStageLabel = "SendAlpha";
 
     /// <summary>The stage that opens the second exchange — before either is answered.</summary>
-    public const string BetaStageName = "SendBeta";
+    public const string BetaStageLabel = "SendBeta";
 
     /// <summary>A plain stage in the last segment, so that segment is not just its conclusion.</summary>
-    public const string RecordStageName = "RecordOutcome";
+    public const string RecordStageLabel = "RecordOutcome";
 
     /// <summary>Same budget as the sequential task's, for the same reason.</summary>
     public static readonly TimeSpan ExchangeTimeout = TimeSpan.FromMinutes(20);
@@ -230,23 +230,23 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskStageResult> SendAlpha(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
-        int run = MultiExchangeRecorder.NextRun(AlphaStageName);
-        MultiExchangeRecorder.PublishAddress(AlphaStageName, ServiceTaskType, mailbox.Id, mailbox.Deadline);
+        int run = MultiExchangeRecorder.NextRun(AlphaStageLabel);
+        MultiExchangeRecorder.PublishAddress(AlphaStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendAlpha.Run{run}.Published");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
     private Task<ServiceTaskStageResult> SendBeta(ServiceTaskContext context, ServiceTaskMailbox mailbox)
     {
-        int run = MultiExchangeRecorder.NextRun(BetaStageName);
-        MultiExchangeRecorder.PublishAddress(BetaStageName, ServiceTaskType, mailbox.Id, mailbox.Deadline);
+        int run = MultiExchangeRecorder.NextRun(BetaStageLabel);
+        MultiExchangeRecorder.PublishAddress(BetaStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
         SnapshotLogger.LogInfo($"Multi.SendBeta.Run{run}.Published");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
 
     private Task<ServiceTaskStageResult> RecordOutcome(ServiceTaskContext context)
     {
-        int run = MultiExchangeRecorder.NextRun(RecordStageName);
+        int run = MultiExchangeRecorder.NextRun(RecordStageLabel);
         SnapshotLogger.LogInfo($"Multi.RecordOutcome.Run{run}.Completed");
         return Task.FromResult(ServiceTaskStageResult.Completed());
     }
@@ -261,14 +261,14 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
 
     private Task<ServiceTaskStageExchangeResult> HandleAlphaMessage(ServiceTaskContext context, ServiceTaskReply reply)
     {
-        MultiExchangeRecorder.RecordMessage(AlphaStageName, reply);
-        return Conclude(AlphaStageName, reply);
+        MultiExchangeRecorder.RecordMessage(AlphaStageLabel, reply);
+        return Conclude(AlphaStageLabel, reply);
     }
 
     private Task<ServiceTaskStageExchangeResult> HandleBetaMessage(ServiceTaskContext context, ServiceTaskReply reply)
     {
-        MultiExchangeRecorder.RecordMessage(BetaStageName, reply);
-        return Conclude(BetaStageName, reply);
+        MultiExchangeRecorder.RecordMessage(BetaStageLabel, reply);
+        return Conclude(BetaStageLabel, reply);
     }
 
     private static Task<ServiceTaskStageExchangeResult> Conclude(string exchange, ServiceTaskReply reply)
@@ -287,10 +287,10 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
     }
 
     private Task<ServiceTaskStageResult> HandleAlphaClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
-        Closed(AlphaStageName, reason);
+        Closed(AlphaStageLabel, reason);
 
     private Task<ServiceTaskStageResult> HandleBetaClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
-        Closed(BetaStageName, reason);
+        Closed(BetaStageLabel, reason);
 
     private static Task<ServiceTaskStageResult> Closed(string exchange, MailboxClosedReason reason)
     {
