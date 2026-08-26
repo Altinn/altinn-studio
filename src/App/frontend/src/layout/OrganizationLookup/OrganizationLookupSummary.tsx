@@ -20,11 +20,11 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
   );
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const { formData } = useDataModelBindings(dataModelBindings);
-  const { organization_lookup_orgnr, organization_lookup_name } = formData;
+  const { orgnr, name } = formData;
   const emptyFieldText = useSummaryOverrides<'OrganizationLookup'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const bindingValidations = useBindingValidationsFor<'OrganizationLookup'>(targetBaseComponentId);
-  const isEmpty = !(organization_lookup_orgnr || organization_lookup_name);
+  const isEmpty = !(orgnr || name);
 
   return (
     <SummaryFlex
@@ -48,29 +48,29 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
           <div className={classes.organizationLookupSummaryNr}>
             <SingleValueSummary
               title={<Lang id='organization_lookup.orgnr_label' />}
-              displayData={organization_lookup_orgnr}
+              displayData={orgnr}
               targetBaseComponentId={targetBaseComponentId}
-              hideEditButton={organization_lookup_name ? true : false}
+              hideEditButton={name ? true : false}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
-              validations={bindingValidations?.organization_lookup_orgnr}
+              validations={bindingValidations?.orgnr}
               baseComponentId={targetBaseComponentId}
             />
           </div>
-          {organization_lookup_name && (
+          {name && (
             <div className={classes.organizationLookupSummaryName}>
               <SingleValueSummary
                 title={<Lang id='organization_lookup.org_name' />}
-                displayData={organization_lookup_name}
+                displayData={name}
                 targetBaseComponentId={targetBaseComponentId}
                 hideEditButton={false}
                 isCompact={isCompact}
                 emptyFieldText={emptyFieldText}
               />
               <ComponentValidations
-                validations={bindingValidations?.organization_lookup_name}
+                validations={bindingValidations?.name}
                 baseComponentId={targetBaseComponentId}
               />
             </div>

@@ -63,6 +63,7 @@ from agents.core import (
 )
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
+from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -284,6 +285,11 @@ async def handle(state: AgentState) -> AgentState:
     _apply_result_to_state(state, result, ctx)
     if state.allow_app_changes:
         await _maybe_auto_commit(state, result, ctx)
+    if result.reason is TerminationReason.CANCELLED:
+        # The cancel endpoint already sent the terminal "cancelled" error
+        # event. Emitting a completion here would deliver (and persist) an
+        # assistant answer for a run the user explicitly aborted.
+        return state
     _emit_workflow_completion(state, result, ctx)
     return state
 
@@ -590,6 +596,12 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
         # Read-only run: the frontend must not reset the repo or check out
         # a session branch — nothing was (or could have been) committed.
         message_data["no_branch_operations"] = True
+    # The Langfuse trace id doubles as the run's identity on the event: the
+    # frontend uses it to dedupe redelivered events and to submit feedback
+    # on the answer (PUT chat/feedback/{traceId}).
+    trace_id = state.trace_id or get_current_trace_id()
+    if trace_id:
+        message_data["traceId"] = trace_id
     sink.send(
         AgentEvent(
             type="assistant_message",

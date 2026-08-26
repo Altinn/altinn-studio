@@ -25,8 +25,8 @@ const orgLookupId = 'org-lookup';
 const textSiblingId = 'text-sibling';
 
 const defaultBindings = {
-  organization_lookup_orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
-  organization_lookup_name: { field: 'orgName', dataType: defaultDataTypeMock },
+  orgnr: { field: 'orgNr', dataType: defaultDataTypeMock },
+  name: { field: 'orgName', dataType: defaultDataTypeMock },
 };
 
 const render = async ({

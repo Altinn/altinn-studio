@@ -211,6 +211,9 @@ async def cancel_session(session_id: str, request: Request):
         return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
 
     sink.cancel_session(session_id)
+    # Wake a run blocked on a permission prompt — it must observe the
+    # cancellation now, not after the prompt timeout.
+    permission_broker.cancel_pending(session_id)
     log.info(f"🛑 Session {session_id} cancelled via API")
     return {"session_id": session_id, "status": "cancelled", "message": "Session cancelled"}
 

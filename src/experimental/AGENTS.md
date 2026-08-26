@@ -12,12 +12,9 @@ This area contains the experimental agent platform described in `README.md`.
 - `sandbox-authorization` contains context-aware authorization contracts and policy-engine interfaces for operations
   originating inside Agents and Sandboxes. The name communicates its scope; it must not depend on enforcement
   points, the Agent Control Plane or the Sandbox SDK.
-- `agent-runtime-protocol` contains the versioned wire types shared by the Agent Control Plane and
-  sandbox-resident Agent Runtime.
-- `agent-runtime` owns sandbox-resident Session and Run state, Harness Adapters and Session Drivers. It
-  must not depend on the host Agent Control Plane or a concrete Sandbox implementation.
-- `agent` owns Agent resources, the host Control Plane, Agent Control API, platform-specific runtime
-  bundle selection, `agentd` and `agentctl`. It builds on the lower crates above.
+- `agent` owns Agent resources, the host Control Plane, Agent Control API, host-side Harness Adapters,
+  `agentd` and `agentctl`. It builds on the lower crates above. The M0 agent has no sandbox-resident
+  Agent Runtime; host-side management drives tmux and the harness through Sandbox executions.
 - The backend owns Sandbox lifecycle, execution, runtime file transfer, storage and mount behavior; do not split
   those into speculative replaceable component traits.
 - A Provider pairs a Sandbox Backend with an Image Backend over one image materialization domain. Both expose

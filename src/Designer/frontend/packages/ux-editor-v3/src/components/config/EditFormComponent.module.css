@@ -1,5 +1,5 @@
 .root {
-  --fieldset-gap: var(--fds-spacing-2);
+  --fieldset-gap: var(--ds-size-2);
 }
 
 .gridItem {

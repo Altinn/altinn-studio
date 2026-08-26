@@ -264,6 +264,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("EventId")
+                        .HasColumnType("character varying")
+                        .HasColumnName("event_id");
+
                     b.PrimitiveCollection<List<string>>("FilesChanged")
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
@@ -280,9 +284,17 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("thread_id");
 
+                    b.Property<string>("TraceId")
+                        .HasColumnType("character varying")
+                        .HasColumnName("trace_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "ThreadId" }, "idx_chat_messages_thread_id");
+
+                    b.HasIndex(new[] { "ThreadId", "EventId" }, "idx_chat_messages_thread_id_event_id")
+                        .IsUnique()
+                        .HasFilter("event_id IS NOT NULL");
 
                     b.ToTable("chat_messages", "designer");
                 });

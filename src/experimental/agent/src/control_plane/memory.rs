@@ -2,17 +2,23 @@
 
 use std::{cell::RefCell, collections::BTreeMap};
 
-use sandbox::{LocalFuture, Platform, Sandbox, SandboxId};
+use sandbox::LocalFuture;
 use time::OffsetDateTime;
 
-use crate::{Agent, Error, Status};
+use crate::{AgentId, Error, Status};
 
-use super::{AgentRecord, AgentRuntimeBundle, AgentRuntimeBundleResolver, AgentRuntimeClient, AgentStore};
+use super::{AgentRecord, AgentStore};
 
 /// In-memory Agent store with generation-based compare-and-swap writes.
 #[derive(Default)]
 pub struct InMemoryAgentStore {
-    records: RefCell<BTreeMap<String, AgentRecord>>,
+    state: RefCell<State>,
+}
+
+#[derive(Default)]
+struct State {
+    records: BTreeMap<AgentId, AgentRecord>,
+    active_names: BTreeMap<String, AgentId>,
 }
 
 impl InMemoryAgentStore {
@@ -24,37 +30,77 @@ impl InMemoryAgentStore {
 }
 
 impl AgentStore for InMemoryAgentStore {
-    fn get<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<AgentRecord, Error>> {
-        Box::pin(async move { self.records.borrow().get(name).cloned().ok_or(Error::NotFound) })
+    fn get(&self, id: AgentId) -> LocalFuture<'_, Result<AgentRecord, Error>> {
+        Box::pin(async move {
+            let state = self.state.borrow();
+            let record = state.records.get(&id).ok_or(Error::NotFound)?;
+            (state.active_names.get(&record.agent.metadata.name) == Some(&id))
+                .then(|| record.clone())
+                .ok_or(Error::NotFound)
+        })
+    }
+
+    fn get_by_name<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<AgentRecord, Error>> {
+        Box::pin(async move {
+            let state = self.state.borrow();
+            let id = state.active_names.get(name).ok_or(Error::NotFound)?;
+            state.records.get(id).cloned().ok_or(Error::NotFound)
+        })
     }
 
     fn list(&self) -> LocalFuture<'_, Result<Vec<AgentRecord>, Error>> {
-        Box::pin(async move { Ok(self.records.borrow().values().cloned().collect()) })
+        Box::pin(async move {
+            let state = self.state.borrow();
+            Ok(state
+                .active_names
+                .values()
+                .filter_map(|id| state.records.get(id))
+                .cloned()
+                .collect())
+        })
     }
 
     fn put(&self, record: AgentRecord, expected_generation: u64) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
-            let mut records = self.records.borrow_mut();
-            match records.get(&record.agent.metadata.name) {
-                None if expected_generation == 0 => {}
-                Some(current)
-                    if expected_generation != 0 && current.agent.metadata.generation == expected_generation => {}
-                None | Some(_) => return Err(Error::Conflict),
+            let id = record.id;
+            let name = record.agent.metadata.name.clone();
+            let mut state = self.state.borrow_mut();
+            if expected_generation == 0 {
+                if state.active_names.contains_key(&name) || state.records.contains_key(&id) {
+                    return Err(Error::Conflict);
+                }
+                state.active_names.insert(name, id);
+                state.records.insert(id, record);
+                return Ok(());
             }
-            records.insert(record.agent.metadata.name.clone(), record);
+
+            let active_id = state.active_names.get(&name).copied().ok_or(Error::Conflict)?;
+            if active_id != id {
+                return Err(Error::Conflict);
+            }
+            let current = state.records.get_mut(&id).ok_or(Error::Conflict)?;
+            if current.agent.metadata.generation != expected_generation
+                || current.agent.metadata.deletion_timestamp.is_some()
+            {
+                return Err(Error::Conflict);
+            }
+            *current = record;
             Ok(())
         })
     }
 
-    fn update_status<'a>(
-        &'a self,
-        name: &'a str,
-        generation: u64,
-        status: Status,
-    ) -> LocalFuture<'a, Result<(), Error>> {
+    fn update_status(&self, id: AgentId, generation: u64, status: Status) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
-            let mut records = self.records.borrow_mut();
-            let record = records.get_mut(name).ok_or(Error::NotFound)?;
+            let mut state = self.state.borrow_mut();
+            let name = state
+                .records
+                .get(&id)
+                .map(|record| record.agent.metadata.name.clone())
+                .ok_or(Error::NotFound)?;
+            if state.active_names.get(&name) != Some(&id) {
+                return Err(Error::NotFound);
+            }
+            let record = state.records.get_mut(&id).ok_or(Error::NotFound)?;
             if record.agent.metadata.generation != generation {
                 return Err(Error::Conflict);
             }
@@ -65,8 +111,9 @@ impl AgentStore for InMemoryAgentStore {
 
     fn mark_deleting<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<AgentRecord, Error>> {
         Box::pin(async move {
-            let mut records = self.records.borrow_mut();
-            let record = records.get_mut(name).ok_or(Error::NotFound)?;
+            let mut state = self.state.borrow_mut();
+            let id = state.active_names.get(name).copied().ok_or(Error::NotFound)?;
+            let record = state.records.get_mut(&id).ok_or(Error::NotFound)?;
             if record.agent.metadata.deletion_timestamp.is_none() {
                 record.agent.metadata.deletion_timestamp = Some(OffsetDateTime::now_utc());
             }
@@ -74,111 +121,18 @@ impl AgentStore for InMemoryAgentStore {
         })
     }
 
-    fn delete<'a>(&'a self, name: &'a str, generation: u64) -> LocalFuture<'a, Result<(), Error>> {
+    fn finalize_deletion(&self, id: AgentId, generation: u64) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
-            let mut records = self.records.borrow_mut();
-            let record = records.get(name).ok_or(Error::NotFound)?;
-            if record.agent.metadata.generation != generation {
+            let mut state = self.state.borrow_mut();
+            let record = state.records.get_mut(&id).ok_or(Error::NotFound)?;
+            if record.agent.metadata.generation != generation || record.agent.metadata.deletion_timestamp.is_none() {
                 return Err(Error::Conflict);
             }
-            records.remove(name);
-            Ok(())
-        })
-    }
-}
-
-/// In-memory platform-aware Agent Runtime bundle resolver.
-#[derive(Default)]
-pub struct InMemoryAgentRuntimeBundleResolver {
-    failure: RefCell<Option<String>>,
-    bundles: RefCell<BTreeMap<String, AgentRuntimeBundle>>,
-    latest_version: RefCell<Option<String>>,
-    platform: RefCell<Option<Platform>>,
-}
-
-impl InMemoryAgentRuntimeBundleResolver {
-    /// Creates a resolver without any materialized runtime bundle.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Configures a deterministic bundle-resolution failure for tests.
-    pub fn fail_with(&self, message: impl Into<String>) {
-        *self.failure.borrow_mut() = Some(message.into());
-    }
-
-    /// Configures the generic Sandbox inputs returned during resolution.
-    pub fn resolve_with(&self, bundle: AgentRuntimeBundle) {
-        let version = bundle.version.clone();
-        self.bundles.borrow_mut().insert(version.clone(), bundle);
-        self.latest_version.replace(Some(version));
-    }
-
-    /// Returns the most recently requested Sandbox Platform.
-    #[must_use]
-    pub fn platform(&self) -> Option<Platform> {
-        self.platform.borrow().clone()
-    }
-}
-
-impl AgentRuntimeBundleResolver for InMemoryAgentRuntimeBundleResolver {
-    fn resolve<'a>(
-        &'a self,
-        platform: &'a Platform,
-        pinned_version: Option<&'a str>,
-    ) -> LocalFuture<'a, Result<AgentRuntimeBundle, Error>> {
-        Box::pin(async move {
-            *self.platform.borrow_mut() = Some(platform.clone());
-            if let Some(message) = self.failure.borrow().clone() {
-                return Err(Error::Runtime(message));
+            let name = record.agent.metadata.name.clone();
+            if state.active_names.get(&name) != Some(&id) {
+                return Err(Error::NotFound);
             }
-            let version = pinned_version
-                .map(ToOwned::to_owned)
-                .or_else(|| self.latest_version.borrow().clone())
-                .ok_or_else(|| Error::Runtime("no Agent Runtime bundle is available".into()))?;
-            self.bundles
-                .borrow()
-                .get(&version)
-                .cloned()
-                .ok_or_else(|| Error::Runtime(format!("Agent Runtime bundle {version:?} is unavailable")))
-        })
-    }
-}
-
-/// In-memory Agent Runtime client recording successful readiness checks.
-#[derive(Default)]
-pub struct InMemoryAgentRuntimeClient {
-    ready: RefCell<std::collections::BTreeSet<SandboxId>>,
-    failure: RefCell<Option<String>>,
-}
-
-impl InMemoryAgentRuntimeClient {
-    /// Creates a client without ready Agent Runtimes.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Configures a deterministic Agent Runtime communication failure for tests.
-    pub fn fail_with(&self, message: impl Into<String>) {
-        *self.failure.borrow_mut() = Some(message.into());
-    }
-
-    /// Reports whether readiness was verified for a Sandbox.
-    #[must_use]
-    pub fn is_ready(&self, id: &SandboxId) -> bool {
-        self.ready.borrow().contains(id)
-    }
-}
-
-impl AgentRuntimeClient for InMemoryAgentRuntimeClient {
-    fn verify_ready<'a>(&'a self, _agent: &'a Agent, sandbox: &'a Sandbox) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(async move {
-            if let Some(message) = self.failure.borrow().clone() {
-                return Err(Error::Runtime(message));
-            }
-            self.ready.borrow_mut().insert(sandbox.id.clone());
+            state.active_names.remove(&name);
             Ok(())
         })
     }

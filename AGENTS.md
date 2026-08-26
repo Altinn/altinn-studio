@@ -53,6 +53,7 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 | Area                               | What it is                                                                                                                                                                                                        |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`agents`](agents)                 | Published Altinn development Agent images and manifests, with minimal and full toolchain variants.                                                                                                               |
 | [`src/cli`](src/cli/AGENTS.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally.                                                                              |
 | [`src/tools`](src/tools/AGENTS.md) | Standalone tools: [`deployer`](src/tools/deployer/AGENTS.md), [`releaser`](src/tools/releaser/AGENTS.md), [`altinn-fleet-stats`](src/tools/altinn-fleet-stats/AGENTS.md), [`health`](src/tools/health/AGENTS.md). |
 

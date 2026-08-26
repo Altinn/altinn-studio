@@ -33,5 +33,14 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
         builder.Property(e => e.AttachmentFileNames).HasColumnType("text[]").HasColumnName("attachment_file_names");
 
         builder.Property(e => e.Sources).HasColumnType("jsonb").HasColumnName("sources");
+
+        builder.Property(e => e.TraceId).HasColumnType("character varying").HasColumnName("trace_id");
+
+        builder.Property(e => e.EventId).HasColumnType("character varying").HasColumnName("event_id");
+
+        builder
+            .HasIndex(e => new { e.ThreadId, e.EventId }, "idx_chat_messages_thread_id_event_id")
+            .IsUnique()
+            .HasFilter("event_id IS NOT NULL");
     }
 }
