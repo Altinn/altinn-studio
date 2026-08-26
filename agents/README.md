@@ -2,16 +2,29 @@
 
 Choose a Claude Code development environment:
 
-| Variant | Additional tools |
-| --- | --- |
-| `minimal` | .NET, Node.js and Go |
-| `full` | Rust, Podman, kind, kubectl, Helm and Flux |
+| Variant    | Additional tools                                        |
+| ---------- | ------------------------------------------------------- |
+| `minimal`  | .NET, Node.js and Go                                    |
+| `full`     | Rust, Podman, kind, kubectl, Helm and Flux              |
 | `worktree` | Full image with the current checkout mounted read-write |
 
-Install the released Agent CLI:
+The host needs hardware virtualization. Docker is required only for manifests that build an image locally; these
+released variants use registry references. Install the released Agent CLI on Linux or macOS:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh | sh
+agentctl claude login
+```
+
+Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.ps1 | iex
+```
+
+Open a new PowerShell window so the updated user `PATH` takes effect, then authenticate:
+
+```powershell
 agentctl claude login
 ```
 

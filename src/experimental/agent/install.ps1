@@ -28,14 +28,15 @@ try {
     if ($LocalArchive) {
         $Archive = Split-Path $LocalArchive -Leaf
         Copy-Item $LocalArchive (Join-Path $Temporary $Archive)
-        $LocalChecksum = if ($env:AGENT_LOCAL_ARCHIVE_SHA256) { $env:AGENT_LOCAL_ARCHIVE_SHA256 } else { "$LocalArchive.sha256" }
-        $Expected = (Get-Content $LocalChecksum -Raw).Split(' ')[0].Trim().ToLowerInvariant()
+        $Checksum = if ($env:AGENT_LOCAL_ARCHIVE_SHA256) { $env:AGENT_LOCAL_ARCHIVE_SHA256 } else { "$LocalArchive.sha256" }
     } else {
         $Archive = "agent-$Platform.tar.gz"
         $Base = "https://github.com/$Repository/releases/download/experimental-agent/$Version"
         Invoke-WebRequest "$Base/$Archive" -OutFile (Join-Path $Temporary $Archive)
-        $Expected = (Invoke-WebRequest "$Base/$Archive.sha256").Content.Split(' ')[0].Trim().ToLowerInvariant()
+        $Checksum = Join-Path $Temporary "$Archive.sha256"
+        Invoke-WebRequest "$Base/$Archive.sha256" -OutFile $Checksum
     }
+    $Expected = (Get-Content $Checksum -Raw).Split(' ')[0].Trim().ToLowerInvariant()
     $Actual = (Get-FileHash (Join-Path $Temporary $Archive) -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($Actual -ne $Expected) { throw "Agent archive checksum mismatch" }
     New-Item -ItemType Directory -Force -Path $InstallDirectory | Out-Null
