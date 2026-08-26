@@ -84,6 +84,7 @@
         party: {
           partyId: 501337,
           partyUuid: null,
+          externalUrn: null,
           partyTypeName: 0,
           orgNumber: null,
           ssn: 010390*****,

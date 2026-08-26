@@ -10419,6 +10419,10 @@
             "format": "uuid",
             "nullable": true
           },
+          "externalUrn": {
+            "type": "string",
+            "nullable": true
+          },
           "partyTypeName": {
             "$ref": "#/components/schemas/PartyType"
           },

@@ -16,6 +16,12 @@ public record Party
     public Guid? PartyUuid { get; set; }
 
     /// <summary>
+    /// Gets or sets the external URN reference of the party (e.g. a person identifier, organisation
+    /// identifier, or system user UUID URN), as the raw URN string.
+    /// </summary>
+    public string? ExternalUrn { get; set; }
+
+    /// <summary>
     /// Gets or sets the <see cref="Models.PartyType"/>.
     /// </summary>
     public PartyType PartyTypeName { get; set; }
