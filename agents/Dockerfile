@@ -88,8 +88,7 @@ RUN case "${TARGETARCH}" in \
 # Route GitHub credentials through the gh CLI so plain git commands authenticate with the
 # host-mediated token. Written system-wide, below any user configuration, because the home
 # directory is resynchronized from the host on every sandbox setup.
-RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
-    && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
+RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 
 ARG CODEX_VERSION=0.149.1
 ARG CLAUDE_CODE_VERSION=2.1.239
