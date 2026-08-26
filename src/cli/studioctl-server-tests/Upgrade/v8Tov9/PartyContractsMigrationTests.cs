@@ -24,8 +24,8 @@ public sealed class PartyContractsMigrationTests : IDisposable
     {
         using var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
         var migration = new UsingNamespaceMigration(Scanner());
-        migration.Migrate("Altinn.Platform.Register.Models", "Altinn.Register.Contracts.V1", AllCSharpFiles);
-        migration.Migrate("Altinn.Platform.Register.Enums", "Altinn.Register.Contracts.V1", AllCSharpFiles);
+        migration.Migrate("Altinn.Platform.Register.Models", "Altinn.App.Core.Models", AllCSharpFiles);
+        migration.Migrate("Altinn.Platform.Register.Enums", "Altinn.App.Core.Models", AllCSharpFiles);
     }
 
     // --- namespace migration (UsingNamespaceMigration reused as-is) ------------------------------
@@ -47,7 +47,7 @@ public sealed class PartyContractsMigrationTests : IDisposable
         MigratePartyNamespaces();
 
         var migrated = _app.Read("logic/PartyReader.cs");
-        Assert.Contains("using Altinn.Register.Contracts.V1;", migrated);
+        Assert.Contains("using Altinn.App.Core.Models;", migrated);
         Assert.DoesNotContain("Altinn.Platform.Register", migrated);
     }
 
@@ -73,8 +73,48 @@ public sealed class PartyContractsMigrationTests : IDisposable
         MigratePartyNamespaces();
 
         var migrated = _app.Read("logic/PartyTypeReader.cs");
-        Assert.Single(Regex.Matches(migrated, "using Altinn.Register.Contracts.V1;"));
+        Assert.Single(Regex.Matches(migrated, "using Altinn.App.Core.Models;"));
         Assert.DoesNotContain("Altinn.Platform.Register", migrated);
+    }
+
+    /// <summary>
+    /// Party/Person/Organization/PartyType and UserProfile/UserType/ProfileSettingPreference collapse
+    /// into the same target namespace from three different old namespaces. A file importing all three
+    /// must still end up with exactly one using for the new namespace, matching how
+    /// <see cref="Altinn.Studio.Cli.Upgrade.v8Tov9.V8Tov9Upgrade"/> chains the Party and UserProfile
+    /// namespace steps one after another rather than in a single call.
+    /// </summary>
+    [Fact]
+    public void NamespaceMigration_DedupesAcrossAllThreeOldNamespaces()
+    {
+        _app.Write(
+            "logic/ProfileReader.cs",
+            """
+            using Altinn.Platform.Register.Enums;
+            using Altinn.Platform.Register.Models;
+            using Altinn.Platform.Profile.Models;
+            public class ProfileReader
+            {
+                public bool IsOrg(UserProfile profile) => profile.Party.PartyTypeName == PartyType.Organisation;
+            }
+            """
+        );
+
+        MigratePartyNamespaces();
+
+        using (var outputScope = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null))
+        {
+            new UsingNamespaceMigration(Scanner()).Migrate(
+                "Altinn.Platform.Profile.Models",
+                "Altinn.App.Core.Models",
+                AllCSharpFiles
+            );
+        }
+
+        var migrated = _app.Read("logic/ProfileReader.cs");
+        Assert.Single(Regex.Matches(migrated, "using Altinn.App.Core.Models;"));
+        Assert.DoesNotContain("Altinn.Platform.Register", migrated);
+        Assert.DoesNotContain("Altinn.Platform.Profile", migrated);
     }
 
     /// <summary>
@@ -95,131 +135,5 @@ public sealed class PartyContractsMigrationTests : IDisposable
         MigratePartyNamespaces();
 
         Assert.Contains("using Altinn.Platform.Register.Models.Extensions;", _app.Read("logic/Other.cs"));
-    }
-
-    // --- PartyChildPartiesMigration (auto-rewrite the safe case) ---------------------------------
-
-    [Fact]
-    public void ChildPartiesMigration_WidensListDeclarationInitializedFromChildParties()
-    {
-        _app.Write(
-            "logic/Hierarchy.cs",
-            """
-            using Altinn.Register.Contracts.V1;
-            public class Hierarchy
-            {
-                public int Count(Party party)
-                {
-                    List<Party> children = party.ChildParties;
-                    return children.Count;
-                }
-            }
-            """
-        );
-
-        var result = new PartyChildPartiesMigration(Scanner()).Migrate();
-        var migrated = _app.Read("logic/Hierarchy.cs");
-
-        Assert.Contains("IReadOnlyList<Party> children = party.ChildParties;", migrated);
-        Assert.Empty(result.Todos);
-        Assert.NotEmpty(result.Warnings);
-    }
-
-    [Fact]
-    public void ChildPartiesMigration_LeavesUnrelatedListDeclarationsAlone()
-    {
-        var source = """
-            using Altinn.Register.Contracts.V1;
-            public class Hierarchy
-            {
-                public List<Party> All(Party party) => new() { party };
-            }
-            """;
-
-        _app.Write("logic/Unrelated.cs", source);
-
-        var result = new PartyChildPartiesMigration(Scanner()).Migrate();
-
-        Assert.Equal(source, _app.Read("logic/Unrelated.cs"));
-        Assert.Empty(result.Warnings);
-        Assert.Empty(result.Todos);
-    }
-
-    // --- PartyChildPartiesMigration (report the mutation case) -----------------------------------
-
-    [Fact]
-    public void ChildPartiesMigration_ReportsDirectMutationOfChildParties()
-    {
-        _app.Write(
-            "logic/Mutator.cs",
-            """
-            using Altinn.Register.Contracts.V1;
-            public class Mutator
-            {
-                public void Prune(Party party, Party toRemove)
-                {
-                    party.ChildParties.Remove(toRemove);
-                }
-            }
-            """
-        );
-
-        var result = new PartyChildPartiesMigration(Scanner()).Migrate();
-
-        Assert.NotEmpty(result.Todos);
-        Assert.Contains(result.Warnings, w => w.Contains("Mutator.cs") && w.Contains(".ChildParties.Remove(..)"));
-        // Left untouched - IReadOnlyList<Party> has no Remove, and there is no single safe rewrite.
-        Assert.Contains("party.ChildParties.Remove(toRemove);", _app.Read("logic/Mutator.cs"));
-    }
-
-    [Fact]
-    public void ChildPartiesMigration_ReportsElementAssignmentIntoChildParties()
-    {
-        _app.Write(
-            "logic/Replacer.cs",
-            """
-            using Altinn.Register.Contracts.V1;
-            public class Replacer
-            {
-                public void ReplaceFirst(Party party, Party replacement)
-                {
-                    party.ChildParties[0] = replacement;
-                }
-            }
-            """
-        );
-
-        var result = new PartyChildPartiesMigration(Scanner()).Migrate();
-
-        Assert.NotEmpty(result.Todos);
-        Assert.Contains(result.Warnings, w => w.Contains("Replacer.cs") && w.Contains(".ChildParties[..] = .."));
-    }
-
-    [Fact]
-    public void ChildPartiesMigration_IsIdempotent()
-    {
-        _app.Write(
-            "logic/Hierarchy.cs",
-            """
-            using Altinn.Register.Contracts.V1;
-            public class Hierarchy
-            {
-                public int Count(Party party)
-                {
-                    List<Party> children = party.ChildParties;
-                    return children.Count;
-                }
-            }
-            """
-        );
-
-        new PartyChildPartiesMigration(Scanner()).Migrate();
-        var afterFirst = _app.Read("logic/Hierarchy.cs");
-
-        var second = new PartyChildPartiesMigration(Scanner()).Migrate();
-        var afterSecond = _app.Read("logic/Hierarchy.cs");
-
-        Assert.Equal(afterFirst, afterSecond);
-        Assert.Empty(second.Warnings);
     }
 }

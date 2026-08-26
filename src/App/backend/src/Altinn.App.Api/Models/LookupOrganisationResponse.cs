@@ -1,4 +1,4 @@
-using Altinn.Register.Contracts.V1;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Api.Models;
 

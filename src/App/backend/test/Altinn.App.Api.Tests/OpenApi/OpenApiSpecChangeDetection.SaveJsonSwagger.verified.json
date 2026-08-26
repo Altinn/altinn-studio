@@ -670,7 +670,27 @@
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Party"
+                }
+              },
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Party"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Party"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/Party"
+                }
+              },
+              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/Party"
                 }
@@ -4426,7 +4446,39 @@
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Party"
+                  }
+                }
+              },
               "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Party"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Party"
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Party"
+                  }
+                }
+              },
+              "text/xml": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -4439,7 +4491,27 @@
           "401": {
             "description": "Unauthorized",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -4488,7 +4560,17 @@
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstantiationValidationResult"
+                }
+              },
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstantiationValidationResult"
+                }
+              },
+              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InstantiationValidationResult"
                 }
@@ -4498,7 +4580,7 @@
           "500": {
             "description": "Internal Server Error",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
                   "type": "string"
                 }
@@ -5864,7 +5946,27 @@
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              },
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              },
+              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/UserProfile"
                 }
@@ -5874,7 +5976,7 @@
           "400": {
             "description": "Bad Request",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
                   "type": "string"
                 }

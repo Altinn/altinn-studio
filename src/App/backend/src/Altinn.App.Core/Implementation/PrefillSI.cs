@@ -6,7 +6,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;

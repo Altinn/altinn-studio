@@ -29,9 +29,6 @@ public class ProfileController : Controller
     /// </summary>
     [ProducesResponseType(typeof(UserProfile), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
-    // Party.ChildParties is IReadOnlyList<Party>, which System.Xml.Serialization.XmlSerializer cannot
-    // handle (it requires a settable/Add-able collection type), so this response can only be JSON.
-    [Produces("application/json")]
     [Authorize]
     [HttpGet("user")]
     public async Task<ActionResult> GetUser()

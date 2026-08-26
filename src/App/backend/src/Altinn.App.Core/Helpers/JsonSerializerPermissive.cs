@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.Register.Contracts.V1;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Helpers;
 

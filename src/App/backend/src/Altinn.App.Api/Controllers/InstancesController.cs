@@ -37,7 +37,6 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

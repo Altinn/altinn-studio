@@ -3,7 +3,6 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Core.Helpers;
 

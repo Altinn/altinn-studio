@@ -41,17 +41,13 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
-    // The Party/Person/Organization/PartyType models moved from the frozen Altinn.Platform.Models
-    // package to the actively maintained Altinn.Register.Contracts package's v1-compatible namespace.
-    // The old package split Party/Person/Organization and the PartyType enum across two namespaces;
-    // the new one puts all four in one, so both old namespaces migrate to the same new one.
+    // Party/Person/Organization/PartyType and UserProfile/UserType/ProfileSettingPreference moved
+    // from the frozen Altinn.Platform.Models package to being vendored directly in Altinn.App.Core,
+    // since apps get them from the App SDK itself now rather than a separate NuGet package. The old
+    // package split Party/Person/Organization and the PartyType enum across two namespaces; the new
+    // one puts everything in one, so all three old namespaces migrate to the same new one.
     private const string PartyModelsOldNamespace = "Altinn.Platform.Register.Models";
     private const string PartyEnumsOldNamespace = "Altinn.Platform.Register.Enums";
-    private const string PartyContractsV1Namespace = "Altinn.Register.Contracts.V1";
-
-    // UserProfile/UserType/ProfileSettingPreference moved from the frozen Altinn.Platform.Models
-    // package (Altinn.Platform.Profile.Models) to being vendored directly in Altinn.App.Core, since
-    // apps get them from the App SDK itself now rather than a separate NuGet package.
     private const string UserProfileOldNamespace = "Altinn.Platform.Profile.Models";
     private const string AppCoreModelsNamespace = "Altinn.App.Core.Models";
 
@@ -142,9 +138,6 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateUserProfileNamespace(scanner));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigratePartyChildParties(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
@@ -395,8 +388,10 @@ internal static class V8Tov9Upgrade
 
     /// <summary>
     /// Rewrites the app-facing Party/Person/Organization/PartyType namespace to
-    /// <c>Altinn.Register.Contracts.V1</c>. Both old namespaces map to the same new one; a file that used
-    /// to import both ends up with a single deduplicated <c>using</c>.
+    /// <c>Altinn.App.Core.Models</c>, where the App SDK now vendors them directly. Both old namespaces
+    /// map to the same new one; a file that used to import both ends up with a single deduplicated
+    /// <c>using</c>. There is no accompanying shape change to migrate - the vendored <c>Party</c> keeps
+    /// <c>ChildParties</c> as <c>List&lt;Party&gt;</c>, exactly as it always was.
     /// </summary>
     static async Task<int> MigratePartyModelNamespace(CSharpSourceScanner scanner)
     {
@@ -404,8 +399,8 @@ internal static class V8Tov9Upgrade
         try
         {
             var migration = new UsingNamespaceMigration(scanner);
-            migration.Migrate(PartyModelsOldNamespace, PartyContractsV1Namespace, _allCSharpFilesMatcher);
-            migration.Migrate(PartyEnumsOldNamespace, PartyContractsV1Namespace, _allCSharpFilesMatcher);
+            migration.Migrate(PartyModelsOldNamespace, AppCoreModelsNamespace, _allCSharpFilesMatcher);
+            migration.Migrate(PartyEnumsOldNamespace, AppCoreModelsNamespace, _allCSharpFilesMatcher);
             return ExitSuccess;
         }
         catch (Exception ex)
@@ -430,28 +425,6 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating the UserProfile namespace", ex);
-        }
-    }
-
-    /// <summary>
-    /// Rewrites the one breaking shape change in the Party model swap: <c>Party.ChildParties</c> went
-    /// from <c>List&lt;Party&gt;</c> to <c>IReadOnlyList&lt;Party&gt;</c>.
-    /// </summary>
-    static async Task<int> MigratePartyChildParties(CSharpSourceScanner scanner)
-    {
-        UpgradeConsole.BeginStep("Party.ChildParties");
-        try
-        {
-            var result = new PartyChildPartiesMigration(scanner).Migrate();
-            return ReportMigrationResult(
-                result,
-                cleanText: "No List<Party> usage of ChildParties found",
-                cleanStatus: UpgradeMessageStatus.Skip
-            );
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating Party.ChildParties usage", ex);
         }
     }
 

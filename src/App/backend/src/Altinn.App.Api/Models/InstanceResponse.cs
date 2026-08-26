@@ -1,6 +1,6 @@
 #nullable disable
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Models;

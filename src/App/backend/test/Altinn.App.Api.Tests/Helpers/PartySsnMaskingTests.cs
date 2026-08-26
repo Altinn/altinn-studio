@@ -1,6 +1,5 @@
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Tests.Helpers;
 

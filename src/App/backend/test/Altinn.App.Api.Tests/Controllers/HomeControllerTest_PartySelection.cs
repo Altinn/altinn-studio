@@ -1,8 +1,8 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 using App.IntegrationTests.Mocks.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;

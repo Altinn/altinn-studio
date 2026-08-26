@@ -8,7 +8,6 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 
 namespace Altinn.App.Core.Features.Auth;

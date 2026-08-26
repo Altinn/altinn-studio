@@ -3,7 +3,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Tests.Mocks;
 

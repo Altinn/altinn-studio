@@ -7,7 +7,6 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 using Xunit.Abstractions;
 using static Altinn.App.Core.Features.Auth.Authenticated;

@@ -3,9 +3,9 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 

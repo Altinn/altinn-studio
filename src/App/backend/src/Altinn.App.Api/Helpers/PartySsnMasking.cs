@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Api.Helpers;
 

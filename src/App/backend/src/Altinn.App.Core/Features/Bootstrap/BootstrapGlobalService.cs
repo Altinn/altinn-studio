@@ -10,7 +10,6 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

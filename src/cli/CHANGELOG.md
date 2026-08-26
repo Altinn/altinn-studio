@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports the app owner's required policy rights more accurately. It no longer asks for `pay` or `sign` on payment and signing tasks, which are already covered by `write`. It now grants `delete` when the app deletes its instances at process end, and points out a missing `reject` right for any task that can be rejected.
 - `studioctl app upgrade v9` now replaces the retired `FileUploadWithTag` layout component with `FileUpload`, retaining its configured options so tagged attachments continue to work.
 - `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
-- `studioctl app upgrade v9` rewrites app code using the legacy `Party`/`Person`/`Organization`/`PartyType` models to the new `Altinn.Register.Contracts.V1` namespace, and widens `List<Party>` variables assigned from `Party.ChildParties` to `IReadOnlyList<Party>`. Direct mutation of `ChildParties` (`.Add`, `.Remove`, an element assignment, etc.) is reported as a `TODO` for you to resolve, since `ChildParties` is read-only in v9.
+- `studioctl app upgrade v9` rewrites app code using the legacy `Party`/`Person`/`Organization`/`PartyType` and `UserProfile`/`UserType`/`ProfileSettingPreference` models to the `Altinn.App.Core.Models` namespace, where the App SDK now vendors them directly.
 
 ### Fixed
 

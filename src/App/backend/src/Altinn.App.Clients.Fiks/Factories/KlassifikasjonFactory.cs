@@ -3,7 +3,6 @@ using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 
 namespace Altinn.App.Clients.Fiks.Factories;

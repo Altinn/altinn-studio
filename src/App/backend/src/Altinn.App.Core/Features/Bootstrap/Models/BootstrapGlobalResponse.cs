@@ -3,7 +3,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
 

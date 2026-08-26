@@ -3,7 +3,6 @@ using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 using Microsoft.Extensions.Logging;
 using Moq;
 using static Altinn.App.Core.Features.Signing.Models.Signee;

@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
-using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
 using static Altinn.App.Core.Features.Auth.Authenticated;
 

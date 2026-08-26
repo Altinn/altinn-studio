@@ -2,7 +2,6 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Register.Contracts.V1;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Helpers;
