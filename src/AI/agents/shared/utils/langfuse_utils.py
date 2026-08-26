@@ -254,7 +254,7 @@ def delete_score(score_id: str) -> None:
         client.api.legacy.score_v1.delete(score_id)
         log.debug("Langfuse score %s deleted", score_id)
     except Exception as e:
-        log.debug("Failed to delete Langfuse score '%s': %s", score_id, e)
+        log.warning("Failed to delete Langfuse score '%s': %s", score_id, e)
 
 
 def get_trace_developer(trace_id: str) -> str | None:

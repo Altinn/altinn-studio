@@ -28,7 +28,7 @@ export type ChatMessage = {
   filesChanged?: string[];
   sources?: Source[];
   traceId?: string;
-  feedbackThumbsUp?: boolean;
+  feedbackThumbsUp?: boolean | null;
 };
 
 export type CreateChatMessagePayload = Omit<ChatMessage, 'id' | 'threadId' | 'createdAt'>;
