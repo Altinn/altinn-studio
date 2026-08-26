@@ -33,6 +33,7 @@ spec:
       allowedHosts:
         - github.com
         - api.github.com
+        - gist.github.com
   network:
     mode: mediated
     allow: all
