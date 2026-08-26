@@ -136,10 +136,13 @@
       "title": "IDataModelBindingsForPersonLookup",
       "type": "object",
       "properties": {
-        "person_lookup_ssn": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "person_lookup_name": { "$ref": "#/definitions/IRawDataModelBinding" }
+        "ssn": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "fullName": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "firstName": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "middleName": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "lastName": { "$ref": "#/definitions/IRawDataModelBinding" }
       },
-      "required": ["person_lookup_ssn", "person_lookup_name"],
+      "required": ["ssn"],
       "additionalProperties": false
     }
   },

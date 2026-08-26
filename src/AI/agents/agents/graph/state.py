@@ -131,6 +131,7 @@ class AgentState(BaseModel):
     developer: str
     org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
+    trace_id: Optional[str] = None  # Langfuse trace id, captured once at the root span
     # Hard permission gate: when False the loop runs read-only (write tools
     # denied) — the "chat mode" of the unified path. Fail closed: write
     # access is opt-in, so a constructor that omits the flag gets read-only.

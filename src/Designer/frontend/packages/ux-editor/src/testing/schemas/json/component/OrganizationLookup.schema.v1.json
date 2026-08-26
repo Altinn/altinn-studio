@@ -135,10 +135,10 @@
     "dataModelBindings": {
       "type": "object",
       "properties": {
-        "organization_lookup_orgnr": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "organization_lookup_name": { "$ref": "#/definitions/IRawDataModelBinding" }
+        "orgnr": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "name": { "$ref": "#/definitions/IRawDataModelBinding" }
       },
-      "required": ["organization_lookup_orgnr"],
+      "required": ["orgnr"],
       "additionalProperties": false
     }
   },

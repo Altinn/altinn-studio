@@ -88,3 +88,69 @@ jobs:
 
       - name: Check dependencies
         run: make deps-check
+
+  portable-hosts:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Portable host (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux ARM64
+            runner: ubuntu-24.04-arm
+          - name: macOS ARM64
+            runner: macos-15
+          - name: Windows x64
+            runner: windows-2025
+          - name: Windows ARM64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+        working-directory: src/experimental
+    steps:
+      - name: Enable long paths for git on Windows
+        if: runner.os == 'Windows'
+        working-directory: ${{ runner.temp }}
+        run: git config --system core.longpaths true
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            src/experimental
+            src/ci/github-runner/coordinator
+
+      - name: Install native build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libcap-ng-dev
+
+      - name: Install Rust toolchain
+        run: |
+          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          test -n "${RUST_VERSION}"
+          rustup toolchain install "${RUST_VERSION}" --profile minimal --component clippy
+          rustup default "${RUST_VERSION}"
+
+      - name: Check native host
+        run: >-
+          cargo clippy
+          -p sandbox
+          -p sandbox-authorization
+          -p agent
+          -p sandbox-microsandbox
+          --all-targets --all-features --locked
+
+      - name: Test native host
+        run: >-
+          cargo test
+          -p sandbox
+          -p sandbox-authorization
+          -p agent
+          -p sandbox-microsandbox
+          --all-targets --all-features --locked

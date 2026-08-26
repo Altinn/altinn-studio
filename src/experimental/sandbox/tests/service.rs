@@ -23,7 +23,7 @@ fn spec() -> SandboxSpec {
             context: PathBuf::from("."),
             dockerfile: PathBuf::from("Dockerfile"),
         },
-        platform: Platform::new("linux", "amd64"),
+        platform: Platform::native("linux"),
         resources: resources("2", "1Gi", "4Gi"),
         init_system: sandbox::init::InitSystem::Backend,
         retention_policy: RetentionPolicy::Retain,
@@ -80,7 +80,7 @@ async fn component_errors_preserve_stable_kind_and_resource_identity() {
 
 #[tokio::test(flavor = "local")]
 async fn capabilities_describe_the_configured_consumer_surface() {
-    let platform = Platform::new("linux", "amd64");
+    let platform = Platform::native("linux");
     let without_network = SandboxService::new(Rc::new(memory::Provider::new()))
         .capabilities(&platform)
         .await
@@ -422,6 +422,47 @@ async fn ensure_reconciles_mutable_resources() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn ensure_reconciles_environment_by_restarting_the_sandbox_and_network() {
+    let backend = Rc::new(memory::Provider::new());
+    let network = Rc::new(memory::NetworkBackend::for_endpoint(
+        "network-a",
+        NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+    ));
+    let service = SandboxService::new(backend).with_network_backend(network.clone());
+    let first_request = request().with_environment([("API_TOKEN".into(), "placeholder-one".into())]);
+    let first = service.ensure(&first_request).await.expect("first ensure");
+
+    let second_request = request().with_environment([("API_TOKEN".into(), "placeholder-two".into())]);
+    let updated = service.ensure(&second_request).await.expect("environment update");
+
+    assert_eq!(updated.id(), first.id());
+    assert_eq!(updated.snapshot().state, sandbox::SandboxState::Running);
+    assert_eq!(updated.snapshot().environment, second_request.environment().clone());
+    assert!(network.is_running(updated.id()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_rejects_invalid_environment_before_materialization() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend.clone());
+    let request = request().with_environment([("NOT-AN-ENV".into(), "placeholder".into())]);
+
+    let error = service
+        .ensure(&request)
+        .await
+        .expect_err("invalid environment should fail at the SDK boundary");
+
+    assert!(matches!(
+        error,
+        Error::Invalid {
+            field: "environment",
+            ..
+        }
+    ));
+    assert_eq!(backend.count(), 0);
+}
+
+#[tokio::test(flavor = "local")]
 async fn root_filesystem_mode_is_immutable() {
     let backend = Rc::new(memory::Provider::new());
     let service = SandboxService::new(backend);
@@ -534,6 +575,14 @@ async fn service_and_handle_expose_execution_and_volume_operations() {
     assert!(!output.status.success());
     assert_eq!(output.stdout, Bytes::from_static(b"output"));
     assert_eq!(output.stderr, Bytes::from_static(b"warning"));
+    assert_eq!(backend.execution_specs().len(), 1);
+    assert_eq!(
+        backend.execution_specs()[0].program(),
+        &sandbox::execution::Program::Command {
+            executable: SandboxPath::new("/usr/bin/example"),
+            args: vec!["--check".into()],
+        }
+    );
 
     let execution = sandbox
         .start_execution(StartExecutionRequest::new(ExecutionSpec::image_entrypoint()))
@@ -572,6 +621,45 @@ async fn service_and_handle_expose_execution_and_volume_operations() {
         poll_fn(|context| terminal.events.as_mut().poll_next(context)).await,
         Some(Ok(TerminalEvent::Started { process_id: Some(43) }))
     ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn memory_provider_matches_execution_responses_without_fifo_coupling() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend.clone());
+    let sandbox = service.ensure(&request()).await.expect("ensure");
+    backend.queue_execution_events_matching(
+        |spec| {
+            matches!(
+                spec.program(),
+                sandbox::execution::Program::Command { executable, .. }
+                    if executable.as_str() == "/usr/bin/matched"
+            )
+        },
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Exited(ExitStatus { code: 23 }),
+        ],
+    );
+
+    let unrelated = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/unrelated"),
+            Vec::<String>::new(),
+        ))
+        .await
+        .expect("unrelated Execution");
+    let matched = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/matched"),
+            Vec::<String>::new(),
+        ))
+        .await
+        .expect("matched Execution");
+
+    assert!(unrelated.status.success());
+    assert_eq!(matched.status.code, 23);
+    assert_eq!(backend.execution_specs().len(), 2);
 }
 
 #[tokio::test(flavor = "local")]
@@ -694,7 +782,7 @@ impl sandbox::provider::SandboxProvider for IncompatibleProvider {
 #[tokio::test(flavor = "local")]
 async fn ensure_rejects_an_image_that_does_not_satisfy_the_requested_platform() {
     let provider = Rc::new(IncompatibleProvider {
-        backend: memory::Provider::with_platforms(Platform::new("linux", "amd64"), [Platform::new("windows", "amd64")]),
+        backend: memory::Provider::with_platforms(Platform::native("linux"), [Platform::new("windows", "amd64")]),
         image_backend: IncompatibleImageBackend,
     });
     let service = SandboxService::new(provider.clone());
@@ -758,8 +846,8 @@ async fn ensure_rejects_a_root_mode_the_image_backend_cannot_materialize() {
 
 #[tokio::test(flavor = "local")]
 async fn platform_is_immutable_after_materialization() {
-    let linux = Platform::new("linux", "amd64");
-    let windows = Platform::new("windows", "amd64");
+    let linux = Platform::native("linux");
+    let windows = Platform::native("windows");
     let backend = Rc::new(memory::Provider::with_platforms(linux.clone(), [windows.clone()]));
     let service = SandboxService::new(backend);
     let linux_request = request();

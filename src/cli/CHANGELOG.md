@@ -12,6 +12,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - `studioctl app upgrade v9` now compiles the app against its current (v8) packages before touching anything, so the C# checks and rewrites work from exact type information instead of name matching. What you will notice: warnings no longer fire on your app's own types that happen to share a name with an SDK type (for example your own `ServiceTaskErrorHandling`); removed APIs are found in every spelling, including aliased and fully qualified uses; and `WithData` calls whose argument the upgrade previously could not classify — asking you to finish the rewrite by hand — are now rewritten automatically when the type is provable. The compilation adds some time to the upgrade (a few seconds with a warm package cache) and its duration is printed. When the app cannot be compiled — it did not build before the upgrade either, the SDK the app targets is not installed, or you are offline — the upgrade says so and runs exactly as before, with the previous name-based checks.
+- `studioctl app upgrade v9` reports the app owner's required policy rights more accurately. It no longer asks for `pay` or `sign` on payment and signing tasks, which are already covered by `write`. It now grants `delete` when the app deletes its instances at process end, and points out a missing `reject` right for any task that can be rejected.
+- `studioctl app upgrade v9` now replaces the retired `FileUploadWithTag` layout component with `FileUpload`, retaining its configured options so tagged attachments continue to work.
+- `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
+
+### Fixed
+
+- `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
 
 ## [0.1.0-preview.22] - 2026-08-18
 

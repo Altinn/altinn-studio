@@ -50,4 +50,14 @@ public class ChatMessageDbModel
     /// Sources referenced by the assistant, serialized as JSON.
     /// </summary>
     public string? Sources { get; set; }
+
+    /// <summary>
+    /// Langfuse trace id of the agent run that produced this message.
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
+    /// Id of the agent event this message was persisted from. Unique per thread.
+    /// </summary>
+    public string? EventId { get; set; }
 }

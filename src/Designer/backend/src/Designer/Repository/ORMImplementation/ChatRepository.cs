@@ -7,7 +7,9 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
@@ -121,9 +123,37 @@ public class ChatRepository : IChatRepository
         CancellationToken cancellationToken = default
     )
     {
+        // Written at most once per thread; the unique index settles races.
+        if (message.EventId is not null)
+        {
+            ChatMessageEntity? alreadyPersisted = await FindByEventIdAsync(
+                message.ThreadId,
+                message.EventId,
+                cancellationToken
+            );
+            if (alreadyPersisted is not null)
+            {
+                return alreadyPersisted;
+            }
+        }
+
         var dbModel = ChatMessageMapper.MapToDbModel(message);
         _dbContext.ChatMessages.Add(dbModel);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (message.EventId is not null && IsUniqueViolation(ex))
+        {
+            _dbContext.Entry(dbModel).State = EntityState.Detached;
+            ChatMessageEntity? winner = await FindByEventIdAsync(message.ThreadId, message.EventId, cancellationToken);
+            if (winner is null)
+            {
+                throw;
+            }
+            return winner;
+        }
+
         return ChatMessageMapper.MapToModel(dbModel);
     }
 
@@ -134,4 +164,20 @@ public class ChatRepository : IChatRepository
             .ChatMessages.Where(m => m.ThreadId == threadId && m.Id == messageId)
             .ExecuteDeleteAsync(cancellationToken);
     }
+
+    private async Task<ChatMessageEntity?> FindByEventIdAsync(
+        Guid threadId,
+        string eventId,
+        CancellationToken cancellationToken
+    )
+    {
+        ChatMessageDbModel? existing = await _dbContext
+            .ChatMessages.AsNoTracking()
+            .FirstOrDefaultAsync(m => m.ThreadId == threadId && m.EventId == eventId, cancellationToken);
+
+        return existing is null ? null : ChatMessageMapper.MapToModel(existing);
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException exception) =>
+        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 }

@@ -1,8 +1,8 @@
 .accordionIcon {
   font-size: var(--ds-font-size-7);
-  color: var(--fds-semantic-text-neutral-default);
-  border-radius: var(--fds-border_radius-small);
-  padding: var(--fds-sizing-2);
+  color: var(--ds-color-neutral-text-default);
+  border-radius: var(--ds-border-radius-sm);
+  padding: var(--ds-size-2);
 }
 
 .orgAccordionIcon {

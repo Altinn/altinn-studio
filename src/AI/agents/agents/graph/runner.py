@@ -22,6 +22,11 @@ def _check_cancelled(state: AgentState):
         raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
 
 
+def _raise_if_cancelled(state: AgentState, event_sink: EventSink) -> None:
+    if event_sink.is_cancelled(state.session_id):
+        raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
+
+
 def _with_cancellation(fn):
     """Wrap an async node handler to check for cancellation before execution."""
     async def wrapper(state: AgentState) -> AgentState:
@@ -99,7 +104,13 @@ def build_graph():
 graph = build_graph()
 
 from langfuse import get_client, propagate_attributes
-from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client, flush_langfuse
+from shared.utils.langfuse_utils import (
+    init_langfuse,
+    is_langfuse_enabled,
+    get_langfuse_client,
+    get_current_trace_id,
+    flush_langfuse,
+)
 from agents.services.llm import parse_intent_async, suggest_goal_correction, check_scope_async
 
 import logging as _logging
@@ -127,7 +138,10 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
       chat question gets a polite decline delivered as a normal reply.
     - Intent validation (write runs only): see _validate_intent.
     """
+    _raise_if_cancelled(state, event_sink)
     scope_result = await check_scope_async(state.user_goal)
+    # The scope check is an LLM call, so a cancel can land while it runs.
+    _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:
         decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
         _log.info(
@@ -139,7 +153,8 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
             # from the LLM-written decline so it can't spill into fake
             # suggestion chips.
             raise GoalRejected(decline_text.replace("|", "/"))
-        _emit_chat_decline(state, event_sink, decline_text)
+        if not _emit_chat_decline(state, event_sink, decline_text):
+            raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
         return decline_text
 
     if state.allow_app_changes:
@@ -147,38 +162,48 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     return None
 
 
-def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> None:
+def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> bool:
     """Deliver an out-of-scope decline as a normal chat turn.
 
     A declined question is not an error: the frontend gets the same
     assistant_message + terminal status pair a real answer produces, and
     the decline lands in conversation history so follow-up turns see it.
+
+    Returns False when the session was cancelled and nothing was delivered.
     """
-    event_sink.send(AgentEvent(
-        type="assistant_message",
-        session_id=state.session_id,
-        data={
-            "author": "assistant",
-            "content": decline_text,
-            "filesChanged": [],
-            "sources": [],
-            "no_branch_operations": True,
-        },
-    ))
-    try:
-        event_sink.add_to_conversation_history(state.session_id, "assistant", decline_text)
-    except Exception:
-        _log.warning("Could not store the decline in conversation history", exc_info=True)
-    event_sink.send(AgentEvent(
-        type="status",
-        session_id=state.session_id,
-        data={
-            "done": True,
-            "success": True,
-            "status": "completed",
-            "message": "Out-of-scope question declined",
-        },
-    ))
+    decline_data = {
+        "author": "assistant",
+        "content": decline_text,
+        "filesChanged": [],
+        "sources": [],
+        "no_branch_operations": True,
+    }
+    # Same event identity as a real answer: lets the frontend dedupe
+    # redelivered events and submit feedback on the decline.
+    trace_id = state.trace_id or get_current_trace_id()
+    if trace_id:
+        decline_data["traceId"] = trace_id
+    return event_sink.deliver_unless_cancelled(
+        state.session_id,
+        [
+            AgentEvent(
+                type="assistant_message",
+                session_id=state.session_id,
+                data=decline_data,
+            ),
+            AgentEvent(
+                type="status",
+                session_id=state.session_id,
+                data={
+                    "done": True,
+                    "success": True,
+                    "status": "completed",
+                    "message": "Out-of-scope question declined",
+                },
+            ),
+        ],
+        history=("assistant", decline_text),
+    )
 
 
 async def _validate_intent(state: AgentState):
@@ -255,6 +280,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 "app_name": state.app_name,
             },
         ) as root_span:
+            state.trace_id = get_current_trace_id()
             with propagate_attributes(user_id=state.org):
                 try:
                     decline_text = await _gate_goal(state, event_sink)
