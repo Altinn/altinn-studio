@@ -279,6 +279,10 @@ async def _repair_render_failures(
                 state.session_id,
                 MAX_RENDER_REPAIR_ROUNDS,
             )
+            state.tests_passed = False
+            state.verify_notes = [
+                f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."
+            ]
             return result
 
         log.info("Render check failed for session %s; asking the model to fix", state.session_id)

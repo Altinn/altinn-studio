@@ -792,14 +792,17 @@ class TestEnforcedRenderCheck:
         monkeypatch.setattr(node, "run_loop", fake_run_loop)
         monkeypatch.setattr(node, "_maybe_auto_commit", _AsyncRecommit())
         ctx = _committed_ctx(tmp_path)
+        state = _state()
 
         await node._repair_render_failures(
-            _state(), _loop_result(), ctx,
+            state, _loop_result(), ctx,
             registry=None, adapter=None, system_prompt="", on_event=None,
         )
 
         assert len(reran) == node.MAX_RENDER_REPAIR_ROUNDS
         assert check.calls == node.MAX_RENDER_REPAIR_ROUNDS + 1
+        assert state.tests_passed is False
+        assert state.verify_notes
 
     async def test_a_repair_that_works_is_confirmed_by_a_final_check(
         self, tmp_path, monkeypatch
