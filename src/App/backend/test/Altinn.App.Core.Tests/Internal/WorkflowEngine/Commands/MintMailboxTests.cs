@@ -15,12 +15,14 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// The step that opens the mailbox: what keys the mint, what the carry ends up holding, and what each
-/// refusal — the engine's and the drift guards' — does to the step.
+/// refusal — the engine's and the plain index-not-found guard — does to the step.
 /// </summary>
 public class MintMailboxTests
 {
-    private static readonly Guid InstanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
-    private const string SendStage = "SendToArchive";
+    private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
+
+    /// <summary>The item index of the stage whose mailbox the mint step opens.</summary>
+    private const int SendStageIndex = 0;
 
     /// <summary>Answers mints idempotently on the key, so a test can tell "minted twice" from "replayed".</summary>
     private sealed class RecordingMailboxMinter : IWorkflowEngineClient
@@ -146,74 +148,28 @@ public class MintMailboxTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(SendStage, Send, _threeDays, out MailboxHandle archive)
-                .Stage("RecordDispatch", Plain)
+                .Stage(Send, _threeDays, out MailboxHandle archive)
+                .Stage(Plain)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
-    /// <summary>Drift: the stage the workflow was enqueued against no longer exists.</summary>
-    private sealed class RenamedStageTask : IPipelineServiceTask
-    {
-        public string Type => "archiving";
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage("SendToArchiveV2", Send, _threeDays, out MailboxHandle archive)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
-    }
-
-    /// <summary>Drift: neither the stage nor any mailbox declaration survived the redeploy.</summary>
-    private sealed class NoStageNoMailboxTask : IPipelineServiceTask
-    {
-        public string Type => "archiving";
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline.Stage("SendToArchiveV2", Plain).Finally(Conclude);
-    }
-
-    /// <summary>Drift: the stage is still there, but the pipeline no longer opens a mailbox at all.</summary>
+    /// <summary>Drift: the pipeline composes a plain stage where this workflow expects a declaring one.</summary>
     private sealed class NoLongerDeclaringTask : IPipelineServiceTask
     {
         public string Type => "archiving";
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline.Stage(SendStage, Plain).Finally(Conclude);
+            pipeline.Stage(Plain).Finally(Conclude);
     }
 
-    /// <summary>Drift: the declaration moved to a later stage while this workflow was in flight.</summary>
-    private sealed class MovedDeclarationTask : IPipelineServiceTask
+    /// <summary>Drift: nothing composes at this index at all.</summary>
+    private sealed class ShorterPipelineTask : IPipelineServiceTask
     {
         public string Type => "archiving";
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage(SendStage, Plain)
-                .Stage("SendReceipt", Send, _threeDays, out MailboxHandle receipts)
-                .ConcludeOnReplies(receipts, OnMessage, OnClosed);
+            pipeline.Stage(Send, _threeDays, out MailboxHandle archive).ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
-
-    /// <summary>Drift with more than one place to point: the pipeline opens two mailboxes, neither this step's.</summary>
-    private sealed class TwoRelocatedDeclarationsTask : IPipelineServiceTask
-    {
-        public string Type => "archiving";
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage("SendToArchiveV2", Send, _threeDays, out MailboxHandle archive)
-                .Stage("SendToJournal", Send, _threeDays, out MailboxHandle journal)
-                .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-                .ConcludeOnReplies(journal, OnMessage, OnClosed);
-    }
-
-    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
-
-    private static Task<ServiceTaskStageResult> OnSegmentClosed(
-        ServiceTaskContext context,
-        MailboxClosedReason reason
-    ) => Task.FromResult(ServiceTaskStageResult.Completed());
 
     private static MintMailbox CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
     {
@@ -232,7 +188,7 @@ public class MintMailboxTests
     {
         var instance = new Instance
         {
-            Id = $"1337/{InstanceGuid}",
+            Id = $"1337/{_instanceGuid}",
             Org = "ttd",
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
@@ -244,7 +200,7 @@ public class MintMailboxTests
         return new ProcessEngineCommandContext
         {
             AppId = new AppIdentifier("ttd", "test-app"),
-            InstanceId = new InstanceIdentifier(1337, InstanceGuid),
+            InstanceId = new InstanceIdentifier(1337, _instanceGuid),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
             StateCarry = carry ?? new WorkflowCallbackStateCarry(),
@@ -261,7 +217,7 @@ public class MintMailboxTests
         };
     }
 
-    private static MintMailboxPayload Payload(string stageName = SendStage) => new("archiving", stageName);
+    private static MintMailboxPayload Payload(int stageIndex = SendStageIndex) => new("archiving", stageIndex);
 
     [Fact]
     public async Task Execute_MintsKeyedOnTheStepIdWithTheDeclaredTimeout()
@@ -278,23 +234,23 @@ public class MintMailboxTests
         Assert.Equal("ttd/test-app", ns);
         Assert.Equal(stepId.ToString(), request.IdempotencyKey);
         Assert.Equal(TimeSpan.FromDays(3), request.Timeout);
-        Assert.Equal(InstanceGuid.ToString(), request.CollectionKey);
+        Assert.Equal(_instanceGuid.ToString(), request.CollectionKey);
     }
 
     [Fact]
-    public async Task Execute_RecordsTheMintedMailboxOnTheCarryUnderTheOpeningStage()
+    public async Task Execute_RecordsTheMintedMailboxOnTheCarryUnderTheOpeningIndex()
     {
         var minter = new RecordingMailboxMinter();
         var carry = new WorkflowCallbackStateCarry();
 
         await CreateCommand(new ArchivingTask(), minter).Execute(CreateContext(carry: carry), Payload());
 
-        CarriedMailbox? recorded = carry.FindMailbox(SendStage);
+        CarriedMailbox? recorded = carry.FindMailbox(SendStageIndex);
         Assert.NotNull(recorded);
         Assert.NotEqual(Guid.Empty, recorded.Id);
         Assert.Equal(new DateTimeOffset(2026, 8, 22, 10, 0, 0, TimeSpan.Zero), recorded.Deadline);
         Assert.NotNull(carry.Mailboxes);
-        Assert.Equal(SendStage, Assert.Single(carry.Mailboxes).Key);
+        Assert.Equal($"{SendStageIndex}", Assert.Single(carry.Mailboxes).Key);
     }
 
     /// <summary>
@@ -312,7 +268,7 @@ public class MintMailboxTests
         await CreateCommand(new ArchivingTask(), minter).Execute(CreateContext(stepId, first), Payload());
         await CreateCommand(new ArchivingTask(), minter).Execute(CreateContext(stepId, second), Payload());
 
-        Assert.Equal(first.FindMailbox(SendStage)?.Id, second.FindMailbox(SendStage)?.Id);
+        Assert.Equal(first.FindMailbox(SendStageIndex)?.Id, second.FindMailbox(SendStageIndex)?.Id);
         Assert.Equal(2, minter.Mints.Count);
         Assert.All(minter.Mints, mint => Assert.Equal(stepId.ToString(), mint.Request.IdempotencyKey));
     }
@@ -329,6 +285,7 @@ public class MintMailboxTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
+        Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(minter.Mints);
         Assert.Null(carry.Mailboxes);
     }
@@ -350,7 +307,7 @@ public class MintMailboxTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxRejected", failed.ExceptionType);
-        Assert.Contains(SendStage, failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Contains("exceeds the maximum mailbox timeout", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(carry.Mailboxes);
     }
@@ -372,7 +329,7 @@ public class MintMailboxTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Equal("MailboxAtCapacity", failed.ExceptionType);
-        Assert.Contains(SendStage, failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Contains("maximum of 100 open mailboxes", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(carry.Mailboxes);
     }
@@ -392,55 +349,12 @@ public class MintMailboxTests
     }
 
     /// <summary>
-    /// Redeploy drift: the stage this step was emitted for was renamed or removed mid-flight. One lookup now
-    /// covers it and the declaration-drift cases below — a stage that does not open this exchange is a miss
-    /// however it came to be one.
+    /// Drift, plain verdict: the index resolves to an item that opens no mailbox — stages inserted,
+    /// reordered or removed shift every index behind them, and an unguarded reshape is the accepted hazard.
+    /// An index has no old value to search for, so there is no relocation story to tell.
     /// </summary>
     [Fact]
-    public async Task Execute_WhenTheStageIsGone_FailsPermanentlyNamingTheRedeployFix()
-    {
-        var minter = new RecordingMailboxMinter();
-
-        ProcessEngineCommandResult result = await CreateCommand(new RenamedStageTask(), minter)
-            .Execute(CreateContext(), Payload());
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.Contains($"from stage '{SendStage}'", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("redeploy", failed.ErrorMessage, StringComparison.Ordinal);
-        // The actionable half: a stage renamed together with its declaration is the likeliest shape of this
-        // drift, so the message says where the declaration went rather than only that the stage is gone.
-        Assert.Contains(
-            "mailbox is now opened by stage 'SendToArchiveV2'",
-            failed.ErrorMessage,
-            StringComparison.Ordinal
-        );
-        Assert.Empty(minter.Mints);
-    }
-
-    /// <summary>
-    /// The same drift with nowhere to point: the stage and the declaration both went, so the message must not
-    /// invent a stage the mailbox moved to.
-    /// </summary>
-    [Fact]
-    public async Task Execute_WhenTheStageAndTheDeclarationBothWent_FailsPermanentlyWithoutNamingARelocation()
-    {
-        var minter = new RecordingMailboxMinter();
-
-        ProcessEngineCommandResult result = await CreateCommand(new NoStageNoMailboxTask(), minter)
-            .Execute(CreateContext(), Payload());
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.DoesNotContain("now opened by stage", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Empty(minter.Mints);
-    }
-
-    /// <summary>Redeploy drift: the stage survived, the declaration did not.</summary>
-    [Fact]
-    public async Task Execute_WhenTheDeclarationIsGone_FailsPermanently()
+    public async Task Execute_WhenNoDeclaringStageComposesAtIndex_FailsPermanentlyWithThePlainVerdict()
     {
         var minter = new RecordingMailboxMinter();
 
@@ -450,47 +364,25 @@ public class MintMailboxTests
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.Contains("now opens no mailbox at all", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains($"from the stage at index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("no mailbox-opening stage at that index", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.DoesNotContain("now opened by stage", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(minter.Mints);
     }
 
-    /// <summary>
-    /// The same drift on a pipeline that now opens several mailboxes: the message names all of them, because
-    /// naming only the first would tell the reader the mailbox moved to a stage it may well not have.
-    /// </summary>
+    /// <summary>The same miss with nothing at the index at all.</summary>
     [Fact]
-    public async Task Execute_WhenSeveralMailboxesAreOpenedNow_NamesEveryOpeningStage()
+    public async Task Execute_WhenNothingComposesAtIndex_FailsPermanentlyWithThePlainVerdict()
     {
         var minter = new RecordingMailboxMinter();
 
-        ProcessEngineCommandResult result = await CreateCommand(new TwoRelocatedDeclarationsTask(), minter)
-            .Execute(CreateContext(), Payload());
+        ProcessEngineCommandResult result = await CreateCommand(new ShorterPipelineTask(), minter)
+            .Execute(CreateContext(), Payload(stageIndex: 1));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.Contains(
-            "its mailboxes are now opened by stages 'SendToArchiveV2', 'SendToJournal'",
-            failed.ErrorMessage,
-            StringComparison.Ordinal
-        );
-        Assert.Empty(minter.Mints);
-    }
-
-    /// <summary>Redeploy drift: the declaration moved, so minting here would open an orphan.</summary>
-    [Fact]
-    public async Task Execute_WhenTheDeclarationMoved_FailsPermanentlyNamingBothStages()
-    {
-        var minter = new RecordingMailboxMinter();
-
-        ProcessEngineCommandResult result = await CreateCommand(new MovedDeclarationTask(), minter)
-            .Execute(CreateContext(), Payload());
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
-        Assert.Contains($"from stage '{SendStage}'", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("now opened by stage 'SendReceipt'", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("from the stage at index 1", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(minter.Mints);
     }
 
@@ -533,13 +425,13 @@ public class MintMailboxTests
     [Fact]
     public void Payload_RoundTripsThroughThePolymorphicCommandContract()
     {
-        string? json = CommandPayloadSerializer.Serialize<CommandRequestPayload>(new MintMailboxPayload("t", "s"));
+        string? json = CommandPayloadSerializer.Serialize<CommandRequestPayload>(new MintMailboxPayload("t", 3));
         Assert.NotNull(json);
         Assert.Contains("mintMailbox", json, StringComparison.Ordinal);
 
         var restored = CommandPayloadSerializer.Deserialize<MintMailboxPayload>(json);
         Assert.NotNull(restored);
         Assert.Equal("t", restored.ServiceTaskType);
-        Assert.Equal("s", restored.StageName);
+        Assert.Equal(3, restored.StageIndex);
     }
 }

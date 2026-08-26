@@ -19,7 +19,9 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class EnqueueReceiveWorkflowTests
 {
     private const string SignedTestState = "signed-state-blob-carrying-the-mailbox-id";
-    private const string SendStage = "SendToArchive";
+
+    /// <summary>The item index of the stage that opens the exchange.</summary>
+    private const int OpeningStageIndex = 0;
 
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-000000000001");
     private static readonly Guid _mainWorkflowId = Guid.NewGuid();
@@ -89,7 +91,7 @@ public class EnqueueReceiveWorkflowTests
         var carry = new WorkflowCallbackStateCarry();
         if (mailboxId is { } id)
         {
-            carry.RecordMailbox(SendStage, id, new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero));
+            carry.RecordMailbox(OpeningStageIndex, id, new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero));
         }
         return carry;
     }
@@ -100,8 +102,8 @@ public class EnqueueReceiveWorkflowTests
     /// </summary>
     private static EnqueueReceiveWorkflowPayload CreatePayload(
         WorkflowEnqueueRequest? request = null,
-        string openingStageName = SendStage
-    ) => new(request ?? CreateEmbeddedRequest(), openingStageName);
+        int openingStageIndex = OpeningStageIndex
+    ) => new(request ?? CreateEmbeddedRequest(), openingStageIndex);
 
     private static (Mock<IWorkflowEngineClient> Client, Captured Captured) CreateClient()
     {
@@ -237,18 +239,18 @@ public class EnqueueReceiveWorkflowTests
     }
 
     /// <summary>
-    /// The name on the payload is what resolves the exchange, so a second carried mailbox is no obstacle: the
+    /// The index on the payload is what resolves the exchange, so a second carried mailbox is no obstacle: the
     /// receiver is enqueued against the one its own stage opened, never against "the one entry there is".
     /// </summary>
     [Fact]
-    public async Task Execute_WithMailboxesFromTwoStages_EnqueuesAgainstTheNamedOne()
+    public async Task Execute_WithMailboxesFromTwoStages_EnqueuesAgainstTheIndexedOne()
     {
         (Mock<IWorkflowEngineClient> client, Captured captured) = CreateClient();
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
         var carry = new WorkflowCallbackStateCarry();
         var deadline = new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
-        carry.RecordMailbox(SendStage, _mailboxId, deadline);
-        carry.RecordMailbox("SendReceipt", Guid.NewGuid(), deadline);
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, deadline);
+        carry.RecordMailbox(1, Guid.NewGuid(), deadline);
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(carry: carry), CreatePayload());
 
@@ -259,23 +261,23 @@ public class EnqueueReceiveWorkflowTests
 
     /// <summary>
     /// A broken carry: the mint step for this exchange's stage recorded nothing that reached here. Naming the
-    /// stage is what makes the failure diagnosable.
+    /// index is what makes the failure diagnosable.
     /// </summary>
     [Fact]
-    public async Task Execute_WithAMailboxCarriedOnlyForAnotherStage_FailsPermanentlyNamingTheStage()
+    public async Task Execute_WithAMailboxCarriedOnlyForAnotherIndex_FailsPermanentlyNamingTheIndex()
     {
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         var command = new EnqueueReceiveWorkflow(client.Object, new CountingTokenGenerator());
 
         ProcessEngineCommandResult result = await command.Execute(
             CreateContext(_mailboxId),
-            CreatePayload(openingStageName: "SendReceipt")
+            CreatePayload(openingStageIndex: 1)
         );
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
-        Assert.Contains("stage 'SendReceipt'", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("index 1", failed.ErrorMessage, StringComparison.Ordinal);
         client.Verify(
             c =>
                 c.EnqueueWorkflows(

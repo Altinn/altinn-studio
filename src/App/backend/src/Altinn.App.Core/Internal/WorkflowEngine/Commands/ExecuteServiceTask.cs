@@ -10,12 +10,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// Request payload for the ExecuteServiceTask command: the service task type, and which part of the
-/// pipeline this engine step runs — said by whichever one name the payload carries.
+/// pipeline this engine step runs — said by whichever one index the payload carries. A step either runs
+/// the pipeline item at <see cref="StageIndex"/>, answers the exchange opened at <see cref="RepliesTo"/>,
+/// or is the pipeline's conclusion (neither set).
 /// </summary>
 /// <remarks>
 /// <para>
-/// <strong>At most one of <see cref="StageName"/> and <see cref="RepliesTo"/> is ever set.</strong> Nothing
-/// outside this app-lib's own expansion constructs one of these, so both names set is a payload written by a
+/// <strong>At most one of <see cref="StageIndex"/> and <see cref="RepliesTo"/> is ever set.</strong> Nothing
+/// outside this app-lib's own expansion constructs one of these, so both indexes set is a payload written by a
 /// version of this app-lib whose step identity differed.
 /// </para>
 /// <para>
@@ -26,11 +28,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// <c>InvalidPayloadException</c>).
 /// </para>
 /// </remarks>
-internal sealed record ExecuteServiceTaskPayload(
-    string ServiceTaskType,
-    string? StageName = null,
-    string? RepliesTo = null
-) : CommandRequestPayload;
+internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? StageIndex = null, int? RepliesTo = null)
+    : CommandRequestPayload;
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
@@ -66,15 +65,15 @@ internal sealed class ExecuteServiceTask(
         // Refused before the task is resolved: inside the try below, anything the resolution throws — an
         // unregistered service task type, a Define that throws — becomes a retryable failure that never
         // converges, on a payload no retry can fix.
-        if (payload is { StageName: not null, RepliesTo: not null })
+        if (payload is { StageIndex: not null, RepliesTo: not null })
         {
-            return BothStepNames(serviceTaskType, payload);
+            return BothStepIndexes(serviceTaskType, payload);
         }
 
         // Refused here for the same reason: a rendezvous on a step that names no exchange. Every receive step
         // this expansion builds names the exchange it answers, so no pipeline shape can pick a handler for
         // this message — resolving the task first would only decide how the refusal is worded.
-        if (payload is { StageName: null, RepliesTo: null } && context.Payload.Mailbox is not null)
+        if (payload is { StageIndex: null, RepliesTo: null } && context.Payload.Mailbox is not null)
         {
             return MailboxReceiptOnConclusion(serviceTaskType);
         }
@@ -107,9 +106,9 @@ internal sealed class ExecuteServiceTask(
                 },
             };
 
-            if (payload.StageName is { } stageName)
+            if (payload.StageIndex is { } stageIndex)
             {
-                return await ExecuteStage(context, pipeline, serviceTask, stageName, serviceTaskContext);
+                return await ExecuteStage(context, pipeline, serviceTask, stageIndex, serviceTaskContext);
             }
 
             // Before the switch below: its FinalStep arms assume a FinalStep pipeline answers no exchange at
@@ -122,20 +121,14 @@ internal sealed class ExecuteServiceTask(
 
             return (payload.RepliesTo, pipeline.Conclusion) switch
             {
-                ({ } repliesTo, PipelineConclusion.ReplyExchange exchange)
-                    when TerminalStandsInFor(pipeline, exchange, repliesTo) => await ExecuteTerminalReply(
-                    context,
-                    exchange,
-                    repliesTo,
-                    serviceTaskType,
-                    serviceTaskContext
-                ),
+                ({ } repliesTo, PipelineConclusion.ReplyExchange exchange) when exchange.OpeningIndex == repliesTo =>
+                    await ExecuteTerminalReply(context, exchange, repliesTo, serviceTaskType, serviceTaskContext),
 
                 // A step naming no exchange on a pipeline whose conclusion answers one. This expansion emits no
                 // bare concluding step for such a pipeline — its terminal runs on receive workflows — so this
                 // is the redeploy that turned a Finally into a reply terminal while Main was in flight: that
                 // Main's concluding step arrives here with nothing to answer. (It cannot be carrying a
-                // rendezvous — a name-less step with one was refused before dispatch.)
+                // rendezvous — an index-less step with one was refused before dispatch.)
                 (null, PipelineConclusion.ReplyExchange) => MailboxReceiptMissing(serviceTaskType),
 
                 (null, PipelineConclusion.FinalStep final) => await ExecuteConclusion(
@@ -145,7 +138,7 @@ internal sealed class ExecuteServiceTask(
                 ),
 
                 ({ } repliesTo, PipelineConclusion.FinalStep or PipelineConclusion.ReplyExchange) =>
-                    MailboxHandlerNotFound(serviceTaskType, repliesTo, pipeline),
+                    MailboxHandlerNotFound(serviceTaskType, repliesTo),
 
                 // Drift guard for this assembly's own vocabulary: PipelineConclusion is a closed two-member set,
                 // so the only way here is a third conclusion shape added without a branch to execute it.
@@ -171,8 +164,10 @@ internal sealed class ExecuteServiceTask(
     /// <item>
     /// <term><c>ServiceTaskStageNotFound</c></term>
     /// <description>
-    /// a redeploy renamed or removed this stage while a workflow enqueued against it was in flight. The step
-    /// list is fixed at enqueue time, so the workflow keeps calling back by the old name until it settles.
+    /// the pipeline moved under this workflow while it was in flight — stages inserted, reordered or removed
+    /// shift every index behind them, and an edit to the composed process invalidates an old enqueue exactly as
+    /// an edited BPMN file does. The step list is fixed at enqueue time, so the workflow keeps addressing its
+    /// step by the old index until it settles.
     /// </description>
     /// </item>
     /// <item>
@@ -189,18 +184,17 @@ internal sealed class ExecuteServiceTask(
         ProcessEngineCommandContext context,
         ServiceTaskPipeline pipeline,
         IPipelineServiceTask serviceTask,
-        string stageName,
+        int stageIndex,
         ServiceTaskContext serviceTaskContext
     )
     {
-        ServiceTaskStage? stage = pipeline.FindStage(stageName);
-        if (stage is null)
+        if (pipeline.Items.ElementAtOrDefault(stageIndex) is not ServiceTaskStage stage)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"Service task '{serviceTask.Type}' composes no stage named '{stageName}'. Stage names are a "
-                    + "compatibility surface for in-flight workflows: if the stage was renamed or removed since this "
-                    + "workflow was enqueued, redeploy with the original name restored in "
-                    + $"{nameof(IPipelineServiceTask.Define)} and resume the workflow.",
+                $"Service task '{serviceTask.Type}' composes no stage at index {stageIndex}. A pipeline's "
+                    + "indexes are positions in its composition: if stages were inserted, reordered or removed "
+                    + $"since this workflow was enqueued, every index behind the change has moved. Resume the "
+                    + $"workflow on the code that enqueued it, or abandon it deliberately.",
                 "ServiceTaskStageNotFound"
             );
         }
@@ -208,9 +202,9 @@ internal sealed class ExecuteServiceTask(
         if (context.Payload.Mailbox is not null)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"Stage '{stageName}' of service task '{serviceTask.Type}' was handed a mailbox message, but only a "
-                    + "pipeline's reply handler answers messages. This workflow was not built by this application's "
-                    + "pipeline expansion.",
+                $"The stage at index {stageIndex} of service task '{serviceTask.Type}' was handed a mailbox "
+                    + "message, but only a pipeline's reply handler answers messages. This workflow was not built "
+                    + "by this application's pipeline expansion.",
                 "MailboxReceiptOnStage"
             );
         }
@@ -221,6 +215,7 @@ internal sealed class ExecuteServiceTask(
             ServiceTaskStage.MailboxOpening opening => await ExecuteMailboxOpeningStage(
                 context,
                 opening,
+                stageIndex,
                 serviceTask,
                 serviceTaskContext
             ),
@@ -240,7 +235,7 @@ internal sealed class ExecuteServiceTask(
     /// <list type="bullet">
     /// <item>
     /// <description>
-    /// a redeploy <em>added</em> the declaration to this stage while a workflow enqueued against the
+    /// a redeploy <em>added</em> the declaration at this index while a workflow enqueued against the
     /// declaration-free shape was in flight, so that workflow's step list holds no mint step at all.
     /// </description>
     /// </item>
@@ -255,19 +250,18 @@ internal sealed class ExecuteServiceTask(
     private static async Task<ProcessEngineCommandResult> ExecuteMailboxOpeningStage(
         ProcessEngineCommandContext context,
         ServiceTaskStage.MailboxOpening stage,
+        int stageIndex,
         IPipelineServiceTask serviceTask,
         ServiceTaskContext serviceTaskContext
     )
     {
-        if (context.StateCarry.FindMailbox(stage.Name) is not { } carried)
+        if (context.StateCarry.FindMailbox(stageIndex) is not { } carried)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"Stage '{stage.Name}' opens a mailbox, but no mailbox id for it reached this step in the workflow "
-                    + "state. Either this workflow was enqueued before the stage opened one — its step list was "
-                    + "fixed then, and holds no mint step to record an id — or the mint step ran immediately before "
-                    + "this stage and its record did not survive into this step's state. If the declaration was "
-                    + $"just added to '{stage.Name}': every workflow enqueued against the previous shape fails "
-                    + "here, so redeploy with it rolled back and resume them, or abandon them deliberately.",
+                $"The stage at index {stageIndex} opens a mailbox, but no mailbox id for it reached this step in "
+                    + "the workflow state. Either this workflow was enqueued before the stage opened one — its "
+                    + "step list was fixed then, and holds no mint step to record an id — or the mint step ran "
+                    + "immediately before this stage and its record did not survive into this step's state.",
                 "MailboxIdMissingFromState"
             );
         }
@@ -386,7 +380,7 @@ internal sealed class ExecuteServiceTask(
     private Task<ProcessEngineCommandResult> ExecuteTerminalReply(
         ProcessEngineCommandContext context,
         PipelineConclusion.ReplyExchange exchange,
-        string repliesTo,
+        int repliesTo,
         string serviceTaskType,
         ServiceTaskContext serviceTaskContext
     )
@@ -405,9 +399,9 @@ internal sealed class ExecuteServiceTask(
                 context.Payload.StepId,
                 receipt,
                 context.StateCarry,
-                // The name the step carries, not the pipeline's own: the exchange's identity is fixed at its
-                // first enqueue, and re-deriving it here would hand a mid-flight rename to both the
-                // successor's enqueue and the carry key the conclusion drops.
+                // The index the step carries, not the pipeline's own: the exchange's identity is fixed at its
+                // first enqueue, and re-deriving it here would point the successor's enqueue and the carry key
+                // the conclusion drops at whatever sits at that index now.
                 repliesTo
             );
     }
@@ -420,7 +414,7 @@ internal sealed class ExecuteServiceTask(
     private Task<ProcessEngineCommandResult> ExecuteSegmentReply(
         ProcessEngineCommandContext context,
         ReplySegment segment,
-        string repliesTo,
+        int repliesTo,
         string serviceTaskType,
         ServiceTaskContext serviceTaskContext
     )
@@ -445,8 +439,8 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// The step that concludes the pipeline — the last step of its <em>final segment</em>, and the only step
-    /// that carries neither a stage name nor an exchange name. It answers no message, and cannot be holding
-    /// one: a name-less step carrying a rendezvous was refused before dispatch
+    /// that carries neither a stage index nor an exchange index. It answers no message, and cannot be holding
+    /// one: an index-less step carrying a rendezvous was refused before dispatch
     /// (<c>MailboxReceiptOnConclusion</c>).
     /// </summary>
     private static async Task<ProcessEngineCommandResult> ExecuteConclusion(
@@ -456,69 +450,25 @@ internal sealed class ExecuteServiceTask(
     ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
 
     /// <summary>
-    /// Whether the reply terminal answers the exchange a receive step names: it does when it names that
-    /// exchange itself, and when it is the pipeline's <em>only</em> exchange, so an unrecognised name can
-    /// mean nothing else.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// The stand-in is what keeps a mid-flight rename of the terminal's own opening stage working: the
-    /// receiver was enqueued under the old name and the pipeline resolves under the new one.
-    /// </para>
-    /// <para>
-    /// <strong>It is a condition and not a constant because the proof runs out at two exchanges.</strong> On
-    /// <c>Stage(A) → HandleReplies(A) → Stage(B) → ConcludeOnReplies(B)</c>, a receiver carrying a name
-    /// matching neither handler could belong to either exchange, and standing the terminal in would hand A's
-    /// message to B's handler — which may conclude the task on it.
-    /// </para>
-    /// </remarks>
-    private static bool TerminalStandsInFor(
-        ServiceTaskPipeline pipeline,
-        PipelineConclusion.ReplyExchange exchange,
-        string repliesTo
-    ) =>
-        string.Equals(exchange.OpeningStageName, repliesTo, StringComparison.Ordinal)
-        || !pipeline.Items.OfType<ReplySegment>().Any();
-
-    /// <summary>
-    /// <c>MailboxHandlerNotFound</c>: redeploy drift, the receiving half of the send side's
-    /// <c>MailboxDeclarationNotFound</c> — the handler was renamed or withdrawn while its exchange was in
-    /// flight.
+    /// <c>MailboxHandlerNotFound</c>: the exchange a receive step names is answered by nothing in the
+    /// pipeline resolving at this hop — redeploy drift (a handler withdrawn, or the pipeline reshaped so the
+    /// index lands elsewhere), and the receiving half of the send side's <c>MailboxDeclarationNotFound</c>.
+    /// Matching the conclusion is exact: an index resolves to one item or none, and there is no old value to
+    /// stand anything in for.
     /// </summary>
     /// <remarks>
     /// Permanent, for the reason every drift guard on this path is: the step's payload never changes, so a
-    /// retry replays the same name against the same code. Nor may the runtime pick another handler — one that
+    /// retry replays the same index against the same code. Nor may the runtime pick another handler — one that
     /// answers a different exchange would read this exchange's message and settle on it.
     /// </remarks>
-    private static FailedProcessEngineCommandResult MailboxHandlerNotFound(
-        string serviceTaskType,
-        string repliesTo,
-        ServiceTaskPipeline pipeline
-    )
-    {
-        List<string> answered = [.. pipeline.Items.OfType<ReplySegment>().Select(r => r.OpeningStageName)];
-        if (pipeline.Conclusion is PipelineConclusion.ReplyExchange terminal)
-        {
-            answered.Add(terminal.OpeningStageName);
-        }
-
-        string answersNow = answered switch
-        {
-            [] => "its pipeline now answers no exchange at all",
-            [string only] => $"it now answers only the exchange opened by stage '{only}'",
-            _ => "it now answers only the exchanges opened by stages "
-                + string.Join(", ", answered.Select(name => $"'{name}'")),
-        };
-
-        return FailedProcessEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' answered the exchange opened by stage '{repliesTo}' when this "
-                + $"workflow was enqueued, but {answersNow}. The exchanges a pipeline answers are a "
-                + "compatibility surface for in-flight workflows: redeploy with a handler for the exchange "
-                + $"opened by stage '{repliesTo}' in {nameof(IPipelineServiceTask.Define)} and resume the "
-                + "workflow.",
+    private static FailedProcessEngineCommandResult MailboxHandlerNotFound(string serviceTaskType, int repliesTo) =>
+        FailedProcessEngineCommandResult.Permanent(
+            $"Service task '{serviceTaskType}' answers the exchange opened at index {repliesTo}, but its "
+                + "pipeline composes no reply handler for an exchange opened there — the exchange's handler was "
+                + "withdrawn, or stages were inserted, reordered or removed since this workflow was enqueued. "
+                + "Resume the workflow on the code that enqueued it, or abandon it deliberately.",
             "MailboxHandlerNotFound"
         );
-    }
 
     /// <summary>
     /// <c>MailboxReceiptMissing</c>: a step that answers an exchange, handed no rendezvous. One failure with
@@ -557,13 +507,13 @@ internal sealed class ExecuteServiceTask(
     /// step's payload never changes: a retry replays the same bytes, and guessing which name to honour would
     /// run the wrong part of the pipeline.
     /// </summary>
-    private static FailedProcessEngineCommandResult BothStepNames(
+    private static FailedProcessEngineCommandResult BothStepIndexes(
         string serviceTaskType,
         ExecuteServiceTaskPayload payload
     ) =>
         FailedProcessEngineCommandResult.Permanent(
-            $"A step of service task '{serviceTaskType}' names both the stage '{payload.StageName}' and the "
-                + $"exchange opened by stage '{payload.RepliesTo}'. A step is one or the other — it runs a "
+            $"A step of service task '{serviceTaskType}' names both the stage at index {payload.StageIndex} and "
+                + $"the exchange opened at index {payload.RepliesTo}. A step is one or the other — it runs a "
                 + "stage, answers an exchange, or is the pipeline's conclusion — so this workflow was "
                 + "enqueued by a version of this app-lib that identified steps differently. Resume it on the "
                 + "version that enqueued it, or abandon it deliberately.",

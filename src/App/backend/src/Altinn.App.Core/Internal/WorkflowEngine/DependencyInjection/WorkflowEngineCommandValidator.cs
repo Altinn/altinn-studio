@@ -138,7 +138,6 @@ internal static class WorkflowEngineCommandValidator
     private static ServiceTaskPipeline CreateDummyMailboxPipeline() =>
         new ServiceTaskPipelineBuilder()
             .Stage(
-                "DummySendStage",
                 (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
                 new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
                 out MailboxHandle handle

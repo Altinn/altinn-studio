@@ -46,7 +46,6 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     private const string HandleRepliesMethodName = "HandleReplies";
     private const string ConcludeOnRepliesMethodName = "ConcludeOnReplies";
     private const string HandleParameterName = "handle";
-    private const string StageNameParameterName = "name";
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         [Diagnostics.Contracts.MailboxHandleAnsweredTwice, Diagnostics.Contracts.MailboxNeverAnswered];
@@ -173,8 +172,9 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Reads the mailbox-opening <c>Stage</c> call an <c>out</c> declaration belongs to, and the stage name that
-    /// identifies its exchange in every diagnostic. Null when the declaration is anything else.
+    /// Reads the mailbox-opening <c>Stage</c> call an <c>out</c> declaration belongs to, and the identifier of
+    /// the local the handle was declared into, which names its exchange in every diagnostic. Null when the
+    /// declaration is anything else.
     /// </summary>
     private static MailboxDeclaration? ReadMailboxDeclaration(
         ILocalReferenceOperation declaration,
@@ -196,26 +196,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
         )
             return null;
 
-        return new MailboxDeclaration(declaration.Syntax.GetLocation(), ReadStageName(stage));
-    }
-
-    /// <summary>
-    /// The stage's wire name, as the diagnostic must print it — the expression as written when the argument is
-    /// not a constant, so a computed name still points the reader at the right stage.
-    /// </summary>
-    private static string ReadStageName(IInvocationOperation stage)
-    {
-        foreach (IArgumentOperation argument in stage.Arguments)
-        {
-            if (argument.Parameter?.Name != StageNameParameterName)
-                continue;
-
-            return argument.Value.ConstantValue is { HasValue: true, Value: string constant }
-                ? constant
-                : argument.Value.Syntax.ToString();
-        }
-
-        return "?";
+        return new MailboxDeclaration(declaration.Syntax.GetLocation(), declaration.Local.Name);
     }
 
     private static void Report(OperationBlockAnalysisContext context, BlockState state)
@@ -235,7 +216,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
                         Diagnostic.Create(
                             Diagnostics.Contracts.MailboxNeverAnswered,
                             declaration.Location,
-                            declaration.StageName
+                            declaration.HandleIdentifier
                         )
                     );
                 }
@@ -287,7 +268,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
                     Diagnostic.Create(
                         Diagnostics.Contracts.MailboxHandleAnsweredTwice,
                         CallLocation(later),
-                        declaration.StageName
+                        declaration.HandleIdentifier
                     )
                 );
                 break;
@@ -305,12 +286,15 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
             : invocation.Syntax.GetLocation();
 
     /// <summary>The mailbox-opening <c>Stage</c> call an <c>out</c> declaration came from.</summary>
-    private sealed class MailboxDeclaration(Location location, string stageName)
+    private sealed class MailboxDeclaration(Location location, string handleIdentifier)
     {
         internal Location Location { get; } = location;
 
-        /// <summary>The exchange's identity, as the builder's own throws name it.</summary>
-        internal string StageName { get; } = stageName;
+        /// <summary>
+        /// The local the handle was declared into — the exchange's identity as the diagnostics name it, since
+        /// the <c>out</c> variable is what the author wrote to route the exchange to its handler.
+        /// </summary>
+        internal string HandleIdentifier { get; } = handleIdentifier;
     }
 
     private sealed class TrackedLocal

@@ -326,8 +326,8 @@ public class ProcessStepOptionsResolverTests
     // ── Pipeline service tasks: per-stage options (tier 3, two levels) ───────────────────────
 
     /// <summary>
-    /// Task-level options (1 h timeout) with one stage overriding the timeout (2 h) and a second
-    /// stage declaring only a wait budget.
+    /// Task-level options (1 h timeout) with the stage at index 0 overriding the timeout (2 h) and
+    /// the stage at index 1 declaring only a wait budget.
     /// </summary>
     private sealed class PipelineTask : IPipelineServiceTask
     {
@@ -338,12 +338,10 @@ public class ProcessStepOptionsResolverTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    "Entry",
                     _ => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
                 )
                 .Stage(
-                    "Done",
                     _ => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) }
                 )
@@ -361,7 +359,7 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Entry");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 0);
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime);
@@ -373,7 +371,7 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Done");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 1);
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // task level
@@ -381,11 +379,13 @@ public class ProcessStepOptionsResolverTests
     }
 
     [Fact]
-    public void Resolve_Stage_UnknownStageName_FallsBackToTaskOptions()
+    public void Resolve_Stage_IndexPastTheLastItem_FallsBackToTaskOptions()
     {
+        // An index nothing composes at resolves no stage, so tier 3 is the task's own — the same
+        // fallback an unresolvable name used to take.
         var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Nope");
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 9);
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);
@@ -395,7 +395,7 @@ public class ProcessStepOptionsResolverTests
     [Fact]
     public void Resolve_Conclusion_OwnOptionsWin_AndDoNotReachTheStages()
     {
-        // The concluding engine step carries no stage name; its options come from Finally, with the
+        // The concluding engine step carries no stage index; its options come from Finally, with the
         // task's own as the fallback for whatever Finally leaves unset.
         var resolver = CreateResolverWithPipelineTask();
 
@@ -407,7 +407,7 @@ public class ProcessStepOptionsResolverTests
 
         // The reason for declaring a wait budget on Finally rather than on the task: a stage that
         // never waits is not handed a budget it could never use.
-        var entryStage = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", "Entry");
+        var entryStage = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 0);
 
         Assert.NotNull(entryStage);
         Assert.Null(entryStage.WaitBudget);
@@ -445,10 +445,7 @@ public class ProcessStepOptionsResolverTests
         Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options"));
 
         // Declared on a stage, which merges over the task's own.
-        Assert.Equal(
-            everyField,
-            declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", "Stage")
-        );
+        Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", 0));
 
         // Declared at task level, reaching the conclusion as its fallback.
         var declaredOnTask = CreateResolver(ServiceTask("task-options", everyField));
@@ -458,8 +455,9 @@ public class ProcessStepOptionsResolverTests
     // ── Receive steps: the answering handler's options (tier 3) ─────────────────────────────────
 
     /// <summary>
-    /// Task-level options (1 h timeout) with two exchanges answered two ways: the archive's mid-pipeline,
-    /// overriding the timeout (2 h), and the journal's by the terminal, declaring only a wait budget.
+    /// Task-level options (1 h timeout) with two exchanges answered two ways: the first's mid-pipeline,
+    /// overriding the timeout (2 h), and the second's by the terminal, declaring only a wait budget. Item
+    /// indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2.
     /// </summary>
     private sealed class TwoExchangeTask : IPipelineServiceTask
     {
@@ -469,14 +467,14 @@ public class ProcessStepOptionsResolverTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", Send, _threeDays, out MailboxHandle archive)
+                .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
                     archive,
                     OnSegmentMessage,
                     OnSegmentClosed,
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
                 )
-                .Stage("SendToJournal", Send, _threeDays, out MailboxHandle journal)
+                .Stage(Send, _threeDays, out MailboxHandle journal)
                 .ConcludeOnReplies(
                     journal,
                     OnMessage,
@@ -512,7 +510,7 @@ public class ProcessStepOptionsResolverTests
     /// <summary>
     /// The promise <c>HandleReplies</c>' <c>options</c> parameter makes: they configure the step each
     /// execution of <em>those</em> handlers runs as. Reachable only through the receive step's own exchange
-    /// name — a handler answered mid-pipeline is not a stage and not the conclusion.
+    /// index — a handler answered mid-pipeline is not a stage and not the conclusion.
     /// </summary>
     [Fact]
     public void Resolve_ReceiveStep_AnsweredMidPipeline_UsesThatHandlersOwnOptions()
@@ -523,8 +521,8 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            serviceTaskStageName: null,
-            serviceTaskRepliesTo: "SendToArchive"
+            serviceTaskStageIndex: null,
+            serviceTaskRepliesTo: 0
         );
 
         Assert.NotNull(result);
@@ -543,8 +541,8 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            serviceTaskStageName: null,
-            serviceTaskRepliesTo: "SendToJournal"
+            serviceTaskStageIndex: null,
+            serviceTaskRepliesTo: 2
         );
 
         Assert.NotNull(result);
@@ -554,13 +552,13 @@ public class ProcessStepOptionsResolverTests
 
     /// <summary>
     /// A receive step naming an exchange no mid-pipeline handler answers resolves the conclusion's options:
-    /// the terminal is what answers such a step, so its options are the step's — and a mid-flight rename must
-    /// not silently drop them. A null name resolves the same options, being the concluding step's own.
+    /// the terminal is what answers such a step, so its options are the step's — and a mid-flight reshape
+    /// must not silently drop them. A null index resolves the same options, being the concluding step's own.
     /// </summary>
     [Theory]
-    [InlineData("SendToArchive_v1")]
+    [InlineData(5)]
     [InlineData(null)]
-    public void Resolve_ReceiveStep_NamingNoMidPipelineHandler_FallsBackToTheConclusion(string? repliesTo)
+    public void Resolve_ReceiveStep_NamingNoMidPipelineHandler_FallsBackToTheConclusion(int? repliesTo)
     {
         var resolver = CreateResolverWithTwoExchanges();
 
@@ -580,7 +578,7 @@ public class ProcessStepOptionsResolverTests
         ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
 
         StepRequest resolved = WorkflowCommandSet
-            .CreateReceiveHandlerStep("exchanges", "SendToArchive")
+            .CreateReceiveHandlerStep("exchanges", 0)
             .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);
@@ -593,36 +591,34 @@ public class ProcessStepOptionsResolverTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("Stage", _ => Task.FromResult(ServiceTaskStageResult.Completed()), options)
+                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()), options)
                 .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()), options);
     }
 
     // ── The key resolution keys off ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// A step whose OperationId is a display identity (a pipeline stage, or the mailbox mint, both of which
-    /// append a stage name) must still resolve its command's own tier-2 default. Keying off the OperationId
+    /// A step whose OperationId is a display identity (a pipeline stage or the mailbox mint, both of which
+    /// append the item index) must still resolve its command's own tier-2 default. Keying off the OperationId
     /// instead would miss <c>_commandDefaults</c> silently: the miss looks exactly like "this command
     /// declares no default", so a command that does declare one would have it dropped without a sound.
     /// </summary>
     [Theory]
-    [InlineData("Stage")]
+    [InlineData(0)]
     [InlineData(null)]
-    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(
-        string? serviceTaskStageName
-    )
+    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskStageIndex)
     {
         ProcessStepOptionsResolver resolver = CreateResolver(_ => { });
 
         StepRequest resolved = new StepRequest
         {
-            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskStageName ?? "Anything"}",
+            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskStageIndex?.ToString() ?? "Anything"}",
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
             ),
             CommandKey = ExecuteServiceTask.Key,
-            ServiceTaskStageName = serviceTaskStageName,
+            ServiceTaskStageIndex = serviceTaskStageIndex,
         }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);

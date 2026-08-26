@@ -44,7 +44,8 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
     /// <summary>A plain stage before the send, so "the mint does not run before it" is falsifiable.</summary>
     public const string PrepareStageName = "PrepareDocuments";
 
-    /// <summary>The declaring stage's name — the exchange's identity, and the mint step's suffix.</summary>
+    /// <summary>The declaring stage's log/recorder key. Stages are dispatched by item index; this label
+    /// only names the stage in the scenario's own recorded runs and logs.</summary>
     public const string SendStageName = "SendToArchive";
 
     /// <summary>A plain stage after the send, so "the mint is not deferred past it" is falsifiable.</summary>
@@ -54,9 +55,8 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage(PrepareStageName, PrepareDocuments)
+            .Stage(PrepareDocuments)
             .Stage(
-                SendStageName,
                 SendToArchive,
                 // Comfortably clear of the sum of the test's own waits (three 90s polls plus the
                 // synchronous process/next wait), so a slow run fails on a test deadline that blames the
@@ -65,7 +65,7 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
                 new MailboxOptions { Timeout = TimeSpan.FromMinutes(20) },
                 out MailboxHandle archive
             )
-            .Stage(RecordStageName, RecordDispatch)
+            .Stage(RecordDispatch)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
     private Task<ServiceTaskStageResult> PrepareDocuments(ServiceTaskContext context)

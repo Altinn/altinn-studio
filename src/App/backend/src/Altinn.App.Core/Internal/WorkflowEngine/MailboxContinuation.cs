@@ -27,11 +27,11 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, string openingStageName, long position)
+        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int openingStageIndex, long position)
             : base(mailboxId)
         {
             ServiceTaskType = serviceTaskType;
-            OpeningStageName = openingStageName;
+            OpeningStageIndex = openingStageIndex;
             Position = position;
         }
 
@@ -40,10 +40,10 @@ internal abstract record MailboxContinuation
 
         /// <summary>
         /// The stage that opened this exchange — the identity the successor names as the exchange it answers.
-        /// Sourced from the executing step's own payload rather than re-derived from the pipeline, so a stage
-        /// renamed mid-flight cannot make the successor address a different exchange or none at all.
+        /// Sourced from the executing step's own payload rather than re-derived from the pipeline, so a
+        /// mid-flight reshape cannot make the successor address a different exchange or none at all.
         /// </summary>
-        public string OpeningStageName { get; }
+        public int OpeningStageIndex { get; }
 
         /// <summary>
         /// The position the handler just answered — names the successor for operators; the successor's own
@@ -78,11 +78,11 @@ internal abstract record MailboxContinuation
     /// </remarks>
     internal sealed record ConcludeAndContinue : MailboxContinuation
     {
-        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, string openingStageName)
+        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, int openingStageIndex)
             : base(mailboxId)
         {
             ServiceTaskType = serviceTaskType;
-            OpeningStageName = openingStageName;
+            OpeningStageIndex = openingStageIndex;
         }
 
         /// <summary>The service task whose pipeline the next segment belongs to.</summary>
@@ -91,8 +91,8 @@ internal abstract record MailboxContinuation
         /// <summary>
         /// The stage that opened the exchange just concluded — the carry key the conclusion dropped, and the
         /// handler's position in the pipeline, which is where the next segment starts. Sourced from the
-        /// executing step's own payload, for the reason <see cref="AwaitNextMessage.OpeningStageName"/> gives.
+        /// executing step's own payload, for the reason <see cref="AwaitNextMessage.OpeningStageIndex"/> gives.
         /// </summary>
-        public string OpeningStageName { get; }
+        public int OpeningStageIndex { get; }
     }
 }

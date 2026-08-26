@@ -37,7 +37,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     private const string ServiceTaskType = "archiving-relay-probe";
 
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
-    private const string SendStage = "SendToArchive";
+
+    /// <summary>The item index of the stage that opens the probe task's mailbox.</summary>
+    private const int OpeningIndex = 0;
 
     public WorkflowEngineCallbackControllerMailboxTests(
         WebApplicationFactory<Program> factory,
@@ -56,7 +58,6 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    SendStage,
                     (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
@@ -230,7 +231,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             FormData = [],
             Mailboxes = new Dictionary<string, CarriedMailbox>
             {
-                [SendStage] = new CarriedMailbox
+                ["0"] = new CarriedMailbox
                 {
                     Id = _mailboxId,
                     Deadline = new DateTimeOffset(2026, 8, 30, 12, 0, 0, TimeSpan.Zero),
@@ -248,7 +249,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             Mailbox = mailbox,
             // A receive step as the runtime enqueues one: it names the exchange it answers.
             Payload = CommandPayloadSerializer.Serialize(
-                new ExecuteServiceTaskPayload(ServiceTaskType, RepliesTo: SendStage)
+                new ExecuteServiceTaskPayload(ServiceTaskType, RepliesTo: OpeningIndex)
             ),
             State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
@@ -381,7 +382,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             Assert.Single(outcome.Recorder.EnqueueKeys)
         );
         Assert.NotNull(outcome.Returned!.Mailboxes);
-        Assert.Equal(_mailboxId, Assert.Contains(SendStage, outcome.Returned.Mailboxes).Id);
+        Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
     }
 
     [Fact]

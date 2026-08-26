@@ -44,7 +44,7 @@ internal sealed class TwoHandlersInOneChainTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("SendToArchive", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle archive)
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle archive)
             .HandleReplies(archive, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(archive, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .Finally(MailboxHandlers.Conclude);
@@ -58,7 +58,7 @@ internal sealed class HandledThenConcludedTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("SendToJournal", MailboxHandlers.Send, MailboxHandlers.Options(), out var journal)
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out var journal)
             .HandleReplies(journal, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .ConcludeOnReplies(journal, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
 }
@@ -71,7 +71,6 @@ internal sealed class TwoHandlersInSequenceTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendToRegistry",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle registry
@@ -88,7 +87,7 @@ internal sealed class ForgottenMailboxTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("SendAndForget", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle forgotten)
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle forgotten)
             .Finally(MailboxHandlers.Conclude);
 }
 
@@ -99,9 +98,9 @@ internal sealed class TwoExchangesTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("SendA", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle first)
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle first)
             .HandleReplies(first, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .Stage("SendB", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle second)
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle second)
             .ConcludeOnReplies(second, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
 }
 
@@ -114,7 +113,6 @@ internal sealed class HelperAnsweredTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendViaHelper",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaHelper
@@ -137,7 +135,6 @@ internal sealed class FieldAnsweredTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendViaField",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaField
@@ -158,7 +155,6 @@ internal sealed class BranchedAnswerTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendConditionally",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle conditional
@@ -188,13 +184,12 @@ internal sealed class ReusedLocalTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendFirst",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle reused
         );
         builder = builder.HandleReplies(reused, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
-        builder = builder.Stage("SendSecond", MailboxHandlers.Send, MailboxHandlers.Options(), out reused);
+        builder = builder.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out reused);
         return builder.ConcludeOnReplies(reused, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
@@ -208,7 +203,6 @@ internal sealed class LambdaAnsweredTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendViaLambda",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaLambda
@@ -227,9 +221,7 @@ internal sealed class DiscardedHandleTask : IPipelineServiceTask
     public string Type => "discardedHandle";
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-        pipeline
-            .Stage("SendAndDiscard", MailboxHandlers.Send, MailboxHandlers.Options(), out _)
-            .Finally(MailboxHandlers.Conclude);
+        pipeline.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out _).Finally(MailboxHandlers.Conclude);
 }
 
 // Fine: both answers share a basic block, but it is one the method may never enter, and the pipeline the
@@ -243,7 +235,6 @@ internal sealed class UnreachedBranchTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendOnce",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle once
@@ -269,7 +260,6 @@ internal sealed class UnreachedLoopTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendPerRepeat",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle perRepeat
@@ -294,12 +284,11 @@ internal sealed class RefAliasedTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendViaAlias",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaAlias
         );
-        builder = builder.Stage("SendOther", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle other);
+        builder = builder.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle other);
         ref MailboxHandle alias = ref viaAlias;
         builder = builder.HandleReplies(viaAlias, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         alias = other;
@@ -315,12 +304,11 @@ internal sealed class DeconstructedTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendViaTuple",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaTuple
         );
-        builder = builder.Stage("SendSpare", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle spare);
+        builder = builder.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle spare);
         builder = builder.HandleReplies(viaTuple, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         (viaTuple, _) = (spare, 0);
         return builder.ConcludeOnReplies(viaTuple, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
@@ -348,7 +336,7 @@ internal sealed class AfterBranchMergeTask : IPipelineServiceTask
         }
 
         return pipeline
-            .Stage("SendAfterMerge", MailboxHandlers.Send, options, out MailboxHandle afterMerge)
+            .Stage(MailboxHandlers.Send, options, out MailboxHandle afterMerge)
             .HandleReplies(afterMerge, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(afterMerge, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .Finally(MailboxHandlers.Conclude);
@@ -366,13 +354,7 @@ internal sealed class AfterNullCoalesceTask : IPipelineServiceTask
     {
         ProcessStepOptions steps = Overrides ?? new ProcessStepOptions();
         return pipeline
-            .Stage(
-                "SendAfterCoalesce",
-                MailboxHandlers.Send,
-                MailboxHandlers.Options(),
-                out MailboxHandle afterCoalesce,
-                steps
-            )
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle afterCoalesce, steps)
             .HandleReplies(afterCoalesce, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(afterCoalesce, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .Finally(MailboxHandlers.Conclude);
@@ -389,7 +371,7 @@ internal sealed class InsideUsingTask : IPipelineServiceTask
     {
         using var scope = new StringReader("");
         return pipeline
-            .Stage("SendInsideUsing", MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle insideUsing)
+            .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle insideUsing)
             .HandleReplies(insideUsing, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(insideUsing, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .Finally(MailboxHandlers.Conclude);
@@ -407,7 +389,6 @@ internal sealed class SwallowedThrowTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendInsideTry",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle insideTry
@@ -439,7 +420,6 @@ internal sealed class HandlerReturnsTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendHandled",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle handled
@@ -473,7 +453,6 @@ internal sealed class FilteredHandlerTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendFiltered",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle filtered
@@ -503,7 +482,6 @@ internal sealed class RethrowingCatchTask : IPipelineServiceTask
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
     {
         ServiceTaskPipelineBuilder builder = pipeline.Stage(
-            "SendRethrown",
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle rethrown

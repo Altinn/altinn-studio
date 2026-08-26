@@ -18,10 +18,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 /// </summary>
 public class ExecuteServiceTaskMailboxTests
 {
-    private static readonly Guid InstanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
-    private static readonly Guid CarriedMailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
-    private static readonly DateTimeOffset CarriedDeadline = new(2026, 8, 22, 10, 0, 0, TimeSpan.Zero);
-    private const string SendStage = "SendToArchive";
+    private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
+    private static readonly Guid _carriedMailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private static readonly DateTimeOffset _carriedDeadline = new(2026, 8, 22, 10, 0, 0, TimeSpan.Zero);
+
+    /// <summary>The item index of the stage that opens the mailbox.</summary>
+    private const int SendStageIndex = 0;
 
     private sealed class ArchivingTask : IPipelineServiceTask
     {
@@ -35,20 +37,16 @@ public class ExecuteServiceTaskMailboxTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    SendStage,
                     (context, mailbox) =>
                     {
-                        Seen[SendStage] = context;
+                        Seen["SendToArchive"] = context;
                         SentTo = mailbox;
                         return Task.FromResult(ServiceTaskStageResult.Completed());
                     },
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(
-                    "RecordDispatch",
-                    Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed())
-                )
+                .Stage(Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     onMessage: Record<ServiceTaskExchangeResult, ServiceTaskReply>(
@@ -82,14 +80,11 @@ public class ExecuteServiceTaskMailboxTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(
-                    SendStage,
-                    context =>
-                    {
-                        Seen[SendStage] = context;
-                        return Task.FromResult(ServiceTaskStageResult.Completed());
-                    }
-                )
+                .Stage(context =>
+                {
+                    Seen["SendStage"] = context;
+                    return Task.FromResult(ServiceTaskStageResult.Completed());
+                })
                 .Finally(context =>
                 {
                     Seen["Finally"] = context;
@@ -111,10 +106,10 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>The carry as the mint step leaves it for the stage that sends.</summary>
-    private static WorkflowCallbackStateCarry MintedCarry(string stageName = SendStage)
+    private static WorkflowCallbackStateCarry MintedCarry(int stageIndex = SendStageIndex)
     {
         var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(stageName, CarriedMailboxId, CarriedDeadline);
+        carry.RecordMailbox(stageIndex, _carriedMailboxId, _carriedDeadline);
         return carry;
     }
 
@@ -125,7 +120,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         var instance = new Instance
         {
-            Id = $"1337/{InstanceGuid}",
+            Id = $"1337/{_instanceGuid}",
             Org = "ttd",
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
@@ -137,7 +132,7 @@ public class ExecuteServiceTaskMailboxTests
         return new ProcessEngineCommandContext
         {
             AppId = new AppIdentifier("ttd", "test-app"),
-            InstanceId = new InstanceIdentifier(1337, InstanceGuid),
+            InstanceId = new InstanceIdentifier(1337, _instanceGuid),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
             StateCarry = carry ?? new WorkflowCallbackStateCarry(),
@@ -174,10 +169,10 @@ public class ExecuteServiceTaskMailboxTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(string? stageName) => new("archiving", stageName);
+    private static ExecuteServiceTaskPayload Payload(int? stageIndex) => new("archiving", StageIndex: stageIndex);
 
     /// <summary>A receive step as the runtime enqueues one: it names the exchange it answers.</summary>
-    private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", RepliesTo: SendStage);
+    private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", RepliesTo: SendStageIndex);
 
     [Fact]
     public async Task DeclaringStage_IsHandedTheMailboxTheMintStepCarried()
@@ -185,18 +180,18 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStage));
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
 
         ServiceTaskMailbox mailbox = Assert.IsType<ServiceTaskMailbox>(task.SentTo);
-        Assert.Equal(CarriedMailboxId, mailbox.Id);
-        Assert.Equal(CarriedDeadline, mailbox.Deadline);
+        Assert.Equal(_carriedMailboxId, mailbox.Id);
+        Assert.Equal(_carriedDeadline, mailbox.Deadline);
     }
 
     /// <summary>
     /// The stage may not send without an address, and it has no way to obtain one. Two causes reach here and
-    /// the wording must name both: a redeploy that <em>added</em> the declaration to this stage, so the
+    /// the wording must name both: a redeploy that <em>added</em> the declaration at this index, so the
     /// in-flight workflow's step list holds no mint step at all, and a mint step whose record did not survive
     /// into this step's state. Naming only the second sent readers hunting a step that never existed.
     /// </summary>
@@ -205,19 +200,23 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(SendStage));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
-        Assert.Contains($"Stage '{SendStage}' opens a mailbox", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains(
+            $"The stage at index {SendStageIndex} opens a mailbox",
+            failed.ErrorMessage,
+            StringComparison.Ordinal
+        );
         Assert.Contains("enqueued before the stage opened one", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Contains("did not survive into this step's state", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Empty(task.Seen);
     }
 
     /// <summary>
-    /// A mailbox carried under another stage's name is not this stage's: the lookup is by name, never by
+    /// A mailbox carried under another stage's index is not this stage's: the lookup is by index, never by
     /// "the one entry there happens to be".
     /// </summary>
     [Fact]
@@ -226,7 +225,7 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry("SomeOtherStage")), Payload(SendStage));
+            .Execute(CreateContext(MintedCarry(stageIndex: 5)), Payload(SendStageIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -243,8 +242,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(), Payload("RecordDispatch"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(stageIndex: 1));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Contains("RecordDispatch", task.Seen);
@@ -257,13 +255,13 @@ public class ExecuteServiceTaskMailboxTests
         var task = new PlainTask();
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(
-            await CreateCommand(task).Execute(CreateContext(), Payload(SendStage))
+            await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex))
         );
         Assert.IsType<SuccessfulProcessEngineCommandResult>(
-            await CreateCommand(task).Execute(CreateContext(), Payload(stageName: null))
+            await CreateCommand(task).Execute(CreateContext(), Payload(stageIndex: null))
         );
 
-        Assert.Contains(SendStage, task.Seen);
+        Assert.Contains("SendStage", task.Seen);
         Assert.Contains("Finally", task.Seen);
     }
 
@@ -272,19 +270,19 @@ public class ExecuteServiceTaskMailboxTests
     /// forwards the blob exactly as it received it.
     /// </summary>
     [Theory]
-    [InlineData(SendStage)]
-    [InlineData("RecordDispatch")]
-    public async Task AnyStage_LeavesTheCarriedMailboxesUntouched(string stageName)
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task AnyStage_LeavesTheCarriedMailboxesUntouched(int stageIndex)
     {
         var task = new ArchivingTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        await CreateCommand(task).Execute(CreateContext(carry), Payload(stageName));
+        await CreateCommand(task).Execute(CreateContext(carry), Payload(stageIndex));
 
         Assert.NotNull(carry.Mailboxes);
         KeyValuePair<string, CarriedMailbox> only = Assert.Single(carry.Mailboxes);
-        Assert.Equal(SendStage, only.Key);
-        Assert.Equal(CarriedMailboxId, only.Value.Id);
+        Assert.Equal($"{SendStageIndex}", only.Key);
+        Assert.Equal(_carriedMailboxId, only.Value.Id);
     }
 
     /// <summary>
@@ -298,7 +296,7 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(stageName: null));
+            .Execute(CreateContext(MintedCarry()), Payload(stageIndex: null));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -326,8 +324,8 @@ public class ExecuteServiceTaskMailboxTests
 
     /// <summary>
     /// A receive step reaches the reply handler and no stage, even though the exchange it names is the one
-    /// its own sending stage opened — the stage's name and the exchange's are the same string in different
-    /// fields, and only one of them dispatches to the stage.
+    /// its own sending stage opened — the opening stage's index sits in two different fields of the payload,
+    /// and only the exchange field dispatches to a handler rather than the stage.
     /// </summary>
     [Fact]
     public async Task ReceiveStep_NamingTheSendingStagesExchange_RunsTheHandlerAndNotTheStage()
@@ -335,11 +333,11 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry(), Delivered(CarriedMailboxId)), ReceivePayload());
+            .Execute(CreateContext(MintedCarry(), Delivered(_carriedMailboxId)), ReceivePayload());
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Contains("OnMessage", task.Seen);
-        Assert.DoesNotContain(SendStage, task.Seen);
+        Assert.DoesNotContain("SendToArchive", task.Seen);
         Assert.Null(task.SentTo);
     }
 }

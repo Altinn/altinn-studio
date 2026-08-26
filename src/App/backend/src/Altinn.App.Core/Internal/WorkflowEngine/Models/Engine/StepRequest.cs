@@ -41,17 +41,17 @@ internal sealed record StepRequest
     internal string? CommandKey { get; init; }
 
     /// <summary>
-    /// For a service-task pipeline stage: the stage's name, carried so the per-stage options
-    /// resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching stage. Internal
-    /// and never serialized — the engine sees the stage name only inside the command payload.
+    /// For a service-task pipeline stage: the stage's item index in the composed pipeline, carried so the
+    /// per-stage options resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching stage.
+    /// Internal and never serialized — the engine sees the index only inside the command payload.
     /// </summary>
-    internal string? ServiceTaskStageName { get; init; }
+    internal int? ServiceTaskStageIndex { get; init; }
 
     /// <summary>
-    /// For a service-task receive step: the stage that opened the exchange the step answers, carried so the
-    /// per-handler options resolution (see <c>ProcessStepOptionsResolver</c>) can find the handler that
-    /// answers it. Internal and never serialized, like <see cref="ServiceTaskStageName"/>, and never set on
-    /// the same step as that one: a step runs a stage or answers an exchange.
+    /// For a service-task receive step: the item index whose stage opened the exchange the step answers,
+    /// carried so the per-handler options resolution (see <c>ProcessStepOptionsResolver</c>) can find the
+    /// handler that answers it. Internal and never serialized, like <see cref="ServiceTaskStageIndex"/>, and
+    /// never set on the same step as that one: a step runs a stage or answers an exchange.
     /// </summary>
-    internal string? ServiceTaskRepliesTo { get; init; }
+    internal int? ServiceTaskRepliesTo { get; init; }
 }

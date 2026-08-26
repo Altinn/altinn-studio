@@ -11,16 +11,16 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// The pipeline dispatch of <see cref="ExecuteServiceTask"/> for an
-/// <see cref="IPipelineServiceTask"/>: resolution by stage name, stage-result mapping, the null
-/// stage name routing to the pipeline's Finally, and the rename version-skew guard. The simple
+/// <see cref="IPipelineServiceTask"/>: resolution by item index, stage-result mapping, the
+/// null index routing to the pipeline's Finally, and the plain index-not-found verdict. The simple
 /// dispatch (an <see cref="IServiceTask"/>, whose pipeline is the forwarding default
 /// <c>Finally(Execute)</c>) is covered by <see cref="ExecuteServiceTaskTests"/>.
 /// </summary>
 public class ExecuteServiceTaskStageTests
 {
     /// <summary>
-    /// A send→poll pipeline whose behavior each test scripts via delegates: the "SendShipment"
-    /// stage dispatches, and the Finally awaits the receipt and concludes.
+    /// A send→poll pipeline whose behavior each test scripts via delegates: the stage at item
+    /// index 0 dispatches, and the Finally awaits the receipt and concludes.
     /// </summary>
     private sealed class ShippingTask : IPipelineServiceTask
     {
@@ -33,7 +33,7 @@ public class ExecuteServiceTaskStageTests
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline.Stage("SendShipment", ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
+            pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
     }
 
     private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
@@ -84,7 +84,7 @@ public class ExecuteServiceTaskStageTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(string? stageName) => new("shipping", stageName);
+    private static ExecuteServiceTaskPayload Payload(int? stageIndex) => new("shipping", stageIndex);
 
     /// <summary>
     /// The stage-result counterpart of
@@ -111,7 +111,7 @@ public class ExecuteServiceTaskStageTests
                 Task.FromResult<ServiceTaskStageResult>(new RogueStageResult(ServiceTaskStageResult.Completed())),
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload("SendShipment"));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -124,7 +124,7 @@ public class ExecuteServiceTaskStageTests
     {
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
+        var result = await command.Execute(CreateContext(), Payload(0));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
@@ -140,7 +140,7 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
+        var result = await command.Execute(CreateContext(), Payload(0));
 
         var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromSeconds(30), deferred.Delay);
@@ -163,7 +163,7 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
+        var result = await command.Execute(CreateContext(), Payload(0));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal(permanent, failed.NonRetryable);
@@ -171,9 +171,9 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task NullStageName_RunsTheFinally_AndAutoAdvances()
+    public async Task NoStageIndex_RunsTheFinally_AndAutoAdvances()
     {
-        // The concluding engine step carries no stage name — it is the pipeline's Finally, the
+        // The concluding engine step carries no stage index — it is the pipeline's Finally, the
         // only step that can conclude the task, and it runs after every stage has completed.
         var command = CreateCommand(new ShippingTask());
 
@@ -241,7 +241,7 @@ public class ExecuteServiceTaskStageTests
         var task = new ShippingTask { OnSend = _ => throw new InvalidOperationException("shipping exploded") };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
+        var result = await command.Execute(CreateContext(), Payload(0));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
@@ -249,31 +249,16 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task UnknownStageName_FailsPermanently_PointingAtTheRenameHazard()
+    public async Task UnknownStageIndex_FailsPermanently_WithThePlainIndexVerdict()
     {
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload("OldStageName"));
+        var result = await command.Execute(CreateContext(), Payload(2));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
-        Assert.Contains("no stage named 'OldStageName'", failed.ErrorMessage);
-        Assert.Contains("renamed", failed.ErrorMessage);
-    }
-
-    [Fact]
-    public async Task StageNameIsCaseSensitive_UnlikeTaskTypeResolution()
-    {
-        // Task types match the BPMN attribute ignoring case; stage names are exact — they are our
-        // own wire values, produced from the same Define that dispatches them.
-        var command = CreateCommand(new ShippingTask());
-
-        var result = await command.Execute(CreateContext(), Payload("sendshipment"));
-
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Contains("no stage named 'sendshipment'", failed.ErrorMessage);
+        Assert.Contains("no stage at index 2", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     private sealed class SimpleTask : IServiceTask
@@ -290,14 +275,14 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task StageNameAgainstSimpleTask_FailsPermanently_AsStageNotFound()
+    public async Task StageIndexAgainstSimpleTask_FailsPermanently_AsStageNotFound()
     {
         // Version skew: a workflow enqueued when the task composed this stage, calling back into
         // an app version where the task is a simple IServiceTask (pipeline = just the Finally).
         var simple = new SimpleTask();
         var command = CreateCommand(simple);
 
-        var result = await command.Execute(CreateContext(), Payload("SendShipment"));
+        var result = await command.Execute(CreateContext(), Payload(0));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -338,7 +323,7 @@ public class ExecuteServiceTaskStageTests
         var command = CreateCommand(task);
         var context = CreateContext();
 
-        await command.Execute(context, Payload("SendShipment"));
+        await command.Execute(context, Payload(0));
 
         Assert.NotNull(observed);
         Assert.Equal(context.Payload.WorkflowId, observed.WorkflowId);
@@ -346,30 +331,44 @@ public class ExecuteServiceTaskStageTests
         Assert.Same(context.InstanceDataMutator, observed.InstanceDataMutator);
     }
 
-    private sealed class RenamedMethodTask : IPipelineServiceTask
+    [Fact]
+    public async Task StageIndexPointingAtAReplyHandler_IsNotAStage_AndFailsAsStageNotFound()
+    {
+        // Stages and reply handlers share one index space — the pipeline's Items. An index whose
+        // item is a handler runs no stage, so the same plain not-found verdict applies.
+        var task = new ReplyFirstTask();
+        var command = CreateCommand(task);
+
+        var result = await command.Execute(CreateContext(), Payload(1));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
+    }
+
+    /// <summary>
+    /// A pipeline whose item 1 is a reply handler rather than a stage — the earliest position a handler
+    /// can occupy, since it names a stage composed before it.
+    /// </summary>
+    private sealed class ReplyFirstTask : IPipelineServiceTask
     {
         public string Type => "shipping";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => // The wire identity is the literal, not the method: renaming SendViaNewClient (from,
-            // say, SendShipment) is refactor-safe because "legacySend" stays put.
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("legacySend", SendViaNewClient)
+                .Stage(
+                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
+                    out MailboxHandle handle
+                )
+                .HandleReplies(
+                    handle,
+                    (_, _) =>
+                        Task.FromResult<ServiceTaskStageExchangeResult>(
+                            ServiceTaskStageExchangeResult.AwaitNextReply()
+                        ),
+                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed())
+                )
                 .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
-
-        private Task<ServiceTaskStageResult> SendViaNewClient(ServiceTaskContext context) =>
-            Task.FromResult(ServiceTaskStageResult.Completed());
-    }
-
-    [Fact]
-    public async Task StageNameIsTheLiteral_NotTheMethodName()
-    {
-        var command = CreateCommand(new RenamedMethodTask());
-
-        var byLiteral = await command.Execute(CreateContext(), Payload("legacySend"));
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(byLiteral);
-
-        var byMethodName = await command.Execute(CreateContext(), Payload("SendViaNewClient"));
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(byMethodName);
-        Assert.Contains("no stage named 'SendViaNewClient'", failed.ErrorMessage);
     }
 }

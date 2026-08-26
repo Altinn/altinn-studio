@@ -7,17 +7,17 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The pre-assembled enqueue request for the first receive workflow, built at Main-enqueue time, plus the
-/// name of the stage that opens the exchange it answers. The command fills in the three execution-only
+/// The pre-assembled enqueue request for the first receive workflow, built at Main-enqueue time, plus the item
+/// index of the stage that opens the exchange it answers. The command fills in the three execution-only
 /// values: the mailbox, the state blob, and a fresh callback token.
 /// </summary>
 /// <param name="EnqueueRequest">The receive workflow as assembled at Main-enqueue time.</param>
-/// <param name="OpeningStageName">
+/// <param name="OpeningStageIndex">
 /// The stage whose mint this receiver reads from the carry — the exchange's identity, fixed when Main was
-/// enqueued. Never re-derived at this hop: a stage renamed mid-flight would address a different mailbox, or
-/// silently none.
+/// enqueued. Never re-derived at this hop: a mid-flight reshape would address a different mailbox, or silently
+/// none.
 /// </param>
-internal sealed record EnqueueReceiveWorkflowPayload(WorkflowEnqueueRequest EnqueueRequest, string OpeningStageName)
+internal sealed record EnqueueReceiveWorkflowPayload(WorkflowEnqueueRequest EnqueueRequest, int OpeningStageIndex)
     : CommandRequestPayload;
 
 /// <summary>
@@ -80,14 +80,14 @@ internal sealed class EnqueueReceiveWorkflow(
         }
 
         // Carried in the state blob because the mint's key is the mint step's own step id, which nothing later can
-        // re-derive. Looked up by the stage the payload names rather than by scanning the map, so a second carried
+        // re-derive. Looked up by the index the payload names rather than by scanning the map, so a second carried
         // mailbox is no obstacle.
-        if (context.StateCarry.FindMailbox(payload.OpeningStageName) is not { } carried)
+        if (context.StateCarry.FindMailbox(payload.OpeningStageIndex) is not { } carried)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"This service task's exchange is opened by stage '{payload.OpeningStageName}', but no mailbox id "
-                    + "for it reached this step in the workflow state. The mint step that runs before that stage "
-                    + "records the id; a step between the two must have dropped it.",
+                $"This service task's exchange is opened by the stage at index {payload.OpeningStageIndex}, but no "
+                    + "mailbox id for it reached this step in the workflow state. The mint step that runs before "
+                    + "that stage records the id; a step between the two must have dropped it.",
                 "MailboxIdMissingFromState"
             );
         }

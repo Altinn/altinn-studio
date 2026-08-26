@@ -53,13 +53,13 @@ public class EFormidlingServiceTaskTests
         };
 
     /// <summary>
-    /// Drives the send stage the way the engine does — by name, through the composed pipeline — so
-    /// the stage's wire identity is exercised rather than a direct method call.
+    /// Drives the send stage the way the engine does — by item index, through the composed pipeline — so
+    /// dispatch by index is exercised rather than a direct method call.
     /// </summary>
     private static Task<ServiceTaskStageResult> SendShipment(EFormidlingServiceTask task, ServiceTaskContext context)
     {
         var stage =
-            task.ResolvePipeline().FindStage("SendShipment") as ServiceTaskStage.Plain
+            task.ResolvePipeline().Items[0] as ServiceTaskStage.Plain
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
         return stage.Work(context);
     }
@@ -99,10 +99,12 @@ public class EFormidlingServiceTaskTests
     [Fact]
     public void Pipeline_Should_SendThenWaitForDelivery()
     {
-        // The stage name is a compatibility surface for in-flight workflows, so it is pinned here.
+        // The pipeline's shape — one stage, then the conclusion — is what in-flight workflows dispatch
+        // against, so it is pinned here.
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
-        Assert.Equal(new[] { "SendShipment" }, pipeline.Items.OfType<ServiceTaskStage>().Select(stage => stage.Name));
+        Assert.Single(pipeline.Items.OfType<ServiceTaskStage>());
+        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[0]);
         // The wait budget belongs to the conclusion, not the task — the send stage must not be
         // handed a budget it can never use. Deliberately longer than the two-hour lifetime the
         // shipment carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the

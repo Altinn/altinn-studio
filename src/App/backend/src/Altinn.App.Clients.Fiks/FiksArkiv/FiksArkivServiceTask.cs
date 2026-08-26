@@ -31,9 +31,6 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly FiksArkivSettings _fiksArkivSettings;
 
-    /// <summary>The send stage's wire identity; workflows keep calling back by it, so it must not drift.</summary>
-    internal const string SendStageName = "SendToArchive";
-
     /// <summary>
     /// How long the exchange may stay open. Seven days covers a holiday weekend plus working days either side,
     /// and sits inside the engine's <c>MaxMailboxTimeout</c> (21 days), which app startup cannot check. See
@@ -67,12 +64,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// </remarks>
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage(
-                SendStageName,
-                SendToArchive,
-                new MailboxOptions { Timeout = ArchiveReplyTimeout },
-                out MailboxHandle archive
-            )
+            .Stage(SendToArchive, new MailboxOptions { Timeout = ArchiveReplyTimeout }, out MailboxHandle archive)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
     private async Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)

@@ -36,7 +36,7 @@ public interface IPipelineServiceTask : IProcessTask, IProcessStepConfigurable
     /// </summary>
     /// <remarks>
     /// Called when a transition is enqueued (fixing the pipeline's shape for that workflow's
-    /// lifetime), on every stage callback (to dispatch by stage name), and at app startup (to
+    /// lifetime), on every stage callback (to dispatch by item index), and at app startup (to
     /// validate it). It must therefore be cheap, deterministic and side-effect free — work
     /// happens inside the stages when the engine runs them.
     /// </remarks>

@@ -32,7 +32,9 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     private static readonly Guid _carriedMailboxId = new("018f4e00-0000-7000-8000-0000000000bb");
     private static readonly Guid _mintedMailboxId = new("018f4e00-0000-7000-8000-0000000000cc");
     private static readonly DateTimeOffset _deadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
-    private const string SendStage = "SendToArchive";
+
+    /// <summary>The item index the tests key the carried mailbox on.</summary>
+    private const int OpeningIndex = 0;
 
     public WorkflowEngineCallbackControllerCarryTests(
         WebApplicationFactory<Program> factory,
@@ -56,10 +58,10 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
 
         public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
         {
-            SeenMailbox = context.StateCarry.FindMailbox(SendStage);
+            SeenMailbox = context.StateCarry.FindMailbox(OpeningIndex);
             if (Mints)
             {
-                context.StateCarry.RecordMailbox(SendStage, _mintedMailboxId, _deadline);
+                context.StateCarry.RecordMailbox(OpeningIndex, _mintedMailboxId, _deadline);
             }
 
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
@@ -103,7 +105,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
             Mailboxes = incomingMailboxId is { } carried
                 ? new Dictionary<string, CarriedMailbox>
                 {
-                    [SendStage] = new CarriedMailbox { Id = carried, Deadline = _deadline },
+                    ["0"] = new CarriedMailbox { Id = carried, Deadline = _deadline },
                 }
                 : null,
         };
@@ -174,7 +176,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     private static void AssertPublishes(WorkflowCallbackState returned, Guid mailboxId)
     {
         Assert.NotNull(returned.Mailboxes);
-        CarriedMailbox published = Assert.Contains(SendStage, returned.Mailboxes);
+        CarriedMailbox published = Assert.Contains("0", returned.Mailboxes);
         Assert.Equal(mailboxId, published.Id);
         Assert.Equal(_deadline, published.Deadline);
     }

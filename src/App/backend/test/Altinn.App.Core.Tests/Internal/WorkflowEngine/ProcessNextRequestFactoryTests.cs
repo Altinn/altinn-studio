@@ -548,8 +548,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage ("Dispatch") plus the
-    /// concluding Finally. The task-wide options carry the 30 min timeout and the poll's 48 h
+    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally. The task-wide options carry the 30 min timeout and the poll's 48 h
     /// wait budget; the stage overrides the timeout for itself.
     /// </summary>
     private sealed class SigningTask : IPipelineServiceTask
@@ -562,7 +561,6 @@ public class ProcessNextRequestFactoryTests
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    "Dispatch",
                     _ => Task.FromResult(ServiceTaskStageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
                 )
@@ -600,15 +598,15 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // Assert — one ExecuteServiceTask engine step per stage, in composition order, each
-        // payload carrying its stage's name and a distinct OperationId for the engine's records;
-        // then the concluding step (the pipeline's Finally) with no stage name — the exact shape
+        // payload carrying its item index and a distinct OperationId for the engine's records;
+        // then the concluding step (the pipeline's Finally) with no stage index — the exact shape
         // a simple IServiceTask produces on its own.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         Assert.Equal(2, serviceTaskSteps.Count);
 
-        Assert.Equal("Dispatch", serviceTaskSteps[0].Payload.StageName);
-        Assert.Equal($"{ExecuteServiceTask.Key}: Dispatch", serviceTaskSteps[0].OperationId);
-        Assert.Null(serviceTaskSteps[1].Payload.StageName);
+        Assert.Equal(0, serviceTaskSteps[0].Payload.StageIndex);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", serviceTaskSteps[0].OperationId);
+        Assert.Null(serviceTaskSteps[1].Payload.StageIndex);
         Assert.Equal(ExecuteServiceTask.Key, serviceTaskSteps[1].OperationId);
         Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
 
@@ -634,8 +632,8 @@ public class ProcessNextRequestFactoryTests
         // from the task (deliberate: shared options are the default, and a budget is inert on a
         // stage that never defers).
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        var dispatch = serviceTaskSteps.Single(s => s.Payload.StageName == "Dispatch").Step;
-        var conclusion = serviceTaskSteps.Single(s => s.Payload.StageName is null).Step;
+        var dispatch = serviceTaskSteps.Single(s => s.Payload.StageIndex == 0).Step;
+        var conclusion = serviceTaskSteps.Single(s => s.Payload.StageIndex is null).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
@@ -679,7 +677,7 @@ public class ProcessNextRequestFactoryTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(
                     archive,
                     OnMessage,
@@ -699,15 +697,14 @@ public class ProcessNextRequestFactoryTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("PrepareDocuments", PlainStage)
+                .Stage(PlainStage)
                 .Stage(
-                    "SendToArchive",
                     SendStage,
                     _mailboxThreeDays,
                     out MailboxHandle archive,
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
                 )
-                .Stage("RecordDispatch", PlainStage)
+                .Stage(PlainStage)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
@@ -725,14 +722,14 @@ public class ProcessNextRequestFactoryTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
                     archive,
                     OnSegmentMessage,
                     OnSegmentClosed,
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) }
                 )
-                .Stage("SendToJournal", SendStage, _mailboxThreeDays, out MailboxHandle journal)
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
                 .ConcludeOnReplies(
                     journal,
                     OnMessage,
@@ -768,8 +765,8 @@ public class ProcessNextRequestFactoryTests
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
-        Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", sendStep.OperationId);
-        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageName is null);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
+        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageIndex is null);
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
@@ -790,18 +787,18 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
-        int mint = operationIds.IndexOf($"{MintMailbox.Key}: SendToArchive");
+        int mint = operationIds.IndexOf($"{MintMailbox.Key}: 1");
         Assert.NotEqual(-1, mint);
-        Assert.Equal($"{ExecuteServiceTask.Key}: PrepareDocuments", operationIds[mint - 1]);
-        Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", operationIds[mint + 1]);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", operationIds[mint - 1]);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[mint + 1]);
         // The declaring stage need not be last: an unrelated stage may follow the send, and only the send gets
         // a mint.
-        Assert.Equal($"{ExecuteServiceTask.Key}: RecordDispatch", operationIds[mint + 2]);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 2", operationIds[mint + 2]);
         Assert.Single(operationIds, id => id.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
 
         MintMailboxPayload payload = ExtractMintPayload(bundle);
         Assert.Equal("archiving", payload.ServiceTaskType);
-        Assert.Equal("SendToArchive", payload.StageName);
+        Assert.Equal(1, payload.StageIndex);
     }
 
     /// <summary>
@@ -816,9 +813,7 @@ public class ProcessNextRequestFactoryTests
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        StepRequest mintStep = bundle
-            .Request.Workflows[0]
-            .Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: SendToArchive");
+        StepRequest mintStep = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: 1");
         Assert.Null(mintStep.Command.MaxExecutionTime);
         Assert.Null(mintStep.Command.WaitBudget);
         Assert.Null(mintStep.RetryStrategy);
@@ -836,18 +831,18 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// Fixed at assembly time, per the rule that a stage name is never re-derived at a later hop: the step
-    /// that enqueues the receiver is told which exchange it answers.
+    /// Fixed at assembly time, per the rule that the exchange's identity is never re-derived at a later hop:
+    /// the step that enqueues the receiver is told which item index opens the exchange it answers.
     /// </summary>
     [Fact]
-    public async Task Create_MailboxPipeline_NamesTheOpeningStageOnTheReceiveEnqueuePayload()
+    public async Task Create_MailboxPipeline_CarriesTheOpeningIndexOnTheReceiveEnqueuePayload()
     {
         var factory = CreateFactory(serviceTasks: new ArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        Assert.Equal("SendToArchive", ExtractReceiveEnqueuePayload(bundle).OpeningStageName);
+        Assert.Equal(0, ExtractReceiveEnqueuePayload(bundle).OpeningStageIndex);
     }
 
     /// <summary>
@@ -869,24 +864,24 @@ public class ProcessNextRequestFactoryTests
         // no concluding step (a step naming neither name would run the terminal here, on nothing).
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
-        Assert.Equal($"{ExecuteServiceTask.Key}: SendToArchive", sendStep.OperationId);
-        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageName is null);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
+        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageIndex is null);
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
         Assert.Single(keys, key => key == EnqueueReceiveWorkflow.Key);
         // Only the archive's mailbox is minted in Main: the journal's clock starts in the continuation.
         Assert.Single(keys, key => key == MintMailbox.Key);
-        Assert.Equal("SendToArchive", ExtractMintPayload(bundle).StageName);
+        Assert.Equal(0, ExtractMintPayload(bundle).StageIndex);
 
         EnqueueReceiveWorkflowPayload payload = ExtractReceiveEnqueuePayload(bundle);
-        Assert.Equal("SendToArchive", payload.OpeningStageName);
+        Assert.Equal(0, payload.OpeningStageIndex);
 
         StepRequest receiveStep = Assert.Single(Assert.Single(payload.EnqueueRequest.Workflows).Steps);
         var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
         var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-        Assert.Equal("SendToArchive", receivePayload.RepliesTo);
-        Assert.Null(receivePayload.StageName);
+        Assert.Equal(0, receivePayload.RepliesTo);
+        Assert.Null(receivePayload.StageIndex);
 
         // Resolved from the handler that answers this exchange — the HandleReplies call — and not from the
         // terminal that ends the chain, whose 3 minutes belong to a different exchange.
@@ -905,7 +900,7 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(EnqueueReceiveWorkflow.Key, keys);
         Assert.Contains(
             ExtractServiceTaskSteps(bundle),
-            s => s.Payload.StageName is null && s.Payload.RepliesTo is null
+            s => s.Payload.StageIndex is null && s.Payload.RepliesTo is null
         );
     }
 
@@ -921,7 +916,7 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.Null(s.Payload.RepliesTo));
-        Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.NotNull(s.Payload.StageName));
+        Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.NotNull(s.Payload.StageIndex));
     }
 
     [Fact]
@@ -953,8 +948,8 @@ public class ProcessNextRequestFactoryTests
         var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal("archiving", receivePayload.ServiceTaskType);
         // A receive step runs no stage; it names the exchange it answers, fixed here at the receiver's enqueue.
-        Assert.Null(receivePayload.StageName);
-        Assert.Equal("SendToArchive", receivePayload.RepliesTo);
+        Assert.Null(receivePayload.StageIndex);
+        Assert.Equal(0, receivePayload.RepliesTo);
         Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
 
         Assert.Equal(bundle.Request.Labels, payload.EnqueueRequest.Labels);

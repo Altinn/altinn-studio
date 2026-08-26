@@ -231,7 +231,7 @@ internal sealed class ProcessNextRequestFactory
                     },
                 ],
             };
-            mainSteps.Add(CreateEnqueueReceiveWorkflowCommand(receiveEnqueueRequest, receive.OpeningStageName));
+            mainSteps.Add(CreateEnqueueReceiveWorkflowCommand(receiveEnqueueRequest, receive.OpeningStageIndex));
         }
 
         var request = new WorkflowEnqueueRequest
@@ -453,7 +453,7 @@ internal sealed class ProcessNextRequestFactory
     /// <summary>
     /// The service task and its composed pipeline, or null when this is not a service task (or names a
     /// type no implementation is registered for). Read at enqueue time: this is the moment the pipeline's
-    /// shape is fixed for the workflow's lifetime — callback dispatch is by stage name, and whether the
+    /// shape is fixed for the workflow's lifetime — callback dispatch is by item index, and whether the
     /// transition ends with a concluding step or with a receive workflow is decided here.
     /// </summary>
     private ResolvedServiceTask? ResolveServiceTask(string? serviceTaskType) =>
@@ -537,10 +537,10 @@ internal sealed class ProcessNextRequestFactory
 
     private StepRequest CreateEnqueueReceiveWorkflowCommand(
         WorkflowEnqueueRequest receiveEnqueueRequest,
-        string openingStageName
+        int openingStageIndex
     ) =>
         WorkflowCommandSet
-            .CreateReceiveEnqueueStep(receiveEnqueueRequest, openingStageName)
+            .CreateReceiveEnqueueStep(receiveEnqueueRequest, openingStageIndex)
             .ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
 
     private StepRequest CreateEnqueueSideEffectsWorkflowCommand(WorkflowEnqueueRequest sideEffectsEnqueueRequest)

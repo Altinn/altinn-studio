@@ -175,5 +175,13 @@ successor/continuation enqueues embed the indexes just resolved, same request.
 
 | Step | Scope                                                        | Status    |
 | ---- | ------------------------------------------------------------ | --------- |
-| 1    | PR 1 — the identity swap (API, payloads, carry, guards, relay, consumers, tests) | pending   |
+| 1    | PR 1 — the identity swap (API, payloads, carry, guards, relay, consumers, tests) | approved (jj `mkyuprxoltps` / `e2af606e`; residuals recorded below) |
 | 2    | PR 2 — docs: AGENTS.md rewrite, changelog, xmldoc pass, `rg` proof | pending   |
+
+### Recorded residual gaps (non-blocking)
+
+- `test/Altinn.App.SourceGenerator.Tests`: `FullTests.Empty`/`Run` fail (CRLF-vs-LF in generated-output
+  literals) — caused by the separate `.editorconfig` crlf→lf ancestor commit (`trtzopwnwmkl`), not by any
+  step here; the generator-literal sites documented in `src/App/backend/AGENTS.md` need normalizing with that flip.
+- Restore-time blob-key collision (`"0"` vs `"00"` would last-writer-win on restore; nothing writes such keys today).
+- Test-scenario recorder labels still named `*StageName` (display-only log keys) — to be resolved in step 2's sweep decision.

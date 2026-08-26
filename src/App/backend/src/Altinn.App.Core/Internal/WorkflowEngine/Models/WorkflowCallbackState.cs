@@ -20,17 +20,17 @@ internal sealed record WorkflowCallbackState
     public required List<FormDataEntry> FormData { get; init; }
 
     /// <summary>
-    /// The mailboxes a service task's declaring stages have opened, keyed by the stage that opened each — the
-    /// app's own bookkeeping riding the blob rather than anything the engine reads. <c>null</c> for every
-    /// workflow that has not opened a mailbox.
+    /// The mailboxes a service task's declaring stages have opened, keyed by the opening stage's item index
+    /// as a string (JSON object keys are strings) — the app's own bookkeeping riding the blob rather than
+    /// anything the engine reads. <c>null</c> for every workflow that has not opened a mailbox.
     /// </summary>
     /// <remarks>
     /// A mailbox is minted under its declaring stage's engine-assigned step id, and no later step can re-derive
     /// that key. The blob is the only channel between steps of one workflow, so the mailbox travels here:
     /// written when it is minted, carried unchanged by every step in between, and read by the step that
-    /// enqueues the first receive workflow. Keyed by stage name rather than held as a single value so a task
-    /// that opens more than one exchange needs no blob-format change against in-flight workflows. Absent from
-    /// blobs written before mailboxes existed, which deserialize to <c>null</c>.
+    /// enqueues the first receive workflow. Keyed per opening stage rather than held as a single value so a
+    /// task that opens more than one exchange needs no blob-format change. Absent from blobs written before
+    /// mailboxes existed, which deserialize to <c>null</c>.
     /// </remarks>
     [JsonPropertyName("mailboxes")]
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes { get; init; }

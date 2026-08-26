@@ -17,7 +17,8 @@ public sealed class ServiceTaskPipeline
 
     /// <summary>
     /// Everything the pipeline composes before its conclusion, in composition order — one list, read by
-    /// shape. Empty for a simple service task.
+    /// shape. Empty for a simple service task. A position in this list is an item's index, the identity
+    /// stages and exchanges are dispatched by.
     /// </summary>
     internal IReadOnlyList<PipelineItem> Items { get; }
 
@@ -25,22 +26,31 @@ public sealed class ServiceTaskPipeline
     internal PipelineConclusion Conclusion { get; }
 
     /// <summary>
-    /// The stage with the given name (exact match — stage names are our own wire values), or <c>null</c>.
-    /// </summary>
-    internal ServiceTaskStage? FindStage(string stageName) =>
-        Items
-            .OfType<ServiceTaskStage>()
-            .FirstOrDefault(s => string.Equals(s.Name, stageName, StringComparison.Ordinal));
-
-    /// <summary>
-    /// The non-terminal handler answering the exchange the named stage opened (exact match, as for a
-    /// stage), or <c>null</c> — which for a receive step means the exchange is the conclusion's or nobody's.
+    /// The non-terminal handler answering the exchange opened at the given item index, or <c>null</c> —
+    /// which for a receive step means the exchange is the conclusion's or nobody's.
     /// </summary>
     /// <remarks>An exchange is answered exactly once, so the first match is the only one.</remarks>
-    internal ReplySegment? FindReplySegment(string openingStageName) =>
-        Items
-            .OfType<ReplySegment>()
-            .FirstOrDefault(r => string.Equals(r.OpeningStageName, openingStageName, StringComparison.Ordinal));
+    internal ReplySegment? FindReplySegment(int openingStageIndex) =>
+        FindReplySegmentIndex(openingStageIndex) is { } index ? (ReplySegment)Items[index] : null;
+
+    /// <summary>
+    /// The item index of the non-terminal handler answering the exchange opened at the given index, or
+    /// <c>null</c> — for a hop planning what follows an exchange, that index is where the next segment
+    /// starts.
+    /// </summary>
+    /// <remarks>An exchange is answered exactly once, so the first match is the only one.</remarks>
+    internal int? FindReplySegmentIndex(int openingStageIndex)
+    {
+        for (int i = 0; i < Items.Count; i++)
+        {
+            if (Items[i] is ReplySegment segment && segment.OpeningIndex == openingStageIndex)
+            {
+                return i;
+            }
+        }
+
+        return null;
+    }
 }
 
 /// <summary>
@@ -66,11 +76,12 @@ internal abstract class PipelineItem
 }
 
 /// <summary>
-/// One composed stage: its wire identity, its per-stage options, and its work — a closed set of exactly
-/// two shapes, because a stage either opens the exchange's mailbox or has nothing to do with mailboxes.
-/// Splitting them is what lets each shape's work delegate take the arguments it actually needs, so no
-/// execution reads a nullable declaration to rediscover which kind of stage it is running. The private
-/// constructor keeps the set closed.
+/// One composed stage: its per-stage options and its work — a closed set of exactly two shapes, because a
+/// stage either opens the exchange's mailbox or has nothing to do with mailboxes. Splitting them is what
+/// lets each shape's work delegate take the arguments it actually needs, so no execution reads a nullable
+/// declaration to rediscover which kind of stage it is running. The private constructor keeps the set
+/// closed. A stage has no identity of its own beyond its position: it is dispatched by its index in
+/// <see cref="ServiceTaskPipeline.Items"/>.
 /// </summary>
 /// <remarks>
 /// Not a record: the only thing that would distinguish two stages is a delegate reference, so value
@@ -78,27 +89,14 @@ internal abstract class PipelineItem
 /// </remarks>
 internal abstract class ServiceTaskStage : PipelineItem
 {
-    private ServiceTaskStage(string name, ProcessStepOptions? stepOptions)
-        : base(stepOptions)
-    {
-        Name = name;
-    }
-
-    /// <summary>
-    /// The stage's wire identity: the engine step's name, what a callback dispatches on, and — for the
-    /// declaring stage — the exchange's identity everywhere downstream.
-    /// </summary>
-    internal string Name { get; }
+    private ServiceTaskStage(ProcessStepOptions? stepOptions)
+        : base(stepOptions) { }
 
     /// <summary>A stage with no part in any exchange: work in, stage result out.</summary>
     internal sealed class Plain : ServiceTaskStage
     {
-        public Plain(
-            string name,
-            Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work,
-            ProcessStepOptions? stepOptions
-        )
-            : base(name, stepOptions)
+        public Plain(Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work, ProcessStepOptions? stepOptions)
+            : base(stepOptions)
         {
             Work = work;
         }
@@ -115,12 +113,11 @@ internal abstract class ServiceTaskStage : PipelineItem
     internal sealed class MailboxOpening : ServiceTaskStage
     {
         public MailboxOpening(
-            string name,
             Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> work,
             MailboxOptions declaration,
             ProcessStepOptions? stepOptions
         )
-            : base(name, stepOptions)
+            : base(stepOptions)
         {
             Work = work;
             Declaration = declaration;
@@ -151,23 +148,23 @@ internal abstract class ServiceTaskStage : PipelineItem
 internal sealed class ReplySegment : PipelineItem
 {
     internal ReplySegment(
-        string openingStageName,
+        int openingIndex,
         Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage,
         Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed,
         ProcessStepOptions? stepOptions
     )
         : base(stepOptions)
     {
-        OpeningStageName = openingStageName;
+        OpeningIndex = openingIndex;
         OnMessage = onMessage;
         OnClosed = onClosed;
     }
 
     /// <summary>
-    /// The stage that opened the mailbox this handler answers — the exchange's identity in the carry, in the
-    /// receive workflow's payload and in the mint step's engine identity, exactly as for a terminal.
+    /// The item that opened the mailbox this handler answers — the exchange's identity in the carry, in
+    /// the receive workflow's payload and in the mint step's engine identity, exactly as for a terminal.
     /// </summary>
-    internal string OpeningStageName { get; }
+    internal int OpeningIndex { get; }
 
     /// <summary>Answers one delivered message, with no way to conclude the task.</summary>
     internal Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> OnMessage { get; }
@@ -183,7 +180,7 @@ internal sealed class ReplySegment : PipelineItem
 /// </summary>
 /// <remarks>
 /// Not a record, for the same reason <see cref="ServiceTaskStage"/> is not: both members hold nothing but
-/// delegates and a name, so synthesized value equality would compare delegate references, and no caller
+/// delegates and an index, so synthesized value equality would compare delegate references, and no caller
 /// compares, copies or prints one.
 /// </remarks>
 internal abstract class PipelineConclusion
@@ -226,23 +223,23 @@ internal abstract class PipelineConclusion
     internal sealed class ReplyExchange : PipelineConclusion
     {
         public ReplyExchange(
-            string openingStageName,
+            int openingIndex,
             Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
             Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
             ProcessStepOptions? stepOptions
         )
             : base(stepOptions)
         {
-            OpeningStageName = openingStageName;
+            OpeningIndex = openingIndex;
             OnMessage = onMessage;
             OnClosed = onClosed;
         }
 
         /// <summary>
-        /// The stage that opened the mailbox — the exchange's identity in the carry, in the receive
+        /// The item that opened the mailbox — the exchange's identity in the carry, in the receive
         /// workflow's payload, and in the mint step's engine identity.
         /// </summary>
-        public string OpeningStageName { get; }
+        public int OpeningIndex { get; }
 
         /// <summary>Answers one delivered message.</summary>
         public Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage { get; }

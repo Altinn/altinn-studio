@@ -39,10 +39,11 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
     /// <summary>The <c>altinn:taskType</c> of Task_Sequential in this scenario's BPMN.</summary>
     public const string ServiceTaskType = "mailbox-sequential";
 
-    /// <summary>The stage that opens the first exchange — and that exchange's identity.</summary>
+    /// <summary>The recorder key of the stage that opens the first exchange. Exchanges are identified by
+    /// their opening item index on the wire; this label only names it in the scenario's records and logs.</summary>
     public const string ArchiveStageName = "SendToArchive";
 
-    /// <summary>The stage that opens the second exchange, composed after the first handler.</summary>
+    /// <summary>The recorder key of the stage that opens the second exchange, composed after the first handler.</summary>
     public const string JournalStageName = "SendToJournal";
 
     /// <summary>
@@ -57,19 +58,9 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage(
-                ArchiveStageName,
-                SendToArchive,
-                new MailboxOptions { Timeout = ExchangeTimeout },
-                out MailboxHandle archive
-            )
+            .Stage(SendToArchive, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle archive)
             .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed)
-            .Stage(
-                JournalStageName,
-                SendToJournal,
-                new MailboxOptions { Timeout = ExchangeTimeout },
-                out MailboxHandle journal
-            )
+            .Stage(SendToJournal, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle journal)
             .ConcludeOnReplies(journal, onMessage: HandleJournalMessage, onClosed: HandleJournalClosed);
 
     private Task<ServiceTaskStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
@@ -230,11 +221,11 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage(AlphaStageName, SendAlpha, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle alpha)
-            .Stage(BetaStageName, SendBeta, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle beta)
+            .Stage(SendAlpha, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle alpha)
+            .Stage(SendBeta, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle beta)
             .HandleReplies(alpha, onMessage: HandleAlphaMessage, onClosed: HandleAlphaClosed)
             .HandleReplies(beta, onMessage: HandleBetaMessage, onClosed: HandleBetaClosed)
-            .Stage(RecordStageName, RecordOutcome)
+            .Stage(RecordOutcome)
             .Finally(ConfirmBoth);
 
     private Task<ServiceTaskStageResult> SendAlpha(ServiceTaskContext context, ServiceTaskMailbox mailbox)

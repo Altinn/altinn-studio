@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The mailbox a stage opened, handed out by the mailbox-opening
-/// <see cref="ServiceTaskPipelineBuilder.Stage(string, Func{ServiceTaskContext, ServiceTaskMailbox, Task{ServiceTaskStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>
+/// <see cref="ServiceTaskPipelineBuilder.Stage(Func{ServiceTaskContext, ServiceTaskMailbox, Task{ServiceTaskStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>
 /// overload and passed to the one handler that answers it.
 /// </summary>
 /// <remarks>
@@ -15,9 +15,9 @@ namespace Altinn.App.Core.Features.Process;
 /// </para>
 /// <para>
 /// Being unconstructable is the point: passing one is <em>proof</em> that the mailbox it names is really
-/// declared, checked by the compiler rather than by a startup validation over stage-name strings. The two
-/// things a type cannot say — that the handle came from this pipeline's own builder, and that exactly one
-/// handler answers it — the builder checks eagerly, so they fail app startup.
+/// declared, checked by the compiler rather than by a startup validation. The two things a type cannot say
+/// — that the handle came from this pipeline's own builder, and that exactly one handler answers it — the
+/// builder checks eagerly, so they fail app startup.
 /// </para>
 /// <para>
 /// It exists as a value rather than being implied by a mailbox-flavoured builder type because a handler has to
@@ -27,18 +27,18 @@ namespace Altinn.App.Core.Features.Process;
 /// </remarks>
 public sealed class MailboxHandle
 {
-    internal MailboxHandle(ServiceTaskPipelineBuilder owner, string openingStageName)
+    internal MailboxHandle(ServiceTaskPipelineBuilder owner, int openingIndex)
     {
         Owner = owner;
-        OpeningStageName = openingStageName;
+        OpeningIndex = openingIndex;
     }
 
     /// <summary>The builder that issued this handle — a handle answers its own pipeline and no other.</summary>
     internal ServiceTaskPipelineBuilder Owner { get; }
 
     /// <summary>
-    /// The stage that opens the mailbox. The exchange's identity everywhere downstream: the carry's key, the
+    /// The item that opens the mailbox. The exchange's identity everywhere downstream: the carry's key, the
     /// receive workflow's payload, and the mint step's engine identity.
     /// </summary>
-    internal string OpeningStageName { get; }
+    internal int OpeningIndex { get; }
 }

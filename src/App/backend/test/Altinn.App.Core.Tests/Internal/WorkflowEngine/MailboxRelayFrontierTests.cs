@@ -35,7 +35,9 @@ public class MailboxRelayFrontierTests
     private const string App = "test-app";
     private const string Namespace = "ttd/test-app";
     private const string ServiceTaskType = "archiving";
-    private const string OpeningStage = "SendToArchive";
+
+    /// <summary>The item index of the stage that opens the exchange.</summary>
+    private const int OpeningStageIndex = 0;
     private const string TaskId = "Task_2";
 
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
@@ -235,7 +237,7 @@ public class MailboxRelayFrontierTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage("SendToArchive", SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
@@ -246,14 +248,14 @@ public class MailboxRelayFrontierTests
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
-                .Stage(OpeningStage, SendStage, _mailboxThreeDays, out MailboxHandle archive)
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed()),
                     (_, _) => Task.FromResult(ServiceTaskStageResult.Completed())
                 )
-                .Stage("RecordArchive", PlainStage)
-                .Stage("SendToJournal", SendStage, _mailboxThreeDays, out MailboxHandle journal)
+                .Stage(PlainStage)
+                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
                 .ConcludeOnReplies(journal, OnMessage, OnClosed);
     }
 
@@ -366,7 +368,7 @@ public class MailboxRelayFrontierTests
             // The relay's enqueue happens inside the callback — the receiver is still unsettled.
             int headsBefore = collection.EnqueuedByTheRelay.Count;
             await relay.Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, hop),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, hop),
                 CreateRequest(receiver, Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -409,7 +411,7 @@ public class MailboxRelayFrontierTests
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         await relay.Continue(
-            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStage, 0),
+            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, 0),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );
@@ -467,7 +469,7 @@ public class MailboxRelayFrontierTests
 
         int headsBefore = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
-            new MailboxContinuation.ConcludeAndContinue(_mailboxId, ServiceTaskType, OpeningStage),
+            new MailboxContinuation.ConcludeAndContinue(_mailboxId, ServiceTaskType, OpeningStageIndex),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );

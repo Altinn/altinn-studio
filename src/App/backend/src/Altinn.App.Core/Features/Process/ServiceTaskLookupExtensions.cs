@@ -1,9 +1,8 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Lookup helpers for registered service tasks, so the matching rules — task type is
-/// case-insensitive (BPMN attribute semantics), stage names are exact (they are our own wire
-/// values) — live in one place.
+/// Lookup helpers for registered service tasks, so the matching rule — task type is
+/// case-insensitive (BPMN attribute semantics) — lives in one place.
 /// </summary>
 internal static class ServiceTaskLookupExtensions
 {

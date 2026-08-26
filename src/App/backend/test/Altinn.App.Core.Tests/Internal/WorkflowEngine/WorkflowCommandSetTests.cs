@@ -155,7 +155,8 @@ public class WorkflowCommandSetTests
 
     /// <summary>
     /// The regression floor for the whole expansion: a pipeline with no mid-pipeline handler has exactly one
-    /// segment, and it is what the factory has always built. (The assembled version of this is
+    /// segment, and it is what the factory has always built — each step carrying its item index. (The
+    /// assembled version of this is
     /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheReceiveEnqueueAndEmitsNoConclusion</c>,
     /// which must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
     /// </summary>
@@ -163,84 +164,58 @@ public class WorkflowCommandSetTests
     public void PlanSegment_SingleExchangePipeline_IsOneSegmentEndingOnTheTerminalsExchange()
     {
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("PrepareDocuments", PlainStage)
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
+            .Stage(PlainStage)
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline);
 
         Assert.Equal(
-            [
-                $"{ExecuteServiceTask.Key}: PrepareDocuments",
-                $"{MintMailbox.Key}: SendToArchive",
-                $"{ExecuteServiceTask.Key}: SendToArchive",
-            ],
+            [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
             OperationIds(plan)
         );
-        Assert.Equal("SendToArchive", plan.Receive?.OpeningStageName);
+        Assert.Equal(1, plan.Receive?.OpeningStageIndex);
     }
 
     [Fact]
     public void PlanSegment_PipelineWithNoExchange_EndsWithTheConcludingStepAndNoReceive()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("Dispatch", PlainStage)
-            .Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder().Stage(PlainStage).Finally(FinalWork);
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("signing", pipeline);
 
-        Assert.Equal([$"{ExecuteServiceTask.Key}: Dispatch", ExecuteServiceTask.Key], OperationIds(plan));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 0", ExecuteServiceTask.Key], OperationIds(plan));
         Assert.Null(plan.Receive);
     }
 
     /// <summary>
     /// Segment 0 of a pipeline whose first exchange is answered mid-pipeline stops at that handler, which is
-    /// no step at all — it runs on the receive workflows.
+    /// no step at all — it runs on the receive workflows. Item indexes here: the send at 0, its handler at 1,
+    /// a stage at 2, the second send at 3.
     /// </summary>
     [Fact]
     public void PlanSegment_StopsAtTheFirstReplyHandler()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Stage("RecordArchive", PlainStage)
-            .Stage("SendToJournal", SendStage, _threeDays, out MailboxHandle journal)
-            .ConcludeOnReplies(journal, OnMessage, OnClosed);
+        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline);
 
-        Assert.Equal(
-            [$"{MintMailbox.Key}: SendToArchive", $"{ExecuteServiceTask.Key}: SendToArchive"],
-            OperationIds(plan)
-        );
-        Assert.Equal("SendToArchive", plan.Receive?.OpeningStageName);
+        Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(plan));
+        Assert.Equal(0, plan.Receive?.OpeningStageIndex);
     }
 
     [Fact]
     public void PlanSegment_AfterAHandler_RunsTheItemsBetweenItAndTheNextExchange()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Stage("RecordArchive", PlainStage)
-            .Stage("SendToJournal", SendStage, _threeDays, out MailboxHandle journal)
-            .ConcludeOnReplies(journal, OnMessage, OnClosed);
+        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment(
-            "archiving",
-            pipeline,
-            afterExchange: "SendToArchive"
-        );
+        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1);
 
         Assert.Equal(
-            [
-                $"{ExecuteServiceTask.Key}: RecordArchive",
-                $"{MintMailbox.Key}: SendToJournal",
-                $"{ExecuteServiceTask.Key}: SendToJournal",
-            ],
+            [$"{ExecuteServiceTask.Key}: 2", $"{MintMailbox.Key}: 3", $"{ExecuteServiceTask.Key}: 3"],
             OperationIds(plan)
         );
-        Assert.Equal("SendToJournal", plan.Receive?.OpeningStageName);
+        Assert.Equal(3, plan.Receive?.OpeningStageIndex);
     }
 
     /// <summary>A mid-pipeline reply with trailing stages, ended by an ordinary <c>Finally</c>.</summary>
@@ -248,94 +223,77 @@ public class WorkflowCommandSetTests
     public void PlanSegment_AfterTheLastHandler_EndsWithTheConclusion()
     {
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Stage("RecordArchive", PlainStage)
+            .Stage(PlainStage)
             .Finally(FinalWork);
 
-        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment(
-            "archiving",
-            pipeline,
-            afterExchange: "SendToArchive"
-        );
+        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1);
 
-        Assert.Equal([$"{ExecuteServiceTask.Key}: RecordArchive", ExecuteServiceTask.Key], OperationIds(plan));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", ExecuteServiceTask.Key], OperationIds(plan));
         Assert.Null(plan.Receive);
     }
 
     /// <summary>
     /// Both sends composed before either handler — decision 3: both mints ride segment 0, so both deadline
-    /// clocks start in Main, and the segment after the first handler is a bare hand-over.
+    /// clocks start in Main, and the segment after the first handler is a bare hand-over. Item indexes: the
+    /// sends at 0 and 1, the first handler at 2.
     /// </summary>
     [Fact]
     public void PlanSegment_UpFrontSends_MintsBothInSegmentZeroAndLeavesSegmentOneEmpty()
     {
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
-            .Stage("SendToJournal", SendStage, _threeDays, out MailboxHandle journal)
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
+            .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .ConcludeOnReplies(journal, OnMessage, OnClosed);
 
         ServiceTaskSegmentPlan first = WorkflowCommandSet.PlanSegment("archiving", pipeline);
         Assert.Equal(
             [
-                $"{MintMailbox.Key}: SendToArchive",
-                $"{ExecuteServiceTask.Key}: SendToArchive",
-                $"{MintMailbox.Key}: SendToJournal",
-                $"{ExecuteServiceTask.Key}: SendToJournal",
+                $"{MintMailbox.Key}: 0",
+                $"{ExecuteServiceTask.Key}: 0",
+                $"{MintMailbox.Key}: 1",
+                $"{ExecuteServiceTask.Key}: 1",
             ],
             OperationIds(first)
         );
-        Assert.Equal("SendToArchive", first.Receive?.OpeningStageName);
+        Assert.Equal(0, first.Receive?.OpeningStageIndex);
 
-        ServiceTaskSegmentPlan second = WorkflowCommandSet.PlanSegment(
-            "archiving",
-            pipeline,
-            afterExchange: "SendToArchive"
-        );
+        ServiceTaskSegmentPlan second = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 2);
         Assert.Empty(second.Steps);
-        Assert.Equal("SendToJournal", second.Receive?.OpeningStageName);
+        Assert.Equal(1, second.Receive?.OpeningStageIndex);
     }
 
     /// <summary>
     /// Handler order is exchange order, and it is the author's choice: answering B before A is legal once both
-    /// stages precede both handlers, and the segments follow the handlers rather than the sends.
+    /// stages precede both handlers, and the segments follow the handlers rather than the sends. Item indexes:
+    /// the sends at 0 and 1, the handlers at 2 (journal's) and 3 (archive's).
     /// </summary>
     [Fact]
     public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheSegments()
     {
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
-            .Stage("SendToJournal", SendStage, _threeDays, out MailboxHandle journal)
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
+            .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(journal, OnSegmentMessage, OnSegmentClosed)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Finally(FinalWork);
 
-        Assert.Equal("SendToJournal", WorkflowCommandSet.PlanSegment("archiving", pipeline).Receive?.OpeningStageName);
+        Assert.Equal(1, WorkflowCommandSet.PlanSegment("archiving", pipeline).Receive?.OpeningStageIndex);
         Assert.Equal(
-            "SendToArchive",
-            WorkflowCommandSet
-                .PlanSegment("archiving", pipeline, afterExchange: "SendToJournal")
-                .Receive?.OpeningStageName
+            0,
+            WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 2).Receive?.OpeningStageIndex
         );
-        Assert.Null(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterExchange: "SendToArchive").Receive);
+        Assert.Null(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 3).Receive);
     }
 
-    /// <summary>
-    /// Naming a handler the pipeline does not compose would otherwise plan segment 0 — re-running every stage,
-    /// re-minting every mailbox and re-sending. It throws instead.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_AfterAnExchangeNoHandlerAnswers_Throws()
-    {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage("SendToArchive", SendStage, _threeDays, out MailboxHandle archive)
+    /// <summary>The pipeline every two-segment walk below composes.</summary>
+    private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
+        new ServiceTaskPipelineBuilder()
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
-
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
-            WorkflowCommandSet.PlanSegment("archiving", pipeline, afterExchange: "SendToArchive_v1")
-        );
-        Assert.Contains("SendToArchive_v1", thrown.Message, StringComparison.Ordinal);
-    }
+            .Stage(PlainStage)
+            .Stage(SendStage, _threeDays, out MailboxHandle journal)
+            .ConcludeOnReplies(journal, OnMessage, OnClosed);
 }

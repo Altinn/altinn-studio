@@ -31,9 +31,9 @@ internal static class StepRequestStepOptionsExtensions
     /// them onto the wire request. Resolution keys off the step's <see cref="StepRequest.CommandKey"/>,
     /// falling back to its OperationId for a step assembled without one (where the two are the same
     /// string): an OperationId can be a display identity — a service-task stage or the mailbox mint carries
-    /// its stage name there — and keying off it would silently miss the command's own tier-2 default. A
-    /// stage additionally resolves its per-stage options by <see cref="StepRequest.ServiceTaskStageName"/>, and
-    /// a receive step its per-handler options by <see cref="StepRequest.ServiceTaskRepliesTo"/>.
+    /// its item index there — and keying off it would silently miss the command's own tier-2 default. A
+    /// stage additionally resolves its per-stage options by <see cref="StepRequest.ServiceTaskStageIndex"/>,
+    /// and a receive step its per-handler options by <see cref="StepRequest.ServiceTaskRepliesTo"/>.
     /// </summary>
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
@@ -46,7 +46,7 @@ internal static class StepRequestStepOptionsExtensions
                 step.CommandKey ?? step.OperationId,
                 taskId,
                 serviceTaskType,
-                step.ServiceTaskStageName,
+                step.ServiceTaskStageIndex,
                 step.ServiceTaskRepliesTo
             )
         );

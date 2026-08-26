@@ -86,7 +86,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         EngineWorkflow main = await WaitForCompletedMainWorkflow(engineClient, ns, collectionKey, "Task_Service");
         List<string> mainOperationIds = main.Steps.Select(s => s.OperationId).ToList();
 
-        int mintIndex = mainOperationIds.IndexOf($"MintMailbox: {SendStageName}");
+        int mintIndex = mainOperationIds.IndexOf("MintMailbox: 1");
         Assert.True(
             mintIndex >= 0,
             $"No mint step in the transition's step list: [{string.Join(", ", mainOperationIds)}]"
@@ -97,10 +97,10 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // with plain ones. Behind: the deadline clock starts at the mint, so hoisting it to the front of
         // the stage list would let pre-send work erode the exchange's budget. Ahead: the stage must never
         // send without an address, so the mint cannot be deferred past it.
-        Assert.Equal($"ExecuteServiceTask: {PrepareStageName}", mainOperationIds[mintIndex - 1]);
-        Assert.Equal($"ExecuteServiceTask: {SendStageName}", mainOperationIds[mintIndex + 1]);
+        Assert.Equal("ExecuteServiceTask: 0", mainOperationIds[mintIndex - 1]);
+        Assert.Equal("ExecuteServiceTask: 1", mainOperationIds[mintIndex + 1]);
         Assert.Single(mainOperationIds, id => id.StartsWith("MintMailbox", StringComparison.Ordinal));
-        Assert.Contains($"ExecuteServiceTask: {RecordStageName}", mainOperationIds);
+        Assert.Contains("ExecuteServiceTask: 2", mainOperationIds);
 
         // A mailbox-opening task expands to no concluding Main step - the reply handler runs on the
         // receive workflows - and Main ends by enqueueing the first receiver, so the frontier is never
@@ -108,7 +108,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         //
         // Exact-match, not substring: this is the collection overload of DoesNotContain, and the bare
         // concluding step's OperationId is literally "ExecuteServiceTask" (the stage steps carry a
-        // ": {stage}" suffix). Rewriting it as a StartsWith predicate would invert the assertion into one
+        // ": {index}" suffix). Rewriting it as a StartsWith predicate would invert the assertion into one
         // that can never hold.
         Assert.DoesNotContain("ExecuteServiceTask", mainOperationIds);
         Assert.Equal("EnqueueReceiveWorkflow", mainOperationIds[^1]);

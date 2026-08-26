@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
@@ -13,18 +14,18 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// A segment's receive half: the one step its receive workflows run — the handler answering the exchange the
-/// segment ends on, whether that is a mid-pipeline one or the pipeline's terminal — and the stage that opens
-/// the exchange that step answers.
+/// segment ends on, whether that is a mid-pipeline one or the pipeline's terminal — and the item index whose
+/// stage opens the exchange that step answers.
 /// </summary>
 /// <remarks>
-/// <see cref="OpeningStageName"/> is deliberately the same string that sits inside <see cref="Step"/>'s
+/// <see cref="OpeningStageIndex"/> is deliberately the same value that sits inside <see cref="Step"/>'s
 /// serialized payload, held twice: the enqueueing hop needs it to tell <c>EnqueueReceiveWorkflow</c> which
 /// carried mailbox to declare, and reading it back out of the step would mean deserializing a payload this
 /// plan just wrote. Do not "deduplicate" it away.
 /// </remarks>
 /// <param name="Step">The receive workflow's single step.</param>
-/// <param name="OpeningStageName">The stage whose mint the receiver is enqueued against.</param>
-internal sealed record MailboxReceivePlan(StepRequest Step, string OpeningStageName);
+/// <param name="OpeningStageIndex">The item index whose stage's mint the receiver is enqueued against.</param>
+internal sealed record MailboxReceivePlan(StepRequest Step, int OpeningStageIndex);
 
 /// <summary>
 /// One planned pipeline segment: the engine steps the workflow that runs the segment carries, and — when the
@@ -221,9 +222,9 @@ internal sealed class WorkflowCommandSet
     /// </para>
     /// <para>
     /// A segment is planned from the pipeline as resolved at that hop, never from a projection of it carried
-    /// along — the identity travelling in payloads is the stage name, and the shape around it is re-derived.
-    /// The expansion fixes that shape for the workflow's lifetime, so a stage name is a compatibility surface
-    /// for in-flight workflows even though the plan is rebuilt.
+    /// along — the identity travelling in payloads is the item index, and the shape around it is re-derived.
+    /// The expansion fixes that shape for the workflow's lifetime: a mid-flight change to the composition
+    /// shifts indexes exactly as any other mid-flight process edit would.
     /// </para>
     /// <para>
     /// <strong>Frontier-never-empty is the caller's to hold, not this method's.</strong> What keeps the
@@ -233,19 +234,19 @@ internal sealed class WorkflowCommandSet
     /// </remarks>
     /// <param name="serviceTaskType">The service task the steps dispatch back to.</param>
     /// <param name="pipeline">The task's pipeline, resolved at this hop.</param>
-    /// <param name="afterExchange">
-    /// The exchange whose handler this segment follows, naming it by the stage that opened it — so the
-    /// segment starts at the item after that handler. Null for segment 0, which starts at the beginning.
+    /// <param name="afterHandlerItemIndex">
+    /// The item index of the reply handler this segment follows — so the segment starts at the item after
+    /// that handler. Null for segment 0, which starts at the beginning.
     /// </param>
     internal static ServiceTaskSegmentPlan PlanSegment(
         string serviceTaskType,
         ServiceTaskPipeline pipeline,
-        string? afterExchange = null
+        int? afterHandlerItemIndex = null
     )
     {
         var steps = new List<StepRequest>();
 
-        for (int index = FindSegmentStart(pipeline, afterExchange); index < pipeline.Items.Count; index++)
+        for (int index = FindSegmentStart(afterHandlerItemIndex); index < pipeline.Items.Count; index++)
         {
             switch (pipeline.Items[index])
             {
@@ -253,8 +254,8 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(
                         steps,
                         new MailboxReceivePlan(
-                            CreateReceiveHandlerStep(serviceTaskType, handler.OpeningStageName),
-                            handler.OpeningStageName
+                            CreateReceiveHandlerStep(serviceTaskType, handler.OpeningIndex),
+                            handler.OpeningIndex
                         )
                     );
 
@@ -263,13 +264,13 @@ internal sealed class WorkflowCommandSet
                     {
                         // The mint hugs the stage that sends, on both sides: the deadline clock starts here, so
                         // no earlier stage may erode it, and the stage must never send without an address, so
-                        // the mint cannot come later. No serviceTaskStageName: the mint must not inherit the
+                        // the mint cannot come later. No stage index on the step: the mint must not inherit the
                         // stage's options, so the engine's defaults apply to what is one HTTP call.
                         steps.Add(
                             CreateCommand(
                                 MintMailbox.Key,
-                                new MintMailboxPayload(serviceTaskType, stage.Name),
-                                operationId: $"{MintMailbox.Key}: {stage.Name}"
+                                new MintMailboxPayload(serviceTaskType, index),
+                                operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
                             )
                         );
                     }
@@ -278,9 +279,9 @@ internal sealed class WorkflowCommandSet
                     steps.Add(
                         CreateCommand(
                             ExecuteServiceTask.Key,
-                            new ExecuteServiceTaskPayload(serviceTaskType, stage.Name),
-                            operationId: $"{ExecuteServiceTask.Key}: {stage.Name}",
-                            serviceTaskStageName: stage.Name
+                            new ExecuteServiceTaskPayload(serviceTaskType, StageIndex: index),
+                            operationId: $"{ExecuteServiceTask.Key}: {index.ToString(CultureInfo.InvariantCulture)}",
+                            serviceTaskStageIndex: index
                         )
                     );
                     break;
@@ -298,8 +299,8 @@ internal sealed class WorkflowCommandSet
                 return new ServiceTaskSegmentPlan(
                     steps,
                     new MailboxReceivePlan(
-                        CreateReceiveHandlerStep(serviceTaskType, exchange.OpeningStageName),
-                        exchange.OpeningStageName
+                        CreateReceiveHandlerStep(serviceTaskType, exchange.OpeningIndex),
+                        exchange.OpeningIndex
                     )
                 );
 
@@ -316,63 +317,33 @@ internal sealed class WorkflowCommandSet
 
     /// <summary>
     /// Where the requested segment starts: the beginning for segment 0, and otherwise the item after the
-    /// handler answering <paramref name="afterExchange"/>.
+    /// handler at <paramref name="afterHandlerItemIndex"/>.
     /// </summary>
-    /// <remarks>
-    /// A name matching no handler throws rather than silently planning segment 0 — which would re-run every
-    /// stage of the task, re-minting mailboxes and re-sending. Unreachable in practice: the only caller naming
-    /// an exchange is the relay, running inside the very callback whose dispatch found that handler in this
-    /// same pipeline, and <c>Define</c> is contractually deterministic. It throws rather than
-    /// <see cref="UnreachableException"/> because reaching it would take an app's <c>Define</c> breaking that
-    /// contract, not this assembly's model drifting.
-    /// </remarks>
-    private static int FindSegmentStart(ServiceTaskPipeline pipeline, string? afterExchange)
-    {
-        if (afterExchange is null)
-        {
-            return 0;
-        }
-
-        for (int index = 0; index < pipeline.Items.Count; index++)
-        {
-            if (
-                pipeline.Items[index] is ReplySegment handler
-                && string.Equals(handler.OpeningStageName, afterExchange, StringComparison.Ordinal)
-            )
-            {
-                return index + 1;
-            }
-        }
-
-        throw new InvalidOperationException(
-            $"The pipeline composes no handler for the exchange opened by stage '{afterExchange}', so the "
-                + "segment that follows it cannot be planned. Define must return the same pipeline every time "
-                + "it is called."
-        );
-    }
+    private static int FindSegmentStart(int? afterHandlerItemIndex) =>
+        afterHandlerItemIndex is { } handler ? handler + 1 : 0;
 
     /// <summary>
     /// The one step a receive workflow runs: an <c>ExecuteServiceTask</c> step that names the exchange it
     /// answers rather than a stage it runs.
     /// </summary>
     /// <remarks>
-    /// The name is fixed here, at the receiver's enqueue, and never re-derived at the hop that runs the step —
-    /// a stage renamed mid-flight would otherwise address a different exchange, or silently none. It travels
-    /// twice, deliberately: in the payload, which dispatch reads, and in
+    /// The exchange's identity is fixed here, at the receiver's enqueue, and never re-derived at the hop that
+    /// runs the step — a mid-flight reshape would otherwise point it at a different exchange, or silently none.
+    /// It travels twice, deliberately: in the payload, which dispatch reads, and in
     /// <see cref="StepRequest.ServiceTaskRepliesTo"/>, which the enqueueing hop resolves the step's options by
     /// — the second would otherwise mean re-deserializing the payload the hop just wrote. No
-    /// <c>ServiceTaskStageName</c>: a receive step runs no stage.
+    /// <c>ServiceTaskStageIndex</c>: a receive step runs no stage.
     /// </remarks>
-    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, string openingStageName) =>
+    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, int openingStageIndex) =>
         CreateCommand(
             ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageName),
-            serviceTaskRepliesTo: openingStageName
+            new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageIndex),
+            serviceTaskRepliesTo: openingStageIndex
         );
 
     /// <summary>
     /// The step that ends a segment ending on an exchange: it enqueues the exchange's first receive workflow,
-    /// carrying the workflow its hop pre-assembled and the name of the stage whose mailbox that receiver is
+    /// carrying the workflow its hop pre-assembled and the item index whose stage's mailbox that receiver is
     /// declared against.
     /// </summary>
     /// <remarks>
@@ -382,19 +353,19 @@ internal sealed class WorkflowCommandSet
     /// </remarks>
     internal static StepRequest CreateReceiveEnqueueStep(
         WorkflowEnqueueRequest receiveEnqueueRequest,
-        string openingStageName
+        int openingStageIndex
     ) =>
         CreateCommand(
             EnqueueReceiveWorkflow.Key,
-            new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest, openingStageName)
+            new EnqueueReceiveWorkflowPayload(receiveEnqueueRequest, openingStageIndex)
         );
 
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        string? serviceTaskStageName = null,
-        string? serviceTaskRepliesTo = null
+        int? serviceTaskStageIndex = null,
+        int? serviceTaskRepliesTo = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -406,7 +377,7 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            ServiceTaskStageName = serviceTaskStageName,
+            ServiceTaskStageIndex = serviceTaskStageIndex,
             ServiceTaskRepliesTo = serviceTaskRepliesTo,
         };
     }
