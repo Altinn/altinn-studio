@@ -18,21 +18,21 @@ internal sealed class EFormidlingServiceTaskMigrator
     }
 
     /// <summary>
-    /// Runs the migration. The result carries any warnings and whether manual follow-up is required
-    /// (e.g. a task that could not be migrated left the legacy block in place). No warnings and no
-    /// manual action means a clean migration (or nothing to migrate). Throws if a required file is
+    /// Runs the migration. The result carries any warnings, plus a to-do when manual follow-up is
+    /// required (e.g. a task that could not be migrated left the legacy block in place). No warnings and
+    /// no to-dos means a clean migration (or nothing to migrate). Throws if a required file is
     /// malformed in a way we cannot recover from.
     /// </summary>
     public async Task<MigrationResult> Migrate()
     {
-        var warnings = new List<string>();
+        var messages = new List<UpgradeMessage>();
 
         var metadataFile = AppFiles.Resolve(_projectFolder, "config/applicationmetadata.json");
         if (metadataFile is null)
         {
             // Nothing to migrate and no block left behind, so no manual follow-up is implied.
-            warnings.Add("Could not find config/applicationmetadata.json; skipped eFormidling migration.");
-            return new MigrationResult(ManualActionRequired: false, warnings);
+            messages.Warn("Could not find config/applicationmetadata.json; skipped eFormidling migration.");
+            return new MigrationResult(messages);
         }
 
         var metadataRewriter = new ApplicationMetadataEFormidlingRewriter(metadataFile);
@@ -40,7 +40,7 @@ internal sealed class EFormidlingServiceTaskMigrator
         if (config is null)
         {
             // No eFormidling block at all - nothing to migrate.
-            return new MigrationResult(ManualActionRequired: false, warnings);
+            return new MigrationResult(messages);
         }
 
         if (config.IsEmpty)
@@ -48,40 +48,40 @@ internal sealed class EFormidlingServiceTaskMigrator
             // An empty (or null) block never configured anything; removing it clears the analyzer
             // error without adding a service task.
             await metadataRewriter.StripEFormidlingBlock();
-            warnings.AddRange(metadataRewriter.GetWarnings());
-            warnings.Add(
+            messages.WarnRange(metadataRewriter.GetWarnings());
+            messages.Warn(
                 "Removed an empty legacy eFormidling block from applicationmetadata.json; no eFormidling "
                     + "service task was added."
             );
-            return new MigrationResult(metadataRewriter.ManualActionRequired, warnings);
+            return metadataRewriter.ManualActionRequired ? FollowUp(messages) : new MigrationResult(messages);
         }
 
         var reportedMetadataWarnings = metadataRewriter.GetWarnings().Count;
-        warnings.AddRange(metadataRewriter.GetWarnings());
+        messages.WarnRange(metadataRewriter.GetWarnings());
 
         if (string.IsNullOrWhiteSpace(config.SendAfterTaskId))
         {
             // Without a sendAfterTaskId the legacy backend never sent a shipment, but the block
             // still holds configuration the developer may want to keep. Leave everything in place
             // (the analyzer error keeps pointing at it) so nothing is lost silently.
-            warnings.Add(
+            messages.Todo(
                 "The legacy eFormidling configuration has no sendAfterTaskId, so there is no task to attach "
                     + "the eFormidling service task to (the legacy backend never sent a shipment for this "
                     + "configuration). Left applicationmetadata.json unchanged - add an 'eFormidling' service "
                     + "task manually or remove the eFormidling block."
             );
-            return new MigrationResult(ManualActionRequired: true, warnings);
+            return new MigrationResult(messages);
         }
 
         var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
         if (processFile is null)
         {
-            warnings.Add(
+            messages.Todo(
                 "applicationmetadata.json configures legacy eFormidling, but config/process/process.bpmn "
                     + "was not found; cannot add the eFormidling service task. Left applicationmetadata.json "
                     + "unchanged."
             );
-            return new MigrationResult(ManualActionRequired: true, warnings);
+            return new MigrationResult(messages);
         }
 
         // applicationmetadata.json lives in {appFolder}/config/, and the appsettings files in {appFolder}.
@@ -97,7 +97,7 @@ internal sealed class EFormidlingServiceTaskMigrator
             config,
             gate
         );
-        warnings.AddRange(processRewriter.GetWarnings());
+        messages.WarnRange(processRewriter.GetWarnings());
 
         if (result == EFormidlingInsertResult.Skipped)
         {
@@ -105,12 +105,12 @@ internal sealed class EFormidlingServiceTaskMigrator
             // with neither the v8 configuration nor the v9 service task, silently dropping the
             // shipment - and the analyzer error is what tells the developer the migration needs
             // manual work.
-            warnings.Add(
+            messages.Todo(
                 "Left the eFormidling block in applicationmetadata.json unchanged because the eFormidling "
                     + "service task could not be inserted automatically. Add the service task manually (or fix "
                     + "the process) and re-run the upgrade to strip the block."
             );
-            return new MigrationResult(ManualActionRequired: true, warnings);
+            return new MigrationResult(messages);
         }
 
         if (result == EFormidlingInsertResult.Inserted)
@@ -119,7 +119,7 @@ internal sealed class EFormidlingServiceTaskMigrator
 
             if (!gate.EnabledAnywhere)
             {
-                warnings.Add(
+                messages.Warn(
                     "AppSettings:EnableEFormidling was not enabled in any appsettings file, so the legacy "
                         + "configuration never sent a shipment. The migrated service task carries the "
                         + "configuration but is <altinn:disabled> - remove the disabled element in process.bpmn "
@@ -128,7 +128,7 @@ internal sealed class EFormidlingServiceTaskMigrator
             }
             else if (!gate.EnabledEverywhere)
             {
-                warnings.Add(
+                messages.Warn(
                     "AppSettings:EnableEFormidling differed per environment. The migrated service task mirrors "
                         + $"that with <altinn:disabled env=\"...\"> element(s) for "
                         + $"[{string.Join(", ", gate.DisabledEnvironments())}] - review them in process.bpmn."
@@ -139,12 +139,12 @@ internal sealed class EFormidlingServiceTaskMigrator
         // Strip the legacy configuration last, so a failure above leaves it untouched.
         await metadataRewriter.StripEFormidlingBlock();
         await settingsRewriter.StripEnableEFormidling();
-        warnings.AddRange(metadataRewriter.GetWarnings().Skip(reportedMetadataWarnings));
-        warnings.AddRange(settingsRewriter.GetWarnings());
+        messages.WarnRange(metadataRewriter.GetWarnings().Skip(reportedMetadataWarnings));
+        messages.WarnRange(settingsRewriter.GetWarnings());
 
         if (config.ServiceId is not null)
         {
-            warnings.Add(
+            messages.Warn(
                 $"The legacy eFormidling serviceId ('{config.ServiceId}') has no equivalent in the v9 service "
                     + "task configuration and was dropped - the eFormidling integration point resolves the "
                     + "service from the receiver's capabilities."
@@ -153,19 +153,27 @@ internal sealed class EFormidlingServiceTaskMigrator
 
         if (gate.EnabledAnywhere && !AppRegistersEFormidlingServices(appFolder))
         {
-            warnings.Add(
+            messages.Warn(
                 "Could not find an eFormidling registration in the app's C# code. The v9 eFormidling "
                     + "service task fails at runtime without it - make sure Program.cs registers the services "
                     + "with AddEFormidling().WithMetadata<T>() (and that T implements IEFormidlingMetadata)."
             );
         }
 
-        // The block was migrated and stripped; the only manual follow-up left is if a strip could not
+        // The block was migrated and stripped; the only manual follow-up left is if a strip could
         // be applied safely (unusual formatting, or a result that would not parse).
-        return new MigrationResult(
-            metadataRewriter.ManualActionRequired || settingsRewriter.ManualActionRequired,
-            warnings
-        );
+        return metadataRewriter.ManualActionRequired || settingsRewriter.ManualActionRequired
+            ? FollowUp(messages)
+            : new MigrationResult(messages);
+    }
+
+    /// <summary>
+    /// Ends the migration with the shared follow-up to-do, after the warning that says what stopped it.
+    /// </summary>
+    private static MigrationResult FollowUp(List<UpgradeMessage> messages)
+    {
+        messages.Todo("eFormidling service task migration needs manual follow-up. Review the warnings above.");
+        return new MigrationResult(messages);
     }
 
     /// <summary>

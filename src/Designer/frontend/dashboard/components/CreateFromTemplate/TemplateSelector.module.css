@@ -2,7 +2,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .templateName {
@@ -10,7 +10,7 @@
 }
 
 .templateOwner {
-  margin-left: var(--fds-spacing-4);
+  margin-left: var(--ds-size-4);
   margin-top: 0;
 }
 
@@ -18,5 +18,5 @@
   margin: 1rem 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 }

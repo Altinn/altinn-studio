@@ -55,4 +55,18 @@ public class ChatMessageDbModel
     /// Set when the assistant reported that an uploaded document tried to instruct it.
     /// </summary>
     public bool? AttachmentInstructionFlagged { get; set; }
+    
+    /// Langfuse trace id of the agent run that produced this message.
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
+    /// Id of the agent event this message was persisted from. Unique per thread.
+    /// </summary>
+    public string? EventId { get; set; }
+
+    /// <summary>
+    /// The user's thumbs up/down on this answer.
+    /// </summary>
+    public bool? FeedbackThumbsUp { get; set; }
 }

@@ -96,7 +96,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
   const { langAsString } = useLanguage();
   const {
-    formData: { person_lookup_ssn, person_lookup_name, person_lookup_first_name, person_lookup_last_name },
+    formData: { ssn, fullName, firstName, lastName },
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
@@ -135,20 +135,20 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
     const { data } = await performLookup();
     if (data?.person) {
-      if (dataModelBindings.person_lookup_ssn) {
-        setValue('person_lookup_ssn', data.person.ssn);
+      if (dataModelBindings.ssn) {
+        setValue('ssn', data.person.ssn);
       }
-      if (dataModelBindings.person_lookup_first_name) {
-        setValue('person_lookup_first_name', data.person.firstName);
+      if (dataModelBindings.firstName) {
+        setValue('firstName', data.person.firstName);
       }
-      if (dataModelBindings.person_lookup_last_name) {
-        setValue('person_lookup_last_name', data.person.lastName);
+      if (dataModelBindings.lastName) {
+        setValue('lastName', data.person.lastName);
       }
-      if (dataModelBindings.person_lookup_middle_name) {
-        setValue('person_lookup_middle_name', data.person.middleName || '');
+      if (dataModelBindings.middleName) {
+        setValue('middleName', data.person.middleName || '');
       }
-      if (dataModelBindings.person_lookup_name) {
-        setValue('person_lookup_name', composeFullName(data.person));
+      if (dataModelBindings.fullName) {
+        setValue('fullName', composeFullName(data.person));
       }
     }
   }
@@ -158,20 +158,20 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
   }
 
   function handleClear() {
-    if (dataModelBindings.person_lookup_ssn) {
-      setValue('person_lookup_ssn', '');
+    if (dataModelBindings.ssn) {
+      setValue('ssn', '');
     }
-    if (dataModelBindings.person_lookup_first_name) {
-      setValue('person_lookup_first_name', '');
+    if (dataModelBindings.firstName) {
+      setValue('firstName', '');
     }
-    if (dataModelBindings.person_lookup_last_name) {
-      setValue('person_lookup_last_name', '');
+    if (dataModelBindings.lastName) {
+      setValue('lastName', '');
     }
-    if (dataModelBindings.person_lookup_middle_name) {
-      setValue('person_lookup_middle_name', '');
+    if (dataModelBindings.middleName) {
+      setValue('middleName', '');
     }
-    if (dataModelBindings.person_lookup_name) {
-      setValue('person_lookup_name', '');
+    if (dataModelBindings.fullName) {
+      setValue('fullName', '');
     }
 
     setTempName('');
@@ -182,18 +182,17 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
   const displayName = useMemo(() => {
     // We prefer to not display middle name
-    if (person_lookup_first_name && person_lookup_last_name) {
-      return `${person_lookup_first_name} ${person_lookup_last_name}`;
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
     }
 
-    return person_lookup_name || '';
-  }, [person_lookup_name, person_lookup_first_name, person_lookup_last_name]);
+    return fullName || '';
+  }, [fullName, firstName, lastName]);
 
-  const hasSuccessfullyFetched = !!person_lookup_ssn;
+  const hasSuccessfullyFetched = !!ssn;
 
-  const invalidSsn =
-    (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(bindingValidations?.person_lookup_ssn);
-  const invalidName = !!nameError || hasValidationErrors(bindingValidations?.person_lookup_name);
+  const invalidSsn = (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(bindingValidations?.ssn);
+  const invalidName = !!nameError || hasValidationErrors(bindingValidations?.fullName);
 
   return (
     <Fieldset
@@ -226,7 +225,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               id={`${id}_ssn`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
               aria-label={langAsString('person_lookup.ssn_label')}
-              value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
+              value={hasSuccessfullyFetched ? ssn : tempSsn}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalidSsn}
@@ -249,9 +248,9 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 <Lang id={ssnErrors.join(' ')} />
               </ValidationMessage>
             )) ||
-              (hasValidationErrors(bindingValidations?.person_lookup_ssn) && (
+              (hasValidationErrors(bindingValidations?.ssn) && (
                 <ComponentValidations
-                  validations={bindingValidations?.person_lookup_ssn}
+                  validations={bindingValidations?.ssn}
                   baseComponentId={baseComponentId}
                 />
               ))}
@@ -300,9 +299,9 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 <Lang id={nameError} />
               </ValidationMessage>
             )) ||
-              (hasValidationErrors(bindingValidations?.person_lookup_name) && (
+              (hasValidationErrors(bindingValidations?.fullName) && (
                 <ComponentValidations
-                  validations={bindingValidations?.person_lookup_name}
+                  validations={bindingValidations?.fullName}
                   baseComponentId={baseComponentId}
                 />
               ))}

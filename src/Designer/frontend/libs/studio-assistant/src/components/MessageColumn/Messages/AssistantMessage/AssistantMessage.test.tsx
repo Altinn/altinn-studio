@@ -1,4 +1,5 @@
 import { AssistantMessage, type AssistantMessageProps } from './AssistantMessage';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { MessageAuthor } from '../../../../types/MessageAuthor';
@@ -95,6 +96,32 @@ describe('AssistantMessage', () => {
     expect(
       screen.queryByRole('heading', { name: securityNoticeAlertTexts.heading }),
     ).not.toBeInTheDocument();
+  });
+
+  it('marks the stored vote', () => {
+    renderAssistantMessage({
+      message: createAssistantMessage({ traceId: 'trace-123', feedbackThumbsUp: true }),
+      onClearMessageFeedback: jest.fn(),
+    });
+
+    expect(screen.getByRole('button', { name: messageFeedbackTexts.thumbsUp })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('clears the vote with the traceId when the chosen thumb is pressed again', async () => {
+    const user = userEvent.setup();
+    const onClearMessageFeedback = jest.fn();
+    renderAssistantMessage({
+      message: createAssistantMessage({ traceId: 'trace-123', feedbackThumbsUp: false }),
+      onClearMessageFeedback,
+    });
+
+    await user.click(screen.getByRole('button', { name: messageFeedbackTexts.thumbsDown }));
+
+    expect(onClearMessageFeedback).toHaveBeenCalledWith('trace-123');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('does not render feedback buttons when traceId is missing', () => {

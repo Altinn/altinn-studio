@@ -52,6 +52,7 @@ export type AssistantMessage = {
   sources?: Source[];
   traceId?: string;
   attachmentInstructionFlagged?: boolean;
+  feedbackThumbsUp?: boolean;
 };
 
 export type Message = UserMessage | AssistantMessage;

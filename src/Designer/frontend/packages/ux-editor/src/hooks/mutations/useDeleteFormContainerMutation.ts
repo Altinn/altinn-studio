@@ -24,10 +24,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       const allFormItemIds = getAllFormItemIds(layout);
 
       const fileUploadComponentIds = childrenFormItemIds.filter((componentId) => {
-        return (
-          layout.components[componentId]?.type === ComponentType.FileUpload ||
-          layout.components[componentId]?.type === ComponentType.FileUploadWithTag
-        );
+        return layout.components[componentId]?.type === ComponentType.FileUpload;
       });
       fileUploadComponentIds.forEach((id) => deleteAppAttachmentMetadataMutation.mutate(id));
       if (fileUploadComponentIds.length > 0) {

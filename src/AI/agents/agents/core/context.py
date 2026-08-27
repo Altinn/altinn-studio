@@ -1,20 +1,13 @@
 """System-prompt assembler for the agentic loop.
 
-One immutable system prompt per session.  Sections are composed in a
-stable order so Anthropic's prompt cache stays warm across turns:
+One immutable prompt per session, composed in a stable order so Anthropic's
+prompt cache stays warm: identity, operating principles, Altinn anatomy,
+critical rules, tool-use guidance, then the session-specific tail (mode, goal,
+repo path, optional context) where cache misses are cheapest.
 
-    identity → operating principles → Altinn anatomy → critical rules
-    → tool-use guidance → session → repo facts? → form spec?
-    → final-answer contract
-
-Everything stable lives at the top.  The session-specific tail (mode,
-goal, repo path, optional context) sits at the bottom, where cache
-misses are cheapest.
-
-Tool descriptions are NOT assembled here.  They travel separately on
-each request (Anthropic's `tools` field; OpenAI's `tools[].function`),
-so the adapter handles them.  The prompt's tool-use section talks
-about *patterns*, not individual tools.
+Tool descriptions are not assembled here. They travel per request on the
+adapter's own tools field, so the tool-use section describes patterns rather
+than individual tools.
 """
 
 from __future__ import annotations
@@ -25,10 +18,6 @@ from typing import Any
 
 from shared.utils.spotlight import FORM_SPEC_TAG, wrap_untrusted
 
-
-# ---------------------------------------------------------------------------
-# Identity & posture
-# ---------------------------------------------------------------------------
 
 
 _IDENTITY = """\
@@ -41,10 +30,6 @@ When the user asks a question (no changes needed), answer it using documentation
 **Always write in Norwegian (bokmål) when narrating your work to the user — both mid-turn text and the final summary.**  The developers using Altinn Studio are Norwegian-speaking; mixing English into the narration breaks the UI's voice.  Code, file paths, JSON, tool calls, and technical identifiers stay in their original form (don't translate them)."""
 
 
-# ---------------------------------------------------------------------------
-# Operating principles — how to use the tools you've been given
-# ---------------------------------------------------------------------------
-
 
 _OPERATING_PRINCIPLES = """\
 ## Operating principles
@@ -55,10 +40,6 @@ _OPERATING_PRINCIPLES = """\
 - **Act, don't narrate.**  Wall-clock time is dominated by the tokens you emit, and the user is watching a progress indicator while you type.  Keep any text before tool calls to ONE short sentence.  Never draft file contents, JSON, or multi-step plans in prose — decide, then emit the `write_file`/`edit_file` calls directly.  Long explanations belong in the final message only, and even there stay brief.
 - **Stop on real blockers.**  If you genuinely cannot accomplish the goal safely (missing context, ambiguous request, conflicting state), say so in a final message instead of guessing."""
 
-
-# ---------------------------------------------------------------------------
-# Altinn anatomy — what files exist and how they relate
-# ---------------------------------------------------------------------------
 
 
 _ALTINN_ANATOMY = """\
@@ -77,10 +58,6 @@ The pieces glue together like this:
 
 A break in any link causes silent failure: missing labels, unbound fields, validation that never fires.  Always think about *all four layers* when adding or changing anything user-visible."""
 
-
-# ---------------------------------------------------------------------------
-# Critical rules — the constraints the model gets wrong most often
-# ---------------------------------------------------------------------------
 
 
 _CRITICAL_RULES = """\
@@ -112,10 +89,6 @@ _CRITICAL_RULES = """\
 7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one."""
 
 
-# ---------------------------------------------------------------------------
-# Tool-use guidance — patterns, not per-tool reference
-# ---------------------------------------------------------------------------
-
 
 _TOOL_USE = """\
 ## Working with tools
@@ -130,7 +103,7 @@ Every tool_use block you emit in the same assistant turn runs together — reads
 - **Knowledge** — `skill(name)` loads curated instructions for a topic (see the skill listing below).  Load the relevant skill BEFORE working on data models, policy, text resources, prefill, or dynamic expressions.  For anything the skills don't cover, load `altinn-docs` and use `web_fetch` on pages from its index.
 - **Schema truth** — `altinn_layout_props(component_type=…)` for the canonical component property list.  Live lookup; batch it with reads.
 - **Recovery** — `discard_file_changes(path)` resets one file to HEAD.  Surgical, single-file.
-- **Finalise** — `verify_changes`, then `commit_session_branch`.
+- **Finalise** — `verify_changes`, then `commit_session_branch`, then `preview_render_check` (renders the pushed branch page by page — catches runtime errors the validators can't).
 
 ### Required check before layout edits
 Before adding or modifying any component in a layout, call `altinn_layout_props(component_type='<Type>')` — schemas drift and `verify_changes` will reject unknown properties.  Trust the tool, not memory.
@@ -141,7 +114,8 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 3. **One turn**: every `edit_file` / `write_file` for the change — different paths batch.
 4. `verify_changes`; on failure, targeted `edit_file` for the specific rule it flagged, then `verify_changes` again.
 5. `commit_session_branch`.
-6. Final assistant message (no more tool calls).
+6. `preview_render_check`.  If a page fails, the detail names the runtime error: fix it, then `verify_changes` → `commit_session_branch` → `preview_render_check` again.  If the check reports itself unavailable, treat it as skipped and move on — never retry an unavailable check.
+7. Final assistant message (no more tool calls).
 
 ### Failure recovery
 - `File has not been read yet` → `read_file` first.
@@ -150,10 +124,6 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 - `verify_changes` flags a rule → targeted `edit_file`, don't blanket-discard.
 - A file went wrong → `discard_file_changes(path)`; other files stay."""
 
-
-# ---------------------------------------------------------------------------
-# Final-answer contract — what the last message looks like
-# ---------------------------------------------------------------------------
 
 
 _FINAL_ANSWER_READ_ONLY = """\
@@ -183,11 +153,11 @@ and read the repo, load skills, look up component schemas, fetch docs.
 _FINAL_ANSWER = """\
 ## When you are done
 
-Your loop has one good ending: edits land → `verify_changes` passes → `commit_session_branch` succeeds → a final assistant message.  Anything else is the wrong path.
+Your loop has one good ending: edits land → `verify_changes` passes → `commit_session_branch` succeeds → `preview_render_check` passes (or reports itself unavailable) → a final assistant message.  Anything else is the wrong path.
 
 Specifically:
 - After `verify_changes` returns `passed: true`, the next action is `commit_session_branch` — not another lookup, not another edit.
-- After `commit_session_branch` returns successfully, you are done.  Send a final assistant message describing what changed.  Do not propose further work the user didn't ask for.
+- After `commit_session_branch` returns successfully, run `preview_render_check` once.  If a page fails to render, fix it and go back through verify → commit → check.  When it passes — or says it is unavailable in this deployment — you are done.  Send a final assistant message describing what changed.  Do not propose further work the user didn't ask for.
 - If you genuinely cannot finish (ambiguous request, missing context, repeated verification failure), send a final message explaining what's blocking and what you'd need.
 
 ## Final response format
@@ -209,10 +179,6 @@ The chat UI renders only basic markdown — headings, **bold**, *italic*, `inlin
 - Match the user's language.  If the goal was written in Norwegian, write the summary in Norwegian."""
 
 
-# ---------------------------------------------------------------------------
-# Inputs to the assembler
-# ---------------------------------------------------------------------------
-
 
 # Appended to both final-answer contracts: a hostile attachment reaches
 # read-only sessions too.
@@ -233,12 +199,6 @@ _FINAL_ANSWER = _FINAL_ANSWER + "\n\n" + _INJECTION_REPORT
 
 @dataclass(frozen=True)
 class SessionContext:
-    """Inputs to the prompt assembler.
-
-    Everything optional except session_id and repo_path.  Pass only what
-    you have; absent fields are omitted from the prompt.
-    """
-
     session_id: str
     repo_path: str
     user_goal: str

@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Optional, List
 from shared.models import AttachmentUpload, AgentAttachment
 from shared.models.attachments import get_session_dir, cleanup_session_attachments
+from shared.models.experiment import ExperimentContext
 
 router = APIRouter()
 log = get_logger(__name__)
@@ -46,6 +47,7 @@ class StartReq(BaseModel):
     allow_app_changes: bool = False
     org: str
     attachments: List[AttachmentUpload] = Field(default_factory=list)
+    experiment: Optional[ExperimentContext] = None
 
     @field_validator("session_id")
     @classmethod
@@ -133,6 +135,7 @@ async def start_agent(
             attachments=saved_attachments,
             designer_api_key=designer_api_key,
             conversation_history=conversation_history,
+            experiment=req.experiment,
         )
 
         sink.add_to_conversation_history(req.session_id, "user", req.goal)
@@ -211,6 +214,9 @@ async def cancel_session(session_id: str, request: Request):
         return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
 
     sink.cancel_session(session_id)
+    # Wake a run blocked on a permission prompt — it must observe the
+    # cancellation now, not after the prompt timeout.
+    permission_broker.cancel_pending(session_id)
     log.info(f"🛑 Session {session_id} cancelled via API")
     return {"session_id": session_id, "status": "cancelled", "message": "Session cancelled"}
 

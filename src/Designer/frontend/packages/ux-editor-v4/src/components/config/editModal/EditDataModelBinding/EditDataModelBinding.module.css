@@ -1,4 +1,4 @@
 .wrapper {
-  --data-model-binding-spacing: var(--fds-spacing-3);
+  --data-model-binding-spacing: var(--ds-size-3);
   width: 100%;
 }

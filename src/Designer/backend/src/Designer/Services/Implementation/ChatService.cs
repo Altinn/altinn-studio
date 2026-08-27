@@ -114,6 +114,8 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
             FilesChanged = request.FilesChanged,
             Sources = request.Sources,
             AttachmentInstructionFlagged = request.AttachmentInstructionFlagged,
+            TraceId = request.TraceId,
+            EventId = request.EventId,
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);
@@ -132,6 +134,13 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
 
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
+
+    public Task<bool> SetFeedbackAsync(
+        string traceId,
+        bool? thumbsUp,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    ) => repository.SetFeedbackAsync(traceId, thumbsUp, context, cancellationToken);
 
     public async Task<bool> ThreadBelongsToDeveloperAsync(
         Guid threadId,

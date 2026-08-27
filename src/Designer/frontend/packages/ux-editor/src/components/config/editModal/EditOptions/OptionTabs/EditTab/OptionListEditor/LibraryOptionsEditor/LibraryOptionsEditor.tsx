@@ -4,7 +4,7 @@ import { StudioCodeListEditor } from '@studio/components-legacy';
 import type { CodeListEditorTexts } from '@studio/components-legacy';
 import { StudioDialog, StudioHeading, StudioAlert } from '@studio/components';
 import type { OptionList } from 'app-shared/types/OptionList';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
 import { useOptionListEditorTexts } from '../../../hooks';

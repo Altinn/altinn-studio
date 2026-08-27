@@ -56,13 +56,6 @@ describe('useAddItemToLayoutMutation', () => {
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it('Adds attachment metadata when component type is fileUploadWithTag', async () => {
-    const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUploadWithTag });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
-  });
-
   it('Adds attachment metadata when component type is imageUpload', async () => {
     const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.ImageUpload });

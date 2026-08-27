@@ -52,6 +52,7 @@ export const useAssistantTexts = (): AssistantTexts => {
       detailsLabel: t('ai_assistant.feedback_details_label'),
       detailsOptionalTag: t('general.optional'),
       submit: t('ai_assistant.feedback_submit'),
+      clear: t('ai_assistant.feedback_clear'),
       cancel: t('general.cancel'),
     },
     criticalFileAlert: {

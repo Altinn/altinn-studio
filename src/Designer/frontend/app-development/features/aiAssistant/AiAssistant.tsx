@@ -7,6 +7,7 @@ import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedbackMutation';
+import { useClearChatFeedbackMutation } from 'app-shared/hooks/mutations/useClearChatFeedbackMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
@@ -16,6 +17,7 @@ function AiAssistant(): ReactElement {
   const { data: currentUser } = useUserQuery();
   const userHasAccessToAssistant = useAssistantPermissions();
   const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
+  const { mutate: clearChatFeedback } = useClearChatFeedbackMutation(org, app);
   const texts = useAssistantTexts();
 
   const {
@@ -59,6 +61,7 @@ function AiAssistant(): ReactElement {
         onCreateThread={() => selectThread(null)}
         onDeleteThread={deleteThread}
         onMessageFeedback={sendChatFeedback}
+        onClearMessageFeedback={clearChatFeedback}
         onPermissionResponse={respondToPermission}
         connectionStatus={connectionStatus}
         workflowStatusByThread={workflowStatusByThread}

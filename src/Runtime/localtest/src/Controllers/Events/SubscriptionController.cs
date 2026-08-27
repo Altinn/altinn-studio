@@ -2,7 +2,6 @@
 
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +17,13 @@ namespace LocalTest.Controllers.Events
     public class SubscriptionController : ControllerBase
     {
         private readonly ISubscriptionService _eventsSubscriptionService;
-        private readonly IMapper _mapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubscriptionController"/> class.
         /// </summary>
-        public SubscriptionController(ISubscriptionService eventsSubscriptionService, IMapper mapper)
+        public SubscriptionController(ISubscriptionService eventsSubscriptionService)
         {
             _eventsSubscriptionService = eventsSubscriptionService;
-            _mapper = mapper;            
         }
 
         /// <summary>
@@ -45,7 +42,14 @@ namespace LocalTest.Controllers.Events
         [Produces("application/json")]
         public async Task<ActionResult<Subscription>> Post([FromBody] SubscriptionRequestModel eventsSubscriptionRequest)
         {
-            Subscription eventsSubscription = _mapper.Map<Subscription>(eventsSubscriptionRequest);
+            Subscription eventsSubscription = new()
+            {
+                EndPoint = eventsSubscriptionRequest.EndPoint,
+                SourceFilter = eventsSubscriptionRequest.SourceFilter,
+                SubjectFilter = eventsSubscriptionRequest.SubjectFilter,
+                AlternativeSubjectFilter = eventsSubscriptionRequest.AlternativeSubjectFilter,
+                TypeFilter = eventsSubscriptionRequest.TypeFilter,
+            };
 
             (Subscription createdSubscription, ServiceError error) = await _eventsSubscriptionService.CreateSubscription(eventsSubscription);
 

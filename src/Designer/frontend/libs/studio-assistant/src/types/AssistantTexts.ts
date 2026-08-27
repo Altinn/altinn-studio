@@ -46,6 +46,7 @@ export type MessageFeedbackTexts = {
   detailsLabel: string;
   detailsOptionalTag: string;
   submit: string;
+  clear: string;
   cancel: string;
 };
 

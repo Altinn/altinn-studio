@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@app/form-component';
+import { Button, useIsMobile } from '@app/form-component';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -12,7 +12,6 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useExitSubform } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';

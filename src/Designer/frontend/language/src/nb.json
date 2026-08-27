@@ -93,6 +93,7 @@
   "ai_assistant.critical_file_alert_heading": "Viktige filer er endret",
   "ai_assistant.empty_thread_instruction": "Skriv i feltet under for å begynne.",
   "ai_assistant.empty_thread_welcome": "Velkommen til assistenten!",
+  "ai_assistant.feedback_clear": "Fjern tilbakemelding",
   "ai_assistant.feedback_details_label": "Fortell oss mer",
   "ai_assistant.feedback_heading": "Tilbakemelding",
   "ai_assistant.feedback_submit": "Send",
