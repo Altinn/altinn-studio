@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Altinn.App.Core.Models;
 
 /// <summary>
@@ -15,10 +17,12 @@ public record PartyLookup
     /// <summary>
     /// Gets or sets the social security number of the party to look for.
     /// </summary>
+    [JsonPropertyName("ssn")]
     public string? Ssn { get; set; }
 
     /// <summary>
     /// Gets or sets the organisation number of the party to look for.
     /// </summary>
+    [JsonPropertyName("orgNo")]
     public string? OrgNo { get; set; }
 }

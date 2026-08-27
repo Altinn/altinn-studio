@@ -4633,20 +4633,35 @@ namespace Altinn.App.Core.Models
     public class Organization : System.IEquatable<Altinn.App.Core.Models.Organization>
     {
         public Organization() { }
+        [System.Text.Json.Serialization.JsonPropertyName("businessAddress")]
         public string? BusinessAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("businessPostalCity")]
         public string? BusinessPostalCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("businessPostalCode")]
         public string? BusinessPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("eMailAddress")]
         public string? EMailAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("faxNumber")]
         public string? FaxNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("internetAddress")]
         public string? InternetAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingAddress")]
         public string? MailingAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCity")]
         public string? MailingPostalCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCode")]
         public string? MailingPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
         public string? MobileNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string? Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("orgNumber")]
         public string? OrgNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("telephoneNumber")]
         public string? TelephoneNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unitStatus")]
         public string? UnitStatus { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unitType")]
         public string? UnitType { get; set; }
     }
     public class PageGroup
@@ -4693,26 +4708,43 @@ namespace Altinn.App.Core.Models
     public class Party : System.IEquatable<Altinn.App.Core.Models.Party>
     {
         public Party() { }
+        [System.Text.Json.Serialization.JsonPropertyName("childParties")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Party>? ChildParties { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("externalUrn")]
         public string? ExternalUrn { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("isDeleted")]
         public bool IsDeleted { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastChangedInAltinn")]
         public System.DateTimeOffset? LastChangedInAltinn { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastChangedInExternalRegister")]
         public System.DateTimeOffset? LastChangedInExternalRegister { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string? Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("onlyHierarchyElementWithNoAccess")]
         public bool OnlyHierarchyElementWithNoAccess { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("orgNumber")]
         public string? OrgNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organization")]
         public Altinn.App.Core.Models.Organization? Organization { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyId")]
         public int PartyId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyTypeName")]
         public Altinn.App.Core.Models.PartyType PartyTypeName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyUuid")]
         public System.Guid? PartyUuid { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("person")]
         public Altinn.App.Core.Models.Person? Person { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ssn")]
         public string? SSN { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unitType")]
         public string? UnitType { get; set; }
     }
     public class PartyLookup : System.IEquatable<Altinn.App.Core.Models.PartyLookup>
     {
         public PartyLookup() { }
+        [System.Text.Json.Serialization.JsonPropertyName("orgNo")]
         public string? OrgNo { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ssn")]
         public string? Ssn { get; set; }
     }
     public enum PartyType
@@ -4726,35 +4758,61 @@ namespace Altinn.App.Core.Models
     public class Person : System.IEquatable<Altinn.App.Core.Models.Person>
     {
         public Person() { }
+        [System.Text.Json.Serialization.JsonPropertyName("addressCity")]
         public string? AddressCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressHouseLetter")]
         public string? AddressHouseLetter { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressHouseNumber")]
         public string? AddressHouseNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressMunicipalName")]
         public string? AddressMunicipalName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressMunicipalNumber")]
         public string? AddressMunicipalNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressPostalCode")]
         public string? AddressPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("addressStreetName")]
         public string? AddressStreetName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("dateOfDeath")]
         public System.DateTime? DateOfDeath { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
         public string? FirstName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
         public string? LastName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingAddress")]
         public string? MailingAddress { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCity")]
         public string? MailingPostalCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mailingPostalCode")]
         public string? MailingPostalCode { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("middleName")]
         public string? MiddleName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
         public string? MobileNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string? Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ssn")]
         public string? SSN { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("telephoneNumber")]
         public string? TelephoneNumber { get; set; }
     }
     public class ProfileSettingPreference
     {
         public ProfileSettingPreference() { }
+        [System.Text.Json.Serialization.JsonPropertyName("doNotPromptForParty")]
         public bool DoNotPromptForParty { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("language")]
         public string? Language { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("languageType")]
         public string? LanguageType { set; }
+        [System.Text.Json.Serialization.JsonPropertyName("preSelectedPartyId")]
         public int PreSelectedPartyId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("preselectedPartyUuid")]
         public System.Guid? PreselectedPartyUuid { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("shouldShowDeletedEntities")]
         public bool ShouldShowDeletedEntities { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("shouldShowSubEntities")]
         public bool ShouldShowSubEntities { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("showClientUnits")]
         public bool ShowClientUnits { get; set; }
     }
     public class QueryResponse<T>
@@ -4811,16 +4869,27 @@ namespace Altinn.App.Core.Models
     public class UserProfile
     {
         public UserProfile() { }
+        [System.Text.Json.Serialization.JsonPropertyName("email")]
         public string? Email { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("externalIdentity")]
         public string? ExternalIdentity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("isReserved")]
         public bool IsReserved { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("party")]
         public Altinn.App.Core.Models.Party? Party { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partyId")]
         public int PartyId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("phoneNumber")]
         public string? PhoneNumber { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("profileSettingPreference")]
         public Altinn.App.Core.Models.ProfileSettingPreference? ProfileSettingPreference { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userId")]
         public int UserId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userName")]
         public string? UserName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userType")]
         public Altinn.App.Core.Models.UserType UserType { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userUuid")]
         public System.Guid? UserUuid { get; set; }
     }
     public enum UserType
