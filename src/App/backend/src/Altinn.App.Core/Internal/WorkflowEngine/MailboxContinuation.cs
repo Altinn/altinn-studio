@@ -27,23 +27,23 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int openingStageIndex, long position)
+        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int handlerItemIndex, long position)
             : base(mailboxId)
         {
             ServiceTaskType = serviceTaskType;
-            OpeningStageIndex = openingStageIndex;
+            HandlerItemIndex = handlerItemIndex;
             Position = position;
         }
 
-        /// <summary>The service task whose pipeline conclusion is the reply handler.</summary>
+        /// <summary>The service task whose pipeline composes the reply handler.</summary>
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// The stage that opened this exchange — the identity the successor names as the exchange it answers.
-        /// Sourced from the executing step's own payload rather than re-derived from the pipeline, so a
-        /// mid-flight reshape cannot make the successor address a different exchange or none at all.
+        /// The handler's own position in the pipeline — the one thing the successor's step names, since a step
+        /// carries which item it runs. Sourced from the executing step's own payload rather than re-derived
+        /// from the pipeline, so a mid-flight reshape cannot make the successor run a different handler.
         /// </summary>
-        public int OpeningStageIndex { get; }
+        public int HandlerItemIndex { get; }
 
         /// <summary>
         /// The position the handler just answered — names the successor for operators; the successor's own
@@ -78,10 +78,11 @@ internal abstract record MailboxContinuation
     /// </remarks>
     internal sealed record ConcludeAndContinue : MailboxContinuation
     {
-        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, int openingStageIndex)
+        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, int handlerItemIndex, int openingStageIndex)
             : base(mailboxId)
         {
             ServiceTaskType = serviceTaskType;
+            HandlerItemIndex = handlerItemIndex;
             OpeningStageIndex = openingStageIndex;
         }
 
@@ -89,9 +90,18 @@ internal abstract record MailboxContinuation
         public string ServiceTaskType { get; }
 
         /// <summary>
-        /// The stage that opened the exchange just concluded — the carry key the conclusion dropped, and the
-        /// handler's position in the pipeline, which is where the next segment starts. Sourced from the
-        /// executing step's own payload, for the reason <see cref="AwaitNextMessage.OpeningStageIndex"/> gives.
+        /// The handler's own position in the pipeline, which is where the next segment starts. Sourced from
+        /// the executing step's own payload, for the reason
+        /// <see cref="AwaitNextMessage.HandlerItemIndex"/> gives — so the relay plans the segment from the
+        /// index it was handed instead of searching the pipeline for the handler again.
+        /// </summary>
+        public int HandlerItemIndex { get; }
+
+        /// <summary>
+        /// The stage that opened the exchange just concluded — the carry key the conclusion dropped, and what
+        /// the continuation's operation id names for operators. Kept beside
+        /// <see cref="HandlerItemIndex"/> rather than derived from it: the exchange and the handler that
+        /// answers it are two different positions.
         /// </summary>
         public int OpeningStageIndex { get; }
     }

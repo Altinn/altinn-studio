@@ -30,8 +30,23 @@ public class ExecuteServiceTaskReplyTests
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
 
-    /// <summary>The item index of the stage that opens the tested exchanges' mailbox.</summary>
+    /// <summary>
+    /// The item index of the stage that opens the tested exchanges' mailbox — the exchange's identity in the
+    /// carry, and what each handler's composition names. Never what a step carries.
+    /// </summary>
     private const int OpeningIndex = 0;
+
+    /// <summary>The item index of <see cref="ArchivingTask"/>'s terminal, which answers that exchange.</summary>
+    private const int ArchivingReplyIndex = 2;
+
+    /// <summary>The item index of <see cref="ContinuingTask"/>'s mid-pipeline handler.</summary>
+    private const int ContinuingSegmentIndex = 1;
+
+    /// <summary>The item index of <see cref="ContinuingTask"/>'s concluding step.</summary>
+    private const int ContinuingConclusionIndex = 3;
+
+    /// <summary>The item index of <see cref="PlainTask"/>'s concluding step.</summary>
+    private const int PlainConclusionIndex = 1;
 
     /// <summary>
     /// The real envelope, not a stub: a delivered message only reaches a handler if it opens against this mailbox,
@@ -97,8 +112,9 @@ public class ExecuteServiceTaskReplyTests
         Task.FromResult(ServiceTaskStageResult.Completed());
 
     /// <summary>
-    /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an item rather than the
-    /// conclusion, so the pipeline carries on after the exchange and ends with a final step.
+    /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an ordinary item rather
+    /// than the conclusion, so the pipeline carries on after the exchange and ends with a final step. Items:
+    /// the opening stage at 0, its handler at 1, a plain stage at 2, the conclusion at 3.
     /// </summary>
     private sealed class ContinuingTask : IPipelineServiceTask
     {
@@ -140,11 +156,16 @@ public class ExecuteServiceTaskReplyTests
 
     /// <summary>
     /// Two exchanges, one answered each way: the first's mid-pipeline, the second's by the terminal.
-    /// Item indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2.
+    /// Item indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2, and the
+    /// terminal — the second exchange's handler — at 3.
     /// </summary>
     private sealed class TwoExchangeTask : IPipelineServiceTask
     {
-        public const int JournalIndex = 2;
+        /// <summary>The item index of the handler answering the first exchange.</summary>
+        public const int SegmentIndex = 1;
+
+        /// <summary>The item index of the terminal, answering the second.</summary>
+        public const int TerminalIndex = 3;
 
         public string Type => "archiving";
 
@@ -270,17 +291,14 @@ public class ExecuteServiceTaskReplyTests
         };
 
     /// <summary>
-    /// A receive step the way the runtime enqueues one: it names the exchange it answers rather than a stage
-    /// it runs.
+    /// A receive step the way the runtime enqueues one: it names the handler that answers the message, by that
+    /// handler's own item index. The exchange comes off the handler, never off the step.
     /// </summary>
-    private static ExecuteServiceTaskPayload ReceiveStep(int repliesTo = OpeningIndex) =>
-        new("archiving", RepliesTo: repliesTo);
+    private static ExecuteServiceTaskPayload ReceiveStep(int handlerItemIndex = ArchivingReplyIndex) =>
+        new("archiving", ItemIndex: handlerItemIndex);
 
-    /// <summary>Main's concluding step: it names neither a stage nor an exchange.</summary>
-    private static ExecuteServiceTaskPayload ConcludingStep() => new("archiving");
-
-    /// <summary>A step that runs one of the pipeline's stages.</summary>
-    private static ExecuteServiceTaskPayload StageStep(int stageIndex) => new("archiving", StageIndex: stageIndex);
+    /// <summary>Any step of the pipeline: a stage's, a handler's or the conclusion's, all named alike.</summary>
+    private static ExecuteServiceTaskPayload Step(int itemIndex) => new("archiving", ItemIndex: itemIndex);
 
     [Fact]
     public async Task OnMessage_WithADeliveredMessage_ReadsItVerbatim()
@@ -334,7 +352,7 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), StageStep(1));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Step(1));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Stage);
@@ -347,7 +365,8 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new PlainTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), ConcludingStep());
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(), Step(PlainConclusionIndex));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Conclusion);
@@ -359,13 +378,37 @@ public class ExecuteServiceTaskReplyTests
         var task = new PlainTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered()), ConcludingStep());
+            .Execute(CreateContext(Delivered()), Step(PlainConclusionIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
         Assert.Contains("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains($"index {PlainConclusionIndex}", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Conclusion);
+    }
+
+    /// <summary>
+    /// The guard's <em>other</em> route, on a pipeline that does answer messages: a receive step whose index
+    /// has landed on the concluding step after a reshape. The verdict is the same one a foreign workflow gets,
+    /// because with one index the two are indistinguishable from here — which is why the message names both
+    /// and names the index. The conclusion must not run: it would conclude the task on a message nothing read.
+    /// </summary>
+    [Fact]
+    public async Task ReceiveStep_WhoseIndexLandsOnTheConclusion_FailsAsReceiptOnConclusion()
+    {
+        var task = new ContinuingTask();
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(Delivered()), Step(ContinuingConclusionIndex));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
+        Assert.Contains($"index {ContinuingConclusionIndex}", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("reshaped", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(task.Conclusion);
+        Assert.Null(task.Message);
     }
 
     [Fact]
@@ -507,7 +550,7 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(Delivered()), StageStep(1));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(Delivered()), Step(1));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -553,7 +596,8 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal("archiving", awaiting.ServiceTaskType);
-        Assert.Equal(OpeningIndex, awaiting.OpeningStageIndex);
+        // The handler's own index, not the exchange's: the successor names the same handler.
+        Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
     }
 
     [Fact]
@@ -590,21 +634,20 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// A receive step is dispatched by the exchange it names, so a pipeline where nothing answers that
-    /// exchange any more fails it permanently instead of running the <c>Finally</c> that replaced the
-    /// terminal. The route is a redeploy that reshaped the pipeline while the exchange was in flight.
-    /// Matching is exact: an unresolvable index gets the plain not-found verdict, naming the index and no
-    /// relocation story.
+    /// A receive step is dispatched by the item it names, so a pipeline reshaped until that index composes
+    /// nothing fails it permanently instead of running whatever replaced the terminal. The route is a redeploy
+    /// while the exchange was in flight. Matching is exact: an unresolvable index gets the plain not-found
+    /// verdict, naming the index and no relocation story.
     /// </summary>
     /// <param name="withRendezvous">
     /// Both cells of the arm, which requires no rendezvous to notice the miss — so its wording must not claim
-    /// one, and must not claim the pipeline opens no mailbox either: it reports the exchange the step named
-    /// and that nothing answers it.
+    /// one, and must not claim the pipeline opens no mailbox either: it reports the index and that nothing is
+    /// composed there.
     /// </param>
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task ReceiveStep_OnAPipelineThatNoLongerAnswersMessages_FailsPermanently(bool withRendezvous)
+    public async Task ReceiveStep_OnAPipelineThatNoLongerComposesThatItem_FailsPermanently(bool withRendezvous)
     {
         var task = new PlainTask();
 
@@ -613,30 +656,28 @@ public class ExecuteServiceTaskReplyTests
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
+        Assert.Equal("PipelineItemNotFound", failed.ExceptionType);
         Assert.Null(task.Conclusion);
 
         Assert.Contains(
-            $"answers the exchange opened at index {OpeningIndex}",
+            $"composes no pipeline item at index {ArchivingReplyIndex}",
             failed.ErrorMessage,
             StringComparison.Ordinal
         );
-        Assert.Contains("no reply handler for an exchange opened there", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.DoesNotContain("was handed a mailbox message", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// The exchange is answered mid-pipeline, so the receive step reaches <em>that</em> handler — not the
-    /// terminal, and not the <c>MailboxHandlerNotFound</c> the same conclusion shape reports for an exchange
-    /// nothing answers.
+    /// The exchange is answered mid-pipeline, so the receive step naming that handler reaches it and not the
+    /// conclusion the pipeline still ends with.
     /// </summary>
     [Fact]
-    public async Task ReceiveStep_NamingAnExchangeAnsweredMidPipeline_RunsThatHandlerWithTheMessage()
+    public async Task ReceiveStep_NamingAHandlerAnsweringMidPipeline_RunsThatHandlerWithTheMessage()
     {
         var task = new ContinuingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered(seq: 4)), ReceiveStep());
+            .Execute(CreateContext(Delivered(seq: 4)), ReceiveStep(ContinuingSegmentIndex));
 
         ServiceTaskReply reply = Assert.IsType<ServiceTaskReply>(task.Message);
         Assert.Equal("<receipt>ok</receipt>", reply.Payload);
@@ -652,20 +693,23 @@ public class ExecuteServiceTaskReplyTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal("archiving", continuing.ServiceTaskType);
+        // The two indexes are different positions, and the relay needs both: the handler's, to plan what
+        // follows it, and the exchange's, for the carry key it dropped and the operation id it names.
+        Assert.Equal(ContinuingSegmentIndex, continuing.HandlerItemIndex);
         Assert.Equal(OpeningIndex, continuing.OpeningStageIndex);
     }
 
     [Theory]
     [InlineData(MailboxDisposedReason.Deadline, MailboxClosedReason.Deadline)]
     [InlineData(MailboxDisposedReason.Request, MailboxClosedReason.Request)]
-    public async Task ReceiveStep_NamingAnExchangeAnsweredMidPipeline_RunsItsClosedHalf(
+    public async Task ReceiveStep_NamingAHandlerAnsweringMidPipeline_RunsItsClosedHalf(
         MailboxDisposedReason engineReason,
         MailboxClosedReason appReason
     )
     {
         var task = new ContinuingTask();
 
-        await CreateCommand(task).Execute(CreateContext(Closed(engineReason)), ReceiveStep());
+        await CreateCommand(task).Execute(CreateContext(Closed(engineReason)), ReceiveStep(ContinuingSegmentIndex));
 
         Assert.Equal(appReason, task.ClosedReason);
         Assert.Null(task.Message);
@@ -683,13 +727,13 @@ public class ExecuteServiceTaskReplyTests
         var awaiting = new ContinuingTask { MessageVerdict = ServiceTaskStageExchangeResult.AwaitNextReply() };
 
         SuccessfulProcessEngineCommandResult onMessage = Assert.IsType<SuccessfulProcessEngineCommandResult>(
-            await CreateCommand(awaiting).Execute(CreateContext(Delivered(seq: 2)), ReceiveStep())
+            await CreateCommand(awaiting).Execute(CreateContext(Delivered(seq: 2)), ReceiveStep(ContinuingSegmentIndex))
         );
 
         MailboxContinuation.AwaitNextMessage next = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             onMessage.MailboxContinuation
         );
-        Assert.Equal(OpeningIndex, next.OpeningStageIndex);
+        Assert.Equal(ContinuingSegmentIndex, next.HandlerItemIndex);
         Assert.Equal(2, next.Position);
         Assert.NotNull(awaiting.Message);
 
@@ -699,7 +743,8 @@ public class ExecuteServiceTaskReplyTests
         };
 
         FailedProcessEngineCommandResult onClosed = Assert.IsType<FailedProcessEngineCommandResult>(
-            await CreateCommand(failing).Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), ReceiveStep())
+            await CreateCommand(failing)
+                .Execute(CreateContext(Closed(MailboxDisposedReason.Deadline)), ReceiveStep(ContinuingSegmentIndex))
         );
 
         Assert.True(onClosed.NonRetryable);
@@ -717,69 +762,77 @@ public class ExecuteServiceTaskReplyTests
     {
         var task = new ContinuingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), ReceiveStep());
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(), ReceiveStep(ContinuingSegmentIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
+        // Names the item and both routes, for the reason its two siblings do: with one index, an engine that
+        // omitted the rendezvous and a reshape that moved this index onto a handler look the same from here.
+        Assert.Contains($"index {ContinuingSegmentIndex}", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("workflow engine omitted it", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Contains("reshaped", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Message);
         Assert.Null(task.ClosedReason);
     }
 
     /// <summary>
-    /// Both lookups on one pipeline: the index decides which handler answers, and each exchange reaches
-    /// exactly its own.
+    /// Both handler shapes on one pipeline, in one index space: the step's index picks the item, and the item's
+    /// type — a mid-pipeline handler or the terminal — decides which vocabulary maps its verdict.
     /// </summary>
     [Theory]
-    [InlineData(OpeningIndex, "segment.onMessage")]
-    [InlineData(TwoExchangeTask.JournalIndex, "terminal.onMessage")]
-    public async Task ReceiveStep_OnAPipelineAnsweringBothWays_ReachesTheHandlerForItsOwnExchange(
-        int repliesTo,
+    [InlineData(TwoExchangeTask.SegmentIndex, "segment.onMessage")]
+    [InlineData(TwoExchangeTask.TerminalIndex, "terminal.onMessage")]
+    public async Task ReceiveStep_OnAPipelineAnsweringBothWays_ReachesTheHandlerItNames(
+        int handlerItemIndex,
         string expected
     )
     {
         var task = new TwoExchangeTask();
 
-        await CreateCommand(task).Execute(CreateContext(Delivered()), ReceiveStep(repliesTo));
+        await CreateCommand(task).Execute(CreateContext(Delivered()), ReceiveStep(handlerItemIndex));
 
         Assert.Equal([expected], task.Answered);
     }
 
     /// <summary>
-    /// An index whose opening stage resolves but whose handler is gone is refused, never guessed: the exact
-    /// match against the conclusion decides the terminal route, and anything else fails as not found.
+    /// A receive step whose index lands on something that answers no message is refused, never redirected to a
+    /// neighbouring handler: a stage there is <c>MailboxReceiptOnStage</c>, nothing there is
+    /// <c>PipelineItemNotFound</c>, and each names what it found. Both are the mid-flight reshape.
     /// </summary>
     [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    public async Task ReceiveStep_NamingAnIndexWhoseExchangeNothingAnswers_IsRefusedRatherThanGuessed(int repliesTo)
+    [InlineData(0, "MailboxReceiptOnStage")]
+    [InlineData(2, "MailboxReceiptOnStage")]
+    [InlineData(4, "PipelineItemNotFound")]
+    public async Task ReceiveStep_NamingAnItemThatAnswersNoMessage_IsRefusedRatherThanGuessed(
+        int itemIndex,
+        string reasonCode
+    )
     {
         var task = new TwoExchangeTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered()), ReceiveStep(repliesTo));
+            .Execute(CreateContext(Delivered()), ReceiveStep(itemIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxHandlerNotFound", failed.ExceptionType);
+        Assert.Equal(reasonCode, failed.ExceptionType);
         Assert.Empty(task.Answered);
-        Assert.Contains(
-            $"answers the exchange opened at index {repliesTo}",
-            failed.ErrorMessage,
-            StringComparison.Ordinal
-        );
+        Assert.Contains($"index {itemIndex}", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// A pipeline that answers an exchange mid-pipeline still concludes with its final step, and a concluding
-    /// step — which names no exchange — is what runs it.
+    /// A pipeline that answers an exchange mid-pipeline still concludes with its final step, and the step
+    /// naming the conclusion's own item index is what runs it.
     /// </summary>
     [Fact]
     public async Task Conclusion_OfAPipelineThatAnswersMidPipeline_RunsItsFinalStep()
     {
         var task = new ContinuingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), ConcludingStep());
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(), Step(ContinuingConclusionIndex));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(task.Conclusion);
@@ -787,36 +840,38 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>
-    /// A rendezvous on a step that names no exchange is refused, never answered: every receive step this
-    /// expansion builds names the exchange it answers, so this workflow was not built by it. No handler runs,
-    /// and the carry is untouched — a refusal concludes nothing.
+    /// A step naming no item at all is refused, never answered: every step this expansion builds names the one
+    /// item it runs, the concluding step included, so an index-less payload — the shape an old receive step's
+    /// <c>repliesTo</c> also arrives in — was written by a version whose step identity differed. No handler
+    /// runs, and the carry is untouched: a refusal concludes nothing.
     /// </summary>
     [Fact]
-    public async Task AnIndexLessStepWithARendezvous_IsRefusedWithoutRunningAnyHandler()
+    public async Task AnIndexLessStep_IsRefusedWithoutRunningAnyHandler()
     {
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningIndex, _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
         var task = new ArchivingTask { MessageVerdict = ServiceTaskResult.Success() };
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered(seq: 5), carry), ConcludingStep());
+            .Execute(CreateContext(Delivered(seq: 5), carry), new ExecuteServiceTaskPayload("archiving"));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
+        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
+        Assert.Contains("names no pipeline item", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(task.Message);
         Assert.Null(task.ClosedReason);
         Assert.NotNull(carry.Mailboxes);
     }
 
     /// <summary>
-    /// The refusal runs <em>before</em> the service task is resolved — like the both-indexes guard, and for
-    /// the same reason: nothing about the pipeline changes what a rendezvous without an exchange index can
-    /// mean, and resolving first would turn an unregistered type into a retryable failure that never
-    /// converges.
+    /// The refusal runs <em>before</em> the service task is resolved, which is the only thing that makes a
+    /// broken payload converge: nothing about the pipeline changes what a step naming no item can mean, and
+    /// resolving first would turn an unregistered type into a retryable failure that never does. It is the
+    /// one guard left out here — every other now needs the pipeline to know the item's shape.
     /// </summary>
     [Fact]
-    public async Task AnIndexLessStepWithARendezvous_OnAnUnregisteredServiceTaskType_StillFailsPermanently()
+    public async Task AnIndexLessStep_OnAnUnregisteredServiceTaskType_StillFailsPermanently()
     {
         ExecuteServiceTask command = CreateCommand(new ArchivingTask());
 
@@ -827,70 +882,7 @@ public class ExecuteServiceTaskReplyTests
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MailboxReceiptOnConclusion", failed.ExceptionType);
-        Assert.Contains("nonExistentType", failed.ErrorMessage, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// The payload's one invariant, guarded where it is read: a step names a stage or an exchange, never
-    /// both.
-    /// </summary>
-    [Fact]
-    public async Task AStepNamingBothAStageAndAnExchange_FailsPermanentlyWithoutRunningAnything()
-    {
-        var task = new ArchivingTask();
-
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(
-                CreateContext(),
-                new ExecuteServiceTaskPayload("archiving", StageIndex: 1, RepliesTo: OpeningIndex)
-            );
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
-        Assert.Contains("index 1", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Contains($"index {OpeningIndex}", failed.ErrorMessage, StringComparison.Ordinal);
-        Assert.Null(task.Stage);
-        Assert.Null(task.MessageContext);
-        Assert.Null(task.ClosedContext);
-    }
-
-    /// <summary>
-    /// The refusal runs <em>before</em> the service task is resolved, which is the only thing that makes a
-    /// doubly-broken payload converge. Pinned here because the other both-indexes tests register a real task
-    /// and would pass with the check back inside the try.
-    /// </summary>
-    [Fact]
-    public async Task AStepNamingBothIndexes_OnAnUnregisteredServiceTaskType_StillFailsPermanently()
-    {
-        ExecuteServiceTask command = CreateCommand(new ArchivingTask());
-
-        ProcessEngineCommandResult result = await command.Execute(
-            CreateContext(),
-            new ExecuteServiceTaskPayload("nonExistentType", StageIndex: 1, RepliesTo: OpeningIndex)
-        );
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
         Assert.Contains("nonExistentType", failed.ErrorMessage, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task AStepNamingBothIndexes_OnAPipelineWithNoExchange_AlsoFailsPermanently()
-    {
-        var task = new PlainTask();
-
-        ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(
-                CreateContext(),
-                new ExecuteServiceTaskPayload("archiving", StageIndex: 0, RepliesTo: OpeningIndex)
-            );
-
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
-        Assert.Null(task.Conclusion);
     }
 }

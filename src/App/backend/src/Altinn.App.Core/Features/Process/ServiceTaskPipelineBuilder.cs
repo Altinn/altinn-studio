@@ -214,7 +214,7 @@ public sealed class ServiceTaskPipelineBuilder
 
         RequireEveryMailboxAnswered(nameof(Finally), answeredHere: null);
 
-        return new ServiceTaskPipeline([.. _items], new PipelineConclusion.FinalStep(work, options));
+        return new ServiceTaskPipeline(_items, new PipelineConclusion.FinalStep(work, options));
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public sealed class ServiceTaskPipelineBuilder
         RequireEveryMailboxAnswered(nameof(ConcludeOnReplies), answeredHere: handle);
 
         return new ServiceTaskPipeline(
-            [.. _items],
+            _items,
             new PipelineConclusion.ReplyExchange(handle.OpeningIndex, onMessage, onClosed, options)
         );
     }

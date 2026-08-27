@@ -458,7 +458,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // runs here, on a continuation - and the process advanced off it through the ordinary controller
         // path, which is what reaching EndEvent_1 above proves. No receive-enqueue step trails it.
         Assert.Equal(
-            new List<string> { "ExecuteServiceTask: 4", "ExecuteServiceTask" },
+            new List<string> { "ExecuteServiceTask: 4", "ExecuteServiceTask: 5" },
             OperationIds(betaContinuation)
         );
         Assert.Equal("Completed", betaContinuation.OverallStatus);

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -184,7 +185,8 @@ public class WorkflowCommandSetTests
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("signing", pipeline);
 
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 0", ExecuteServiceTask.Key], OperationIds(plan));
+        // The conclusion is the pipeline's item 1 and its step is named like every other: no bare key any more.
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 0", $"{ExecuteServiceTask.Key}: 1"], OperationIds(plan));
         Assert.Null(plan.Receive);
     }
 
@@ -230,7 +232,7 @@ public class WorkflowCommandSetTests
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1);
 
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", ExecuteServiceTask.Key], OperationIds(plan));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", $"{ExecuteServiceTask.Key}: 3"], OperationIds(plan));
         Assert.Null(plan.Receive);
     }
 
@@ -286,6 +288,48 @@ public class WorkflowCommandSetTests
             WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 2).Receive?.OpeningStageIndex
         );
         Assert.Null(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 3).Receive);
+    }
+
+    /// <summary>
+    /// The receive half's step names the handler by its item index, exactly as a stage's step names its stage.
+    /// A bare command key here would give every receive step of every exchange one telemetry name, and would
+    /// make "no index" mean "a receive step" — the convention this index space exists to retire.
+    /// </summary>
+    [Fact]
+    public void PlanSegment_ReceiveHalfsStep_IsNamedByTheHandlersItemIndex()
+    {
+        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
+
+        // Segment 0 ends on the mid-pipeline handler at item index 1; the last segment on the terminal at 4.
+        Assert.Equal(
+            $"{ExecuteServiceTask.Key}: 1",
+            WorkflowCommandSet.PlanSegment("archiving", pipeline).Receive?.Step.OperationId
+        );
+        Assert.Equal(
+            $"{ExecuteServiceTask.Key}: 4",
+            WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: 1).Receive?.Step.OperationId
+        );
+    }
+
+    /// <summary>
+    /// The walk always reaches a returning arm, because a pipeline's items end with its conclusion and both
+    /// conclusion shapes return — so the only way out of the loop is a segment that starts past the last item.
+    /// The runtime cannot ask for one (the relay's index comes from a handler dispatch just ran, and an item
+    /// always follows a handler), which is why this is an <c>UnreachableException</c>; it is pinned here
+    /// because a silent empty plan would drop the rest of the task instead.
+    /// </summary>
+    [Fact]
+    public void PlanSegment_StartingPastTheLastItem_ThrowsRatherThanPlanningNothing()
+    {
+        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
+        int lastIndex = pipeline.Items.Count - 1;
+
+        UnreachableException thrown = Assert.Throws<UnreachableException>(() =>
+            WorkflowCommandSet.PlanSegment("archiving", pipeline, afterHandlerItemIndex: lastIndex)
+        );
+
+        Assert.Contains("reaches no conclusion", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("Define did not return the same pipeline", thrown.Message, StringComparison.Ordinal);
     }
 
     /// <summary>The pipeline every two-segment walk below composes.</summary>

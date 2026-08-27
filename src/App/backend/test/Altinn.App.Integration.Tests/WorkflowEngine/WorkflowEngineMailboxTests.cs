@@ -106,11 +106,12 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // receive workflows - and Main ends by enqueueing the first receiver, so the frontier is never
         // empty while the exchange is open.
         //
-        // Exact-match, not substring: this is the collection overload of DoesNotContain, and the bare
-        // concluding step's OperationId is literally "ExecuteServiceTask" (the stage steps carry a
-        // ": {index}" suffix). Rewriting it as a StartsWith predicate would invert the assertion into one
-        // that can never hold.
-        Assert.DoesNotContain("ExecuteServiceTask", mainOperationIds);
+        // The conclusion is this pipeline's item 3, and every step names the item it runs, so
+        // "ExecuteServiceTask: 3" is a step id that really does get emitted - on the receive workflows,
+        // asserted below. Its absence *here* is what says Main never runs the handler. Exact-match, not a
+        // StartsWith predicate: this is the collection overload of DoesNotContain, and a prefix predicate
+        // would invert the assertion into one that can never hold.
+        Assert.DoesNotContain("ExecuteServiceTask: 3", mainOperationIds);
         Assert.Equal("EnqueueReceiveWorkflow", mainOperationIds[^1]);
 
         // ---- The address reached the declaring stage, once ----
@@ -197,7 +198,10 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             {
                 Assert.Equal("Completed", receiver.OverallStatus);
                 EngineStep step = Assert.Single(receiver.Steps);
-                Assert.Equal("ExecuteServiceTask", step.OperationId);
+                // The step names the handler it runs — this pipeline's conclusion, item 3 — exactly as a
+                // stage's step names its stage. The workflow around it carries the exchange's identity
+                // separately, in its own "Mailbox receive: …" operation id.
+                Assert.Equal("ExecuteServiceTask: 3", step.OperationId);
             }
         );
 

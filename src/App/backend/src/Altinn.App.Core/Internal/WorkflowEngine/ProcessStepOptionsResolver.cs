@@ -43,22 +43,16 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="commandKey">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    /// <param name="serviceTaskStageIndex">
-    /// For a service-task pipeline stage: the stage's item index in the composed pipeline. Null for a receive
-    /// step and for the pipeline's conclusion. Either way tier 3 is that one step's own options over the
-    /// task's, field-wise.
-    /// </param>
-    /// <param name="serviceTaskRepliesTo">
-    /// For a service-task receive step: the item index whose stage opened the exchange the step answers. The
-    /// step's own options are then the answering handler's — a non-terminal <c>HandleReplies</c> at that index,
-    /// or the conclusion when the terminal is what answers it.
+    /// <param name="serviceTaskItemIndex">
+    /// For a service-task pipeline step: the index of the item the step runs — a stage, a reply handler or the
+    /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
+    /// step, including the mailbox mint, which must not inherit the declaring stage's options.
     /// </param>
     public ProcessStepOptions? Resolve(
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskStageIndex = null,
-        int? serviceTaskRepliesTo = null
+        int? serviceTaskItemIndex = null
     )
     {
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
@@ -66,8 +60,7 @@ internal sealed class ProcessStepOptionsResolver
             commandKey,
             taskId,
             serviceTaskType,
-            serviceTaskStageIndex,
-            serviceTaskRepliesTo
+            serviceTaskItemIndex
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
@@ -104,8 +97,7 @@ internal sealed class ProcessStepOptionsResolver
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskStageIndex,
-        int? serviceTaskRepliesTo
+        int? serviceTaskItemIndex
     )
     {
         if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
@@ -116,28 +108,16 @@ internal sealed class ProcessStepOptionsResolver
                 return null;
             }
 
-            // Options declared for one step win field-wise over the task's own, mirroring how the merged
-            // result then wins over the command default in Resolve.
+            // One item, one fallback: the step names the item it runs, so "the three sources are alternatives,
+            // never a chain" is the shape of this lookup rather than a rule enforced on top of it. Whatever
+            // that item leaves unset falls back to the task's options, never to another item's — a
+            // HandleReplies handler does not inherit the terminal's wait budget, which belongs to a different
+            // exchange. Options declared for one step win field-wise over the task's own, mirroring how the
+            // merged result then wins over the command default in Resolve.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
-            ProcessStepOptions? stepOptions;
-            if (serviceTaskStageIndex is { } stageIndex)
-            {
-                stepOptions = pipeline.Items.ElementAtOrDefault(stageIndex) is ServiceTaskStage stage
-                    ? stage.StepOptions
-                    : null;
-            }
-            else if (serviceTaskRepliesTo is { } repliesTo && pipeline.FindReplySegment(repliesTo) is { } segment)
-            {
-                // Whatever a non-terminal handler leaves unset falls back to the task's options, never to the
-                // terminal's, which belong to a different exchange.
-                stepOptions = segment.StepOptions;
-            }
-            else
-            {
-                // Two cases land here: a receive step no non-terminal handler answers, whose exchange the
-                // reply terminal owns, and a step naming nothing at all.
-                stepOptions = pipeline.Conclusion.StepOptions;
-            }
+            ProcessStepOptions? stepOptions = serviceTaskItemIndex is { } itemIndex
+                ? pipeline.Items.ElementAtOrDefault(itemIndex)?.StepOptions
+                : null;
             ProcessStepOptions? taskOptions = serviceTask.StepOptions;
             if (stepOptions is null && taskOptions is null)
             {

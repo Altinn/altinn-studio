@@ -41,17 +41,12 @@ internal sealed record StepRequest
     internal string? CommandKey { get; init; }
 
     /// <summary>
-    /// For a service-task pipeline stage: the stage's item index in the composed pipeline, carried so the
-    /// per-stage options resolution (see <c>ProcessStepOptionsResolver</c>) can find the matching stage.
-    /// Internal and never serialized — the engine sees the index only inside the command payload.
+    /// For a service-task pipeline step: the index of the pipeline item the step runs — a stage, a reply
+    /// handler or the conclusion — carried so the per-step options resolution (see
+    /// <c>ProcessStepOptionsResolver</c>) can find that one item. Internal and never serialized — the engine
+    /// sees the index only inside the command payload. Set on every <c>ExecuteServiceTask</c> step and on
+    /// nothing else: a <c>MintMailbox</c> step deliberately leaves it null, so the mint does not inherit the
+    /// options of the stage it precedes.
     /// </summary>
-    internal int? ServiceTaskStageIndex { get; init; }
-
-    /// <summary>
-    /// For a service-task receive step: the item index whose stage opened the exchange the step answers,
-    /// carried so the per-handler options resolution (see <c>ProcessStepOptionsResolver</c>) can find the
-    /// handler that answers it. Internal and never serialized, like <see cref="ServiceTaskStageIndex"/>, and
-    /// never set on the same step as that one: a step runs a stage or answers an exchange.
-    /// </summary>
-    internal int? ServiceTaskRepliesTo { get; init; }
+    internal int? ServiceTaskItemIndex { get; init; }
 }

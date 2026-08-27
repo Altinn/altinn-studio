@@ -326,8 +326,8 @@ public class ProcessStepOptionsResolverTests
     // ── Pipeline service tasks: per-stage options (tier 3, two levels) ───────────────────────
 
     /// <summary>
-    /// Task-level options (1 h timeout) with the stage at index 0 overriding the timeout (2 h) and
-    /// the stage at index 1 declaring only a wait budget.
+    /// Task-level options (1 h timeout) with the stage at index 0 overriding the timeout (2 h), the stage at
+    /// index 1 declaring only a wait budget, and the conclusion — item index 2 — declaring one of its own.
     /// </summary>
     private sealed class PipelineTask : IPipelineServiceTask
     {
@@ -395,11 +395,11 @@ public class ProcessStepOptionsResolverTests
     [Fact]
     public void Resolve_Conclusion_OwnOptionsWin_AndDoNotReachTheStages()
     {
-        // The concluding engine step carries no stage index; its options come from Finally, with the
-        // task's own as the fallback for whatever Finally leaves unset.
+        // The concluding engine step names the conclusion by its item index like any other step; its options
+        // come from Finally, with the task's own as the fallback for whatever Finally leaves unset.
         var resolver = CreateResolverWithPipelineTask();
 
-        var conclusion = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline");
+        var conclusion = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 2);
 
         Assert.NotNull(conclusion);
         Assert.Equal(TimeSpan.FromHours(3), conclusion.WaitBudget); // Finally's own
@@ -437,19 +437,21 @@ public class ProcessStepOptionsResolverTests
             Assert.NotNull(property.GetValue(everyField));
         }
 
-        // Declared on the conclusion, nothing at task level. The resolver builds a copy rather than
-        // passing the instance through, so every field has to survive that copy.
+        // Declared on the conclusion — item index 1, right after the one stage — with nothing at task level.
+        // The resolver builds a copy rather than passing the instance through, so every field has to survive
+        // that copy.
         var declaredPerStep = CreateResolver(services =>
             services.AddSingleton<IPipelineServiceTask>(new PerStepOptionsTask(everyField))
         );
-        Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options"));
+        Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", 1));
 
         // Declared on a stage, which merges over the task's own.
         Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", 0));
 
-        // Declared at task level, reaching the conclusion as its fallback.
+        // Declared at task level, reaching a simple task's conclusion — its whole pipeline, at index 0 — as
+        // the fallback.
         var declaredOnTask = CreateResolver(ServiceTask("task-options", everyField));
-        Assert.Equal(everyField, declaredOnTask.Resolve(ExecuteServiceTask.Key, taskId: null, "task-options"));
+        Assert.Equal(everyField, declaredOnTask.Resolve(ExecuteServiceTask.Key, taskId: null, "task-options", 0));
     }
 
     // ── Receive steps: the answering handler's options (tier 3) ─────────────────────────────────
@@ -457,7 +459,8 @@ public class ProcessStepOptionsResolverTests
     /// <summary>
     /// Task-level options (1 h timeout) with two exchanges answered two ways: the first's mid-pipeline,
     /// overriding the timeout (2 h), and the second's by the terminal, declaring only a wait budget. Item
-    /// indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2.
+    /// indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2, and the
+    /// terminal — the second exchange's handler — at 3.
     /// </summary>
     private sealed class TwoExchangeTask : IPipelineServiceTask
     {
@@ -509,8 +512,8 @@ public class ProcessStepOptionsResolverTests
 
     /// <summary>
     /// The promise <c>HandleReplies</c>' <c>options</c> parameter makes: they configure the step each
-    /// execution of <em>those</em> handlers runs as. Reachable only through the receive step's own exchange
-    /// index — a handler answered mid-pipeline is not a stage and not the conclusion.
+    /// execution of <em>those</em> handlers runs as. The receive step names the handler by its own item
+    /// index, so the lookup is the same one a stage's step takes.
     /// </summary>
     [Fact]
     public void Resolve_ReceiveStep_AnsweredMidPipeline_UsesThatHandlersOwnOptions()
@@ -521,8 +524,7 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            serviceTaskStageIndex: null,
-            serviceTaskRepliesTo: 0
+            serviceTaskItemIndex: 1
         );
 
         Assert.NotNull(result);
@@ -541,8 +543,7 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            serviceTaskStageIndex: null,
-            serviceTaskRepliesTo: 2
+            serviceTaskItemIndex: 3
         );
 
         Assert.NotNull(result);
@@ -551,21 +552,22 @@ public class ProcessStepOptionsResolverTests
     }
 
     /// <summary>
-    /// A receive step naming an exchange no mid-pipeline handler answers resolves the conclusion's options:
-    /// the terminal is what answers such a step, so its options are the step's — and a mid-flight reshape
-    /// must not silently drop them. A null index resolves the same options, being the concluding step's own.
+    /// One item, one fallback: a step naming an index the pipeline no longer composes at — or naming nothing
+    /// at all — resolves the task's options and never another item's. No item's options stand in for a
+    /// missing one, which is what "the sources are alternatives, never a chain" now means literally.
     /// </summary>
     [Theory]
-    [InlineData(5)]
+    [InlineData(9)]
     [InlineData(null)]
-    public void Resolve_ReceiveStep_NamingNoMidPipelineHandler_FallsBackToTheConclusion(int? repliesTo)
+    public void Resolve_ServiceTaskStep_NamingNoItem_FallsBackToTheTasksOptions(int? itemIndex)
     {
         var resolver = CreateResolverWithTwoExchanges();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, null, "exchanges", null, repliesTo);
+        var result = resolver.Resolve(ExecuteServiceTask.Key, null, "exchanges", itemIndex);
 
         Assert.NotNull(result);
-        Assert.Equal(TimeSpan.FromHours(3), result.WaitBudget);
+        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // the task's own
+        Assert.Null(result.WaitBudget); // never borrowed from the terminal
     }
 
     /// <summary>
@@ -578,7 +580,7 @@ public class ProcessStepOptionsResolverTests
         ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
 
         StepRequest resolved = WorkflowCommandSet
-            .CreateReceiveHandlerStep("exchanges", 0)
+            .CreateReceiveHandlerStep("exchanges", handlerItemIndex: 1)
             .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);
@@ -606,19 +608,19 @@ public class ProcessStepOptionsResolverTests
     [Theory]
     [InlineData(0)]
     [InlineData(null)]
-    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskStageIndex)
+    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskItemIndex)
     {
         ProcessStepOptionsResolver resolver = CreateResolver(_ => { });
 
         StepRequest resolved = new StepRequest
         {
-            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskStageIndex?.ToString() ?? "Anything"}",
+            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskItemIndex?.ToString() ?? "Anything"}",
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
             ),
             CommandKey = ExecuteServiceTask.Key,
-            ServiceTaskStageIndex = serviceTaskStageIndex,
+            ServiceTaskItemIndex = serviceTaskItemIndex,
         }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);

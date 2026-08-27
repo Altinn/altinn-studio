@@ -53,7 +53,9 @@ public class ExecuteServiceTaskTests
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var payload = new ExecuteServiceTaskPayload(serviceTaskType);
+        // A simple IServiceTask's pipeline is its conclusion and nothing else, so the concluding step names
+        // item 0.
+        var payload = new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: 0);
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
 
         return new ProcessEngineCommandContext
@@ -232,7 +234,7 @@ public class ExecuteServiceTaskTests
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
         // Act
-        var result = await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        var result = await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert — a deferral is neither a success nor a failure: mapping it onto either would make the
         // engine advance the process or record an error, and it must do neither.
@@ -258,7 +260,7 @@ public class ExecuteServiceTaskTests
         );
 
         // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert
         Assert.NotNull(serviceTask.Observed);
@@ -277,7 +279,7 @@ public class ExecuteServiceTaskTests
         var context = CreateContext(CreateInstance(), "myServiceTask", deferCount: 4, waitDeadline: waitDeadline);
 
         // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert
         Assert.NotNull(serviceTask.Observed);
@@ -302,7 +304,7 @@ public class ExecuteServiceTaskTests
         );
 
         // Act
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         // Assert
         Assert.NotNull(serviceTask.Observed);
@@ -317,7 +319,7 @@ public class ExecuteServiceTaskTests
         var command = CreateCommand(serviceTask);
         var context = CreateContext(CreateInstance(), "myServiceTask");
 
-        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask"));
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
 
         Assert.NotNull(serviceTask.Observed);
         Assert.Equal(0, serviceTask.Observed.Wait.DeferCount);

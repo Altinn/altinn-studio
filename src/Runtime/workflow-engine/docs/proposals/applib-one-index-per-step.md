@@ -225,5 +225,5 @@ Both confirmed by Tobias exactly as proposed; implement them as written.
 
 | Step | Scope                                                              | Status      |
 | ---- | ------------------------------------------------------------------ | ----------- |
-| 1    | PR 1 — conclusion-as-item, one-index payload, dispatch/relay/planner/resolver, tests | not started |
-| 2    | PR 2 — docs: AGENTS.md bullets, changelog clause, xmldoc pass, `rg` proof | not started |
+| 1    | PR 1 — conclusion-as-item, one-index payload, dispatch/relay/planner/resolver, tests | **approved** (jj `uuoynoxltwkp`/`73b78715`) |
+| 2    | PR 2 — docs: AGENTS.md bullets, changelog clause, xmldoc pass, `rg` proof | in progress |

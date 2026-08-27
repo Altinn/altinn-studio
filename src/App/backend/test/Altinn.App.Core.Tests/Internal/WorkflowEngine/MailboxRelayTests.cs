@@ -33,8 +33,23 @@ public class MailboxRelayTests
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
     private const string ServiceTaskType = "archiving";
 
-    /// <summary>The item index of the stage that opens the tested exchanges' mailbox.</summary>
+    /// <summary>
+    /// The item index of the stage that opens the tested exchanges' mailbox — the exchange's identity in the
+    /// carry and in the wording, never what a step names.
+    /// </summary>
     private const int OpeningStageIndex = 0;
+
+    /// <summary>
+    /// The item index of the handler answering that exchange in <see cref="ArchivingTask"/>, the default
+    /// pipeline: its terminal, right after the opening stage. This is what a receive step names.
+    /// </summary>
+    private const int ArchivingReplyIndex = 1;
+
+    /// <summary>
+    /// The item index of the mid-pipeline handler in <see cref="ArchiveThenJournalTask"/> and
+    /// <see cref="ArchiveThenRecordTask"/> — the position a continuation's segment starts after.
+    /// </summary>
+    private const int SegmentHandlerIndex = 1;
     private static readonly DateTimeOffset _mailboxDeadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
 
     private static readonly Guid _stepId = new("018f4e00-0000-7000-8000-0000000000fe");
@@ -216,6 +231,12 @@ public class MailboxRelayTests
 
     /// <summary>The item index of the journal-opening stage in <see cref="ArchiveThenJournalTask"/>.</summary>
     private const int JournalIndex = 3;
+
+    /// <summary>
+    /// The item index of the terminal that answers the journal's exchange — one past its opening stage, and
+    /// what that exchange's receive step names.
+    /// </summary>
+    private const int JournalTerminalIndex = 4;
 
     /// <summary>
     /// The archive-then-journal shape: exchange A answered mid-pipeline, a stage between, then exchange B's
@@ -425,7 +446,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, position: 0),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 0),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -447,7 +468,7 @@ public class MailboxRelayTests
         var awaiting = new RelayRecorder();
         await CreateRelay(awaiting)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, position: 1),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 1),
                 CreateRequest(stepId),
                 CancellationToken.None
             );
@@ -468,7 +489,7 @@ public class MailboxRelayTests
         var otherStep = new RelayRecorder();
         await CreateRelay(otherStep)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, position: 1),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 1),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -488,7 +509,7 @@ public class MailboxRelayTests
         var continuation = new MailboxContinuation.AwaitNextMessage(
             _mailboxId,
             ServiceTaskType,
-            OpeningStageIndex,
+            ArchivingReplyIndex,
             position: 0
         );
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
@@ -514,6 +535,7 @@ public class MailboxRelayTests
             Guid.Empty,
             Delivered(),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -537,6 +559,7 @@ public class MailboxRelayTests
                 Guid.Empty,
                 Delivered(),
                 carry,
+                ArchivingReplyIndex,
                 OpeningStageIndex
             )
         );
@@ -548,6 +571,7 @@ public class MailboxRelayTests
                 Guid.Empty,
                 Closed(),
                 new WorkflowCallbackStateCarry(),
+                ArchivingReplyIndex,
                 OpeningStageIndex
             )
         );
@@ -560,6 +584,7 @@ public class MailboxRelayTests
                 Guid.Empty,
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
+                ArchivingReplyIndex,
                 OpeningStageIndex
             )
         );
@@ -572,6 +597,7 @@ public class MailboxRelayTests
                 Guid.Empty,
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
+                ArchivingReplyIndex,
                 OpeningStageIndex
             )
         );
@@ -584,7 +610,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, position: 2),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 2),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -610,22 +636,22 @@ public class MailboxRelayTests
         Assert.False(request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel));
 
         StepRequest step = Assert.Single(successor.Steps);
-        Assert.Equal(ExecuteServiceTask.Key, step.OperationId);
+        Assert.Equal($"{ExecuteServiceTask.Key}: {ArchivingReplyIndex}", step.OperationId);
         Assert.Contains(ServiceTaskType, step.Command.Data.ToString(), StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// A successor is a receive step like the first one: it names the exchange it answers and no stage, and
-    /// the name it names is whatever the continuation carried.
+    /// A successor is a receive step like the first one: it names the handler that answers the message, and
+    /// the index it names is whatever the continuation carried — never re-derived from the pipeline here.
     /// </summary>
     [Fact]
-    public async Task SuccessorReceiver_NamesTheExchangeItAnswersAndNoStage()
+    public async Task SuccessorReceiver_NamesTheHandlerTheContinuationCarried()
     {
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, position: 4),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 4),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -636,11 +662,10 @@ public class MailboxRelayTests
 
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
-        Assert.Equal(OpeningStageIndex, payload.RepliesTo);
-        Assert.Null(payload.StageIndex);
-        // The step itself stays stage-free: a receive step's options are the conclusion's, which is what a
-        // null ServiceTaskStageIndex resolves to.
-        Assert.Null(step.ServiceTaskStageIndex);
+        Assert.Equal(ArchivingReplyIndex, payload.ItemIndex);
+        // Held twice on purpose: the payload dispatch reads, and the field the enqueueing hop resolves the
+        // step's options by without deserializing the payload it just wrote.
+        Assert.Equal(ArchivingReplyIndex, step.ServiceTaskItemIndex);
     }
 
     [Fact]
@@ -650,7 +675,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, position: 0),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 0),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -714,6 +739,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -736,6 +762,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -758,6 +785,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -778,6 +806,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(seq: 4),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -788,6 +817,8 @@ public class MailboxRelayTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal(ServiceTaskType, awaiting.ServiceTaskType);
+        // The handler's own index travels to the successor; the exchange's stays the carry's key.
+        Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
         Assert.Equal(4, awaiting.Position);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
     }
@@ -804,6 +835,7 @@ public class MailboxRelayTests
             _stepId,
             Closed(MailboxDisposedReason.Deadline),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -826,6 +858,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -847,6 +880,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            ArchivingReplyIndex,
             OpeningStageIndex
         );
 
@@ -887,6 +921,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -910,6 +945,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -922,6 +958,9 @@ public class MailboxRelayTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
+        // Both indexes, each for its own job: the handler's says where the next segment starts, the
+        // exchange's is the carry key just dropped and the operation id the continuation is named by.
+        Assert.Equal(SegmentHandlerIndex, continuing.HandlerItemIndex);
         Assert.Equal(OpeningStageIndex, continuing.OpeningStageIndex);
 
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
@@ -939,6 +978,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(seq: 6),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -948,7 +988,7 @@ public class MailboxRelayTests
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal(ServiceTaskType, awaiting.ServiceTaskType);
-        Assert.Equal(OpeningStageIndex, awaiting.OpeningStageIndex);
+        Assert.Equal(SegmentHandlerIndex, awaiting.HandlerItemIndex);
         Assert.Equal(6, awaiting.Position);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
     }
@@ -970,6 +1010,7 @@ public class MailboxRelayTests
             _stepId,
             Closed(),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -993,6 +1034,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -1014,6 +1056,7 @@ public class MailboxRelayTests
             _stepId,
             Delivered(),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -1039,6 +1082,7 @@ public class MailboxRelayTests
             Guid.Empty,
             Delivered(),
             carry,
+            SegmentHandlerIndex,
             OpeningStageIndex
         );
 
@@ -1060,6 +1104,7 @@ public class MailboxRelayTests
                 Guid.Empty,
                 Closed(),
                 new WorkflowCallbackStateCarry(),
+                SegmentHandlerIndex,
                 OpeningStageIndex
             )
         );
@@ -1072,6 +1117,7 @@ public class MailboxRelayTests
                 Guid.Empty,
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
+                SegmentHandlerIndex,
                 OpeningStageIndex
             )
         );
@@ -1081,8 +1127,10 @@ public class MailboxRelayTests
     // The continuation — close mailbox k, then start segment k.
     // ---------------------------------------------------------------------------------------------
 
-    private static MailboxContinuation.ConcludeAndContinue Continuing(int openingStageIndex = OpeningStageIndex) =>
-        new(_mailboxId, ServiceTaskType, openingStageIndex);
+    private static MailboxContinuation.ConcludeAndContinue Continuing(
+        int handlerItemIndex = SegmentHandlerIndex,
+        int openingStageIndex = OpeningStageIndex
+    ) => new(_mailboxId, ServiceTaskType, handlerItemIndex, openingStageIndex);
 
     private static List<string> StepOperationIds(WorkflowRequest workflow) =>
         workflow.Steps.Select(step => step.OperationId).ToList();
@@ -1176,6 +1224,7 @@ public class MailboxRelayTests
         Assert.DoesNotContain($"{MintMailbox.Key}: {OpeningStageIndex}", StepOperationIds(continuation));
 
         EnqueueReceiveWorkflowPayload receive = ReceiveEnqueuePayload(continuation);
+        // The mailbox the receiver is declared against is still addressed by its opening stage's index.
         Assert.Equal(JournalIndex, receive.OpeningStageIndex);
         WorkflowRequest receiver = Assert.Single(receive.EnqueueRequest.Workflows);
         Assert.True(receiver.IsHead);
@@ -1193,8 +1242,40 @@ public class MailboxRelayTests
         var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
-        Assert.Equal(JournalIndex, payload.RepliesTo);
-        Assert.Null(payload.StageIndex);
+        // The step names the handler — the terminal, one item past the journal's send — not the exchange.
+        Assert.Equal(JournalTerminalIndex, payload.ItemIndex);
+    }
+
+    /// <summary>
+    /// The segment is planned from the handler index the continuation carries, with no lookup of its own: a
+    /// continuation whose <em>opening</em> index is nonsense plans exactly the same segment, because nothing
+    /// on this hop searches the pipeline for the handler that answers that exchange.
+    /// </summary>
+    [Fact]
+    public async Task Continuation_PlansFromTheCarriedHandlerIndex_NotFromTheExchangeItClosed()
+    {
+        var recorder = new RelayRecorder();
+
+        await CreateRelay(recorder, new ArchiveThenJournalTask())
+            .Continue(
+                Continuing(handlerItemIndex: SegmentHandlerIndex, openingStageIndex: 99),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
+
+        WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
+        Assert.Equal(
+            [
+                $"{ExecuteServiceTask.Key}: 2",
+                $"{MintMailbox.Key}: {JournalIndex}",
+                $"{ExecuteServiceTask.Key}: {JournalIndex}",
+                EnqueueReceiveWorkflow.Key,
+            ],
+            StepOperationIds(continuation)
+        );
+
+        // Only the wording follows the opening index.
+        Assert.Equal("Mailbox continue: Task_2 · after 99", continuation.OperationId);
     }
 
     /// <summary>
@@ -1207,11 +1288,16 @@ public class MailboxRelayTests
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder, new UpFrontSendsTask())
-            .Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None);
+            .Continue(
+                // Both sends come first here, so the archive's handler sits at item index 2.
+                Continuing(handlerItemIndex: 2),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
 
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
         Assert.Equal([EnqueueReceiveWorkflow.Key], StepOperationIds(continuation));
-        // UpFrontSendsTask composes the journal's send at item index 1.
+        // UpFrontSendsTask composes the journal's send at item index 1, and its handler — the terminal — at 3.
         Assert.Equal(1, ReceiveEnqueuePayload(continuation).OpeningStageIndex);
     }
 
@@ -1224,47 +1310,12 @@ public class MailboxRelayTests
             .Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None);
 
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", ExecuteServiceTask.Key], StepOperationIds(continuation));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", $"{ExecuteServiceTask.Key}: 3"], StepOperationIds(continuation));
 
-        // The concluding step names neither a stage nor an exchange, exactly as Main's does for a Finally.
+        // The concluding step names the conclusion's own item, exactly as Main's does for a Finally.
         var appData = JsonSerializer.Deserialize<AppCommandData>(continuation.Steps[^1].Command.Data!.Value)!;
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-        Assert.Null(payload.StageIndex);
-        Assert.Null(payload.RepliesTo);
-    }
-
-    /// <summary>
-    /// The hop planning what follows the concluded exchange resolves that exchange's handler in its own
-    /// resolution of the pipeline, and nothing answers it there, planning throws rather than silently
-    /// re-running segment 0. <see cref="ArchivingTask"/> is the shape this needs: its exchange is answered
-    /// by the terminal alone, so no <c>ReplySegment</c> composes at the carried index.
-    /// </summary>
-    /// <remarks>
-    /// Unreachable from the runtime — dispatch found this very handler in this same callback, and Define is
-    /// contractually deterministic. It throws rather than <see cref="UnreachableException"/> because reaching
-    /// it would take an app's Define breaking that contract, not this assembly's model drifting. The mailbox
-    /// still closes first: the saga closes before anything downstream starts, whatever happens after.
-    /// </remarks>
-    [Fact]
-    public async Task Continuation_WhenNothingAnswersTheConcludedExchange_ThrowsInsteadOfPlanningASegment()
-    {
-        var recorder = new RelayRecorder();
-
-        InvalidOperationException thrown = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            CreateRelay(recorder, new ArchivingTask())
-                .Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None)
-        );
-
-        Assert.Contains(
-            "composes no handler for the exchange opened at index 0",
-            thrown.Message,
-            StringComparison.Ordinal
-        );
-
-        // The close ran; nothing downstream was planned or enqueued.
-        Assert.Equal(["close-mailbox"], recorder.Calls);
-        Assert.Empty(recorder.Enqueues);
-        Assert.Empty(recorder.AfterWorkflows);
+        Assert.Equal(3, payload.ItemIndex);
     }
 
     /// <summary>

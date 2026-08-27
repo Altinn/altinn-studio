@@ -52,7 +52,8 @@ public class ServiceTaskPipelineMailboxTests
         ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);
 
-        Assert.Equal(2, pipeline.Items.Count);
+        // Two stages plus the conclusion, which is the list's last item.
+        Assert.Equal(3, pipeline.Items.Count);
         Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[1]);
         var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
         Assert.Equal(TimeSpan.FromDays(3), opening.Declaration.Timeout);
@@ -82,7 +83,7 @@ public class ServiceTaskPipelineMailboxTests
         ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);
 
-        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[^1]);
         Assert.Equal(0, exchange.OpeningIndex);
         Assert.Null(exchange.StepOptions);
     }
@@ -95,7 +96,7 @@ public class ServiceTaskPipelineMailboxTests
         ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed, options);
 
-        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[^1]);
         Assert.Same(options, exchange.StepOptions);
     }
 
@@ -137,9 +138,9 @@ public class ServiceTaskPipelineMailboxTests
             pipeline.Items,
             item => Assert.IsType<ServiceTaskStage.MailboxOpening>(item),
             item => Assert.Equal(0, Assert.IsType<ReplySegment>(item).OpeningIndex),
-            item => Assert.IsType<ServiceTaskStage.MailboxOpening>(item)
+            item => Assert.IsType<ServiceTaskStage.MailboxOpening>(item),
+            item => Assert.Equal(2, Assert.IsType<PipelineConclusion.ReplyExchange>(item).OpeningIndex)
         );
-        Assert.Equal(2, Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion).OpeningIndex);
     }
 
     [Fact]
@@ -175,7 +176,7 @@ public class ServiceTaskPipelineMailboxTests
             .ConcludeOnReplies(archive, Handle, Closed);
 
         Assert.Equal(1, Assert.Single(pipeline.Items.OfType<ReplySegment>()).OpeningIndex);
-        Assert.Equal(0, Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion).OpeningIndex);
+        Assert.Equal(0, Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[^1]).OpeningIndex);
     }
 
     [Fact]
@@ -189,9 +190,9 @@ public class ServiceTaskPipelineMailboxTests
             .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
-        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Conclusion);
-        Assert.Equal(3, pipeline.Items.Count);
+        Assert.Equal(4, pipeline.Items.Count);
         Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[2]);
+        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[3]);
     }
 
     [Fact]
@@ -349,8 +350,8 @@ public class ServiceTaskPipelineMailboxTests
             .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
-        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Conclusion);
         Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[0]);
+        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
     }
 
     [Theory]
@@ -402,7 +403,7 @@ public class ServiceTaskPipelineMailboxTests
 
         for (int i = 0; i < 2; i++)
         {
-            var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(task.ResolvePipeline().Conclusion);
+            var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(task.ResolvePipeline().Items[^1]);
             Assert.Equal(0, exchange.OpeningIndex);
         }
     }

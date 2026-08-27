@@ -256,6 +256,32 @@ public class WorkflowCallbackStateCarryTests
         Assert.Contains("'SendToArchive'", exception.Message, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// A key that parses as an index but is not how this app-lib writes one is refused too. Accepting it would
+    /// fold two spellings of the same index onto one entry, so a blob carrying both would silently lose one
+    /// exchange to whichever the dictionary happened to read last.
+    /// </summary>
+    [Theory]
+    [InlineData("00")]
+    [InlineData("007")]
+    public void Restore_OfABlobKeyedByANonCanonicalIndex_Throws(string key)
+    {
+        var state = new WorkflowCallbackState
+        {
+            Instance = CreateInstance(),
+            FormData = [],
+            Mailboxes = new Dictionary<string, CarriedMailbox>(StringComparer.Ordinal)
+            {
+                [key] = new CarriedMailbox { Id = _mailboxId, Deadline = _deadline },
+            },
+        };
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            new WorkflowCallbackStateCarry(state)
+        );
+        Assert.Contains($"'{key}'", exception.Message, StringComparison.Ordinal);
+    }
+
     private static void AssertCarries(WorkflowCallbackStateCarry carry, int openingIndex)
     {
         CarriedMailbox? mailbox = carry.FindMailbox(openingIndex);

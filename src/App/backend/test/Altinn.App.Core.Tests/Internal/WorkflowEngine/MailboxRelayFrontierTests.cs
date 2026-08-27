@@ -469,7 +469,13 @@ public class MailboxRelayFrontierTests
 
         int headsBefore = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
-            new MailboxContinuation.ConcludeAndContinue(_mailboxId, ServiceTaskType, OpeningStageIndex),
+            new MailboxContinuation.ConcludeAndContinue(
+                _mailboxId,
+                ServiceTaskType,
+                // ArchiveThenJournalTask answers exchange A with the handler at item index 1.
+                handlerItemIndex: 1,
+                OpeningStageIndex
+            ),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );

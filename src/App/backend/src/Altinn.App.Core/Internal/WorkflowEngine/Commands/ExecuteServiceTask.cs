@@ -9,27 +9,29 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for the ExecuteServiceTask command: the service task type, and which part of the
-/// pipeline this engine step runs — said by whichever one index the payload carries. A step either runs
-/// the pipeline item at <see cref="StageIndex"/>, answers the exchange opened at <see cref="RepliesTo"/>,
-/// or is the pipeline's conclusion (neither set).
+/// Request payload for the ExecuteServiceTask command: the service task type, and the one pipeline item this
+/// engine step runs — a stage, a reply handler, or the conclusion, each named by its position in
+/// <see cref="ServiceTaskPipeline.Items"/>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <strong>At most one of <see cref="StageIndex"/> and <see cref="RepliesTo"/> is ever set.</strong> Nothing
-/// outside this app-lib's own expansion constructs one of these, so both indexes set is a payload written by a
-/// version of this app-lib whose step identity differed.
+/// <strong><see cref="ItemIndex"/> is semantically required</strong>, and nullable only because binding
+/// failures are not survivable here: <c>CommandPayloadSerializer.Deserialize</c> runs in
+/// <c>WorkflowEngineCommandBase</c> outside any handler, so a non-nullable <c>int</c> would either throw an
+/// old index-less payload out as an unhandled callback exception or, worse, bind <c>0</c> and silently
+/// dispatch the pipeline's first item. Null is instead refused by <see cref="ExecuteServiceTask.Execute"/> as
+/// a permanent <c>InvalidPayloadException</c> — a payload written by a version of this app-lib whose step
+/// identity differed, which is also where an old receive step's <c>repliesTo</c> lands, that property being
+/// skipped by deserialization.
 /// </para>
 /// <para>
-/// Guarded in <see cref="ExecuteServiceTask.Execute"/> rather than in a constructor on purpose. The payload
-/// is deserialized by <c>WorkflowEngineCommandBase</c> outside any handler, so a throwing constructor would
-/// leave the callback as an unhandled exception instead of the legible permanent failure every other
-/// payload-shape violation here gets (see <see cref="EnqueueReceiveWorkflow"/>'s own
+/// Guarded in <see cref="ExecuteServiceTask.Execute"/> rather than in a constructor for the same reason: a
+/// throwing constructor would leave the callback as an unhandled exception instead of the legible permanent
+/// failure every other payload-shape violation here gets (see <see cref="EnqueueReceiveWorkflow"/>'s own
 /// <c>InvalidPayloadException</c>).
 /// </para>
 /// </remarks>
-internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? StageIndex = null, int? RepliesTo = null)
-    : CommandRequestPayload;
+internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? ItemIndex = null) : CommandRequestPayload;
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
@@ -64,18 +66,11 @@ internal sealed class ExecuteServiceTask(
 
         // Refused before the task is resolved: inside the try below, anything the resolution throws — an
         // unregistered service task type, a Define that throws — becomes a retryable failure that never
-        // converges, on a payload no retry can fix.
-        if (payload is { StageIndex: not null, RepliesTo: not null })
+        // converges, on a payload no retry can fix. A payload-shape refusal needs no pipeline, so it is the
+        // one guard that can still run out here.
+        if (payload.ItemIndex is not { } itemIndex)
         {
-            return BothStepIndexes(serviceTaskType, payload);
-        }
-
-        // Refused here for the same reason: a rendezvous on a step that names no exchange. Every receive step
-        // this expansion builds names the exchange it answers, so no pipeline shape can pick a handler for
-        // this message — resolving the task first would only decide how the refusal is worded.
-        if (payload is { StageIndex: null, RepliesTo: null } && context.Payload.Mailbox is not null)
-        {
-            return MailboxReceiptOnConclusion(serviceTaskType);
+            return MissingItemIndex(serviceTaskType);
         }
 
         try
@@ -106,45 +101,58 @@ internal sealed class ExecuteServiceTask(
                 },
             };
 
-            if (payload.StageIndex is { } stageIndex)
+            // One switch, on the shape of the item the step names crossed with whether the engine handed this
+            // execution a mailbox rendezvous. Every arm is a method that assumes its shape rather than
+            // re-interrogating the item, and the two mismatch arms are what is left of the guards that used to
+            // read a second index. The rendezvous is bound here and handed to the reply arms as a non-nullable
+            // argument, so no arm re-asks a question this switch already answered.
+            AppCallbackMailbox? rendezvous = context.Payload.Mailbox;
+            return pipeline.Items.ElementAtOrDefault(itemIndex) switch
             {
-                return await ExecuteStage(context, pipeline, serviceTask, stageIndex, serviceTaskContext);
-            }
+                null => PipelineItemNotFound(serviceTaskType, itemIndex),
 
-            // Before the switch below: its FinalStep arms assume a FinalStep pipeline answers no exchange at
-            // all, and a pipeline that hands its exchanges to mid-pipeline handlers ends with a final step as
-            // ordinarily as any other.
-            if (payload.RepliesTo is { } answeredHere && pipeline.FindReplySegment(answeredHere) is { } segment)
-            {
-                return await ExecuteSegmentReply(context, segment, answeredHere, serviceTaskType, serviceTaskContext);
-            }
+                ServiceTaskStage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
 
-            return (payload.RepliesTo, pipeline.Conclusion) switch
-            {
-                ({ } repliesTo, PipelineConclusion.ReplyExchange exchange) when exchange.OpeningIndex == repliesTo =>
-                    await ExecuteTerminalReply(context, exchange, repliesTo, serviceTaskType, serviceTaskContext),
-
-                // A step naming no exchange on a pipeline whose conclusion answers one. This expansion emits no
-                // bare concluding step for such a pipeline — its terminal runs on receive workflows — so this
-                // is the redeploy that turned a Finally into a reply terminal while Main was in flight: that
-                // Main's concluding step arrives here with nothing to answer. (It cannot be carrying a
-                // rendezvous — an index-less step with one was refused before dispatch.)
-                (null, PipelineConclusion.ReplyExchange) => MailboxReceiptMissing(serviceTaskType),
-
-                (null, PipelineConclusion.FinalStep final) => await ExecuteConclusion(
-                    final,
+                ServiceTaskStage stage => await ExecuteStage(
+                    context,
+                    stage,
+                    itemIndex,
                     serviceTask,
                     serviceTaskContext
                 ),
 
-                ({ } repliesTo, PipelineConclusion.FinalStep or PipelineConclusion.ReplyExchange) =>
-                    MailboxHandlerNotFound(serviceTaskType, repliesTo),
-
-                // Drift guard for this assembly's own vocabulary: PipelineConclusion is a closed two-member set,
-                // so the only way here is a third conclusion shape added without a branch to execute it.
-                _ => throw new UnreachableException(
-                    $"Unknown pipeline conclusion type: {pipeline.Conclusion.GetType().Name}"
+                ReplySegment segment when rendezvous is { } segmentReceipt => await ExecuteSegmentReply(
+                    context,
+                    segment,
+                    segmentReceipt,
+                    itemIndex,
+                    serviceTaskType,
+                    serviceTaskContext
                 ),
+
+                PipelineConclusion.ReplyExchange exchange when rendezvous is { } terminalReceipt =>
+                    await ExecuteTerminalReply(
+                        context,
+                        exchange,
+                        terminalReceipt,
+                        itemIndex,
+                        serviceTaskType,
+                        serviceTaskContext
+                    ),
+
+                // A step whose item answers an exchange, handed nothing to answer.
+                ReplySegment or PipelineConclusion.ReplyExchange => MailboxReceiptMissing(serviceTaskType, itemIndex),
+
+                PipelineConclusion.FinalStep when rendezvous is not null => MailboxReceiptOnConclusion(
+                    serviceTaskType,
+                    itemIndex
+                ),
+
+                PipelineConclusion.FinalStep final => await ExecuteConclusion(final, serviceTask, serviceTaskContext),
+
+                // Drift guard for this assembly's own vocabulary: the item hierarchy is closed, so the only way
+                // here is a shape added without a branch to execute it.
+                { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
         }
         catch (Exception ex)
@@ -156,60 +164,17 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// One pipeline stage, dispatched on the stage's own shape so each kind's work delegate is called with
-    /// exactly the arguments it declares.
+    /// exactly the arguments it declares. Reached only for a stage carrying no rendezvous — <see cref="Execute"/>
+    /// decided both of those before calling.
     /// </summary>
-    /// <remarks>
-    /// Two drift guards run before either shape does:
-    /// <list type="bullet">
-    /// <item>
-    /// <term><c>ServiceTaskStageNotFound</c></term>
-    /// <description>
-    /// the pipeline moved under this workflow while it was in flight — stages inserted, reordered or removed
-    /// shift every index behind them, and an edit to the composed process invalidates an old enqueue exactly as
-    /// an edited BPMN file does. The step list is fixed at enqueue time, so the workflow keeps addressing its
-    /// step by the old index until it settles.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term><c>MailboxReceiptOnStage</c></term>
-    /// <description>
-    /// the engine handed a stage a mailbox rendezvous. The rendezvous only ever rides a receive workflow's one
-    /// step — the reply handler — so a stage carrying one belongs to a workflow this app-lib's expansion did
-    /// not build: an engine whose receive-workflow shape has drifted, or a hand-enqueued workflow.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
     private static async Task<ProcessEngineCommandResult> ExecuteStage(
         ProcessEngineCommandContext context,
-        ServiceTaskPipeline pipeline,
-        IPipelineServiceTask serviceTask,
+        ServiceTaskStage stage,
         int stageIndex,
+        IPipelineServiceTask serviceTask,
         ServiceTaskContext serviceTaskContext
-    )
-    {
-        if (pipeline.Items.ElementAtOrDefault(stageIndex) is not ServiceTaskStage stage)
-        {
-            return FailedProcessEngineCommandResult.Permanent(
-                $"Service task '{serviceTask.Type}' composes no stage at index {stageIndex}. A pipeline's "
-                    + "indexes are positions in its composition: if stages were inserted, reordered or removed "
-                    + $"since this workflow was enqueued, every index behind the change has moved. Resume the "
-                    + $"workflow on the code that enqueued it, or abandon it deliberately.",
-                "ServiceTaskStageNotFound"
-            );
-        }
-
-        if (context.Payload.Mailbox is not null)
-        {
-            return FailedProcessEngineCommandResult.Permanent(
-                $"The stage at index {stageIndex} of service task '{serviceTask.Type}' was handed a mailbox "
-                    + "message, but only a pipeline's reply handler answers messages. This workflow was not built "
-                    + "by this application's pipeline expansion.",
-                "MailboxReceiptOnStage"
-            );
-        }
-
-        return stage switch
+    ) =>
+        stage switch
         {
             ServiceTaskStage.Plain plain => MapStageResult(await plain.Work(serviceTaskContext), serviceTask),
             ServiceTaskStage.MailboxOpening opening => await ExecuteMailboxOpeningStage(
@@ -223,7 +188,6 @@ internal sealed class ExecuteServiceTask(
             // the only way here is a third stage shape added without a branch to execute it.
             _ => throw new UnreachableException($"Unknown service task stage type: {stage.GetType().Name}"),
         };
-    }
 
     /// <summary>
     /// The stage that opens the exchange's mailbox: it is handed the address the mint step published, so it
@@ -276,19 +240,12 @@ internal sealed class ExecuteServiceTask(
     /// rather than a silent default — either wrong answer ends the exchange falsely.
     /// </summary>
     /// <remarks>
-    /// Three guards run before the handler does. The first two are drift guards, unreachable from app code,
-    /// which is why they survived the compile-time move. The third is not: it guards runtime-supplied
-    /// integration data no type can bind.
+    /// Two guards run before the handler does. The first is a drift guard, unreachable from app code, which is
+    /// why it survived the compile-time move. The second is not: it guards runtime-supplied integration data no
+    /// type can bind. A third, <c>MailboxReceiptMissing</c>, used to stand here and has moved into
+    /// <see cref="Execute"/>'s dispatch, which is where the question is now decided — this method is handed the
+    /// rendezvous as a non-nullable argument and has none left to ask.
     /// <list type="bullet">
-    /// <item>
-    /// <term><c>MailboxReceiptMissing</c></term>
-    /// <description>
-    /// a step that answers an exchange, handed no rendezvous — here, an engine that omitted the rendezvous
-    /// from a receive workflow's callback. The dispatch in <see cref="Execute"/> returns the same failure for
-    /// its other route: a redeploy that turned a <c>Finally</c> into a reply terminal while a workflow was in
-    /// flight, whose Main still carries a bare concluding step that arrives with nothing to answer.
-    /// </description>
-    /// </item>
     /// <item>
     /// <term><c>MailboxReceiptAmbiguous</c></term>
     /// <description>
@@ -312,17 +269,12 @@ internal sealed class ExecuteServiceTask(
     /// </list>
     /// </remarks>
     private async Task<ProcessEngineCommandResult> ExecuteReply(
-        ProcessEngineCommandContext context,
+        AppCallbackMailbox receipt,
         string serviceTaskType,
-        Func<ServiceTaskReply, AppCallbackMailbox, Task<ProcessEngineCommandResult>> onMessage,
-        Func<MailboxClosedReason, AppCallbackMailbox, Task<ProcessEngineCommandResult>> onClosed
+        Func<ServiceTaskReply, Task<ProcessEngineCommandResult>> onMessage,
+        Func<MailboxClosedReason, Task<ProcessEngineCommandResult>> onClosed
     )
     {
-        if (context.Payload.Mailbox is not { } receipt)
-        {
-            return MailboxReceiptMissing(serviceTaskType);
-        }
-
         if ((receipt.Delivery is null) == (receipt.DisposedReason is null))
         {
             return FailedProcessEngineCommandResult.Permanent(
@@ -358,8 +310,7 @@ internal sealed class ExecuteServiceTask(
                     IdempotencyKey = delivery.IdempotencyKey,
                     AcceptedAt = delivery.AcceptedAt,
                     Position = receipt.Seq,
-                },
-                receipt
+                }
             );
         }
 
@@ -368,8 +319,7 @@ internal sealed class ExecuteServiceTask(
             {
                 MailboxDisposedReason.Deadline => MailboxClosedReason.Deadline,
                 _ => MailboxClosedReason.Request,
-            },
-            receipt
+            }
         );
     }
 
@@ -380,29 +330,30 @@ internal sealed class ExecuteServiceTask(
     private Task<ProcessEngineCommandResult> ExecuteTerminalReply(
         ProcessEngineCommandContext context,
         PipelineConclusion.ReplyExchange exchange,
-        int repliesTo,
+        AppCallbackMailbox receipt,
+        int handlerItemIndex,
         string serviceTaskType,
         ServiceTaskContext serviceTaskContext
     )
     {
         return ExecuteReply(
-            context,
+            receipt,
             serviceTaskType,
-            onMessage: async (reply, receipt) => Decide(await exchange.OnMessage(serviceTaskContext, reply), receipt),
-            onClosed: async (reason, receipt) => Decide(await exchange.OnClosed(serviceTaskContext, reason), receipt)
+            onMessage: async reply => Decide(await exchange.OnMessage(serviceTaskContext, reply)),
+            onClosed: async reason => Decide(await exchange.OnClosed(serviceTaskContext, reason))
         );
 
-        ProcessEngineCommandResult Decide(ServiceTaskExchangeResult verdict, AppCallbackMailbox receipt) =>
+        ProcessEngineCommandResult Decide(ServiceTaskExchangeResult verdict) =>
             MailboxRelay.Decide(
                 verdict,
                 serviceTaskType,
                 context.Payload.StepId,
                 receipt,
                 context.StateCarry,
-                // The index the step carries, not the pipeline's own: the exchange's identity is fixed at its
-                // first enqueue, and re-deriving it here would point the successor's enqueue and the carry key
-                // the conclusion drops at whatever sits at that index now.
-                repliesTo
+                // The index the step carries, so a successor names this same handler however the pipeline
+                // resolves at that later hop.
+                handlerItemIndex,
+                exchange.OpeningIndex
             );
     }
 
@@ -414,34 +365,38 @@ internal sealed class ExecuteServiceTask(
     private Task<ProcessEngineCommandResult> ExecuteSegmentReply(
         ProcessEngineCommandContext context,
         ReplySegment segment,
-        int repliesTo,
+        AppCallbackMailbox receipt,
+        int handlerItemIndex,
         string serviceTaskType,
         ServiceTaskContext serviceTaskContext
     )
     {
         return ExecuteReply(
-            context,
+            receipt,
             serviceTaskType,
-            onMessage: async (reply, receipt) => Decide(await segment.OnMessage(serviceTaskContext, reply), receipt),
-            onClosed: async (reason, receipt) => Decide(await segment.OnClosed(serviceTaskContext, reason), receipt)
+            onMessage: async reply => Decide(await segment.OnMessage(serviceTaskContext, reply)),
+            onClosed: async reason => Decide(await segment.OnClosed(serviceTaskContext, reason))
         );
 
-        ProcessEngineCommandResult Decide(ServiceTaskStageExchangeResult verdict, AppCallbackMailbox receipt) =>
+        ProcessEngineCommandResult Decide(ServiceTaskStageExchangeResult verdict) =>
             MailboxRelay.DecideSegment(
                 verdict,
                 serviceTaskType,
                 context.Payload.StepId,
                 receipt,
                 context.StateCarry,
-                repliesTo
+                // As above: the step's own index names this handler, and the exchange it answers is the
+                // handler's composition data rather than anything re-derived at a later hop.
+                handlerItemIndex,
+                segment.OpeningIndex
             );
     }
 
     /// <summary>
-    /// The step that concludes the pipeline — the last step of its <em>final segment</em>, and the only step
-    /// that carries neither a stage index nor an exchange index. It answers no message, and cannot be holding
-    /// one: an index-less step carrying a rendezvous was refused before dispatch
-    /// (<c>MailboxReceiptOnConclusion</c>).
+    /// The step that concludes the pipeline — the last step of its <em>final segment</em>, named by the item
+    /// index of the conclusion like every other step. It answers no message, and cannot be holding one: a
+    /// rendezvous on a concluding step is <c>MailboxReceiptOnConclusion</c>, decided by the dispatch switch
+    /// before this is reached.
     /// </summary>
     private static async Task<ProcessEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.FinalStep final,
@@ -450,73 +405,99 @@ internal sealed class ExecuteServiceTask(
     ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
 
     /// <summary>
-    /// <c>MailboxHandlerNotFound</c>: the exchange a receive step names is answered by nothing in the
-    /// pipeline resolving at this hop — redeploy drift (a handler withdrawn, or the pipeline reshaped so the
-    /// index lands elsewhere), and the receiving half of the send side's <c>MailboxDeclarationNotFound</c>.
-    /// Matching the conclusion is exact: an index resolves to one item or none, and there is no old value to
-    /// stand anything in for.
+    /// <c>PipelineItemNotFound</c>: the step names an item the pipeline resolving at this hop does not have.
+    /// The pipeline moved under this workflow while it was in flight — stages or handlers inserted, reordered
+    /// or removed shift every index behind them — and an edit to the composed process invalidates an old
+    /// enqueue exactly as an edited BPMN file does. The step list is fixed at enqueue time, so the workflow
+    /// keeps addressing its item by the old index until it settles.
     /// </summary>
     /// <remarks>
-    /// Permanent, for the reason every drift guard on this path is: the step's payload never changes, so a
-    /// retry replays the same index against the same code. Nor may the runtime pick another handler — one that
+    /// One code for every shape of step, receive steps included: the index space is items, so a receive step
+    /// whose handler was withdrawn misses here for the same reason a stage step does, and this is the
+    /// receiving half of the send side's <c>MailboxDeclarationNotFound</c>. A plain not-found verdict, because
+    /// an index resolves to one item or none and there is no old value to stand anything in for. Permanent,
+    /// for the reason every drift guard on this path is: the step's payload never changes, so a retry replays
+    /// the same index against the same code. Nor may the runtime pick a neighbouring item — a handler that
     /// answers a different exchange would read this exchange's message and settle on it.
     /// </remarks>
-    private static FailedProcessEngineCommandResult MailboxHandlerNotFound(string serviceTaskType, int repliesTo) =>
+    private static FailedProcessEngineCommandResult PipelineItemNotFound(string serviceTaskType, int itemIndex) =>
         FailedProcessEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' answers the exchange opened at index {repliesTo}, but its "
-                + "pipeline composes no reply handler for an exchange opened there — the exchange's handler was "
-                + "withdrawn, or stages were inserted, reordered or removed since this workflow was enqueued. "
-                + "Resume the workflow on the code that enqueued it, or abandon it deliberately.",
-            "MailboxHandlerNotFound"
+            $"Service task '{serviceTaskType}' composes no pipeline item at index {itemIndex}. A pipeline's "
+                + "indexes are positions in its composition: if stages or reply handlers were inserted, "
+                + "reordered or removed since this workflow was enqueued, every index behind the change has "
+                + "moved. Resume the workflow on the code that enqueued it, or abandon it deliberately.",
+            "PipelineItemNotFound"
         );
 
     /// <summary>
-    /// <c>MailboxReceiptMissing</c>: a step that answers an exchange, handed no rendezvous. One failure with
-    /// two routes — an engine that omitted the rendezvous from a receive workflow's callback, and a redeploy
-    /// that turned a <c>Finally</c> into a reply terminal while a workflow was in flight, whose Main still
-    /// carries a bare concluding step that arrives with nothing to answer. Permanent: answering without a
-    /// rendezvous would end the exchange without ever reading the answer it is waiting for.
+    /// <c>MailboxReceiptOnStage</c>: the engine handed a stage a mailbox rendezvous, and only a reply handler
+    /// answers messages. Two routes, and with one index they are indistinguishable from here: the pipeline was
+    /// reshaped since this workflow was enqueued, so the index a receive step carries now lands on a stage; or
+    /// the workflow was not built by this application's pipeline expansion at all — an engine whose
+    /// receive-workflow shape has drifted, or a hand-enqueued workflow. Permanent either way: the step's
+    /// payload never changes, and running the stage would answer no message while repeating work.
     /// </summary>
-    private static FailedProcessEngineCommandResult MailboxReceiptMissing(string serviceTaskType) =>
+    private static FailedProcessEngineCommandResult MailboxReceiptOnStage(string serviceTaskType, int itemIndex) =>
         FailedProcessEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' is answered by a message, but the workflow engine handed its "
-                + "reply handler no mailbox rendezvous. Answering without one would end this exchange "
-                + "without ever reading the answer it is waiting for.",
+            $"The stage at index {itemIndex} of service task '{serviceTaskType}' was handed a mailbox message, "
+                + "but only a pipeline's reply handler answers messages. Either the pipeline was reshaped since "
+                + "this workflow was enqueued, so the index this step carries now lands on a stage, or the "
+                + "workflow was not built by this application's pipeline expansion.",
+            "MailboxReceiptOnStage"
+        );
+
+    /// <summary>
+    /// <c>MailboxReceiptMissing</c>: a step whose item answers an exchange, handed no rendezvous. One general
+    /// rule with two routes, and the message names both for the reason its two siblings do — with one index,
+    /// nothing here can tell them apart: an engine that omitted the rendezvous from a receive workflow's
+    /// callback, and a pipeline reshaped mid-flight so that a step which answers nothing (a concluding step,
+    /// say, from a <c>Finally</c> since turned into a reply terminal) now lands on a reply handler. Permanent:
+    /// answering without a rendezvous would end the exchange without ever reading the answer it is waiting for.
+    /// </summary>
+    private static FailedProcessEngineCommandResult MailboxReceiptMissing(string serviceTaskType, int itemIndex) =>
+        FailedProcessEngineCommandResult.Permanent(
+            $"The item at index {itemIndex} of service task '{serviceTaskType}' answers messages, but this "
+                + "step was handed no mailbox rendezvous. Either the workflow engine omitted it from a receive "
+                + "workflow's callback, or the pipeline was reshaped since this workflow was enqueued, so the "
+                + "index a step that answers nothing carries now lands on a reply handler. Answering without a "
+                + "rendezvous would end this exchange without ever reading the answer it is waiting for.",
             "MailboxReceiptMissing"
         );
 
     /// <summary>
-    /// <c>MailboxReceiptOnConclusion</c>: a rendezvous on a step that names no exchange — the sibling of
-    /// <c>MailboxReceiptOnStage</c>, for the concluding step. A message is answered by the handler the
-    /// receive step names, and every receive step this expansion builds names one, so this workflow was not
-    /// built by this application's pipeline expansion. Permanent, because the step's payload never changes:
-    /// no retry gives the message a handler, and picking one would settle an exchange the step never named.
+    /// <c>MailboxReceiptOnConclusion</c>: a rendezvous on the pipeline's concluding step — the sibling of
+    /// <c>MailboxReceiptOnStage</c>, one item along. A message is answered by a reply handler, never by the
+    /// step that concludes the pipeline, so this is the same pair of routes that guard names: a mid-flight
+    /// reshape landing a receive step's index on the conclusion, or a workflow this application's expansion
+    /// did not build. Permanent, because the step's payload never changes: no retry gives the message a
+    /// handler, and picking one would settle an exchange the step never named.
     /// </summary>
-    private static FailedProcessEngineCommandResult MailboxReceiptOnConclusion(string serviceTaskType) =>
+    private static FailedProcessEngineCommandResult MailboxReceiptOnConclusion(string serviceTaskType, int itemIndex) =>
         FailedProcessEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' was handed a mailbox message on a step that names no exchange, "
-                + "and a message is answered by the handler the receive step names. Every receive step this "
-                + "application's expansion builds names its exchange, so this workflow was not built by this "
-                + "application's pipeline expansion. Abandon the workflow, and close its mailbox by hand if "
-                + "the exchange is no longer wanted.",
+            $"Service task '{serviceTaskType}' was handed a mailbox message on the concluding step at index "
+                + $"{itemIndex}, and a message is answered by a reply handler, never by the step that concludes "
+                + "the pipeline. Either the pipeline was reshaped since this workflow was enqueued, so the index "
+                + "this step carries now lands on the conclusion, or the workflow was not built by this "
+                + "application's pipeline expansion. Abandon the workflow, and close its mailbox by hand if the "
+                + "exchange is no longer wanted.",
             "MailboxReceiptOnConclusion"
         );
 
     /// <summary>
-    /// <c>InvalidPayloadException</c>: the payload names both a stage and an exchange. Permanent, because the
-    /// step's payload never changes: a retry replays the same bytes, and guessing which name to honour would
-    /// run the wrong part of the pipeline.
+    /// <c>InvalidPayloadException</c>: the payload names no pipeline item. Every step this expansion builds
+    /// carries the index of the item it runs — the concluding step included — so an index-less payload was
+    /// written by a version of this app-lib whose step identity differed, and an old receive step's
+    /// <c>repliesTo</c> lands here too, that property being skipped by deserialization. Permanent, because
+    /// the step's payload never changes: a retry replays the same bytes, and defaulting to an index would run
+    /// an arbitrary part of the pipeline.
     /// </summary>
-    private static FailedProcessEngineCommandResult BothStepIndexes(
-        string serviceTaskType,
-        ExecuteServiceTaskPayload payload
-    ) =>
+    private static FailedProcessEngineCommandResult MissingItemIndex(string serviceTaskType) =>
         FailedProcessEngineCommandResult.Permanent(
-            $"A step of service task '{serviceTaskType}' names both the stage at index {payload.StageIndex} and "
-                + $"the exchange opened at index {payload.RepliesTo}. A step is one or the other — it runs a "
-                + "stage, answers an exchange, or is the pipeline's conclusion — so this workflow was "
-                + "enqueued by a version of this app-lib that identified steps differently. Resume it on the "
-                + "version that enqueued it, or abandon it deliberately.",
+            $"A step of service task '{serviceTaskType}' names no pipeline item. Every step of a pipeline — "
+                + "its stages, its reply handlers and its conclusion alike — names the one item it runs by "
+                + "that item's index, so this workflow was enqueued by a version of this app-lib that "
+                + "identified steps differently. Resume it on the version that enqueued it, or abandon it "
+                + "deliberately.",
             "InvalidPayloadException"
         );
 

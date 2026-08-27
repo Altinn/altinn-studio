@@ -63,19 +63,36 @@ internal sealed class MailboxRelay
     /// <param name="stepId">The executing step, which every keyed engine call is keyed off.</param>
     /// <param name="mailbox">The rendezvous the engine handed this execution.</param>
     /// <param name="carry">The blob's bookkeeping, which a conclusion stops carrying the mailbox in.</param>
-    /// <param name="openingStageIndex">
-    /// The item that opened the exchange — the carry's key for it, and the identity a successor is enqueued
-    /// against. Sourced by the executing command from the step's own payload, never re-derived here: a
-    /// mid-flight reshape would otherwise point the successor at another exchange and make
-    /// <see cref="WorkflowCallbackStateCarry"/>'s concluding removal a silent no-op, leaving the concluded
-    /// mailbox in the published blob.
+    /// <param name="handlerItemIndex">
+    /// The item this execution ran — the handler answering the exchange — which is the one index a successor
+    /// receiver's step carries. Sourced by the executing command from the step's own payload, never
+    /// re-derived here: a mid-flight reshape would otherwise point the successor at a different handler.
     /// </param>
+    /// <param name="openingStageIndex">
+    /// The item that opened the exchange — the carry's key for it, and what the wording names. Distinct from
+    /// <paramref name="handlerItemIndex"/>, and sourced differently: it is <em>not</em> carried by the step but
+    /// read off the handler that <em>this hop's</em> <c>ResolvePipeline()</c> produced, which is composition
+    /// data <c>Define</c> fixed rather than anything re-derived per message.
+    /// </param>
+    /// <remarks>
+    /// <strong>The reshape hazard this key carries, accepted and unguarded.</strong> The key used to travel in
+    /// the step's payload, fixed at the receiver's enqueue; it is now read off this hop's resolution of the
+    /// pipeline. The two differ only under a mid-flight reshape that moves the opening stage out from under the
+    /// handler still at this index — and then <see cref="WorkflowCallbackStateCarry.RecordMailboxConcluded"/>
+    /// removes an entry the blob does not have, silently: the concluded mailbox stays in the published blob,
+    /// and a later mint for a stage at that index hits <c>RecordMailbox</c>'s refusal to carry two mailboxes
+    /// for one index, which <c>MintMailbox.Execute</c>'s catch turns into a retryable failure that never
+    /// converges. This is the reshape misassignment the design accepts rather than guards — the old scheme
+    /// misassigned equally, by pointing the successor's enqueue at a stale exchange instead — so it is recorded
+    /// here, not defended against.
+    /// </remarks>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskExchangeResult result,
         string serviceTaskType,
         Guid stepId,
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
+        int handlerItemIndex,
         int openingStageIndex
     )
     {
@@ -94,7 +111,7 @@ internal sealed class MailboxRelay
                     MailboxContinuation = new MailboxContinuation.AwaitNextMessage(
                         mailbox.Id,
                         serviceTaskType,
-                        openingStageIndex,
+                        handlerItemIndex,
                         mailbox.Seq
                     ),
                 };
@@ -167,8 +184,9 @@ internal sealed class MailboxRelay
     /// unrelated roots — a type has one base, and <see cref="ServiceTaskStageExchangeResult"/> deliberately
     /// sits under neither <see cref="ServiceTaskExchangeResult"/> nor anything it shares. Merging them behind
     /// a common supertype would put <c>Success(action)</c> back within reach of a handler that must not have
-    /// it. <paramref name="openingStageIndex"/> carries a third meaning here beyond the ones
-    /// <see cref="Decide"/> gives it: the handler position the next segment starts after.
+    /// it. Both indexes mean exactly what they mean in <see cref="Decide"/>; here
+    /// <paramref name="handlerItemIndex"/> is additionally where the next segment starts, which is a
+    /// consequence of it being the handler's own position rather than a second meaning.
     /// </remarks>
     internal static ProcessEngineCommandResult DecideSegment(
         ServiceTaskStageExchangeResult result,
@@ -176,6 +194,7 @@ internal sealed class MailboxRelay
         Guid stepId,
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
+        int handlerItemIndex,
         int openingStageIndex
     )
     {
@@ -195,7 +214,7 @@ internal sealed class MailboxRelay
                     MailboxContinuation = new MailboxContinuation.AwaitNextMessage(
                         mailbox.Id,
                         serviceTaskType,
-                        openingStageIndex,
+                        handlerItemIndex,
                         mailbox.Seq
                     ),
                 };
@@ -213,6 +232,7 @@ internal sealed class MailboxRelay
                     MailboxContinuation = new MailboxContinuation.ConcludeAndContinue(
                         mailbox.Id,
                         serviceTaskType,
+                        handlerItemIndex,
                         openingStageIndex
                     ),
                 };
@@ -323,7 +343,7 @@ internal sealed class MailboxRelay
         string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
 
         StepRequest receiveStep = WorkflowCommandSet
-            .CreateReceiveHandlerStep(continuation.ServiceTaskType, continuation.OpeningStageIndex)
+            .CreateReceiveHandlerStep(continuation.ServiceTaskType, continuation.HandlerItemIndex)
             .ApplyStepOptions(_stepOptionsResolver, taskId, continuation.ServiceTaskType);
 
         // Minted at this hop: with the re-signed blob below, this binds each hop to current app code. The lock
@@ -377,11 +397,11 @@ internal sealed class MailboxRelay
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Identity carried, shape re-derived: the concluded exchange's index says <em>where</em> the segment
-    /// starts, and <em>what</em> it contains is planned from the pipeline as it resolves at this hop. The
-    /// pipeline is resolvable by construction: dispatch found this exchange's handler in this very callback,
-    /// and a redeploy that withdrew it stops the receiver at <c>MailboxHandlerNotFound</c> before the relay
-    /// ever runs.
+    /// Identity carried, shape re-derived: the concluding handler's item index says <em>where</em> the segment
+    /// starts and is taken straight from the continuation, while <em>what</em> the segment contains is planned
+    /// from the pipeline as it resolves at this hop. The pipeline is resolvable by construction: dispatch ran
+    /// the handler at that very index in this same callback, and a redeploy that moved it out from under the
+    /// index stops the receiver at <c>PipelineItemNotFound</c> before the relay ever runs.
     /// </para>
     /// <para>
     /// The step that enqueues the next receiver is appended <em>here</em>, last, rather than by the planner —
@@ -407,21 +427,10 @@ internal sealed class MailboxRelay
 
         ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-        // The handler answering the concluded exchange, in this hop's own resolution of the pipeline. Its item
-        // index is where the next segment starts. Dispatch found this very handler in this same callback, so a
-        // miss here would take Define breaking its determinism contract rather than model drift.
-        int handlerIndex =
-            pipeline.FindReplySegmentIndex(continuation.OpeningStageIndex)
-            ?? throw new InvalidOperationException(
-                $"The pipeline composes no handler for the exchange opened at index "
-                    + $"{continuation.OpeningStageIndex}, so the segment that follows it cannot be planned. "
-                    + "Define must return the same pipeline every time it is called."
-            );
-
         ServiceTaskSegmentPlan segmentPlan = WorkflowCommandSet.PlanSegment(
             serviceTaskType,
             pipeline,
-            afterHandlerItemIndex: handlerIndex
+            afterHandlerItemIndex: continuation.HandlerItemIndex
         );
 
         List<StepRequest> steps =

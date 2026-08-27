@@ -597,17 +597,17 @@ public class ProcessNextRequestFactoryTests
         // Act
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        // Assert — one ExecuteServiceTask engine step per stage, in composition order, each
-        // payload carrying its item index and a distinct OperationId for the engine's records;
-        // then the concluding step (the pipeline's Finally) with no stage index — the exact shape
-        // a simple IServiceTask produces on its own.
+        // Assert — one ExecuteServiceTask engine step per item, in composition order, each payload carrying
+        // that item's index and a distinct OperationId for the engine's records. The concluding step (the
+        // pipeline's Finally) is the last item and is named exactly like the rest — the exact shape a simple
+        // IServiceTask produces on its own, where the conclusion is item 0.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         Assert.Equal(2, serviceTaskSteps.Count);
 
-        Assert.Equal(0, serviceTaskSteps[0].Payload.StageIndex);
+        Assert.Equal(0, serviceTaskSteps[0].Payload.ItemIndex);
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", serviceTaskSteps[0].OperationId);
-        Assert.Null(serviceTaskSteps[1].Payload.StageIndex);
-        Assert.Equal(ExecuteServiceTask.Key, serviceTaskSteps[1].OperationId);
+        Assert.Equal(1, serviceTaskSteps[1].Payload.ItemIndex);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 1", serviceTaskSteps[1].OperationId);
         Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
 
         // Both stay critical: in Main, after the commit boundary and the side-effects enqueue.
@@ -632,8 +632,8 @@ public class ProcessNextRequestFactoryTests
         // from the task (deliberate: shared options are the default, and a budget is inert on a
         // stage that never defers).
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        var dispatch = serviceTaskSteps.Single(s => s.Payload.StageIndex == 0).Step;
-        var conclusion = serviceTaskSteps.Single(s => s.Payload.StageIndex is null).Step;
+        var dispatch = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 0).Step;
+        var conclusion = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 1).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
@@ -764,9 +764,13 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
+        (string OperationId, ExecuteServiceTaskPayload Payload, StepRequest Step) sendStep = Assert.Single(
+            serviceTaskSteps
+        );
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
-        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageIndex is null);
+        // The send's own item and nothing else: the conclusion — item 1 here — answers the exchange, so it
+        // runs on the receive workflows rather than in Main.
+        Assert.Equal(0, sendStep.Payload.ItemIndex);
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
@@ -861,11 +865,13 @@ public class ProcessNextRequestFactoryTests
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
         // One stage step, the archive's send: no send for the journal (that stage rides the continuation) and
-        // no concluding step (a step naming neither name would run the terminal here, on nothing).
+        // no concluding step (the conclusion is a later item, and it rides the continuation too).
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        StepRequest sendStep = Assert.Single(serviceTaskSteps).Step;
+        (string OperationId, ExecuteServiceTaskPayload Payload, StepRequest Step) sendStep = Assert.Single(
+            serviceTaskSteps
+        );
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
-        Assert.DoesNotContain(serviceTaskSteps, s => s.Payload.StageIndex is null);
+        Assert.Equal(0, sendStep.Payload.ItemIndex);
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(EnqueueReceiveWorkflow.Key, keys[^1]);
@@ -880,8 +886,8 @@ public class ProcessNextRequestFactoryTests
         StepRequest receiveStep = Assert.Single(Assert.Single(payload.EnqueueRequest.Workflows).Steps);
         var appData = JsonSerializer.Deserialize<AppCommandData>(receiveStep.Command.Data!.Value)!;
         var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-        Assert.Equal(0, receivePayload.RepliesTo);
-        Assert.Null(receivePayload.StageIndex);
+        // The mid-pipeline handler's own item index — item 1, right after the send it answers.
+        Assert.Equal(1, receivePayload.ItemIndex);
 
         // Resolved from the handler that answers this exchange — the HandleReplies call — and not from the
         // terminal that ends the chain, whose 3 minutes belong to a different exchange.
@@ -898,25 +904,23 @@ public class ProcessNextRequestFactoryTests
 
         var keys = ExtractCommandKeys(bundle);
         Assert.DoesNotContain(EnqueueReceiveWorkflow.Key, keys);
-        Assert.Contains(
-            ExtractServiceTaskSteps(bundle),
-            s => s.Payload.StageIndex is null && s.Payload.RepliesTo is null
-        );
+        // The signing pipeline's conclusion is its item 1, and Main runs it as an ordinary step.
+        Assert.Contains(ExtractServiceTaskSteps(bundle), s => s.Payload.ItemIndex == 1);
     }
 
     /// <summary>
-    /// Main runs stages, never an exchange's handler: naming the exchange is the receive step's job alone.
+    /// Main runs the segment's stages and stops there: the handler that answers the exchange — this
+    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone, never one of Main's.
     /// </summary>
     [Fact]
-    public async Task Create_MailboxPipeline_NamesNoExchangeOnAnyOfMainsSteps()
+    public async Task Create_MailboxPipeline_NamesOnlyStagesOnMainsSteps()
     {
         var factory = CreateFactory(serviceTasks: new SurroundedSendArchivingTask());
         var stateChange = CreateInitialTaskStart(altinnTaskType: "archiving");
 
         var bundle = await factory.Create(TestInstance, stateChange, "lock-token", SignedTestState);
 
-        Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.Null(s.Payload.RepliesTo));
-        Assert.All(ExtractServiceTaskSteps(bundle), s => Assert.NotNull(s.Payload.StageIndex));
+        Assert.Equal([0, 1, 2], ExtractServiceTaskSteps(bundle).Select(s => s.Payload.ItemIndex).ToList());
     }
 
     [Fact]
@@ -947,9 +951,9 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(ExecuteServiceTask.Key, appData.CommandKey);
         var receivePayload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal("archiving", receivePayload.ServiceTaskType);
-        // A receive step runs no stage; it names the exchange it answers, fixed here at the receiver's enqueue.
-        Assert.Null(receivePayload.StageIndex);
-        Assert.Equal(0, receivePayload.RepliesTo);
+        // A receive step names the handler that answers the message — here the terminal, at item index 1 —
+        // fixed at the receiver's enqueue. The exchange it answers comes off that handler, not off the step.
+        Assert.Equal(1, receivePayload.ItemIndex);
         Assert.Equal(TimeSpan.FromMinutes(3), receiveStep.Command.MaxExecutionTime);
 
         Assert.Equal(bundle.Request.Labels, payload.EnqueueRequest.Labels);

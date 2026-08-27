@@ -14,14 +14,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// A segment's receive half: the one step its receive workflows run — the handler answering the exchange the
-/// segment ends on, whether that is a mid-pipeline one or the pipeline's terminal — and the item index whose
-/// stage opens the exchange that step answers.
+/// segment ends on, whether that is a mid-pipeline one or the pipeline's terminal, named by its own item
+/// index — and the item index whose stage opens the exchange that handler answers.
 /// </summary>
 /// <remarks>
-/// <see cref="OpeningStageIndex"/> is deliberately the same value that sits inside <see cref="Step"/>'s
-/// serialized payload, held twice: the enqueueing hop needs it to tell <c>EnqueueReceiveWorkflow</c> which
-/// carried mailbox to declare, and reading it back out of the step would mean deserializing a payload this
-/// plan just wrote. Do not "deduplicate" it away.
+/// The two indexes are different positions, and only <see cref="OpeningStageIndex"/> addresses the mailbox:
+/// the enqueueing hop needs it to tell <c>EnqueueReceiveWorkflow</c> which carried mailbox to declare, and
+/// the step beside it names the handler instead. Carried on the plan rather than looked up again, since the
+/// walk that produced the step had the handler in hand.
 /// </remarks>
 /// <param name="Step">The receive workflow's single step.</param>
 /// <param name="OpeningStageIndex">The item index whose stage's mint the receiver is enqueued against.</param>
@@ -203,12 +203,12 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Plans one pipeline segment: one <c>ExecuteServiceTask</c> step per stage in composition order, each
-    /// preceded by a <c>MintMailbox</c> step where the stage opens a mailbox, ended by whatever ends the
-    /// segment — the next <see cref="ReplySegment"/>'s receive half, or, when no handler follows, the
-    /// pipeline's conclusion (the concluding step for a <see cref="PipelineConclusion.FinalStep"/>, the
-    /// receive half for a <see cref="PipelineConclusion.ReplyExchange"/>). A receive half's enqueue step is
-    /// the caller's to append.
+    /// Plans one pipeline segment: a walk over <see cref="ServiceTaskPipeline.Items"/> from where the segment
+    /// starts, emitting one <c>ExecuteServiceTask</c> step per stage in composition order — each preceded by a
+    /// <c>MintMailbox</c> step where the stage opens a mailbox — and ending on the first item that ends a
+    /// segment. That is the next <see cref="ReplySegment"/>'s receive half, or the conclusion the list ends
+    /// with: the concluding step for a <see cref="PipelineConclusion.FinalStep"/>, the receive half for a
+    /// <see cref="PipelineConclusion.ReplyExchange"/>. A receive half's enqueue step is the caller's to append.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -250,14 +250,33 @@ internal sealed class WorkflowCommandSet
         {
             switch (pipeline.Items[index])
             {
+                // The two reply shapes end a segment identically: the step names the handler by its own item
+                // index, and the plan carries the exchange that handler answers so the enqueueing hop knows
+                // which carried mailbox to declare the receiver against.
                 case ReplySegment handler:
                     return new ServiceTaskSegmentPlan(
                         steps,
-                        new MailboxReceivePlan(
-                            CreateReceiveHandlerStep(serviceTaskType, handler.OpeningIndex),
-                            handler.OpeningIndex
+                        new MailboxReceivePlan(CreateReceiveHandlerStep(serviceTaskType, index), handler.OpeningIndex)
+                    );
+
+                case PipelineConclusion.ReplyExchange exchange:
+                    return new ServiceTaskSegmentPlan(
+                        steps,
+                        new MailboxReceivePlan(CreateReceiveHandlerStep(serviceTaskType, index), exchange.OpeningIndex)
+                    );
+
+                case PipelineConclusion.FinalStep:
+                    // The concluding step carries its index like every other step, so a simple IServiceTask's
+                    // one step reads "ExecuteServiceTask: 0" rather than a bare key.
+                    steps.Add(
+                        CreateCommand(
+                            ExecuteServiceTask.Key,
+                            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: index),
+                            operationId: $"{ExecuteServiceTask.Key}: {index.ToString(CultureInfo.InvariantCulture)}",
+                            serviceTaskItemIndex: index
                         )
                     );
+                    return new ServiceTaskSegmentPlan(steps, Receive: null);
 
                 case ServiceTaskStage stage:
                     if (stage is ServiceTaskStage.MailboxOpening)
@@ -279,9 +298,9 @@ internal sealed class WorkflowCommandSet
                     steps.Add(
                         CreateCommand(
                             ExecuteServiceTask.Key,
-                            new ExecuteServiceTaskPayload(serviceTaskType, StageIndex: index),
+                            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: index),
                             operationId: $"{ExecuteServiceTask.Key}: {index.ToString(CultureInfo.InvariantCulture)}",
-                            serviceTaskStageIndex: index
+                            serviceTaskItemIndex: index
                         )
                     );
                     break;
@@ -293,26 +312,19 @@ internal sealed class WorkflowCommandSet
             }
         }
 
-        switch (pipeline.Conclusion)
-        {
-            case PipelineConclusion.ReplyExchange exchange:
-                return new ServiceTaskSegmentPlan(
-                    steps,
-                    new MailboxReceivePlan(
-                        CreateReceiveHandlerStep(serviceTaskType, exchange.OpeningIndex),
-                        exchange.OpeningIndex
-                    )
-                );
-
-            case PipelineConclusion.FinalStep:
-                steps.Add(CreateCommand(ExecuteServiceTask.Key, new ExecuteServiceTaskPayload(serviceTaskType)));
-                return new ServiceTaskSegmentPlan(steps, Receive: null);
-
-            default:
-                throw new UnreachableException(
-                    $"Unknown pipeline conclusion type: {pipeline.Conclusion.GetType().Name}"
-                );
-        }
+        // Unreachable from the runtime: a pipeline's items always end with its conclusion, and both conclusion
+        // shapes return, so a walk that starts anywhere inside the list reaches one. Falling out here takes the
+        // segment to start past the last item, which has exactly two causes — an afterHandlerItemIndex naming
+        // the last item or beyond (a direct caller's mistake; the relay's comes from a handler dispatch just
+        // ran, so an item follows it), and a Define that returned a shorter pipeline to this hop than to the
+        // dispatch that produced that index, breaking its determinism contract. Named rather than swallowed:
+        // planning nothing would silently drop the rest of the task.
+        throw new UnreachableException(
+            $"Service task '{serviceTaskType}' composes {pipeline.Items.Count} pipeline items, so a segment "
+                + $"starting at index {FindSegmentStart(afterHandlerItemIndex)} reaches no conclusion. Either "
+                + "the segment was planned after an item that is not a reply handler, or Define did not return "
+                + "the same pipeline it returned to the dispatch that named that handler."
+        );
     }
 
     /// <summary>
@@ -323,22 +335,29 @@ internal sealed class WorkflowCommandSet
         afterHandlerItemIndex is { } handler ? handler + 1 : 0;
 
     /// <summary>
-    /// The one step a receive workflow runs: an <c>ExecuteServiceTask</c> step that names the exchange it
-    /// answers rather than a stage it runs.
+    /// The one step a receive workflow runs: an <c>ExecuteServiceTask</c> step naming the reply handler that
+    /// answers the message — a mid-pipeline <see cref="ReplySegment"/> or a
+    /// <see cref="PipelineConclusion.ReplyExchange"/> — by its item index, exactly as a stage's step names the
+    /// stage.
     /// </summary>
     /// <remarks>
-    /// The exchange's identity is fixed here, at the receiver's enqueue, and never re-derived at the hop that
-    /// runs the step — a mid-flight reshape would otherwise point it at a different exchange, or silently none.
-    /// It travels twice, deliberately: in the payload, which dispatch reads, and in
-    /// <see cref="StepRequest.ServiceTaskRepliesTo"/>, which the enqueueing hop resolves the step's options by
-    /// — the second would otherwise mean re-deserializing the payload the hop just wrote. No
-    /// <c>ServiceTaskStageIndex</c>: a receive step runs no stage.
+    /// The handler's identity is fixed here, at the receiver's enqueue, and never re-derived at the hop that
+    /// runs the step — a mid-flight reshape would otherwise run a different handler, or none. It travels three
+    /// ways, deliberately: in the payload, which dispatch reads; in
+    /// <see cref="StepRequest.ServiceTaskItemIndex"/>, which the enqueueing hop resolves the step's options by
+    /// — reading that back out of the payload would mean deserializing what this hop just wrote; and in the
+    /// OperationId, which is the engine's own record of the step. That OperationId carries the index for the
+    /// reason every other step's does: the index <em>is</em> the identity, so a bare key would give every
+    /// receive step of every exchange in a multi-exchange pipeline one telemetry name, and would quietly
+    /// reintroduce "no index" as a meaning. Which exchange the step answers is not carried at all: it is read
+    /// off the handler this index resolves to.
     /// </remarks>
-    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, int openingStageIndex) =>
+    internal static StepRequest CreateReceiveHandlerStep(string serviceTaskType, int handlerItemIndex) =>
         CreateCommand(
             ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, RepliesTo: openingStageIndex),
-            serviceTaskRepliesTo: openingStageIndex
+            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: handlerItemIndex),
+            operationId: $"{ExecuteServiceTask.Key}: {handlerItemIndex.ToString(CultureInfo.InvariantCulture)}",
+            serviceTaskItemIndex: handlerItemIndex
         );
 
     /// <summary>
@@ -364,8 +383,7 @@ internal sealed class WorkflowCommandSet
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? serviceTaskStageIndex = null,
-        int? serviceTaskRepliesTo = null
+        int? serviceTaskItemIndex = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -377,8 +395,7 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            ServiceTaskStageIndex = serviceTaskStageIndex,
-            ServiceTaskRepliesTo = serviceTaskRepliesTo,
+            ServiceTaskItemIndex = serviceTaskItemIndex,
         };
     }
 }

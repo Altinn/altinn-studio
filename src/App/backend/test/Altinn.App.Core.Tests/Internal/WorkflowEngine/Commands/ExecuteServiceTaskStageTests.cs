@@ -11,16 +11,16 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// The pipeline dispatch of <see cref="ExecuteServiceTask"/> for an
-/// <see cref="IPipelineServiceTask"/>: resolution by item index, stage-result mapping, the
-/// null index routing to the pipeline's Finally, and the plain index-not-found verdict. The simple
-/// dispatch (an <see cref="IServiceTask"/>, whose pipeline is the forwarding default
-/// <c>Finally(Execute)</c>) is covered by <see cref="ExecuteServiceTaskTests"/>.
+/// <see cref="IPipelineServiceTask"/>: resolution by item index — the conclusion's included, since it is an
+/// item like any other — stage-result mapping, the plain index-not-found verdict, and the refusal of a
+/// payload naming no item at all. The simple dispatch (an <see cref="IServiceTask"/>, whose pipeline is the
+/// forwarding default <c>Finally(Execute)</c>) is covered by <see cref="ExecuteServiceTaskTests"/>.
 /// </summary>
 public class ExecuteServiceTaskStageTests
 {
     /// <summary>
     /// A send→poll pipeline whose behavior each test scripts via delegates: the stage at item
-    /// index 0 dispatches, and the Finally awaits the receipt and concludes.
+    /// index 0 dispatches, and the Finally — item index 1 — awaits the receipt and concludes.
     /// </summary>
     private sealed class ShippingTask : IPipelineServiceTask
     {
@@ -84,7 +84,10 @@ public class ExecuteServiceTaskStageTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(int? stageIndex) => new("shipping", stageIndex);
+    private static ExecuteServiceTaskPayload Payload(int? itemIndex) => new("shipping", itemIndex);
+
+    /// <summary>The item index of <see cref="ShippingTask"/>'s conclusion.</summary>
+    private const int ConclusionIndex = 1;
 
     /// <summary>
     /// The stage-result counterpart of
@@ -171,13 +174,14 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task NoStageIndex_RunsTheFinally_AndAutoAdvances()
+    public async Task ConclusionIndex_RunsTheFinally_AndAutoAdvances()
     {
-        // The concluding engine step carries no stage index — it is the pipeline's Finally, the
-        // only step that can conclude the task, and it runs after every stage has completed.
+        // The concluding engine step names the conclusion by its item index, like every other step — it is
+        // the pipeline's Finally, the only step that can conclude the task, and it runs after every stage
+        // has completed.
         var command = CreateCommand(new ShippingTask());
 
-        var result = await command.Execute(CreateContext(), Payload(null));
+        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
@@ -193,7 +197,7 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(null));
+        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.True(success.AutoAdvanceProcess);
@@ -209,7 +213,7 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(null));
+        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.False(success.AutoAdvanceProcess);
@@ -228,7 +232,7 @@ public class ExecuteServiceTaskStageTests
         };
         var command = CreateCommand(task);
 
-        var result = await command.Execute(CreateContext(), Payload(null));
+        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
@@ -249,7 +253,7 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task UnknownStageIndex_FailsPermanently_WithThePlainIndexVerdict()
+    public async Task UnknownItemIndex_FailsPermanently_WithThePlainIndexVerdict()
     {
         var command = CreateCommand(new ShippingTask());
 
@@ -257,8 +261,27 @@ public class ExecuteServiceTaskStageTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
-        Assert.Contains("no stage at index 2", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Equal("PipelineItemNotFound", failed.ExceptionType);
+        Assert.Contains("no pipeline item at index 2", failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Every step this expansion builds names the one item it runs, the conclusion's step included, so a
+    /// payload carrying no index at all was written by a version whose step identity differed — the shape an
+    /// old receive step's <c>repliesTo</c> also arrives in, that property being skipped by deserialization.
+    /// Refused permanently, and before the task is resolved, so an unregistered type cannot turn it retryable.
+    /// </summary>
+    [Fact]
+    public async Task IndexLessPayload_FailsPermanently_AsAnInvalidPayload()
+    {
+        var command = CreateCommand(new ShippingTask());
+
+        var result = await command.Execute(CreateContext(), Payload(itemIndex: null));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
+        Assert.Contains("names no pipeline item", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     private sealed class SimpleTask : IServiceTask
@@ -275,18 +298,19 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task StageIndexAgainstSimpleTask_FailsPermanently_AsStageNotFound()
+    public async Task ConcludingIndexAgainstSimpleTask_FailsPermanently_AsItemNotFound()
     {
-        // Version skew: a workflow enqueued when the task composed this stage, calling back into
-        // an app version where the task is a simple IServiceTask (pipeline = just the Finally).
+        // Version skew: a workflow enqueued when the task composed a stage — so its conclusion sat at item
+        // index 1 — calling back into an app version where the task is a simple IServiceTask, whose whole
+        // pipeline is the conclusion at index 0.
         var simple = new SimpleTask();
         var command = CreateCommand(simple);
 
-        var result = await command.Execute(CreateContext(), Payload(0));
+        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
+        Assert.Equal("PipelineItemNotFound", failed.ExceptionType);
         Assert.False(simple.Executed);
     }
 
@@ -300,7 +324,7 @@ public class ExecuteServiceTaskStageTests
         mock.Setup(x => x.Type).Returns("shipping");
         var command = CreateCommand(mock.Object);
 
-        var result = await command.Execute(CreateContext(), Payload(null));
+        var result = await command.Execute(CreateContext(), Payload(0));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
@@ -332,10 +356,11 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task StageIndexPointingAtAReplyHandler_IsNotAStage_AndFailsAsStageNotFound()
+    public async Task ItemIndexPointingAtAReplyHandler_WithNoRendezvous_FailsAsReceiptMissing()
     {
-        // Stages and reply handlers share one index space — the pipeline's Items. An index whose
-        // item is a handler runs no stage, so the same plain not-found verdict applies.
+        // Stages, reply handlers and the conclusion share one index space — the pipeline's Items. An index
+        // whose item answers messages, on a step the engine handed nothing to answer, is the general
+        // receipt-missing rule rather than a not-found: the item exists, the message does not.
         var task = new ReplyFirstTask();
         var command = CreateCommand(task);
 
@@ -343,7 +368,7 @@ public class ExecuteServiceTaskStageTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("ServiceTaskStageNotFound", failed.ExceptionType);
+        Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
     }
 
     /// <summary>

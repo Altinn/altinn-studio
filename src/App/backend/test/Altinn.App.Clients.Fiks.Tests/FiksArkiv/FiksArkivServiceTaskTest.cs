@@ -36,13 +36,14 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskPipeline pipeline = fixture.FiksArkivPipeline;
 
-        var stage = Assert.IsType<ServiceTaskStage.MailboxOpening>(Assert.Single(pipeline.Items));
+        Assert.Equal(2, pipeline.Items.Count);
+        var stage = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
 
         Assert.Equal(TimeSpan.FromDays(7), stage.Declaration.Timeout);
 
-        // The send is the pipeline's only item, so it opens the exchange at item index 0 — and the
-        // conclusion answers that exchange.
-        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Conclusion);
+        // The send is the pipeline's only stage, so it opens the exchange at item index 0 — and the
+        // conclusion, the item after it, answers that exchange.
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[1]);
         Assert.Equal(0, exchange.OpeningIndex);
         Assert.Null(exchange.StepOptions);
     }
@@ -691,7 +692,7 @@ public class FiksArkivServiceTaskTest
 
     private static Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskStageResult>> SendStage(
         TestFixture fixture
-    ) => Assert.IsType<ServiceTaskStage.MailboxOpening>(Assert.Single(fixture.FiksArkivPipeline.Items)).Work;
+    ) => Assert.IsType<ServiceTaskStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]).Work;
 
     private static Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage(
         TestFixture fixture
@@ -702,7 +703,7 @@ public class FiksArkivServiceTaskTest
     ) => Exchange(fixture).OnClosed;
 
     private static PipelineConclusion.ReplyExchange Exchange(TestFixture fixture) =>
-        Assert.IsType<PipelineConclusion.ReplyExchange>(fixture.FiksArkivPipeline.Conclusion);
+        Assert.IsType<PipelineConclusion.ReplyExchange>(fixture.FiksArkivPipeline.Items[^1]);
 
     private static ServiceTaskMailbox MailboxFactory(Guid? mailboxId = null) =>
         new() { Id = mailboxId ?? _mailboxId, Deadline = _executionReferenceTime + TimeSpan.FromDays(7) };

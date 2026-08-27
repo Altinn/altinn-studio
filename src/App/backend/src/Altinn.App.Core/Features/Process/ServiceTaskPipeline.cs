@@ -1,61 +1,36 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// A service task's composed pipeline: the ordered durable items and the one conclusion — a concluding
-/// step, or the handlers that answer the mailbox a stage opened. Built via
+/// A service task's composed pipeline: the ordered durable items, ending with the one conclusion — a
+/// concluding step, or the handlers that answer the mailbox a stage opened. Built via
 /// <see cref="ServiceTaskPipelineBuilder"/> and returned from
 /// <see cref="IPipelineServiceTask.Define"/>; the runtime reads it to expand, dispatch and
 /// validate the task — apps only compose and return it.
 /// </summary>
 public sealed class ServiceTaskPipeline
 {
+    /// <summary>
+    /// Takes the conclusion apart from the rest and appends it, so "exactly one conclusion, and it is
+    /// last" is a property of the only constructor rather than of a validation something could skip. The
+    /// items are copied, so a builder still composing cannot mutate a pipeline it already handed back.
+    /// </summary>
     internal ServiceTaskPipeline(IReadOnlyList<PipelineItem> items, PipelineConclusion conclusion)
     {
-        Items = items;
-        Conclusion = conclusion;
+        Items = [.. items, conclusion];
     }
 
     /// <summary>
-    /// Everything the pipeline composes before its conclusion, in composition order — one list, read by
-    /// shape. Empty for a simple service task. A position in this list is an item's index, the identity
-    /// stages and exchanges are dispatched by.
+    /// Everything the pipeline composes, in composition order and ending with its conclusion — one list,
+    /// read by shape. Never empty: the last entry is always the <see cref="PipelineConclusion"/>, and a
+    /// simple service task's pipeline is that entry alone. A position in this list is an item's index —
+    /// the one identity every step of the pipeline is dispatched by, the concluding step included.
     /// </summary>
     internal IReadOnlyList<PipelineItem> Items { get; }
-
-    /// <summary>How the task concludes: a final step, or an exchange's reply handlers.</summary>
-    internal PipelineConclusion Conclusion { get; }
-
-    /// <summary>
-    /// The non-terminal handler answering the exchange opened at the given item index, or <c>null</c> —
-    /// which for a receive step means the exchange is the conclusion's or nobody's.
-    /// </summary>
-    /// <remarks>An exchange is answered exactly once, so the first match is the only one.</remarks>
-    internal ReplySegment? FindReplySegment(int openingStageIndex) =>
-        FindReplySegmentIndex(openingStageIndex) is { } index ? (ReplySegment)Items[index] : null;
-
-    /// <summary>
-    /// The item index of the non-terminal handler answering the exchange opened at the given index, or
-    /// <c>null</c> — for a hop planning what follows an exchange, that index is where the next segment
-    /// starts.
-    /// </summary>
-    /// <remarks>An exchange is answered exactly once, so the first match is the only one.</remarks>
-    internal int? FindReplySegmentIndex(int openingStageIndex)
-    {
-        for (int i = 0; i < Items.Count; i++)
-        {
-            if (Items[i] is ReplySegment segment && segment.OpeningIndex == openingStageIndex)
-            {
-                return i;
-            }
-        }
-
-        return null;
-    }
 }
 
 /// <summary>
 /// One entry in <see cref="ServiceTaskPipeline.Items"/>: something the pipeline does, in composition
-/// order, before its conclusion.
+/// order — a stage, a reply handler it carries on past, or the conclusion the list ends with.
 /// </summary>
 /// <remarks>
 /// Not a record, for the reason <see cref="ServiceTaskStage"/> gives: an item holds delegates, so
@@ -136,14 +111,15 @@ internal abstract class ServiceTaskStage : PipelineItem
 
 /// <summary>
 /// A reply handler that answers an exchange <strong>without concluding the task</strong>: the mailbox it
-/// answers, and the two delegates that answer it. An item rather than a conclusion because the pipeline
+/// answers, and the two delegates that answer it. Not the pipeline's conclusion, because the pipeline
 /// carries on afterwards — everything composed after it runs once this exchange is over, and only a
 /// terminal concludes the task.
 /// </summary>
 /// <remarks>
 /// Deliberately the same shape as <see cref="PipelineConclusion.ReplyExchange"/> and deliberately not the
-/// same type: where the handler sits in the model — an item, or the conclusion — is what tells the runtime
-/// whether answering the exchange ends the task or starts the pipeline's next leg.
+/// same type: both are items now, so which of the two types the handler is — and nothing about where it
+/// sits — is what tells the runtime whether answering the exchange ends the task or starts the pipeline's
+/// next leg.
 /// </remarks>
 internal sealed class ReplySegment : PipelineItem
 {
@@ -161,8 +137,10 @@ internal sealed class ReplySegment : PipelineItem
     }
 
     /// <summary>
-    /// The item that opened the mailbox this handler answers — the exchange's identity in the carry, in
-    /// the receive workflow's payload and in the mint step's engine identity, exactly as for a terminal.
+    /// The item that opened the mailbox this handler answers — the exchange's identity in the carry and in
+    /// the mint step's engine identity, exactly as for a terminal. A receive step names <em>this handler</em>
+    /// by its own item index; which exchange the handler answers is read off here, from composition data
+    /// <c>Define</c> fixed, rather than looked up per hop.
     /// </summary>
     internal int OpeningIndex { get; }
 
@@ -179,23 +157,23 @@ internal sealed class ReplySegment : PipelineItem
 /// constructor keeps the set closed.
 /// </summary>
 /// <remarks>
+/// <para>
+/// An ordinary <see cref="PipelineItem"/>, and always the last one: the conclusion is dispatched by its
+/// item index like everything else, so a step of a pipeline never has to be identified by the absence of
+/// an index. Its <see cref="PipelineItem.StepOptions"/> are the concluding step's alone, winning
+/// field-wise over the task's own exactly as a stage's do, and null for a simple
+/// <see cref="IServiceTask"/>, whose conclusion is configured by the task-level options and nothing else.
+/// </para>
+/// <para>
 /// Not a record, for the same reason <see cref="ServiceTaskStage"/> is not: both members hold nothing but
 /// delegates and an index, so synthesized value equality would compare delegate references, and no caller
 /// compares, copies or prints one.
+/// </para>
 /// </remarks>
-internal abstract class PipelineConclusion
+internal abstract class PipelineConclusion : PipelineItem
 {
     private PipelineConclusion(ProcessStepOptions? stepOptions)
-    {
-        StepOptions = stepOptions;
-    }
-
-    /// <summary>
-    /// Options declared for the concluding step alone, winning field-wise over the task's own — the
-    /// same precedence a stage's options have. Null for a simple <see cref="IServiceTask"/>, whose
-    /// conclusion is configured by the task-level options and nothing else.
-    /// </summary>
-    internal ProcessStepOptions? StepOptions { get; }
+        : base(stepOptions) { }
 
     /// <summary>
     /// The pipeline ends with one more step — for an <see cref="IServiceTask"/>, its <c>Execute</c>.
@@ -236,8 +214,9 @@ internal abstract class PipelineConclusion
         }
 
         /// <summary>
-        /// The item that opened the mailbox — the exchange's identity in the carry, in the receive
-        /// workflow's payload, and in the mint step's engine identity.
+        /// The item that opened the mailbox — the exchange's identity in the carry and in the mint step's
+        /// engine identity, read off this handler for the reason <see cref="ReplySegment.OpeningIndex"/>
+        /// gives.
         /// </summary>
         public int OpeningIndex { get; }
 

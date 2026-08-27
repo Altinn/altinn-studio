@@ -22,8 +22,14 @@ public class ExecuteServiceTaskMailboxTests
     private static readonly Guid _carriedMailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
     private static readonly DateTimeOffset _carriedDeadline = new(2026, 8, 22, 10, 0, 0, TimeSpan.Zero);
 
-    /// <summary>The item index of the stage that opens the mailbox.</summary>
+    /// <summary>The item index of the stage that opens the mailbox — the carry's key for the exchange.</summary>
     private const int SendStageIndex = 0;
+
+    /// <summary>
+    /// The item index of the handler that answers that exchange: <see cref="ArchivingTask"/>'s conclusion,
+    /// composed after the sending stage and the plain one. This is what a receive step names.
+    /// </summary>
+    private const int ReplyHandlerIndex = 2;
 
     private sealed class ArchivingTask : IPipelineServiceTask
     {
@@ -169,10 +175,10 @@ public class ExecuteServiceTaskMailboxTests
         };
     }
 
-    private static ExecuteServiceTaskPayload Payload(int? stageIndex) => new("archiving", StageIndex: stageIndex);
+    private static ExecuteServiceTaskPayload Payload(int? itemIndex) => new("archiving", itemIndex);
 
-    /// <summary>A receive step as the runtime enqueues one: it names the exchange it answers.</summary>
-    private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", RepliesTo: SendStageIndex);
+    /// <summary>A receive step as the runtime enqueues one: it names the handler that answers the message.</summary>
+    private static ExecuteServiceTaskPayload ReceivePayload() => new("archiving", ItemIndex: ReplyHandlerIndex);
 
     [Fact]
     public async Task DeclaringStage_IsHandedTheMailboxTheMintStepCarried()
@@ -242,7 +248,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(stageIndex: 1));
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.Contains("RecordDispatch", task.Seen);
@@ -257,8 +263,9 @@ public class ExecuteServiceTaskMailboxTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(
             await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex))
         );
+        // The plain task's conclusion is its item 1, right after the one stage.
         Assert.IsType<SuccessfulProcessEngineCommandResult>(
-            await CreateCommand(task).Execute(CreateContext(), Payload(stageIndex: null))
+            await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1))
         );
 
         Assert.Contains("SendStage", task.Seen);
@@ -272,12 +279,12 @@ public class ExecuteServiceTaskMailboxTests
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
-    public async Task AnyStage_LeavesTheCarriedMailboxesUntouched(int stageIndex)
+    public async Task AnyStage_LeavesTheCarriedMailboxesUntouched(int itemIndex)
     {
         var task = new ArchivingTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        await CreateCommand(task).Execute(CreateContext(carry), Payload(stageIndex));
+        await CreateCommand(task).Execute(CreateContext(carry), Payload(itemIndex));
 
         Assert.NotNull(carry.Mailboxes);
         KeyValuePair<string, CarriedMailbox> only = Assert.Single(carry.Mailboxes);
@@ -286,9 +293,10 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// A concluding step reaching a pipeline that answers messages: the redeploy that turned a
-    /// <c>Finally</c> into a reply terminal while this workflow was in flight, so its Main still carries a
-    /// bare concluding step and it arrives with nothing to answer.
+    /// The reply terminal reached with nothing to answer — a step naming an item that answers messages,
+    /// handed no rendezvous. One general rule, whichever route produced it: an engine that omitted the
+    /// rendezvous, or a redeploy that turned a <c>Finally</c> into a reply terminal while this workflow was
+    /// in flight, so its Main's concluding step now names a handler.
     /// </summary>
     [Fact]
     public async Task ReplyHandlerOfAnExchangePipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
@@ -296,7 +304,7 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
 
         ProcessEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(stageIndex: null));
+            .Execute(CreateContext(MintedCarry()), Payload(ReplyHandlerIndex));
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
@@ -305,8 +313,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// The same guard through the arm a receive step takes: naming the exchange decides <em>which</em>
-    /// handler runs, and the rendezvous guards still run before it does.
+    /// The same guard through the step a receiver actually runs, built the way the expansion builds it.
     /// </summary>
     [Fact]
     public async Task ReceiveStep_WithoutARendezvous_FailsPermanentlyAndNeverRuns()
@@ -323,12 +330,12 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>
-    /// A receive step reaches the reply handler and no stage, even though the exchange it names is the one
-    /// its own sending stage opened — the opening stage's index sits in two different fields of the payload,
-    /// and only the exchange field dispatches to a handler rather than the stage.
+    /// A receive step reaches the reply handler and no stage: it names the handler's own item, so the stage
+    /// that opened the exchange is a different index entirely and never runs. The exchange the handler
+    /// answers is read off the handler, not off the step.
     /// </summary>
     [Fact]
-    public async Task ReceiveStep_NamingTheSendingStagesExchange_RunsTheHandlerAndNotTheStage()
+    public async Task ReceiveStep_NamingItsHandler_RunsTheHandlerAndNotTheSendingStage()
     {
         var task = new ArchivingTask();
 

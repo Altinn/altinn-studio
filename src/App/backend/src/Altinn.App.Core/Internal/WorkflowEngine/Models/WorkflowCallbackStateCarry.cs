@@ -23,6 +23,12 @@ internal sealed class WorkflowCallbackStateCarry
     /// <summary>The shape of every workflow that has opened no mailbox.</summary>
     public WorkflowCallbackStateCarry() { }
 
+    /// <summary>
+    /// Restores the carry from an incoming blob. Keys must be <em>canonical</em> renderings of an item index —
+    /// what <see cref="Mailboxes"/> writes — so <c>"00"</c> is refused rather than folded onto <c>"0"</c>:
+    /// two spellings of one index would otherwise collapse into one entry here and let the blob's last writer
+    /// silently win over the other exchange.
+    /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
         if (state.Mailboxes is not { } carried)
@@ -32,12 +38,15 @@ internal sealed class WorkflowCallbackStateCarry
 
         foreach ((string key, CarriedMailbox mailbox) in carried)
         {
-            if (!int.TryParse(key, NumberStyles.None, CultureInfo.InvariantCulture, out int stageIndex))
+            if (
+                !int.TryParse(key, NumberStyles.None, CultureInfo.InvariantCulture, out int stageIndex)
+                || key != stageIndex.ToString(CultureInfo.InvariantCulture)
+            )
             {
                 throw new InvalidOperationException(
                     $"The workflow state carries a mailbox under key '{key}', which is not an opening stage's "
-                        + "item index. This blob was written by a version of this app-lib that keyed mailboxes "
-                        + "differently; nothing in this version can honor it."
+                        + "item index as this app-lib writes one. This blob was written by a version of this "
+                        + "app-lib that keyed mailboxes differently; nothing in this version can honor it."
                 );
             }
 
