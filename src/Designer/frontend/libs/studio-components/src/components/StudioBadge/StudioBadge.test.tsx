@@ -23,7 +23,7 @@ describe('StudioBadge', () => {
 
 const renderTestBadge = (
   props: Partial<StudioBadgeProps> = {},
-  ref?: ForwardedRef<HTMLDivElement>,
+  ref?: ForwardedRef<HTMLSpanElement>,
 ): RenderResult => {
   return render(<StudioBadge {...props} ref={ref} />);
 };
