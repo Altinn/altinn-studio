@@ -8,7 +8,7 @@ export type StudioBadgeProps = WithoutAsChild<BadgeProps>;
 
 function StudioBadge(
   { children, ...rest }: StudioBadgeProps,
-  ref: Ref<HTMLDivElement>,
+  ref: Ref<HTMLSpanElement>,
 ): ReactElement {
   return (
     <Badge {...rest} ref={ref}>
