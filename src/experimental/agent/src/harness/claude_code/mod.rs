@@ -133,7 +133,12 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
 
 pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.claude");
-    let base = format!("claude --dangerously-skip-permissions --settings {config}/agent-settings.json");
+    // The mediated setup token cannot enumerate models, so Fable 5 never appears in the /model
+    // picker (same inference-only-scope limitation as the usage-credits gate handled in bootstrap).
+    // Launch on Fable 5 directly; users can still switch to the listed models via /model. Revisit
+    // when github.com/anthropics/claude-code#79360 ships.
+    let base =
+        format!("claude --dangerously-skip-permissions --model claude-fable-5 --settings {config}/agent-settings.json");
     // Claude Code currently reports UUID conversation IDs. Keep that
     // harness-specific constraint out of the generic Session reconciler.
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
