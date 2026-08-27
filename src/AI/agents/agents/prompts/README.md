@@ -112,12 +112,17 @@ code, whether it is a system prompt in `prompts/` or a user template in
 get_prompt_with_langfuse("intake_planning")
 ```
 
-| Local file                          | Langfuse prompt name   |
-| ----------------------------------- | ---------------------- |
-| `intake_planning.md`                | `intake_planning`      |
-| `spec_extraction.md`                | `spec_extraction`      |
-| `templates/intake_planning_user.md` | `intake_planning_user` |
-| `templates/spec_extraction_user.md` | `spec_extraction_user` |
+| Local file                          | Langfuse prompt name        |
+| ----------------------------------- | --------------------------- |
+| `intake_planning.md`                | `intake_planning`           |
+| `spec_extraction.md`                | `spec_extraction`           |
+| `semantic_query_extraction.md`      | `semantic_query_extraction` |
+| `intent_security.md`                | `intent_security`           |
+| `goal_suggestions.md`               | `goal_suggestions`          |
+| `scope_check.md`                    | `scope_check`               |
+| `templates/intake_planning_user.md` | `intake_planning_user`      |
+| `templates/spec_extraction_user.md` | `spec_extraction_user`      |
+| `templates/semantic_query_user.md`  | `semantic_query_user`       |
 
 ### LLM-as-a-judge prompts
 
