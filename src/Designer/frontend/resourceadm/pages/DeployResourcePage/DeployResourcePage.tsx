@@ -97,7 +97,7 @@ export const DeployResourcePage = ({
 
   const deprecatedAltinn2Roles = getDeprecatedAltinn2SubjectsFromRules(policyData?.rules || []);
   const hasAccessListSubject = policyData?.rules.some((rule) =>
-    rule.subject.some((subject) => subject.startsWith(ACCESS_LIST_SUBJECT_SOURCE)),
+    rule.subject.some((subject) => subject.toLowerCase().startsWith(ACCESS_LIST_SUBJECT_SOURCE.toLowerCase())),
   );
 
   /**
