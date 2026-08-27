@@ -70,7 +70,7 @@ export const ShareChangesPopover = () => {
         aria-label={t('sync_header.changes_to_share')}
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}
-        {displayNotification && <StudioBadge data-size='lg' data-color='danger' />}
+        {displayNotification && <StudioBadge className={classes.badge} data-color='danger' />}
       </StudioPopover.Trigger>
       <StudioPopover
         open={popoverOpen}
