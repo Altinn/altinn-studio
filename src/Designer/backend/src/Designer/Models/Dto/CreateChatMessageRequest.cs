@@ -11,6 +11,7 @@ public record CreateChatMessageRequest(
     List<string>? AttachmentFileNames,
     List<string>? FilesChanged,
     List<ChatSourceEntity>? Sources,
+    bool? AttachmentInstructionFlagged = null,
     string? TraceId = null,
     string? EventId = null
 );

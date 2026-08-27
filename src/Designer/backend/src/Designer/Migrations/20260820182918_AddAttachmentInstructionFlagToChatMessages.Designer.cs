@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    partial class DesignerdbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820182918_AddAttachmentInstructionFlagToChatMessages")]
+    partial class AddAttachmentInstructionFlagToChatMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,14 +267,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("EventId")
-                        .HasColumnType("character varying")
-                        .HasColumnName("event_id");
-
-                    b.Property<bool?>("FeedbackThumbsUp")
-                        .HasColumnType("boolean")
-                        .HasColumnName("feedback_thumbs_up");
-
                     b.PrimitiveCollection<List<string>>("FilesChanged")
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
@@ -292,17 +287,9 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("thread_id");
 
-                    b.Property<string>("TraceId")
-                        .HasColumnType("character varying")
-                        .HasColumnName("trace_id");
-
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "ThreadId" }, "idx_chat_messages_thread_id");
-
-                    b.HasIndex(new[] { "ThreadId", "EventId" }, "idx_chat_messages_thread_id_event_id")
-                        .IsUnique()
-                        .HasFilter("event_id IS NOT NULL");
 
                     b.ToTable("chat_messages", "designer");
                 });
