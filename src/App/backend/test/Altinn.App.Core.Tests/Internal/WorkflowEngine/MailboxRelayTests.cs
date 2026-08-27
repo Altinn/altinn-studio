@@ -1342,7 +1342,7 @@ public class MailboxRelayTests
         StepRequest mint = continuation.Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: {JournalIndex}");
         Assert.Null(mint.Command.MaxExecutionTime);
 
-        // The receiver's step is the terminal's, resolved through the exchange name it carries.
+        // The receiver's step is the terminal's, resolved through the handler item index it carries.
         StepRequest receiveStep = Assert.Single(
             Assert.Single(ReceiveEnqueuePayload(continuation).EnqueueRequest.Workflows).Steps
         );

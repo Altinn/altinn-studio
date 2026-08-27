@@ -225,5 +225,26 @@ Both confirmed by Tobias exactly as proposed; implement them as written.
 
 | Step | Scope                                                              | Status      |
 | ---- | ------------------------------------------------------------------ | ----------- |
-| 1    | PR 1 — conclusion-as-item, one-index payload, dispatch/relay/planner/resolver, tests | **approved** (jj `uuoynoxltwkp`/`73b78715`) |
-| 2    | PR 2 — docs: AGENTS.md bullets, changelog clause, xmldoc pass, `rg` proof | in progress |
+| 1    | PR 1 — conclusion-as-item, one-index payload, dispatch/relay/planner/resolver, tests | **approved** (jj change `uuoynoxltwkp`) |
+| 2    | PR 2 — docs: AGENTS.md bullets, changelog clause, xmldoc pass, `rg` proof | **approved** (jj change `urrwqssrxzsr`) |
+
+Both steps implemented and reviewed 2026-08-27. Residual, recorded rather than fixed:
+
+- `Altinn.App.Integration.Tests` **was executed** against a live localtest (2026-08-27): the
+  WorkflowEngine suite 16/16 and the remainder 56/57 (1 pre-existing skip), 0 failures, with no
+  `.received.*` files — so every committed snapshot matched without regeneration, confirming the
+  hand-checked OperationId values independently.
+- `PlanSegment`'s `UnreachableException` names two causes; the second (a non-deterministic `Define`
+  returning a shorter pipeline to the relay's hop than to the dispatch that named the handler) is
+  untestable without deliberately breaking the determinism contract. The message names it, which is
+  what the deleted `InvalidOperationException` used to buy.
+- The reshape hazard is now stated in three places (the dispatch bullet, the concluding bullet's
+  cross-reference, and `MailboxRelay.Decide`'s `<remarks>`). They agree today and the dispatch bullet
+  is canonical; a three-way consistency obligation for whoever edits it next.
+- Successor receivers (`AwaitNextMessage`) reuse the handler's index and so share a step OperationId
+  across separate workflows. Correct, and unchanged in kind from before (they shared the bare key),
+  but nothing asserts it is intentional.
+- Out of scope and untouched: `src/App/backend/AGENTS.md` still documents CRLF as load-bearing while
+  `d5c7b3ec0d` set `.editorconfig` to `lf` and root `.gitattributes` still says `eol=crlf` —
+  plausibly why the generated `.g.cs` files under
+  `test/Altinn.App.SourceGenerator.Integration.Tests/gen/` sit permanently modified.

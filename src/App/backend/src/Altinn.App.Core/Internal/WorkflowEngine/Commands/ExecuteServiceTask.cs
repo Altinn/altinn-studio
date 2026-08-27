@@ -258,7 +258,7 @@ internal sealed class ExecuteServiceTask(
     /// <term><c>MailboxDeliveryEnvelopeInvalid</c></term>
     /// <description>
     /// the delivered bytes do not open as something this application sealed. <strong>Reachable from app
-    /// code</strong>, unlike the two above: <see cref="IServiceTaskReplyForwarder"/> takes both the mailbox id
+    /// code</strong>, unlike the one above: <see cref="IServiceTaskReplyForwarder"/> takes both the mailbox id
     /// and the service task type from its caller — deliberately, because deriving either can sign its own
     /// mistake — so forwarding under the wrong one seals for a different mailbox or task and fails the unwrap
     /// here. The other routes are a forged or altered delivery and an app code that expired while the message
