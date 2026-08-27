@@ -138,19 +138,36 @@ public class ChatController(IChatService chatService, IAltinityAgentClient altin
     [HttpPut("feedback/{traceId}")]
     [RequestSizeLimit(20_000)]
     public async Task<IActionResult> SubmitFeedback(
+        string org,
+        string app,
         string traceId,
         [FromBody] ChatFeedbackRequest request,
         CancellationToken cancellationToken
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
         await altinityAgentClient.SendFeedbackAsync(
-            developer,
+            editingContext.Developer,
             traceId,
             request.ThumbsUp,
             request.Comment,
             cancellationToken
         );
+        await chatService.SetFeedbackAsync(traceId, request.ThumbsUp, editingContext, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("feedback/{traceId}")]
+    public async Task<IActionResult> ClearFeedback(
+        string org,
+        string app,
+        string traceId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        await altinityAgentClient.ClearFeedbackAsync(editingContext.Developer, traceId, cancellationToken);
+        await chatService.SetFeedbackAsync(traceId, null, editingContext, cancellationToken);
         return NoContent();
     }
 

@@ -1,4 +1,4 @@
-"""Agentic core — the model-driven loop and its supporting primitives.
+"""Agentic core: the model-driven loop and its supporting primitives.
 
 Everything the loop needs: the provider adapters, the tool registry and
 its built-in tools (scan/read/edit/write/verify/commit + Altinn schema
@@ -39,6 +39,7 @@ from .tools import (
     DiscardFileChangesTool,
     EditFileTool,
     LayoutPropsTool,
+    PreviewRenderCheckTool,
     ReadFileTool,
     ScanRepoTool,
     SkillTool,
@@ -65,6 +66,7 @@ __all__ = [
     "OpenAIAdapter",
     "PermissionResult",
     "PreparedCall",
+    "PreviewRenderCheckTool",
     "ReadFileTool",
     "ScanRepoTool",
     "SessionContext",

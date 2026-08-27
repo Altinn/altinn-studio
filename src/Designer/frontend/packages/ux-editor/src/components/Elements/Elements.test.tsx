@@ -6,7 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppContextProps } from '../../AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { UxEditorParams } from '../../hooks/useUxEditorParams';
-import type { PreviewContextProps } from 'app-development/contexts/PreviewContext';
+import type { PreviewContextProps } from 'app-shared/contexts/PreviewContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';

@@ -1,3 +1,4 @@
+from shared.models.experiment import ExperimentContext
 from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 from shared.models import AgentAttachment
@@ -129,6 +130,7 @@ class AgentState(BaseModel):
     repo_path: str
     app_name: str
     developer: str
+    experiment: Optional["ExperimentContext"] = None
     org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
     trace_id: Optional[str] = None  # Langfuse trace id, captured once at the root span

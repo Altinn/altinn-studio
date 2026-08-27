@@ -20,8 +20,10 @@ public static class ChatMessageMapper
             FilesChanged = entity.FilesChanged,
             AttachmentFileNames = entity.AttachmentFileNames,
             Sources = entity.Sources is null ? null : JsonSerializer.Serialize(entity.Sources),
+            AttachmentInstructionFlagged = entity.AttachmentInstructionFlagged,
             TraceId = entity.TraceId,
             EventId = entity.EventId,
+            FeedbackThumbsUp = entity.FeedbackThumbsUp,
         };
     }
 
@@ -40,8 +42,10 @@ public static class ChatMessageMapper
             Sources = dbModel.Sources is null
                 ? null
                 : JsonSerializer.Deserialize<List<ChatSourceEntity>>(dbModel.Sources),
+            AttachmentInstructionFlagged = dbModel.AttachmentInstructionFlagged,
             TraceId = dbModel.TraceId,
             EventId = dbModel.EventId,
+            FeedbackThumbsUp = dbModel.FeedbackThumbsUp,
         };
     }
 }

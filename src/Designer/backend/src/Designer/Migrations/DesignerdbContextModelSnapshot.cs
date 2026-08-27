@@ -268,9 +268,17 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("event_id");
 
+                    b.Property<bool?>("FeedbackThumbsUp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("feedback_thumbs_up");
+
                     b.PrimitiveCollection<List<string>>("FilesChanged")
                         .HasColumnType("text[]")
                         .HasColumnName("files_changed");
+
+                    b.Property<bool?>("AttachmentInstructionFlagged")
+                        .HasColumnType("boolean")
+                        .HasColumnName("attachment_instruction_flagged");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")

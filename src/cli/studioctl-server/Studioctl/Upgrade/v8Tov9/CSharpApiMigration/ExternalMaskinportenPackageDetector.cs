@@ -106,7 +106,7 @@ internal sealed class ExternalMaskinportenPackageDetector
 
         if (matches.Count == 0)
         {
-            return new MigrationResult(ManualActionRequired: false, Array.Empty<string>());
+            return new MigrationResult();
         }
 
         return PackageDeclaration() switch

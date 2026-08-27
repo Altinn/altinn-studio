@@ -56,6 +56,13 @@ public interface IChatService
         CancellationToken cancellationToken = default
     );
 
+    Task<bool> SetFeedbackAsync(
+        string traceId,
+        bool? thumbsUp,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
+
     Task<bool> ThreadBelongsToDeveloperAsync(
         Guid threadId,
         AltinnRepoEditingContext context,

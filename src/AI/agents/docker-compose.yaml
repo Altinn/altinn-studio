@@ -7,14 +7,15 @@ services:
       - "8071:8071"
     env_file:
       - .env.docker
+    environment:
+      # Chromium pins *.localhost to 127.0.0.1, so map it past that.
+      - PREVIEW_HOST_RESOLVER_RULES=MAP studio.localhost studio-loadbalancer, MAP localhost fake-ansattporten
     networks:
       - default
       - designer
 
-# The gitea-proxy lives on Designer's compose network.  We attach the agents
-# container to that network so it can reach `gitea-proxy:80` (the X-Api-Key
-# entry) via Docker DNS — port 81 (exposed to the host) is the internal
-# X-WEBAUTH-USER path and doesn't accept the api_key flow.
+# Joins Designer's network so this container can reach gitea-proxy by DNS on :80,
+# the X-Api-Key entry. The host-exposed :81 is X-WEBAUTH-USER and rejects api keys.
 networks:
   designer:
     external: true

@@ -5,10 +5,10 @@ import httpx
 
 from services.traces.delete_expired_traces import (
     DELETE_BATCH_SIZE,
-    PAGE_SIZE,
     _delete_traces_before,
-    _fetch_trace_id_page,
+    _fetch_expired_trace_ids,
 )
+from shared.utils.langfuse_public_api import PAGE_SIZE
 
 CUTOFF = datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc)
 
@@ -53,9 +53,10 @@ class TestFetchTraceIdPage:
 
         client = _client_with_handler(handler)
 
-        await _fetch_trace_id_page(client, CUTOFF, page_number=1)
+        await _fetch_expired_trace_ids(client, CUTOFF)
 
-        assert captured_params["toTimestamp"] == CUTOFF.isoformat()
+        assert captured_params["toStartTime"] == CUTOFF.isoformat()
+        assert "isRootObservation" in captured_params["filter"]
 
     async def test_filters_on_production_environments_only(self):
         captured_environments: list[str] = []
@@ -68,7 +69,7 @@ class TestFetchTraceIdPage:
 
         client = _client_with_handler(handler)
 
-        await _fetch_trace_id_page(client, CUTOFF, page_number=1)
+        await _fetch_expired_trace_ids(client, CUTOFF)
 
         assert captured_environments == ["prod", "production"]
 
@@ -89,15 +90,24 @@ def _create_client_mock(
         if request.method == "DELETE":
             deleted_batches.append(_read_trace_ids(request))
             return httpx.Response(200, json={})
-        page = _page_of(all_trace_ids, int(request.url.params["page"]))
-        return httpx.Response(200, json={"data": [{"id": tid} for tid in page]})
+        cursor = request.url.params.get("cursor")
+        page, next_cursor = _page_of(all_trace_ids, cursor)
+        return httpx.Response(
+            200,
+            json={
+                "data": [{"id": f"span-{tid}", "traceId": tid} for tid in page],
+                "meta": {"cursor": next_cursor} if next_cursor else {},
+            },
+        )
 
     return _client_with_handler(handler), deleted_batches
 
 
-def _page_of(trace_ids: list[str], page_number: int) -> list[str]:
-    start = (page_number - 1) * PAGE_SIZE
-    return trace_ids[start : start + PAGE_SIZE]
+def _page_of(trace_ids: list[str], cursor: str | None) -> tuple[list[str], str | None]:
+    start = int(cursor) if cursor else 0
+    page = trace_ids[start : start + PAGE_SIZE]
+    nxt = start + PAGE_SIZE
+    return page, str(nxt) if nxt < len(trace_ids) else None
 
 
 def _read_trace_ids(request: httpx.Request) -> list[str]:

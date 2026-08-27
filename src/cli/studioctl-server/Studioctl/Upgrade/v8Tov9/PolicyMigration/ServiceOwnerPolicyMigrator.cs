@@ -63,8 +63,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         };
 
     private readonly string _projectFolder;
-    private readonly List<string> _warnings = new();
-    private bool _manualActionRequired;
+    private readonly List<UpgradeMessage> _messages = new();
     private bool _autoDeleteOnProcessEnd;
 
     public ServiceOwnerPolicyMigrator(string projectFolder)
@@ -73,9 +72,9 @@ internal sealed class ServiceOwnerPolicyMigrator
     }
 
     /// <summary>
-    /// Runs the migration. The result carries any warnings and whether manual follow-up is required
-    /// (e.g. the analysis was inconclusive, or a required grant could not be inserted). No warnings and
-    /// no manual action means the policy already covered everything.
+    /// Runs the migration. The result carries any warnings, plus a to-do per piece of work left for the
+    /// developer (e.g. the analysis was inconclusive, or a required grant could not be inserted). No
+    /// warnings and no to-dos means the policy already covered everything.
     /// </summary>
     public async Task<MigrationResult> Migrate()
     {
@@ -83,7 +82,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         if (policyFile is null)
         {
             // Nothing to inspect and nothing left half-done, so no manual follow-up is implied.
-            _warnings.Add("Could not find config/authorization/policy.xml; skipped service-owner policy migration.");
+            _messages.Warn("Could not find config/authorization/policy.xml; skipped service-owner policy migration.");
             return Result();
         }
 
@@ -95,8 +94,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         }
         catch (DecoderFallbackException)
         {
-            _manualActionRequired = true;
-            _warnings.Add(
+            _messages.Todo(
                 $"{Path.GetFileName(policyFile)} is not valid UTF-8 (it may use a legacy encoding such as "
                     + "ISO-8859-1); skipped service-owner policy migration. Convert the file to UTF-8 and re-run "
                     + "the upgrade."
@@ -110,8 +108,7 @@ internal sealed class ServiceOwnerPolicyMigrator
             var doc = XDocument.Parse(text);
             if (doc.Root is null || doc.Root.Name.LocalName != "Policy")
             {
-                _manualActionRequired = true;
-                _warnings.Add(
+                _messages.Todo(
                     "policy.xml does not contain a <Policy> root element; skipped service-owner policy migration."
                 );
                 return Result();
@@ -120,8 +117,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         }
         catch (XmlException ex)
         {
-            _manualActionRequired = true;
-            _warnings.Add(
+            _messages.Todo(
                 $"Could not parse {Path.GetFileName(policyFile)} ({ex.Message}); skipped service-owner policy "
                     + "migration. Please verify the org has read/write/complete rights manually."
             );
@@ -137,11 +133,10 @@ internal sealed class ServiceOwnerPolicyMigrator
         // "already granted" conclusion would be unreliable. Hand the analysis to the developer.
         if (HasDenyRules(root))
         {
-            _manualActionRequired = true;
             var actionsToVerify = RequiredActions
                 .Concat(processInfo?.TaskSpecificActions.Select(a => a.Action) ?? [])
                 .Distinct(StringComparer.OrdinalIgnoreCase);
-            _warnings.Add(
+            _messages.Todo(
                 "policy.xml contains one or more Deny rules, which this migration cannot evaluate "
                     + "statically; the analysis of the app owner's rights is inconclusive and no rule was "
                     + $"inserted. Please verify manually that the app owner '{orgValue}' is permitted (and "
@@ -153,8 +148,7 @@ internal sealed class ServiceOwnerPolicyMigrator
 
         if (processInfo is null && PolicyScopesByTaskOrEndEvent(root))
         {
-            _manualActionRequired = true;
-            _warnings.Add(
+            _messages.Todo(
                 "Could not read config/process/process.bpmn, so task- and end-event-scoped grants in "
                     + "policy.xml could not be verified against the process and were not counted when "
                     + "checking the app owner's rights."
@@ -180,7 +174,7 @@ internal sealed class ServiceOwnerPolicyMigrator
             if (updatedText is not null)
             {
                 await Utf8TextFile.Write(policyFile, updatedText, withBom: hadBom);
-                _warnings.Add(
+                _messages.Warn(
                     $"Added a policy rule granting the app owner '{orgValue}' the action(s) "
                         + $"[{string.Join(", ", missingActions)}] on {orgValue}/{appValue} in any process state. "
                         + "The v9 workflow engine persists process transitions to Storage as the service owner, "
@@ -192,18 +186,16 @@ internal sealed class ServiceOwnerPolicyMigrator
             }
             else
             {
-                // InsertOrgRule could not add the rule safely (it warned with specifics); the required
-                // grant is still missing, so the developer must add it by hand.
-                _manualActionRequired = true;
+                _messages.Todo("Grant is still missing and must be added by hand. See warning above.");
             }
         }
 
-        WarnAboutTaskSpecificActions(root, orgValue, appValue, processInfo);
+        CheckTaskSpecificActions(root, orgValue, appValue, processInfo);
 
         return Result();
     }
 
-    private MigrationResult Result() => new(_manualActionRequired, _warnings);
+    private MigrationResult Result() => new(_messages);
 
     /// <summary>
     /// The baseline actions, plus <c>delete</c> when the app deletes its instances at process end.
@@ -440,7 +432,7 @@ internal sealed class ServiceOwnerPolicyMigrator
 
         if (insertIndex < 0)
         {
-            _warnings.Add(
+            _messages.Warn(
                 "Could not find an insertion point in policy.xml. Please grant the app owner the action(s) "
                     + $"[{string.Join(", ", actions)}] manually."
             );
@@ -459,7 +451,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         }
         catch (XmlException ex)
         {
-            _warnings.Add(
+            _messages.Warn(
                 $"Inserting the service-owner rule into {Path.GetFileName(policyFile)} would produce invalid XML "
                     + $"({ex.Message}). Left the file unchanged - please grant the app owner the action(s) "
                     + $"[{string.Join(", ", actions)}] manually."
@@ -475,7 +467,7 @@ internal sealed class ServiceOwnerPolicyMigrator
             .Any(e => e.Name.LocalName == "Rule" && e.Attribute("RuleId")?.Value == ruleId);
         if (ruleWasInserted != true)
         {
-            _warnings.Add(
+            _messages.Warn(
                 $"Could not insert the service-owner rule into {Path.GetFileName(policyFile)} safely (the "
                     + "insertion point appears to be inside a comment or other non-element content). Left the "
                     + $"file unchanged - please grant the app owner the action(s) [{string.Join(", ", actions)}] "
@@ -585,12 +577,12 @@ internal sealed class ServiceOwnerPolicyMigrator
     }
 
     /// <summary>
-    /// Warns about task-specific actions (confirm, reject, or the custom task-type name) whose
+    /// Adds a to-do for task-specific actions (confirm, reject, or the custom task-type name) whose
     /// transitions the engine replays with a dedicated action but the policy does not grant the org.
     /// Grants scoped to the task(s) of the relevant type count here, since these transitions happen
     /// inside those tasks.
     /// </summary>
-    private void WarnAboutTaskSpecificActions(
+    private void CheckTaskSpecificActions(
         XElement policyRoot,
         string orgValue,
         string appValue,
@@ -615,8 +607,7 @@ internal sealed class ServiceOwnerPolicyMigrator
 
         if (missing.Count > 0)
         {
-            _manualActionRequired = true;
-            _warnings.Add(
+            _messages.Todo(
                 "The process contains task types whose transitions the v9 workflow engine replays with a "
                     + "dedicated action, and the policy does not grant the app owner these: "
                     + string.Join(
