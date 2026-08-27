@@ -10,6 +10,7 @@ import { MessageFeedback } from './MessageFeedback';
 import { MessageRow } from '../MessageRow';
 import { SourceList } from './SourceList';
 import { CriticalFileAlert } from './CriticalFileAlert';
+import { SecurityNoticeAlert } from './SecurityNoticeAlert';
 import { FilesChangedList } from './FilesChangedList';
 import classes from './AssistantMessage.module.css';
 
@@ -46,6 +47,9 @@ export function AssistantMessage({
       {filesChanged.length > 0 && <FilesChangedList filePaths={filesChanged} />}
       {criticalFiles.length > 0 && (
         <CriticalFileAlert criticalFiles={criticalFiles} texts={texts.criticalFileAlert} />
+      )}
+      {message.attachmentInstructionFlagged && (
+        <SecurityNoticeAlert texts={texts.securityNoticeAlert} />
       )}
       {showFeedback && (
         <MessageFeedback

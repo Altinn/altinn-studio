@@ -65,6 +65,11 @@ class LangfuseApi:
         response.raise_for_status()
         return response.json()
 
+    def _patch(self, path: str, body: dict) -> dict:
+        response = self._client.patch(path, json=body)
+        response.raise_for_status()
+        return response.json()
+
     # -- datasets ---------------------------------------------------------
 
     def dataset_items(self, dataset_name: str) -> list[dict]:
