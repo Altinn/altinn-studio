@@ -4694,6 +4694,7 @@ namespace Altinn.App.Core.Models
     {
         public Party() { }
         public System.Collections.Generic.List<Altinn.App.Core.Models.Party>? ChildParties { get; set; }
+        public string? ExternalUrn { get; set; }
         public bool IsDeleted { get; set; }
         public System.DateTimeOffset? LastChangedInAltinn { get; set; }
         public System.DateTimeOffset? LastChangedInExternalRegister { get; set; }

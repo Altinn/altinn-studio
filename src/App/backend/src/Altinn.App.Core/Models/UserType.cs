@@ -3,6 +3,10 @@ namespace Altinn.App.Core.Models;
 /// <summary>
 /// The available user types.
 /// </summary>
+/// <remarks>
+/// Unchanged from the old, deprecated <c>Altinn.Platform.Profile.Enums.UserType</c> — same members, same
+/// underlying values.
+/// </remarks>
 public enum UserType
 {
     /// <summary>

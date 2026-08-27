@@ -3,6 +3,11 @@ namespace Altinn.Platform.Profile.Models;
 /// <summary>
 /// Describes a user's profile setting preferences.
 /// </summary>
+/// <remarks>
+/// Compared to the old, deprecated <c>Altinn.Platform.Profile.Models.ProfileSettingPreference</c>:
+/// <see cref="PreselectedPartyUuid"/>, <see cref="ShowClientUnits"/>,
+/// <see cref="ShouldShowSubEntities"/>, and <see cref="ShouldShowDeletedEntities"/> are new fields.
+/// </remarks>
 public class ProfileSettingPreference
 {
     /// <summary>

@@ -3,6 +3,10 @@ namespace Altinn.Register.Contracts.V1;
 /// <summary>
 /// The available party types.
 /// </summary>
+/// <remarks>
+/// Unchanged from the old, deprecated <c>Altinn.Platform.Register.Enums.PartyType</c> — same members,
+/// same underlying values.
+/// </remarks>
 public enum PartyType
 {
     /// <summary>

@@ -5,6 +5,13 @@ namespace Altinn.Platform.Profile.Models;
 /// <summary>
 /// Describes a user profile.
 /// </summary>
+/// <remarks>
+/// Vendored to match the shape of <c>Altinn/altinn-profile</c>'s own already-migrated model, rather than
+/// referenced as a NuGet package (that service ships as a container, not a library, so there is no
+/// package to depend on). Compared to the old, deprecated
+/// <c>Altinn.Platform.Profile.Models.UserProfile</c>: <see cref="UserUuid"/> and <see cref="IsReserved"/>
+/// are new fields, and every string property is now properly nullable.
+/// </remarks>
 public class UserProfile
 {
     /// <summary>

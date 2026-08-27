@@ -3,6 +3,14 @@ namespace Altinn.Register.Contracts.V1;
 /// <summary>
 /// Represents a party.
 /// </summary>
+/// <remarks>
+/// Vendored to match the shape of the actively-maintained <c>Altinn.Register.Contracts.V1.Party</c> (the
+/// replacement for the discontinued <c>Altinn.Platform.Models</c> package), rather than referenced as a
+/// NuGet package — see the remarks on <see cref="ChildParties"/> for why. Compared to the old, deprecated
+/// <c>Altinn.Platform.Register.Models.Party</c>: <see cref="PartyUuid"/>, <see cref="ExternalUrn"/>,
+/// <see cref="LastChangedInAltinn"/>, and <see cref="LastChangedInExternalRegister"/> are new fields, and
+/// every string property is now properly nullable (the old type predated nullable reference types).
+/// </remarks>
 public record Party
 {
     /// <summary>
@@ -69,6 +77,14 @@ public record Party
     /// <summary>
     /// Gets or sets the child parties of this party.
     /// </summary>
+    /// <remarks>
+    /// This is <see cref="List{T}"/>, not <see cref="IReadOnlyList{T}"/> like the upstream
+    /// <c>Altinn.Register.Contracts.V1.Party</c> — matching the shape of the original, pre-migration
+    /// <c>Altinn.Platform.Register.Models.Party</c>. The App SDK's XML content negotiation is backed by
+    /// <see cref="System.Xml.Serialization.XmlSerializer"/>, which requires a settable/addable collection
+    /// type and cannot serialize <see cref="IReadOnlyList{T}"/>; keeping <see cref="List{T}"/> here keeps
+    /// LocalTest's emulated responses faithful to what the App SDK's vendored <c>Party</c> expects.
+    /// </remarks>
     public List<Party>? ChildParties { get; set; }
 
     /// <summary>

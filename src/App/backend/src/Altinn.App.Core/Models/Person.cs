@@ -3,6 +3,10 @@ namespace Altinn.App.Core.Models;
 /// <summary>
 /// Represents a person.
 /// </summary>
+/// <remarks>
+/// Field-for-field identical to the old, deprecated <c>Altinn.Platform.Register.Models.Person</c> — the
+/// only change is that every string property is now properly nullable.
+/// </remarks>
 public record Person
 {
     /// <summary>
