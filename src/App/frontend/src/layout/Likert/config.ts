@@ -41,6 +41,13 @@ export const Config = asOptionsComponent(
   )
   .addTextResource(
     new CG.trb({
+      name: 'help',
+      title: 'Help text',
+      description: 'Help text shown in a tooltip when clicking the help button',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
       name: 'leftColumnHeader',
       title: 'Left column header',
       description: 'The header text for the left column in the Likert table',
