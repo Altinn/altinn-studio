@@ -17,7 +17,7 @@ describe('StudioBadge', () => {
   });
 
   it('should allow custom attributes', () => {
-    testCustomAttributes((customAttributes) => renderTestBadge({ ...customAttributes }));
+    testCustomAttributes<HTMLSpanElement, StudioBadgeProps>(renderTestBadge);
   });
 });
 
