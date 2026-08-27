@@ -13,11 +13,7 @@ public class LookupOrganisationResponse
     public static LookupOrganisationResponse CreateFromOrganisation(Organization? organisation)
     {
         var details = OrganisationDetails.MapFromOrganisation(organisation);
-        return new LookupOrganisationResponse
-        {
-            Success = details is not null,
-            OrganisationDetails = details,
-        };
+        return new LookupOrganisationResponse { Success = details is not null, OrganisationDetails = details };
     }
 
     /// <summary>
@@ -51,14 +47,14 @@ public class OrganisationDetails
     /// </summary>
     public static OrganisationDetails? MapFromOrganisation(Organization? organisation)
     {
-        if (organisation is null || string.IsNullOrEmpty(organisation.OrgNumber) || string.IsNullOrEmpty(organisation.Name))
+        if (
+            organisation is null
+            || string.IsNullOrEmpty(organisation.OrgNumber)
+            || string.IsNullOrEmpty(organisation.Name)
+        )
         {
             return null;
         }
-        return new OrganisationDetails
-        {
-            OrgNr = organisation.OrgNumber,
-            Name = organisation.Name,
-        };
+        return new OrganisationDetails { OrgNr = organisation.OrgNumber, Name = organisation.Name };
     }
 }

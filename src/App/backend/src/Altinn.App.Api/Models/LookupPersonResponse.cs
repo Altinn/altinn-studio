@@ -13,11 +13,7 @@ public class LookupPersonResponse
     public static LookupPersonResponse CreateFromPerson(Person? person)
     {
         var details = PersonDetails.MapFromPerson(person);
-        return new LookupPersonResponse
-        {
-            Success = details is not null,
-            PersonDetails = details,
-        };
+        return new LookupPersonResponse { Success = details is not null, PersonDetails = details };
     }
 
     /// <summary>
@@ -66,7 +62,12 @@ public class PersonDetails
     /// </summary>
     public static PersonDetails? MapFromPerson(Person? person)
     {
-        if (person is null || string.IsNullOrEmpty(person.SSN) || string.IsNullOrEmpty(person.Name) || string.IsNullOrEmpty(person.LastName))
+        if (
+            person is null
+            || string.IsNullOrEmpty(person.SSN)
+            || string.IsNullOrEmpty(person.Name)
+            || string.IsNullOrEmpty(person.LastName)
+        )
         {
             return null;
         }

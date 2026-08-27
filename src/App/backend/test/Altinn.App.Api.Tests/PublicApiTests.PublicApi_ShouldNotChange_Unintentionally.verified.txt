@@ -1112,7 +1112,7 @@ namespace Altinn.App.Api.Models
         public OrganisationDetails() { }
         public required string Name { get; init; }
         public required string OrgNr { get; init; }
-        public static Altinn.App.Api.Models.OrganisationDetails MapFromOrganisation(Altinn.App.Core.Models.Organization organisation) { }
+        public static Altinn.App.Api.Models.OrganisationDetails? MapFromOrganisation(Altinn.App.Core.Models.Organization? organisation) { }
     }
     public sealed class PartyResponse
     {
@@ -1134,7 +1134,7 @@ namespace Altinn.App.Api.Models
         public string? MiddleName { get; init; }
         public required string Name { get; init; }
         public required string Ssn { get; init; }
-        public static Altinn.App.Api.Models.PersonDetails MapFromPerson(Altinn.App.Core.Models.Person person) { }
+        public static Altinn.App.Api.Models.PersonDetails? MapFromPerson(Altinn.App.Core.Models.Person? person) { }
     }
     public class ProcessNext
     {
