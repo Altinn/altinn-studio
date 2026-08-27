@@ -9,7 +9,7 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioBadge', () => {
   it('should support forwarding the ref', () => {
-    testRefForwarding<HTMLDivElement>((ref) => renderTestBadge({}, ref));
+    testRefForwarding<HTMLSpanElement>((ref) => renderTestBadge({}, ref));
   });
 
   it('should append classname to root', () => {
