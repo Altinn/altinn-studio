@@ -213,8 +213,8 @@ steps:
         fi
 
   - task: Bash@3
-    displayName: 'Process custom IngressRoute for staff org'
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_OWNER'], 'staff'))
+    displayName: 'Process custom IngressRoute for staf org'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_OWNER'], 'staf'))
     inputs:
       targetType: inline
       script: |
@@ -281,7 +281,7 @@ steps:
 
   - task: Bash@3
     displayName: 'Fail if unsupported templates directory exists'
-    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_OWNER'], 'staff'))
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_OWNER'], 'staf'))
     inputs:
       targetType: inline
       script: |
@@ -705,7 +705,7 @@ steps:
           "${NORMALIZED_VALUES}" \
           "${OVERRIDES_FILE}" > "${MERGED_VALUES}"
 
-        # --- Merge custom ingress routes if available (staff org only) ---
+        # --- Merge custom ingress routes if available (staf org only) ---
         CUSTOM_INGRESS_FILE="../${APP_COMMIT_ID}/custom-ingress-routes.yaml"
         if [[ "${HAS_CUSTOM_INGRESS_ROUTES}" == "true" ]] && [[ -f "${CUSTOM_INGRESS_FILE}" ]]; then
           echo "Merging custom ingress routes into values"

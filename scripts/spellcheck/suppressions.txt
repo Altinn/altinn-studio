@@ -96,9 +96,10 @@ Axe
 
 # --------------------------------------------------- codes and slugs ---
 
-# Altinn service-owner org slug used as config/test values
+# Altinn service-owner org slugs (als, staf) used as config/test values
 @paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/development/setup.js
 als
+staf
 
 # Altinn org slug (uppercased) in fixtures and policy data
 @paths src/runner-org-sync/** src/AI/agents/**
@@ -140,9 +141,9 @@ Statistisk
 
 # KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
 @paths src/App/backend/**/Altinn.App.Clients.Fiks*/**
+Dokument
 Registrering
 registrering
-Dokument
 Som
 
 # the v8 API really was named Authorisation; the upgrade tooling matches it to rewrite it, and release notes describe it
@@ -170,9 +171,9 @@ Hel
 
 # Norwegian sample content in Storybook stories and JSX text nodes
 @paths **/MergeConflictWarning/**
-som
-Noen
 appen
+Noen
+som
 
 # Norwegian JSX text nodes
 @paths **/AddItem/ToggleAddComponentPoc.tsx **/DownloadXMLButton/DownloadXMLButton.tsx **/MergeConflictWarning/MergeConflictWarning.tsx
@@ -199,10 +200,6 @@ designet
 @paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts src/App/frontend/src/features/applicationMetadata/types.ts src/App/frontend/src/features/instantiate/containers/NoValidPartiesError.tsx src/App/frontend/src/features/instantiate/containers/PartySelection.tsx
 Organisation
 organisation
-
-# FileAnalysis.Analyse is the shipped telemetry span name.
-@paths src/App/backend/src/Altinn.App.Core/Features/Telemetry/Telemetry.FileAnalysis.cs
-Analyse
 
 # Designer serializes AutoSaveBehaviour into layout-settings JSON that
 # deployed apps read (the app side accepts it as a legacy alias). Renaming

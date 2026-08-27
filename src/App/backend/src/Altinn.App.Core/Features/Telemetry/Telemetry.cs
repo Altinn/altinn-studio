@@ -202,17 +202,17 @@ public sealed partial class Telemetry : IDisposable
         /// <summary>
         /// Label for the organization name.
         /// </summary>
-        public const string OrganizationName = "organisation.name";
+        public const string OrganizationName = "organization.name";
 
         /// <summary>
         /// Label for the organization number.
         /// </summary>
-        public const string OrganizationNumber = "organisation.number";
+        public const string OrganizationNumber = "organization.number";
 
         /// <summary>
         /// Label for the ID of the system user.
         /// </summary>
-        public const string OrganizationSystemUserId = "organisation.systemuser.id";
+        public const string OrganizationSystemUserId = "organization.systemuser.id";
 
         /// <summary>
         /// Label for the Correspondence ID.

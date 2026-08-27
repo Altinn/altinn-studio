@@ -1332,9 +1332,9 @@ namespace Altinn.App.Core.Features
             public const string FiksMessageType = "fiks.message.type";
             public const string FiksSendersReference = "fiks.message.sendersReference";
             public const string NotificationSendersReference = "notification.sendersReference";
-            public const string OrganizationName = "organisation.name";
-            public const string OrganizationNumber = "organisation.number";
-            public const string OrganizationSystemUserId = "organisation.systemuser.id";
+            public const string OrganizationName = "organization.name";
+            public const string OrganizationNumber = "organization.number";
+            public const string OrganizationSystemUserId = "organization.systemuser.id";
             public const string UserAuthenticationInAltinnPortal = "user.authentication.inAltinnPortal";
             public const string UserAuthenticationLevel = "user.authentication.level";
             public const string UserAuthenticationMethod = "user.authentication.method";
