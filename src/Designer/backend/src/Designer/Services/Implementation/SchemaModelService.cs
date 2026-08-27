@@ -472,9 +472,6 @@ public class SchemaModelService : ISchemaModelService
         string restoredTaskId = null;
         if (isNewDataType && _appVersionService.IsV9App(altinnRepoEditingContext))
         {
-            // The datamodel may have previously been deleted and is now being recreated with the same
-            // id. Its old task binding still lives in that task's Settings.json (defaultDataType is no
-            // longer cleared on delete), so restore it here instead of leaving TaskId unset.
             restoredTaskId = await FindTaskIdWithDefaultDataType(altinnAppGitRepository, schemaFileName);
         }
 
@@ -491,9 +488,7 @@ public class SchemaModelService : ISchemaModelService
     /// <param name="application">The <see cref="Application"/> object to be updated.</param>
     /// <param name="dataTypeId">The id of the datatype to bed added.</param>
     /// <param name="classRef">The C# class reference of the data type.</param>
-    /// <param name="taskId">
-    /// The task id to bind a newly created data type to, if a previous binding for this id was found.
-    /// </param>
+    /// <param name="taskId">The task id to bind a newly created data type to, if a previous binding for this id was found.</param>
     private static void UpdateApplicationWithAppLogicModel(
         ApplicationMetadata application,
         string dataTypeId,
@@ -579,10 +574,7 @@ public class SchemaModelService : ISchemaModelService
         {
             DataType dataTypeToDelete = applicationMetadata.DataTypes.Find(m => m.Id == id);
 
-            // v9 apps: deliberately leave defaultDataType in the task's Settings.json untouched. It
-            // becomes a dangling reference until either the datamodel is recreated with the same id
-            // (UpdateApplicationMetadata restores the TaskId binding from it) or the user reconnects the
-            // task to a different datamodel in the process editor.
+            // v9: keep defaultDataType so recreate can restore TaskId.
             if (!isV9OrNewer && altinnAppGitRepository.AppUsesLayoutSets())
             {
                 await ClearDataTypeFromLayoutSets(altinnAppGitRepository, id);
