@@ -1,4 +1,4 @@
-import { PreviewContextProvider } from './PreviewContext';
+import { PreviewContextProvider } from 'app-shared/contexts/PreviewContext';
 import { combineComponents } from '../utils/context/combineComponents';
 import { LayoutContextProvider } from './LayoutContext';
 

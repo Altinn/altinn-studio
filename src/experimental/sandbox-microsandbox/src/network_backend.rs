@@ -42,7 +42,7 @@ pub struct MicrosandboxNetworkBackend {
 /// Host-owned mapping from a non-secret placeholder to current secret material.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SecretBinding {
-    id: String,
+    environment: String,
     placeholder: String,
     reference: SecretReference,
 }
@@ -50,6 +50,12 @@ pub struct SecretBinding {
 struct Driver {
     commands: mpsc::Sender<DriverCommand>,
     task: JoinHandle<()>,
+}
+
+#[derive(Clone, Copy)]
+struct SandboxSubject<'a> {
+    id: &'a SandboxId,
+    name: &'a SandboxName,
 }
 
 enum DriverCommand {
@@ -77,18 +83,20 @@ impl MicrosandboxNetworkBackend {
 
     /// Replaces the secret bindings applied when this named Sandbox's Network starts.
     ///
-    /// Existing connections keep their handshake configuration until the
-    /// Network is restarted. Secret material itself is resolved from the store
-    /// for every authorized use, so rotation does not require a restart.
+    /// Returns whether the binding definition changed. Existing connections
+    /// keep their handshake configuration until the caller restarts the Network.
+    /// Secret material itself is resolved from the store for every authorized
+    /// use, so rotating a value behind an unchanged binding needs no restart.
     ///
     /// # Errors
     ///
     /// Returns an error when a binding is empty, duplicated, ambiguous, or
     /// unsafe for the Microsandbox control protocol.
-    pub fn set_secret_bindings(&self, sandbox_name: SandboxName, bindings: Vec<SecretBinding>) -> Result<(), Error> {
+    pub fn set_secret_bindings(&self, sandbox_name: SandboxName, bindings: Vec<SecretBinding>) -> Result<bool, Error> {
         validate_secret_bindings(&bindings)?;
+        let changed = self.secret_bindings.borrow().get(&sandbox_name) != Some(&bindings);
         self.secret_bindings.borrow_mut().insert(sandbox_name, bindings);
-        Ok(())
+        Ok(changed)
     }
 
     /// Removes the configured bindings for a named Sandbox.
@@ -176,6 +184,7 @@ impl NetworkBackend for MicrosandboxNetworkBackend {
             let task = tokio::task::spawn_local(async move {
                 if let Err(error) = drive(
                     sandbox_id,
+                    request.sandbox_name,
                     endpoint.into_parts(),
                     policy,
                     secret_store,
@@ -211,29 +220,49 @@ impl SecretBinding {
     ///
     /// # Errors
     ///
-    /// Returns an error when the ID or placeholder is invalid.
-    pub fn new(
-        id: impl Into<String>,
+    /// Returns an error when the environment-variable name is invalid.
+    pub fn new(environment: impl Into<String>, reference: SecretReference) -> Result<Self, Error> {
+        let environment = environment.into();
+        let placeholder = format!("$MSB_{environment}");
+        Self::with_placeholder(environment, placeholder, reference)
+    }
+
+    /// Creates a host-owned secret binding with a caller-selected placeholder.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the environment-variable name or placeholder is invalid.
+    pub fn with_placeholder(
+        environment: impl Into<String>,
         placeholder: impl Into<String>,
         reference: SecretReference,
     ) -> Result<Self, Error> {
         let binding = Self {
-            id: id.into(),
+            environment: environment.into(),
             placeholder: placeholder.into(),
             reference,
         };
         if !valid_secret_binding(&binding) {
-            return Err(Error::invalid("secretBinding", "ID or placeholder is invalid"));
+            return Err(Error::invalid(
+                "secretBinding",
+                "environment-variable name or placeholder is invalid",
+            ));
         }
         Ok(binding)
     }
 
+    /// Returns the non-secret environment assignment exposed inside the Sandbox.
+    #[must_use]
+    pub fn guest_environment(&self) -> (&str, &str) {
+        (&self.environment, &self.placeholder)
+    }
+
     fn runtime_entry(&self) -> SecretEntry {
         SecretEntry {
-            env_var: self.id.clone(),
+            env_var: self.environment.clone(),
             value: Zeroizing::new(String::new()),
             source: Some(SecretSource::Store {
-                reference: self.id.clone(),
+                reference: self.environment.clone(),
             }),
             placeholder: self.placeholder.clone(),
             allowed_hosts: vec![HostPattern::Any],
@@ -246,6 +275,7 @@ impl SecretBinding {
 
 async fn drive(
     sandbox_id: SandboxId,
+    sandbox_name: SandboxName,
     mut endpoint: NetworkControlEndpointParts,
     policy: Rc<dyn PolicyEngine>,
     secret_store: Option<Rc<dyn SecretStore>>,
@@ -266,7 +296,10 @@ async fn drive(
                         while let Some(message) = received.pop_front() {
                             let runtime_message = serde_json::from_slice(message.as_bytes()).map_err(protocol_error)?;
                             let response = handle_runtime_message(
-                                &sandbox_id,
+                                SandboxSubject {
+                                    id: &sandbox_id,
+                                    name: &sandbox_name,
+                                },
                                 runtime_message,
                                 policy.as_ref(),
                                 secret_store.as_deref(),
@@ -295,7 +328,7 @@ async fn drive(
 }
 
 async fn handle_runtime_message(
-    sandbox_id: &SandboxId,
+    subject: SandboxSubject<'_>,
     message: RuntimeMessage,
     policy: &dyn PolicyEngine,
     secret_store: Option<&dyn SecretStore>,
@@ -321,8 +354,7 @@ async fn handle_runtime_message(
             flow_id,
             operation,
         } if *handshake_complete => {
-            let authorization =
-                authorize_operation(sandbox_id, &operation, policy, secret_store, secret_bindings).await;
+            let authorization = authorize_operation(subject, &operation, policy, secret_store, secret_bindings).await;
             let (decision, secret_material) = authorization.map_or_else(
                 || (RuntimeDecision::Deny, None),
                 |secret_material| {
@@ -347,7 +379,7 @@ async fn handle_runtime_message(
 }
 
 async fn authorize_operation(
-    sandbox_id: &SandboxId,
+    subject: SandboxSubject<'_>,
     operation: &NetworkOperation,
     policy: &dyn PolicyEngine,
     secret_store: Option<&dyn SecretStore>,
@@ -356,12 +388,12 @@ async fn authorize_operation(
     if let NetworkOperation::SecretUse { secret, locations, .. } = operation
         && (locations.is_empty()
             || locations.iter().collect::<HashSet<_>>().len() != locations.len()
-            || !bindings.iter().any(|binding| binding.id == *secret))
+            || !bindings.iter().any(|binding| binding.environment == *secret))
     {
         return None;
     }
     if !matches!(
-        policy.evaluate(authorization_request(sandbox_id, operation)).await,
+        policy.evaluate(authorization_request(subject, operation)).await,
         Ok(AuthorizationDecision::Allow)
     ) {
         return None;
@@ -369,7 +401,7 @@ async fn authorize_operation(
     let NetworkOperation::SecretUse { secret, .. } = operation else {
         return Some(None);
     };
-    let binding = bindings.iter().find(|binding| binding.id == *secret)?;
+    let binding = bindings.iter().find(|binding| binding.environment == *secret)?;
     let store = secret_store?;
     let resolved = store.resolve(&binding.reference).await.ok()?;
     let value = std::str::from_utf8(resolved.expose()).ok()?;
@@ -379,17 +411,19 @@ async fn authorize_operation(
     Some(Some(RuntimeSecretMaterial::new(value.to_owned())))
 }
 
-fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -> AuthorizationRequest {
-    let principal = Principal::new(principal_kind::SANDBOX, sandbox_id.to_string());
+fn authorization_request(subject: SandboxSubject<'_>, operation: &NetworkOperation) -> AuthorizationRequest {
+    let principal = Principal::new(principal_kind::SANDBOX, subject.id.to_string());
     match operation {
         NetworkOperation::Connect {
             source,
             destination,
             transport,
             hostname,
+            destination_is_host,
         } => {
-            let mut authorization_context = AuthorizationContext::new()
+            let mut authorization_context = sandbox_context(subject.name)
                 .with_attribute(context::NETWORK_DESTINATION_ADDRESS, destination.to_string())
+                .with_attribute(context::NETWORK_DESTINATION_IS_HOST, *destination_is_host)
                 .with_attribute(context::NETWORK_TRANSPORT, transport_name(*transport));
             if let Some(source) = source {
                 authorization_context.insert(context::NETWORK_SOURCE_ADDRESS, source.to_string());
@@ -414,7 +448,7 @@ fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -
             resolver,
             transport,
         } => {
-            let mut authorization_context = AuthorizationContext::new()
+            let mut authorization_context = sandbox_context(subject.name)
                 .with_attribute(context::DNS_RECORD_TYPE, record_type.clone())
                 .with_attribute(context::NETWORK_TRANSPORT, transport_name(*transport));
             if let Some(resolver) = resolver {
@@ -439,7 +473,8 @@ fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -
             principal,
             action: Action::new(action::HTTP_REQUEST),
             resource: Resource::new(resource_kind::EXTERNAL_SERVICE, authority.clone()),
-            context: http_context(*destination, *scheme, authority, method, path, *version, *stream_id),
+            context: http_context(*destination, *scheme, authority, method, path, *version, *stream_id)
+                .with_attribute(context::SANDBOX_NAME, subject.name.as_str()),
         },
         NetworkOperation::SecretUse {
             destination,
@@ -453,7 +488,8 @@ fn authorization_request(sandbox_id: &SandboxId, operation: &NetworkOperation) -
             locations,
         } => {
             let mut authorization_context =
-                http_context(*destination, *scheme, authority, method, path, *version, *stream_id);
+                http_context(*destination, *scheme, authority, method, path, *version, *stream_id)
+                    .with_attribute(context::SANDBOX_NAME, subject.name.as_str());
             authorization_context.insert(
                 context::SECRET_LOCATIONS,
                 locations
@@ -494,11 +530,18 @@ fn http_context(
     authorization_context
 }
 
+fn sandbox_context(sandbox_name: &SandboxName) -> AuthorizationContext {
+    AuthorizationContext::new().with_attribute(context::SANDBOX_NAME, sandbox_name.as_str())
+}
+
 fn validate_secret_bindings(bindings: &[SecretBinding]) -> Result<(), Error> {
     if bindings.iter().any(|binding| !valid_secret_binding(binding)) {
         return Err(Error::invalid("secretBindings", "contains an invalid binding"));
     }
-    let ids = bindings.iter().map(|binding| &binding.id).collect::<HashSet<_>>();
+    let environments = bindings
+        .iter()
+        .map(|binding| &binding.environment)
+        .collect::<HashSet<_>>();
     let placeholders = bindings
         .iter()
         .map(|binding| &binding.placeholder)
@@ -509,23 +552,31 @@ fn validate_secret_bindings(bindings: &[SecretBinding]) -> Result<(), Error> {
             .enumerate()
             .all(|(other_index, other)| index == other_index || !binding.placeholder.contains(&other.placeholder))
     });
-    if ids.len() != bindings.len() || placeholders.len() != bindings.len() || !unambiguous {
+    if environments.len() != bindings.len() || placeholders.len() != bindings.len() || !unambiguous {
         return Err(Error::invalid(
             "secretBindings",
-            "IDs and placeholders must be unique and placeholders must be unambiguous",
+            "environment variables and placeholders must be unique and placeholders must be unambiguous",
         ));
     }
     Ok(())
 }
 
 fn valid_secret_binding(binding: &SecretBinding) -> bool {
-    !binding.id.is_empty()
+    valid_environment_variable(&binding.environment)
         && !binding.placeholder.is_empty()
         && binding.placeholder.len() <= microsandbox_network::secrets::config::MAX_SECRET_PLACEHOLDER_BYTES
         && !binding
             .placeholder
             .bytes()
             .any(|byte| matches!(byte, 0 | b'\r' | b'\n'))
+}
+
+fn valid_environment_variable(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .enumerate()
+            .all(|(index, byte)| byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit()))
 }
 
 const fn http_scheme_name(scheme: microsandbox_network::control::HttpScheme) -> &'static str {
@@ -606,6 +657,33 @@ mod tests {
     use sandbox_authorization::{AuthorizationDecision, AuthorizationRequest, PolicyEngine, StaticPolicy};
 
     use super::{MicrosandboxNetworkBackend, SecretBinding};
+
+    struct TestControlEndpoint {
+        #[cfg(unix)]
+        _directory: tempfile::TempDir,
+        path: std::path::PathBuf,
+    }
+
+    impl TestControlEndpoint {
+        fn new() -> Self {
+            #[cfg(unix)]
+            {
+                let directory = tempfile::tempdir().expect("temporary endpoint directory");
+                let path = directory.path().join("network.sock");
+                Self {
+                    _directory: directory,
+                    path,
+                }
+            }
+
+            #[cfg(windows)]
+            {
+                Self {
+                    path: format!(r"\\.\pipe\agent-network-test-{}", uuid::Uuid::new_v4()).into(),
+                }
+            }
+        }
+    }
 
     struct RecordingPolicy {
         decisions: RefCell<BTreeMap<String, AuthorizationDecision>>,
@@ -690,6 +768,7 @@ mod tests {
             destination: "198.51.100.10:443".parse().expect("valid test destination"),
             transport: TransportProtocol::Tcp,
             hostname: Some("example.com".to_string()),
+            destination_is_host: false,
         }
     }
 
@@ -723,14 +802,22 @@ mod tests {
             path: "/items".to_string(),
             version: HttpVersion::Http1,
             stream_id: None,
-            secret: "provider-token".to_string(),
+            secret: "PROVIDER_TOKEN".to_string(),
             locations: vec![microsandbox_network::control::SecretLocation::Header],
         }
     }
 
     #[test]
     fn maps_http_request_to_authorization_contract() {
-        let request = super::authorization_request(&sandbox_id(), &http_operation());
+        let sandbox_id = sandbox_id();
+        let sandbox_name = sandbox_name();
+        let request = super::authorization_request(
+            super::SandboxSubject {
+                id: &sandbox_id,
+                name: &sandbox_name,
+            },
+            &http_operation(),
+        );
 
         assert_eq!(request.action.as_str(), "http.request");
         assert_eq!(request.resource.kind, "externalService");
@@ -755,8 +842,12 @@ mod tests {
             .set_secret_bindings(
                 first.clone(),
                 vec![
-                    SecretBinding::new("first-token", "$FIRST_TOKEN", SecretReference::from_opaque("first"))
-                        .expect("valid first binding"),
+                    SecretBinding::with_placeholder(
+                        "FIRST_TOKEN",
+                        "$FIRST_TOKEN",
+                        SecretReference::from_opaque("first"),
+                    )
+                    .expect("valid first binding"),
                 ],
             )
             .expect("configure first Sandbox");
@@ -764,21 +855,66 @@ mod tests {
             .set_secret_bindings(
                 second.clone(),
                 vec![
-                    SecretBinding::new("second-token", "$SECOND_TOKEN", SecretReference::from_opaque("second"))
-                        .expect("valid second binding"),
+                    SecretBinding::with_placeholder(
+                        "SECOND_TOKEN",
+                        "$SECOND_TOKEN",
+                        SecretReference::from_opaque("second"),
+                    )
+                    .expect("valid second binding"),
                 ],
             )
             .expect("configure second Sandbox");
 
         let bindings = backend.secret_bindings.borrow();
-        assert_eq!(bindings[&first][0].id, "first-token");
-        assert_eq!(bindings[&second][0].id, "second-token");
+        assert_eq!(bindings[&first][0].environment, "FIRST_TOKEN");
+        assert_eq!(bindings[&second][0].environment, "SECOND_TOKEN");
+    }
+
+    #[test]
+    fn default_secret_binding_exposes_an_inert_environment_placeholder() {
+        let binding =
+            SecretBinding::new("API_TOKEN", SecretReference::from_opaque("stored-token")).expect("valid binding");
+        let runtime = binding.runtime_entry();
+
+        assert_eq!(runtime.env_var, "API_TOKEN");
+        assert_eq!(runtime.placeholder, "$MSB_API_TOKEN");
+    }
+
+    #[test]
+    fn secret_binding_rejects_an_invalid_environment_variable() {
+        let error = SecretBinding::new("NOT-AN-ENV", SecretReference::from_opaque("stored-token"))
+            .expect_err("invalid environment-variable names must fail closed");
+
+        assert!(error.to_string().contains("environment-variable name"));
+    }
+
+    #[test]
+    fn replacing_secret_bindings_reports_definition_changes() {
+        let backend = MicrosandboxNetworkBackend::new(Rc::new(StaticPolicy::allow_all()));
+        let sandbox = sandbox_name();
+        let binding = || SecretBinding::new("TOKEN", SecretReference::from_opaque("token")).expect("valid binding");
+
+        assert!(
+            backend
+                .set_secret_bindings(sandbox.clone(), vec![binding()])
+                .expect("initial binding")
+        );
+        assert!(
+            !backend
+                .set_secret_bindings(sandbox.clone(), vec![binding()])
+                .expect("unchanged binding")
+        );
+        assert!(
+            backend
+                .set_secret_bindings(sandbox, Vec::new())
+                .expect("removed binding")
+        );
     }
 
     #[tokio::test(flavor = "local")]
     async fn controller_allows_and_revokes_a_live_flow() {
-        let directory = tempfile::tempdir().expect("temporary endpoint directory");
-        let path = directory.path().join("network.sock");
+        let control = TestControlEndpoint::new();
+        let path = control.path.clone();
         let controller = microsandbox_network::control::NetworkControlHost::bind(path.clone())
             .await
             .expect("bind Network control endpoint");
@@ -827,8 +963,8 @@ mod tests {
 
     #[tokio::test(flavor = "local")]
     async fn controller_fails_closed_on_policy_denial_and_disconnect() {
-        let directory = tempfile::tempdir().expect("temporary endpoint directory");
-        let path = directory.path().join("network.sock");
+        let control = TestControlEndpoint::new();
+        let path = control.path.clone();
         let controller = microsandbox_network::control::NetworkControlHost::bind(path.clone())
             .await
             .expect("bind Network control endpoint");
@@ -865,8 +1001,8 @@ mod tests {
 
     #[tokio::test(flavor = "local")]
     async fn controller_resolves_secrets_after_both_authorizations_and_observes_rotation() {
-        let directory = tempfile::tempdir().expect("temporary endpoint directory");
-        let path = directory.path().join("network.sock");
+        let control = TestControlEndpoint::new();
+        let path = control.path.clone();
         let controller = microsandbox_network::control::NetworkControlHost::bind(path.clone())
             .await
             .expect("bind Network control endpoint");
@@ -881,7 +1017,7 @@ mod tests {
         backend
             .set_secret_bindings(
                 sandbox_name(),
-                vec![SecretBinding::new("provider-token", "$TOKEN", reference).expect("valid binding")],
+                vec![SecretBinding::with_placeholder("PROVIDER_TOKEN", "$TOKEN", reference).expect("valid binding")],
             )
             .expect("configure secret mediation");
         let sandbox_id = sandbox_id();
@@ -919,7 +1055,7 @@ mod tests {
             assert_eq!(requests[0].action.as_str(), "http.request");
             assert_eq!(requests[1].action.as_str(), "secret.use");
             assert_eq!(requests[1].resource.kind, "secret");
-            assert_eq!(requests[1].resource.id, "provider-token");
+            assert_eq!(requests[1].resource.id, "PROVIDER_TOKEN");
             assert_eq!(
                 requests[1].context.attributes["http.authority"].as_str(),
                 Some("example.com")
@@ -962,12 +1098,19 @@ mod tests {
     async fn unknown_bindings_and_secret_store_failures_are_denied() {
         let policy = StaticPolicy::allow_all();
         let store = MemorySecretStore::default();
-        let missing = SecretBinding::new("provider-token", "$TOKEN", SecretReference::from_opaque("missing"))
-            .expect("valid binding");
+        let sandbox_id = sandbox_id();
+        let sandbox_name = sandbox_name();
+        let subject = super::SandboxSubject {
+            id: &sandbox_id,
+            name: &sandbox_name,
+        };
+        let missing =
+            SecretBinding::with_placeholder("PROVIDER_TOKEN", "$TOKEN", SecretReference::from_opaque("missing"))
+                .expect("valid binding");
 
         assert!(
             super::authorize_operation(
-                &sandbox_id(),
+                subject,
                 &secret_use_operation(),
                 &policy,
                 Some(&store),
@@ -977,7 +1120,7 @@ mod tests {
             .is_none()
         );
         assert!(
-            super::authorize_operation(&sandbox_id(), &secret_use_operation(), &policy, Some(&store), &[],)
+            super::authorize_operation(subject, &secret_use_operation(), &policy, Some(&store), &[],)
                 .await
                 .is_none()
         );
