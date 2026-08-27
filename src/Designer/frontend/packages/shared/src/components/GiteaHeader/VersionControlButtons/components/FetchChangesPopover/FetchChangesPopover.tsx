@@ -80,7 +80,12 @@ export const FetchChangesPopover = (): React.ReactElement => {
       >
         {shouldDisplayText && t('sync_header.fetch_changes')}
         {displayNotification && (
-          <StudioBadge data-color='danger' data-size='md' data-count={repoStatus?.behindBy} />
+          <StudioBadge
+            data-color='danger'
+            data-size='md'
+            role='status'
+            data-count={repoStatus?.behindBy}
+          />
         )}
       </StudioPopover.Trigger>
       {popoverOpen && (
