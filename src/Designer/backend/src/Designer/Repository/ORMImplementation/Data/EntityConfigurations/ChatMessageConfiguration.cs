@@ -38,7 +38,7 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
             .Property(e => e.AttachmentInstructionFlagged)
             .HasColumnType("boolean")
             .HasColumnName("attachment_instruction_flagged");
-            
+
         builder.Property(e => e.TraceId).HasColumnType("character varying").HasColumnName("trace_id");
 
         builder.Property(e => e.EventId).HasColumnType("character varying").HasColumnName("event_id");

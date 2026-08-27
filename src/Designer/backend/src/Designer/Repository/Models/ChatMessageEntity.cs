@@ -55,6 +55,8 @@ public class ChatMessageEntity
     /// Set when the assistant reported that an uploaded document tried to instruct it.
     /// </summary>
     public bool? AttachmentInstructionFlagged { get; set; }
+
+    /// <summary>
     /// Langfuse trace id of the agent run that produced this message.
     /// Used by the feedback (thumbs up/down) flow.
     /// </summary>

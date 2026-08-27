@@ -76,6 +76,7 @@ def _completion_events(monkeypatch, final_text: str, history: list | None = None
         changed_files=["App/ui/form/layouts/Side1.json"],
         allow_app_changes=True,
         tests_passed=True,
+        trace_id=None,
     )
     result = LoopResult(
         reason=TerminationReason.COMPLETED,
