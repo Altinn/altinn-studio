@@ -96,22 +96,20 @@ To use a prompt from Langfuse instead of the local file:
 1. **Go to your Langfuse dashboard** (e.g. `https://langfuse.digdir.cloud`)
 2. **Navigate to Prompts** in the sidebar
 3. **Create a new prompt** with these settings:
-   - **Name**: By default must match the local filename without `.md` (e.g. `intake_planning`). For prompts in subdirectories (e.g. `llm-as-a-judge/`), the Langfuse name is a **flat short name** (e.g. `intent_match`) while the local file lives at `llm-as-a-judge/intent_match.md`. The `local_path` parameter in `get_prompt_with_langfuse()` bridges this difference — see the naming table below.
+   - **Name**: Must match the local filename without `.md` (e.g. `intake_planning`); see the naming table below. Evaluator prompts under `llm-as-a-judge/` are set up separately as Langfuse evaluators (see [LLM-as-a-judge prompts](#llm-as-a-judge-prompts)).
    - **Type**: `Text` (not Chat)
    - **Content**: Paste the prompt content (without YAML frontmatter for system prompts)
 4. **Label it `production`** — By default, `get_prompt()` fetches the version labeled `production`. If no version has this label, the fetch will fail and fall back to local.
 
 ### Prompt Naming Reference
 
-For top-level prompts the Langfuse name equals the filename (without `.md`).
-For prompts in subdirectories the Langfuse name is a **flat short name** — pass the subdirectory path as `local_path` so the loader can find the local fallback file:
+The Langfuse prompt name is the local filename without its `.md` extension and
+without any folder prefix. This holds for every prompt loaded by application
+code, whether it is a system prompt in `prompts/` or a user template in
+`templates/`:
 
 ```python
-# Top-level: name == local path, no local_path needed
 get_prompt_with_langfuse("intake_planning")
-
-# Subdirectory: short Langfuse name, explicit local fallback path
-get_prompt_with_langfuse("intent_match", local_path="llm-as-a-judge/intent_match")
 ```
 
 | Local file                          | Langfuse prompt name   |
