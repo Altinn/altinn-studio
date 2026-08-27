@@ -104,30 +104,31 @@ internal sealed class MisspelledApiMigration
             changes.AddRange(rewriter.Changes);
         }
 
+        var messages = new List<UpgradeMessage>();
         if (changes.Count > 0)
         {
-            changes.Insert(
-                0,
+            messages.Warn(
                 "Renamed misspelled SDK APIs to their v9 US English spellings. Only C# names changed - "
-                    + "routes, JSON keys and telemetry values are unaffected. Rewrites:"
+                    + "routes and JSON keys are unaffected. Rewrites:"
             );
+            messages.WarnRange(changes);
         }
 
+        // Unverified names are warnings, not to-dos: most occurrences of an ambiguous name are the
+        // app's own symbols, and a genuine SDK reference that slips through fails the build, which
+        // is loud enough.
         if (unverified.Count > 0)
         {
-            changes.Add(
+            messages.Warn(
                 "These occurrences of renamed SDK names could not be verified without a compilation - "
                     + "if one refers to the SDK, apply the US English spelling by hand (for example "
                     + "Organisation -> Organization, Analyse -> Analyze); if it is the app's own symbol, "
                     + "leave it alone:"
             );
-            changes.AddRange(unverified);
+            messages.WarnRange(unverified);
         }
 
-        // The rewrites leave the app compiling. Unverified names are not flagged as required work:
-        // most occurrences of an ambiguous name are the app's own symbols, and a genuine SDK
-        // reference that slips through fails the build, which is loud enough.
-        return new MigrationResult(ManualActionRequired: false, changes);
+        return new MigrationResult(messages);
     }
 
     private sealed class Rewriter : CSharpSyntaxRewriter

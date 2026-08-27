@@ -95,7 +95,7 @@ public sealed class MisspelledApiMigrationTests : IDisposable
 
         var result = new MisspelledApiMigration(SyntaxScanner()).Migrate();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.False(result.RequiresManualFollowUp);
         var migratedModel = File.ReadAllText(model);
         Assert.Contains("InstantiationInstance", migratedModel);
         Assert.DoesNotContain("InstansiationInstance", migratedModel);
@@ -150,7 +150,7 @@ public sealed class MisspelledApiMigrationTests : IDisposable
 
         var result = new MisspelledApiMigration(SyntaxScanner()).Migrate();
 
-        Assert.False(result.ManualActionRequired);
+        Assert.False(result.RequiresManualFollowUp);
         var content = File.ReadAllText(formModel);
         Assert.Contains("OrganisationNumber", content);
         Assert.Contains(result.Warnings, w => w.Contains("FormModel.cs") && w.Contains("OrganisationNumber"));
