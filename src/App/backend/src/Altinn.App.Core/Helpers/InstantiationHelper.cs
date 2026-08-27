@@ -52,21 +52,24 @@ public static class InstantiationHelper
 
             if (canPartyInstantiate && isChildPartyAllowed)
             {
+                party.ChildParties = new List<Party>();
                 if (allowedChildParties is null)
                 {
                     throw new Exception("List of allowed child parties unexpectedly null");
                 }
-                party.ChildParties = allowedChildParties;
+                party.ChildParties.AddRange(allowedChildParties);
                 allowed.Add(party);
             }
             else if (!canPartyInstantiate && isChildPartyAllowed)
             {
+                party.ChildParties = new List<Party>();
                 party.OnlyHierarchyElementWithNoAccess = true;
                 if (allowedChildParties is null)
                 {
                     throw new Exception("List of allowed child parties unexpectedly null");
                 }
-                party.ChildParties = allowedChildParties;
+
+                party.ChildParties.AddRange(allowedChildParties);
                 allowed.Add(party);
             }
             else if (canPartyInstantiate)
@@ -178,7 +181,7 @@ public static class InstantiationHelper
             }
             else if (party.ChildParties != null && party.ChildParties.Count > 0)
             {
-                Party? validChildParty = party.ChildParties.FirstOrDefault(cp => cp.PartyId == partyId);
+                Party? validChildParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
                 if (validChildParty != null)
                 {
                     validParty = validChildParty;

@@ -210,7 +210,6 @@ public static class TestAuthentication
             SSN = ssn ?? "12345678901",
             Name = "Test Testesen",
         };
-        var profileParty = party;
         var auth = Authenticated.From(
             token,
             null,
@@ -225,7 +224,7 @@ public static class TestAuthentication
                     {
                         UserId = userId,
                         PartyId = userPartyId,
-                        Party = profileParty,
+                        Party = party,
                         Email = email ?? "test@testesen.no",
                         ProfileSettingPreference = profileSettingPreference,
                     }
@@ -305,7 +304,6 @@ public static class TestAuthentication
             OrgNumber = null,
             Name = "Test Testesen",
         };
-        var profileParty = party;
         var auth = Authenticated.From(
             token,
             null,
@@ -321,7 +319,7 @@ public static class TestAuthentication
                         UserId = userId,
                         UserName = username,
                         PartyId = partyId,
-                        Party = profileParty,
+                        Party = party,
                         Email = email ?? "test@testesen.no",
                         ProfileSettingPreference = profileSettingPreference,
                     }

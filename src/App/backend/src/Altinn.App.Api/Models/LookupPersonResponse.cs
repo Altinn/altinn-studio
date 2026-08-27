@@ -12,10 +12,11 @@ public class LookupPersonResponse
     /// </summary>
     public static LookupPersonResponse CreateFromPerson(Person? person)
     {
+        var details = PersonDetails.MapFromPerson(person);
         return new LookupPersonResponse
         {
-            Success = person is not null,
-            PersonDetails = person is not null ? PersonDetails.MapFromPerson(person) : null,
+            Success = details is not null,
+            PersonDetails = details,
         };
     }
 
@@ -63,15 +64,19 @@ public class PersonDetails
     /// <summary>
     /// Maps a person to person details
     /// </summary>
-    public static PersonDetails MapFromPerson(Person person)
+    public static PersonDetails? MapFromPerson(Person? person)
     {
+        if (person is null || string.IsNullOrEmpty(person.SSN) || string.IsNullOrEmpty(person.Name) || string.IsNullOrEmpty(person.LastName))
+        {
+            return null;
+        }
         return new PersonDetails
         {
-            Ssn = person.SSN ?? throw new InvalidOperationException("Person has no SSN"),
-            Name = person.Name ?? throw new InvalidOperationException("Person has no name"),
+            Ssn = person.SSN,
+            Name = person.Name,
             FirstName = person.FirstName,
             MiddleName = person.MiddleName,
-            LastName = person.LastName ?? throw new InvalidOperationException("Person has no last name"),
+            LastName = person.LastName,
         };
     }
 }

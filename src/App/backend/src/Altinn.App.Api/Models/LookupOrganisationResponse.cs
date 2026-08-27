@@ -12,12 +12,11 @@ public class LookupOrganisationResponse
     /// </summary>
     public static LookupOrganisationResponse CreateFromOrganisation(Organization? organisation)
     {
+        var details = OrganisationDetails.MapFromOrganisation(organisation);
         return new LookupOrganisationResponse
         {
-            Success = organisation is not null,
-            OrganisationDetails = organisation is not null
-                ? OrganisationDetails.MapFromOrganisation(organisation)
-                : null,
+            Success = details is not null,
+            OrganisationDetails = details,
         };
     }
 
@@ -48,16 +47,18 @@ public class OrganisationDetails
     public required string Name { get; init; }
 
     /// <summary>
-    /// Maps a person to person details
+    /// Maps an organisation to organisationDetails
     /// </summary>
-    public static OrganisationDetails MapFromOrganisation(Organization organisation)
+    public static OrganisationDetails? MapFromOrganisation(Organization? organisation)
     {
+        if (organisation is null || string.IsNullOrEmpty(organisation.OrgNumber) || string.IsNullOrEmpty(organisation.Name))
+        {
+            return null;
+        }
         return new OrganisationDetails
         {
-            OrgNr =
-                organisation.OrgNumber
-                ?? throw new InvalidOperationException("Organisation has no organisation number"),
-            Name = organisation.Name ?? throw new InvalidOperationException("Organisation has no name"),
+            OrgNr = organisation.OrgNumber,
+            Name = organisation.Name,
         };
     }
 }
