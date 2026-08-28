@@ -36,6 +36,7 @@ internal sealed class DirectFileRestorer
 
         // Get file path relative to repo root
         var fullFilePath = Path.Combine(repoRoot, diffFile.FilePath);
+        var hadBom = File.ReadAllBytes(fullFilePath).AsSpan().StartsWith(Encoding.UTF8.Preamble);
 
         // Read original content from HEAD
         string originalContent = _gitService.GetFileContentFromHead(repoRoot, diffFile.FilePath);
@@ -56,22 +57,10 @@ internal sealed class DirectFileRestorer
         }
 
         // Encoding.UTF8 emits a byte order mark, which would add one to every file that never had it -
-        // the opposite of restoring. Keep whatever the file on disk has: the migrators preserve the
+        // the opposite of restoring. Keep whatever the file on disk had: the migrators preserve the
         // original state when they rewrite, and ChunkClassifier already counts a BOM change as
         // whitespace to be restored.
-        var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: StartsWithUtf8Bom(fullFilePath));
-        File.WriteAllText(fullFilePath, resultContent, encoding);
-    }
-
-    /// <summary>Whether the file on disk starts with a UTF-8 byte order mark.</summary>
-    private static bool StartsWithUtf8Bom(string path)
-    {
-        using var stream = File.OpenRead(path);
-        Span<byte> start = stackalloc byte[3];
-        return stream.ReadAtLeast(start, start.Length, throwOnEndOfStream: false) == start.Length
-            && start[0] == 0xEF
-            && start[1] == 0xBB
-            && start[2] == 0xBF;
+        File.WriteAllText(fullFilePath, resultContent, new UTF8Encoding(encoderShouldEmitUTF8Identifier: hadBom));
     }
 
     /// <summary>

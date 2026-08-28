@@ -149,10 +149,16 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateOrganizationLookupLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCamelCaseLayoutProperties(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTimeStamp(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateHeadingLayouts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFileUploadWithTagLayouts(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDatepickerFormats(projectFolder));
@@ -197,35 +203,27 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports a migrator's result on the current step and maps it to an exit code. Warnings become
-    /// manual follow-up when the migrator left work for a human, plain warnings otherwise; a clean run
+    /// Reports a migrator's result on the current step and maps it to an exit code. Messages are reported
+    /// in the order the migrator produced them, so a to-do reads directly after the warning explaining why
+    /// the upgrade could not do it for you. Any to-do means the step requires manual follow-up. A clean run
     /// reports <paramref name="cleanText"/> with <paramref name="cleanStatus"/> - Skip for a check that
-    /// found nothing to act on, Ok (the default) for a migration that applied. Optionally reports
-    /// <paramref name="manualActionText"/> when manual follow-up is required.
+    /// found nothing to act on, Ok (the default) for a migration that applied.
     /// </summary>
     private static int ReportMigrationResult(
         MigrationResult result,
         string cleanText,
-        UpgradeMessageStatus cleanStatus = UpgradeMessageStatus.Ok,
-        string? manualActionText = null
+        UpgradeMessageStatus cleanStatus = UpgradeMessageStatus.Ok
     )
     {
-        foreach (var warning in result.Warnings)
+        foreach (var message in result.Messages)
         {
-            UpgradeConsole.Warning(warning);
+            UpgradeConsole.Message(message.Status, message.Text);
         }
 
-        if (result.ManualActionRequired)
-        {
-            if (!string.IsNullOrWhiteSpace(manualActionText))
-            {
-                UpgradeConsole.Todo(manualActionText);
-            }
-
+        if (result.RequiresManualFollowUp)
             return ExitManualActionRequired;
-        }
 
-        if (result.Warnings.Count == 0)
+        if (result.Messages.Count == 0)
             UpgradeConsole.Message(cleanStatus, cleanText);
 
         return ExitSuccess;
@@ -348,11 +346,7 @@ internal static class V8Tov9Upgrade
         {
             var resolver = new NuGetDowngradeResolver();
             var result = await resolver.ResolveAsync(projectFolder, projectFile, cancellationToken);
-            return ReportMigrationResult(
-                result,
-                cleanText: "No package downgrades against the v9 dependency floors",
-                manualActionText: "Some package downgrades need manual follow-up. Review the messages above."
-            );
+            return ReportMigrationResult(result, cleanText: "No package downgrades against the v9 dependency floors");
         }
         catch (OperationCanceledException)
         {
@@ -512,8 +506,7 @@ internal static class V8Tov9Upgrade
             return ReportMigrationResult(
                 result,
                 cleanText: "No removed or changed v9 C# APIs in use",
-                cleanStatus: UpgradeMessageStatus.Skip,
-                manualActionText: "Removed or changed C# APIs need manual follow-up. Review the messages above."
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
@@ -558,8 +551,7 @@ internal static class V8Tov9Upgrade
             return ReportMigrationResult(
                 result,
                 cleanText: "No conflicting MaskinportenSettings configuration found",
-                cleanStatus: UpgradeMessageStatus.Skip,
-                manualActionText: "The Maskinporten configuration section needs manual follow-up. Review the messages above."
+                cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
@@ -578,6 +570,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating OrganisationLookup components", ex);
+        }
+    }
+
+    static async Task<int> MigrateCamelCaseLayoutProperties(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("CamelCase layout properties");
+        try
+        {
+            return await CamelCaseLayoutPropertyMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating camelCase layout properties", ex);
         }
     }
 
@@ -616,6 +621,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Header components to Heading", ex);
+        }
+    }
+
+    static async Task<int> MigrateFileUploadWithTagLayouts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("FileUploadWithTag components");
+        try
+        {
+            return await FileUploadWithTagLayoutMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating FileUploadWithTag components to FileUpload", ex);
         }
     }
 
@@ -1024,11 +1042,7 @@ internal static class V8Tov9Upgrade
             // Phrased as an end state, not an action: this migrator reports no warnings both when it
             // migrated cleanly and when there was nothing to migrate, and MigrationResult cannot tell the
             // two apart.
-            return ReportMigrationResult(
-                result,
-                cleanText: "No enablePdfCreation flags remain",
-                manualActionText: "PDF service task migration needs manual follow-up. Review the warnings above."
-            );
+            return ReportMigrationResult(result, cleanText: "No enablePdfCreation flags remain");
         }
         catch (Exception ex)
         {
@@ -1049,8 +1063,7 @@ internal static class V8Tov9Upgrade
             var result = await migrator.Migrate();
             return ReportMigrationResult(
                 result,
-                cleanText: "policy.xml already grants the service owner the required process-transition rights",
-                manualActionText: "Service-owner policy migration needs manual follow-up. Review the warnings above."
+                cleanText: "policy.xml already grants the service owner the required process-transition rights"
             );
         }
         catch (Exception ex)
@@ -1070,11 +1083,7 @@ internal static class V8Tov9Upgrade
         {
             var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
             var result = await migrator.Migrate();
-            return ReportMigrationResult(
-                result,
-                cleanText: "No legacy eFormidling configuration remains",
-                manualActionText: "eFormidling service task migration needs manual follow-up. Review the warnings above."
-            );
+            return ReportMigrationResult(result, cleanText: "No legacy eFormidling configuration remains");
         }
         catch (Exception ex)
         {

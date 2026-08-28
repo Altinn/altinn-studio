@@ -52,11 +52,16 @@ export const useAssistantTexts = (): AssistantTexts => {
       detailsLabel: t('ai_assistant.feedback_details_label'),
       detailsOptionalTag: t('general.optional'),
       submit: t('ai_assistant.feedback_submit'),
+      clear: t('ai_assistant.feedback_clear'),
       cancel: t('general.cancel'),
     },
     criticalFileAlert: {
       heading: t('ai_assistant.critical_file_alert_heading'),
       description: t('ai_assistant.critical_file_alert_description'),
+    },
+    securityNoticeAlert: {
+      heading: t('ai_assistant.security_notice_alert_heading'),
+      description: t('ai_assistant.security_notice_alert_description'),
     },
     permissionPrompt: {
       heading: t('ai_assistant.permission_prompt_heading'),

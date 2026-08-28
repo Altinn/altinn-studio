@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
@@ -16,15 +19,18 @@ export interface AssistantThreadState {
   selectThread: (threadId: string | null) => void;
   createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
-  deleteMessage: (threadId: string, messageId: string) => void;
+  deleteMessage: (threadId: string, messageId: string) => Promise<void>;
   createMessage: (
     threadId: string,
     message: UserMessage | AssistantMessage,
   ) => Promise<ChatMessage>;
+  refreshMessages: (threadId: string) => void;
 }
 
 export const useAssistantThreads = (): AssistantThreadState => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { data: chatThreads } = useChatThreadsQuery();
   const { mutateAsync: createChatThread } = useCreateChatThreadMutation();
@@ -32,7 +38,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
 
   const { data: chatMessages } = useChatMessagesQuery(selectedThreadId);
   const { mutateAsync: createChatMessage } = useCreateChatMessageMutation();
-  const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
+  const { mutateAsync: deleteChatMessage } = useDeleteChatMessageMutation();
 
   const createThread = useCallback(
     async (title: string): Promise<string> => {
@@ -67,6 +73,8 @@ export const useAssistantThreads = (): AssistantThreadState => {
           attachmentFileNames: isUser ? message.attachments?.map((a) => a.name) : undefined,
           filesChanged: isUser ? undefined : message.filesChanged,
           sources: isUser ? undefined : message.sources,
+          attachmentInstructionFlagged: isUser ? undefined : message.attachmentInstructionFlagged,
+          traceId: isUser ? undefined : message.traceId,
         },
       });
     },
@@ -74,10 +82,19 @@ export const useAssistantThreads = (): AssistantThreadState => {
   );
 
   const deleteMessage = useCallback(
-    (threadId: string, messageId: string): void => {
-      deleteChatMessage({ threadId, messageId });
+    async (threadId: string, messageId: string): Promise<void> => {
+      await deleteChatMessage({ threadId, messageId });
     },
     [deleteChatMessage],
+  );
+
+  // Pulls a server-persisted message into the cache — the render path for
+  // assistant messages the backend already stored (persistedMessageId set).
+  const refreshMessages = useCallback(
+    (threadId: string): void => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });
+    },
+    [queryClient, org, app],
   );
 
   return {
@@ -89,5 +106,6 @@ export const useAssistantThreads = (): AssistantThreadState => {
     deleteThread,
     deleteMessage,
     createMessage,
+    refreshMessages,
   };
 };

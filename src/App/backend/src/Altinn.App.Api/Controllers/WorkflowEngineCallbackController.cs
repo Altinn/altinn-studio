@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Process;
@@ -260,14 +261,46 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedProcessEngineCommandResult failed:
+                // The resolved command's own key rather than the route string it matched - same value,
+                // but provably from the registered set, as in the deferral branch above.
                 _logger.LogError(
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
-                    commandKey,
+                    command.GetKey(),
                     instanceId,
                     currentTaskId,
                     failed.ErrorMessage,
                     failed.ExceptionType
                 );
+
+                // A service-owner 403 reads as a platform failure but is a policy gap, and the bare
+                // status code gives nobody a way to find that out. Logged separately so the reason is
+                // spelled out where the app and task are known; the failure is classified and
+                // answered exactly as before. The app's own metadata names the app, not the request's
+                // route: this is a statement about this app's policy file either way, and the route
+                // values are caller-supplied.
+                if (failed.ServiceOwnerAuthorizationDenied)
+                {
+                    // Tagged as well as logged: the engine's failed-workflow metrics cannot tell a
+                    // policy gap from a transient platform failure, and the two want different
+                    // responses - a policy change for every instance of the app, versus a redrive.
+                    activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
+
+                    ApplicationMetadata appMetadata = await _serviceProvider
+                        .GetRequiredService<IAppMetadata>()
+                        .GetApplicationMetadata();
+
+                    _logger.LogError(
+                        "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                        ServiceOwnerAuthorizationDiagnostics.Describe(
+                            appMetadata,
+                            currentTaskId,
+                            instanceDataUnitOfWork.Instance.Process?.CurrentTask?.AltinnTaskType
+                        ),
+                        command.GetKey(),
+                        instanceId
+                    );
+                }
+
                 activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
 
                 if (failed.NonRetryable)

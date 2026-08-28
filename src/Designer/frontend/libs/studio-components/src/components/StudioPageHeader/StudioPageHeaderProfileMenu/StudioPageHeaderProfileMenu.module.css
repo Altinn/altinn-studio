@@ -21,5 +21,5 @@
 }
 
 .menuList :global([aria-checked='true']) {
-  background-color: var(--fds-semantic-surface-neutral-selected);
+  background-color: var(--ds-color-accent-surface-tinted);
 }

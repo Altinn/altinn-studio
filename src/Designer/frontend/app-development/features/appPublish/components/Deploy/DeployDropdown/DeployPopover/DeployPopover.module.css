@@ -1,10 +1,10 @@
 .popover {
   max-width: 25rem;
-  padding: var(--fds-spacing-4);
+  padding: var(--ds-size-4);
 }
 
 .buttonContainer {
   display: flex;
   flex-direction: row;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }

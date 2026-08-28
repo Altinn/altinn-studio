@@ -1,10 +1,6 @@
 {
   "name": "studio-designer-frontend",
   "dependencies": {
-    "@digdir/design-system-tokens": "0.13.0",
-    "@digdir/designsystemet-css": "0.10.0",
-    "@digdir/designsystemet-react": "0.63.1",
-    "@digdir/designsystemet-theme": "0.15.3",
     "@microsoft/applicationinsights-react-js": "17.3.6",
     "@microsoft/applicationinsights-web": "3.4.3",
     "@microsoft/signalr": "8.0.29",
