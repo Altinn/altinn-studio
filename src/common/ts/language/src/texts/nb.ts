@@ -166,7 +166,7 @@ export function nb() {
     'general.choose_method': 'Velg metode',
     'general.choose': 'Velg',
     'general.close': 'Lukk',
-    'general.contains': 'Inneholder{0}',
+    'general.contains': 'Inneholder',
     'general.control_submit': 'Kontroller og send inn',
     'general.copy': 'Kopier',
     'general.copied': 'Kopiert',

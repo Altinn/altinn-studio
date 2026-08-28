@@ -166,7 +166,7 @@ export function nn() {
     'general.choose_method': 'Vel metode',
     'general.choose': 'Vel',
     'general.close': 'Lukk',
-    'general.contains': 'Inneheld{0}',
+    'general.contains': 'Inneheld',
     'general.control_submit': 'Kontroller og send inn',
     'general.copy': 'Kopier',
     'general.copied': 'Kopiert',
