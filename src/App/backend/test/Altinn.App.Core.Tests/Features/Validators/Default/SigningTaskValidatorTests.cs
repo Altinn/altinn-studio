@@ -59,7 +59,12 @@ public class SigningTaskValidatorTest
                 {
                     FullName = "A signee",
                     SocialSecurityNumber = "12334456674",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState(),
             },
@@ -114,7 +119,12 @@ public class SigningTaskValidatorTest
                 {
                     FullName = "A signee",
                     SocialSecurityNumber = "12334456674",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Test Person",
+                    },
                 },
             },
         ];

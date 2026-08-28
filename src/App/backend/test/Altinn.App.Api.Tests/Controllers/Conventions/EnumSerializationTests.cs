@@ -30,7 +30,15 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
         _authorizationClientMock = new Mock<IAuthorizationClient>();
         _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync([new() { PartyTypeName = PartyType.Person }]);
+            .ReturnsAsync([
+                new()
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.NewGuid(),
+                    PartyTypeName = PartyType.Person,
+                    Name = "Test Testesen",
+                },
+            ]);
 
         _appMetadataMock = new Mock<IAppMetadata>();
         _appMetadataMock

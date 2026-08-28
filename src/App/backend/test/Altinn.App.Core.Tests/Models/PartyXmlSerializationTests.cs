@@ -15,6 +15,7 @@ public class PartyXmlSerializationTests
         var party = new Party
         {
             PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Person,
             Name = "Test Testesen",
             Person = new Person { Name = "Test Testesen", SSN = "01019012345" },
@@ -23,6 +24,7 @@ public class PartyXmlSerializationTests
                 new Party
                 {
                     PartyId = 2,
+                    PartyUuid = Guid.NewGuid(),
                     PartyTypeName = PartyType.Organisation,
                     Name = "Child Org",
                 },

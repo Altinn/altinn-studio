@@ -139,7 +139,12 @@ public class SigningControllerTests
                 {
                     OrgName = "org1",
                     OrgNumber = "123456789",
-                    OrgParty = new Party { PartyId = 1 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 1",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -157,7 +162,12 @@ public class SigningControllerTests
                 {
                     OrgName = "org1",
                     OrgNumber = "123456789",
-                    OrgParty = new Party { PartyId = 1 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 1",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -181,7 +191,12 @@ public class SigningControllerTests
                 {
                     OrgName = "org2",
                     OrgNumber = "987654321",
-                    OrgParty = new Party { PartyId = 2 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 2,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 2",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -205,7 +220,12 @@ public class SigningControllerTests
                 {
                     OrgName = "org2",
                     OrgNumber = "987654321",
-                    OrgParty = new Party { PartyId = 2 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 2,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 2",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -222,7 +242,12 @@ public class SigningControllerTests
                 {
                     OrgName = "org2",
                     OrgNumber = "987654321",
-                    OrgParty = new Party { PartyId = 2 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 2,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 2",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -324,7 +349,12 @@ public class SigningControllerTests
                 {
                     FullName = "person1",
                     SocialSecurityNumber = "123456789",
-                    Party = new Party { PartyId = 1 },
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 1",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -393,12 +423,22 @@ public class SigningControllerTests
                 {
                     FullName = "person1",
                     SocialSecurityNumber = "123456789",
-                    Party = new Party { PartyId = 123 },
+                    Party = new Party
+                    {
+                        PartyId = 123,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 123",
+                    },
                     OnBehalfOfOrg = new OrganizationSignee
                     {
                         OrgName = "org1",
                         OrgNumber = "123456789",
-                        OrgParty = new Party { PartyId = 321 },
+                        OrgParty = new Party
+                        {
+                            PartyId = 321,
+                            PartyUuid = Guid.NewGuid(),
+                            Name = "Party 321",
+                        },
                     },
                 },
                 SigneeState = new SigneeContextState
@@ -476,7 +516,12 @@ public class SigningControllerTests
                     {
                         OrgName = "org1",
                         OrgNumber = "123456789",
-                        OrgParty = new Party { PartyId = 123 },
+                        OrgParty = new Party
+                        {
+                            PartyId = 123,
+                            PartyUuid = Guid.NewGuid(),
+                            Name = "Party 123",
+                        },
                     },
                 },
                 SigneeState = new SigneeContextState
@@ -547,13 +592,23 @@ public class SigningControllerTests
             {
                 OrgName = "org1",
                 OrgNumber = "123456789",
-                OrgParty = new Party { PartyId = 1 },
+                OrgParty = new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Party 1",
+                },
             },
             new OrganizationSignee
             {
                 OrgName = "org2",
                 OrgNumber = "987654321",
-                OrgParty = new Party { PartyId = 2 },
+                OrgParty = new Party
+                {
+                    PartyId = 2,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Party 2",
+                },
             },
         ];
 
@@ -989,7 +1044,12 @@ public class SigningControllerTests
                 {
                     FullName = "person1",
                     SocialSecurityNumber = "123456789",
-                    Party = new Party { PartyId = 1 },
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 1",
+                    },
                 },
                 SigneeState = new SigneeContextState
                 {
@@ -1215,7 +1275,12 @@ public class SigningControllerTests
             {
                 OrgName = "org1",
                 OrgNumber = "123456789",
-                OrgParty = new Party { PartyId = 1 },
+                OrgParty = new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Party 1",
+                },
             },
         ];
 

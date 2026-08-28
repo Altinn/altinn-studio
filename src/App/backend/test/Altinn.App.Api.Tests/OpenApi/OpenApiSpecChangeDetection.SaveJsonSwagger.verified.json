@@ -10342,6 +10342,10 @@
         "description": "Contains details about an organisation"
       },
       "Organization": {
+        "required": [
+          "name",
+          "orgNumber"
+        ],
         "type": "object",
         "properties": {
           "orgNumber": {
@@ -10408,6 +10412,11 @@
         "additionalProperties": false
       },
       "Party": {
+        "required": [
+          "name",
+          "partyId",
+          "partyUuid"
+        ],
         "type": "object",
         "properties": {
           "partyId": {
@@ -10416,8 +10425,7 @@
           },
           "partyUuid": {
             "type": "string",
-            "format": "uuid",
-            "nullable": true
+            "format": "uuid"
           },
           "externalUrn": {
             "type": "string",
@@ -10800,6 +10808,10 @@
         "type": "string"
       },
       "Person": {
+        "required": [
+          "name",
+          "ssn"
+        ],
         "type": "object",
         "properties": {
           "ssn": {

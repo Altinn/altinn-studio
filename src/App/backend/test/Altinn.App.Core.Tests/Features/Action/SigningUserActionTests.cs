@@ -724,7 +724,12 @@ public class SigningUserActionHandleOnBehalfOfTests
                 {
                     OrgNumber = "111111111",
                     OrgName = "TestOrg",
-                    OrgParty = new Party { PartyId = 123 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 123,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 123",
+                    },
                 },
             ]);
 
@@ -770,7 +775,12 @@ public class SigningUserActionHandleOnBehalfOfTests
                 {
                     OrgNumber = onBehalfOrg,
                     OrgName = "TestOrg",
-                    OrgParty = new Party { PartyId = 123 },
+                    OrgParty = new Party
+                    {
+                        PartyId = 123,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Party 123",
+                    },
                 },
             ]);
 

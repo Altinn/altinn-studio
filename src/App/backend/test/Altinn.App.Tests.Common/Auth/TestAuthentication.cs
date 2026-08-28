@@ -204,6 +204,7 @@ public static class TestAuthentication
         var token = GetUserToken(userId: userId, partyId: userPartyId, authenticationLevel: authenticationLevel);
         var party = new Party()
         {
+            PartyUuid = Guid.NewGuid(),
             PartyId = userPartyId,
             PartyTypeName = PartyType.Person,
             OrgNumber = null,
@@ -299,6 +300,7 @@ public static class TestAuthentication
         var token = GetSelfIdentifiedUserToken(username: username, userId: userId, partyId: partyId);
         var party = new Party()
         {
+            PartyUuid = Guid.NewGuid(),
             PartyId = partyId,
             PartyTypeName = PartyType.SelfIdentified,
             OrgNumber = null,
@@ -399,6 +401,7 @@ public static class TestAuthentication
         var token = GetOrgToken(orgNumber: orgNumber, scope: scope);
         var party = new Party()
         {
+            PartyUuid = Guid.NewGuid(),
             PartyId = partyId,
             PartyTypeName = PartyType.Organisation,
             OrgNumber = orgNumber,
@@ -483,6 +486,7 @@ public static class TestAuthentication
         var token = GetServiceOwnerToken(orgNumber: orgNumber, scope: scope, org: org);
         var party = new Party()
         {
+            PartyUuid = Guid.NewGuid(),
             PartyId = partyId,
             PartyTypeName = PartyType.Organisation,
             OrgNumber = orgNumber,
@@ -593,6 +597,7 @@ public static class TestAuthentication
         );
         var party = new Party()
         {
+            PartyUuid = Guid.NewGuid(),
             PartyId = partyId,
             PartyTypeName = PartyType.Organisation,
             OrgNumber = systemUserOrgNumber,

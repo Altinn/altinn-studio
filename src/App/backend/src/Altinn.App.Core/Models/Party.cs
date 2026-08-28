@@ -11,7 +11,10 @@ namespace Altinn.App.Core.Models;
 /// NuGet package — see the remarks on <see cref="ChildParties"/> for why. Compared to the old, deprecated
 /// <c>Altinn.Platform.Register.Models.Party</c>: <see cref="PartyUuid"/>, <see cref="ExternalUrn"/>,
 /// <see cref="LastChangedInAltinn"/>, and <see cref="LastChangedInExternalRegister"/> are new fields, and
-/// every string property is now properly nullable (the old type predated nullable reference types).
+/// every string property is now properly nullable (the old type predated nullable reference types) —
+/// except <see cref="Name"/>, which, along with <see cref="PartyId"/> and <see cref="PartyUuid"/>, is
+/// <see langword="required"/> (Register always populates these; see
+/// <see href="https://github.com/Altinn/altinn-register/pull/962">altinn-register#962</see>).
 /// </remarks>
 public record Party
 {
@@ -19,13 +22,13 @@ public record Party
     /// Gets or sets the party ID.
     /// </summary>
     [JsonPropertyName("partyId")]
-    public int PartyId { get; set; }
+    public required int PartyId { get; set; }
 
     /// <summary>
     /// Gets or sets the party UUID.
     /// </summary>
     [JsonPropertyName("partyUuid")]
-    public Guid? PartyUuid { get; set; }
+    public required Guid PartyUuid { get; set; }
 
     /// <summary>
     /// Gets or sets the external URN reference of the party (e.g. a person identifier, organisation
@@ -62,7 +65,7 @@ public record Party
     /// Gets or sets the name of the party.
     /// </summary>
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the party is deleted.

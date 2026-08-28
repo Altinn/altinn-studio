@@ -240,10 +240,9 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
             if (party is null)
                 return null;
 
-            var resolvedPartyId = party.PartyUuid?.ToString() ?? party.PartyId.ToString(CultureInfo.InvariantCulture);
             var correspondenceParty = KorrespondansepartFactory.CreateSender(
-                partyId: resolvedPartyId,
-                partyName: party.Name ?? resolvedPartyId
+                partyId: party.PartyUuid.ToString(),
+                partyName: party.Name
             );
 
             if (party.Organization is not null)

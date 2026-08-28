@@ -7,7 +7,9 @@ namespace Altinn.App.Core.Models;
 /// </summary>
 /// <remarks>
 /// Field-for-field identical to the old, deprecated <c>Altinn.Platform.Register.Models.Organization</c> —
-/// the only change is that every string property is now properly nullable.
+/// every string property is now properly nullable, except <see cref="OrgNumber"/> and <see cref="Name"/>,
+/// which are <see langword="required"/> (Register always populates these; see
+/// <see href="https://github.com/Altinn/altinn-register/pull/962">altinn-register#962</see>).
 /// </remarks>
 public record Organization
 {
@@ -15,13 +17,13 @@ public record Organization
     /// Gets or sets the organisation number.
     /// </summary>
     [JsonPropertyName("orgNumber")]
-    public string? OrgNumber { get; set; }
+    public required string OrgNumber { get; set; }
 
     /// <summary>
     /// Gets or sets the name.
     /// </summary>
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the unit type.

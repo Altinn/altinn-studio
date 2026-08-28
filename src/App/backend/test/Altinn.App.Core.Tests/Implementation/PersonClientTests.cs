@@ -58,7 +58,12 @@ public class PersonClientTests
             async (HttpRequestMessage request, CancellationToken token) =>
             {
                 platformRequest = request;
-                Person person = new Person { LastName = "Lastname" };
+                Person person = new Person
+                {
+                    SSN = "01019012345",
+                    Name = "Test Lastname",
+                    LastName = "Lastname",
+                };
                 return await CreateHttpResponseMessage(person);
             }
         );

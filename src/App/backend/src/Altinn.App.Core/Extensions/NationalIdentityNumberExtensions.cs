@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Models;
 
@@ -42,6 +43,7 @@ internal static class NationalIdentityNumberExtensions
     /// partial or malformed value is still masked rather than returned in the clear. Validating first would
     /// risk leaking any value that fails the check. <c>null</c> and empty values are returned unchanged.</p>
     /// </summary>
+    [return: NotNullIfNotNull(nameof(nationalIdentityNumber))]
     public static string? Mask(string? nationalIdentityNumber)
     {
         if (string.IsNullOrEmpty(nationalIdentityNumber))

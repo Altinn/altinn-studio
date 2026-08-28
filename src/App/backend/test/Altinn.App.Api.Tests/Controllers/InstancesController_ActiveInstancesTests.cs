@@ -237,7 +237,17 @@ public class InstancesController_ActiveInstancesTest
         fixture
             .Mock<IProfileClient>()
             .Setup(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new UserProfile() { Party = new() { Name = "Ola Olsen" } });
+            .ReturnsAsync(
+                new UserProfile()
+                {
+                    Party = new()
+                    {
+                        PartyId = 12345,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Ola Olsen",
+                    },
+                }
+            );
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
@@ -372,7 +382,7 @@ public class InstancesController_ActiveInstancesTest
         fixture
             .Mock<IOrganizationClient>()
             .Setup(er => er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Organization { Name = "Testdepartementet" });
+            .ReturnsAsync(new Organization { OrgNumber = "123456789", Name = "Testdepartementet" });
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();

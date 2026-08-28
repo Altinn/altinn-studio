@@ -17,7 +17,12 @@ public class SigningDelegationServiceTests
     {
         FullName = "Testperson 1",
         SocialSecurityNumber = "123456678233",
-        Party = new Party(),
+        Party = new Party
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Test Person",
+        },
     };
 
     [Fact]

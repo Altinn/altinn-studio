@@ -6,8 +6,10 @@ namespace Altinn.App.Core.Models;
 /// Represents a person.
 /// </summary>
 /// <remarks>
-/// Field-for-field identical to the old, deprecated <c>Altinn.Platform.Register.Models.Person</c> — the
-/// only change is that every string property is now properly nullable.
+/// Field-for-field identical to the old, deprecated <c>Altinn.Platform.Register.Models.Person</c> — every
+/// string property is now properly nullable, except <see cref="SSN"/> and <see cref="Name"/>, which are
+/// <see langword="required"/> (Register always populates these; see
+/// <see href="https://github.com/Altinn/altinn-register/pull/962">altinn-register#962</see>).
 /// </remarks>
 public record Person
 {
@@ -15,13 +17,13 @@ public record Person
     /// Gets or sets the social security number.
     /// </summary>
     [JsonPropertyName("ssn")]
-    public string? SSN { get; set; }
+    public required string SSN { get; set; }
 
     /// <summary>
     /// Gets or sets the name.
     /// </summary>
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the first name.

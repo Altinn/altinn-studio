@@ -127,8 +127,20 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         var orgNo = GetOrgNumber(1);
         var ssn = GetSsn(1);
 
-        Party signingParty = new() { Name = "Signee", SSN = ssn };
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = orgNo };
+        Party signingParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Signee",
+            SSN = ssn,
+        };
+        Party serviceOwnerParty = new()
+        {
+            PartyId = 2,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Service owner",
+            OrgNumber = orgNo,
+        };
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
             new() { Environment = "tt02", Value = "app_ttd_appname" },
@@ -220,8 +232,20 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         var orgNo = GetOrgNumber(10);
         var ssn = GetSsn(10);
 
-        Party signingParty = new() { Name = "Signee", SSN = ssn };
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = orgNo };
+        Party signingParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Signee",
+            SSN = ssn,
+        };
+        Party serviceOwnerParty = new()
+        {
+            PartyId = 2,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Service owner",
+            OrgNumber = orgNo,
+        };
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
             new() { Environment = "tt02", Value = "app_ttd_appname" },
@@ -330,8 +354,20 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         var orgNo = GetOrgNumber(4);
         var ssn = GetSsn(8);
 
-        Party signingParty = new() { Name = "Signee", SSN = ssn };
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = orgNo };
+        Party signingParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Signee",
+            SSN = ssn,
+        };
+        Party serviceOwnerParty = new()
+        {
+            PartyId = 2,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Service owner",
+            OrgNumber = orgNo,
+        };
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
             new() { Environment = "tt02", Value = "app_ttd_appname" },
@@ -413,8 +449,20 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         var orgNo = GetOrgNumber(1);
         var ssn = GetSsn(1);
 
-        Party signingParty = new() { Name = "Signee", SSN = ssn };
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = orgNo };
+        Party signingParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Signee",
+            SSN = ssn,
+        };
+        Party serviceOwnerParty = new()
+        {
+            PartyId = 2,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Service owner",
+            OrgNumber = orgNo,
+        };
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
             new() { Environment = "tt02", Value = "app_ttd_appname" },
@@ -498,8 +546,20 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
 
         CommunicationConfig communicationConfig = new() { Notification = new Notification { } };
         InstanceIdentifier instanceIdentifier = new(123, Guid.Parse("ab0cdeb5-dc5e-4faa-966b-d18bb932ca07"));
-        Party signingParty = new() { Name = "Signee", SSN = GetSsn(1) };
-        Party serviceOwnerParty = new() { Name = "Service owner", OrgNumber = GetOrgNumber(1) };
+        Party signingParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Signee",
+            SSN = GetSsn(1),
+        };
+        Party serviceOwnerParty = new()
+        {
+            PartyId = 2,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Service owner",
+            OrgNumber = GetOrgNumber(1),
+        };
         List<AltinnEnvironmentConfig> correspondenceResources =
         [
             // No resource for tt02 - should throw exception
@@ -551,7 +611,12 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         {
             Title = new Dictionary<string, string> { { LanguageConst.En, "App name" } },
         };
-        Party sendersParty = new() { Name = "Sender" };
+        Party sendersParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Sender",
+        };
         string instanceUrl = "https://altinn.local.cloud";
         string language = LanguageConst.En;
 
@@ -602,7 +667,12 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         {
             Title = new Dictionary<string, string> { { LanguageConst.En, "App name" } },
         };
-        Party sendersParty = new() { Name = "SenderNameForTest" };
+        Party sendersParty = new()
+        {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "SenderNameForTest",
+        };
         string instanceUrl = "https://altinn.local.cloud";
         string language = LanguageConst.En;
 

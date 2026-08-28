@@ -352,6 +352,7 @@ public class AuthenticatedTests
                     party = new Party()
                     {
                         PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         OrgNumber = null,
                         SSN = "12345678901",
@@ -404,6 +405,7 @@ public class AuthenticatedTests
                     party = new Party()
                     {
                         PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         OrgNumber = null,
                         SSN = "12345678901",
@@ -468,6 +470,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
+                                    PartyUuid = Guid.NewGuid(),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
@@ -500,6 +503,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
+                                    PartyUuid = Guid.NewGuid(),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
@@ -537,6 +541,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
+                                    PartyUuid = Guid.NewGuid(),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,

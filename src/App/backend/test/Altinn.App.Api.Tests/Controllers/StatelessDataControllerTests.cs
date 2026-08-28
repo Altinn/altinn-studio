@@ -163,7 +163,14 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Party { PartyId = 234 });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 234,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Party 234",
+                }
+            );
 
         // Act
         var response = await client.SendAsync(request);
@@ -191,7 +198,14 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Party { PartyId = 234 });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 234,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Party 234",
+                }
+            );
 
         // Act
         var response = await client.SendAsync(request);

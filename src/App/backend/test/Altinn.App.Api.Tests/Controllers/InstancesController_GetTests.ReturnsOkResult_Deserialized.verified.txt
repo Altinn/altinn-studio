@@ -6,6 +6,7 @@
       PersonNumber: 01039012345,
       Party: {
         PartyId: 501337,
+        PartyUuid: Guid_1,
         PartyTypeName: Person,
         SSN: 01039012345,
         Name: Sophie Salt,
@@ -37,8 +38,8 @@
     },
     Data: [
       {
-        Id: Guid_1,
-        InstanceGuid: Guid_2,
+        Id: Guid_2,
+        InstanceGuid: Guid_3,
         DataType: default,
         ContentType: application/xml,
         SelfLinks: {
@@ -59,6 +60,7 @@
       PersonNumber: 01039012345,
       Party: {
         PartyId: 501337,
+        PartyUuid: Guid_1,
         PartyTypeName: Person,
         SSN: 01039012345,
         Name: Sophie Salt,
@@ -90,8 +92,8 @@
     },
     Data: [
       {
-        Id: Guid_1,
-        InstanceGuid: Guid_2,
+        Id: Guid_2,
+        InstanceGuid: Guid_3,
         DataType: default,
         ContentType: application/xml,
         SelfLinks: {

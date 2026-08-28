@@ -184,12 +184,29 @@ public class AltinnPartyClientTest
                         {
                             "GET" => new HttpResponseMessage(HttpStatusCode.OK)
                             {
-                                Content = new StringContent($"{{\"partyId\": {request.RequestUri!.Segments.Last()} }}"),
+                                Content = new StringContent(
+                                    $$"""
+                                    {
+                                        "partyId": {{request.RequestUri!.Segments.Last()}},
+                                        "partyUuid": "{{Guid.NewGuid()}}",
+                                        "name": "Test Party"
+                                    }
+                                    """
+                                ),
                             },
                             "POST" => new HttpResponseMessage(HttpStatusCode.OK)
                             {
                                 Content = new StringContent(
-                                    $"{{\"orgNumber\": \"{request.Content!.ReadFromJsonAsync<PartyLookup>(CancellationToken.None).Result!.OrgNo}\" }}"
+                                    $$"""
+                                    {
+                                        "partyId": 123,
+                                        "partyUuid": "{{Guid.NewGuid()}}",
+                                        "name": "Test Party",
+                                        "orgNumber": "{{request
+                                        .Content!.ReadFromJsonAsync<PartyLookup>(CancellationToken.None)
+                                        .Result!.OrgNo}}"
+                                    }
+                                    """
                                 ),
                             },
                             _ => throw new InvalidOperationException("Unexpected HTTP method"),

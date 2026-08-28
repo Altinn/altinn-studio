@@ -58,12 +58,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = selectedPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -114,12 +116,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -168,12 +172,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Test Bruker",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -220,6 +226,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
@@ -273,12 +280,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -322,12 +331,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -380,6 +391,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },

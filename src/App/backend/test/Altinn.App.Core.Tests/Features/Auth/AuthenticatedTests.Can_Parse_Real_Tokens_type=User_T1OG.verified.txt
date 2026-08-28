@@ -27,6 +27,7 @@
   Details: {
     UserParty: {
       PartyId: 510004,
+      PartyUuid: 3dcd119f-0f51-4a8e-b01c-294c2268cf9f,
       PartyTypeName: Person,
       SSN: 12345678901,
       Name: Test Testesen,
@@ -36,6 +37,7 @@
     },
     SelectedParty: {
       PartyId: 510004,
+      PartyUuid: 3dcd119f-0f51-4a8e-b01c-294c2268cf9f,
       PartyTypeName: Person,
       SSN: 12345678901,
       Name: Test Testesen,
@@ -49,6 +51,7 @@
       PartyId: 510004,
       Party: {
         PartyId: 510004,
+        PartyUuid: 3dcd119f-0f51-4a8e-b01c-294c2268cf9f,
         PartyTypeName: Person,
         SSN: 12345678901,
         Name: Test Testesen,
@@ -61,6 +64,7 @@
     Parties: [
       {
         PartyId: 510004,
+        PartyUuid: 3dcd119f-0f51-4a8e-b01c-294c2268cf9f,
         PartyTypeName: Person,
         SSN: 12345678901,
         Name: Test Testesen,
@@ -72,6 +76,7 @@
     PartiesAllowedToInstantiate: [
       {
         PartyId: 510004,
+        PartyUuid: 3dcd119f-0f51-4a8e-b01c-294c2268cf9f,
         PartyTypeName: Person,
         SSN: 12345678901,
         Name: Test Testesen,

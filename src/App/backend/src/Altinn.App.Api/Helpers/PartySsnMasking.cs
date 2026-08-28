@@ -14,9 +14,8 @@ namespace Altinn.App.Api.Helpers;
 /// </summary>
 internal static class PartySsnMasking
 {
-    // The properties we copy when cloning. Cached once per type so we don't reflect on every call.
-    private static readonly PropertyInfo[] _partyProperties = CopyableProperties(typeof(Party));
-    private static readonly PropertyInfo[] _personProperties = CopyableProperties(typeof(Person));
+    // The properties we copy when cloning UserProfile (a plain class, so it can't use `with` like
+    // Party/Person can). Cached once so we don't reflect on every call.
     private static readonly PropertyInfo[] _userProfileProperties = CopyableProperties(typeof(UserProfile));
 
     /// <summary>
@@ -67,15 +66,13 @@ internal static class PartySsnMasking
             return null;
         }
 
-        // Copy every field as-is, then transform only the parts that carry an SSN.
-        Party clone = new Party();
-        CopyProperties(_partyProperties, party, clone);
-
-        clone.SSN = NationalIdentityNumberExtensions.Mask(party.SSN);
-        clone.Person = MaskPerson(party.Person);
-        clone.ChildParties = MaskChildParties(party.ChildParties);
-
-        return clone;
+        // `with` copies every field as-is; only the parts that carry an SSN need to change.
+        return party with
+        {
+            SSN = NationalIdentityNumberExtensions.Mask(party.SSN),
+            Person = MaskPerson(party.Person),
+            ChildParties = MaskChildParties(party.ChildParties),
+        };
     }
 
     private static List<Party>? MaskChildParties(IReadOnlyList<Party>? childParties)
@@ -99,12 +96,10 @@ internal static class PartySsnMasking
             return null;
         }
 
-        Person clone = new Person();
-        CopyProperties(_personProperties, person, clone);
-
-        clone.SSN = NationalIdentityNumberExtensions.Mask(person.SSN);
-
-        return clone;
+        return person with
+        {
+            SSN = NationalIdentityNumberExtensions.Mask(person.SSN),
+        };
     }
 
     /// <summary>

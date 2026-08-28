@@ -87,7 +87,7 @@ internal sealed class SigningService(
             ct
         );
 
-        Party serviceOwnerParty = new();
+        Party? serviceOwnerParty = null;
         bool getServiceOwnerSuccess = false;
 
         if (delegateSuccess)
@@ -95,7 +95,7 @@ internal sealed class SigningService(
             (serviceOwnerParty, getServiceOwnerSuccess) = await GetServiceOwnerParty(ct);
         }
 
-        if (getServiceOwnerSuccess)
+        if (getServiceOwnerSuccess && serviceOwnerParty is not null)
         {
             foreach (SigneeContext signeeContext in signeeContexts)
             {
@@ -295,11 +295,7 @@ internal sealed class SigningService(
                     "Failed to lookup instance owner party. Unable to revoke signing rights."
                 );
 
-            Guid instanceOwnerPartyUuid =
-                instanceOwnerParty.PartyUuid
-                ?? throw new SigningException(
-                    "PartyUuid was missing on instance owner party. Unable to revoke signing rights."
-                );
+            Guid instanceOwnerPartyUuid = instanceOwnerParty.PartyUuid;
 
             AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
 
@@ -348,7 +344,7 @@ internal sealed class SigningService(
         }
     }
 
-    internal async Task<(Party serviceOwnerParty, bool success)> GetServiceOwnerParty(CancellationToken ct)
+    internal async Task<(Party? serviceOwnerParty, bool success)> GetServiceOwnerParty(CancellationToken ct)
     {
         using var activity = telemetry?.StartGetServiceOwnerPartyActivity();
         Party serviceOwnerParty;
@@ -364,7 +360,7 @@ internal sealed class SigningService(
         {
             _logger.LogError(e, "Failed to look up party for service owner.");
             telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Error);
-            return (new Party(), false);
+            return (null, false);
         }
 
         return (serviceOwnerParty, true);

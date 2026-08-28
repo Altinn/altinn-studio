@@ -523,16 +523,22 @@ public class FiksArkivConfigResolverTest
     {
         // Arrange
         var instance = new Instance { InstanceOwner = new InstanceOwner { PartyId = "123" } };
+        // PartyUuid, Name, OrgNumber, and SSN are all `required` now (see altinn-register#962) - Register
+        // always populates them, so the old null cases below no longer correspond to anything the real
+        // resolver can see. They're kept compiling with fallback placeholders purely so this theory's
+        // existing case numbering/snapshots stay stable; the fallback logic they used to exercise in
+        // FiksArkivConfigResolver itself has been removed as dead code.
         var party = new Party
         {
             PartyId = 123,
-            PartyUuid = partyGuid is null ? null : Guid.Parse(partyGuid),
-            Name = partyName,
+            PartyUuid = partyGuid is null ? Guid.Empty : Guid.Parse(partyGuid),
+            Name = partyName ?? "123",
             Organization =
                 partyType == PartyType.Org
                     ? new Organization
                     {
-                        OrgNumber = personIdOrOrgNumber,
+                        OrgNumber = personIdOrOrgNumber ?? "000000000",
+                        Name = partyName ?? "123",
                         TelephoneNumber = phone,
                         MobileNumber = mobile,
                         MailingAddress = addr,
@@ -544,7 +550,8 @@ public class FiksArkivConfigResolverTest
                 partyType == PartyType.Person
                     ? new Person
                     {
-                        SSN = personIdOrOrgNumber,
+                        SSN = personIdOrOrgNumber ?? "00000000000",
+                        Name = partyName ?? "123",
                         TelephoneNumber = phone,
                         MobileNumber = mobile,
                         MailingAddress = addr,

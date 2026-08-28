@@ -4654,9 +4654,9 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
         public string? MobileNumber { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public required string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("orgNumber")]
-        public string? OrgNumber { get; set; }
+        public required string OrgNumber { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("telephoneNumber")]
         public string? TelephoneNumber { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("unitStatus")]
@@ -4719,7 +4719,7 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonPropertyName("lastChangedInExternalRegister")]
         public System.DateTimeOffset? LastChangedInExternalRegister { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public required string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("onlyHierarchyElementWithNoAccess")]
         public bool OnlyHierarchyElementWithNoAccess { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("orgNumber")]
@@ -4727,11 +4727,11 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonPropertyName("organization")]
         public Altinn.App.Core.Models.Organization? Organization { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partyId")]
-        public int PartyId { get; set; }
+        public required int PartyId { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partyTypeName")]
         public Altinn.App.Core.Models.PartyType PartyTypeName { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partyUuid")]
-        public System.Guid? PartyUuid { get; set; }
+        public required System.Guid PartyUuid { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("person")]
         public Altinn.App.Core.Models.Person? Person { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("ssn")]
@@ -4789,9 +4789,9 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
         public string? MobileNumber { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public required string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("ssn")]
-        public string? SSN { get; set; }
+        public required string SSN { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("telephoneNumber")]
         public string? TelephoneNumber { get; set; }
     }

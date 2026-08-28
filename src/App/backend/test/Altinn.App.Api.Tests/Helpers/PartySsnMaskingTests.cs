@@ -11,6 +11,7 @@ public class PartySsnMaskingTests
         var party = new Party
         {
             PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Person,
             Name = "Ola Nordmann",
             SSN = "12345678901",
@@ -20,6 +21,7 @@ public class PartySsnMaskingTests
                 new()
                 {
                     PartyId = 2,
+                    PartyUuid = Guid.NewGuid(),
                     Name = "Kari Nordmann",
                     SSN = "10987654321",
                 },
@@ -44,8 +46,11 @@ public class PartySsnMaskingTests
     {
         var party = new Party
         {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
+            Name = "Ola Nordmann",
             SSN = "12345678901",
-            Person = new Person { SSN = "12345678901" },
+            Person = new Person { SSN = "12345678901", Name = "Ola Nordmann" },
         };
 
         Party masked = PartySsnMasking.MaskParty(party);
@@ -62,6 +67,8 @@ public class PartySsnMaskingTests
     {
         var party = new Party
         {
+            PartyId = 1,
+            PartyUuid = Guid.NewGuid(),
             PartyTypeName = PartyType.Organisation,
             Name = "Acme AS",
             OrgNumber = "987654321",
@@ -80,8 +87,20 @@ public class PartySsnMaskingTests
     {
         var parties = new List<Party>
         {
-            new() { PartyId = 1, SSN = "12345678901" },
-            new() { PartyId = 2, SSN = "10987654321" },
+            new()
+            {
+                PartyId = 1,
+                PartyUuid = Guid.NewGuid(),
+                Name = "Party 1",
+                SSN = "12345678901",
+            },
+            new()
+            {
+                PartyId = 2,
+                PartyUuid = Guid.NewGuid(),
+                Name = "Party 2",
+                SSN = "10987654321",
+            },
         };
 
         List<Party> masked = PartySsnMasking.MaskParties(parties);
@@ -101,6 +120,7 @@ public class PartySsnMaskingTests
             Party = new Party
             {
                 PartyId = 51005394,
+                PartyUuid = Guid.NewGuid(),
                 PartyTypeName = PartyType.Person,
                 Name = "GRENSE TROVERDIG",
                 SSN = "26917699894",

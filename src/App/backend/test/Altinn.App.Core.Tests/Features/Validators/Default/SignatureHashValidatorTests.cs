@@ -242,7 +242,12 @@ public class SignatureHashValidatorTests
             {
                 SocialSecurityNumber = "12345678901",
                 FullName = "Test Person",
-                Party = new Party(),
+                Party = new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Test Person",
+                },
             },
             SigneeState = new SigneeContextState { IsAccessDelegated = false },
             SignDocument = null,
@@ -362,7 +367,12 @@ public class SignatureHashValidatorTests
             {
                 SocialSecurityNumber = "12345678901",
                 FullName = "Test Person",
-                Party = new Party(),
+                Party = new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.NewGuid(),
+                    Name = "Test Person",
+                },
             },
             SigneeState = new SigneeContextState { IsAccessDelegated = false },
             SignDocument = new SignDocument
