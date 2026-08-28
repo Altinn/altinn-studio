@@ -139,7 +139,9 @@ class TestGateGoal:
             with pytest.raises(GoalRejected, match="Altinn-apputvikling"):
                 await _gate_goal(state, event_sink=_sink())
 
-    async def test_write_mode_strips_pipes_from_the_decline_text(self):
+    async def test_write_mode_keeps_the_decline_text_intact(self):
+        """Suggestions travel as their own field, so punctuation in the decline
+        no longer has to survive a packed string."""
         state = _state(allow_app_changes=True)
         piped = ScopeCheckResult(
             in_scope=False,
@@ -153,9 +155,9 @@ class TestGateGoal:
             with pytest.raises(GoalRejected) as excinfo:
                 await _gate_goal(state, event_sink=_sink())
 
-        # The "reason|suggestions" protocol splits on "|" — the decline text
-        # must not contain one, or it spills into fake suggestion chips.
-        assert "|" not in str(excinfo.value)
+        assert excinfo.value.message == piped.decline_message
+        assert excinfo.value.suggestions == []
+
 
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)
@@ -307,7 +309,7 @@ class TestValidateIntentRejectionCopy:
     """The user-facing half of a rejection: Norwegian, and free of the gate's
     own reasoning, which names the rule that was tripped."""
 
-    async def _reject(self, parsed) -> str:
+    async def _reject(self, parsed) -> GoalRejected:
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch(
@@ -317,19 +319,21 @@ class TestValidateIntentRejectionCopy:
         ):
             with pytest.raises(GoalRejected) as excinfo:
                 await _validate_intent(_state(allow_app_changes=True))
-        return str(excinfo.value)
+        return excinfo.value
 
     async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):
         parsed = MagicMock(safe=False, confidence=0.9, reason=UNSAFE_GATE_REASON)
 
-        message = await self._reject(parsed)
+        rejection = await self._reject(parsed)
 
-        assert message == f"{_UNSAFE_GOAL_MESSAGE}|{REJECTION_SUGGESTION}"
-        assert UNSAFE_GATE_REASON not in message
+        assert rejection.message == _UNSAFE_GOAL_MESSAGE
+        assert rejection.suggestions == [REJECTION_SUGGESTION]
+        assert UNSAFE_GATE_REASON not in rejection.message
 
     async def test_an_unclear_goal_is_reported_in_norwegian(self):
         parsed = MagicMock(safe=True, confidence=0.0, reason="unclear")
 
-        message = await self._reject(parsed)
+        rejection = await self._reject(parsed)
 
-        assert message == f"{_UNCLEAR_GOAL_MESSAGE}|{REJECTION_SUGGESTION}"
+        assert rejection.message == _UNCLEAR_GOAL_MESSAGE
+        assert rejection.suggestions == [REJECTION_SUGGESTION]
