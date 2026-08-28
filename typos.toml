@@ -9,9 +9,10 @@
 # scripts/spellcheck/suppressions.txt, scoped to the paths and identifiers
 # where it is load-bearing and enforced by the runner — a suppressed token
 # outside its scope is still reported, and a suppression that matches nothing
-# is itself a finding. Norwegian copy inside string literals and tokens
-# inside base64/JWT data runs are classified by the runner (classifyFindings
-# in scripts/spellcheck/lib.mjs), where the logic is unit-tested and its work
+# is itself a finding. Norwegian copy inside string literals, tokens inside
+# base64/JWT data runs, and word tails after a bracket expression
+# (`*.[Pp]ublish.xml`) are classified by the runner (classifyFindings in
+# scripts/spellcheck/lib.mjs), where the logic is unit-tested and its work
 # counted on every run.
 #
 # Because policy lives in the runner, `typos` invoked directly reports

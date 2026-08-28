@@ -169,8 +169,12 @@ export const CLASSIFIER_SCENARIOS = {
     'd.md': `don't classify adresse after an unpaired apostrophe`,
     'e.ts': `const s = 'han sa \\'adresse\\' til alle'; colour();`, // escapes
     'f.yaml': `n: uCI86gU5og9MxiTN7qKUvZmAgXBaEfGhIjKlMnOpQrStUv`, // blob
+    'g.gitignore': `*.[Pp]ublish.xml`, // bracket expression
+    'h.md': `the [Pp]ublish.xml pattern and a colour`, // bracket class must not shield the rest of the line
   },
   cases: [
+    ['g.gitignore', 'ublish', 'pattern', 'a word tail right after a bracket expression'],
+    ['h.md', 'colour', 'finding', 'a word elsewhere on a line that has a bracket expression'],
     ['a.ts', 'adresse', 'norwegian', 'a typo inside a Norwegian string'],
     ['b.ts', 'colour', 'finding', 'an English string next to a Norwegian one'],
     ['c.ts', 'adresse', 'finding', 'an identifier on a line with a Norwegian string'],
@@ -197,7 +201,8 @@ export const EXPECTED = {
   // removed them. Norwegian: `flavour` plus the Norwegian words `som` and
   // `alle`, which typos itself flags as English typos — the exact class the
   // classifier exists for. Data: `recieve` embedded in a 30+ character run.
-  codeClassified: { norwegian: 3, data: 1 },
+  // Pattern: `ublish` in the fixture .gitignore's `*.[Pp]ublish.xml`.
+  codeClassified: { norwegian: 3, data: 1, pattern: 1 },
   structure: [
     "missing key 'planted.missing_in_nn'",
     "'planted.empty_in_nb' is empty",
