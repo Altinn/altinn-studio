@@ -11,7 +11,7 @@ const trueLabel = 'True';
 const falseLabel = 'False';
 const groupName = 'Boolean toggle';
 const defaultProps: StudioBooleanToggleGroupProps = {
-  'data-toggle-group': groupName,
+  'aria-label': groupName,
   trueLabel,
   falseLabel,
 };
