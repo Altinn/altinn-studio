@@ -76,6 +76,52 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task ConvertsMappingOnATaggedFileUploadWhicheverNameItStillCarries()
+    {
+        // FileUploadWithTagLayoutMigration runs earlier in the v8-to-v9 pipeline and renames the
+        // component to FileUpload, so by the time this migration sees the layout the mapping can sit
+        // under either name. Both have to convert.
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            """
+            {
+              "data": {
+                "layout": [
+                  {
+                    "id": "renamed",
+                    "type": "FileUpload",
+                    "optionsId": "tags",
+                    "mapping": { "Animals.IsForeign": "foreign" }
+                  },
+                  {
+                    "id": "not-renamed",
+                    "type": "FileUploadWithTag",
+                    "optionsId": "tags",
+                    "mapping": { "Animals.IsDomestic": "domestic" }
+                  }
+                ]
+              }
+            }
+            """
+        );
+
+        var result = await Migrate();
+
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(2, result.QueryParametersConverted);
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+
+        var renamed = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.False(renamed.ContainsKey("mapping"));
+        Assert.Equal("""["dataModel","Animals.IsForeign"]""", Compact(renamed["queryParameters"]?["foreign"]));
+
+        var notRenamed = Component("ui/Task_1/layouts/Side1.json", 1);
+        Assert.False(notRenamed.ContainsKey("mapping"));
+        Assert.Equal("""["dataModel","Animals.IsDomestic"]""", Compact(notRenamed["queryParameters"]?["domestic"]));
+    }
+
+    [Fact]
     public async Task DropsRepeatingGroupRowMarkersFromTheDataModelPath()
     {
         _app.Write(

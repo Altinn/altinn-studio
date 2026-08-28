@@ -28,11 +28,18 @@ internal sealed record DeprecatedLayoutPropertiesMigrationResult(
 /// </summary>
 internal sealed class DeprecatedLayoutPropertiesMigrator
 {
-    /// <summary>Components whose <c>mapping</c> ended up as query parameters on an options or data list request.</summary>
+    /// <summary>
+    /// Components whose <c>mapping</c> ended up as query parameters on an options or data list request.
+    /// Both spellings of the tagged file upload are listed: <c>FileUploadWithTag</c> is what a v8 layout
+    /// holds, and <c>FileUpload</c> what <see cref="FileUploadWithTagLayoutMigration"/> has already
+    /// rewritten it to by the time this runs. Matching both keeps this migration independent of the order
+    /// the two jobs run in.
+    /// </summary>
     private static readonly HashSet<string> _componentsWithQueryParameters = new(StringComparer.Ordinal)
     {
         "Checkboxes",
         "Dropdown",
+        "FileUpload",
         "FileUploadWithTag",
         "Likert",
         "LikertItem",
