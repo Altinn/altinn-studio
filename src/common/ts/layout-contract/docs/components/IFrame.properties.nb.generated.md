@@ -1,0 +1,10 @@
+Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/) og [`pageBreak`](../page-break/).
+
+| Egenskap                             | Type                           | Påkrevd | Standardverdi | Beskrivelse                                                                                                                               |
+| ------------------------------------ | ------------------------------ | ------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                               | `"IFrame"`                     | Ja      |               | Angir hvilken komponenttype konfigurasjonen gjelder.                                                                                      |
+| `textResourceBindings`               | `object`                       | Nei     |               | Kobler tekstene i komponenten til tekstressurser eller uttrykk.                                                                           |
+| `textResourceBindings.title`         | `string \| expression<string>` | Nei     |               | Innholdet i IFrame-komponenten. Kan være en streng med HTML, en tekstressursnøkkel eller et uttrykk som henter en verdi fra datamodellen. |
+| `sandbox`                            | `object`                       | Nei     |               |                                                                                                                                           |
+| `sandbox.allowPopups`                | `boolean`                      | Nei     | `false`       | Legger «allow-popups» til i sandbox-attributtet på iframe-elementet.                                                                      |
+| `sandbox.allowPopupsToEscapeSandbox` | `boolean`                      | Nei     | `false`       | Legger «allow-popups-to-escape-sandbox» til i sandbox-attributtet på iframe-elementet.                                                    |

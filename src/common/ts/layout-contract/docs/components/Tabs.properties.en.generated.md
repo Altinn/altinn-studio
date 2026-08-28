@@ -1,0 +1,17 @@
+The component also supports the common properties [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/), and [`pageBreak`](../page-break/).
+
+| Property                                      | Type                             | Required | Default    | Description                                                                                                 |
+| --------------------------------------------- | -------------------------------- | -------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
+| `renderAsSummary`                             | `boolean`                        | No       | `false`    | Boolean value indicating if the component should be rendered as a summary. Defaults to false.               |
+| `forceShowInSummary`                          | `boolean \| expression<boolean>` | No       | `false`    | Will force show the component in a summary even if hideEmptyFields is set to true in the summary component. |
+| `type`                                        | `"Tabs"`                         | Yes      |            | Identifies which component type this configuration represents.                                              |
+| `textResourceBindings`                        | `object`                         | No       |            | Connects component texts to text resources or expressions.                                                  |
+| `textResourceBindings.summaryTitle`           | `string \| expression<string>`   | No       |            | Title used in the summary view (overrides the default title)                                                |
+| `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>`   | No       |            | Title used for aria-label on the edit button in the summary view (overrides the default and summary title)  |
+| `size`                                        | `"small" \| "medium" \| "large"` | No       | `"medium"` | Allowed values: "small", "medium", "large".                                                                 |
+| `defaultTab`                                  | `string`                         | No       |            |                                                                                                             |
+| `tabs`                                        | `object[]`                       | Yes      |            |                                                                                                             |
+| `tabs[].id`                                   | `string`                         | Yes      |            |                                                                                                             |
+| `tabs[].title`                                | `string`                         | Yes      |            | Title of the tab                                                                                            |
+| `tabs[].icon`                                 | `string`                         | No       |            |                                                                                                             |
+| `tabs[].children`                             | `string[]`                       | Yes      |            | List of component IDs that should be displayed in the Tab                                                   |
