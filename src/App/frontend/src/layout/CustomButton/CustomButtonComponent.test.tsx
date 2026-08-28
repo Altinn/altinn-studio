@@ -1,12 +1,12 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { CustomAction } from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { CustomAction } from 'src/layout/CustomButton/config.generated';
 import type { IUserAction } from 'src/types/shared';
 
 describe('CustomButtonComponent', () => {

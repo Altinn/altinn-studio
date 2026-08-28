@@ -1,16 +1,16 @@
 import React from 'react';
 
+import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
-import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 

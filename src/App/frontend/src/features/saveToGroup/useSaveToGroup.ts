@@ -2,13 +2,13 @@ import { useCallback, useMemo } from 'react';
 
 import dot from 'dot-object';
 import { v4 as uuidv4 } from 'uuid';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelBindingsForGroupCheckbox } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
+import type { IDataModelBindingsForGroupMultiselect } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
-import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
-import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 
 type Row = Record<string, unknown>;
 const emptyArray: string[] = [];

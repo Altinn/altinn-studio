@@ -1,7 +1,7 @@
+import type { GridCellLabelFrom } from '@app/layout-contract/generated/common.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-import type { GridCellLabelFrom } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
 
