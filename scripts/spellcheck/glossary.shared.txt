@@ -104,8 +104,6 @@ xml
 yml
 
 # Identifiers and placeholders quoted verbatim in UI text
-allof
-anyof
 applicationmetadata
 componentref
 deletionstrategy
@@ -117,10 +115,15 @@ labelsettings
 layoutsets
 maskinportenscope
 metadatanavn
-oneof
 pagebreak
 pageref
 showaddbutton
+
+# JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
+# schema-editor UI text
+allof
+anyof
+oneof
 
 # Abbreviations and literals
 dd          # yyyy-mm-dd

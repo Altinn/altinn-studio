@@ -170,7 +170,8 @@ DocProject/Help/html
 publish/
 
 # Publish Web Output
-*.[Pp]publish.xml
+*.publish.xml
+*.Publish.xml
 *.azurePubxml
 # Note: Comment the next line if you want to checkin your web deploy settings,
 # but database connection strings (with potential passwords) will be unencrypted
@@ -292,7 +293,7 @@ node_modules/
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
 
-# Packet dependency manager
+# Paket dependency manager
 .paket/paket.exe
 paket-files/
 

@@ -165,7 +165,7 @@ export function en() {
     'general.choose_method': 'Choose method',
     'general.choose': 'Choose',
     'general.close': 'Close',
-    'general.contains': 'Contains',
+    'general.contains': 'Contains{0}',
     'general.control_submit': 'Control and submit',
     'general.copy': 'Copy',
     'general.copied': 'Copied',

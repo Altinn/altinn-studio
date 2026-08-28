@@ -235,12 +235,15 @@ som
 # all must name the misspellings they remove.
 @paths src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/CSharpApiMigration/MisspelledApiMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs src/cli/CHANGELOG.md
 Analyse
+analyser
 Analyser
 Analysers
 Analyzis
 Extentions
 Indicies
+instansiation
 Instansiation
+langauge
 Organisation
 
 # v8 OrganisationLookup data-model binding names: the layout migration
@@ -256,3 +259,7 @@ modelling
 # Norwegian JSX text node in the Storybook docs component
 @paths src/common/ts/form-component/src/layout-components/common/storybook/LayoutComponentDocs.tsx
 som
+
+# Paket is the .NET dependency manager named in the standard gitignore template
+@paths **/.gitignore
+Paket

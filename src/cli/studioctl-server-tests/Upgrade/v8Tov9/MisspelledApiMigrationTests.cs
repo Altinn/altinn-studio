@@ -264,6 +264,40 @@ public sealed class MisspelledApiMigrationTests : IDisposable
         Assert.Contains("Analyse(\"x\")", migratedUnrelated);
     }
 
+    [Fact]
+    public void NamedArguments_RenamedOnlyWhenBoundToSdkParameters()
+    {
+        var sdkCall = _app.Write(
+            "logic/Results.cs",
+            """
+            using Altinn.App.Core.Features.FileAnalysis;
+
+            public class Results
+            {
+                public FileAnalysisResult Build() => new FileAnalysisResult(analyserId: "mime");
+            }
+            """
+        );
+        var ownMethod = _app.Write(
+            "logic/Own.cs",
+            """
+            public class Own
+            {
+                public string Describe(string analyserId) => analyserId;
+                public string Use() => Describe(analyserId: "mine");
+            }
+            """
+        );
+
+        new MisspelledApiMigration(SemanticScanner()).Migrate();
+
+        Assert.Contains("new FileAnalysisResult(analyzerId: \"mime\")", File.ReadAllText(sdkCall));
+        // The app's own parameter of the same name is untouched, at the declaration and the call.
+        var migratedOwn = File.ReadAllText(ownMethod);
+        Assert.Contains("Describe(string analyserId)", migratedOwn);
+        Assert.Contains("Describe(analyserId: \"mine\")", migratedOwn);
+    }
+
     // --- Wire spellings are never touched ---------------------------------------------------------
 
     [Fact]

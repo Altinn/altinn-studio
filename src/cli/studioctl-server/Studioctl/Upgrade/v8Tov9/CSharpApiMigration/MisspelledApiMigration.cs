@@ -75,6 +75,16 @@ internal sealed class MisspelledApiMigration
         ["OrganisationDetails"] = "OrganizationDetails",
         ["OrganisationName"] = "OrganizationName",
         ["OrganisationNumber"] = "OrganizationNumber",
+        // Renamed PARAMETERS. Positional arguments need nothing; a named argument
+        // (`analyserId: "x"`) binds to the SDK's IParameterSymbol and is renamed here.
+        ["analyserId"] = "analyzerId",
+        ["analyserIds"] = "analyzerIds",
+        ["fileAnalyserFactory"] = "fileAnalyzerFactory",
+        ["instansiationInstance"] = "instantiationInstance",
+        ["langauge"] = "language",
+        ["organisationClient"] = "organizationClient",
+        ["organisationName"] = "organizationName",
+        ["organisationOrPersonIdentifier"] = "organizationOrPersonIdentifier",
     };
 
     private readonly CSharpSourceScanner _scanner;
