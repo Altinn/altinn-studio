@@ -5,10 +5,15 @@ export interface IRequiredIndicatorProps {
 }
 
 export const RequiredIndicator = ({ required }: IRequiredIndicatorProps) => {
-  const { langAsNonProcessedString } = useTranslation();
+  const { langAsString, langAsNonProcessedString } = useTranslation();
   if (!required) {
     return null;
   }
 
-  return <span> {langAsNonProcessedString('form_filler.required_label')}</span>;
+  return (
+    <span aria-label={langAsString('general.required')}>
+      {' '}
+      {langAsNonProcessedString('form_filler.required_label')}
+    </span>
+  );
 };

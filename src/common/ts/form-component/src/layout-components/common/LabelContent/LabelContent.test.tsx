@@ -33,7 +33,7 @@ describe('LabelContent', () => {
 
   it('marks the label as required', () => {
     render({ required: true });
-    expect(screen.getByText('*')).toBeInTheDocument();
+    expect(screen.getByLabelText('Required')).toHaveTextContent('*');
   });
 
   it('marks the label as optional when showOptionalMarking is set', () => {
