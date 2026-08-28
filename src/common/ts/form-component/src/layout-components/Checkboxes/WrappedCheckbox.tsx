@@ -6,6 +6,7 @@ import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopove
 import { HelpText } from '@app/form-component/app-components/HelpText';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
+import { slugify } from '@app/form-component/layout-components/utils/slugify';
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { CheckboxProps } from '@digdir/designsystemet-react';
@@ -91,7 +92,7 @@ export function WrappedCheckbox({
       )}
     >
       <Checkbox
-        id={stringUtils.slugify(`${componentId}-${option.label`)}
+        id={slugify(`${componentId}-${option.label}`)}
         description={option.description && lang(option.description)}
         value={option.value}
         readOnly={readOnly}
