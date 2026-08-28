@@ -131,7 +131,11 @@ _UNCLEAR_GOAL_MESSAGE = (
 
 class GoalRejected(Exception):
     """Raised when the intent parser rejects the user's goal."""
-    pass
+
+    def __init__(self, message: str, suggestions: list[str] | None = None):
+        super().__init__(message)
+        self.message = message
+        self.suggestions = suggestions or []
 
 
 async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
@@ -158,10 +162,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
             state.session_id, scope_result.reason,
         )
         if state.allow_app_changes:
-            # GoalRejected messages are "reason|suggestions" — strip pipes
-            # from the LLM-written decline so it can't spill into fake
-            # suggestion chips.
-            raise GoalRejected(decline_text.replace("|", "/"))
+            raise GoalRejected(decline_text)
         if not _emit_chat_decline(state, event_sink, decline_text):
             raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
         return decline_text
@@ -239,17 +240,13 @@ async def _validate_intent(state: AgentState):
 
     if not parsed.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
-        suggestions = suggest_goal_correction(state.user_goal)
-        raise GoalRejected(
-            f"{_UNSAFE_GOAL_MESSAGE}|{','.join(suggestions) if suggestions else ''}"
-        )
+        suggestions = await suggest_goal_correction(state.user_goal, parsed.reason)
+        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
     if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
         _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
-        suggestions = suggest_goal_correction(state.user_goal)
-        raise GoalRejected(
-            f"{_UNCLEAR_GOAL_MESSAGE}|{','.join(suggestions) if suggestions else ''}"
-        )
+        suggestions = await suggest_goal_correction(state.user_goal)
+        raise GoalRejected(_UNCLEAR_GOAL_MESSAGE, suggestions)
 
     _log.info(
         "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
@@ -399,10 +396,6 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
         except WorkflowCancelled:
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
         except GoalRejected as e:
-            msg = str(e)
-            parts = msg.split("|", 1)
-            reason = parts[0]
-            suggestions = parts[1].split(",") if len(parts) > 1 and parts[1] else []
             event_sink.send(AgentEvent(
                 type="error",
                 session_id=state.session_id,
@@ -410,8 +403,8 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "done": True,
                     "success": False,
                     "status": "rejected",
-                    "message": reason,
-                    "suggestions": suggestions,
+                    "message": e.message,
+                    "suggestions": e.suggestions,
                 }
             ))
         except Exception as e:
