@@ -14,12 +14,7 @@ const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   intro: 'aboutAssistantIntro',
   assistantDocsInfo: 'aboutAssistantDocsInfo',
   assistantDocsLink: 'aboutAssistantDocsLink',
-  howToHeading: 'aboutAssistantHowToHeading',
-  description: 'aboutAssistantDescription',
-  branchInfo: 'aboutAssistantBranchInfo',
-  branchDocsLink: 'aboutAssistantBranchDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
-  privacyHeading: 'aboutAssistantPrivacyHeading',
   privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
 };
 

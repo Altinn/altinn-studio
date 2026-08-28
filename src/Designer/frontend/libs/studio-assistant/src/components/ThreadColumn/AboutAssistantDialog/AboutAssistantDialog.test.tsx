@@ -12,12 +12,7 @@ const mockDialogTexts: AboutAssistantDialogTexts = {
   intro: 'Assistenten er en KI-agent.',
   assistantDocsInfo: 'Du kan lese mer i',
   assistantDocsLink: 'veiledningen for assistenten',
-  howToHeading: 'Hvordan bruke assistenten',
-  description: 'Beskrivelse av assistenten.',
-  branchInfo: 'Grener info',
-  branchDocsLink: 'dokumentasjonen',
   disclaimer: 'Assistenten er under utvikling.',
-  privacyHeading: 'Personvern',
   privacyDataHandling: 'Ikke send sensitiv informasjon. Alt lagres i 90 dager.',
 };
 
@@ -75,12 +70,9 @@ describe('AboutAssistantDialog', () => {
     expect(docsLink).toHaveAttribute('href', assistantDocsUrl);
   });
 
-  it('should render the privacy section', () => {
+  it('should render the privacy information', () => {
     renderAboutAssistantDialog();
 
-    expect(
-      screen.getByRole('heading', { name: mockDialogTexts.privacyHeading }),
-    ).toBeInTheDocument();
     expect(screen.getByText(mockDialogTexts.privacyDataHandling)).toBeInTheDocument();
   });
 });

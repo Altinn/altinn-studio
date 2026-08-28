@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 export type AssistantTexts = {
   heading: string;
   preview: string;
@@ -55,12 +53,7 @@ export type AboutAssistantDialogTexts = {
   intro: string;
   assistantDocsInfo: string;
   assistantDocsLink: string;
-  howToHeading: string;
-  description: ReactNode;
-  branchInfo: ReactNode;
-  branchDocsLink: string;
   disclaimer: string;
-  privacyHeading: string;
   privacyDataHandling: string;
 };
 

@@ -7,9 +7,6 @@ import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 export const assistantDocsUrl =
   'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/assistant/';
 
-const branchDocsUrl =
-  'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/branching/#flette-grener-til-master';
-
 export const hasSeenDialogStorageKey = 'hasSeenAboutAssistantDialog';
 
 type AboutAssistantDialogProps = {
@@ -45,21 +42,7 @@ export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): Reac
               <ExternalLinkIcon />
             </StudioLink>
           </StudioParagraph>
-          <StudioHeading level={3} data-size='xs'>
-            {texts.howToHeading}
-          </StudioHeading>
-          <StudioParagraph spacing>{texts.description}</StudioParagraph>
-          <StudioParagraph spacing>
-            {texts.branchInfo}
-            <StudioLink target='_blank' rel='noopener noreferrer' href={branchDocsUrl}>
-              <span>{texts.branchDocsLink}</span>
-              <ExternalLinkIcon />
-            </StudioLink>
-          </StudioParagraph>
           <StudioParagraph spacing>{texts.disclaimer}</StudioParagraph>
-          <StudioHeading level={3} data-size='xs'>
-            {texts.privacyHeading}
-          </StudioHeading>
           <StudioParagraph>{texts.privacyDataHandling}</StudioParagraph>
         </StudioDialog.Block>
       </StudioDialog>
