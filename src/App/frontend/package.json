@@ -114,6 +114,7 @@
     "@app/form-component": "workspace:*",
     "@app/form-engine": "workspace:*",
     "@app/language": "workspace:*",
+    "@app/layout-contract": "workspace:*",
     "@date-fns/tz": "1.5.0",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",

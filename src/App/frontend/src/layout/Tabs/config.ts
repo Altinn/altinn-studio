@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Tabs', en: 'Tabs' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -24,13 +30,19 @@ export const Config = new CG.component({
       new CG.arr(
         new CG.obj(
           new CG.prop('id', new CG.str()),
-          new CG.prop('title', new CG.str().setTitle('Title').setDescription('Title of the tab')),
+          new CG.prop(
+            'title',
+            new CG.str().setTitle('Title', 'Ledetekst').setDescription('Title of the tab', 'Fanens tittel.'),
+          ),
           new CG.prop('icon', new CG.str().optional().addExample('https://example.com/icon.svg')),
           new CG.prop(
             'children',
             new CG.arr(new CG.str())
-              .setTitle('Children')
-              .setDescription('List of component IDs that should be displayed in the Tab'),
+              .setTitle('Children', 'Underkomponenter')
+              .setDescription(
+                'List of component IDs that should be displayed in the Tab',
+                'Liste over komponent-ID-er som skal vises i fanen.',
+              ),
           ),
         ).exportAs('TabConfig'),
       ),

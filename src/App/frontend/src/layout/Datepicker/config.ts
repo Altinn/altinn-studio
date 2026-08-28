@@ -1,9 +1,15 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Dato', en: 'Datepicker' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -31,10 +37,11 @@ export const Config = new CG.component({
         new CG.const('oneYearFromNow'),
       )
         .optional({ default: '1900-01-01T12:00:00.000Z' })
-        .setTitle('Earliest date')
+        .setTitle('Earliest date', 'Tidligste dato')
         .setDescription(
           "Sets the earliest allowed date. Can also use keyword 'today' to disable all past dates dynamically based " +
             'on the current date. Defaults to 1900-01-01T12:00:00.000Z.',
+          'Angir tidligste tillatte dato. Nøkkelordet «today» sperrer dynamisk alle tidligere datoer.',
         ),
     ),
   )
@@ -50,10 +57,11 @@ export const Config = new CG.component({
         new CG.const('oneYearFromNow'),
       )
         .optional({ default: '2100-01-01T12:00:00.000Z' })
-        .setTitle('Latest date')
+        .setTitle('Latest date', 'Seneste dato')
         .setDescription(
           "Sets the latest allowed date. Can also use keyword 'today' to disable all future dates dynamically based " +
             'on the current date. Defaults to 2100-01-01T12:00:00.000Z.',
+          'Angir seneste tillatte dato. Nøkkelordet «today» sperrer dynamisk alle fremtidige datoer.',
         ),
     ),
   )
@@ -62,10 +70,11 @@ export const Config = new CG.component({
       'timeStamp',
       new CG.bool()
         .optional({ default: false })
-        .setTitle('Include time')
+        .setTitle('Include time', 'Ta med klokkeslett')
         .setDescription(
           'Boolean value indicating if the date time should be stored as a timeStamp. Defaults to false. ' +
             "If true: 'yyyy-MM-ddThh:mm:ss.sssZ', if false 'yyyy-MM-dd';",
+          'Angir om dato og klokkeslett skal lagres som et tidsstempel.',
         ),
     ),
   )
@@ -74,10 +83,11 @@ export const Config = new CG.component({
       'format',
       new CG.str()
         .optional({ default: 'dd.MM.yyyy' })
-        .setTitle('Date format')
+        .setTitle('Date format', 'Datoformat')
         .setDescription(
           'Date format used when filling out and displaying the date to the user. ' +
             "If not set the format will be based on the user's selected language.",
+          'Datoformatet som brukes ved utfylling og visning.',
         )
         .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'),
     ),

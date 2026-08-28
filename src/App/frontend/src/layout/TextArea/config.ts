@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Stort tekstfelt', en: 'Long text' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -24,9 +30,10 @@ export const Config = new CG.component({
       'maxLength',
       new CG.int()
         .optional()
-        .setTitle('Max length')
+        .setTitle('Max length', 'Maksimal lengde')
         .setDescription(
           'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+          'Maksimal lengde for inndatafeltet. Viser en teller med antall gjenstående tegn.',
         ),
     ),
   )
