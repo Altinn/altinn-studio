@@ -89,7 +89,7 @@
           orgNumber: null,
           ssn: 010390*****,
           unitType: null,
-          name: Test User 501337,
+          name: Sophie Salt,
           isDeleted: false,
           onlyHierarchyElementWithNoAccess: false,
           person: null,
