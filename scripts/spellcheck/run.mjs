@@ -111,6 +111,7 @@ function checkCode({ fix, root }) {
     kept: unclassified,
     norwegian,
     data,
+    pattern,
     usedSignals,
   } = classifyFindings(runTypos([]), readLine);
   const { kept, suppressedCount, stale } = partitionFindings(unclassified, compiled, readLine);
@@ -147,6 +148,7 @@ function checkCode({ fix, root }) {
     counts:
       `${fileCount} files visited, ${norwegian} in Norwegian strings ` +
       `(${usedSignals.size}/${NORWEGIAN_SIGNAL_WORDS.size} signal words at work), ${data} in data runs, ` +
+      `${pattern} after bracket expressions, ` +
       `${suppressedCount} finding(s) suppressed by ${compiled.length} scoped rules`,
   };
 }
@@ -691,6 +693,7 @@ async function checkQuick(ctx, fileArgs) {
     kept: unclassified,
     norwegian,
     data,
+    pattern,
   } = classifyFindings(runTypos(['--force-exclude', ...files], { cwd: root }), readLine);
   const { kept, suppressedCount } = partitionFindings(unclassified, compiled, readLine, {
     staleCheck: false, // a scoped run proves nothing about unrelated entries
@@ -741,7 +744,7 @@ async function checkQuick(ctx, fileArgs) {
   return {
     findings,
     counts:
-      `${files.length} file(s), ${norwegian + data} classified, ${suppressedCount} suppressed` +
+      `${files.length} file(s), ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
       (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
   };
 }
@@ -826,18 +829,20 @@ async function checkSelfTest({ ci }) {
       kept: codeKept,
       norwegian,
       data,
+      pattern,
     } = classifyFindings(
       runTypos(['--config', ROOT_CONFIG, '.'], { cwd: tmp }),
       fileLineReader(tmp),
     );
-    assertions += 2;
-    if (norwegian !== EXPECTED.codeClassified.norwegian || data !== EXPECTED.codeClassified.data) {
+    assertions += 3;
+    const want = EXPECTED.codeClassified;
+    if (norwegian !== want.norwegian || data !== want.data || pattern !== want.pattern) {
       failures.push(
         finding(
           '(self-test)',
           undefined,
-          `code: expected ${EXPECTED.codeClassified.norwegian} Norwegian / ` +
-            `${EXPECTED.codeClassified.data} data classification(s), got ${norwegian} / ${data}`,
+          `code: expected ${want.norwegian} Norwegian / ${want.data} data / ${want.pattern} pattern ` +
+            `classification(s), got ${norwegian} / ${data} / ${pattern}`,
         ),
       );
     }
@@ -966,8 +971,9 @@ function classifierFailures({ lines, cases }) {
   for (const [path, typo, want, what] of cases) {
     // The fixture lines are ASCII, so indexOf is the byte offset.
     const find = { path, line_num: 1, byte_offset: lines[path].indexOf(typo), typo };
-    const { norwegian, data, usedSignals } = classifyFindings([find], readLine);
-    const got = norwegian === 1 ? 'norwegian' : data === 1 ? 'data' : 'finding';
+    const { norwegian, data, pattern, usedSignals } = classifyFindings([find], readLine);
+    const got =
+      norwegian === 1 ? 'norwegian' : data === 1 ? 'data' : pattern === 1 ? 'pattern' : 'finding';
     if (got !== want) failures.push(`expected ${want} but got ${got} for ${what}`);
     if (got === 'norwegian' && usedSignals.size === 0) {
       failures.push(`classification of ${what} recorded no signal-word usage`);

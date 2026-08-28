@@ -273,9 +273,13 @@ export function stringSpans(buf) {
  *              is missed.
  *   data       inside a contiguous run of 30+ base64ish characters (JWKs,
  *              tokens, hashes) — data is not words, wherever it occurs.
+ *   pattern    the tail of a word whose first letter(s) sit in a bracket
+ *              expression — `*.[Pp]ublish.xml` — where typos sees the word
+ *              without its first letter. A character class is glob/regex
+ *              syntax, not spelling.
  *   kept       everything else; a finding.
  *
- * Both classified piles are counted so their work is visible on every run,
+ * Every classified pile is counted so its work is visible on every run,
  * and `usedSignals` names the signal words that matched — the caller's
  * evidence for stale-checking NORWEGIAN_SIGNAL_WORDS.
  */
@@ -284,14 +288,19 @@ export function classifyFindings(findings, readLine) {
   const usedSignals = new Set();
   let norwegian = 0;
   let data = 0;
+  let pattern = 0;
   for (const f of findings) {
     const cls = classify(f, readLine, usedSignals);
     if (cls === 'norwegian') norwegian += 1;
     else if (cls === 'data') data += 1;
+    else if (cls === 'pattern') pattern += 1;
     else kept.push(f);
   }
-  return { kept, norwegian, data, usedSignals };
+  return { kept, norwegian, data, pattern, usedSignals };
 }
+
+// A bracket expression directly before the token: `[Pp]` in `*.[Pp]ublish.xml`.
+const BRACKET_CLASS_BEFORE = /\[[A-Za-z]{2,}\]$/;
 
 function classify(f, readLine, usedSignals) {
   if (f.line_num === undefined) return 'finding'; // a file-name finding
@@ -300,6 +309,12 @@ function classify(f, readLine, usedSignals) {
   const buf = Buffer.from(line, 'utf8');
   const tok = Buffer.from(f.typo, 'utf8');
   if (!buf.subarray(f.byte_offset, f.byte_offset + tok.length).equals(tok)) return 'finding';
+
+  // The bytes before the token are ASCII when they form a bracket class, so
+  // a byte-space slice is safe here.
+  if (BRACKET_CLASS_BEFORE.test(buf.subarray(0, f.byte_offset).toString('latin1'))) {
+    return 'pattern';
+  }
 
   // The contiguous data-shaped run around the token. No natural word — in
   // either language — reaches 30 characters unbroken by spaces or
