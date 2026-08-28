@@ -18,9 +18,16 @@ const compat = new FlatCompat({
 });
 
 const designsystemetRestriction = {
-  group: ['@digdir/designsystemet-react', '@digdir/designsystemet-react/*'],
+  group: [
+    '@digdir/designsystemet-react',
+    '@digdir/designsystemet-react/*',
+    '@digdir/designsystemet-css',
+    '@digdir/designsystemet-css/**',
+    '@digdir/designsystemet-theme',
+    '@digdir/designsystemet-theme/**',
+  ],
   message:
-    'Do not import components directly from Designsystemet. Import them from @studio/components instead, and add a wrapper there if the component is missing.',
+    'Do not import from Designsystemet directly. Import components from @studio/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @studio/components and @studio/components-legacy.',
 };
 
 const restrictedImportsAllowingDesignsystemet = (patterns) => [

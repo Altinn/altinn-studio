@@ -119,6 +119,14 @@ _log = _logging.getLogger(__name__)
 
 MINIMUM_INTENT_CONFIDENCE = 0.1
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
+_UNSAFE_GOAL_MESSAGE = (
+    "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
+    "en utrygg eller utilsiktet endring. Du kan gjerne omformulere den."
+)
+_UNCLEAR_GOAL_MESSAGE = (
+    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive "
+    "endringen litt mer konkret?"
+)
 
 
 class GoalRejected(Exception):
@@ -233,14 +241,14 @@ async def _validate_intent(state: AgentState):
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
         suggestions = suggest_goal_correction(state.user_goal)
         raise GoalRejected(
-            f"Goal rejected: {parsed.reason}|{','.join(suggestions) if suggestions else ''}"
+            f"{_UNSAFE_GOAL_MESSAGE}|{','.join(suggestions) if suggestions else ''}"
         )
 
     if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
         _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
         suggestions = suggest_goal_correction(state.user_goal)
         raise GoalRejected(
-            f"Goal is too unclear or ambiguous|{','.join(suggestions) if suggestions else ''}"
+            f"{_UNCLEAR_GOAL_MESSAGE}|{','.join(suggestions) if suggestions else ''}"
         )
 
     _log.info(
